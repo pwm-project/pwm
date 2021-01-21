@@ -37,6 +37,7 @@ import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.servlet.AbstractPwmServlet;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
 import password.pwm.ws.server.RestResultBean;
@@ -54,7 +55,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @WebServlet(
         name = "ConfigManagerCertificateServlet",
@@ -120,11 +120,13 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
     List<CertificateDebugDataItem> makeCertificateDebugData( final DomainConfig domainConfig ) throws PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = domainConfig.getStoredConfiguration();
-        final Stream<StoredConfigKey> modifiedSettings = StoredConfigKey.filterByType( StoredConfigKey.RecordType.SETTING, storedConfiguration.keys() );
+        final List<StoredConfigKey> modifiedSettings = CollectionUtil.iteratorToStream( storedConfiguration.keys() )
+                .filter( keys -> keys.isRecordType( StoredConfigKey.RecordType.SETTING ) )
+                .collect( Collectors.toUnmodifiableList() );
 
         final List<CertificateDebugDataItem> certificateDebugDataItems = new ArrayList<>();
 
-        for ( final StoredConfigKey key : modifiedSettings.collect( Collectors.toList() ) )
+        for ( final StoredConfigKey key : modifiedSettings )
         {
             final PwmSetting pwmSetting = key.toPwmSetting();
             if ( pwmSetting.getSyntax() == PwmSettingSyntax.X509CERT )

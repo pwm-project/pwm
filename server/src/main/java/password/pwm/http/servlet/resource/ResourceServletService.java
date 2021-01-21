@@ -25,15 +25,14 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.commons.io.output.NullOutputStream;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.MovingAverage;
@@ -50,8 +49,10 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -59,11 +60,10 @@ public class ResourceServletService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ResourceServletService.class );
 
-
     private ResourceServletConfiguration resourceServletConfiguration;
     private Cache<CacheKey, CacheEntry> cache;
     private final MovingAverage cacheHitRatio = new MovingAverage( 60 * 60 * 1000 );
-    private String resourceNonce;
+    private String resourceNonce = "";
     private STATUS status = STATUS.CLOSED;
 
     private PwmDomain pwmDomain;
@@ -120,10 +120,10 @@ public class ResourceServletService implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
+        this.pwmDomain = pwmApplication.domains().get( domainID );
         try
         {
-            this.resourceServletConfiguration = ResourceServletConfiguration.createResourceServletConfiguration( pwmDomain );
+            this.resourceServletConfiguration = ResourceServletConfiguration.fromConfig( pwmDomain );
 
             cache = Caffeine.newBuilder()
                     .maximumSize( resourceServletConfiguration.getMaxCacheItems() )
@@ -140,7 +140,9 @@ public class ResourceServletService implements PwmService
 
         try
         {
+            final Instant start = Instant.now();
             resourceNonce = makeResourcePathNonce();
+            LOGGER.trace( () -> "calculated nonce", () -> TimeDuration.fromCurrent( start ) );
         }
         catch ( final Exception e )
         {
@@ -152,7 +154,7 @@ public class ResourceServletService implements PwmService
     @Override
     public void close( )
     {
-
+        status = STATUS.CLOSED;
     }
 
     @Override
@@ -270,17 +272,17 @@ public class ResourceServletService implements PwmService
         {
             try
             {
-                final File webInfPath = pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager().locateWebInfFilePath();
-                if ( webInfPath != null && webInfPath.exists() )
+                final Optional<File> webInfPath = pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager().locateWebInfFilePath();
+                if ( webInfPath.isPresent() && webInfPath.get().exists() )
                 {
-                    final File basePath = webInfPath.getParentFile();
+                    final File basePath = webInfPath.get().getParentFile();
                     if ( basePath != null && basePath.exists() )
                     {
                         final File resourcePath = new File( basePath.getAbsolutePath() + File.separator + "public" + File.separator + "resources" );
                         if ( resourcePath.exists() )
                         {
-                            try ( ClosableIterator<FileSystemUtility.FileSummaryInformation> iter =
-                                          FileSystemUtility.readFileInformation( Collections.singletonList( resourcePath ) ) )
+                            final Iterator<FileSystemUtility.FileSummaryInformation> iter =
+                                          FileSystemUtility.readFileInformation( Collections.singletonList( resourcePath ) );
                             {
                                 while ( iter.hasNext()  )
                                 {

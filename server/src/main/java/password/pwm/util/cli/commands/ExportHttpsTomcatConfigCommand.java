@@ -52,7 +52,7 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
         )
         {
             TomcatConfigWriter.writeOutputFile(
-                    cliEnvironment.getPwmDomain().getPwmApplication().getConfig(),
+                    cliEnvironment.getPwmApplication().getConfig(),
                     fileInputStream,
                     fileOutputStream
             );

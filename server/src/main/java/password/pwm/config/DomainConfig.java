@@ -52,7 +52,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
-import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.logging.PwmLogger;
@@ -75,7 +74,7 @@ import java.util.stream.Collectors;
 /**
  * @author Jason D. Rivard
  */
-public class DomainConfig
+public class DomainConfig implements SettingReader
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( DomainConfig.class );
 
@@ -86,19 +85,25 @@ public class DomainConfig
     private final ConfigurationSuppliers configurationSuppliers = new ConfigurationSuppliers();
 
     private final DataCache dataCache = new DataCache();
-    private final SettingReader settingReader;
+    private final StoredSettingReader settingReader;
 
     public DomainConfig( final AppConfig appConfig, final DomainID domainID )
     {
         this.appConfig = Objects.requireNonNull( appConfig );
         this.storedConfiguration = appConfig.getStoredConfiguration();
         this.domainID = Objects.requireNonNull( domainID );
-        this.settingReader = new SettingReader( storedConfiguration, null, domainID );
+        this.settingReader = new StoredSettingReader( storedConfiguration, null, domainID );
     }
 
     public AppConfig getAppConfig()
     {
         return appConfig;
+    }
+
+    public boolean isAdministrativeDomain()
+    {
+        final String adminDomainStr = getAppConfig().readSettingAsString( PwmSetting.DOMAIN_SYSTEM_ADMIN );
+        return getDomainID().stringValue().equals( adminDomainStr );
     }
 
 
@@ -164,28 +169,7 @@ public class DomainConfig
 
     public Map<Locale, String> readLocalizedBundle( final PwmLocaleBundle className, final String keyName )
     {
-        final String key = className + "-" + keyName;
-        if ( dataCache.customText.containsKey( key ) )
-        {
-            return dataCache.customText.get( key );
-        }
-
-        final Map<String, String> storedValue = storedConfiguration.readLocaleBundleMap( className, keyName );
-        if ( storedValue == null || storedValue.isEmpty() )
-        {
-            dataCache.customText.put( key, null );
-            return null;
-        }
-
-        final Map<Locale, String> localizedMap = new LinkedHashMap<>();
-        for ( final Map.Entry<String, String> entry : storedValue.entrySet() )
-        {
-            final String localeKey = entry.getKey();
-            localizedMap.put( LocaleHelper.parseLocaleString( localeKey ), entry.getValue() );
-        }
-
-        dataCache.customText.put( key, localizedMap );
-        return localizedMap;
+        return settingReader.readLocalizedBundle( className, keyName );
     }
 
     public List<String> getChallengeProfileIDs( )
@@ -289,7 +273,7 @@ public class DomainConfig
 
     public PwmSettingTemplateSet getTemplate( )
     {
-        return storedConfiguration.getTemplateSet();
+        return storedConfiguration.getTemplateSet().get( domainID );
     }
 
     public String readAppProperty( final AppProperty property )
@@ -348,7 +332,7 @@ public class DomainConfig
                 }
                 catch ( final Exception e )
                 {
-                    final String errorMsg = "unexpected error generating Security Key crypto: " + e.getMessage();
+                    final String errorMsg = "unexpected err0or generating Security Key crypto: " + e.getMessage();
                     final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
                     LOGGER.error( errorInfo::toDebugStr, e );
                     throw new PwmUnrecoverableException( errorInfo );
@@ -360,7 +344,6 @@ public class DomainConfig
     private static class DataCache
     {
         private final Map<String, PwmPasswordPolicy> cachedPasswordPolicy = new LinkedHashMap<>();
-        private final Map<String, Map<Locale, String>> customText = new LinkedHashMap<>();
     }
 
     /* generic profile stuff */
@@ -423,5 +406,10 @@ public class DomainConfig
             return Optional.ofNullable( profiles.get( profileID ) );
         }
         return Optional.empty();
+    }
+
+    public String getDisplayName( final Locale locale )
+    {
+        return getDomainID().toString();
     }
 }

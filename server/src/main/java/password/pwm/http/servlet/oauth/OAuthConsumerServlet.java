@@ -101,7 +101,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                 {
                     final String nextUrl = oAuthRequestState.get().getOAuthState().getNextUrl();
                     LOGGER.debug( pwmRequest, () -> "received unrecognized oauth response, ignoring authcode and redirecting to embedded next url: " + nextUrl );
-                    pwmRequest.sendRedirect( nextUrl );
+                    pwmRequest.getPwmResponse().sendRedirect( nextUrl );
                     return;
                 }
                 final String errorMsg = "oauth consumer reached, but oauth authentication has not yet been initiated.";
@@ -147,10 +147,10 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
 
         }
 
-        // mark the inprogress flag to false, if we get this far and fail user needs to start over.
+        // mark the in-progress flag to false, if we get this far and fail user needs to start over.
         pwmSession.getSessionStateBean().setOauthInProgress( false );
 
-        if ( !oAuthRequestState.isPresent() )
+        if ( oAuthRequestState.isEmpty() )
         {
             final String errorMsg = "state parameter is missing from oauth request";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
@@ -180,7 +180,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                     case ForgottenPassword:
                         LOGGER.debug( pwmRequest, () -> "oauth consumer reached but response is not for a request issued during the current session,"
                                 + " will redirect back to forgotten password servlet" );
-                        pwmRequest.sendRedirect( PwmServletDefinition.ForgottenPassword );
+                        pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.ForgottenPassword );
                         return;
 
                     default:
@@ -192,7 +192,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                 final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
                 setLastError( pwmRequest, errorInformation );
-                LOGGER.error( () -> errorInformation.toDebugStr() );
+                LOGGER.error( errorInformation::toDebugStr );
             }
         }
 
@@ -209,7 +209,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             final String errorMsg = "unexpected error communicating with oauth server: " + e.toString();
             final ErrorInformation errorInformation = new ErrorInformation( e.getError(), errorMsg );
             setLastError( pwmRequest, errorInformation );
-            LOGGER.error( () -> errorInformation.toDebugStr() );
+            LOGGER.error( errorInformation::toDebugStr );
             return;
         }
 
@@ -293,7 +293,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             // forward to nextUrl
             final String nextUrl = oauthState.getNextUrl();
             LOGGER.debug( pwmRequest, () -> "oauth authentication completed, redirecting to originally requested URL: " + nextUrl );
-            pwmRequest.sendRedirect( nextUrl );
+            pwmRequest.getPwmResponse().sendRedirect( nextUrl );
         }
         catch ( final PwmException e )
         {
@@ -306,7 +306,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         LOGGER.trace( pwmRequest, () -> "OAuth login sequence successfully completed" );
     }
 
-    private static OAuthSettings makeOAuthSettings( final PwmRequest pwmRequest, final OAuthState oAuthState ) throws IOException, ServletException, PwmUnrecoverableException
+    private static OAuthSettings makeOAuthSettings( final PwmRequest pwmRequest, final OAuthState oAuthState ) throws PwmUnrecoverableException
     {
         final OAuthUseCase oAuthUseCase = oAuthState.getUseCase();
         switch ( oAuthUseCase )
@@ -339,9 +339,9 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         httpParams.put( PwmConstants.PARAM_RECOVERY_OAUTH_RESULT, encryptedResults );
         httpParams.put( PwmConstants.PARAM_ACTION_REQUEST, ForgottenPasswordServlet.ForgottenPasswordAction.oauthReturn.toString() );
 
-        final String nextUrl = pwmRequest.getContextPath() + PwmServletDefinition.ForgottenPassword.servletUrl();
+        final String nextUrl = pwmRequest.getBasePath() + PwmServletDefinition.ForgottenPassword.servletUrl();
         final String redirectUrl = PwmURL.appendAndEncodeUrlParameters( nextUrl, httpParams );
         LOGGER.debug( pwmRequest, () -> "forgotten password oauth sequence complete, redirecting to forgotten password with result data: " + JsonUtil.serialize( results ) );
-        pwmRequest.sendRedirect( redirectUrl );
+        pwmRequest.getPwmResponse().sendRedirect( redirectUrl );
     }
 }

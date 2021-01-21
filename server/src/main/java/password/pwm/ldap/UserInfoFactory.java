@@ -22,6 +22,7 @@ package password.pwm.ldap;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -41,7 +42,7 @@ public class UserInfoFactory
     }
 
     public static UserInfo newUserInfoUsingProxy(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final Locale locale,
@@ -49,10 +50,11 @@ public class UserInfoFactory
     )
             throws PwmUnrecoverableException
     {
+        final PwmDomain pwmDomain = pwmApplication.domains().get( userIdentity.getDomainID() );
         final String userLdapProfile = userIdentity.getLdapProfileID();
         final ChaiProvider provider = pwmDomain.getProxyChaiProvider( userLdapProfile );
         return newUserInfo(
-                pwmDomain,
+                pwmApplication,
                 sessionLabel,
                 locale,
                 userIdentity,
@@ -62,15 +64,16 @@ public class UserInfoFactory
     }
 
     public static UserInfo newUserInfoUsingProxyForOfflineUser(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
+        final PwmDomain pwmDomain = pwmApplication.domains().get( userIdentity.getDomainID() );
         final Locale ldapLocale = LdapOperationsHelper.readLdapStoredLanguage( pwmDomain, userIdentity );
         final ChaiProvider provider = pwmDomain.getProxyChaiProvider( userIdentity.getLdapProfileID() );
-        return newUserInfo( pwmDomain, sessionLabel, ldapLocale, userIdentity, provider, null );
+        return newUserInfo( pwmApplication, sessionLabel, ldapLocale, userIdentity, provider, null );
     }
 
     public static UserInfo newUserInfoUsingProxy(
@@ -80,23 +83,24 @@ public class UserInfoFactory
             throws PwmUnrecoverableException
     {
         final ChaiProvider provider = pwmRequestContext.getPwmDomain().getProxyChaiProvider( userIdentity.getLdapProfileID() );
-        return newUserInfo( pwmRequestContext.getPwmDomain(), pwmRequestContext.getSessionLabel(), pwmRequestContext.getLocale(), userIdentity, provider, null );
+        return newUserInfo( pwmRequestContext.getPwmApplication(), pwmRequestContext.getSessionLabel(), pwmRequestContext.getLocale(), userIdentity, provider, null );
     }
 
     public static UserInfo newUserInfoUsingProxy(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final Locale userLocale
     )
             throws PwmUnrecoverableException
     {
+        final PwmDomain pwmDomain = pwmApplication.domains().get( userIdentity.getDomainID() );
         final ChaiProvider provider = pwmDomain.getProxyChaiProvider( userIdentity.getLdapProfileID() );
-        return newUserInfo( pwmDomain, sessionLabel, userLocale, userIdentity, provider, null );
+        return newUserInfo( pwmApplication, sessionLabel, userLocale, userIdentity, provider, null );
     }
 
     public static UserInfo newUserInfo(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final Locale userLocale,
             final UserIdentity userIdentity,
@@ -106,7 +110,7 @@ public class UserInfoFactory
     {
         try
         {
-            return makeUserInfoImpl( pwmDomain, sessionLabel, userLocale, userIdentity, provider, null );
+            return makeUserInfoImpl( pwmApplication, sessionLabel, userLocale, userIdentity, provider, null );
         }
         catch ( final ChaiUnavailableException e )
         {
@@ -115,7 +119,7 @@ public class UserInfoFactory
     }
 
     public static UserInfo newUserInfo(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final Locale userLocale,
             final UserIdentity userIdentity,
@@ -126,7 +130,7 @@ public class UserInfoFactory
     {
         try
         {
-            return makeUserInfoImpl( pwmDomain, sessionLabel, userLocale, userIdentity, provider, currentPassword );
+            return makeUserInfoImpl( pwmApplication, sessionLabel, userLocale, userIdentity, provider, currentPassword );
         }
         catch ( final ChaiUnavailableException e )
         {
@@ -135,7 +139,7 @@ public class UserInfoFactory
     }
 
     private static UserInfo makeUserInfoImpl(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final Locale userLocale,
             final UserIdentity userIdentity,
@@ -144,7 +148,7 @@ public class UserInfoFactory
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        return UserInfoReader.create( userIdentity, currentPassword, sessionLabel, userLocale, pwmDomain, provider );
+        return UserInfoReader.create( userIdentity, currentPassword, sessionLabel, userLocale, pwmApplication, provider );
     }
 
 

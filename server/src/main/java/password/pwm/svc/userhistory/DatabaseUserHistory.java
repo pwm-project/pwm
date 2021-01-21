@@ -18,9 +18,8 @@
  * limitations under the License.
  */
 
-package password.pwm.svc.event;
+package password.pwm.svc.userhistory;
 
-import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -29,16 +28,19 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
+import password.pwm.svc.event.AuditEventType;
+import password.pwm.svc.event.HelpdeskAuditRecord;
+import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseService;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 class DatabaseUserHistory implements UserHistoryStore
 {
@@ -60,14 +62,14 @@ class DatabaseUserHistory implements UserHistoryStore
     {
         // user info
         final UserIdentity userIdentity;
-        if ( auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEvent.Type.HELPDESK )
+        if ( auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEventType.HELPDESK )
         {
             final HelpdeskAuditRecord helpdeskAuditRecord = ( HelpdeskAuditRecord ) auditRecord;
-            userIdentity = UserIdentity.create( helpdeskAuditRecord.getTargetDN(), helpdeskAuditRecord.getTargetLdapProfile(), PwmConstants.DOMAIN_ID_PLACEHOLDER );
+            userIdentity = UserIdentity.create( helpdeskAuditRecord.getTargetDN(), helpdeskAuditRecord.getTargetLdapProfile(), auditRecord.getDomain() );
         }
         else
         {
-            userIdentity = UserIdentity.create( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile(), PwmConstants.DOMAIN_ID_PLACEHOLDER );
+            userIdentity = UserIdentity.create( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile(), auditRecord.getDomain() );
         }
 
         final String guid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, null, userIdentity, false );
@@ -101,12 +103,12 @@ class DatabaseUserHistory implements UserHistoryStore
 
     private StoredHistory readStoredHistory( final String guid ) throws DatabaseException, PwmUnrecoverableException
     {
-        final String str = this.databaseService.getAccessor().get( TABLE, guid );
-        if ( StringUtil.isEmpty( str ) )
+        final Optional<String> str = this.databaseService.getAccessor().get( TABLE, guid );
+        if ( str.isEmpty() )
         {
             return new StoredHistory();
         }
-        return JsonUtil.deserialize( str, StoredHistory.class );
+        return JsonUtil.deserialize( str.get(), StoredHistory.class );
     }
 
     private void writeStoredHistory( final String guid, final StoredHistory storedHistory ) throws DatabaseException, PwmUnrecoverableException

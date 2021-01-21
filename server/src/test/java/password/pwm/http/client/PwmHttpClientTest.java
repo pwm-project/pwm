@@ -96,7 +96,7 @@ public class PwmHttpClientTest
 
         // Verify the response
         final int responseStatusCode = response.getStatusCode();
-        Assert.assertEquals( responseStatusCode, 200 );
+        Assert.assertEquals( 200, responseStatusCode );
 
         final String responseContent = response.getBody();
         Assert.assertTrue( responseContent.startsWith( "PwmAbout" ) );
@@ -157,7 +157,7 @@ public class PwmHttpClientTest
         final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest, null );
 
         final int responseStatusCode = response.getStatusCode();
-        Assert.assertEquals( responseStatusCode, 200 );
+        Assert.assertEquals( 200, responseStatusCode );
 
         final String responseContent = response.getBody();
         Assert.assertTrue( responseContent.startsWith( "PwmAbout" ) );
@@ -192,7 +192,7 @@ public class PwmHttpClientTest
 
         // Verify the response
         final int responseStatusCode = response.getStatusCode();
-        Assert.assertEquals( responseStatusCode, 200 );
+        Assert.assertEquals( 200, responseStatusCode );
 
         final String responseContent = response.getBody();
         Assert.assertTrue( responseContent.startsWith( "PwmAbout" ) );
@@ -228,7 +228,7 @@ public class PwmHttpClientTest
 
         // Verify the response
         final int responseStatusCode = response.getStatusCode();
-        Assert.assertEquals( responseStatusCode, 200 );
+        Assert.assertEquals( 200, responseStatusCode );
 
         final String responseContent = response.getBody();
         Assert.assertTrue( responseContent.startsWith( "PwmAbout" ) );
@@ -257,7 +257,7 @@ public class PwmHttpClientTest
             throws PwmUnrecoverableException
     {
         final StoredConfigurationModifier modifier = StoredConfigurationFactory.newModifiableConfig();
-        if ( !StringUtil.isEmpty( proxyUrl ) )
+        if ( StringUtil.notEmpty( proxyUrl ) )
         {
             modifier.writeSetting(
                     StoredConfigKey.forSetting( PwmSetting.HTTP_PROXY_URL, null, DomainID.systemId() ),

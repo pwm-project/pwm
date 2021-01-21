@@ -158,7 +158,7 @@ public class NewUserServlet extends ControlledPwmServlet
         final NewUserBean newUserBean = pwmDomain.getSessionStateService().getBean( pwmRequest, NewUserBean.class );
 
         final String signedFormData = pwmRequest.readParameterAsString( PwmConstants.PARAM_SIGNED_FORM, PwmHttpRequestWrapper.Flag.BypassValidation );
-        if ( !StringUtil.isEmpty( signedFormData ) )
+        if ( StringUtil.notEmpty( signedFormData ) )
         {
             final Map<String, String> jsonForm = RestFormSigningServer.readSignedFormValue( pwmDomain, signedFormData );
             LOGGER.trace( () -> "detected signedForm parameter in request, will read and place in bean; keys=" + JsonUtil.serializeCollection( jsonForm.keySet() ) );
@@ -277,7 +277,7 @@ public class NewUserServlet extends ControlledPwmServlet
 
         final String newUserAgreementText = newUserProfile.readSettingAsLocalizedString( PwmSetting.NEWUSER_AGREEMENT_MESSAGE,
                 pwmSession.getSessionStateBean().getLocale() );
-        if ( !StringUtil.isEmpty( newUserAgreementText ) )
+        if ( StringUtil.notEmpty( newUserAgreementText ) )
         {
             if ( !newUserBean.isAgreementPassed() )
             {
@@ -357,7 +357,7 @@ public class NewUserServlet extends ControlledPwmServlet
                     LOGGER.debug( pwmRequest, () -> "detected profile on request uri: " + requestedProfile );
                     newUserBean.setProfileID( requestedProfile );
                     newUserBean.setUrlSpecifiedProfile( true );
-                    pwmRequest.sendRedirect( PwmServletDefinition.NewUser );
+                    pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.NewUser );
                     return true;
                 }
                 else
@@ -733,7 +733,7 @@ public class NewUserServlet extends ControlledPwmServlet
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
         pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, NewUserBean.class );
-        pwmRequest.sendRedirectToContinue();
+        pwmRequest.getPwmResponse().sendRedirectToContinue();
 
         return ProcessStatus.Halt;
     }
@@ -780,17 +780,17 @@ public class NewUserServlet extends ControlledPwmServlet
             if ( forceLogoutOnChange )
             {
                 LOGGER.trace( pwmRequest, () -> "logging out user; account created" );
-                pwmRequest.sendRedirect( PwmServletDefinition.Logout );
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.Logout );
                 return ProcessStatus.Halt;
             }
         }
 
         final String configuredRedirectUrl = newUserProfile.readSettingAsString( PwmSetting.NEWUSER_REDIRECT_URL );
-        if ( !StringUtil.isEmpty( configuredRedirectUrl ) && StringUtil.isEmpty( pwmRequest.getPwmSession().getSessionStateBean().getForwardURL() ) )
+        if ( StringUtil.notEmpty( configuredRedirectUrl ) && StringUtil.isEmpty( pwmRequest.getPwmSession().getSessionStateBean().getForwardURL() ) )
         {
             final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
             final String macroedUrl = macroRequest.expandMacros( configuredRedirectUrl );
-            pwmRequest.sendRedirect( macroedUrl );
+            pwmRequest.getPwmResponse().sendRedirect( macroedUrl );
             return ProcessStatus.Halt;
         }
 
@@ -825,12 +825,12 @@ public class NewUserServlet extends ControlledPwmServlet
         }
         else
         {
-            final String newUserServletUrl = pwmRequest.getContextPath() + PwmServletDefinition.NewUser.servletUrl();
+            final String newUserServletUrl = pwmRequest.getBasePath() + PwmServletDefinition.NewUser.servletUrl();
             final String redirectUrl = PwmURL.appendAndEncodeUrlParameters(
                     newUserServletUrl,
                     Collections.singletonMap( PwmConstants.PARAM_ACTION_REQUEST, NewUserAction.complete.name() )
             );
-            pwmRequest.sendRedirect( redirectUrl );
+            pwmRequest.getPwmResponse().sendRedirect( redirectUrl );
         }
     }
 

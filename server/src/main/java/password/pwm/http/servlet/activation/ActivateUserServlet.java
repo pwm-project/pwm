@@ -163,7 +163,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
     {
         final ActivateUserBean activateUserBean = activateUserBean( pwmRequest );
         return UserInfoFactory.newUserInfoUsingProxy(
-                pwmRequest.getPwmDomain(),
+                pwmRequest.getPwmApplication(),
                 pwmRequest.getLabel(),
                 activateUserBean.getUserIdentity(),
                 pwmRequest.getLocale() );
@@ -462,7 +462,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
                 PwmSetting.ACTIVATE_AGREEMENT_MESSAGE,
                 pwmSession.getSessionStateBean().getLocale()
         );
-        if ( !StringUtil.isEmpty( agreementText ) && !activateUserBean.isAgreementPassed() )
+        if ( StringUtil.notEmpty( agreementText ) && !activateUserBean.isAgreementPassed() )
         {
             ActivateUserUtils.forwardToAgreementPage( pwmRequest );
             return;

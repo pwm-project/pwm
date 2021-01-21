@@ -460,7 +460,7 @@ public class LDAPPermissionCalculator implements Serializable
 
         final List<PermissionRecord> permissionRecords = new ArrayList<>();
 
-        final PwmSettingTemplateSet templateSet = domainConfig.getStoredConfiguration().getTemplateSet();
+        final PwmSettingTemplateSet templateSet = domainConfig.getStoredConfiguration().getTemplateSet().get( domainConfig.getDomainID() );
 
         {
             // edir specific attributes

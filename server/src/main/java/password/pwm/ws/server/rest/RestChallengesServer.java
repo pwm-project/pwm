@@ -180,7 +180,7 @@ public class RestChallengesServer extends RestServlet
             final ChaiUser chaiUser = targetUserIdentity.getChaiUser();
             final Locale userLocale = restRequest.getLocale();
             final CrService crService = restRequest.getDomain().getCrService();
-            responseSet = crService.readUserResponseSet( restRequest.getSessionLabel(), targetUserIdentity.getUserIdentity(), chaiUser );
+            responseSet = crService.readUserResponseSet( restRequest.getSessionLabel(), targetUserIdentity.getUserIdentity(), chaiUser ).orElseThrow();
 
             final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
                     restRequest.getDomain(),

@@ -27,6 +27,7 @@ import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -47,6 +49,8 @@ public class StoredConfigZipXmlSerializer implements StoredConfigSerializer
 {
     private static final String SETTINGS_FILENAME = "settings.xml";
     private static final String XREF_SUFFIX = ".xref";
+
+    private static final int MAX_ENTRY_BYTES = 10_000_000;
 
     @Override
     public StoredConfiguration readInput( final InputStream inputStream )
@@ -63,13 +67,13 @@ public class StoredConfigZipXmlSerializer implements StoredConfigSerializer
         {
             if ( SETTINGS_FILENAME.equals( zipEntry.getName() ) )
             {
-                final ImmutableByteArray byteArray = JavaHelper.copyToBytes( zipInputStream );
+                final ImmutableByteArray byteArray = JavaHelper.copyToBytes( zipInputStream, MAX_ENTRY_BYTES );
                 storedConfiguration = new StoredConfigXmlSerializer().readInput( byteArray.newByteArrayInputStream() );
             }
             else if ( zipEntry.getName().endsWith( XREF_SUFFIX ) )
             {
                 final String hash = zipEntry.getName().substring( 0, zipEntry.getName().length() - XREF_SUFFIX.length() );
-                final ImmutableByteArray contents = JavaHelper.copyToBytes( zipInputStream );
+                final ImmutableByteArray contents = JavaHelper.copyToBytes( zipInputStream, MAX_ENTRY_BYTES );
                 exrefMap.put( hash, contents );
             }
             zipInputStream.closeEntry();
@@ -116,10 +120,12 @@ public class StoredConfigZipXmlSerializer implements StoredConfigSerializer
             final Map<String, ImmutableByteArray> exRefMap,
             final StoredConfigurationModifier modifier
     )
-            throws PwmUnrecoverableException
+            throws PwmUnrecoverableException, IOException
     {
         final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
-        for ( final StoredConfigKey key : inputConfig.keys().collect( Collectors.toList() ) )
+        final List<StoredConfigKey> keys = CollectionUtil.iteratorToStream( inputConfig.keys() ).collect( Collectors.toList() );
+
+        for ( final StoredConfigKey key : keys )
         {
             if (
                     StoredConfigKey.RecordType.SETTING.equals( key.getRecordType() )
@@ -142,7 +148,7 @@ public class StoredConfigZipXmlSerializer implements StoredConfigSerializer
                         final ImmutableByteArray realContents = exRefMap.get( hash );
                         if ( realContents != null )
                         {
-                            final FileValue.FileContent realFileContent = new FileValue.FileContent( realContents );
+                            final FileValue.FileContent realFileContent = FileValue.FileContent.fromBytes( realContents );
                             stripedValues.put( info, realFileContent );
                         }
                     }
@@ -159,11 +165,13 @@ public class StoredConfigZipXmlSerializer implements StoredConfigSerializer
     }
 
     private Map<String, ImmutableByteArray> extractExRefs( final StoredConfigurationModifier modifier )
-            throws PwmUnrecoverableException
+            throws PwmUnrecoverableException, IOException
     {
         final Map<String, ImmutableByteArray> returnObj = new HashMap<>();
         final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
-        for ( final StoredConfigKey key : inputConfig.keys().collect( Collectors.toList() ) )
+        final List<StoredConfigKey> keys = CollectionUtil.iteratorToStream( inputConfig.keys() ).collect( Collectors.toList() );
+
+        for ( final StoredConfigKey key : keys )
         {
             if (
                     StoredConfigKey.RecordType.SETTING.equals( key.getRecordType() )
@@ -182,7 +190,7 @@ public class StoredConfigZipXmlSerializer implements StoredConfigSerializer
                         final FileValue.FileInformation info = entry.getKey();
                         final FileValue.FileContent content = entry.getValue();
                         final String hash = hash( content );
-                        final FileValue.FileContent fileContentWithHash = new FileValue.FileContent( ImmutableByteArray.of( hash.getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
+                        final FileValue.FileContent fileContentWithHash = FileValue.FileContent.fromBytes( ImmutableByteArray.of( hash.getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
                         returnObj.put( hash, content.getContents() );
                         stripedValues.put( info, fileContentWithHash );
                     }

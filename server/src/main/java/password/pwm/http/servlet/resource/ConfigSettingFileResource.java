@@ -63,7 +63,7 @@ public class ConfigSettingFileResource implements FileResource
     @Override
     public boolean exists()
     {
-        return !StringUtil.isEmpty( bodyText );
+        return StringUtil.notEmpty( bodyText );
     }
 
     @Override

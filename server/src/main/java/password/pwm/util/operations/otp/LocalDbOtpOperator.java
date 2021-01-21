@@ -33,12 +33,15 @@ import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
+
+import java.util.Optional;
 
 /**
  * @author Menno Pieters, Jason D. Rivard
@@ -56,7 +59,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
     }
 
     @Override
-    public OTPUserRecord readOtpUserConfiguration(
+    public Optional<OTPUserRecord> readOtpUserConfiguration(
             final UserIdentity theUser,
             final String userGUID
     )
@@ -75,41 +78,35 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
             throw new PwmUnrecoverableException( errorInformation );
         }
 
-        OTPUserRecord otpConfig = null;
         try
         {
             final DomainConfig config = this.getPwmApplication().getConfig();
-            String value = localDB.get( LocalDB.DB.OTP_SECRET, userGUID );
-            if ( value != null && value.length() > 0 )
+            final Optional<String> value = localDB.get( LocalDB.DB.OTP_SECRET, userGUID );
+            if ( value.isPresent() )
             {
                 if ( config.readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
                 {
-                    value = decryptAttributeValue( value );
-                }
-                if ( value != null )
-                {
-                    otpConfig = decomposeOtpAttribute( value );
-                }
-                if ( otpConfig != null )
-                {
-                    final OTPUserRecord finalRecord = otpConfig;
-                    LOGGER.debug( () -> "found user OTP secret in LocalDB: " + finalRecord.toString() );
+                    final String decryptAttributeValue = decryptAttributeValue( value.get() );
+                    if ( decryptAttributeValue != null )
+                    {
+                        final OTPUserRecord otpConfig = decomposeOtpAttribute( decryptAttributeValue );
+                        if ( otpConfig != null )
+                        {
+                            LOGGER.debug( () -> "found user OTP secret in LocalDB: " + otpConfig.toString() );
+                            return Optional.of( otpConfig );
+                        }
+                    }
                 }
             }
         }
-        catch ( final LocalDBException e )
+        catch ( final PwmException e )
         {
             final String errorMsg = "unexpected LocalDB error reading otp: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        catch ( final PwmOperationalException e )
-        {
-            final String errorMsg = "unexpected error reading otp: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
-        return otpConfig;
+
+        return Optional.empty();
     }
 
     @Override

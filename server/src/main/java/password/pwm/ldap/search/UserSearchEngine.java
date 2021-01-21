@@ -26,8 +26,8 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -45,6 +45,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -116,7 +117,7 @@ public class UserSearchEngine implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
+        this.pwmDomain = pwmApplication.domains().get( domainID );
         this.executor = createExecutor( pwmDomain );
         this.periodicDebugOutput();
     }
@@ -523,7 +524,7 @@ public class UserSearchEngine implements PwmService
 
         {
             final Map<String, String> selectableContexts = profile.getSelectableContexts( pwmDomain );
-            if ( !JavaHelper.isEmpty( selectableContexts ) && selectableContexts.containsKey( canonicalContext ) )
+            if ( !CollectionUtil.isEmpty( selectableContexts ) && selectableContexts.containsKey( canonicalContext ) )
             {
                 // config pre-validates selectable contexts so this should be permitted
                 return;
@@ -532,7 +533,7 @@ public class UserSearchEngine implements PwmService
 
         {
             final List<String> rootContexts = profile.getRootContexts( pwmDomain );
-            if ( !JavaHelper.isEmpty( rootContexts ) )
+            if ( !CollectionUtil.isEmpty( rootContexts ) )
             {
                 for ( final String rootContext : rootContexts )
                 {
@@ -622,7 +623,7 @@ public class UserSearchEngine implements PwmService
     )
             throws PwmUnrecoverableException
     {
-        if ( JavaHelper.isEmpty( userSearchJobs ) )
+        if ( CollectionUtil.isEmpty( userSearchJobs ) )
         {
             return Collections.emptyMap();
         }
@@ -724,6 +725,7 @@ public class UserSearchEngine implements PwmService
                     final Throwable t = e.getCause();
                     final ErrorInformation errorInformation;
                     final String errorMsg = "unexpected error during ldap search ("
+                            + "domain=" + pwmDomain.getDomainID() + " "
                             + "profile=" + jobInfo.getUserSearchJobParameters().getLdapProfile().getIdentifier() + ")"
                             + ", error: " + ( t instanceof PwmException ? t.getMessage() : JavaHelper.readHostileExceptionMessage( t ) );
                     if ( t instanceof PwmException )
@@ -769,7 +771,7 @@ public class UserSearchEngine implements PwmService
 
     void log( final PwmLogLevel level, final SessionLabel sessionLabel, final int searchID, final int jobID, final String message )
     {
-        final String idMsg = logIdString( searchID, jobID );
+        final String idMsg = "domain=" + pwmDomain.getDomainID() + " " + logIdString( searchID, jobID );
         LOGGER.log( level, sessionLabel, () -> idMsg + " " + message );
     }
 

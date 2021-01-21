@@ -28,7 +28,7 @@ import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -72,7 +72,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
                 final int minOptionalRequired
         )
         {
-            this.methodSettings = Collections.unmodifiableMap( JavaHelper.copiedEnumMap( methodSettings, IdentityVerificationMethod.class ) );
+            this.methodSettings = Collections.unmodifiableMap( CollectionUtil.copiedEnumMap( methodSettings, IdentityVerificationMethod.class ) );
             this.minOptionalRequired = minOptionalRequired;
         }
 
@@ -105,7 +105,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 
     private static VerificationMethodSettings normalizeSettings( final VerificationMethodSettings input )
     {
-        final Map<IdentityVerificationMethod, VerificationMethodValue.VerificationMethodSetting> tempMap = JavaHelper.copiedEnumMap(
+        final Map<IdentityVerificationMethod, VerificationMethodValue.VerificationMethodSetting> tempMap = CollectionUtil.copiedEnumMap(
                 input.getMethodSettings(),
                 IdentityVerificationMethod.class );
 

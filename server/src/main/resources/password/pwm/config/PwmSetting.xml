@@ -55,12 +55,18 @@
             <property key="ModificationWarning">Changing this setting will change default values throughout the configuration.  Are you sure you wish to modify this setting?</property>
         </properties>
     </setting>
-    <setting hidden="false" key="domain.list" level="0">
-        <regex>^(?!.*system.*)([a-zA-Z][a-zA-Z0-9]{2,10})$</regex>
+    <setting hidden="false" key="domain.list" required="true" level="0">
+        <regex>^([a-z][a-z0-9]{2,10})$</regex>
         <properties>
             <property key="Minimum">1</property>
-            <property key="Minimum">1000</property>
+            <property key="Maximum">100</property>
         </properties>
+        <flag>Sorted</flag>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="domain.system.adminDomain" level="0">
         <default>
             <value>default</value>
         </default>
@@ -778,6 +784,12 @@
         </default>
     </setting>
     <setting hidden="false" key="email.smtp.userpassword" level="1">
+    </setting>
+    <setting hidden="false" key="email.system.fromAddress" level="1">
+        <flag>emailSyntax</flag>
+        <default>
+            <value>noreply@example.org</value>
+        </default>
     </setting>
     <setting hidden="false" key="email.default.fromAddress" level="1">
         <flag>emailSyntax</flag>
@@ -4200,7 +4212,7 @@
     </category>
     <category hidden="false" scope="SYSTEM" key="LOCALIZATION">
     </category>
-    <category hidden="false" scope="DOMAIN" key="TELEMETRY">
+    <category hidden="false" scope="SYSTEM" key="TELEMETRY">
     </category>
     <category hidden="false" scope="SYSTEM" key="NODES">
     </category>
@@ -4245,11 +4257,11 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="CAPTCHA">
     </category>
-    <category hidden="false" scope="DOMAIN" key="INTRUDER">
+    <category hidden="false" scope="SYSTEM" key="INTRUDER">
     </category>
-    <category hidden="false" scope="DOMAIN" key="INTRUDER_SETTINGS">
+    <category hidden="false" scope="SYSTEM" key="INTRUDER_SETTINGS">
     </category>
-    <category hidden="false" scope="DOMAIN" key="INTRUDER_TIMEOUTS">
+    <category hidden="false" scope="SYSTEM" key="INTRUDER_TIMEOUTS">
     </category>
     <category hidden="false" scope="DOMAIN" key="TOKEN">
     </category>
@@ -4262,13 +4274,13 @@
     </category>
     <category hidden="false" scope="SYSTEM" key="LOGGING">
     </category>
-    <category hidden="false" scope="DOMAIN" key="AUDITING">
+    <category hidden="false" scope="SYSTEM" key="AUDITING">
     </category>
-    <category hidden="false" scope="DOMAIN" key="AUDIT_CONFIG">
+    <category hidden="false" scope="SYSTEM" key="AUDIT_CONFIG">
     </category>
     <category hidden="false" scope="DOMAIN" key="USER_HISTORY">
     </category>
-    <category hidden="false" scope="DOMAIN" key="AUDIT_FORWARD">
+    <category hidden="false" scope="SYSTEM" key="AUDIT_FORWARD">
     </category>
     <category hidden="false" scope="DOMAIN" key="EDIRECTORY">
     </category>
@@ -4286,7 +4298,7 @@
     </category>
     <category hidden="false" scope="SYSTEM" key="DATABASE_ADV">
     </category>
-    <category hidden="false" scope="DOMAIN" key="REPORTING">
+    <category hidden="false" scope="SYSTEM" key="REPORTING">
     </category>
     <category hidden="false" scope="DOMAIN" key="PW_EXP_NOTIFY">
     </category>

@@ -108,7 +108,7 @@ public class TokenDestinationItem implements Serializable
                 }
         )
         {
-            if ( !StringUtil.isEmpty( emailValue ) )
+            if ( StringUtil.notEmpty( emailValue ) )
             {
                 final String idHash = domainSecureService.hash( emailValue + Type.email.name() );
                 final TokenDestinationItem item = TokenDestinationItem.builder()
@@ -129,7 +129,7 @@ public class TokenDestinationItem implements Serializable
                 }
         )
         {
-            if ( !StringUtil.isEmpty( smsValue ) )
+            if ( StringUtil.notEmpty( smsValue ) )
             {
                 final String idHash = domainSecureService.hash( smsValue + Type.sms.name() );
                 final TokenDestinationItem item = TokenDestinationItem.builder()

@@ -22,8 +22,9 @@ package password.pwm.util.cli.commands;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ResponseSet;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.ldap.search.SearchConfiguration;
@@ -37,8 +38,10 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 public class ExportResponsesCommand extends AbstractCliCommand
 {
@@ -47,39 +50,55 @@ public class ExportResponsesCommand extends AbstractCliCommand
     void doCommand( )
             throws Exception
     {
-        final PwmDomain pwmDomain = cliEnvironment.getPwmDomain();
+        final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
+        final Instant startTime = Instant.now();
         final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
 
-        final long startTime = System.currentTimeMillis();
+        long counter = 0;
+
+        try ( Writer writer = new BufferedWriter( new PrintWriter( outputFile, PwmConstants.DEFAULT_CHARSET.toString() ) ); )
+        {
+            for ( final PwmDomain pwmDomain : pwmApplication.domains().values() )
+            {
+                counter += doExport( pwmDomain, writer );
+            }
+        }
+
+        out( "output complete, " + counter + " responses exported " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+    }
+
+    private long doExport( final PwmDomain pwmDomain, final Writer writer ) throws Exception
+    {
+        final String systemRecordDelimiter = System.getProperty( "line.separator" );
+
         final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
         final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
+                .searchTimeout( TimeDuration.MINUTE )
                 .enableValueEscaping( false )
                 .username( "*" )
                 .build();
 
-        final String systemRecordDelimiter = System.getProperty( "line.separator" );
-        final Writer writer = new BufferedWriter( new PrintWriter( outputFile, PwmConstants.DEFAULT_CHARSET.toString() ) );
         final Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(
                 searchConfiguration,
                 Integer.MAX_VALUE,
                 Collections.emptyList(),
                 SessionLabel.SYSTEM_LABEL
         );
-        out( "searching " + results.size() + " users for stored responses to write to " + outputFile.getAbsolutePath() + "...." );
+        out( "searching " + results.size() + " users for stored responses...." );
         int counter = 0;
         for ( final UserIdentity identity : results.keySet() )
         {
             final ChaiUser user = pwmDomain.getProxiedChaiUser( identity );
-            final ResponseSet responseSet = pwmDomain.getCrService().readUserResponseSet( null, identity, user );
-            if ( responseSet != null )
+            final Optional<ResponseSet> responseSet = pwmDomain.getCrService().readUserResponseSet( null, identity, user );
+            if ( responseSet.isPresent() )
             {
                 counter++;
                 out( "found responses for '" + user + "', writing to output." );
                 final RestChallengesServer.JsonChallengesData outputData = new RestChallengesServer.JsonChallengesData();
-                outputData.challenges = responseSet.asChallengeBeans( true );
-                outputData.helpdeskChallenges = responseSet.asHelpdeskChallengeBeans( true );
-                outputData.minimumRandoms = responseSet.getChallengeSet().minimumResponses();
+                outputData.challenges = responseSet.get().asChallengeBeans( true );
+                outputData.helpdeskChallenges = responseSet.get().asHelpdeskChallengeBeans( true );
+                outputData.minimumRandoms = responseSet.get().getChallengeSet().minimumResponses();
                 outputData.username = identity.toDelimitedKey();
                 writer.write( JsonUtil.serialize( outputData ) );
                 writer.write( systemRecordDelimiter );
@@ -89,8 +108,8 @@ public class ExportResponsesCommand extends AbstractCliCommand
                 out( "skipping '" + user.toString() + "', no stored responses." );
             }
         }
-        writer.close();
-        out( "output complete, " + counter + " responses exported in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+        return counter;
+
     }
 
     @Override

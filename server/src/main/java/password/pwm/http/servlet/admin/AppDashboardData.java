@@ -33,11 +33,13 @@ import password.pwm.http.ContextManager;
 import password.pwm.http.bean.DisplayElement;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Display;
+import password.pwm.ldap.LdapConnectionService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.node.NodeInfo;
 import password.pwm.svc.node.NodeService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmNumberFormat;
@@ -159,13 +161,13 @@ public class AppDashboardData implements Serializable
                 : "This node is not the current master";
         {
             final Collection<DataStorageMethod> dataStorageMethods = pwmDomain.getPwmApplication().getNodeService().serviceInfo().getStorageMethods();
-            if ( !JavaHelper.isEmpty( dataStorageMethods ) )
+            if ( !CollectionUtil.isEmpty( dataStorageMethods ) )
             {
                 builder.nodeStorageMethod = dataStorageMethods.iterator().next();
             }
         }
 
-        builder.ldapConnectionCount( SessionTrackService.totalLdapConnectionCount( pwmDomain.getPwmApplication() ) );
+        builder.ldapConnectionCount( LdapConnectionService.totalLdapConnectionCount( pwmDomain.getPwmApplication() ) );
         builder.sessionCount( pwmDomain.getSessionTrackService().sessionCount() );
         builder.requestsInProgress( pwmDomain.getPwmApplication().getActiveServletRequests().get() );
 
@@ -217,7 +219,7 @@ public class AppDashboardData implements Serializable
                 "siteURL",
                 DisplayElement.Type.string,
                 l.forKey( "Field_SiteURL" ),
-                pwmDomain.getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL )
+                pwmDomain.getConfig().getAppConfig().readSettingAsString( PwmSetting.PWM_SITE_URL )
         ), new DisplayElement(
                 "instanceID",
                 DisplayElement.Type.string,

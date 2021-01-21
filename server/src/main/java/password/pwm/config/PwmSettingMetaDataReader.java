@@ -29,10 +29,12 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -165,6 +167,39 @@ public class PwmSettingMetaDataReader
         }
     }
 
+    public static void initCache()
+    {
+        final Instant startTime = Instant.now();
+        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        {
+            pwmSetting.getProperties();
+            pwmSetting.getFlags();
+            pwmSetting.getOptions();
+            pwmSetting.getLabel( PwmConstants.DEFAULT_LOCALE );
+            pwmSetting.getDescription( PwmConstants.DEFAULT_LOCALE );
+            pwmSetting.getExample( PwmSettingTemplateSet.getDefault() );
+            pwmSetting.isRequired();
+            pwmSetting.isHidden();
+            pwmSetting.getLevel();
+            pwmSetting.getRegExPattern();
+            pwmSetting.getLDAPPermissionInfo();
+            pwmSetting.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
+        }
+        for ( final PwmSettingCategory pwmSettingCategory : PwmSettingCategory.values() )
+        {
+            pwmSettingCategory.getLabel( PwmConstants.DEFAULT_LOCALE );
+            pwmSettingCategory.getDescription( PwmConstants.DEFAULT_LOCALE );
+            pwmSettingCategory.isHidden();
+            pwmSettingCategory.getLevel();
+            pwmSettingCategory.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
+            pwmSettingCategory.getScope();
+            pwmSettingCategory.getChildren();
+            pwmSettingCategory.getLevel();
+            pwmSettingCategory.getSettings();
+        }
+        LOGGER.trace( () -> "completed PwmSetting xml cache initialization", () -> TimeDuration.fromCurrent( startTime ) );
+    }
+
     private static class InternalReader
     {
         private static Set<PwmSettingFlag> readFlags( final PwmSetting pwmSetting )
@@ -209,8 +244,7 @@ public class PwmSettingMetaDataReader
                     }
                 }
             }
-            final Map<String, String> finalList = Collections.unmodifiableMap( returnList );
-            return Collections.unmodifiableMap( finalList );
+            return Collections.unmodifiableMap( returnList );
         }
 
         private static Collection<LDAPPermissionInfo> readLdapPermissionInfo( final PwmSetting pwmSetting )

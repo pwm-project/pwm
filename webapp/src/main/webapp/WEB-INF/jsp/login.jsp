@@ -54,8 +54,6 @@
         <form action="<pwm:current-url/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="login" autocomplete="off" class="pwm-form-captcha">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <div class="sign-in">
-
-                <%@ include file="/WEB-INF/jsp/fragment/domain-selector.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
                 <h2 class="loginFieldLabel"><label for="username"><pwm:display key="Field_Username"/></label></h2>
                 <div class="formFieldWrapper">

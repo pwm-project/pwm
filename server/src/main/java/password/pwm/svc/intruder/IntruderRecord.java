@@ -20,22 +20,21 @@
 
 package password.pwm.svc.intruder;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.time.Instant;
 
+@Data
 public class IntruderRecord implements Serializable
 {
-    private RecordType type;
+    private IntruderRecordType type;
     private String subject;
     private Instant timeStamp = Instant.now();
     private int attemptCount = 0;
     private boolean alerted = false;
 
-    IntruderRecord( )
-    {
-    }
-
-    public IntruderRecord( final RecordType type, final String subject )
+    public IntruderRecord( final IntruderRecordType type, final String subject )
     {
         if ( type == null )
         {
@@ -49,26 +48,6 @@ public class IntruderRecord implements Serializable
         this.subject = subject;
     }
 
-    public RecordType getType( )
-    {
-        return type;
-    }
-
-    public String getSubject( )
-    {
-        return subject;
-    }
-
-    public Instant getTimeStamp( )
-    {
-        return timeStamp;
-    }
-
-    public int getAttemptCount( )
-    {
-        return attemptCount;
-    }
-
     void incrementAttemptCount( )
     {
         timeStamp = Instant.now();
@@ -79,15 +58,5 @@ public class IntruderRecord implements Serializable
     {
         alerted = false;
         attemptCount = 0;
-    }
-
-    public boolean isAlerted( )
-    {
-        return alerted;
-    }
-
-    void setAlerted( )
-    {
-        this.alerted = true;
     }
 }

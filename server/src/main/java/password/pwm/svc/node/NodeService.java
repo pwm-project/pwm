@@ -46,7 +46,6 @@ public class NodeService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( NodeService.class );
 
-    private PwmDomain pwmDomain;
     private STATUS status = STATUS.CLOSED;
     private NodeMachine nodeMachine;
     private DataStorageMethod dataStore;
@@ -92,7 +91,7 @@ public class NodeService implements PwmService
                     {
                         LOGGER.trace( () -> "starting ldap-backed node service provider" );
                         nodeServiceSettings = NodeServiceSettings.fromConfigForLDAP( pwmApplication.getConfig() );
-                        clusterDataServiceProvider = new LDAPNodeDataService( pwmApplication );
+                        clusterDataServiceProvider = new LDAPNodeDataService( pwmApplication.getAdminDomain() );
                     }
                     break;
 
@@ -103,7 +102,7 @@ public class NodeService implements PwmService
 
                 }
 
-                nodeMachine = new NodeMachine( pwmDomain.getPwmApplication(), clusterDataServiceProvider, nodeServiceSettings );
+                nodeMachine = new NodeMachine( pwmApplication, clusterDataServiceProvider, nodeServiceSettings );
                 status = STATUS.OPEN;
                 return;
             }

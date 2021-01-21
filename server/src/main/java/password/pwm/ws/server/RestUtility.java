@@ -177,12 +177,12 @@ public class RestUtility
             );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        else if ( !StringUtil.isEmpty( jsonValue ) && !StringUtil.isEmpty( paramValue ) )
+        else if ( StringUtil.notEmpty( jsonValue ) && StringUtil.notEmpty( paramValue ) )
         {
             final String msg = paramName + " parameter can not be specified in both request parameter and json body";
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_REST_INVOCATION_ERROR, msg ) );
         }
-        else if ( !StringUtil.isEmpty( jsonValue ) )
+        else if ( StringUtil.notEmpty( jsonValue ) )
         {
             return jsonValue;
         }

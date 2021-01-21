@@ -88,10 +88,7 @@ public class LogoutServlet extends ControlledPwmServlet
             throws ServletException, PwmUnrecoverableException, IOException
     {
         final Optional<String> nextUrl = readAndValidateNextUrlParameter( pwmRequest );
-        if ( nextUrl.isPresent() )
-        {
-            pwmRequest.setAttribute( PwmRequestAttribute.NextUrl, nextUrl.get() );
-        }
+        nextUrl.ifPresent( s -> pwmRequest.setAttribute( PwmRequestAttribute.NextUrl, s ) );
         pwmRequest.forwardToJsp( JspUrl.LOGOUT );
         return ProcessStatus.Halt;
     }
@@ -142,7 +139,7 @@ public class LogoutServlet extends ControlledPwmServlet
             if ( sessionLogoutURL != null && sessionLogoutURL.length() > 0 )
             {
                 LOGGER.trace( pwmRequest, () -> "redirecting user to session parameter set logout url: " + sessionLogoutURL );
-                pwmRequest.sendRedirect( sessionLogoutURL );
+                pwmRequest.getPwmResponse().sendRedirect( sessionLogoutURL );
                 pwmRequest.invalidateSession();
                 return;
             }
@@ -174,7 +171,7 @@ public class LogoutServlet extends ControlledPwmServlet
                 final String logoutURL = PwmURL.appendAndEncodeUrlParameters( configuredLogoutURL, logoutUrlParameters );
 
                 LOGGER.trace( pwmRequest, () -> "redirecting user to configured logout url:" + logoutURL );
-                pwmRequest.sendRedirect( logoutURL );
+                pwmRequest.getPwmResponse().sendRedirect( logoutURL );
                 pwmRequest.invalidateSession();
                 return;
             }
@@ -190,11 +187,11 @@ public class LogoutServlet extends ControlledPwmServlet
             logoutUrlParameters.put( PARAM_URL, nextUrl );
         }
         final String logoutURL = PwmURL.appendAndEncodeUrlParameters(
-                pwmRequest.getContextPath() + PwmServletDefinition.Logout.servletUrl(),
+                pwmRequest.getBasePath() + PwmServletDefinition.Logout.servletUrl(),
                 logoutUrlParameters
         );
         pwmRequest.invalidateSession();
-        pwmRequest.sendRedirect( logoutURL );
+        pwmRequest.getPwmResponse().sendRedirect( logoutURL );
     }
 
 
@@ -218,9 +215,9 @@ public class LogoutServlet extends ControlledPwmServlet
             final String urlParameter = pwmRequest.readParameterAsString( PARAM_URL );
             final URI uri = URI.create( urlParameter );
             String path = uri.getPath();
-            if ( path != null && path.startsWith( pwmRequest.getContextPath() ) )
+            if ( path != null && path.startsWith( pwmRequest.getBasePath() ) )
             {
-                path = path.substring( pwmRequest.getContextPath().length() );
+                path = path.substring( pwmRequest.getBasePath().length() );
 
             }
             PwmServletDefinition matchedServlet = null;
@@ -247,7 +244,7 @@ public class LogoutServlet extends ControlledPwmServlet
             {
                 final PwmServletDefinition finalMatchedServlet = matchedServlet;
                 LOGGER.trace( pwmRequest, () -> "matched next url to servlet definition " + finalMatchedServlet.toString() );
-                return Optional.of( pwmRequest.getContextPath() + matchedServlet.servletUrl() );
+                return Optional.of( pwmRequest.getBasePath() + matchedServlet.servletUrl() );
             }
             else
             {

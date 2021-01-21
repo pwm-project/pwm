@@ -134,7 +134,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             throws PwmUnrecoverableException
     {
         // use local cache first.
-        if ( !StringUtil.isEmpty( obfuscatedValue ) )
+        if ( StringUtil.notEmpty( obfuscatedValue ) )
         {
             return obfuscatedValue;
         }
@@ -144,7 +144,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         final CacheKey cacheKey = CacheKey.newKey( this.getClass(), this, "obfuscatedKey" );
         final String cachedValue = cacheService.get( cacheKey, String.class );
 
-        if ( !StringUtil.isEmpty( cachedValue ) )
+        if ( StringUtil.notEmpty( cachedValue ) )
         {
             obfuscatedValue = cachedValue;
             return cachedValue;
@@ -172,7 +172,9 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
 
     public String toDisplayString( )
     {
-        return this.getUserDN() + ( ( this.getLdapProfileID() != null && !this.getLdapProfileID().isEmpty() ) ? " (" + this.getLdapProfileID() + ")" : "" );
+        return "[" + this.getDomainID() + "]"
+                + " " + this.getUserDN()
+                + ( ( this.getLdapProfileID() != null && !this.getLdapProfileID().isEmpty() ) ? " (" + this.getLdapProfileID() + ")" : "" );
     }
 
     public static UserIdentity fromObfuscatedKey( final String key, final PwmApplication pwmApplication )
@@ -314,7 +316,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             return this;
         }
 
-        final ChaiUser chaiUser = pwmApplication.getDomains().get( this.getDomainID() ).getProxiedChaiUser( this );
+        final ChaiUser chaiUser = pwmApplication.domains().get( this.getDomainID() ).getProxiedChaiUser( this );
         final String userDN;
         try
         {

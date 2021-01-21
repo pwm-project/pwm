@@ -472,7 +472,7 @@ public class ForgottenPasswordStateMachine
                 ErrorInformation errorInformation = null;
 
                 boolean otpPassed = false;
-                if ( otpUserRecord != null && !StringUtil.isEmpty( userEnteredCode ) )
+                if ( otpUserRecord != null && StringUtil.notEmpty( userEnteredCode ) )
                 {
                     LOGGER.trace( pwmRequestContext.getSessionLabel(), () -> "checking entered OTP for user " + userInfo.getUserIdentity().toDisplayString() );
                     try
@@ -658,8 +658,8 @@ public class ForgottenPasswordStateMachine
                     throws PwmUnrecoverableException
             {
                 final PwmRequestContext pwmRequestContext = forgottenPasswordStateMachine.getRequestContext();
-                final ResponseSet responseSet = ForgottenPasswordUtil.readResponseSet( pwmRequestContext, forgottenPasswordStateMachine.getForgottenPasswordBean() );
-                if ( responseSet == null )
+                final Optional<ResponseSet> responseSet = ForgottenPasswordUtil.readResponseSet( pwmRequestContext, forgottenPasswordStateMachine.getForgottenPasswordBean() );
+                if ( responseSet.isEmpty() )
                 {
                     final String errorMsg = "attempt to check responses, but responses are not loaded into session bean";
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -675,7 +675,7 @@ public class ForgottenPasswordStateMachine
                 final boolean responsesPassed;
                 try
                 {
-                    responsesPassed = responseSet.test( crMap );
+                    responsesPassed = responseSet.get().test( crMap );
                 }
                 catch ( final ChaiUnavailableException e )
                 {
@@ -945,7 +945,7 @@ public class ForgottenPasswordStateMachine
             // process input profile
             {
                 final String inputProfile = values.get( PwmConstants.PARAM_LDAP_PROFILE );
-                if ( !StringUtil.isEmpty( inputProfile ) && pwmRequestContext.getDomainConfig().getLdapProfiles().containsKey( inputProfile ) )
+                if ( StringUtil.notEmpty( inputProfile ) && pwmRequestContext.getDomainConfig().getLdapProfiles().containsKey( inputProfile ) )
                 {
                     forgottenPasswordStateMachine.getForgottenPasswordBean().setProfile( inputProfile );
                 }

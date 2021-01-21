@@ -22,7 +22,7 @@ package password.pwm.config.value;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -103,7 +103,7 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
     @Override
     public String toDebugString( final Locale locale )
     {
-        if ( !JavaHelper.isEmpty( values ) )
+        if ( !CollectionUtil.isEmpty( values ) )
         {
             final StringBuilder sb = new StringBuilder();
             for ( final Iterator valueIterator = values.iterator(); valueIterator.hasNext(); )

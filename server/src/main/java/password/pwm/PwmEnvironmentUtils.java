@@ -24,8 +24,5 @@ import password.pwm.util.logging.PwmLogger;
 
 public class PwmEnvironmentUtils
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmEnvironmentUtils.class );
-
-
 }

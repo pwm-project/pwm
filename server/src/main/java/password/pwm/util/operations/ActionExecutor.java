@@ -191,7 +191,7 @@ public class ActionExecutor
             }
 
             // add basic auth header;
-            if ( !StringUtil.isEmpty( webAction.getUsername() ) && !StringUtil.isEmpty( webAction.getPassword() ) )
+            if ( StringUtil.notEmpty( webAction.getUsername() ) && StringUtil.notEmpty( webAction.getPassword() ) )
             {
                 final String authHeaderValue = new BasicAuthInfo( webAction.getUsername(), new PasswordData( webAction.getPassword() ) ).toAuthHeader();
                 headers.put( HttpHeader.Authorization.getHttpName(), authHeaderValue );

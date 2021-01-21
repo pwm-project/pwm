@@ -77,14 +77,14 @@ public class RestStatusServer extends RestServlet
         {
             final ChaiProvider chaiProvider = targetUserIdentity.getChaiProvider();
             final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                    restRequest.getDomain(),
+                    restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
                     restRequest.getLocale(),
                     targetUserIdentity.getUserIdentity(),
                     chaiProvider
             );
             final MacroRequest macroRequest = MacroRequest.forUser(
-                    restRequest.getDomain(),
+                    restRequest.getPwmApplication(),
                     restRequest.getLocale(),
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getUserIdentity()

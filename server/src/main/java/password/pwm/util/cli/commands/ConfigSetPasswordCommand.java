@@ -41,7 +41,7 @@ public class ConfigSetPasswordCommand extends AbstractCliCommand
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
         final String password = getOptionalPassword();
         StoredConfigurationUtil.setPassword( modifier, password );
-        configurationReader.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmDomain(), SessionLabel.CLI_SESSION_LABEL );
+        configurationReader.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
         out( "success: new password has been set" );
     }
 

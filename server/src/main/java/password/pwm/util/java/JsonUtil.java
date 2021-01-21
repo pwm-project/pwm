@@ -148,7 +148,7 @@ public class JsonUtil
     }
 
     /**
-     * Gson Serializer for {@link java.security.cert.X509Certificate}.  Neccessary because sometimes X509Certs have circular refecences
+     * Gson Serializer for {@link java.security.cert.X509Certificate}.  Necessary because sometimes X509Certs have circular references
      * and the default gson serializer will cause a {@code java.lang.StackOverflowError}.  Standard Base64 encoding of
      * the cert is used as the json format.
      */
@@ -165,7 +165,7 @@ public class JsonUtil
             {
                 return new JsonPrimitive( StringUtil.base64Encode( cert.getEncoded() ) );
             }
-            catch ( final CertificateEncodingException e )
+            catch ( final PwmUnrecoverableException | CertificateEncodingException e )
             {
                 throw new IllegalStateException( "unable to json-encode certificate: " + e.getMessage() );
             }
@@ -294,9 +294,9 @@ public class JsonUtil
             {
                 return new JsonPrimitive( StringUtil.base64Encode( src, StringUtil.Base64Options.GZIP ) );
             }
-            catch ( final IOException e )
+            catch ( final PwmUnrecoverableException e )
             {
-                final String errorMsg = "io stream error while serializing byte array: " + e.getMessage();
+                final String errorMsg = "error while JSON serializing byte array: " + e.getMessage();
                 LOGGER.error( () -> errorMsg );
                 throw new JsonParseException( errorMsg, e );
             }

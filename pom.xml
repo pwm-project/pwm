@@ -34,6 +34,7 @@
         <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.release>11</maven.compiler.release>
         <maven.javadoc.skip>true</maven.javadoc.skip>
 
         <!-- profile managed values -->
@@ -224,6 +225,7 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <release>${maven.compiler.release}</release>
                     <showWarnings>true</showWarnings>
                 </configuration>
             </plugin>
@@ -332,7 +334,7 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>verify</phase>
+                        <phase>test</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
@@ -363,7 +365,7 @@
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>6.0.4</version>
+                <version>6.0.5</version>
                 <executions>
                     <execution>
                         <goals>

@@ -46,7 +46,7 @@ import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -136,7 +136,7 @@ public class HelpdeskServletUtil
             {
                 final String searchAttribute = formConfiguration.getName();
                 final String value = attributesInSearchRequest.get( searchAttribute );
-                if ( !StringUtil.isEmpty( value ) )
+                if ( StringUtil.notEmpty( value ) )
                 {
                     filter.append( "(" ).append( searchAttribute ).append( "=" );
 
@@ -267,7 +267,7 @@ public class HelpdeskServletUtil
     )
     {
         final Collection<IdentityVerificationMethod> requiredMethods = helpdeskProfile.readRequiredVerificationMethods();
-        if ( JavaHelper.isEmpty( requiredMethods ) )
+        if ( CollectionUtil.isEmpty( requiredMethods ) )
         {
             return true;
         }
@@ -304,7 +304,7 @@ public class HelpdeskServletUtil
         }
 
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                pwmRequest.getPwmDomain(),
+                pwmRequest.getPwmApplication(),
                 pwmRequest.getLabel(),
                 pwmRequest.getLocale(),
                 userIdentity,
@@ -341,7 +341,7 @@ public class HelpdeskServletUtil
             throws PwmUnrecoverableException
     {
         return UserInfoFactory.newUserInfo(
-                pwmRequest.getPwmDomain(),
+                pwmRequest.getPwmApplication(),
                 pwmRequest.getLabel(),
                 pwmRequest.getLocale(),
                 targetUserIdentity,
@@ -357,7 +357,7 @@ public class HelpdeskServletUtil
             throws PwmUnrecoverableException
     {
         final MacroRequest macroRequest = MacroRequest.forUser(
-                pwmRequest.getPwmDomain(),
+                pwmRequest.getPwmApplication(),
                 pwmRequest.getLabel(),
                 getTargetUserInfo( pwmRequest, helpdeskProfile, targetUserIdentity ),
                 pwmRequest.getPwmSession().getLoginInfoBean()

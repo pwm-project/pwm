@@ -56,7 +56,7 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.wordlist.WordlistService;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -102,7 +102,7 @@ public class CrService implements PwmService
     @Override
     public void init( final PwmApplication pwmApplication, final DomainID domainID ) throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
+        this.pwmDomain = pwmApplication.domains().get( domainID );
         operatorMap.put( DataStorageMethod.DB, new DbCrOperator( pwmDomain ) );
         operatorMap.put( DataStorageMethod.LDAP, new LdapCrOperator( pwmDomain.getConfig() ) );
         operatorMap.put( DataStorageMethod.LOCALDB, new LocalDbCrOperator( pwmDomain.getPwmApplication().getLocalDB() ) );
@@ -386,7 +386,7 @@ public class CrService implements PwmService
             throw new PwmDataValidationException( errorInfo );
         }
 
-        if ( JavaHelper.isEmpty( responseMap ) )
+        if ( CollectionUtil.isEmpty( responseMap ) )
         {
             final String errorMsg = "empty response set";
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, errorMsg );
@@ -423,15 +423,15 @@ public class CrService implements PwmService
 
         for ( final DataStorageMethod storageMethod : readPreferences )
         {
-            final ResponseInfoBean readResponses;
+            final Optional<ResponseInfoBean> readResponses;
 
             LOGGER.trace( sessionLabel, () -> "attempting read of response info via storage method: " + storageMethod );
             readResponses = operatorMap.get( storageMethod ).readResponseInfo( sessionLabel, theUser, userIdentity, userGUID );
 
-            if ( readResponses != null )
+            if ( readResponses.isPresent() )
             {
                 LOGGER.debug( sessionLabel, () -> "returning response info read via method " + storageMethod + " for user " + theUser.getEntryDN() );
-                return Optional.of( readResponses );
+                return readResponses;
             }
             else
             {
@@ -443,7 +443,7 @@ public class CrService implements PwmService
     }
 
 
-    public ResponseSet readUserResponseSet(
+    public Optional<ResponseSet> readUserResponseSet(
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final ChaiUser theUser
@@ -471,12 +471,12 @@ public class CrService implements PwmService
 
         for ( final DataStorageMethod storageMethod : readPreferences )
         {
-            final ResponseSet readResponses;
+            final Optional<ResponseSet> readResponses;
 
             LOGGER.trace( sessionLabel, () -> "attempting read of responses via storage method: " + storageMethod );
             readResponses = operatorMap.get( storageMethod ).readResponseSet( sessionLabel, theUser, userIdentity, userGUID );
 
-            if ( readResponses != null )
+            if ( readResponses.isPresent() )
             {
                 LOGGER.debug( sessionLabel, () -> "returning responses read via method " + storageMethod + " for user " + theUser.getEntryDN() );
                 return readResponses;
@@ -487,7 +487,7 @@ public class CrService implements PwmService
             }
         }
         LOGGER.debug( sessionLabel, () -> "no responses found for user " + theUser.getEntryDN() );
-        return null;
+        return Optional.empty();
     }
 
 

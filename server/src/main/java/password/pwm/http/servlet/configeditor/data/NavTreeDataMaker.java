@@ -23,7 +23,8 @@ package password.pwm.http.servlet.configeditor.data;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
-import password.pwm.config.DomainConfig;
+import password.pwm.bean.DomainID;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingScope;
@@ -102,15 +103,23 @@ public class NavTreeDataMaker
             final NavTreeSettings navTreeSettings
     )
     {
+        final DomainID domainID = navTreeSettings.getDomainManageMode() == DomainManageMode.domain
+                ? pwmDomain.getDomainID()
+                : DomainID.systemId();
+
+        return makeDisplayTextNavItemsForDomain( domainID, storedConfiguration, navTreeSettings );
+    }
+
+    private static List<NavTreeItem> makeDisplayTextNavItemsForDomain(
+            final DomainID domainID,
+            final StoredConfiguration storedConfiguration,
+            final NavTreeSettings navTreeSettings
+    )
+    {
         final ArrayList<NavTreeItem> navigationData = new ArrayList<>();
 
         final int level = navTreeSettings.getLevel();
         final boolean modifiedSettingsOnly = navTreeSettings.isModifiedSettingsOnly();
-
-        if ( navTreeSettings.getDomainManageMode() != DomainManageMode.domain )
-        {
-            return Collections.emptyList();
-        }
 
         boolean includeDisplayText = false;
         if ( level >= 1 )
@@ -120,7 +129,7 @@ public class NavTreeDataMaker
                 if ( !localeBundle.isAdminOnly() )
                 {
                     final List<String> modifiedKeys = modifiedSettingsOnly
-                            ? new ArrayList<>( NavTreeDataMaker.determineModifiedDisplayKeysSettings( localeBundle, pwmDomain.getConfig(), storedConfiguration ) )
+                            ? new ArrayList<>( NavTreeDataMaker.determineModifiedDisplayKeysSettings( domainID, localeBundle, storedConfiguration ) )
                             : Collections.emptyList();
 
                     if ( !modifiedSettingsOnly || !modifiedKeys.isEmpty() )
@@ -160,18 +169,19 @@ public class NavTreeDataMaker
 
 
     private static List<String> determineModifiedDisplayKeysSettings(
+            final DomainID domainID,
             final PwmLocaleBundle bundle,
-            final DomainConfig config,
             final StoredConfiguration storedConfiguration
     )
     {
+        final List<Locale> knownLocales = Collections.unmodifiableList( new AppConfig( storedConfiguration ).getKnownLocales() );
         final List<String> modifiedKeys = new ArrayList<>();
         for ( final String key : bundle.getDisplayKeys() )
         {
-            final Map<String, String> storedBundle = storedConfiguration.readLocaleBundleMap( bundle, key );
+            final Map<String, String> storedBundle = storedConfiguration.readLocaleBundleMap( bundle, key, domainID );
             if ( !storedBundle.isEmpty() )
             {
-                for ( final Locale locale : config.getAppConfig().getKnownLocales() )
+                for ( final Locale locale : knownLocales )
                 {
                     final ResourceBundle defaultBundle = ResourceBundle.getBundle( bundle.getTheClass().getName(), locale );
                     final String localeKeyString = PwmConstants.DEFAULT_LOCALE.toString().equals( locale.toString() ) ? "" : locale.toString();

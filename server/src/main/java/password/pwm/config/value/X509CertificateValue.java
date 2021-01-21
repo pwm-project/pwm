@@ -25,6 +25,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
@@ -87,7 +88,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
 
     public boolean hasCertificates( )
     {
-        return !JavaHelper.isEmpty( b64certificates );
+        return !CollectionUtil.isEmpty( b64certificates );
     }
 
     public X509CertificateValue( final List<String> b64certificates )

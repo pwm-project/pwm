@@ -97,7 +97,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
 
     private DeleteAccountProfile getProfile( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmSession().getSessionManager().getSelfDeleteProfile( );
+        return pwmRequest.getSelfDeleteProfile( );
     }
 
     private DeleteAccountBean getBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
@@ -162,7 +162,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
         pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, DeleteAccountBean.class );
-        pwmRequest.sendRedirectToContinue();
+        pwmRequest.getPwmResponse().sendRedirectToContinue();
         return ProcessStatus.Halt;
     }
 
@@ -262,7 +262,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
 
         // delete finished, so logout and redirect.
         pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
-        pwmRequest.sendRedirectToContinue();
+        pwmRequest.getPwmResponse().sendRedirectToContinue();
         return ProcessStatus.Halt;
     }
 

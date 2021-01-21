@@ -93,7 +93,7 @@ public class OtpService implements PwmService
     @Override
     public void init( final PwmApplication pwmApplication, final DomainID domainID ) throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
+        this.pwmDomain = pwmApplication.domains().get( domainID );
         operatorMap.put( DataStorageMethod.LDAP, new LdapOtpOperator( pwmDomain ) );
         operatorMap.put( DataStorageMethod.LOCALDB, new LocalDbOtpOperator( pwmDomain ) );
         operatorMap.put( DataStorageMethod.DB, new DbOtpOperator( pwmDomain ) );
@@ -168,7 +168,7 @@ public class OtpService implements PwmService
     private List<String> createRawRecoveryCodes( final int numRecoveryCodes, final SessionLabel sessionLabel )
             throws PwmUnrecoverableException
     {
-        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmDomain, sessionLabel );
+        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmDomain.getPwmApplication(), sessionLabel );
         final String configuredTokenMacro = settings.getRecoveryTokenMacro();
         final List<String> recoveryCodes = new ArrayList<>();
         while ( recoveryCodes.size() < numRecoveryCodes )
@@ -269,7 +269,7 @@ public class OtpService implements PwmService
             final String input,
             final OTPUserRecord.RecoveryInfo recoveryInfo
     )
-            throws IllegalStateException
+            throws IllegalStateException, PwmUnrecoverableException
     {
         final String algorithm = settings.getRecoveryHashMethod();
         final MessageDigest md;
@@ -342,7 +342,7 @@ public class OtpService implements PwmService
                 {
                     try
                     {
-                        otpConfig = operator.readOtpUserConfiguration( userIdentity, userGUID );
+                        otpConfig = operator.readOtpUserConfiguration( userIdentity, userGUID ).orElse( null );
                     }
                     catch ( final Exception e )
                     {
@@ -366,6 +366,7 @@ public class OtpService implements PwmService
                     + JavaHelper.toIsoDate( finalOtpConfig.getTimestamp() ) + "]";
             LOGGER.trace( sessionLabel, msg, () -> TimeDuration.fromCurrent(  methodStartTime ) );
         }
+
         return otpConfig;
     }
 

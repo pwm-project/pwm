@@ -114,6 +114,7 @@ PWM_ADMIN.initAdminNavMenu = function() {
 PWM_ADMIN.reportDataHeaders = function() {
     return [
         {field:"username",label:PWM_ADMIN.showString("Field_Report_Username")},
+        {field:"domainID",label:PWM_ADMIN.showString("Field_Report_DomainID"),hidden:true},
         {field:"userDN",label:PWM_ADMIN.showString("Field_Report_UserDN"),hidden:true},
         {field:"ldapProfile",label:PWM_ADMIN.showString("Field_Report_LDAP_Profile"),hidden:true},
         {field:"email",label:PWM_ADMIN.showString("Field_Report_Email"),hidden:true},
@@ -388,6 +389,7 @@ PWM_ADMIN.refreshIntruderGrid=function() {
 
 PWM_ADMIN.auditUserHeaders = function() {
     return [
+        {field:"domain",label:PWM_ADMIN.showString('Field_Audit_Domain')},
         {field:"timestamp",label:PWM_ADMIN.showString('Field_Audit_Timestamp')},
         {field:"perpetratorID",label:PWM_ADMIN.showString('Field_Audit_PerpetratorID')},
         {field:"perpetratorDN",label:PWM_ADMIN.showString('Field_Audit_PerpetratorDN'),hidden:true},
@@ -403,6 +405,7 @@ PWM_ADMIN.auditUserHeaders = function() {
 
 PWM_ADMIN.auditHelpdeskHeaders = function() {
     return [
+        {field:"domain",label:PWM_ADMIN.showString('Field_Audit_Domain')},
         {field:"timestamp",label:PWM_ADMIN.showString('Field_Audit_Timestamp')},
         {field:"perpetratorID",label:PWM_ADMIN.showString('Field_Audit_PerpetratorID')},
         {field:"perpetratorDN",label:PWM_ADMIN.showString('Field_Audit_PerpetratorDN'),hidden:true},

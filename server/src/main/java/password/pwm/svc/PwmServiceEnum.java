@@ -22,12 +22,15 @@ package password.pwm.svc;
 
 import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSettingScope;
+import password.pwm.health.HealthService;
 import password.pwm.svc.email.EmailService;
+import password.pwm.svc.intruder.IntruderService;
 import password.pwm.svc.node.NodeService;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.wordlist.SeedlistService;
+import password.pwm.svc.wordlist.SharedHistoryService;
 import password.pwm.svc.wordlist.WordlistService;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,11 +41,9 @@ public enum PwmServiceEnum
 {
     LocalDBService( password.pwm.util.localdb.LocalDBService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     SystemSecureService( password.pwm.svc.secure.SystemSecureService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
-    DomainSecureService( password.pwm.svc.secure.DomainSecureService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
     HttpClientService( password.pwm.svc.httpclient.HttpClientService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
-    LdapConnectionService( password.pwm.ldap.LdapConnectionService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
     DatabaseService( password.pwm.util.db.DatabaseService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
-    SharedHistoryManager( password.pwm.svc.wordlist.SharedHistoryManager.class, PwmSettingScope.SYSTEM ),
+    SharedHistoryManager( SharedHistoryService.class, PwmSettingScope.SYSTEM ),
     AuditService( password.pwm.svc.event.AuditService.class, PwmSettingScope.SYSTEM ),
     StatisticsManager( password.pwm.svc.stats.StatisticsManager.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     WordlistManager( WordlistService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
@@ -50,21 +51,26 @@ public enum PwmServiceEnum
     EmailQueueManager( EmailService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     SmsQueueManager( password.pwm.util.queue.SmsQueueManager.class, PwmSettingScope.SYSTEM ),
     UrlShortenerService( password.pwm.svc.shorturl.UrlShortenerService.class, PwmSettingScope.SYSTEM ),
-    TokenService( password.pwm.svc.token.TokenService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
-    IntruderManager( password.pwm.svc.intruder.IntruderManager.class, PwmSettingScope.SYSTEM ),
-    CrService( password.pwm.util.operations.CrService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
-    OtpService( password.pwm.util.operations.OtpService.class, PwmSettingScope.DOMAIN ),
+    IntruderManager( IntruderService.class, PwmSettingScope.SYSTEM ),
     CacheService( password.pwm.svc.cache.CacheService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
-    HealthMonitor( password.pwm.health.HealthMonitor.class, PwmSettingScope.SYSTEM ),
+    HealthMonitor( HealthService.class, PwmSettingScope.SYSTEM ),
     ReportService( password.pwm.svc.report.ReportService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
-    ResourceServletService( password.pwm.http.servlet.resource.ResourceServletService.class, PwmSettingScope.SYSTEM ),
     SessionTrackService( password.pwm.svc.sessiontrack.SessionTrackService.class, PwmSettingScope.SYSTEM ),
     SessionStateSvc( password.pwm.http.state.SessionStateService.class, PwmSettingScope.SYSTEM ),
-    UserSearchEngine( password.pwm.ldap.search.UserSearchEngine.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
-    PeopleSearchService( password.pwm.http.servlet.peoplesearch.PeopleSearchService.class, PwmSettingScope.DOMAIN ),
     TelemetryService( password.pwm.svc.telemetry.TelemetryService.class, PwmSettingScope.SYSTEM ),
     NodeService( NodeService.class, PwmSettingScope.SYSTEM ),
-    PwExpiryNotifyService( PwNotifyService.class, PwmSettingScope.SYSTEM ),;
+
+    DomainSecureService( password.pwm.svc.secure.DomainSecureService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
+    LdapConnectionService( password.pwm.ldap.LdapConnectionService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
+    CrService( password.pwm.util.operations.CrService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
+    OtpService( password.pwm.util.operations.OtpService.class, PwmSettingScope.DOMAIN ),
+    UserSearchEngine( password.pwm.ldap.search.UserSearchEngine.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
+    TokenService( password.pwm.svc.token.TokenService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
+    UserHistoryService( password.pwm.svc.userhistory.UserHistoryService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
+    PeopleSearchService( password.pwm.http.servlet.peoplesearch.PeopleSearchService.class, PwmSettingScope.DOMAIN ),
+    PwExpiryNotifyService( PwNotifyService.class, PwmSettingScope.DOMAIN ),
+    ResourceServletService( password.pwm.http.servlet.resource.ResourceServletService.class, PwmSettingScope.DOMAIN ),;
+
 
     private final Class<? extends PwmService> clazz;
     private final PwmSettingScope pwmSettingScope;
@@ -79,7 +85,7 @@ public enum PwmServiceEnum
     {
         this.clazz = clazz;
         this.pwmSettingScope = pwmSettingScope;
-        this.flags = JavaHelper.enumSetFromArray( flags );
+        this.flags = CollectionUtil.enumSetFromArray( flags );
     }
 
     public boolean isInternalRuntime( )

@@ -83,7 +83,8 @@ public class ReportStatusBean implements Serializable
                     final BigDecimal eventRate = reportService.getEventRate().setScale( 2, RoundingMode.UP );
                     if ( eventRate != null )
                     {
-                        presentableMap.add( new DisplayElement( "usersPerSecond", DisplayElement.Type.number, "Users/Second", eventRate.toString() ) );
+                        presentableMap.add( new DisplayElement( "usersPerMinute", DisplayElement.Type.number, "Users/Minute",
+                                eventRate.multiply( new BigDecimal( "60" ) ).toString() ) );
                     }
                     if ( !BigDecimal.ZERO.equals( eventRate ) )
                     {

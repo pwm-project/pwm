@@ -24,13 +24,22 @@ import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsCollectionContaining;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.localdb.LocalDBStoredQueue;
+import password.pwm.util.localdb.TestHelper;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +48,24 @@ import java.util.stream.Collectors;
 
 public class PasswordRuleChecksTest
 {
-    @Test
+
+
+    @Rule
+    public TemporaryFolder testFolder = new TemporaryFolder();
+
+    private LocalDBStoredQueue localDBStoredQueue;
+
+    private PwmApplication pwmApplication;
+
+    @Before
+    public void setUp() throws Exception
+    {
+        final File localDbTestFolder = testFolder.newFolder( "test-stored-queue-test" );
+        this.pwmApplication = TestHelper.makeTestPwmApplication( localDbTestFolder );
+    }
+
+
+        @Test
     public void minimumLengthTest()
             throws Exception
     {
@@ -424,10 +450,11 @@ public class PasswordRuleChecksTest
     )
             throws PwmUnrecoverableException
     {
+        final PwmDomain pwmDomain = pwmApplication.domains().get( DomainID.create( "default" ) );
         final Map<String, String> policyMap = new HashMap<>( PwmPasswordPolicy.defaultPolicy().getPolicyMap() );
         policyMap.putAll( policy );
-        final PwmPasswordPolicy pwmPasswordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy( policyMap );
-        final List<ErrorInformation> errorResults = PasswordRuleChecks.extendedPolicyRuleChecker( null, pwmPasswordPolicy, password, null, null );
+        final PwmPasswordPolicy pwmPasswordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy( PwmPasswordPolicy.defaultPolicy().getDomainID(), policyMap );
+        final List<ErrorInformation> errorResults = PasswordRuleChecks.extendedPolicyRuleChecker( pwmDomain, pwmPasswordPolicy, password, null, null );
         return errorResults.stream().map( ErrorInformation::getError ).collect( Collectors.toSet() );
     }
 

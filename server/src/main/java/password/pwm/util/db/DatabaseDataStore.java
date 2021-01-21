@@ -26,6 +26,7 @@ import password.pwm.util.DataStore;
 import password.pwm.util.java.ClosableIterator;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class DatabaseDataStore implements DataStore
 {
@@ -50,7 +51,7 @@ public class DatabaseDataStore implements DataStore
     }
 
     @Override
-    public String get( final String key ) throws PwmDataStoreException, PwmUnrecoverableException
+    public Optional<String> get( final String key ) throws PwmDataStoreException, PwmUnrecoverableException
     {
         return databaseService.getAccessor().get( table, key );
     }

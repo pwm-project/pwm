@@ -27,7 +27,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ProcessStatus;
-import password.pwm.http.PwmHttpResponseWrapper;
+import password.pwm.http.PwmCookiePath;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.logging.PwmLogger;
@@ -45,7 +45,8 @@ public abstract class HttpAuthenticationUtilities
     private static final Set<AuthenticationMethod> IGNORED_AUTH_METHODS = EnumSet.noneOf( AuthenticationMethod.class );
 
 
-    public static ProcessStatus attemptAuthenticationMethods( final PwmRequest pwmRequest ) throws IOException, ServletException
+    public static ProcessStatus attemptAuthenticationMethods( final PwmRequest pwmRequest )
+            throws IOException, ServletException, PwmUnrecoverableException
     {
         if ( pwmRequest.isAuthenticated() )
         {
@@ -151,7 +152,7 @@ public abstract class HttpAuthenticationUtilities
 
         try
         {
-            pwmRequest.getPwmResponse().writeEncryptedCookie( cookieName, httpAuthRecord, cookieAgeSeconds, PwmHttpResponseWrapper.CookiePath.Application );
+            pwmRequest.getPwmResponse().writeEncryptedCookie( cookieName, httpAuthRecord, cookieAgeSeconds, PwmCookiePath.Domain );
             LOGGER.debug( pwmRequest, () -> "wrote auth record cookie to user browser for use during forgotten password" );
         }
         catch ( final PwmUnrecoverableException e )

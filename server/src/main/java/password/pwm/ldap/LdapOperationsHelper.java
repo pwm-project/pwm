@@ -326,7 +326,7 @@ public class LdapOperationsHelper
                         }
                     }
 
-                    if ( !StringUtil.isEmpty( sValue ) )
+                    if ( StringUtil.notEmpty( sValue ) )
                     {
                         if ( !Arrays.equals( existingBytes, newBytes ) )
                         {
@@ -593,7 +593,7 @@ public class LdapOperationsHelper
         )
                 throws PwmUnrecoverableException
         {
-            final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmDomain, sessionLabel );
+            final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmDomain.getPwmApplication(), sessionLabel );
             final String guidPattern = pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_GUID_PATTERN );
             return macroRequest.expandMacros( guidPattern );
         }
@@ -730,7 +730,7 @@ public class LdapOperationsHelper
         final List<X509Certificate> ldapServerCerts = ldapProfile.readSettingAsCertificate( PwmSetting.LDAP_SERVER_CERTS );
         if ( ldapServerCerts != null && ldapServerCerts.size() > 0 )
         {
-            final X509TrustManager tm = PwmTrustManager.createPwmTrustManager( config, ldapServerCerts );
+            final X509TrustManager tm = PwmTrustManager.createPwmTrustManager( config.getAppConfig(), ldapServerCerts );
             configBuilder.setTrustManager( new X509TrustManager[]
                     {
                             tm,

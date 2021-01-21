@@ -22,7 +22,6 @@ package password.pwm.config.function;
 
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
-import password.pwm.config.DomainConfig;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -64,8 +63,8 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
             }
             else
             {
-                final DomainConfig domainConfig = new AppConfig( modifier.newStoredConfiguration() ).getDefaultDomainConfig();
-                certs = X509Utils.readRemoteCertificates( URI.create( urlString ), domainConfig );
+                final AppConfig appConfig = new AppConfig( modifier.newStoredConfiguration() );
+                certs = X509Utils.readRemoteCertificates( URI.create( urlString ), appConfig );
             }
         }
         catch ( final Exception e )

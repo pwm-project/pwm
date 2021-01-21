@@ -26,22 +26,23 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
-class RecordManagerImpl implements RecordManager
+class IntruderRecordManagerImpl implements IntruderRecordManager
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( RecordManagerImpl.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( IntruderRecordManagerImpl.class );
 
-    private final RecordType recordType;
-    private final RecordStore recordStore;
-    private final IntruderSettings settings;
+    private final IntruderRecordType recordType;
+    private final IntruderRecordStore recordStore;
+    private final IntruderSettings.IntruderRecordTypeSettings settings;
 
     private static final PwmHashAlgorithm KEY_HASH_ALG = PwmHashAlgorithm.SHA256;
 
-    RecordManagerImpl( final RecordType recordType, final RecordStore recordStore, final IntruderSettings settings )
+    IntruderRecordManagerImpl( final IntruderRecordType recordType, final IntruderRecordStore recordStore, final IntruderSettings.IntruderRecordTypeSettings settings )
     {
         this.recordType = recordType;
         this.recordStore = recordStore;
@@ -51,7 +52,7 @@ class RecordManagerImpl implements RecordManager
     @Override
     public boolean checkSubject( final String subject )
     {
-        if ( subject == null || subject.length() < 1 )
+        if ( StringUtil.isEmpty( subject ) )
         {
             throw new IllegalArgumentException( "subject is required value" );
         }
@@ -75,7 +76,7 @@ class RecordManagerImpl implements RecordManager
     @Override
     public void markSubject( final String subject )
     {
-        if ( subject == null || subject.length() < 1 )
+        if ( StringUtil.isEmpty( subject ) )
         {
             throw new IllegalArgumentException( "subject is required value" );
         }
@@ -133,7 +134,7 @@ class RecordManagerImpl implements RecordManager
         {
             return;
         }
-        record.setAlerted();
+        record.setAlerted( true );
         writeIntruderRecord( record );
     }
 
@@ -142,7 +143,7 @@ class RecordManagerImpl implements RecordManager
     {
         try
         {
-            return recordStore.read( makeKey( subject ) );
+            return recordStore.read( makeKey( subject ) ).orElse( null );
         }
         catch ( final PwmException e )
         {

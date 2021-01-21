@@ -231,7 +231,7 @@ public class ShortcutServlet extends AbstractPwmServlet
             LOGGER.trace( pwmRequest, () -> "shortcut link selected: " + link + ", setting link for 'forwardURL' to " + item.getShortcutURI() );
             pwmSession.getSessionStateBean().setForwardURL( item.getShortcutURI().toString() );
 
-            pwmRequest.sendRedirectToContinue();
+            pwmRequest.getPwmResponse().sendRedirectToContinue();
             return;
         }
 

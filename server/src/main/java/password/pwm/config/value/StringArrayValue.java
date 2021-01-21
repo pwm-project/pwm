@@ -21,6 +21,7 @@
 package password.pwm.config.value;
 
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.java.JsonUtil;
@@ -75,6 +76,11 @@ public class StringArrayValue extends AbstractValue implements StoredValue
                         .flatMap( Optional::stream )
                         .collect( Collectors.toList() );
 
+                if ( pwmSetting != null && pwmSetting.getFlags().contains( PwmSettingFlag.Sorted ) )
+                {
+                    Collections.sort( values );
+                }
+
                 return new StringArrayValue( values );
             }
         };
@@ -96,7 +102,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue
     @Override
     public List<String> toNativeObject( )
     {
-        return Collections.unmodifiableList( values );
+        return values;
     }
 
     @Override

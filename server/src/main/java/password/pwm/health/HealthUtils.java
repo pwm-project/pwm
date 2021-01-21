@@ -18,27 +18,23 @@
  * limitations under the License.
  */
 
-package password.pwm.svc.intruder;
+package password.pwm.health;
 
-import password.pwm.svc.stats.Statistic;
+import java.util.Collection;
+import java.util.EnumSet;
 
-public enum RecordType
+public class HealthUtils
 {
-    ADDRESS( Statistic.LOCKED_ADDRESSES ),
-    USERNAME( Statistic.LOCKED_USERS ),
-    USER_ID( Statistic.LOCKED_USERIDS ),
-    ATTRIBUTE( Statistic.LOCKED_ATTRIBUTES ),
-    TOKEN_DEST( Statistic.LOCKED_TOKENDESTS ),;
-
-    private final Statistic lockStatistic;
-
-    RecordType( final Statistic lockStatistic )
+    public static HealthStatus getMostSevereHealthStatus( final Collection<HealthRecord> healthRecords )
     {
-        this.lockStatistic = lockStatistic;
-    }
-
-    public Statistic getLockStatistic( )
-    {
-        return lockStatistic;
+        final EnumSet<HealthStatus> tempSet = EnumSet.noneOf( HealthStatus.class );
+        if ( healthRecords != null )
+        {
+            for ( final HealthRecord record : healthRecords )
+            {
+                tempSet.add( record.getStatus() );
+            }
+        }
+        return HealthStatus.mostSevere( tempSet ).orElse( HealthStatus.GOOD );
     }
 }

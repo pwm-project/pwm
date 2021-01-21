@@ -43,7 +43,7 @@ public class PwmRequestContext
 
     public PwmDomain getPwmDomain()
     {
-        return getPwmApplication().getDomains().get( domainID );
+        return getPwmApplication().domains().get( domainID );
     }
 
     public DomainConfig getDomainConfig()

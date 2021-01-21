@@ -2170,5 +2170,13 @@ PWM_MAIN.numberFormat = function (number) {
     return number;
 };
 
+PWM_MAIN.loadJsFile = function(filename) {
+    var script = document.createElement("script");  // create a script DOM node
+    script.src = filename;
+    script.type = 'text/javascript'
+    document.head.appendChild(script);
+    PWM_MAIN.log("main: loaded js file: " + filename)
+};
+
 PWM_MAIN.pageLoadHandler();
 

@@ -80,6 +80,7 @@ import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -126,7 +127,7 @@ public class PasswordUtility
             final LoginInfoBean loginInfoBean = new LoginInfoBean();
             loginInfoBean.setUserCurrentPassword( newPassword );
             loginInfoBean.setUserIdentity( userInfo.getUserIdentity() );
-            macroRequest = MacroRequest.forUser( pwmDomain, null, userInfo, loginInfoBean );
+            macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), null, userInfo, loginInfoBean );
         }
 
 
@@ -267,7 +268,7 @@ public class PasswordUtility
             throw new PwmOperationalException( errorInformation );
         }
 
-        if ( pwmSession.getSessionManager().getChangePasswordProfile() == null )
+        if ( pwmRequest.getChangePasswordProfile() == null )
         {
             final String errorMsg = "attempt to setActorPassword, but user does not have change password profile assigned";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, errorMsg );
@@ -345,15 +346,15 @@ public class PasswordUtility
         {
             // execute configured actions
             LOGGER.debug( pwmRequest, () -> "executing configured actions to user " + proxiedUser.getEntryDN() );
-            final ChangePasswordProfile changePasswordProfile = pwmSession.getSessionManager().getChangePasswordProfile();
+            final ChangePasswordProfile changePasswordProfile = pwmRequest.getChangePasswordProfile();
             final List<ActionConfiguration> actionConfigurations = changePasswordProfile.readSettingAsAction( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES );
-            if ( !JavaHelper.isEmpty( actionConfigurations ) )
+            if ( !CollectionUtil.isEmpty( actionConfigurations ) )
             {
                 final LoginInfoBean clonedLoginInfoBean = JsonUtil.cloneUsingJson( pwmSession.getLoginInfoBean(), LoginInfoBean.class );
                 clonedLoginInfoBean.setUserCurrentPassword( newPassword );
 
                 final MacroRequest macroRequest = MacroRequest.forUser(
-                        pwmDomain,
+                        pwmDomain.getPwmApplication(),
                         pwmRequest.getLabel(),
                         pwmSession.getUserInfo(),
                         clonedLoginInfoBean
@@ -518,7 +519,7 @@ public class PasswordUtility
             throw new PwmOperationalException( errorInformation );
         }
 
-        final HelpdeskProfile helpdeskProfile = pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile( );
+        final HelpdeskProfile helpdeskProfile = pwmRequest.getHelpdeskProfile( );
         if ( helpdeskProfile == null )
         {
             final String errorMsg = "attempt to helpdeskSetUserPassword, but user does not have helpdesk permission";
@@ -560,7 +561,7 @@ public class PasswordUtility
                 loginInfoBean.setUserCurrentPassword( newPassword );
 
                 final MacroRequest macroRequest = MacroRequest.forUser(
-                        pwmDomain,
+                        pwmDomain.getPwmApplication(),
                         sessionLabel,
                         userInfo,
                         loginInfoBean
@@ -1026,7 +1027,7 @@ public class PasswordUtility
                     );
                 }
 
-                return PwmPasswordPolicy.createPwmPasswordPolicy( ruleMap, chaiPolicy );
+                return PwmPasswordPolicy.createPwmPasswordPolicy( pwmDomain.getDomainID(), ruleMap, chaiPolicy );
             }
         }
         catch ( final ChaiOperationException e )
@@ -1249,7 +1250,7 @@ public class PasswordUtility
         final MacroRequest macroRequest = userInfo == null
                 ? null
                 : MacroRequest.forUser(
-                pwmDomain,
+                pwmDomain.getPwmApplication(),
                 pwmRequest.getLabel(),
                 userInfo,
                 null

@@ -32,9 +32,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.PwmDomain;
 import password.pwm.config.AppConfig;
-import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.LocalDB;
@@ -73,15 +71,15 @@ public class PwmLogManager
     }
 
     public static void initializeLogger(
-            final PwmDomain pwmDomain,
-            final DomainConfig config,
+            final PwmApplication pwmApplication,
+            final AppConfig config,
             final File log4jConfigFile,
             final String consoleLogLevel,
             final File pwmApplicationPath,
             final String fileLogLevel
     )
     {
-        PwmLogger.setPwmApplication( pwmDomain );
+        PwmLogger.setPwmApplication( pwmApplication );
 
         // try to configure using the log4j config file (if it exists)
         if ( log4jConfigFile != null )
@@ -116,7 +114,7 @@ public class PwmLogManager
     {
         try
         {
-            initConsoleLogger( new AppConfig( StoredConfigurationFactory.newConfig() ).getDefaultDomainConfig(), pwmLogLevel );
+            initConsoleLogger( new AppConfig( StoredConfigurationFactory.newConfig() ), pwmLogLevel );
         }
         catch ( final Exception e )
         {
@@ -126,7 +124,7 @@ public class PwmLogManager
     }
 
     private static void initConsoleLogger(
-            final DomainConfig config,
+            final AppConfig config,
             final String consoleLogLevel
     )
     {
@@ -155,7 +153,7 @@ public class PwmLogManager
     }
 
     private static void initFileLogger(
-            final DomainConfig config,
+            final AppConfig config,
             final String fileLogLevel,
             final File pwmApplicationPath
     )

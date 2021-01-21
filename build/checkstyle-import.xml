@@ -74,7 +74,6 @@
     <allow pkg="org.apache.http"/>
     <allow pkg="org.apache.commons"/>
     <allow pkg="org.jasig.cas"/>
-    <allow pkg="net.iharder"/>
     <allow pkg="org.jetbrains.annotations"/>
     <allow pkg="com.novell.ldap"/>
     <allow pkg="java.security"/>

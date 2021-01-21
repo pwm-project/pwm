@@ -29,7 +29,7 @@ import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 
-public class SelfCertGeneratorTest
+public class SelfCertAppItemGeneratorTest
 {
 
     @Test

@@ -38,7 +38,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Message;
 import password.pwm.svc.event.SyslogAuditService;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.secure.X509Utils;
 
 import java.security.cert.X509Certificate;
@@ -67,7 +67,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
 
         final var syslogServerSetting = StoredConfigKey.forSetting( PwmSetting.AUDIT_SYSLOG_SERVERS, key.getProfileID(), key.getDomainID() );
         final List<String> syslogConfigStrs = ValueTypeConverter.valueToStringArray( modifier.newStoredConfiguration().readStoredValue( syslogServerSetting ).orElseThrow() );
-        if ( !JavaHelper.isEmpty( syslogConfigStrs ) )
+        if ( !CollectionUtil.isEmpty( syslogConfigStrs ) )
         {
             for ( final String entry : syslogConfigStrs )
             {
@@ -81,8 +81,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
                             final List<X509Certificate> certs = X509Utils.readRemoteCertificates(
                                     syslogConfig.getHost(),
                                     syslogConfig.getPort(),
-                                    new AppConfig( modifier.newStoredConfiguration() ).getDefaultDomainConfig()
-                            );
+                                    new AppConfig( modifier.newStoredConfiguration() ) );
                             if ( certs != null )
                             {
                                 resultCertificates.addAll( certs );

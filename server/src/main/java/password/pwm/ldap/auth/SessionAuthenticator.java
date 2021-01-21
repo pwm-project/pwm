@@ -46,8 +46,8 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.UserSearchEngine;
-import password.pwm.svc.intruder.IntruderManager;
-import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.intruder.IntruderService;
+import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
@@ -89,7 +89,7 @@ public class SessionAuthenticator
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
-        pwmDomain.getIntruderManager().check( RecordType.USERNAME, username );
+        pwmDomain.getIntruderManager().check( IntruderRecordType.USERNAME, username );
         UserIdentity userIdentity = null;
         try
         {
@@ -134,7 +134,7 @@ public class SessionAuthenticator
     {
         final String appProperty = pwmDomain.getConfig().readAppProperty( AppProperty.SECURITY_LOGIN_HIDDEN_ERROR_TYPES );
         final Set<PwmError> returnSet = EnumSet.noneOf( PwmError.class );
-        if ( !StringUtil.isEmpty( appProperty ) )
+        if ( StringUtil.notEmpty( appProperty ) )
         {
             try
             {
@@ -193,7 +193,7 @@ public class SessionAuthenticator
     )
             throws ImpossiblePasswordPolicyException, PwmUnrecoverableException, PwmOperationalException
     {
-        pwmDomain.getIntruderManager().check( RecordType.USERNAME, username );
+        pwmDomain.getIntruderManager().check( IntruderRecordType.USERNAME, username );
 
         UserIdentity userIdentity = null;
         try
@@ -340,14 +340,14 @@ public class SessionAuthenticator
     {
         LOGGER.error( sessionLabel, () -> "ldap error during search: " + exception.getMessage() );
 
-        final IntruderManager intruderManager = pwmDomain.getIntruderManager();
+        final IntruderService intruderManager = pwmDomain.getIntruderManager();
         if ( intruderManager != null )
         {
             intruderManager.convenience().markAddressAndSession( pwmRequest );
 
             if ( username != null )
             {
-                intruderManager.mark( RecordType.USERNAME, username, pwmRequest.getLabel() );
+                intruderManager.mark( IntruderRecordType.USERNAME, username, pwmRequest.getLabel() );
             }
 
             if ( userIdentity != null )
@@ -363,7 +363,7 @@ public class SessionAuthenticator
     )
             throws PwmUnrecoverableException
     {
-        final IntruderManager intruderManager = pwmDomain.getIntruderManager();
+        final IntruderService intruderManager = pwmDomain.getIntruderManager();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         final LoginInfoBean loginInfoBean = pwmRequest.getPwmSession().getLoginInfoBean();
@@ -381,7 +381,7 @@ public class SessionAuthenticator
             if ( authenticationResult.getAuthenticationType() == AuthenticationType.AUTH_BIND_INHIBIT )
             {
                 userInfoBean = UserInfoFactory.newUserInfo(
-                        pwmDomain,
+                        pwmDomain.getPwmApplication(),
                         pwmRequest.getLabel(),
                         ssBean.getLocale(),
                         userIdentity,
@@ -391,7 +391,7 @@ public class SessionAuthenticator
             else
             {
                 userInfoBean = UserInfoFactory.newUserInfoUsingProxy(
-                        pwmDomain,
+                        pwmDomain.getPwmApplication(),
                         pwmRequest.getLabel(),
                         userIdentity,
                         ssBean.getLocale(),
@@ -414,7 +414,7 @@ public class SessionAuthenticator
         pwmSession.getLoginInfoBean().setUserCurrentPassword( userPassword );
 
         //notify the intruder manager with a successful login
-        intruderManager.clear( RecordType.USERNAME, pwmSession.getUserInfo().getUsername() );
+        intruderManager.clear( IntruderRecordType.USERNAME, pwmSession.getUserInfo().getUsername() );
         intruderManager.convenience().clearUserIdentity( userIdentity );
         intruderManager.convenience().clearAddressAndSession( pwmSession );
 

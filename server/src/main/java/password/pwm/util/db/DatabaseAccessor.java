@@ -25,6 +25,7 @@ import password.pwm.util.java.ClosableIterator;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Map;
+import java.util.Optional;
 
 public interface DatabaseAccessor
 {
@@ -71,7 +72,7 @@ public interface DatabaseAccessor
             throws DatabaseException;
 
     @DbOperation
-    String get(
+    Optional<String> get(
             DatabaseTable table,
             String key
     )

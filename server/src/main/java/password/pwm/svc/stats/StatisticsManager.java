@@ -22,8 +22,8 @@ package password.pwm.svc.stats;
 
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
@@ -33,7 +33,6 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -50,12 +49,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 
 public class StatisticsManager implements PwmService
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( StatisticsManager.class );
 
     // 1 minutes
@@ -83,7 +82,7 @@ public class StatisticsManager implements PwmService
     private StatisticsBundle statsCummulative = new StatisticsBundle();
     private Map<EpsKey, EventRateMeter> epsMeterMap = new HashMap<>();
 
-    private PwmDomain pwmDomain;
+    private PwmApplication pwmApplication;
 
     private STATUS status = STATUS.CLOSED;
 
@@ -168,16 +167,9 @@ public class StatisticsManager implements PwmService
 
         try
         {
-            final String storedStat = localDB.get( LocalDB.DB.PWM_STATS, key );
+            final Optional<String> storedStat = localDB.get( LocalDB.DB.PWM_STATS, key );
             final StatisticsBundle returnBundle;
-            if ( !StringUtil.isEmpty( storedStat ) )
-            {
-                returnBundle = StatisticsBundle.input( storedStat );
-            }
-            else
-            {
-                returnBundle = new StatisticsBundle();
-            }
+            returnBundle = storedStat.map( StatisticsBundle::input ).orElseGet( StatisticsBundle::new );
             cachedStoredStats.put( key, returnBundle );
             return returnBundle;
         }
@@ -235,7 +227,7 @@ public class StatisticsManager implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
+        this.pwmApplication = pwmApplication;
         this.localDB = pwmApplication.getLocalDB();
 
         if ( localDB == null )
@@ -246,12 +238,12 @@ public class StatisticsManager implements PwmService
         }
 
         {
-            final String storedCumulativeBundleSir = localDB.get( LocalDB.DB.PWM_STATS, DB_KEY_CUMULATIVE );
-            if ( !StringUtil.isEmpty( storedCumulativeBundleSir ) )
+            final Optional<String> storedCumulativeBundleSir = localDB.get( LocalDB.DB.PWM_STATS, DB_KEY_CUMULATIVE );
+            if ( storedCumulativeBundleSir.isPresent() )
             {
                 try
                 {
-                    statsCummulative = StatisticsBundle.input( storedCumulativeBundleSir );
+                    statsCummulative = StatisticsBundle.input( storedCumulativeBundleSir.get() );
                 }
                 catch ( final Exception e )
                 {
@@ -261,20 +253,14 @@ public class StatisticsManager implements PwmService
         }
 
         {
-            final String storedInitialString = localDB.get( LocalDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY );
-            if ( !StringUtil.isEmpty( storedInitialString ) )
-            {
-                initialDailyKey = new DailyKey( storedInitialString );
-            }
+            final Optional<String> storedInitialString = localDB.get( LocalDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY );
+            storedInitialString.ifPresent( s -> initialDailyKey = new DailyKey( s ) );
         }
 
         {
             currentDailyKey = DailyKey.forToday();
-            final String storedDailyStr = localDB.get( LocalDB.DB.PWM_STATS, currentDailyKey.toString() );
-            if ( !StringUtil.isEmpty( storedDailyStr ) )
-            {
-                statsDaily = StatisticsBundle.input( storedDailyStr );
-            }
+            final Optional<String> storedDailyStr = localDB.get( LocalDB.DB.PWM_STATS, currentDailyKey.toString() );
+            storedDailyStr.ifPresent( s -> statsDaily = StatisticsBundle.input( s ) );
         }
 
         try
@@ -411,7 +397,7 @@ public class StatisticsManager implements PwmService
         LOGGER.trace( () -> "beginning output stats to csv process" );
         final Instant startTime = Instant.now();
 
-        final StatisticsManager statsManger = pwmDomain.getStatisticsManager();
+        final StatisticsManager statsManger = pwmApplication.getStatisticsManager();
         final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
 
         if ( includeHeader )

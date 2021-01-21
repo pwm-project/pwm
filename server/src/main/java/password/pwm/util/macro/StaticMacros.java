@@ -150,7 +150,7 @@ public abstract class StaticMacros
             urlParameter,
             base64,;
 
-            private String encode( final String input ) throws MacroParseException
+            private String encode( final String input ) throws MacroParseException, PwmUnrecoverableException
             {
                 switch ( this )
                 {
@@ -207,7 +207,14 @@ public abstract class StaticMacros
             String value = matchValue;
             value = value.replaceAll( "^@Encode:[^:]+:\\[\\[", "" );
             value = value.replaceAll( "\\]\\]@$", "" );
-            return encodeType.encode( value );
+            try
+            {
+                return encodeType.encode( value );
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                throw new MacroParseException( e.getErrorInformation().toDebugStr() );
+            }
         }
     }
 

@@ -224,7 +224,7 @@ public class TokenUtil
             else if ( tokenInitAndSendRequest.getUserInfo() != null )
             {
                 macroRequest = MacroRequest.forUser(
-                        pwmRequestContext.getPwmDomain(),
+                        pwmRequestContext.getPwmApplication(),
                         pwmRequestContext.getLocale(),
                         pwmRequestContext.getSessionLabel(),
                         userInfo.getUserIdentity(),

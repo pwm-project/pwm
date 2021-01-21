@@ -21,16 +21,13 @@
 package password.pwm.svc.report;
 
 import com.google.gson.JsonSyntaxException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
-import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.ClosableIterator;
@@ -38,23 +35,19 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.svc.secure.DomainSecureService;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class UserCacheService implements PwmService
+public class ReportRecordLocalDBStorageService implements PwmService
 {
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass( UserCacheService.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( ReportRecordLocalDBStorageService.class );
 
     private CacheStoreWrapper cacheStore;
     private STATUS status;
-
-    private PwmDomain pwmDomain;
-
 
     @Override
     public STATUS status( )
@@ -62,16 +55,14 @@ public class UserCacheService implements PwmService
         return status;
     }
 
-    UserCacheRecord updateUserCache( final UserInfo userInfo )
+    UserReportRecord updateUserCache( final UserInfo userInfo )
             throws PwmUnrecoverableException
     {
-        final StorageKey storageKey = StorageKey.fromUserInfo( userInfo, pwmDomain );
-
         try
         {
-            final UserCacheRecord userCacheRecord = UserCacheRecord.fromUserInfo( userInfo );
-            store( userCacheRecord );
-            return userCacheRecord;
+            final UserReportRecord userReportRecord = UserReportRecord.fromUserInfo( userInfo );
+            store( userReportRecord );
+            return userReportRecord;
         }
         catch ( final LocalDBException e )
         {
@@ -80,21 +71,20 @@ public class UserCacheService implements PwmService
 
         {
             LOGGER.trace( () -> "updateCache: read user cache for "
-                    + userInfo.getUserIdentity() + " user key " + storageKey.getKey() );
+                    + userInfo.getUserIdentity() + " user key " + userInfo.getUserIdentity().toDelimitedKey() );
         }
         return null;
     }
 
-    Optional<UserCacheRecord> readStorageKey( final StorageKey storageKey ) throws LocalDBException
+    Optional<UserReportRecord> readStorageKey( final UserIdentity storageKey ) throws LocalDBException
     {
         return cacheStore.read( storageKey );
     }
 
-    public void store( final UserCacheRecord userCacheRecord )
+    public void store( final UserReportRecord userReportRecord )
             throws LocalDBException, PwmUnrecoverableException
     {
-        final StorageKey storageKey = StorageKey.fromUserGUID( userCacheRecord.getUserGUID(), pwmDomain );
-        cacheStore.write( storageKey, userCacheRecord );
+        cacheStore.write( userReportRecord );
     }
 
     public void clear( )
@@ -103,7 +93,7 @@ public class UserCacheService implements PwmService
         cacheStore.clear();
     }
 
-    public UserStatusCacheBeanIterator<StorageKey> iterator( )
+    public UserStatusCacheBeanIterator<UserIdentity> iterator( )
     {
         try
         {
@@ -116,7 +106,7 @@ public class UserCacheService implements PwmService
         }
     }
 
-    public class UserStatusCacheBeanIterator<K extends StorageKey> implements ClosableIterator
+    public class UserStatusCacheBeanIterator<K extends UserIdentity> implements ClosableIterator
     {
 
         private final LocalDB.LocalDBIterator<Map.Entry<String, String>> innerIterator;
@@ -133,10 +123,17 @@ public class UserCacheService implements PwmService
         }
 
         @Override
-        public StorageKey next( )
+        public UserIdentity next( )
         {
             final String nextKey = innerIterator.next().getKey();
-            return new StorageKey( nextKey );
+            try
+            {
+                return UserIdentity.fromDelimitedKey( nextKey );
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                throw new IllegalStateException( e );
+            }
         }
 
         @Override
@@ -156,7 +153,6 @@ public class UserCacheService implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
         this.cacheStore = new CacheStoreWrapper( pwmApplication.getLocalDB() );
         status = STATUS.OPEN;
     }
@@ -184,46 +180,6 @@ public class UserCacheService implements PwmService
         return cacheStore.size();
     }
 
-    public static class StorageKey
-    {
-        private final String key;
-
-        private StorageKey( final String key )
-        {
-            if ( key == null || key.isEmpty() )
-            {
-                throw new IllegalArgumentException( "storage key must have a value" );
-            }
-            this.key = key;
-        }
-
-        public String getKey( )
-        {
-            return key;
-        }
-
-        static StorageKey fromUserInfo( final UserInfo userInfo, final PwmDomain pwmDomain )
-                throws PwmUnrecoverableException
-        {
-            final String userGUID = userInfo.getUserGuid();
-            return fromUserGUID( userGUID, pwmDomain );
-        }
-
-        static StorageKey fromUserIdentity( final PwmDomain pwmDomain, final UserIdentity userIdentity )
-                throws ChaiUnavailableException, PwmUnrecoverableException
-        {
-            final String userGUID = LdapOperationsHelper.readLdapGuidValue( pwmDomain, null, userIdentity, true );
-            return fromUserGUID( userGUID, pwmDomain );
-        }
-
-        private static StorageKey fromUserGUID( final String userGUID, final PwmDomain pwmDomain )
-                throws PwmUnrecoverableException
-        {
-            final DomainSecureService domainSecureService = pwmDomain.getSecureService();
-            return new StorageKey( domainSecureService.hash( userGUID ) );
-        }
-    }
-
     private static class CacheStoreWrapper
     {
         private static final LocalDB.DB DB = LocalDB.DB.USER_CACHE;
@@ -235,36 +191,38 @@ public class UserCacheService implements PwmService
             this.localDB = localDB;
         }
 
-        private void write( final StorageKey key, final UserCacheRecord cacheBean )
+        private void write( final UserReportRecord cacheBean )
                 throws LocalDBException
         {
             final String jsonValue = JsonUtil.serialize( cacheBean );
-            localDB.put( DB, key.getKey(), jsonValue );
+            final String jsonKey = UserIdentity.create( cacheBean.getUserDN(), cacheBean.getLdapProfile(), cacheBean.getDomainID() ).toDelimitedKey();
+            localDB.put( DB, jsonKey, jsonValue );
         }
 
-        private Optional<UserCacheRecord> read( final StorageKey key )
+        private Optional<UserReportRecord> read( final UserIdentity key )
                 throws LocalDBException
         {
-            final String jsonValue = localDB.get( DB, key.getKey() );
-            if ( jsonValue != null && !jsonValue.isEmpty() )
+            final String jsonKey = key.toDelimitedKey();
+            final Optional<String> jsonValue = localDB.get( DB, jsonKey );
+            if ( jsonValue.isPresent() )
             {
                 try
                 {
-                    return Optional.of( JsonUtil.deserialize( jsonValue, UserCacheRecord.class ) );
+                    return Optional.of( JsonUtil.deserialize( jsonValue.get(), UserReportRecord.class ) );
                 }
                 catch ( final JsonSyntaxException e )
                 {
-                    LOGGER.error( () -> "error reading record from cache store for key=" + key.getKey() + ", error: " + e.getMessage() );
-                    localDB.remove( DB, key.getKey() );
+                    LOGGER.error( () -> "error reading record from cache store for key=" + jsonKey + ", error: " + e.getMessage() );
+                    localDB.remove( DB, jsonKey );
                 }
             }
             return Optional.empty();
         }
 
-        private boolean remove( final StorageKey key )
+        private boolean remove( final UserIdentity key )
                 throws LocalDBException
         {
-            return localDB.remove( DB, key.getKey() );
+            return localDB.remove( DB, key.toDelimitedKey() );
         }
 
         private void clear( )

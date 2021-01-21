@@ -171,25 +171,33 @@ class ResourceFileRequest
     static FileResource resolveRequestedResource(
             final DomainConfig domainConfig,
             final ServletContext servletContext,
-            final String resourcePathUri,
+            final String inputResourcePathUri,
             final ResourceServletConfiguration resourceServletConfiguration
     )
             throws PwmUnrecoverableException
     {
 
         // URL-decode the file name (might contain spaces and on) and prepare file object.
-        String filename = StringUtil.urlDecode( resourcePathUri );
+        String effectiveUri = StringUtil.urlDecode( inputResourcePathUri );
 
         // parse out the session key...
-        if ( filename.contains( ";" ) )
+        if ( effectiveUri.contains( ";" ) )
         {
-            filename = filename.substring( 0, filename.indexOf( ";" ) );
+            effectiveUri = effectiveUri.substring( 0, effectiveUri.indexOf( ";" ) );
         }
 
-
-        if ( !filename.startsWith( ResourceFileServlet.RESOURCE_PATH ) )
+        if ( domainConfig.getAppConfig().isMultiDomain() )
         {
-            final String filenameFinal = filename;
+            final String domainPrefix = "/" + domainConfig.getDomainID().stringValue();
+            if ( effectiveUri.startsWith( domainPrefix ) )
+            {
+                effectiveUri = effectiveUri.substring( domainPrefix.length() );
+            }
+        }
+
+        if ( !effectiveUri.startsWith( ResourceFileServlet.RESOURCE_PATH ) )
+        {
+            final String filenameFinal = effectiveUri;
             LOGGER.warn( () -> "illegal url request to " + filenameFinal );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal url request" ) );
         }
@@ -200,19 +208,19 @@ class ResourceFileRequest
             final String embedThemeMobileUrl = ResourceFileServlet.RESOURCE_PATH
                     + ResourceFileServlet.THEME_CSS_MOBILE_PATH.replace( ResourceFileServlet.TOKEN_THEME, ResourceFileServlet.EMBED_THEME );
 
-            if ( filename.equalsIgnoreCase( embedThemeUrl ) )
+            if ( effectiveUri.equalsIgnoreCase( embedThemeUrl ) )
             {
-                return new ConfigSettingFileResource( PwmSetting.DISPLAY_CSS_EMBED, domainConfig, filename );
+                return new ConfigSettingFileResource( PwmSetting.DISPLAY_CSS_EMBED, domainConfig, effectiveUri );
             }
-            else if ( filename.equalsIgnoreCase( embedThemeMobileUrl ) )
+            else if ( effectiveUri.equalsIgnoreCase( embedThemeMobileUrl ) )
             {
-                return new ConfigSettingFileResource( PwmSetting.DISPLAY_CSS_MOBILE_EMBED, domainConfig, filename );
+                return new ConfigSettingFileResource( PwmSetting.DISPLAY_CSS_MOBILE_EMBED, domainConfig, effectiveUri );
             }
         }
 
 
         {
-            final FileResource resource = handleWebjarURIs( servletContext, resourcePathUri );
+            final FileResource resource = handleWebjarURIs( servletContext, effectiveUri );
             if ( resource != null )
             {
                 return resource;
@@ -225,9 +233,9 @@ class ResourceFileRequest
             for ( final Map.Entry<String, ZipFile> entry : zipResources.entrySet() )
             {
                 final String path = entry.getKey();
-                if ( filename.startsWith( path ) )
+                if ( effectiveUri.startsWith( path ) )
                 {
-                    final String zipSubPath = filename.substring( path.length() + 1 );
+                    final String zipSubPath = effectiveUri.substring( path.length() + 1 );
                     final ZipFile zipFile = entry.getValue();
                     final ZipEntry zipEntry = zipFile.getEntry( zipSubPath );
                     if ( zipEntry != null )
@@ -235,9 +243,9 @@ class ResourceFileRequest
                         return new ZipFileResource( zipFile, zipEntry );
                     }
                 }
-                if ( filename.startsWith( zipResources.get( path ).getName() ) )
+                if ( effectiveUri.startsWith( zipResources.get( path ).getName() ) )
                 {
-                    final String filenameFinal = filename;
+                    final String filenameFinal = effectiveUri;
                     LOGGER.warn( () -> "illegal url request to " + filenameFinal + " zip resource" );
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal url request" ) );
                 }
@@ -245,7 +253,7 @@ class ResourceFileRequest
         }
 
         // convert to file.
-        final String filePath = servletContext.getRealPath( filename );
+        final String filePath = servletContext.getRealPath( effectiveUri );
         final File file = new File( filePath );
 
         // figure top-most path allowed by request
@@ -283,7 +291,7 @@ class ResourceFileRequest
             {
                 final String customFileName = entry.getKey();
                 final String testName = ResourceFileServlet.RESOURCE_PATH + "/" + customFileName;
-                if ( testName.equals( resourcePathUri ) )
+                if ( testName.equals( effectiveUri ) )
                 {
                     return entry.getValue();
                 }

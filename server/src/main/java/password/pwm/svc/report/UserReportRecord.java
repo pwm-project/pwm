@@ -23,6 +23,7 @@ package password.pwm.svc.report;
 import com.novell.ldapchai.cr.Answer;
 import lombok.Builder;
 import lombok.Value;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmUnrecoverableException;
@@ -33,8 +34,9 @@ import java.time.Instant;
 
 @Value
 @Builder
-public class UserCacheRecord implements Serializable
+public class UserReportRecord implements Serializable
 {
+    private DomainID domainID;
     private String userDN;
     private String ldapProfile;
     private String userGUID;
@@ -64,12 +66,13 @@ public class UserCacheRecord implements Serializable
 
     private Instant cacheTimestamp;
 
-    static UserCacheRecord fromUserInfo(
+    static UserReportRecord fromUserInfo(
             final UserInfo userInfo
     )
             throws PwmUnrecoverableException
     {
-        final UserCacheRecordBuilder builder = new UserCacheRecordBuilder();
+        final UserReportRecordBuilder builder = UserReportRecord.builder();
+        builder.domainID( userInfo.getUserIdentity().getDomainID() );
         builder.userDN( userInfo.getUserIdentity().getUserDN() );
         builder.ldapProfile( userInfo.getUserIdentity().getLdapProfileID() );
         builder.username( userInfo.getUsername() );

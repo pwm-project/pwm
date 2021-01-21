@@ -206,7 +206,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
             pwmDomain.getIntruderManager().convenience().checkUserIdentity( userIdentity );
 
             final UserInfo forgottenUserInfo = UserInfoFactory.newUserInfoUsingProxy(
-                    pwmDomain,
+                    pwmRequest.getPwmApplication(),
                     pwmRequest.getLabel(),
                     userIdentity, pwmRequest.getLocale()
             );
@@ -327,7 +327,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
             return new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
         }
 
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, sessionLabel, userInfo, null );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), sessionLabel, userInfo, null );
 
         pwmDomain.getPwmApplication().sendSmsUsingQueue( toNumber, smsMessage, sessionLabel, macroRequest );
         return null;
@@ -347,7 +347,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
             return new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
         }
 
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, sessionLabel, userInfo, null );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), sessionLabel, userInfo, null );
 
         pwmDomain.getPwmApplication().getEmailQueue().submitEmail( emailItemBean, userInfo, macroRequest );
 
@@ -366,7 +366,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
     {
         final Locale locale = pwmRequest.getLocale();
         final String completeMessage = pwmRequest.getDomainConfig().readSettingAsLocalizedString( PwmSetting.FORGOTTEN_USERNAME_MESSAGE, locale );
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmDomain(), pwmRequest.getLocale(), pwmRequest.getLabel(), userIdentity );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getLabel(), userIdentity );
         final String expandedText = macroRequest.expandMacros( completeMessage );
         pwmRequest.setAttribute( PwmRequestAttribute.CompleteText, expandedText );
         pwmRequest.forwardToJsp( JspUrl.FORGOTTEN_USERNAME_COMPLETE );

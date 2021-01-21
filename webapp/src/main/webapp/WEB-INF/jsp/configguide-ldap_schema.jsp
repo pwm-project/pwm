@@ -34,6 +34,7 @@
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideUtils" %>
 <%@ page import="password.pwm.PwmDomain" %>
+<%@ page import="password.pwm.config.PwmSettingTemplateSet" %>
 
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
@@ -41,7 +42,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%
     final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);
-    final Set<PwmSettingTemplate> templateSet =  ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().getTemplates();
+    final PwmSettingTemplateSet templateSet =  ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().get(ConfigGuideForm.DOMAIN_ID);
     final boolean builtinExtenderAvailable = templateSet.contains(PwmSettingTemplate.NOVL) || templateSet.contains(PwmSettingTemplate.NOVL_IDM);
     boolean existingSchemaGood = false;
     String schemaActivityLog = "";

@@ -48,7 +48,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -254,7 +254,7 @@ public class UpdateProfileUtil
             interestedTypes.add( TokenDestinationItem.Type.sms );
         }
 
-        if ( !JavaHelper.isEmpty( workingMap ) )
+        if ( !CollectionUtil.isEmpty( workingMap ) )
         {
             final Map<String, String> ldapData = formDataFromLdap( pwmRequest, updateProfileProfile );
             final Map<String, String> updateData = updateProfileBean.getFormData();
@@ -382,12 +382,12 @@ public class UpdateProfileUtil
     {
         // obtain new macro machine (with a new UserInfo) so old cached values won't be used for next op
         final UserInfo reloadedUserInfo = UserInfoFactory.newUserInfo(
-                pwmDomain,
+                pwmDomain.getPwmApplication(),
                 sessionLabel,
                 locale,
                 userIdentity,
                 pwmDomain.getProxiedChaiUser( userIdentity ).getChaiProvider() );
-        final MacroRequest reloadedMacroRequest = MacroRequest.forUser( pwmDomain, sessionLabel, reloadedUserInfo, null, null );
+        final MacroRequest reloadedMacroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), sessionLabel, reloadedUserInfo, null, null );
 
         {
             // execute configured actions

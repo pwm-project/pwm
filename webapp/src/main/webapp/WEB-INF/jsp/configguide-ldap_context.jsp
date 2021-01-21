@@ -48,7 +48,7 @@
                 <div class="setting_body">
                     <p><pwm:display key="ldap_context_description" bundle="ConfigGuide"/></p>
                     <br/>
-                    Example: <code><%=PwmSetting.LDAP_CONTEXTLESS_ROOT.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
+                    Example: <code><%=ConfigGuideForm.getSettingExample( configGuideBean,PwmSetting.LDAP_CONTEXTLESS_ROOT)%></code>
                     <br/><br/>
                     <div class="setting_item">
                         <b>User Container DN</b>

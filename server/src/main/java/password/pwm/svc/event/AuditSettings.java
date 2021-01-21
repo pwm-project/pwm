@@ -23,8 +23,9 @@ package password.pwm.svc.event;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
+import password.pwm.util.java.TimeDuration;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -38,32 +39,28 @@ class AuditSettings
     private List<String> systemEmailAddresses;
     private List<String> userEmailAddresses;
     private String alertFromAddress;
-    private Set<AuditEvent> userStoredEvents;
     private Set<AuditEvent> permittedEvents;
+    private TimeDuration maxRecordAge;
+    private long maxRecords;
 
-    static AuditSettings fromConfig( final DomainConfig domainConfig )
+
+    static AuditSettings fromConfig( final AppConfig appConfig )
     {
         return AuditSettings.builder()
-                .systemEmailAddresses( domainConfig.readSettingAsStringArray( PwmSetting.AUDIT_EMAIL_SYSTEM_TO ) )
-                .userEmailAddresses( domainConfig.readSettingAsStringArray( PwmSetting.AUDIT_EMAIL_USER_TO ) )
-                .alertFromAddress( domainConfig.readAppProperty( AppProperty.AUDIT_EVENTS_EMAILFROM ) )
-                .permittedEvents( figurePermittedEvents( domainConfig ) )
-                .userStoredEvents( figureUserStoredEvents( domainConfig ) )
+                .systemEmailAddresses( appConfig.readSettingAsStringArray( PwmSetting.AUDIT_EMAIL_SYSTEM_TO ) )
+                .userEmailAddresses( appConfig.readSettingAsStringArray( PwmSetting.AUDIT_EMAIL_USER_TO ) )
+                .alertFromAddress( appConfig.readAppProperty( AppProperty.AUDIT_EVENTS_EMAILFROM ) )
+                .permittedEvents( figurePermittedEvents( appConfig ) )
+                .maxRecordAge( TimeDuration.of( appConfig.readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_AGE ), TimeDuration.Unit.SECONDS ) )
+                .maxRecords( appConfig.readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_EVENTS ) )
                 .build();
     }
 
-    private static Set<AuditEvent> figurePermittedEvents( final DomainConfig domainConfig )
+    private static Set<AuditEvent> figurePermittedEvents( final AppConfig appConfig )
     {
         final Set<AuditEvent> eventSet = EnumSet.noneOf( AuditEvent.class );
-        eventSet.addAll( domainConfig.readSettingAsOptionList( PwmSetting.AUDIT_SYSTEM_EVENTS, AuditEvent.class ) );
-        eventSet.addAll( domainConfig.readSettingAsOptionList( PwmSetting.AUDIT_USER_EVENTS, AuditEvent.class ) );
-        return Collections.unmodifiableSet( eventSet );
-    }
-
-    private static Set<AuditEvent> figureUserStoredEvents( final DomainConfig domainConfig )
-    {
-        final Set<AuditEvent> eventSet = EnumSet.noneOf( AuditEvent.class );
-        eventSet.addAll( domainConfig.readSettingAsOptionList( PwmSetting.EVENTS_USER_EVENT_TYPES, AuditEvent.class ) );
+        eventSet.addAll( appConfig.readSettingAsOptionList( PwmSetting.AUDIT_SYSTEM_EVENTS, AuditEvent.class ) );
+        eventSet.addAll( appConfig.readSettingAsOptionList( PwmSetting.AUDIT_USER_EVENTS, AuditEvent.class ) );
         return Collections.unmodifiableSet( eventSet );
     }
 }

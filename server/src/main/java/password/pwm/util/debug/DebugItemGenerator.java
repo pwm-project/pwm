@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.http.servlet.configmanager;
+package password.pwm.util.debug;
 
 import lombok.Builder;
 import lombok.Value;
@@ -53,7 +53,7 @@ import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.LDAPPermissionCalculator;
-import password.pwm.util.java.ClosableIterator;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.DebugOutputBuilder;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
@@ -83,10 +83,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
@@ -99,12 +102,11 @@ public class DebugItemGenerator
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( DebugItemGenerator.class );
 
-    private static final List<Class<? extends Generator>> DEBUG_ZIP_ITEM_GENERATORS = List.of(
+    private static final List<Class<? extends AppItemGenerator>> APP_ITEM_GENERATORS = List.of(
             ConfigurationFileItemGenerator.class,
             ConfigurationDebugJsonItemGenerator.class,
             ConfigurationDebugTextItemGenerator.class,
             AboutItemGenerator.class,
-            DashboardDataDebugItemGenerator.class,
             SystemEnvironmentItemGenerator.class,
             AppPropertiesItemGenerator.class,
             ServicesDebugItemGenerator.class,
@@ -113,33 +115,36 @@ public class DebugItemGenerator
             FileInfoDebugItemGenerator.class,
             LogDebugItemGenerator.class,
             LogJsonItemGenerator.class,
-            LdapDebugItemGenerator.class,
-            LDAPPermissionItemGenerator.class,
             LocalDBDebugGenerator.class,
             SessionDataGenerator.class,
-            LdapRecentUserDebugGenerator.class,
             ClusterInfoDebugGenerator.class,
             CacheServiceDebugItemGenerator.class,
             RootFileSystemDebugItemGenerator.class,
-            LdapConnectionsDebugItemGenerator.class,
             StatisticsDataDebugItemGenerator.class,
             StatisticsEpsDataDebugItemGenerator.class,
             BuildInformationDebugItemGenerator.class );
 
-    private final PwmDomain pwmDomain;
-    private final DomainConfig obfuscatedDomainConfig;
+    private static final List<Class<? extends DomainItemGenerator>> DOMAIN_ITEM_GENERATORS = List.of(
+            LDAPPermissionItemGenerator.class,
+            LdapDebugItemGenerator.class,
+            LdapRecentUserDebugGenerator.class,
+            DashboardDataDebugItemGenerator.class,
+            LdapConnectionsDebugItemGenerator.class );
+
+    private final PwmApplication pwmApplication;
+    private final AppConfig obfuscatedAppConfig;
     private final SessionLabel sessionLabel;
 
     private static final Locale LOCALE = PwmConstants.DEFAULT_LOCALE;
 
-    public DebugItemGenerator( final PwmDomain pwmDomain, final SessionLabel sessionLabel )
+    public DebugItemGenerator( final PwmApplication pwmApplication, final SessionLabel sessionLabel )
             throws PwmUnrecoverableException
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmApplication = pwmApplication;
         this.sessionLabel = sessionLabel;
 
-        final StoredConfiguration obfuscatedStoredConfig = StoredConfigurationUtil.copyConfigAndBlankAllPasswords( pwmDomain.getConfig().getStoredConfiguration() );
-        this.obfuscatedDomainConfig = new AppConfig( obfuscatedStoredConfig ).getDefaultDomainConfig();
+        final StoredConfiguration obfuscatedStoredConfig = StoredConfigurationUtil.copyConfigAndBlankAllPasswords( pwmApplication.getConfig().getStoredConfiguration() );
+        this.obfuscatedAppConfig = new AppConfig( obfuscatedStoredConfig );
     }
 
     private String getFilenameBase()
@@ -158,34 +163,27 @@ public class DebugItemGenerator
         final String debugFileName = "zipDebugGeneration.csv";
         final Instant startTime = Instant.now();
         final DebugOutputBuilder debugGeneratorLogFile = new DebugOutputBuilder();
-        final DebugItemInput debugItemInput = new DebugItemInput( pwmDomain.getPwmApplication(), pwmDomain, sessionLabel, obfuscatedDomainConfig );
         debugGeneratorLogFile.appendLine( "beginning debug output" );
-        final String pathPrefix = getFilenameBase() + "/";
 
-        for ( final Class<? extends DebugItemGenerator.Generator> serviceClass : DEBUG_ZIP_ITEM_GENERATORS )
         {
-            try
+            final AppDebugItemInput debugItemInput = new AppDebugItemInput( pwmApplication, sessionLabel, this.obfuscatedAppConfig );
+            final String pathPrefix = getFilenameBase() + "/";
+            for ( final Class<? extends AppItemGenerator> serviceClass : APP_ITEM_GENERATORS )
             {
-                final Instant itemStartTime = Instant.now();
-                LOGGER.trace( sessionLabel, () -> "beginning output of item " + serviceClass.getSimpleName() );
-                final DebugItemGenerator.Generator newGeneratorItem = serviceClass.getDeclaredConstructor().newInstance();
-                zipOutput.putNextEntry( new ZipEntry( pathPrefix + newGeneratorItem.getFilename() ) );
-                newGeneratorItem.outputItem( debugItemInput, zipOutput );
-                zipOutput.closeEntry();
-                zipOutput.flush();
-                final String finishMsg = "completed output of " + newGeneratorItem.getFilename()
-                        + " in " + TimeDuration.fromCurrent( itemStartTime ).asCompactString();
-                LOGGER.trace( sessionLabel, () -> finishMsg );
-                debugGeneratorLogFile.appendLine( finishMsg );
+                executeAppDebugItem( debugItemInput, serviceClass, debugGeneratorLogFile, zipOutput, pathPrefix );
             }
-            catch ( final Throwable e )
+        }
+
+        {
+            for ( final PwmDomain pwmDomain : pwmApplication.domains().values() )
             {
-                final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e.toString();
-                LOGGER.error( sessionLabel, () -> errorMsg, e );
-                debugGeneratorLogFile.appendLine( errorMsg );
-                final Writer stackTraceOutput = new StringWriter();
-                e.printStackTrace( new PrintWriter( stackTraceOutput ) );
-                debugGeneratorLogFile.appendLine( stackTraceOutput.toString() );
+                final DomainConfig obfuscatedDomainConfig = this.obfuscatedAppConfig.getDomainConfigs().get( pwmDomain.getDomainID() );
+                final DomainDebugItemInput debugItemInput = new DomainDebugItemInput( pwmDomain, sessionLabel, obfuscatedDomainConfig );
+                final String pathPrefix = getFilenameBase() + "/" + pwmDomain.getDomainID() + "/";
+                for ( final Class<? extends DomainItemGenerator> serviceClass : DOMAIN_ITEM_GENERATORS )
+                {
+                    executeDomainDebugItem( debugItemInput, serviceClass, debugGeneratorLogFile, zipOutput, pathPrefix );
+                }
             }
         }
 
@@ -197,7 +195,7 @@ public class DebugItemGenerator
 
         try
         {
-            zipOutput.putNextEntry( new ZipEntry( pathPrefix + debugFileName ) );
+            zipOutput.putNextEntry( new ZipEntry( getFilenameBase() + "/" + debugFileName ) );
             zipOutput.write( debugGeneratorLogFile.toString().getBytes( PwmConstants.DEFAULT_CHARSET ) );
             zipOutput.closeEntry();
         }
@@ -209,7 +207,75 @@ public class DebugItemGenerator
         zipOutput.flush();
     }
 
-    static class ConfigurationDebugJsonItemGenerator implements Generator
+    private void executeAppDebugItem(
+            final AppDebugItemInput debugItemInput,
+            final Class<? extends AppItemGenerator> serviceClass,
+            final DebugOutputBuilder debugGeneratorLogFile,
+            final ZipOutputStream zipOutput,
+            final String pathPrefix
+    )
+    {
+        try
+        {
+            final Instant itemStartTime = Instant.now();
+            LOGGER.trace( sessionLabel, () -> "beginning output of item " + serviceClass.getSimpleName() );
+            final AppItemGenerator newAppItemGeneratorItem = serviceClass.getDeclaredConstructor().newInstance();
+            zipOutput.putNextEntry( new ZipEntry( pathPrefix + newAppItemGeneratorItem.getFilename() ) );
+            newAppItemGeneratorItem.outputItem( debugItemInput, zipOutput );
+            zipOutput.closeEntry();
+            zipOutput.flush();
+            final String finishMsg = "completed output of " + newAppItemGeneratorItem.getFilename()
+                    + " in " + TimeDuration.fromCurrent( itemStartTime ).asCompactString();
+            LOGGER.trace( sessionLabel, () -> finishMsg );
+            debugGeneratorLogFile.appendLine( finishMsg );
+        }
+        catch ( final Throwable e )
+        {
+            final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e.toString();
+            LOGGER.error( sessionLabel, () -> errorMsg, e );
+            debugGeneratorLogFile.appendLine( errorMsg );
+            final Writer stackTraceOutput = new StringWriter();
+            e.printStackTrace( new PrintWriter( stackTraceOutput ) );
+            debugGeneratorLogFile.appendLine( stackTraceOutput.toString() );
+        }
+    }
+
+
+    void executeDomainDebugItem(
+            final DomainDebugItemInput debugItemInput,
+            final Class<? extends DomainItemGenerator> serviceClass,
+            final DebugOutputBuilder debugGeneratorLogFile,
+            final ZipOutputStream zipOutput,
+            final String pathPrefix
+    )
+    {
+        try
+        {
+            final Instant itemStartTime = Instant.now();
+            LOGGER.trace( sessionLabel, () -> "beginning output of item " + serviceClass.getSimpleName() );
+            final DomainItemGenerator newAppItemGeneratorItem = serviceClass.getDeclaredConstructor().newInstance();
+            zipOutput.putNextEntry( new ZipEntry( pathPrefix + newAppItemGeneratorItem.getFilename() ) );
+            newAppItemGeneratorItem.outputItem( debugItemInput, zipOutput );
+            zipOutput.closeEntry();
+            zipOutput.flush();
+            final String finishMsg = "completed output of " + newAppItemGeneratorItem.getFilename()
+                    + " in " + TimeDuration.fromCurrent( itemStartTime ).asCompactString();
+            LOGGER.trace( sessionLabel, () -> finishMsg );
+            debugGeneratorLogFile.appendLine( finishMsg );
+        }
+        catch ( final Throwable e )
+        {
+            final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e.toString();
+            LOGGER.error( sessionLabel, () -> errorMsg, e );
+            debugGeneratorLogFile.appendLine( errorMsg );
+            final Writer stackTraceOutput = new StringWriter();
+            e.printStackTrace( new PrintWriter( stackTraceOutput ) );
+            debugGeneratorLogFile.appendLine( stackTraceOutput.toString() );
+        }
+
+    }
+
+    static class ConfigurationDebugJsonItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -218,12 +284,13 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedDomainConfig().getStoredConfiguration();
+            final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedAppConfig().getStoredConfiguration();
             final TreeMap<String, Object> outputObject = new TreeMap<>();
 
-            storedConfiguration.keys().filter( k ->  k.getRecordType() == StoredConfigKey.RecordType.SETTING )
+            CollectionUtil.iteratorToStream( storedConfiguration.keys() )
+                    .filter( k ->  k.getRecordType() == StoredConfigKey.RecordType.SETTING )
                     .forEach( k ->
                     {
                         final String key = k.getLabel( PwmConstants.DEFAULT_LOCALE );
@@ -237,7 +304,7 @@ public class DebugItemGenerator
         }
     }
 
-    static class ConfigurationDebugTextItemGenerator implements Generator
+    static class ConfigurationDebugTextItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -246,10 +313,10 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final Locale locale = PwmConstants.DEFAULT_LOCALE;
-            final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedDomainConfig().getStoredConfiguration();
+            final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedAppConfig().getStoredConfiguration();
 
             final StringWriter writer = new StringWriter();
             writer.write( "Configuration Debug Output for "
@@ -259,7 +326,7 @@ public class DebugItemGenerator
             writer.write( "This file is " + PwmConstants.DEFAULT_CHARSET.displayName() + " encoded\n" );
             writer.write( "\n" );
 
-            storedConfiguration.keys()
+            CollectionUtil.iteratorToStream( storedConfiguration.keys() )
                     .filter( k -> k.isRecordType( StoredConfigKey.RecordType.SETTING  ) )
                     .forEach( storedConfigKey ->
                     {
@@ -276,7 +343,7 @@ public class DebugItemGenerator
         }
     }
 
-    static class ConfigurationFileItemGenerator implements Generator
+    static class ConfigurationFileItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -285,9 +352,9 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedDomainConfig().getStoredConfiguration();
+            final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedAppConfig().getStoredConfiguration();
 
             // temporary output stream required because .toXml closes stream.
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -298,7 +365,7 @@ public class DebugItemGenerator
             outputStream.write( byteArrayOutputStream.toByteArray() );        }
     }
 
-    static class AboutItemGenerator implements Generator
+    static class AboutItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -307,16 +374,16 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final Properties outputProps = JavaHelper.newSortedProperties();
-            final Map<PwmAboutProperty, String> infoBean = PwmAboutProperty.makeInfoBean( debugItemInput.getPwmDomain().getPwmApplication() );
+            final Map<PwmAboutProperty, String> infoBean = PwmAboutProperty.makeInfoBean( debugItemInput.getPwmApplication() );
             outputProps.putAll( PwmAboutProperty.toStringMap( infoBean ) );
             outputProps.store( outputStream, JavaHelper.toIsoDate( Instant.now() ) );
         }
     }
 
-    static class SystemEnvironmentItemGenerator implements Generator
+    static class SystemEnvironmentItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -325,7 +392,7 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final Properties outputProps = JavaHelper.newSortedProperties();
             outputProps.putAll( System.getenv() );
@@ -333,7 +400,7 @@ public class DebugItemGenerator
         }
     }
 
-    static class AppPropertiesItemGenerator implements Generator
+    static class AppPropertiesItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -342,10 +409,10 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
 
-            final DomainConfig config = debugItemInput.getObfuscatedDomainConfig();
+            final AppConfig config = debugItemInput.getObfuscatedAppConfig();
             final Properties outputProps = JavaHelper.newSortedProperties();
 
             for ( final AppProperty appProperty : AppProperty.values() )
@@ -357,7 +424,7 @@ public class DebugItemGenerator
         }
     }
 
-    static class ServicesDebugItemGenerator implements Generator
+    static class ServicesDebugItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -366,15 +433,15 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
+            final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
             final LinkedHashMap<String, Object> outputMap = new LinkedHashMap<>();
 
             {
                 // services info
                 final LinkedHashMap<String, Object> servicesMap = new LinkedHashMap<>();
-                for ( final PwmService service : pwmDomain.getPwmServices() )
+                for ( final PwmService service : pwmApplication.getPwmServices() )
                 {
                     final LinkedHashMap<String, Object> serviceOutput = new LinkedHashMap<>();
                     serviceOutput.put( "name", service.getClass().getSimpleName() );
@@ -392,8 +459,15 @@ public class DebugItemGenerator
     }
 
 
-    static class HealthDebugItemGenerator implements Generator
+    static class HealthDebugItemGenerator implements AppItemGenerator
     {
+        @Value
+        private static class HealthDebugInfo
+        {
+            private final HealthRecord healthRecord;
+            private final String message;
+        }
+
         @Override
         public String getFilename( )
         {
@@ -401,27 +475,21 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final Locale locale = PwmConstants.DEFAULT_LOCALE;
-            final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
-            final Set<HealthRecord> records = pwmDomain.getPwmApplication().getHealthMonitor().getHealthRecords();
+            final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
+            final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords();
 
             final List<HealthDebugInfo> outputInfos = new ArrayList<>();
-            records.forEach( healthRecord -> outputInfos.add( new HealthDebugInfo( healthRecord, healthRecord.getDetail( locale,  debugItemInput.obfuscatedDomainConfig ) ) ) );
+            records.forEach( healthRecord -> outputInfos.add( new HealthDebugInfo( healthRecord, healthRecord.getDetail( locale,
+                    debugItemInput.getObfuscatedAppConfig() ) ) ) );
             final String recordJson = JsonUtil.serializeCollection( outputInfos, JsonUtil.Flag.PrettyPrint );
             outputStream.write( recordJson.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
     }
 
-    @Value
-    private static class HealthDebugInfo
-    {
-        private final HealthRecord healthRecord;
-        private final String message;
-    }
-
-    static class ThreadDumpDebugItemGenerator implements Generator
+    static class ThreadDumpDebugItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -430,7 +498,7 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
 
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -445,7 +513,7 @@ public class DebugItemGenerator
         }
     }
 
-    static class LdapDebugItemGenerator implements Generator
+    static class LdapDebugItemGenerator implements DomainItemGenerator
     {
         @Override
         public String getFilename( )
@@ -454,7 +522,7 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final List<LdapDebugDataGenerator.LdapDebugInfo> ldapDebugInfos = LdapDebugDataGenerator.makeLdapDebugInfos(
                     debugItemInput.getPwmDomain(),
@@ -469,7 +537,7 @@ public class DebugItemGenerator
     }
 
 
-    static class FileInfoDebugItemGenerator implements Generator
+    static class FileInfoDebugItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -478,7 +546,7 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
             final File applicationPath = pwmApplication.getPwmEnvironment().getApplicationPath();
@@ -488,14 +556,14 @@ public class DebugItemGenerator
             {
                 try
                 {
-                    final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
-                    if ( webInfPath != null && webInfPath.exists() )
+                    final Optional<File> webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
+                    if ( webInfPath.isPresent() && webInfPath.get().exists() )
                     {
-                        final File servletRootPath = webInfPath.getParentFile();
+                        final File servletRootPath = webInfPath.get().getParentFile();
 
                         if ( servletRootPath != null )
                         {
-                            interestedFiles.add( webInfPath );
+                            interestedFiles.add( webInfPath.orElseThrow() );
                         }
                     }
                 }
@@ -517,44 +585,41 @@ public class DebugItemGenerator
                 }
             }
 
-
-            try ( ClosableIterator<FileSystemUtility.FileSummaryInformation> iter = FileSystemUtility.readFileInformation( interestedFiles ) )
+            final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
             {
-                final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
-                {
-                    final List<String> headerRow = new ArrayList<>();
-                    headerRow.add( "Filepath" );
-                    headerRow.add( "Filename" );
-                    headerRow.add( "Last Modified" );
-                    headerRow.add( "Size" );
-                    headerRow.add( "Checksum" );
-                    csvPrinter.printComment( StringUtil.join( headerRow, "," ) );
-                }
-
-                while ( iter.hasNext() )
-                {
-                    final FileSystemUtility.FileSummaryInformation fileSummaryInformation = iter.next();
-                    try
-                    {
-                        final List<String> dataRow = new ArrayList<>();
-                        dataRow.add( fileSummaryInformation.getFilepath() );
-                        dataRow.add( fileSummaryInformation.getFilename() );
-                        dataRow.add( JavaHelper.toIsoDate( fileSummaryInformation.getModified() ) );
-                        dataRow.add( String.valueOf( fileSummaryInformation.getSize() ) );
-                        dataRow.add( Long.toString( fileSummaryInformation.getChecksum() ) );
-                        csvPrinter.printRecord( dataRow );
-                    }
-                    catch ( final Exception e )
-                    {
-                        LOGGER.trace( () -> "error generating file summary info: " + e.getMessage() );
-                    }
-                }
-                csvPrinter.flush();
+                final List<String> headerRow = new ArrayList<>();
+                headerRow.add( "Filepath" );
+                headerRow.add( "Filename" );
+                headerRow.add( "Last Modified" );
+                headerRow.add( "Size" );
+                headerRow.add( "Checksum" );
+                csvPrinter.printComment( StringUtil.join( headerRow, "," ) );
             }
+
+            final Iterator<FileSystemUtility.FileSummaryInformation> iter = FileSystemUtility.readFileInformation( interestedFiles );
+            while ( iter.hasNext() )
+            {
+                final FileSystemUtility.FileSummaryInformation fileSummaryInformation = iter.next();
+                try
+                {
+                    final List<String> dataRow = new ArrayList<>();
+                    dataRow.add( fileSummaryInformation.getFilepath() );
+                    dataRow.add( fileSummaryInformation.getFilename() );
+                    dataRow.add( JavaHelper.toIsoDate( fileSummaryInformation.getModified() ) );
+                    dataRow.add( String.valueOf( fileSummaryInformation.getSize() ) );
+                    dataRow.add( Long.toString( fileSummaryInformation.getChecksum() ) );
+                    csvPrinter.printRecord( dataRow );
+                }
+                catch ( final Exception e )
+                {
+                    LOGGER.trace( () -> "error generating file summary info: " + e.getMessage() );
+                }
+            }
+            csvPrinter.flush();
         }
     }
 
-    static class LogDebugItemGenerator implements Generator
+    static class LogDebugItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -563,17 +628,17 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final Instant startTime = Instant.now();
             final Function<PwmLogEvent, String> logEventFormatter = PwmLogEvent::toLogString;
 
-            outputLogs( debugItemInput.getPwmDomain(), outputStream, logEventFormatter );
+            outputLogs( debugItemInput.getPwmApplication(), outputStream, logEventFormatter );
             LOGGER.trace( () ->  "debug log output completed in ", () -> TimeDuration.fromCurrent( startTime ) );
         }
     }
 
-    static class LogJsonItemGenerator implements Generator
+    static class LogJsonItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -582,32 +647,32 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final Instant startTime = Instant.now();
-            final Function<PwmLogEvent, String> logEventFormatter = pwmLogEvent -> JsonUtil.serialize( pwmLogEvent );
+            final Function<PwmLogEvent, String> logEventFormatter = JsonUtil::serialize;
 
-            outputLogs( debugItemInput.getPwmDomain(), outputStream, logEventFormatter );
+            outputLogs( debugItemInput.getPwmApplication(), outputStream, logEventFormatter );
             LOGGER.trace( () ->  "debug json output completed in ", () -> TimeDuration.fromCurrent( startTime ) );
         }
     }
 
     private static void outputLogs(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final OutputStream outputStream,
             final Function<PwmLogEvent, String> logEventFormatter
     )
             throws Exception
     {
-        final long maxByteCount = JavaHelper.silentParseLong( pwmDomain.getConfig().readAppProperty( AppProperty.CONFIG_MANAGER_ZIPDEBUG_MAXLOGBYTES ), 10_000_000 );
-        final int maxSeconds = JavaHelper.silentParseInt( pwmDomain.getConfig().readAppProperty( AppProperty.CONFIG_MANAGER_ZIPDEBUG_MAXLOGSECONDS ), 60 );
+        final long maxByteCount = JavaHelper.silentParseLong( pwmApplication.getConfig().readAppProperty( AppProperty.CONFIG_MANAGER_ZIPDEBUG_MAXLOGBYTES ), 10_000_000 );
+        final int maxSeconds = JavaHelper.silentParseInt( pwmApplication.getConfig().readAppProperty( AppProperty.CONFIG_MANAGER_ZIPDEBUG_MAXLOGSECONDS ), 60 );
         final LocalDBSearchQuery searchParameters = LocalDBSearchQuery.builder()
                 .minimumLevel( PwmLogLevel.TRACE )
                 .maxEvents( Integer.MAX_VALUE )
                 .maxQueryTime( TimeDuration.of( maxSeconds, TimeDuration.Unit.SECONDS ) )
                 .build();
 
-        final LocalDBSearchResults searchResults = pwmDomain.getPwmApplication().getLocalDBLogger().readStoredEvents( searchParameters );
+        final LocalDBSearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents( searchParameters );
         final CountingOutputStream countingOutputStream = new CountingOutputStream( outputStream );
 
         final Writer writer = new OutputStreamWriter( countingOutputStream, PwmConstants.DEFAULT_CHARSET );
@@ -626,7 +691,7 @@ public class DebugItemGenerator
         writer.flush();
     }
 
-    static class LDAPPermissionItemGenerator implements Generator
+    static class LDAPPermissionItemGenerator implements DomainItemGenerator
     {
         @Override
         public String getFilename( )
@@ -635,11 +700,11 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
 
-            final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedDomainConfig().getStoredConfiguration();
-            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( new AppConfig( storedConfiguration ).getDefaultDomainConfig() );
+            final DomainConfig domainConfig = debugItemInput.getObfuscatedDomainConfig();
+            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( domainConfig );
 
             final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
             {
@@ -666,7 +731,7 @@ public class DebugItemGenerator
         }
     }
 
-    static class LocalDBDebugGenerator implements Generator
+    static class LocalDBDebugGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -675,7 +740,7 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
             final LocalDB localDB = pwmApplication.getLocalDB();
@@ -684,7 +749,7 @@ public class DebugItemGenerator
         }
     }
 
-    static class SessionDataGenerator implements Generator
+    static class SessionDataGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -693,14 +758,14 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
+            final PwmApplication pwmDomain = debugItemInput.getPwmApplication();
             pwmDomain.getSessionTrackService().outputToCsv( LOCALE, pwmDomain.getConfig(), outputStream );
         }
     }
 
-    static class LdapRecentUserDebugGenerator implements Generator
+    static class LdapRecentUserDebugGenerator implements DomainItemGenerator
     {
         @Override
         public String getFilename( )
@@ -709,28 +774,31 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
-            final List<UserIdentity> recentUsers = pwmDomain.getSessionTrackService().getRecentLogins();
+            final List<UserIdentity> recentUsers = pwmDomain.getPwmApplication().getSessionTrackService().getRecentLogins();
             final List<UserDebugDataBean> recentDebugBeans = new ArrayList<>();
 
             for ( final UserIdentity userIdentity : recentUsers )
             {
-                final UserDebugDataBean dataBean = UserDebugDataReader.readUserDebugData(
-                        pwmDomain,
-                        LOCALE,
-                        debugItemInput.getSessionLabel(),
-                        userIdentity
-                );
-                recentDebugBeans.add( dataBean );
+                if ( Objects.equals( userIdentity.getDomainID(), pwmDomain.getDomainID() ) )
+                {
+                    final UserDebugDataBean dataBean = UserDebugDataReader.readUserDebugData(
+                            pwmDomain,
+                            LOCALE,
+                            debugItemInput.getSessionLabel(),
+                            userIdentity
+                    );
+                    recentDebugBeans.add( dataBean );
+                }
             }
 
             outputStream.write( JsonUtil.serializeCollection( recentDebugBeans, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
     }
 
-    static class ClusterInfoDebugGenerator implements Generator
+    static class ClusterInfoDebugGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -739,7 +807,7 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
             final NodeService nodeService = pwmApplication.getNodeService();
@@ -757,7 +825,7 @@ public class DebugItemGenerator
         }
     }
 
-    static class CacheServiceDebugItemGenerator implements Generator
+    static class CacheServiceDebugItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -766,17 +834,17 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
-            final CacheService cacheService = pwmDomain.getCacheService();
+            final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
+            final CacheService cacheService = pwmApplication.getCacheService();
 
             final Map<String, Serializable> debugOutput = new LinkedHashMap<>( cacheService.debugInfo() );
             outputStream.write( JsonUtil.serializeMap( debugOutput, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
     }
 
-    static class DashboardDataDebugItemGenerator implements Generator
+    static class DashboardDataDebugItemGenerator implements DomainItemGenerator
     {
         @Override
         public String getFilename( )
@@ -785,12 +853,12 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
-            final ContextManager contextManager = pwmApplication.getPwmEnvironment().getContextManager();
+            final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
+            final ContextManager contextManager = pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager();
             final AppDashboardData appDashboardData = AppDashboardData.makeDashboardData(
-                    pwmApplication.getDefaultDomain(),
+                    pwmDomain,
                     contextManager,
                     LOCALE
             );
@@ -799,7 +867,7 @@ public class DebugItemGenerator
         }
     }
 
-    static class StatisticsDataDebugItemGenerator implements Generator
+    static class StatisticsDataDebugItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename()
@@ -808,15 +876,15 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
-            final StatisticsManager statsManager = pwmDomain.getStatisticsManager();
+            final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
+            final StatisticsManager statsManager = pwmApplication.getStatisticsManager();
             statsManager.outputStatsToCsv( outputStream, LOCALE, true );
         }
     }
 
-    static class LdapConnectionsDebugItemGenerator implements Generator
+    static class LdapConnectionsDebugItemGenerator implements DomainItemGenerator
     {
         @Override
         public String getFilename()
@@ -825,7 +893,7 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
             final List<LdapConnectionService.ConnectionInfo> connectionInfos = pwmDomain.getLdapConnectionService().getConnectionInfos();
@@ -835,7 +903,7 @@ public class DebugItemGenerator
         }
     }
 
-    static class StatisticsEpsDataDebugItemGenerator implements Generator
+    static class StatisticsEpsDataDebugItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename()
@@ -844,9 +912,9 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
-            final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
+            final PwmApplication pwmDomain = debugItemInput.getPwmApplication();
             final StatisticsManager statsManager = pwmDomain.getStatisticsManager();
             final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
             {
@@ -880,7 +948,7 @@ public class DebugItemGenerator
         }
     }
 
-    static class BuildInformationDebugItemGenerator implements Generator
+    static class BuildInformationDebugItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -889,7 +957,7 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final Properties outputProps = JavaHelper.newSortedProperties();
             outputProps.putAll( PwmConstants.BUILD_MANIFEST );
@@ -897,7 +965,7 @@ public class DebugItemGenerator
         }
     }
 
-    static class RootFileSystemDebugItemGenerator implements Generator
+    static class RootFileSystemDebugItemGenerator implements AppItemGenerator
     {
         @Override
         public String getFilename( )
@@ -906,7 +974,7 @@ public class DebugItemGenerator
         }
 
         @Override
-        public void outputItem( final DebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+        public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
         {
             final Collection<RootFileSystemInfo> rootInfos = RootFileSystemInfo.forAllRootFileSystems();
             outputStream.write( JsonUtil.serializeCollection( rootInfos, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
@@ -940,21 +1008,39 @@ public class DebugItemGenerator
         }
     }
 
-    interface Generator
+    interface AppItemGenerator
     {
 
         String getFilename( );
 
         void outputItem(
-                DebugItemInput debugItemInput,
+                AppDebugItemInput debugItemInput,
                 OutputStream outputStream
         ) throws Exception;
     }
 
     @Value
-    private static class DebugItemInput
+    private static class AppDebugItemInput
     {
         private final PwmApplication pwmApplication;
+        private final SessionLabel sessionLabel;
+        private final AppConfig obfuscatedAppConfig;
+    }
+
+    interface DomainItemGenerator
+    {
+
+        String getFilename( );
+
+        void outputItem(
+                DomainDebugItemInput debugItemInput,
+                OutputStream outputStream
+        ) throws Exception;
+    }
+
+    @Value
+    private static class DomainDebugItemInput
+    {
         private final PwmDomain pwmDomain;
         private final SessionLabel sessionLabel;
         private final DomainConfig obfuscatedDomainConfig;

@@ -128,7 +128,7 @@ public class AccountInformationBean implements Serializable
         final List<UserAuditRecord> auditRecords = new ArrayList<>();
         try
         {
-            auditRecords.addAll( pwmDomain.getAuditManager().readUserHistory( sessionLabel, userInfo ) );
+            auditRecords.addAll( pwmDomain.getUserHistoryService().readUserHistory( sessionLabel, userInfo ) );
         }
         catch ( final PwmUnrecoverableException e )
         {

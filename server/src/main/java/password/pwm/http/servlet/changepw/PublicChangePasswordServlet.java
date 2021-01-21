@@ -28,6 +28,7 @@ import javax.servlet.annotation.WebServlet;
         name = "PublicChangePasswordServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PUBLIC + "/changepassword",
+                "/*/private/changepassword",
                 PwmConstants.URL_PREFIX_PUBLIC + "/ChangePassword"
         }
 )

@@ -23,7 +23,7 @@ package password.pwm.config;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.value.StoredValue;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.util.Arrays;
@@ -58,7 +58,9 @@ public enum PwmSetting
 
     // domains
     DOMAIN_LIST(
-            "domain.list", PwmSettingSyntax.DOMAINS, PwmSettingCategory.DOMAINS ),
+            "domain.list", PwmSettingSyntax.DOMAIN, PwmSettingCategory.DOMAINS ),
+    DOMAIN_SYSTEM_ADMIN(
+            "domain.system.adminDomain", PwmSettingSyntax.STRING, PwmSettingCategory.DOMAINS ),
 
     // application settings
     APP_PROPERTY_OVERRIDES(
@@ -329,9 +331,11 @@ public enum PwmSetting
             "email.queueMaxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.EMAIL_SETTINGS ),
     EMAIL_ADVANCED_SETTINGS(
             "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.EMAIL_SETTINGS ),
+    EMAIL_SYSTEM_FROM_ADDRESS(
+            "email.system.fromAddress", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS ),
 
     // email template
-    EMAIL_DEFAULT_FROM_ADDRESS(
+    EMAIL_DOMAIN_FROM_ADDRESS(
             "email.default.fromAddress", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_TEMPLATES ),
     EMAIL_CHANGEPASSWORD(
             "email.changePassword", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES ),
@@ -1161,7 +1165,7 @@ public enum PwmSetting
     REPORTING_JOB_TIME_OFFSET(
             "reporting.job.timeOffset", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING ),
     REPORTING_USER_MATCH(
-            "reporting.ldap.userMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.REPORTING ),
+            "reporting.ldap.userMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.UI_FEATURES ),
     REPORTING_MAX_QUERY_SIZE(
             "reporting.ldap.maxQuerySize", PwmSettingSyntax.NUMERIC, PwmSettingCategory.REPORTING ),
     REPORTING_JOB_INTENSITY(
@@ -1464,7 +1468,7 @@ public enum PwmSetting
             {
                 for ( final TemplateSetReference<T> templateSetReference : templateSetReferences )
                 {
-                    final Set<PwmSettingTemplate> temporarySet = JavaHelper.copiedEnumSet( templateSetReference.getSettingTemplates(), PwmSettingTemplate.class );
+                    final Set<PwmSettingTemplate> temporarySet = CollectionUtil.copiedEnumSet( templateSetReference.getSettingTemplates(), PwmSettingTemplate.class );
                     temporarySet.retainAll( pwmSettingTemplate.getTemplates() );
                     final int matchCount = temporarySet.size();
                     if ( matchCount == matchCountExamSize )

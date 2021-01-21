@@ -29,7 +29,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
@@ -62,9 +62,9 @@ public class DBConfiguration implements Serializable
     public boolean isEnabled( )
     {
         return
-                !StringUtil.isEmpty( driverClassname )
-                        && !StringUtil.isEmpty( connectionString )
-                        && !StringUtil.isEmpty( username )
+                StringUtil.notEmpty( driverClassname )
+                        && StringUtil.notEmpty( connectionString )
+                        && StringUtil.notEmpty( username )
                         && !( password == null );
     }
 
@@ -84,7 +84,7 @@ public class DBConfiguration implements Serializable
         }
 
         final String strategyList = config.readAppProperty( AppProperty.DB_JDBC_LOAD_STRATEGY );
-        final Set<JDBCDriverLoader.ClassLoaderStrategy> strategies = JavaHelper.readEnumSetFromStringCollection(
+        final Set<JDBCDriverLoader.ClassLoaderStrategy> strategies = CollectionUtil.readEnumSetFromStringCollection(
                 JDBCDriverLoader.ClassLoaderStrategy.class,
                 Arrays.asList( strategyList.split( "," ) )
         );

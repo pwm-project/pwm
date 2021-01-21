@@ -53,6 +53,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.zip.GZIPInputStream;
@@ -477,8 +478,8 @@ public class LocalDBUtility
     public boolean readImportInprogressFlag( )
             throws LocalDBException
     {
-        return IN_PROGRESS_STATUS_VALUE.equals(
-                localDB.get( LocalDB.DB.PWM_META, AppAttribute.LOCALDB_IMPORT_STATUS.getKey() ) );
+        final Optional<String> storedImportValue = localDB.get( LocalDB.DB.PWM_META, AppAttribute.LOCALDB_IMPORT_STATUS.getKey() );
+        return storedImportValue.isPresent() && IN_PROGRESS_STATUS_VALUE.equals( storedImportValue.get() );
     }
 
     static boolean hasBooleanParameter( final LocalDBProvider.Parameter parameter, final Map<LocalDBProvider.Parameter, String> parameters )

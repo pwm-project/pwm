@@ -30,8 +30,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
-import password.pwm.http.PwmSession;
-import password.pwm.http.PwmSessionWrapper;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.Validator;
@@ -99,7 +97,6 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                     if ( e.getError() == PwmError.ERROR_INCORRECT_REQ_SEQUENCE )
                     {
                         final ErrorInformation errorInformation = e.getErrorInformation();
-                        final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( req );
                         LOGGER.error( pwmRequest, errorInformation::toDebugStr );
                         pwmRequest.respondWithError( errorInformation, false );
                         return;
@@ -292,7 +289,14 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         }
         else
         {
-            pwmRequest.respondWithError( e.getErrorInformation() );
+            try
+            {
+                pwmRequest.respondWithError( e.getErrorInformation() );
+            }
+            catch ( final PwmUnrecoverableException pwmUnrecoverableException )
+            {
+                throw new ServletException( pwmUnrecoverableException.getMessage() );
+            }
         }
     }
 
@@ -311,9 +315,9 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
     public String servletUriRemainder( final PwmRequest pwmRequest, final String command ) throws PwmUnrecoverableException
     {
         String uri = pwmRequest.getURLwithoutQueryString();
-        if ( uri.startsWith( pwmRequest.getContextPath() ) )
+        if ( uri.startsWith( pwmRequest.getBasePath() ) )
         {
-            uri = uri.substring( pwmRequest.getContextPath().length() );
+            uri = uri.substring( pwmRequest.getBasePath().length() );
         }
         for ( final String servletUri : getServletDefinition().urlPatterns() )
         {

@@ -22,9 +22,9 @@ package password.pwm.health;
 
 import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
-import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.config.DomainConfig;
+import password.pwm.config.SettingReader;
 import password.pwm.ws.server.rest.bean.HealthData;
 
 import java.io.Serializable;
@@ -93,14 +93,6 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
         return new HealthRecord( domainID, message.getStatus(), healthTopic, message, fields );
     }
 
-    /**
-     * @deprecated Replace with {@link #forMessage(DomainID, HealthMessage, String...)}
-     */
-    public static HealthRecord forMessage( final HealthMessage message, final String... fields )
-    {
-        return new HealthRecord( PwmConstants.DOMAIN_ID_PLACEHOLDER, message.getStatus(), message.getTopic(), message, fields );
-    }
-
     public HealthStatus getStatus( )
     {
         return status;
@@ -111,7 +103,7 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
         return domainID;
     }
 
-    public String getTopic( final Locale locale, final DomainConfig config )
+    public String getTopic( final Locale locale, final SettingReader config )
     {
         if ( topic != null )
         {
@@ -120,7 +112,7 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
         return "";
     }
 
-    public String getDetail( final Locale locale, final DomainConfig config )
+    public String getDetail( final Locale locale, final SettingReader config )
     {
         if ( message != null )
         {
@@ -129,7 +121,7 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
         return "";
     }
 
-    public String toDebugString( final Locale locale, final DomainConfig config )
+    public String toDebugString( final Locale locale, final SettingReader config )
     {
         return HealthRecord.class.getSimpleName() + " " + status.getDescription( locale, config ) + " " + this.getTopic(
                 locale, config ) + " " + this.getDetail( locale, config );
@@ -156,7 +148,7 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
                 profileRecords, locale, domainConfig );
         return HealthData.builder()
                 .timestamp( Instant.now() )
-                .overall( HealthMonitor.getMostSevereHealthStatus( profileRecords ).toString() )
+                .overall( HealthUtils.getMostSevereHealthStatus( profileRecords ).toString() )
                 .records( healthRecordBeans )
                 .build();
     }

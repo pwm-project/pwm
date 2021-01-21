@@ -256,7 +256,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
             // send email.
             final UserInfo guestUserInfoBean = UserInfoFactory.newUserInfo(
-                    pwmDomain,
+                    pwmRequest.getPwmApplication(),
                     pwmRequest.getLabel(),
                     pwmRequest.getLocale(),
                     guestRegistrationBean.getUpdateUserIdentity(),
@@ -346,7 +346,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
                     }
                 }
                 final UserInfo guestUserInfo = UserInfoFactory.newUserInfo(
-                        pwmDomain,
+                        pwmRequest.getPwmApplication(),
                         pwmRequest.getLabel(),
                         pwmRequest.getLocale(),
                         theGuest,

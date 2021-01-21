@@ -24,7 +24,7 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -147,7 +147,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
     @Override
     public String toDebugString( final Locale locale )
     {
-        if ( JavaHelper.isEmpty( values ) )
+        if ( CollectionUtil.isEmpty( values ) )
         {
             return "";
         }

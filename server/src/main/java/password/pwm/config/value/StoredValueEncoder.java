@@ -113,7 +113,7 @@ public abstract class StoredValueEncoder
 
         static ParsedInput parseInput( final String value )
         {
-            if ( !StringUtil.isEmpty( value ) )
+            if ( StringUtil.notEmpty( value ) )
             {
                 for ( final Mode mode : Mode.values() )
                 {

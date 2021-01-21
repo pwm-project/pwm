@@ -67,7 +67,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -145,14 +145,14 @@ public class ForgottenPasswordUtil
         final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
 
         return UserInfoFactory.newUserInfoUsingProxy(
-                pwmRequestContext.getPwmDomain(),
+                pwmRequestContext.getPwmApplication(),
                 pwmRequestContext.getSessionLabel(),
                 userIdentity,
                 pwmRequestContext.getLocale()
         );
     }
 
-    static ResponseSet readResponseSet(
+    static Optional<ResponseSet> readResponseSet(
             final PwmRequestContext pwmRequestContext,
             final ForgottenPasswordBean forgottenPasswordBean
     )
@@ -161,12 +161,12 @@ public class ForgottenPasswordUtil
 
         if ( forgottenPasswordBean.getUserIdentity() == null )
         {
-            return null;
+            return Optional.empty();
         }
 
         final PwmDomain pwmDomain = pwmRequestContext.getPwmDomain();
         final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
-        final ResponseSet responseSet;
+        final Optional<ResponseSet> responseSet;
 
         try
         {
@@ -205,7 +205,7 @@ public class ForgottenPasswordUtil
 
         final UserInfo userInfo = readUserInfo( pwmRequestContext, forgottenPasswordBean );
         final MacroRequest macroRequest = MacroRequest.forUser(
-                pwmDomain,
+                pwmRequestContext.getPwmApplication(),
                 pwmRequestContext.getSessionLabel(),
                 userInfo,
                 null
@@ -316,8 +316,8 @@ public class ForgottenPasswordUtil
             case CHALLENGE_RESPONSES:
             {
                 final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean );
-                final ResponseSet responseSet = ForgottenPasswordUtil.readResponseSet( pwmRequestContext, forgottenPasswordBean );
-                if ( responseSet == null )
+                final Optional<ResponseSet> responseSet = ForgottenPasswordUtil.readResponseSet( pwmRequestContext, forgottenPasswordBean );
+                if ( responseSet.isEmpty() )
                 {
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_RESPONSES_NORESPONSES );
                     throw new PwmUnrecoverableException( errorInformation );
@@ -327,7 +327,7 @@ public class ForgottenPasswordUtil
 
                 try
                 {
-                    if ( responseSet.meetsChallengeSetRequirements( challengeSet ) )
+                    if ( responseSet.get().meetsChallengeSetRequirements( challengeSet ) )
                     {
                         if ( challengeSet.getRequiredChallenges().isEmpty() && ( challengeSet.getMinRandomRequired() <= 0 ) )
                         {
@@ -454,7 +454,7 @@ public class ForgottenPasswordUtil
         try
         {
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
-                    pwmDomain,
+                    pwmRequest.getPwmApplication(),
                     pwmRequest.getLabel(),
                     userIdentity,
                     pwmRequest.getLocale()
@@ -695,7 +695,7 @@ public class ForgottenPasswordUtil
         if ( recoveryFlags.getRequiredAuthMethods().contains( IdentityVerificationMethod.CHALLENGE_RESPONSES )
                 || recoveryFlags.getOptionalAuthMethods().contains( IdentityVerificationMethod.CHALLENGE_RESPONSES ) )
         {
-            final ResponseSet responseSet;
+            final Optional<ResponseSet> responseSet;
             try
             {
                 final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userInfo.getUserIdentity() );
@@ -704,7 +704,7 @@ public class ForgottenPasswordUtil
                         userInfo.getUserIdentity(),
                         theUser
                 );
-                challengeSet = responseSet == null ? null : responseSet.getPresentableChallengeSet();
+                challengeSet = responseSet.isEmpty() ? null : responseSet.get().getPresentableChallengeSet();
             }
             catch ( final ChaiValidationException e )
             {
@@ -860,7 +860,7 @@ public class ForgottenPasswordUtil
                     pwmRequestContext,
                     forgottenPasswordBean
             );
-            final Set<IdentityVerificationMethod> otherOptionalMethodChoices = JavaHelper.copiedEnumSet( remainingAvailableOptionalMethods, IdentityVerificationMethod.class );
+            final Set<IdentityVerificationMethod> otherOptionalMethodChoices = CollectionUtil.copiedEnumSet( remainingAvailableOptionalMethods, IdentityVerificationMethod.class );
             otherOptionalMethodChoices.remove( thisMethod );
 
             if ( !otherOptionalMethodChoices.isEmpty() )

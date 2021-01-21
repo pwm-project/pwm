@@ -225,7 +225,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             );
             pwmDomain.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
 
-            pwmRequest.sendRedirect( PwmServletDefinition.SetupResponses );
+            pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.SetupResponses );
         }
         catch ( final PwmOperationalException e )
         {
@@ -248,7 +248,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         if ( allowSkip )
         {
             pwmRequest.getPwmSession().getLoginInfoBean().getLoginFlags().add( LoginInfoBean.LoginFlag.skipSetupCr );
-            pwmRequest.sendRedirectToContinue();
+            pwmRequest.getPwmResponse().sendRedirectToContinue();
             return ProcessStatus.Halt;
         }
 
@@ -284,7 +284,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         catch ( final PwmDataValidationException e )
         {
             success = false;
-            userMessage = e.getErrorInformation().toUserStr( pwmSession, pwmDomain );
+            userMessage = e.getErrorInformation().toUserStr( pwmSession, pwmDomain.getConfig() );
         }
 
         final ValidationResponseBean validationResponseBean = new ValidationResponseBean( userMessage, success );

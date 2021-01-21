@@ -47,6 +47,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -93,7 +94,7 @@ public class SecureEngine
         {
             final String errorMsg = "unexpected error b64 encoding crypto result: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            LOGGER.error( () -> errorInformation.toDebugStr() );
+            LOGGER.error( errorInformation::toDebugStr );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }
@@ -110,10 +111,9 @@ public class SecureEngine
     {
         try
         {
-            if ( value == null || value.length() < 1 )
-            {
-                return null;
-            }
+            Objects.requireNonNull( value );
+            Objects.requireNonNull( key );
+            Objects.requireNonNull( blockAlgorithm );
 
             final SecretKey aesKey = key.getKey( blockAlgorithm.getBlockKey() );
             final byte[] nonce;
@@ -159,7 +159,7 @@ public class SecureEngine
         {
             final String errorMsg = "unexpected error performing simple crypt operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            LOGGER.error( () -> errorInformation.toDebugStr() );
+            LOGGER.error( errorInformation::toDebugStr );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }

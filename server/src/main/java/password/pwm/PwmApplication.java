@@ -26,16 +26,16 @@ import password.pwm.bean.SmsItemBean;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingMetaDataReader;
 import password.pwm.config.PwmSettingScope;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.health.HealthMonitor;
-import password.pwm.http.servlet.configeditor.data.SettingDataMaker;
-import password.pwm.http.servlet.resource.ResourceServletService;
+import password.pwm.health.HealthService;
 import password.pwm.http.state.SessionStateService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceEnum;
@@ -47,8 +47,8 @@ import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditService;
 import password.pwm.svc.event.SystemAuditRecord;
 import password.pwm.svc.httpclient.HttpClientService;
-import password.pwm.svc.intruder.IntruderManager;
-import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.intruder.IntruderService;
+import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.node.NodeService;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.report.ReportService;
@@ -60,15 +60,15 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistService;
-import password.pwm.svc.wordlist.SharedHistoryManager;
+import password.pwm.svc.wordlist.SharedHistoryService;
 import password.pwm.svc.wordlist.WordlistService;
-import password.pwm.util.DailySummaryJob;
 import password.pwm.util.MBeanUtility;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseService;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -102,10 +102,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class PwmApplication
 {
@@ -150,12 +151,12 @@ public class PwmApplication
         }
     }
 
-    public static Optional<String> deriveLocalServerHostname( final DomainConfig domainConfig )
+    public static Optional<String> deriveLocalServerHostname( final AppConfig appConfig )
     {
-        if ( domainConfig != null )
+        if ( appConfig != null )
         {
-            final String siteUrl = domainConfig.readSettingAsString( PwmSetting.PWM_SITE_URL );
-            if ( !StringUtil.isEmpty( siteUrl ) )
+            final String siteUrl = appConfig.readSettingAsString( PwmSetting.PWM_SITE_URL );
+            if ( StringUtil.notEmpty( siteUrl ) )
             {
                 try
                 {
@@ -252,15 +253,7 @@ public class PwmApplication
 
         pwmServiceManager.initAllServices();
 
-        {
-            final Instant domainInitStartTime = Instant.now();
-            for ( final PwmDomain pwmDomain : domains.values() )
-            {
-                LOGGER.trace( () -> "beginning domain initialization for domain " + pwmDomain.getDomainID().stringValue() );
-                pwmDomain.initialize();
-            }
-            LOGGER.trace( () -> "completed domain initialization for all domains", () -> TimeDuration.fromCurrent( domainInitStartTime ) );
-        }
+        initAllDomains();
 
         final boolean skipPostInit = pwmEnvironment.isInternalRuntimeInstance()
                 || pwmEnvironment.getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance );
@@ -269,13 +262,30 @@ public class PwmApplication
         {
             final TimeDuration totalTime = TimeDuration.fromCurrent( startTime );
             LOGGER.info( () -> PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")" );
-            StatisticsManager.incrementStat( this.getDefaultDomain(), Statistic.PWM_STARTUPS );
+            StatisticsManager.incrementStat( this, Statistic.PWM_STARTUPS );
             LOGGER.debug( () -> "buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
 
-            pwmScheduler.immediateExecuteInNewThread( this::postInitTasks, this.getClass().getSimpleName() + " postInit tasks" );
+            pwmScheduler.immediateExecuteRunnableInNewThread( this::postInitTasks, this.getClass().getSimpleName() + " postInit tasks" );
         }
 
     }
+
+    private void initAllDomains()
+            throws PwmUnrecoverableException
+    {
+        final Instant domainInitStartTime = Instant.now();
+        LOGGER.trace( () -> "beginning domain initializations" );
+
+        final List<Callable<?>> callables = domains.values().stream().<Callable<?>>map( pwmDomain -> () ->
+        {
+            pwmDomain.initialize();
+            return null;
+        } ).collect( Collectors.toList() );
+        pwmScheduler.executeImmediateThreadPerJobAndAwaitCompletion( callables, "domain initializer" );
+
+        LOGGER.trace( () -> "completed domain initialization for all domains", () -> TimeDuration.fromCurrent( domainInitStartTime ) );
+    }
+
 
     public void reInit( final PwmEnvironment pwmEnvironment )
             throws PwmException
@@ -292,17 +302,20 @@ public class PwmApplication
     {
         final Instant startTime = Instant.now();
 
-        getPwmScheduler().immediateExecuteInNewThread( UserAgentUtils::initializeCache, "initialize useragent cache" );
-        getPwmScheduler().immediateExecuteInNewThread( SettingDataMaker::initializeCache, "initialize PwmSetting metadata" );
+        getPwmScheduler().immediateExecuteRunnableInNewThread( UserAgentUtils::initializeCache, "initialize useragent cache" );
+        getPwmScheduler().immediateExecuteRunnableInNewThread( PwmSettingMetaDataReader::initCache, "initialize PwmSetting cache" );
 
-        outputConfigurationToLog( this );
 
-        outputNonDefaultPropertiesToLog( this );
+        if ( Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
+        {
+            outputConfigurationToLog( this );
+            outputNonDefaultPropertiesToLog( this );
+        }
 
         // send system audit event
         try
         {
-            final SystemAuditRecord auditRecord = new AuditRecordFactory( this.getDefaultDomain() ).createSystemAuditRecord(
+            final SystemAuditRecord auditRecord = new AuditRecordFactory( this ).createSystemAuditRecord(
                     AuditEvent.STARTUP,
                     null
             );
@@ -325,7 +338,7 @@ public class PwmApplication
 
         try
         {
-            this.getIntruderManager().clear( RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME );
+            this.getIntruderService().clear( IntruderRecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME );
         }
         catch ( final Exception e )
         {
@@ -354,12 +367,6 @@ public class PwmApplication
         }
 
         MBeanUtility.registerMBean( this );
-
-        {
-            final ExecutorService executorService = PwmScheduler.makeSingleThreadExecutorService( this, PwmDomain.class );
-            pwmScheduler.scheduleDailyZuluZeroStartJob( new DailySummaryJob( this.getDefaultDomain() ), executorService, TimeDuration.ZERO );
-        }
-
         LOGGER.trace( () -> "completed post init tasks", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
@@ -368,7 +375,7 @@ public class PwmApplication
         return new PwmApplication( pwmEnvironment );
     }
 
-    public Map<DomainID, PwmDomain> getDomains()
+    public Map<DomainID, PwmDomain> domains()
     {
         return domains;
     }
@@ -398,9 +405,19 @@ public class PwmApplication
         return runtimeNonce;
     }
 
-    public PwmDomain getDefaultDomain()
+    public PwmDomain getAdminDomain()
+            throws PwmUnrecoverableException
     {
-        return getDomains().get( PwmConstants.DOMAIN_ID_PLACEHOLDER );
+        final Optional<DomainConfig> adminDomainConfig = getConfig().getDomainConfigs().values().stream()
+                .filter( DomainConfig::isAdministrativeDomain )
+                .findFirst();
+
+        if ( adminDomainConfig.isPresent() )
+        {
+            return domains().get( adminDomainConfig.get().getDomainID() );
+        }
+
+        throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "administrative domain is not defined" );
     }
 
     public void shutdown( )
@@ -410,14 +427,12 @@ public class PwmApplication
 
     public void shutdown( final boolean keepServicesRunning )
     {
-        pwmScheduler.shutdown();
-
         LOGGER.warn( () -> "shutting down" );
         {
             // send system audit event
             try
             {
-                final SystemAuditRecord auditRecord = new AuditRecordFactory( this.getDefaultDomain() ).createSystemAuditRecord(
+                final SystemAuditRecord auditRecord = new AuditRecordFactory( this ).createSystemAuditRecord(
                         AuditEvent.SHUTDOWN,
                         null
                 );
@@ -436,12 +451,21 @@ public class PwmApplication
 
         if ( !keepServicesRunning )
         {
-            pwmServiceManager.shutdownAllServices();
-
-            for ( final PwmDomain pwmDomain : domains.values() )
+            try
             {
-                pwmDomain.shutdown();
+                final List<Callable<?>> callables = domains.values().stream().<Callable<?>>map( pwmDomain -> () ->
+                {
+                    pwmDomain.shutdown();
+                    return null;
+                } ).collect( Collectors.toList() );
+                pwmScheduler.executeImmediateThreadPerJobAndAwaitCompletion( callables, "domain shutdown task" );
             }
+            catch ( final PwmUnrecoverableException e )
+            {
+                LOGGER.error( () -> "error shutting down domain services: " + e.getMessage(), e );
+            }
+
+            pwmServiceManager.shutdownAllServices();
         }
 
         if ( localDBLogger != null )
@@ -479,6 +503,8 @@ public class PwmApplication
         {
             fileLocker.releaseFileLock();
         }
+
+        pwmScheduler.shutdown();
 
         LOGGER.info( () -> PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " closed for bidness, cya!" );
     }
@@ -570,7 +596,7 @@ public class PwmApplication
         }
     }
 
-    private static void outputConfigurationToLog( final PwmApplication pwmDomain )
+    private static void outputConfigurationToLog( final PwmApplication pwmApplication )
     {
         final Instant startTime = Instant.now();
 
@@ -580,10 +606,11 @@ public class PwmApplication
             return " " + entry.getKey() + "\n   " + spacedValue + "\n";
         };
 
-        final StoredConfiguration storedConfiguration = pwmDomain.getConfig().getStoredConfiguration();
+        final StoredConfiguration storedConfiguration = pwmApplication.getConfig().getStoredConfiguration();
+        final List<StoredConfigKey> keys = CollectionUtil.iteratorToStream( storedConfiguration.keys() ).collect( Collectors.toList() );
         final Map<String, String> debugStrings = StoredConfigurationUtil.makeDebugMap(
                 storedConfiguration,
-                storedConfiguration.keys(),
+                keys,
                 PwmConstants.DEFAULT_LOCALE );
 
         LOGGER.trace( () -> "--begin current configuration output--" );
@@ -599,7 +626,7 @@ public class PwmApplication
         final Instant startTime = Instant.now();
 
         final Map<AppProperty, String> nonDefaultProperties = pwmApplication.getConfig().readAllNonDefaultAppProperties();
-        if ( !JavaHelper.isEmpty( nonDefaultProperties ) )
+        if ( !CollectionUtil.isEmpty( nonDefaultProperties ) )
         {
             LOGGER.trace( () -> "--begin non-default app properties output--" );
             nonDefaultProperties.entrySet().stream()
@@ -637,8 +664,11 @@ public class PwmApplication
 
         try
         {
-            final String strValue = localDB.get( LocalDB.DB.PWM_META, appAttribute.getKey() );
-            return Optional.of( JsonUtil.deserialize( strValue, returnClass ) );
+            final Optional<String> strValue = localDB.get( LocalDB.DB.PWM_META, appAttribute.getKey() );
+            if ( strValue.isPresent() )
+            {
+                return Optional.of( JsonUtil.deserialize( strValue.get(), returnClass ) );
+            }
         }
         catch ( final Exception e )
         {
@@ -698,13 +728,13 @@ public class PwmApplication
             try
             {
                 final Optional<String> storedDateStr = readAppAttribute( AppAttribute.INSTALL_DATE, String.class );
-                if ( !storedDateStr.isPresent() )
+                if ( storedDateStr.isPresent() )
                 {
-                    writeAppAttribute( AppAttribute.INSTALL_DATE, String.valueOf( startupTime.toEpochMilli() ) );
+                    return Instant.ofEpochMilli( Long.parseLong( storedDateStr.get() ) );
                 }
                 else
                 {
-                    return Instant.ofEpochMilli( Long.parseLong( storedDateStr.get() ) );
+                    writeAppAttribute( AppAttribute.INSTALL_DATE, String.valueOf( startupTime.toEpochMilli() ) );
                 }
             }
             catch ( final Exception e )
@@ -751,14 +781,14 @@ public class PwmApplication
         return newInstanceID;
     }
 
-    public SharedHistoryManager getSharedHistoryManager( )
+    public SharedHistoryService getSharedHistoryManager( )
     {
-        return ( SharedHistoryManager ) pwmServiceManager.getService( PwmServiceEnum.SharedHistoryManager );
+        return ( SharedHistoryService ) pwmServiceManager.getService( PwmServiceEnum.SharedHistoryManager );
     }
 
-    public IntruderManager getIntruderManager( )
+    public IntruderService getIntruderService( )
     {
-        return ( IntruderManager ) pwmServiceManager.getService( PwmServiceEnum.IntruderManager );
+        return ( IntruderService ) pwmServiceManager.getService( PwmServiceEnum.IntruderManager );
     }
 
     public LocalDBLogger getLocalDBLogger( )
@@ -766,9 +796,9 @@ public class PwmApplication
         return localDBLogger;
     }
 
-    public HealthMonitor getHealthMonitor( )
+    public HealthService getHealthMonitor( )
     {
-        return ( HealthMonitor ) pwmServiceManager.getService( PwmServiceEnum.HealthMonitor );
+        return ( HealthService ) pwmServiceManager.getService( PwmServiceEnum.HealthMonitor );
     }
 
     public HttpClientService getHttpClientService()
@@ -781,8 +811,15 @@ public class PwmApplication
         final List<PwmService> pwmServices = new ArrayList<>();
         pwmServices.add( this.localDBLogger );
         pwmServices.addAll( this.pwmServiceManager.getRunningServices() );
-        pwmServices.remove( null );
         return Collections.unmodifiableList( pwmServices );
+    }
+
+    public List<PwmService> getAppAndDomainPwmServices( )
+    {
+        final List<PwmService> pwmServices = new ArrayList<>( getPwmServices() );
+        domains().values().forEach( domain -> pwmServices.addAll( domain.getPwmServices() ) );
+        return Collections.unmodifiableList( pwmServices );
+
     }
 
     public WordlistService getWordlistService( )
@@ -845,11 +882,6 @@ public class PwmApplication
         return ( SessionTrackService ) pwmServiceManager.getService( PwmServiceEnum.SessionTrackService );
     }
 
-    public ResourceServletService getResourceServletService( )
-    {
-        return ( ResourceServletService ) pwmServiceManager.getService( PwmServiceEnum.ResourceServletService );
-    }
-
     public DatabaseAccessor getDatabaseAccessor( )
 
             throws PwmUnrecoverableException
@@ -883,7 +915,6 @@ public class PwmApplication
         return ( SystemSecureService ) pwmServiceManager.getService( PwmServiceEnum.SystemSecureService );
     }
 
-
     public Instant getStartupTime( )
     {
         return startupTime;
@@ -897,6 +928,11 @@ public class PwmApplication
     public LocalDB getLocalDB( )
     {
         return localDB;
+    }
+
+    public boolean isMultiDomain()
+    {
+        return this.getConfig().isMultiDomain();
     }
 
     public void sendSmsUsingQueue(
@@ -964,8 +1000,7 @@ public class PwmApplication
             }
         }
 
-        public static Map<DomainID, PwmDomain> initializeDomains( final PwmApplication pwmApplication )
-                throws PwmUnrecoverableException
+        private static Map<DomainID, PwmDomain> initializeDomains( final PwmApplication pwmApplication )
         {
             final Map<DomainID, PwmDomain> domainMap = new TreeMap<>();
             for ( final String domainIdString : pwmApplication.getPwmEnvironment().getConfig().getDomainIDs() )
@@ -1004,8 +1039,8 @@ public class PwmApplication
                 }
 
                 PwmLogManager.initializeLogger(
-                        pwmApplication.getDefaultDomain(),
-                        pwmApplication.getDefaultDomain().getConfig(),
+                        pwmApplication,
+                        pwmApplication.getConfig(),
                         log4jFile,
                         consoleLevel,
                         pwmEnvironment.getApplicationPath(),

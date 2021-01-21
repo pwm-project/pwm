@@ -96,6 +96,7 @@ StringArrayValueHandler.draw = function(settingKey) {
 
 StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCount, parentDivElement) {
     var settingInfo = PWM_SETTINGS['settings'][settingKey];
+    var settingProperties = PWM_SETTINGS['settings'][settingKey]['properties'];
     var syntax = settingInfo['syntax'];
 
     var inputID = 'value-' + settingKey + '-' + iteration;
@@ -139,49 +140,59 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
         rowHtml += '</td>';
     }
 
-    var deleteButtonID = 'button-' + settingKey + '-' + iteration + '-delete';
-    rowHtml += '<td class="noborder nopadding" style="width:10px" title="Delete">';
-
-    if (itemCount > 1 || (!settingInfo['required'])) {
+    var showDeleteButtons = (itemCount > 1 || (!settingInfo['required'])) && (settingProperties['Minimum'] && itemCount > settingProperties['Minimum'])
+    if (showDeleteButtons) {
+        var deleteButtonID = 'button-' + settingKey + '-' + iteration + '-delete';
+        rowHtml += '<td class="noborder nopadding" style="width:10px" title="Delete">';
         rowHtml += '<span id="' + deleteButtonID + '" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
+        rowHtml += '</td>';
     }
-    rowHtml += '</td>';
-
 
     valueRow.innerHTML = rowHtml;
     parentDivElement.appendChild(valueRow);
 
-    UILibrary.addTextValueToElement(inputID, value);
-    if (syntax !== 'PROFILE') {
-        PWM_MAIN.addEventHandler(inputID,'click',function(){
-            StringArrayValueHandler.valueHandler(settingKey,iteration);
-        });
-        PWM_MAIN.addEventHandler('button-' + inputID,'click',function(){
-            StringArrayValueHandler.valueHandler(settingKey,iteration);
-        });
-    } else {
-        PWM_MAIN.addEventHandler(copyButtonID,'click',function(){
+    var allowEditValue = true;
+    if (syntax === 'PROFILE' || syntax === 'DOMAIN') {
+        allowEditValue = false;
+        PWM_MAIN.addEventHandler(copyButtonID, 'click', function () {
             var editorOptions = {};
-            editorOptions['title'] = 'Copy Profile - New Profile ID';
+            editorOptions['title'] = syntax === 'PROFILE' ? 'Copy Profile' : 'Copy Domain';
+            editorOptions['instructions'] = syntax === 'PROFILE' ? 'Copy profile and all profile settings from existing "' + value + '" profile to a new profile.' :
+                'Copy domain and all domain settings from existing "' + value + '" domain to a new domain.'
             editorOptions['regex'] = PWM_SETTINGS['settings'][settingKey]['pattern'];
             editorOptions['placeholder'] = PWM_SETTINGS['settings'][settingKey]['placeholder'];
-            editorOptions['completeFunction'] = function(newValue){
+            editorOptions['completeFunction'] = function (newValue) {
                 var options = {};
                 options['setting'] = settingKey;
                 options['sourceID'] = value;
                 options['destinationID'] = newValue;
-                var resultFunction = function(data){
+                var resultFunction = function (data) {
                     if (data['error']) {
                         PWM_MAIN.showErrorDialog(data);
                     } else {
                         PWM_MAIN.gotoUrl('editor');
                     }
                 };
-                PWM_MAIN.showWaitDialog({loadFunction:function(){
-                        PWM_MAIN.ajaxRequest("editor?processAction=copyProfile",resultFunction,{content:options});
-                    }});
+
+                var actionName = syntax === 'PROFILE' ? 'copyProfile' : 'copyDomain';
+                PWM_MAIN.showWaitDialog({
+                    loadFunction: function () {
+                        PWM_MAIN.ajaxRequest("editor?processAction=" + actionName, resultFunction, {content: options});
+                    }
+                });
             };
             UILibrary.stringEditorDialog(editorOptions);
+        });
+    }
+
+    UILibrary.addTextValueToElement(inputID, value);
+
+    if (allowEditValue) {
+        PWM_MAIN.addEventHandler(inputID, 'click', function () {
+            StringArrayValueHandler.valueHandler(settingKey, iteration);
+        });
+        PWM_MAIN.addEventHandler('button-' + inputID, 'click', function () {
+            StringArrayValueHandler.valueHandler(settingKey, iteration);
         });
     }
 
@@ -254,7 +265,7 @@ StringArrayValueHandler.removeValue = function(settingKey, iteration) {
                 deleteFunction();
             }
         });
-    } else if (syntax === 'DOMAINS') {
+    } else if (syntax === 'DOMAIN') {
         PWM_MAIN.showConfirmDialog({
             text:PWM_CONFIG.showString('Confirm_RemoveDomain',{value1:profileName}),
             okAction:function(){

@@ -143,14 +143,14 @@ public class DataStoreTokenMachine implements TokenMachine
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String storedHash = tokenKey.getStoredHash();
-        final String storedRawValue = dataStore.get( storedHash );
+        final Optional<String> storedRawValue = dataStore.get( storedHash );
 
-        if ( storedRawValue != null && storedRawValue.length() > 0 )
+        if ( storedRawValue.isPresent() )
         {
             final TokenPayload tokenPayload;
             try
             {
-                tokenPayload = tokenService.fromEncryptedString( storedRawValue );
+                tokenPayload = tokenService.fromEncryptedString( storedRawValue.get() );
             }
             catch ( final PwmException e )
             {

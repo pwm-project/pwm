@@ -178,7 +178,7 @@ public class RandomPasswordGenerator
             {
                 newPolicyMap.put( PwmPasswordRule.MinimumStrength.getKey(), String.valueOf( effectiveConfig.getMinimumStrength() ) );
             }
-            randomGenPolicy = PwmPasswordPolicy.createPwmPasswordPolicy( newPolicyMap );
+            randomGenPolicy = PwmPasswordPolicy.createPwmPasswordPolicy( pwmDomain.getDomainID(), newPolicyMap );
         }
 
         // initial creation

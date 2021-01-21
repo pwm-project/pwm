@@ -52,7 +52,7 @@ public class TelemetryViewerServlet extends HttpServlet
 
         {
             final String errorState = app.getStatus().getErrorState();
-            if ( !StringUtil.isEmpty( errorState ) )
+            if ( StringUtil.notEmpty( errorState ) )
             {
                 resp.sendError( 500, errorState );
                 final String htmlBody = "<html>Error: " + errorState + "</html>";

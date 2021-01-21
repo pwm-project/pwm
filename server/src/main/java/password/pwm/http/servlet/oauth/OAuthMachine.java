@@ -42,6 +42,7 @@ import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.BasicAuthInfo;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -122,7 +123,7 @@ public class OAuthMachine
         urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_STATE ), state );
         urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
 
-        if ( !StringUtil.isEmpty( settings.getScope() ) )
+        if ( StringUtil.notEmpty( settings.getScope() ) )
         {
             urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_SCOPE ), settings.getScope() );
         }
@@ -130,7 +131,7 @@ public class OAuthMachine
         if ( userIdentity != null )
         {
             final String parametersValue = figureUsernameGrantParam( pwmRequest, userIdentity );
-            if ( !StringUtil.isEmpty( parametersValue ) )
+            if ( StringUtil.notEmpty( parametersValue ) )
             {
                 urlParams.put( "parameters", parametersValue );
             }
@@ -138,18 +139,9 @@ public class OAuthMachine
 
         final String redirectUrl = PwmURL.appendAndEncodeUrlParameters( settings.getLoginURL(), urlParams );
 
-        try
-        {
-            pwmRequest.sendRedirect( redirectUrl );
-            pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress( true );
-            LOGGER.debug( sessionLabel, () -> "redirecting user to oauth id server, url: " + redirectUrl );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
+        pwmRequest.getPwmResponse().sendRedirect( redirectUrl );
+        pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress( true );
+        LOGGER.debug( sessionLabel, () -> "redirecting user to oauth id server, url: " + redirectUrl );
     }
 
     OAuthResolveResults makeOAuthResolveRequest(
@@ -296,7 +288,7 @@ public class OAuthMachine
         {
             final PwmHttpClientConfiguration config = PwmHttpClientConfiguration.builder()
                     .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
-                    .certificates( JavaHelper.isEmpty( certs ) ? null : certs )
+                    .certificates( CollectionUtil.isEmpty( certs ) ? null : certs )
                     .maskBodyDebugOutput( true )
                     .build();
             final PwmHttpClient pwmHttpClient = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient( config );
@@ -350,7 +342,7 @@ public class OAuthMachine
                     final int port = requestUri.getPort();
                     redirectUri = requestUri.getScheme() + "://" + requestUri.getHost()
                             + ( port > 0 && port != 80 && port != 443 ? ":" + requestUri.getPort() : "" )
-                            + pwmRequest.getContextPath()
+                            + pwmRequest.getBasePath()
                             + PwmServletDefinition.OAuthConsumer.servletUrl();
                 }
                 catch ( final URISyntaxException e )
@@ -366,7 +358,7 @@ public class OAuthMachine
 
     public boolean checkOAuthExpiration(
             final PwmRequest pwmRequest
-    )
+    ) throws PwmUnrecoverableException
     {
         if ( !Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.OAUTH_ENABLE_TOKEN_REFRESH ) ) )
         {
@@ -527,7 +519,7 @@ public class OAuthMachine
                     }
 
                     final String strValue = singleObjValue.toString();
-                    if ( !StringUtil.isEmpty( strValue ) )
+                    if ( StringUtil.notEmpty( strValue ) )
                     {
                         return strValue;
                     }

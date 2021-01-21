@@ -66,7 +66,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
             throw new PwmUnrecoverableException( PwmError.ERROR_MISSING_GUID );
         }
 
-        final String rawDbValue;
+        final Optional<String> rawDbValue;
         try
         {
             rawDbValue = pwmDomain.getPwmApplication().getDatabaseAccessor().get( TABLE, guid );
@@ -76,12 +76,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, e.getMessage() ) );
         }
 
-        if ( !StringUtil.isEmpty( rawDbValue ) )
-        {
-            return Optional.ofNullable( JsonUtil.deserialize( rawDbValue, PwNotifyUserStatus.class ) );
-        }
-
-        return Optional.empty();
+        return rawDbValue.map( s -> JsonUtil.deserialize( s, PwNotifyUserStatus.class ) );
     }
 
     @Override
@@ -116,12 +111,12 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
     {
         try
         {
-            final String strValue = pwmDomain.getPwmApplication().getDatabaseService().getAccessor().get( DatabaseTable.PW_NOTIFY, DB_STATE_STRING );
-            if ( StringUtil.isEmpty( strValue ) )
+            final Optional<String> strValue = pwmDomain.getPwmApplication().getDatabaseService().getAccessor().get( DatabaseTable.PW_NOTIFY, DB_STATE_STRING );
+            if ( strValue.isPresent() )
             {
-                return new PwNotifyStoredJobState( null, null, null, null, false );
+                return JsonUtil.deserialize( strValue.get(), PwNotifyStoredJobState.class );
             }
-            return JsonUtil.deserialize( strValue, PwNotifyStoredJobState.class );
+            return new PwNotifyStoredJobState( null, null, null, null, false );
         }
         catch ( final DatabaseException e )
         {

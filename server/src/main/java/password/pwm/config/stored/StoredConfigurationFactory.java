@@ -22,6 +22,8 @@ package password.pwm.config.stored;
 
 import lombok.Builder;
 import lombok.Value;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
@@ -59,11 +61,23 @@ public class StoredConfigurationFactory
     public static StoredConfiguration input( final InputStream inputStream )
             throws PwmUnrecoverableException, IOException
     {
-
-        final StoredConfiguration storedConfiguration = SERIALIZER.readInput( inputStream );
-        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier(  storedConfiguration );
-        ConfigurationCleaner.postProcessStoredConfig( modifier );
-        return modifier.newStoredConfiguration();
+        try
+        {
+            final StoredConfiguration storedConfiguration = SERIALIZER.readInput( inputStream );
+            final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
+            ConfigurationCleaner.postProcessStoredConfig( modifier );
+            return modifier.newStoredConfiguration();
+        }
+        catch ( final PwmUnrecoverableException | IOException e )
+        {
+            throw e;
+        }
+        catch ( final Exception e )
+        {
+            final String msg = "error reading configuration: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, msg );
+            throw new PwmUnrecoverableException( errorInformation, e );
+        }
     }
 
     public static void output(

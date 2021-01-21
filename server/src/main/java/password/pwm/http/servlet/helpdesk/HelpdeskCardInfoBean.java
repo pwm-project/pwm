@@ -75,7 +75,7 @@ public class HelpdeskCardInfoBean implements Serializable
         }
 
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                pwmRequest.getPwmDomain(),
+                pwmRequest.getPwmApplication(),
                 pwmRequest.getLabel(),
                 actorLocale,
                 userIdentity,
@@ -127,7 +127,7 @@ public class HelpdeskCardInfoBean implements Serializable
         final List<String> displayStringSettings = helpdeskProfile.readSettingAsStringArray( PwmSetting.HELPDESK_DISPLAY_NAMES_CARD_LABELS );
         if ( displayStringSettings != null )
         {
-            final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, sessionLabel, userInfo, null );
+            final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), sessionLabel, userInfo, null );
             for ( final String displayStringSetting : displayStringSettings )
             {
                 final String displayLabel = macroRequest.expandMacros( displayStringSetting );

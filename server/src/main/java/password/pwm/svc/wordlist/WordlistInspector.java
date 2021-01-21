@@ -70,7 +70,7 @@ class WordlistInspector implements Runnable
         }
 
         rootWordlist.setActivity( Wordlist.Activity.ReadingWordlistFile );
-        final boolean autoImportUrlConfigured = !StringUtil.isEmpty( rootWordlist.getConfiguration().getAutoImportUrl() );
+        final boolean autoImportUrlConfigured = StringUtil.notEmpty( rootWordlist.getConfiguration().getAutoImportUrl() );
         WordlistStatus existingStatus = rootWordlist.readWordlistStatus();
 
         if ( checkIfClearIsNeeded( existingStatus, autoImportUrlConfigured ) )

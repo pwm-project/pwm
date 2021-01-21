@@ -128,7 +128,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
         output.append( message );
 
         final String srcAddrString = getSourceAddress();
-        if ( !StringUtil.isEmpty( srcAddrString ) )
+        if ( StringUtil.notEmpty( srcAddrString ) )
         {
             final String srcStr = " [" + srcAddrString + "]";
 
@@ -174,11 +174,19 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
         final String sessionID = getSessionID();
         final String username = getUsername();
 
-        if ( !StringUtil.isEmpty( sessionID ) )
+        if ( StringUtil.notEmpty( sessionID ) )
         {
             sb.append( sessionID );
         }
-        if ( !StringUtil.isEmpty( username ) )
+        if ( StringUtil.notEmpty( domain ) )
+        {
+            if ( sb.length() > 0 )
+            {
+                sb.append( "," );
+            }
+            sb.append( domain );
+        }
+        if ( StringUtil.notEmpty( username ) )
         {
             if ( sb.length() > 0 )
             {

@@ -28,6 +28,8 @@ import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -97,6 +99,19 @@ public abstract class RestServlet extends HttpServlet
             resp.setHeader( HttpHeader.ContentLanguage.getHttpName(), LocaleHelper.getBrowserLocaleString( locale ) );
         }
 
+        final PwmDomain pwmDomain;
+        try
+        {
+            final DomainID domainID = PwmHttpRequestWrapper.readDomainIdFromRequest( req );
+            pwmDomain = pwmApplication.domains().get( domainID );
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            outputRestResultBean( restResultBean, req, resp );
+            return;
+        }
+
+
         final SessionLabel sessionLabel;
         try
         {
@@ -104,16 +119,17 @@ public abstract class RestServlet extends HttpServlet
                     .sessionID( "rest-" + REQUEST_COUNTER.next() )
                     .sourceAddress( RequestInitializationFilter.readUserNetworkAddress( req, pwmApplication.getConfig() ).orElse( "" ) )
                     .sourceHostname( RequestInitializationFilter.readUserHostname( req, pwmApplication.getConfig() ).orElse( "" ) )
+                    .domain( pwmDomain.getDomainID().stringValue() )
                     .build();
         }
         catch ( final PwmUnrecoverableException e )
         {
             restResultBean = RestResultBean.fromError(
                     e.getErrorInformation(),
-                    pwmApplication.getDefaultDomain(),
+                    pwmDomain,
                     locale,
-                    pwmApplication.getDefaultDomain().getConfig(),
-                    pwmApplication.getDefaultDomain().determineIfDetailErrorMsgShown()
+                    pwmDomain.getConfig(),
+                    pwmDomain.determineIfDetailErrorMsgShown()
             );
             outputRestResultBean( restResultBean, req, resp );
             return;
@@ -144,20 +160,20 @@ public abstract class RestServlet extends HttpServlet
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "webservices are not enabled" );
             restResultBean = RestResultBean.fromError(
                     errorInformation,
-                    pwmApplication.getDefaultDomain(),
+                    pwmDomain,
                     locale,
-                    pwmApplication.getDefaultDomain().getConfig(),
-                    pwmApplication.getDefaultDomain().determineIfDetailErrorMsgShown() );
+                    pwmDomain.getConfig(),
+                    pwmDomain.determineIfDetailErrorMsgShown() );
             outputRestResultBean( restResultBean, req, resp );
             return;
         }
 
         try
         {
-            final RestAuthentication restAuthentication = new RestAuthenticationProcessor( pwmApplication.getDefaultDomain(), sessionLabel, req ).readRestAuthentication();
+            final RestAuthentication restAuthentication = new RestAuthenticationProcessor( pwmDomain, sessionLabel, req ).readRestAuthentication();
             LOGGER.debug( sessionLabel, () -> "rest request authentication status: " + JsonUtil.serialize( restAuthentication ) );
 
-            final RestRequest restRequest = RestRequest.forRequest( pwmApplication.getDefaultDomain(), restAuthentication, sessionLabel, req );
+            final RestRequest restRequest = RestRequest.forRequest( pwmDomain, restAuthentication, sessionLabel, req );
 
             RequestInitializationFilter.addStaticResponseHeaders( pwmApplication, resp );
 
@@ -171,10 +187,10 @@ public abstract class RestServlet extends HttpServlet
         {
             restResultBean = RestResultBean.fromError(
                     e.getErrorInformation(),
-                    pwmApplication.getDefaultDomain(),
+                    pwmDomain,
                     locale,
-                    pwmApplication.getDefaultDomain().getConfig(),
-                    pwmApplication.getDefaultDomain().determineIfDetailErrorMsgShown()
+                    pwmDomain.getConfig(),
+                    pwmDomain.determineIfDetailErrorMsgShown()
             );
         }
         catch ( final Throwable e )
@@ -183,10 +199,10 @@ public abstract class RestServlet extends HttpServlet
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             restResultBean = RestResultBean.fromError(
                     errorInformation,
-                    pwmApplication.getDefaultDomain(),
+                    pwmDomain,
                     locale,
-                    pwmApplication.getDefaultDomain().getConfig(),
-                    pwmApplication.getDefaultDomain().determineIfDetailErrorMsgShown() );
+                    pwmDomain.getConfig(),
+                    pwmDomain.determineIfDetailErrorMsgShown() );
             LOGGER.error( sessionLabel, errorInformation, e );
         }
 

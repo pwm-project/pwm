@@ -39,6 +39,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
@@ -50,11 +51,10 @@ import java.io.Writer;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayDeque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -149,7 +149,7 @@ public class PwNotifyEngine
                 return;
             }
 
-            if ( JavaHelper.isEmpty( permissionList ) )
+            if ( CollectionUtil.isEmpty( permissionList ) )
             {
                 log( "no users are included in permission list setting "
                         + PwmSetting.PW_EXPY_NOTIFY_PERMISSION.toMenuLocationDebug( null, null )
@@ -159,16 +159,16 @@ public class PwNotifyEngine
             }
 
             log( "starting job, beginning ldap search" );
-            final Queue<UserIdentity> workQueue = new ArrayDeque<>( UserPermissionUtility.discoverMatchingUsers(
+            final Iterator<UserIdentity> workQueue = UserPermissionUtility.discoverMatchingUsers(
                     pwmDomain,
                     permissionList, SESSION_LABEL, settings.getMaxLdapSearchSize(),
                     settings.getSearchTimeout()
-            ) );
+            );
 
             log( "ldap search complete, examining users..." );
 
             final ThreadPoolExecutor threadPoolExecutor = createExecutor( pwmDomain );
-            while ( workQueue.peek() != null )
+            while ( workQueue.hasNext() )
             {
                 if ( !checkIfRunningOnMaster() || cancelFlag.get() )
                 {
@@ -177,7 +177,7 @@ public class PwNotifyEngine
                     throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, msg );
                 }
 
-                threadPoolExecutor.submit( new ProcessJob( workQueue.poll() ) );
+                threadPoolExecutor.submit( new ProcessJob( workQueue.next() ) );
             }
 
             JavaHelper.closeAndWaitExecutor( threadPoolExecutor, TimeDuration.DAY );
@@ -329,12 +329,12 @@ public class PwNotifyEngine
             throws PwmUnrecoverableException
     {
         final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxyForOfflineUser(
-                pwmDomain,
+                pwmDomain.getPwmApplication(),
                 SESSION_LABEL,
                 userIdentity
         );
         final Locale ldapLocale = LocaleHelper.parseLocaleString( userInfoBean.getLanguage() );
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, ldapLocale, SESSION_LABEL, userIdentity );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), ldapLocale, SESSION_LABEL, userIdentity );
         final EmailItemBean emailItemBean = pwmDomain.getConfig().readSettingAsEmail(
                 PwmSetting.EMAIL_PW_EXPIRATION_NOTICE,
                 ldapLocale

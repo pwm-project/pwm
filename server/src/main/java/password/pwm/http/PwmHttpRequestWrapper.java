@@ -23,12 +23,14 @@ package password.pwm.http;
 import com.google.gson.JsonParseException;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.ServletUtility;
 import password.pwm.util.Validator;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -46,7 +48,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PwmHttpRequestWrapper
 {
@@ -89,10 +93,6 @@ public class PwmHttpRequestWrapper
         return acceptHeader.contains( PwmConstants.AcceptValue.html.getHeaderValue() ) || acceptHeader.contains( "*/*" );
     }
 
-    public String getContextPath( )
-    {
-        return httpServletRequest.getContextPath();
-    }
 
     public String readRequestBodyAsString( )
             throws IOException, PwmUnrecoverableException
@@ -315,26 +315,30 @@ public class PwmHttpRequestWrapper
         return Validator.sanitizeHeaderValue( appConfig, sanitizedInputValue );
     }
 
-    public Map<String, List<String>> readHeaderValuesMap( )
+    public List<String> readHeaderValuesAsString( final String headerName )
     {
         final int maxChars = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
-        final HttpServletRequest req = this.getHttpServletRequest();
+        final List<String> valueList = new ArrayList<>();
+        for ( final Enumeration<String> headerValueEnum = this.getHttpServletRequest().getHeaders( headerName ); headerValueEnum.hasMoreElements(); )
+        {
+            final String headerValue = headerValueEnum.nextElement();
+            final String sanitizedInputValue = Validator.sanitizeInputValue( appConfig, headerValue, maxChars );
+            final String sanitizedHeaderValue = Validator.sanitizeHeaderValue( appConfig, sanitizedInputValue );
+            if ( sanitizedHeaderValue != null && !sanitizedHeaderValue.isEmpty() )
+            {
+                valueList.add( sanitizedHeaderValue );
+            }
+        }
+        return Collections.unmodifiableList( valueList );
+    }
+
+    public Map<String, List<String>> readHeaderValuesMap( )
+    {
         final Map<String, List<String>> returnObj = new LinkedHashMap<>();
 
-        for ( final Enumeration<String> headerNameEnum = req.getHeaderNames(); headerNameEnum.hasMoreElements(); )
+        for ( final String headerName : headerNames() )
         {
-            final String headerName = headerNameEnum.nextElement();
-            final List<String> valueList = new ArrayList<>();
-            for ( final Enumeration<String> headerValueEnum = req.getHeaders( headerName ); headerValueEnum.hasMoreElements(); )
-            {
-                final String headerValue = headerValueEnum.nextElement();
-                final String sanitizedInputValue = Validator.sanitizeInputValue( appConfig, headerValue, maxChars );
-                final String sanitizedHeaderValue = Validator.sanitizeHeaderValue( appConfig, sanitizedInputValue );
-                if ( sanitizedHeaderValue != null && !sanitizedHeaderValue.isEmpty() )
-                {
-                    valueList.add( sanitizedHeaderValue );
-                }
-            }
+            final List<String> valueList = readHeaderValuesAsString( headerName );
             if ( !valueList.isEmpty() )
             {
                 returnObj.put( headerName, Collections.unmodifiableList( valueList ) );
@@ -343,17 +347,24 @@ public class PwmHttpRequestWrapper
         return Collections.unmodifiableMap( returnObj );
     }
 
+    public List<String> headerNames( )
+    {
+        final int maxChars = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
+
+        return CollectionUtil.iteratorToStream( getHttpServletRequest().getHeaderNames().asIterator() )
+                .map( s -> Validator.sanitizeInputValue( appConfig, s, maxChars ) )
+                .collect( Collectors.toUnmodifiableList() );
+
+    }
+
     public List<String> parameterNames( )
     {
         final int maxChars = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
-        final List<String> returnObj = new ArrayList();
-        for ( final Enumeration nameEnum = getHttpServletRequest().getParameterNames(); nameEnum.hasMoreElements(); )
-        {
-            final String paramName = nameEnum.nextElement().toString();
-            final String returnName = Validator.sanitizeInputValue( appConfig, paramName, maxChars );
-            returnObj.add( returnName );
-        }
-        return Collections.unmodifiableList( returnObj );
+
+        return CollectionUtil.iteratorToStream( getHttpServletRequest().getParameterNames().asIterator() )
+                .map( s -> Validator.sanitizeInputValue( appConfig, s, maxChars ) )
+                .collect( Collectors.toUnmodifiableList() );
+
     }
 
     public Map<String, String> readParametersAsMap( )
@@ -381,7 +392,7 @@ public class PwmHttpRequestWrapper
         return Collections.unmodifiableMap( returnObj );
     }
 
-    public String readCookie( final String cookieName )
+    public Optional<String> readCookie( final String cookieName )
     {
         final int maxChars = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_COOKIE_MAX_READ_LENGTH ) );
         final Cookie[] cookies = this.getHttpServletRequest().getCookies();
@@ -393,12 +404,12 @@ public class PwmHttpRequestWrapper
                 {
                     final String rawCookieValue = cookie.getValue();
                     final String decodedCookieValue = StringUtil.urlDecode( rawCookieValue );
-                    return Validator.sanitizeInputValue( appConfig, decodedCookieValue, maxChars );
+                    return Optional.of( Validator.sanitizeInputValue( appConfig, decodedCookieValue, maxChars ) );
                 }
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     private static String decodeStringToDefaultCharSet( final String input )
@@ -547,6 +558,16 @@ public class PwmHttpRequestWrapper
     public boolean isPrettyPrintJsonParameterTrue()
     {
         return isPrettyPrintJsonParameterTrue( this.getHttpServletRequest() );
+    }
+
+    public static DomainID readDomainIdFromRequest(  final HttpServletRequest httpServletRequest ) throws PwmUnrecoverableException
+    {
+        final String domainIDStr = ( String ) httpServletRequest.getAttribute( PwmConstants.REQUEST_ATTR_DOMAIN );
+        if ( StringUtil.isEmpty( domainIDStr ) )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unable to read domainID in PwmRequest initialization" );
+        }
+        return DomainID.create( domainIDStr );
     }
 }
 

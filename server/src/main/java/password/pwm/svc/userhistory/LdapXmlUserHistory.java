@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.svc.event;
+package password.pwm.svc.userhistory;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
@@ -35,7 +35,12 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditEventType;
+import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.HelpdeskAuditRecord;
+import password.pwm.svc.event.UserAuditRecord;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlDocument;
 import password.pwm.util.java.XmlElement;
@@ -47,7 +52,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,7 +63,7 @@ import java.util.List;
  *
  * @author Jason D. Rivard
  */
-class LdapXmlUserHistory implements UserHistoryStore
+public class LdapXmlUserHistory implements UserHistoryStore
 {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapXmlUserHistory.class );
@@ -99,19 +103,19 @@ class LdapXmlUserHistory implements UserHistoryStore
     {
         // user info
         final UserIdentity userIdentity;
-        if ( auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEvent.Type.HELPDESK )
+        if ( auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEventType.HELPDESK )
         {
             final HelpdeskAuditRecord helpdeskAuditRecord = ( HelpdeskAuditRecord ) auditRecord;
-            userIdentity = UserIdentity.create( helpdeskAuditRecord.getTargetDN(), helpdeskAuditRecord.getTargetLdapProfile(), PwmConstants.DOMAIN_ID_PLACEHOLDER );
+            userIdentity = UserIdentity.create( helpdeskAuditRecord.getTargetDN(), helpdeskAuditRecord.getTargetLdapProfile(), auditRecord.getDomain() );
         }
         else
         {
-            userIdentity = UserIdentity.create( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile(), PwmConstants.DOMAIN_ID_PLACEHOLDER );
+            userIdentity = UserIdentity.create( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile(), auditRecord.getDomain() );
         }
         final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
 
         // settings
-        final String corRecordIdentifer = COR_RECORD_ID;
+        final String corRecordIdentifier = COR_RECORD_ID;
         final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() );
         final String corAttribute = ldapProfile.readSettingAsString( PwmSetting.EVENTS_LDAP_ATTRIBUTE );
 
@@ -128,7 +132,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         final List<ConfigObjectRecord> corList;
         try
         {
-            corList = ConfigObjectRecord.readRecordFromLDAP( theUser, corAttribute, corRecordIdentifer, null, null );
+            corList = ConfigObjectRecord.readRecordFromLDAP( theUser, corAttribute, corRecordIdentifier, null, null );
         }
         catch ( final Exception e )
         {
@@ -146,7 +150,7 @@ class LdapXmlUserHistory implements UserHistoryStore
             }
             else
             {
-                theCor = ConfigObjectRecord.createNew( theUser, corAttribute, corRecordIdentifer, null, null );
+                theCor = ConfigObjectRecord.createNew( theUser, corAttribute, corRecordIdentifier, null, null );
             }
 
             storedHistory = StoredHistory.fromXml( theCor.getPayload() );
@@ -184,7 +188,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         {
             final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userInfo.getUserIdentity() );
             final StoredHistory storedHistory = readUserHistory( pwmDomain, sessionLabel, userInfo.getUserIdentity(), theUser );
-            return storedHistory.asAuditRecords( userInfo );
+            return storedHistory.asAuditRecords( new AuditRecordFactory( pwmDomain ), userInfo );
         }
         catch ( final ChaiUnavailableException e )
         {
@@ -213,7 +217,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         {
             final List<ConfigObjectRecord> corList = ConfigObjectRecord.readRecordFromLDAP( chaiUser, corAttribute, COR_RECORD_ID, null, null );
 
-            if ( !JavaHelper.isEmpty( corList ) )
+            if ( !CollectionUtil.isEmpty( corList ) )
             {
                 final ConfigObjectRecord theCor = corList.get( 0 );
                 return StoredHistory.fromXml( theCor.getPayload() );
@@ -230,7 +234,7 @@ class LdapXmlUserHistory implements UserHistoryStore
     {
         private final Deque<StoredEvent> records = new ArrayDeque<>();
 
-        void addEvent( final StoredEvent storedEvent )
+        public void addEvent( final StoredEvent storedEvent )
         {
             records.add( storedEvent );
         }
@@ -243,12 +247,12 @@ class LdapXmlUserHistory implements UserHistoryStore
             }
         }
 
-        List<UserAuditRecord> asAuditRecords( final UserInfo userInfoBean )
+        public List<UserAuditRecord> asAuditRecords( final AuditRecordFactory auditRecordFactory, final UserInfo userInfoBean )
         {
             final List<UserAuditRecord> returnList = new ArrayList<>();
             for ( final StoredEvent loopEvent : records )
             {
-                returnList.add( loopEvent.asAuditRecord( userInfoBean ) );
+                returnList.add( auditRecordFactory.fromStoredRecord( loopEvent, userInfoBean ) );
             }
             return Collections.unmodifiableList( returnList );
         }
@@ -342,7 +346,7 @@ class LdapXmlUserHistory implements UserHistoryStore
         private final String sourceAddress;
         private final String sourceHost;
 
-        static StoredEvent fromAuditRecord( final UserAuditRecord auditRecord )
+        public static StoredEvent fromAuditRecord( final UserAuditRecord auditRecord )
         {
             return new StoredEvent(
                     auditRecord.getEventCode(),
@@ -350,20 +354,6 @@ class LdapXmlUserHistory implements UserHistoryStore
                     auditRecord.getMessage(),
                     auditRecord.getSourceAddress(),
                     auditRecord.getSourceHost()
-            );
-        }
-
-        UserAuditRecord asAuditRecord( final UserInfo userInfoBean )
-        {
-            return new UserAuditRecord(
-                    Instant.ofEpochMilli( this.getTimestamp() ),
-                    this.getAuditEvent(),
-                    null,
-                    null,
-                    userInfoBean.getUserIdentity().getUserDN(),
-                    this.getMessage(),
-                    this.getSourceAddress(),
-                    this.getSourceHost()
             );
         }
     }

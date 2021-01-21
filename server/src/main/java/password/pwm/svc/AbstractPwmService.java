@@ -20,6 +20,7 @@
 
 package password.pwm.svc;
 
+import password.pwm.bean.DomainID;
 import password.pwm.error.ErrorInformation;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
@@ -59,7 +60,10 @@ public abstract class AbstractPwmService
         final ErrorInformation startupError = this.startupError;
         if ( startupError != null )
         {
-            returnRecords.add( HealthRecord.forMessage( HealthMessage.ServiceClosed, startupError.toDebugStr() ) );
+            returnRecords.add( HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.ServiceClosed,
+                    startupError.toDebugStr() ) );
         }
 
         returnRecords.addAll( serviceHealthCheck() );

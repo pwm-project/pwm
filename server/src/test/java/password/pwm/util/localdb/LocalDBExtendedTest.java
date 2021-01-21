@@ -53,7 +53,7 @@ public class LocalDBExtendedTest
     {
         Assert.assertNull( localDB.get( TEST_DB, "testKey1" ) );
         localDB.put( TEST_DB, "testKey1", "testValue1" );
-        Assert.assertEquals( localDB.get( TEST_DB, "testKey1" ), "testValue1" );
+        Assert.assertEquals( "testValue1", localDB.get( TEST_DB, "testKey1" ) );
     }
 
     @Test

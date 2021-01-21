@@ -30,6 +30,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.DataStore;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -37,33 +38,34 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-class DataStoreRecordStore implements RecordStore
+class IntruderDataStore implements IntruderRecordStore
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( DataStoreRecordStore.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( IntruderDataStore.class );
     private static final int MAX_REMOVALS_PER_CYCLE = 10 * 1000;
 
-    private final IntruderManager intruderManager;
+    private final IntruderService intruderManager;
     private final DataStore dataStore;
 
     private Instant eldestRecord = Instant.now();
 
-    DataStoreRecordStore( final DataStore dataStore, final IntruderManager intruderManager )
+    IntruderDataStore( final DataStore dataStore, final IntruderService intruderManager )
     {
         this.dataStore = dataStore;
         this.intruderManager = intruderManager;
     }
 
     @Override
-    public IntruderRecord read( final String key )
+    public Optional<IntruderRecord> read( final String key )
             throws PwmUnrecoverableException
     {
-        if ( key == null || key.length() < 1 )
+        if ( StringUtil.isEmpty( key ) )
         {
-            return null;
+            return Optional.empty();
         }
 
-        final String value;
+        final Optional<String> value;
         try
         {
             value = dataStore.get( key );
@@ -75,17 +77,17 @@ class DataStoreRecordStore implements RecordStore
             {
                 throw new PwmUnrecoverableException( e.getErrorInformation() );
             }
-            return null;
+            return Optional.empty();
         }
 
-        if ( value == null || value.length() < 1 )
+        if ( value.isEmpty() )
         {
-            return null;
+            return Optional.empty();
         }
 
         try
         {
-            return JsonUtil.deserialize( value, IntruderRecord.class );
+            return Optional.ofNullable( JsonUtil.deserialize( value.get(), IntruderRecord.class ) );
         }
         catch ( final Exception e )
         {
@@ -102,7 +104,7 @@ class DataStoreRecordStore implements RecordStore
             /*noop*/
         }
 
-        return null;
+        return Optional.empty();
     }
 
     @Override
@@ -153,7 +155,7 @@ class DataStoreRecordStore implements RecordStore
             final String key = dbIterator.next().getKey();
             try
             {
-                return read( key );
+                return read( key ).orElse( null );
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -228,16 +230,16 @@ class DataStoreRecordStore implements RecordStore
             while ( intruderManager.status() == PwmService.STATUS.OPEN && dbIterator.hasNext() && recordsToRemove.size() < MAX_REMOVALS_PER_CYCLE )
             {
                 final String key = dbIterator.next().getKey();
-                final IntruderRecord record = read( key );
-                if ( record != null )
+                final Optional<IntruderRecord> record = read( key );
+                if ( record.isPresent() )
                 {
-                    if ( TimeDuration.fromCurrent( record.getTimeStamp() ).isLongerThan( maxRecordAge ) )
+                    if ( TimeDuration.fromCurrent( record.get().getTimeStamp() ).isLongerThan( maxRecordAge ) )
                     {
                         recordsToRemove.add( key );
                     }
-                    if ( eldestRecord.compareTo( record.getTimeStamp() ) == 1 )
+                    if ( eldestRecord.compareTo( record.get().getTimeStamp() ) > 0 )
                     {
-                        eldestRecord = record.getTimeStamp();
+                        eldestRecord = record.get().getTimeStamp();
                     }
                 }
             }

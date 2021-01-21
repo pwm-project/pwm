@@ -39,6 +39,7 @@ import password.pwm.util.logging.PwmLogger;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface CrOperator
 {
@@ -52,7 +53,7 @@ public interface CrOperator
      * @return a responseSet instance suitable for use with forgotten password.
      * @throws PwmUnrecoverableException if the operation fails
      */
-    ResponseSet readResponseSet(
+    Optional<ResponseSet> readResponseSet(
             SessionLabel sessionLabel,
             ChaiUser theUser,
             UserIdentity userIdentity,
@@ -70,7 +71,7 @@ public interface CrOperator
      * @return a bean with the users stored response data.
      * @throws PwmUnrecoverableException if the operation fails
      */
-    ResponseInfoBean readResponseInfo(
+    Optional<ResponseInfoBean> readResponseInfo(
             SessionLabel sessionLabel,
             ChaiUser theUser,
             UserIdentity userIdentity,

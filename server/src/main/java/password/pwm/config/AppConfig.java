@@ -29,9 +29,11 @@ import password.pwm.config.profile.EmailServerProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.FileValue;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.LazySupplier;
@@ -50,28 +52,30 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class AppConfig
+public class AppConfig implements SettingReader
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( AppConfig.class );
     private final ConfigurationSuppliers configurationSuppliers = new ConfigurationSuppliers();
 
     private final StoredConfiguration storedConfiguration;
-    private final SettingReader settingReader;
+    private final StoredSettingReader settingReader;
     private final Map<DomainID, DomainConfig> domainConfigMap;
-    private final List<String> domainIDList;
+    private final Set<String> domainIDList;
 
     private PwmSecurityKey tempInstanceKey = null;
 
     public AppConfig( final StoredConfiguration storedConfiguration )
     {
         this.storedConfiguration = storedConfiguration;
-        this.settingReader = new SettingReader( storedConfiguration, null, DomainID.systemId() );
+        this.settingReader = new StoredSettingReader( storedConfiguration, null, DomainID.systemId() );
 
-        this.domainIDList = settingReader.readSettingAsStringArray( PwmSetting.DOMAIN_LIST ).stream()
-                .collect( Collectors.toUnmodifiableList() );
+        this.domainIDList = Collections.unmodifiableSet( new TreeSet<>( settingReader.readSettingAsStringArray( PwmSetting.DOMAIN_LIST ).stream()
+                .sorted()
+                .collect( Collectors.toList() ) ) );
 
         this.domainConfigMap = domainIDList.stream()
                 .collect( Collectors.toUnmodifiableMap(
@@ -79,7 +83,7 @@ public class AppConfig
                         ( domainID ) -> new DomainConfig( this, DomainID.create( domainID ) ) ) );
     }
 
-    public List<String> getDomainIDs()
+    public Set<String> getDomainIDs()
     {
         return domainIDList;
     }
@@ -87,11 +91,6 @@ public class AppConfig
     public Map<DomainID, DomainConfig> getDomainConfigs()
     {
         return domainConfigMap;
-    }
-
-    public DomainConfig getDefaultDomainConfig()
-    {
-        return domainConfigMap.get( PwmConstants.DOMAIN_ID_PLACEHOLDER );
     }
 
     public String readSettingAsString( final PwmSetting pwmSetting )
@@ -129,31 +128,35 @@ public class AppConfig
         return configurationSuppliers.pwmSecurityKey.call();
     }
 
+    @Override
     public <E extends Enum<E>> Set<E> readSettingAsOptionList( final PwmSetting pwmSetting, final Class<E> enumClass )
     {
         return settingReader.readSettingAsOptionList( pwmSetting, enumClass );
     }
 
+    @Override
     public boolean readSettingAsBoolean( final PwmSetting pwmSetting )
     {
         return settingReader.readSettingAsBoolean( pwmSetting );
     }
 
+    @Override
     public List<String> readSettingAsStringArray( final PwmSetting pwmSetting )
     {
         return settingReader.readSettingAsStringArray( pwmSetting );
     }
 
-    public PwmLogLevel getEventLogLocalDBLevel( )
+    public PwmLogLevel getEventLogLocalDBLevel()
     {
         return readSettingAsEnum( PwmSetting.EVENTS_LOCALDB_LOG_LEVEL, PwmLogLevel.class );
     }
 
-    public boolean isDevDebugMode( )
+    public boolean isDevDebugMode()
     {
         return Boolean.parseBoolean( readAppProperty( AppProperty.LOGGING_DEV_OUTPUT ) );
     }
 
+    @Override
     public long readSettingAsLong( final PwmSetting pwmSetting )
     {
         return settingReader.readSettingAsLong( pwmSetting );
@@ -169,24 +172,40 @@ public class AppConfig
         return List.copyOf( configurationSuppliers.localeFlagMap.get().keySet() );
     }
 
+    @Override
     public PrivateKeyCertificate readSettingAsPrivateKey( final PwmSetting setting )
     {
         return settingReader.readSettingAsPrivateKey( setting );
     }
 
+    @Override
     public <E extends Enum<E>> E readSettingAsEnum( final PwmSetting setting, final Class<E> enumClass )
     {
         return settingReader.readSettingAsEnum( setting, enumClass );
     }
 
+    @Override
     public Map<FileValue.FileInformation, FileValue.FileContent> readSettingAsFile( final PwmSetting pwmSetting )
     {
         return settingReader.readSettingAsFile( pwmSetting );
     }
 
+    @Override
     public List<X509Certificate> readSettingAsCertificate( final PwmSetting pwmSetting )
     {
         return settingReader.readSettingAsCertificate( pwmSetting );
+    }
+
+    @Override
+    public List<UserPermission> readSettingAsUserPermission( final PwmSetting pwmSetting )
+    {
+        return settingReader.readSettingAsUserPermission( pwmSetting );
+    }
+
+    @Override
+    public Map<Locale, String> readLocalizedBundle( final PwmLocaleBundle className, final String keyName )
+    {
+        return settingReader.readLocalizedBundle( className, keyName );
     }
 
     private class ConfigurationSuppliers
@@ -294,14 +313,20 @@ public class AppConfig
 
     public boolean hasDbConfigured( )
     {
-        return !StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_CLASS ) )
-                && !StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_URL ) )
-                && !StringUtil.isEmpty( readSettingAsString( PwmSetting.DATABASE_USERNAME ) )
+        return StringUtil.notEmpty( readSettingAsString( PwmSetting.DATABASE_CLASS ) )
+                && StringUtil.notEmpty( readSettingAsString( PwmSetting.DATABASE_URL ) )
+                && StringUtil.notEmpty( readSettingAsString( PwmSetting.DATABASE_USERNAME ) )
                 && readSettingAsPassword( PwmSetting.DATABASE_PASSWORD ) != null;
     }
 
+    @Override
     public PasswordData readSettingAsPassword( final PwmSetting setting )
     {
         return settingReader.readSettingAsPassword( setting );
+    }
+
+    public boolean isMultiDomain()
+    {
+        return this.getDomainConfigs().size() > 1;
     }
 }

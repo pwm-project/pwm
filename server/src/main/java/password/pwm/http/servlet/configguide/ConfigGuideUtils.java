@@ -25,12 +25,11 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiSetting;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
-import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.function.UserMatchViewerFunction;
 import password.pwm.config.stored.ConfigurationProperty;
@@ -55,7 +54,7 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
 import password.pwm.util.LDAPPermissionCalculator;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.Percent;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
@@ -74,6 +73,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class ConfigGuideUtils
 {
@@ -116,7 +116,7 @@ public class ConfigGuideUtils
             // add a random security key
             StoredConfigurationUtil.initNewRandomSecurityKey( modifier );
 
-            configReader.saveConfiguration( modifier.newStoredConfiguration(), pwmApplication.getDefaultDomain(), null );
+            configReader.saveConfiguration( modifier.newStoredConfiguration(), pwmApplication, null );
 
             contextManager.requestPwmApplicationRestart();
         }
@@ -181,7 +181,7 @@ public class ConfigGuideUtils
         if ( configGuideBean.getStep() == GuideStep.LDAP_PERMISSIONS )
         {
             final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(
-                    new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) ).getDefaultDomainConfig() );
+                    new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) ).getDomainConfigs().get( ConfigGuideForm.DOMAIN_ID ) );
             pwmRequest.setAttribute( PwmRequestAttribute.LdapPermissionItems, ldapPermissionCalculator );
         }
 
@@ -218,7 +218,7 @@ public class ConfigGuideUtils
 
         if ( Boolean.parseBoolean( formData.get( ConfigGuideFormField.PARAM_LDAP_SECURE ) ) )
         {
-            final DomainConfig tempConfig = new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) ).getDefaultDomainConfig();
+            final AppConfig tempConfig = new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
             X509Utils.readRemoteCertificates( host, port, tempConfig );
         }
     }
@@ -243,14 +243,14 @@ public class ConfigGuideUtils
 
         if ( ServletFileUpload.isMultipartContent( req ) )
         {
-            final InputStream uploadedFile = pwmRequest.readFileUploadStream( PwmConstants.PARAM_FILE_UPLOAD );
-            if ( uploadedFile != null )
+            final Optional<InputStream> uploadedFile = pwmRequest.readFileUploadStream( PwmConstants.PARAM_FILE_UPLOAD );
+            if ( uploadedFile.isPresent() )
             {
-                try
+                try ( InputStream inputStream = uploadedFile.get() )
                 {
-                    final StoredConfiguration storedConfig = StoredConfigurationFactory.input( uploadedFile );
+                    final StoredConfiguration storedConfig = StoredConfigurationFactory.input( inputStream );
                     final List<String> configErrors = StoredConfigurationUtil.validateValues( storedConfig );
-                    if ( !JavaHelper.isEmpty( configErrors ) )
+                    if ( !CollectionUtil.isEmpty( configErrors ) )
                     {
                         throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, configErrors.get( 0 ) ) );
                     }
@@ -287,16 +287,17 @@ public class ConfigGuideUtils
             final Map<ConfigGuideFormField, String> form = configGuideBean.getFormData();
             final PwmApplication tempApplication = PwmApplication.createPwmApplication(
                     pwmRequest.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( new AppConfig( storedConfiguration ) ) );
+            final PwmDomain pwmDomain = tempApplication.domains().get( ConfigGuideForm.DOMAIN_ID );
 
             final String adminDN = form.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_USER );
-            final UserIdentity adminIdentity = UserIdentity.create( adminDN, PwmConstants.PROFILE_ID_DEFAULT, PwmConstants.DOMAIN_ID_PLACEHOLDER );
+            final UserIdentity adminIdentity = UserIdentity.create( adminDN, ConfigGuideForm.LDAP_PROFILE_NAME, ConfigGuideForm.DOMAIN_ID );
 
             final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
             final Collection<UserIdentity> results = userMatchViewerFunction.discoverMatchingUsers(
-                    tempApplication.getDefaultDomain(),
+                    pwmDomain,
                     1,
                     storedConfiguration,
-                    StoredConfigKey.forSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, null, PwmConstants.DOMAIN_ID_DEFAULT ) );
+                    StoredConfigKey.forSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, null, ConfigGuideForm.DOMAIN_ID ) );
 
             if ( !results.isEmpty() )
             {

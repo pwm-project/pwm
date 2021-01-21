@@ -50,11 +50,14 @@ public class HealthMessageTest
     @Test
     public void testHealthMessageDescription() throws PwmUnrecoverableException
     {
-        final DomainConfig domainConfig = new AppConfig( StoredConfigurationFactory.newConfig() ).getDefaultDomainConfig();
+        final AppConfig appConfig = new AppConfig( StoredConfigurationFactory.newConfig() );
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
-        for ( final HealthMessage healthMessage : HealthMessage.values() )
+        for ( final DomainConfig domainConfig : appConfig.getDomainConfigs().values() )
         {
-            healthMessage.getDescription( locale, domainConfig, new String[] {"field1", "field2"} );
+            for ( final HealthMessage healthMessage : HealthMessage.values() )
+            {
+                healthMessage.getDescription( locale, domainConfig, new String[]{"field1", "field2"} );
+            }
         }
     }
 }

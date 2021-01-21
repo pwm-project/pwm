@@ -177,7 +177,7 @@ public class RestResultBean implements Serializable
             final String... fieldValues
     )
     {
-        return forSuccessMessage( data, restRequest.getLocale(), restRequest.getPwmApplication().getDefaultDomain().getConfig(), message, fieldValues );
+        return forSuccessMessage( data, restRequest.getLocale(), restRequest.getDomain().getConfig(), message, fieldValues );
     }
 
     public static RestResultBean forSuccessMessage(
@@ -186,7 +186,7 @@ public class RestResultBean implements Serializable
             final String... fieldValues
     )
     {
-        return forSuccessMessage( restRequest.getLocale(), restRequest.getPwmApplication().getDefaultDomain().getConfig(), message, fieldValues );
+        return forSuccessMessage( restRequest.getLocale(), restRequest.getDomain().getConfig(), message, fieldValues );
     }
 
     public static RestResultBean forSuccessMessage(

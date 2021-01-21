@@ -28,7 +28,6 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfiguration;
@@ -74,7 +73,8 @@ public class NewUserProfile extends AbstractProfile implements Profile
     public PwmPasswordPolicy getNewUserPasswordPolicy( final PwmDomain pwmDomain, final Locale userLocale )
             throws PwmUnrecoverableException
     {
-        final long maxNewUserCacheMS = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.CONFIG_NEWUSER_PASSWORD_POLICY_CACHE_MS ) );
+        final DomainConfig domainConfig = pwmDomain.getConfig();
+        final long maxNewUserCacheMS = Long.parseLong( domainConfig.getAppConfig().readAppProperty( AppProperty.CONFIG_NEWUSER_PASSWORD_POLICY_CACHE_MS ) );
         if ( newUserPasswordPolicyCacheTime != null && TimeDuration.fromCurrent( newUserPasswordPolicyCacheTime ).isLongerThan( maxNewUserCacheMS ) )
         {
             newUserPasswordPolicyCacheTime = Instant.now();
@@ -88,7 +88,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
         }
 
         final PwmPasswordPolicy thePolicy;
-        final LdapProfile ldapProfile = getLdapProfile();
+        final LdapProfile ldapProfile = getLdapProfile( domainConfig );
         final String configuredNewUserPasswordDN = readSettingAsString( PwmSetting.NEWUSER_PASSWORD_POLICY_USER );
         if ( StringUtil.isEmpty( configuredNewUserPasswordDN ) )
         {
@@ -177,12 +177,11 @@ public class NewUserProfile extends AbstractProfile implements Profile
         }
     }
 
-    public LdapProfile getLdapProfile()
+    public LdapProfile getLdapProfile( final DomainConfig domainConfig )
             throws PwmUnrecoverableException
     {
-        final DomainConfig domainConfig = new AppConfig( getStoredConfiguration() ).getDefaultDomainConfig();
         final String configuredProfile = readSettingAsString( PwmSetting.NEWUSER_LDAP_PROFILE );
-        if ( !StringUtil.isEmpty( configuredProfile ) )
+        if ( StringUtil.notEmpty( configuredProfile ) )
         {
             final LdapProfile ldapProfile = domainConfig.getLdapProfiles().get( configuredProfile );
             if ( ldapProfile == null )

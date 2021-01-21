@@ -84,12 +84,16 @@ public class RestTokenDataClient implements RestClient
         if ( userIdentity != null )
         {
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
-                    pwmDomain,
+                    pwmDomain.getPwmApplication(),
                     sessionLabel,
-                    userIdentity, locale
-            );
+                    userIdentity, locale );
 
-            final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity() );
+            final MacroRequest macroRequest = MacroRequest.forUser(
+                    pwmDomain.getPwmApplication(),
+                    PwmConstants.DEFAULT_LOCALE,
+                    SessionLabel.SYSTEM_LABEL,
+                    userInfo.getUserIdentity() );
+
             final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean( userInfo, pwmDomain.getConfig(), PwmConstants.DEFAULT_LOCALE, macroRequest );
             sendData.put( RestClient.DATA_KEY_USERINFO, publicUserInfoBean );
         }
@@ -133,12 +137,12 @@ public class RestTokenDataClient implements RestClient
 
         final StringBuilder tokenSendDisplay = new StringBuilder();
 
-        if ( !StringUtil.isEmpty( tokenDestinationData.getEmail() ) )
+        if ( StringUtil.notEmpty( tokenDestinationData.getEmail() ) )
         {
             tokenSendDisplay.append( tokenDestinationDisplayMasker.maskEmail( tokenDestinationData.getEmail() ) );
         }
 
-        if ( !StringUtil.isEmpty( tokenDestinationData.getSms() ) )
+        if ( StringUtil.notEmpty( tokenDestinationData.getSms() ) )
         {
             if ( tokenSendDisplay.length() > 0 )
             {

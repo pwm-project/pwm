@@ -109,7 +109,6 @@ public class PwmUrlTag extends PwmAbstractTag
 
     public static String insertContext( final PageContext pageContext, final String urlString )
     {
-        final String contextPath = pageContext.getServletContext().getContextPath();
         if ( !urlString.startsWith( "/" ) )
         {
             return urlString;
@@ -124,13 +123,26 @@ public class PwmUrlTag extends PwmAbstractTag
             return urlString;
         }
 
+        PwmRequest pwmRequest = null;
+        try
+        {
+            pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
+        }
+        catch ( final PwmException e )
+        {
+            /* noop */
+        }
+
+        final String contextPath = pwmRequest == null
+                ? pageContext.getServletContext().getContextPath()
+                : pwmRequest.getBasePath();
+
         if ( urlString.startsWith( contextPath ) )
         {
             return urlString;
         }
-
+        
         return contextPath + urlString;
-
     }
 
     public static String insertResourceNonce( final PwmDomain pwmDomain, final String urlString )

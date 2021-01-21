@@ -286,7 +286,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
         }
 
         boolean fromCache = false;
-        final CacheKey cacheKey = new CacheKey( file, resourceFileRequest.allowsCompression() );
+        final CacheKey cacheKey = CacheKey.createCacheKey( file, resourceFileRequest.allowsCompression() );
         CacheEntry cacheEntry = responseCache.getIfPresent( cacheKey );
         if ( cacheEntry == null )
         {

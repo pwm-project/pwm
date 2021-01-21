@@ -45,6 +45,7 @@ import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -118,7 +119,7 @@ public class PhotoDataReader
         }
 
         final List<UserPermission> permissions = settings.getPhotoPermissions();
-        if ( JavaHelper.isEmpty( permissions ) )
+        if ( CollectionUtil.isEmpty( permissions ) )
         {
             return true;
         }
@@ -265,7 +266,7 @@ public class PhotoDataReader
         final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmRequest.getAppConfig() );
         final String configuredUrl = ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PHOTO_URL_OVERRIDE );
 
-        if ( !StringUtil.isEmpty( configuredUrl ) )
+        if ( StringUtil.notEmpty( configuredUrl ) )
         {
             final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmRequestContext(), userIdentity );
             return Optional.of( macroRequest.expandMacros( configuredUrl ) );

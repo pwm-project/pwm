@@ -21,32 +21,44 @@
 package password.pwm.svc.event;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.rules.TemporaryFolder;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmDomain;
-import password.pwm.config.AppConfig;
-import password.pwm.config.stored.StoredConfigurationFactory;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.localdb.TestHelper;
 
 public class JsonAuditFormatterTest
 {
-    @Test
-    public void testCEFFormatting() throws PwmUnrecoverableException
-    {
-        final String jsonInput = "{\"perpetratorID\":\"per|son\",\"perpetratorDN\":\"cn=per|son,o=org\","
-                + "\"perpetratorLdapProfile\":\"default\",\"sourceAddress\":\"2001:DB8:D:B8:35cc::/64\",\"sourceHost\":\"ws31222\","
-                + "\"type\":\"USER\",\"eventCode\":\"ACTIVATE_USER\",\"guid\":\"16ee0bf8-b0c9-41d7-8c24-b40110fc727e\","
-                + "\"timestamp\":\"2000-01-01T00:00:00Z\",\"message\":\"message pipe|Escape, slash\\\\Escape, equal=Escape, \\nsecondLine\","
-                + "\"xdasTaxonomy\":\"XDAS_AE_CREATE_SESSION\",\"xdasOutcome\":\"XDAS_OUT_SUCCESS\"}";
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-        final UserAuditRecord auditRecord = JsonUtil.deserialize( jsonInput, UserAuditRecord.class );
+    @Test
+    public void testCEFFormatting() throws Exception
+    {
+        final String jsonInput = "{"
+                + "\"type\":\"USER\","
+                + "\"eventCode\":\"ACTIVATE_USER\","
+                + "\"guid\":\"16ee0bf8-b0c9-41d7-8c24-b40110fc727e\","
+                + "\"timestamp\":\"2000-01-01T00:00:00Z\","
+                + "\"message\":\"message pipe|Escape, slash\\\\Escape, equal=Escape, \\nsecondLine\","
+                + "\"xdasTaxonomy\":\"XDAS_AE_CREATE_SESSION\","
+                + "\"xdasOutcome\":\"XDAS_OUT_SUCCESS\","
+                + "\"perpetratorID\":\"per|son\","
+                + "\"perpetratorDN\":\"cn=per|son,o=org\","
+                + "\"perpetratorLdapProfile\":\"default\","
+                + "\"sourceAddress\":\"2001:DB8:D:B8:35cc::/64\","
+                + "\"sourceHost\":\"ws31222\""
+                + "}";
+
+        final UserAuditRecord auditRecord = JsonUtil.deserialize( jsonInput, AuditRecordData.class );
         final String expectedOutput = PwmConstants.PWM_APP_NAME + " " + jsonInput;
         final AuditFormatter auditFormatter = new JsonAuditFormatter();
-        final PwmDomain pwmDomain = Mockito.mock( PwmDomain.class );
-        Mockito.when( pwmDomain.getConfig() ).thenReturn( new AppConfig( StoredConfigurationFactory.newConfig() ).getDefaultDomainConfig() );
-        final String output = auditFormatter.convertAuditRecordToMessage( pwmDomain, auditRecord );
+
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
+
+        final String output = auditFormatter.convertAuditRecordToMessage( pwmApplication, auditRecord );
         Assert.assertEquals( expectedOutput, output );
     }
 

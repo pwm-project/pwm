@@ -20,14 +20,12 @@
 
 package password.pwm.http.servlet.configeditor.data;
 
-import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.stored.StoredConfiguration;
-import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
@@ -46,28 +44,16 @@ public class SettingDataMaker
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SettingDataMaker.class );
 
-    public static void initializeCache()
-    {
-            try
-            {
-                SettingDataMaker.generateSettingData( StoredConfigurationFactory.newConfig(), null, PwmConstants.DEFAULT_LOCALE );
-            }
-            catch ( final Exception e )
-            {
-                LOGGER.debug( () -> "error initializing generateSettingData: " + e.getMessage() );
-            }
-    }
-
     public static SettingData generateSettingData(
+            final DomainID domainID,
             final StoredConfiguration storedConfiguration,
             final SessionLabel sessionLabel,
             final Locale locale
-
     )
             throws PwmUnrecoverableException
     {
         final Instant startGenerateTime = Instant.now();
-        final PwmSettingTemplateSet templateSet = storedConfiguration.getTemplateSet();
+        final PwmSettingTemplateSet templateSet = storedConfiguration.getTemplateSet().get( domainID );
 
         final Map<String, SettingInfo> settingMap = Collections.unmodifiableMap( Arrays.stream( PwmSetting.values() )
                 .collect( Collectors.toMap(
@@ -91,8 +77,9 @@ public class SettingDataMaker
                         LinkedHashMap::new ) ) );
 
         final VarData varMap = VarData.builder()
-                .ldapProfileIds( StoredConfigurationUtil.profilesForSetting( PwmConstants.DOMAIN_ID_PLACEHOLDER, PwmSetting.LDAP_PROFILE_LIST, storedConfiguration ) )
-                .domainIds( StoredConfigurationUtil.domainList( storedConfiguration ).stream().map( DomainID::stringValue ).collect( Collectors.toList() ) )
+                .ldapProfileIds( StoredConfigurationUtil.profilesForSetting( domainID, PwmSetting.LDAP_PROFILE_LIST, storedConfiguration ) )
+                .domainIds( StoredConfigurationUtil.domainList( storedConfiguration ).stream()
+                        .map( DomainID::stringValue ).sorted().collect( Collectors.toList() ) )
                 .currentTemplate( templateSet )
                 .build();
 

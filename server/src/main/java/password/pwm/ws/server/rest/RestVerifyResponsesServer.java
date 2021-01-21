@@ -50,6 +50,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @WebServlet(
         urlPatterns = {
@@ -116,13 +117,13 @@ public class RestVerifyResponsesServer extends RestServlet
 
         try
         {
-            final ResponseSet responseSet = restRequest.getDomain().getCrService().readUserResponseSet(
+            final Optional<ResponseSet> responseSet = restRequest.getDomain().getCrService().readUserResponseSet(
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getUserIdentity(),
                     targetUserIdentity.getChaiUser()
             );
 
-            final boolean verified = responseSet != null && responseSet.test( jsonInput.toCrMap() );
+            final boolean verified = responseSet.isPresent() && responseSet.get().test( jsonInput.toCrMap() );
 
             final RestResultBean restResultBean = RestResultBean.forSuccessMessage( verified, restRequest, Message.Success_Unknown );
 

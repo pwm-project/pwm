@@ -40,6 +40,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
 import password.pwm.util.java.StringUtil;
@@ -57,10 +58,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -112,7 +116,7 @@ public abstract class StoredConfigurationUtil
         final StoredValue storedValue = StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
         final List<String> settingValues = ValueTypeConverter.valueToStringArray( storedValue );
         return settingValues.stream()
-                .filter( value -> !StringUtil.isEmpty( value ) )
+                .filter( value -> StringUtil.notEmpty( value ) )
                 .collect( Collectors.toUnmodifiableList() );
     }
 
@@ -136,9 +140,8 @@ public abstract class StoredConfigurationUtil
             }
         } );
 
-        storedConfig.keys()
-                .parallel()
-                .filter( ( key ) -> StoredConfigKey.RecordType.SETTING.equals( key.getRecordType() ) )
+        CollectionUtil.iteratorToStream( storedConfig.keys() )
+                .filter( ( key ) -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                 .forEach( valueModifier );
 
         final Optional<String> pwdHash = storedConfig.readConfigProperty( ConfigurationProperty.PASSWORD_HASH );
@@ -179,8 +182,7 @@ public abstract class StoredConfigurationUtil
         };
 
         final Instant startTime = Instant.now();
-        final List<String> errorStrings = storedConfiguration.keys()
-                .parallel()
+        final List<String> errorStrings = CollectionUtil.iteratorToStream( storedConfiguration.keys() )
                 .filter( key -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                 .flatMap( validateSettingFunction )
                 .collect( Collectors.toList() );
@@ -197,7 +199,7 @@ public abstract class StoredConfigurationUtil
             return false;
         }
         final Optional<String> passwordHash = storedConfiguration.readConfigProperty( ConfigurationProperty.PASSWORD_HASH );
-        return passwordHash.isPresent() && BCrypt.testAnswer( password, passwordHash.get(), new AppConfig( storedConfiguration ).getDefaultDomainConfig() );
+        return passwordHash.isPresent() && BCrypt.testAnswer( password, passwordHash.get(), new AppConfig( storedConfiguration ) );
     }
 
     public static boolean hasPassword( final StoredConfiguration storedConfiguration )
@@ -214,7 +216,7 @@ public abstract class StoredConfigurationUtil
             throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                     {
                             "can not set blank password",
-                            }
+                    }
             ) );
         }
         final String trimmedPassword = password.trim();
@@ -223,7 +225,7 @@ public abstract class StoredConfigurationUtil
             throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                     {
                             "can not set blank password",
-                            }
+                    }
             ) );
         }
 
@@ -252,16 +254,16 @@ public abstract class StoredConfigurationUtil
 
     public static Map<String, String> makeDebugMap(
             final StoredConfiguration storedConfiguration,
-            final Stream<StoredConfigKey> interestedItems,
+            final List<StoredConfigKey> interestedItems,
             final Locale locale
     )
     {
-        return interestedItems
-                .filter( ( key ) -> !key.isRecordType( StoredConfigKey.RecordType.PROPERTY ) )
-                .collect( Collectors.toUnmodifiableMap(
-                        ( key ) -> key.getLabel( locale ),
-                        ( key ) -> StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key ).toDebugString( locale )
-                ) );
+        return Collections.unmodifiableMap( new TreeMap<>( interestedItems.stream()
+                .filter( key -> !key.isRecordType( StoredConfigKey.RecordType.PROPERTY ) )
+                .collect( Collectors.toMap(
+                        key -> key.getLabel( locale ),
+                        key -> StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key ).toDebugString( locale )
+                ) ) ) );
     }
 
     public static Set<StoredConfigKey> allPossibleSettingKeysForConfiguration(
@@ -272,7 +274,6 @@ public abstract class StoredConfigurationUtil
         allDomainIds.add( DomainID.systemId() );
 
         return allDomainIds.stream()
-                .parallel()
                 .flatMap( domainID -> allPossibleSettingKeysForDomain( storedConfiguration, domainID ) )
                 .collect( Collectors.toUnmodifiableSet() );
     }
@@ -313,23 +314,23 @@ public abstract class StoredConfigurationUtil
     {
         final Instant startTime = Instant.now();
 
-        final Stream<StoredConfigKey> interestedReferences = Stream.concat(
-                originalConfiguration.keys(),
-                modifiedConfiguration.keys() ).distinct();
+        final Predicate<StoredConfigKey> hashTester = key ->
+        {
+            final Optional<String> hash1 = originalConfiguration.readStoredValue( key ).map( StoredValue::valueHash );
+            final Optional<String> hash2 = modifiedConfiguration.readStoredValue( key ).map( StoredValue::valueHash );
+            return !hash1.equals( hash2 );
+        };
 
-        final Set<StoredConfigKey> deltaReferences = interestedReferences
-                .parallel()
-                .filter( reference ->
-                        {
-                            final Optional<String> hash1 = originalConfiguration.readStoredValue( reference ).map( StoredValue::valueHash );
-                            final Optional<String> hash2 = modifiedConfiguration.readStoredValue( reference ).map( StoredValue::valueHash );
-                            return !hash1.equals( hash2 );
-                        }
-                ).collect( Collectors.toSet() );
+        final Set<StoredConfigKey> deltaReferences = Stream.concat(
+                CollectionUtil.iteratorToStream( originalConfiguration.keys() ),
+                CollectionUtil.iteratorToStream( modifiedConfiguration.keys() ) )
+                .distinct()
+                .filter( hashTester )
+                .collect( Collectors.toUnmodifiableSet() );
 
-        LOGGER.trace( () -> "generated changeLog items via compare", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "generated " + deltaReferences.size() + " changeLog items via compare", () -> TimeDuration.fromCurrent( startTime ) );
 
-        return Collections.unmodifiableSet( deltaReferences );
+        return deltaReferences;
     }
 
     public static StoredValue getValueOrDefault(
@@ -348,7 +349,7 @@ public abstract class StoredConfigurationUtil
         {
             case SETTING:
             {
-                final PwmSettingTemplateSet templateSet = storedConfiguration.getTemplateSet();
+                final PwmSettingTemplateSet templateSet = storedConfiguration.getTemplateSet().get( key.getDomainID() );
                 return key.toPwmSetting().getDefaultValue( templateSet );
             }
 
@@ -369,10 +370,10 @@ public abstract class StoredConfigurationUtil
 
     public static List<DomainID> domainList( final StoredConfiguration storedConfiguration )
     {
-        final StoredConfigKey domainListKey = StoredConfigKey.forSetting( PwmSetting.DOMAIN_LIST, null, DomainID.systemId() );
-        final StoredValue storedStringArray = getValueOrDefault( storedConfiguration, domainListKey );
-        final List<String> domainList = ValueTypeConverter.valueToStringArray( storedStringArray );
-        return domainList.stream().map( DomainID::create ).sorted().collect( Collectors.toUnmodifiableList() );
+        return storedConfiguration.getTemplateSet().keySet().stream()
+                .filter( domain -> !Objects.equals( domain, DomainID.systemId() ) )
+                .sorted()
+                .collect( Collectors.toUnmodifiableList() );
     }
 
     public static StoredConfiguration copyProfileID(
@@ -442,6 +443,7 @@ public abstract class StoredConfigurationUtil
     )
             throws PwmUnrecoverableException
     {
+        final Instant startTime = Instant.now();
         final DomainID sourceID = DomainID.create( source );
         final DomainID destinationID = DomainID.create( destination );
 
@@ -460,21 +462,32 @@ public abstract class StoredConfigurationUtil
         }
 
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( oldStoredConfiguration );
-        modifier.newStoredConfiguration().keys()
+        CollectionUtil.iteratorToStream( modifier.newStoredConfiguration().keys() )
                 .filter( key -> key.getDomainID().equals( sourceID ) )
                 .forEach( key ->
+                {
+                    final StoredConfigKey newKey = key.withNewDomain( destinationID );
+                    final StoredValue storedValue = oldStoredConfiguration.readStoredValue( key ).orElseThrow();
+                    try
+                    {
+                        modifier.writeSetting( newKey, storedValue, userIdentity );
+                    }
+                    catch ( final PwmUnrecoverableException e )
+                    {
+                        throw new IllegalStateException( "unexpected error copying domain setting values: " + e.getMessage() );
+                    }
+                } );
+
         {
-            final StoredConfigKey newKey = key.withNewDomain( destinationID );
-            final StoredValue storedValue = oldStoredConfiguration.readStoredValue( key ).orElseThrow();
-            try
-            {
-                modifier.writeSetting( newKey, storedValue, userIdentity );
-            }
-            catch ( final PwmUnrecoverableException e )
-            {
-                throw new IllegalStateException( "unexpected error copying domain setting values: " + e.getMessage() );
-            }
-        } );
+            final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.DOMAIN_LIST, null, DomainID.systemId() );
+            final List<String> domainList = new ArrayList<>( ValueTypeConverter.valueToStringArray( StoredConfigurationUtil.getValueOrDefault( oldStoredConfiguration, key ) ) );
+            domainList.add( destination );
+            final StoredValue value = new StringArrayValue( domainList );
+            modifier.writeSetting( key, value, userIdentity );
+        }
+
+        LOGGER.trace( () -> "copied " + modifier.modifications() + " domain settings from '" + source + "' to '" + destination + "' domain",
+                () -> TimeDuration.fromCurrent( startTime ) );
 
         return modifier.newStoredConfiguration();
     }
@@ -484,7 +497,7 @@ public abstract class StoredConfigurationUtil
         final Instant startTime = Instant.now();
         final StringBuilder sb = new StringBuilder();
 
-        storedConfiguration.keys()
+        CollectionUtil.iteratorToStream( storedConfiguration.keys() )
                 .map( storedConfiguration::readStoredValue )
                 .flatMap( Optional::stream )
                 .forEach( v -> sb.append( v.valueHash() ) );
@@ -513,9 +526,9 @@ public abstract class StoredConfigurationUtil
         final Optional<StoredValue> existingValue = storedConfiguration.readStoredValue( key );
         if ( existingValue.isEmpty() )
         {
-            return false;
+            return true;
         }
 
-        return ValueFactory.isDefaultValue( storedConfiguration.getTemplateSet(), key.toPwmSetting(), existingValue.get() );
+        return ValueFactory.isDefaultValue( storedConfiguration.getTemplateSet().get( key.getDomainID( ) ), key.toPwmSetting(), existingValue.get() );
     }
 }

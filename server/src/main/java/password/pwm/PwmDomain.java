@@ -27,7 +27,6 @@ import password.pwm.bean.DomainID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSettingScope;
-import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.peoplesearch.PeopleSearchService;
 import password.pwm.http.servlet.resource.ResourceServletService;
@@ -40,20 +39,25 @@ import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.event.AuditService;
 import password.pwm.svc.httpclient.HttpClientService;
-import password.pwm.svc.intruder.IntruderManager;
+import password.pwm.svc.intruder.IntruderService;
 import password.pwm.svc.pwnotify.PwNotifyService;
-import password.pwm.svc.report.ReportService;
 import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.token.TokenService;
-import password.pwm.svc.wordlist.SharedHistoryManager;
+import password.pwm.svc.userhistory.UserHistoryService;
+import password.pwm.svc.wordlist.SharedHistoryService;
+import password.pwm.util.DailySummaryJob;
+import password.pwm.util.PwmScheduler;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 
 /**
  * A repository for objects common to the servlet context.  A singleton
@@ -82,7 +86,17 @@ public class PwmDomain
             throws PwmUnrecoverableException
 
     {
+        final Instant startTime = Instant.now();
+        LOGGER.trace( () -> "initializing domain " + domainID.stringValue() );
         pwmServiceManager.initAllServices();
+
+        {
+            final ExecutorService executorService = PwmScheduler.makeSingleThreadExecutorService( getPwmApplication(), DailySummaryJob.class );
+            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailySummaryJob( this ), executorService, TimeDuration.ZERO );
+            new DailySummaryJob( this ).run();
+        }
+
+        LOGGER.trace( () -> "completed initializing domain " + domainID.stringValue(), () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     public DomainConfig getConfig( )
@@ -94,7 +108,7 @@ public class PwmDomain
     {
         return pwmApplication.getApplicationMode();
     }
-    
+
     public StatisticsManager getStatisticsManager( )
     {
         return pwmApplication.getStatisticsManager();
@@ -167,6 +181,7 @@ public class PwmDomain
     public ChaiProvider getProxyChaiProvider( final String identifier )
             throws PwmUnrecoverableException
     {
+        Objects.requireNonNull( identifier );
         return getLdapConnectionService().getProxyChaiProvider( identifier );
     }
 
@@ -185,9 +200,9 @@ public class PwmDomain
         return pwmApplication.getHttpClientService();
     }
 
-    public IntruderManager getIntruderManager()
+    public IntruderService getIntruderManager()
     {
-        return pwmApplication.getIntruderManager();
+        return pwmApplication.getIntruderService();
     }
 
     public TokenService getTokenService()
@@ -195,19 +210,9 @@ public class PwmDomain
         return pwmApplication.getTokenService();
     }
 
-    public SharedHistoryManager getSharedHistoryManager()
+    public SharedHistoryService getSharedHistoryManager()
     {
         return pwmApplication.getSharedHistoryManager();
-    }
-
-    public ErrorInformation getLastLocalDBFailure()
-    {
-        return pwmApplication.getLastLocalDBFailure();
-    }
-
-    public ReportService getReportService()
-    {
-        return pwmApplication.getReportService();
     }
 
     public PeopleSearchService getPeopleSearchService( )
@@ -220,13 +225,19 @@ public class PwmDomain
         return pwmApplication.getPwNotifyService();
     }
 
-    public ResourceServletService getResourceServletService()
+    public ResourceServletService getResourceServletService( )
     {
-        return pwmApplication.getResourceServletService();
+        return ( ResourceServletService ) pwmServiceManager.getService( PwmServiceEnum.ResourceServletService );
+    }
+
+    public UserHistoryService getUserHistoryService()
+    {
+        return ( UserHistoryService ) pwmServiceManager.getService( PwmServiceEnum.UserHistoryService );
     }
 
     public void shutdown()
     {
+        LOGGER.trace( () -> "beginning shutdown domain " + domainID.stringValue() );
         pwmServiceManager.shutdownAllServices();
     }
 

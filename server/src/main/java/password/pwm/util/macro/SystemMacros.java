@@ -21,10 +21,11 @@
 package password.pwm.util.macro;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.PwmSetting;
 import password.pwm.http.ContextManager;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.logging.PwmLogger;
@@ -47,7 +48,7 @@ public class SystemMacros
             new CurrentTimeMacro(),
             new Iso8601DateTimeMacro(),
             new InstanceIDMacro(),
-            new DefaultEmailFromAddressMacro(),
+            new DefaultSystemFromAddressMacro(),
             new SiteURLMacro(),
             new SiteHostMacro(),
             new RandomCharMacro(),
@@ -81,15 +82,15 @@ public class SystemMacros
                 final MacroRequest request
         )
         {
-            final PwmDomain pwmDomain = request.getPwmDomain();
+            final PwmApplication pwmApplication = request.getPwmApplication();
 
-            if ( pwmDomain == null )
+            if ( pwmApplication == null )
             {
                 LOGGER.error( request.getSessionLabel(),  () -> "could not replace value for '" + matchValue + "', pwmApplication is null" );
                 return "";
             }
 
-            return pwmDomain.getPwmApplication().getInstanceID();
+            return pwmApplication.getInstanceID();
         }
     }
 
@@ -151,7 +152,7 @@ public class SystemMacros
         {
             final List<String> parameters = splitMacroParameters( matchValue, Collections.singletonList( "Iso8601" ) );
 
-            if ( JavaHelper.isEmpty(  parameters ) || parameters.size() != 1 )
+            if ( CollectionUtil.isEmpty(  parameters ) || parameters.size() != 1 )
             {
                 throw new MacroParseException( "exactly one parameter is required" );
             }
@@ -191,13 +192,13 @@ public class SystemMacros
                 final MacroRequest request
         )
         {
-            return request.getPwmDomain().getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
+            return request.getPwmApplication().getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
         }
     }
 
-    public static class DefaultEmailFromAddressMacro extends AbstractSystemMacros
+    public static class DefaultSystemFromAddressMacro extends AbstractSystemMacros
     {
-        private static final Pattern PATTERN = Pattern.compile( "@DefaultEmailFromAddress@" );
+        private static final Pattern PATTERN = Pattern.compile( "@SystemEmailFromAddress@" );
 
         @Override
         public Pattern getRegExPattern( )
@@ -211,7 +212,7 @@ public class SystemMacros
                 final MacroRequest request
         )
         {
-            return request.getPwmDomain().getConfig().readSettingAsString( PwmSetting.EMAIL_DEFAULT_FROM_ADDRESS );
+            return "admin@example.org";
         }
     }
 
@@ -233,7 +234,7 @@ public class SystemMacros
         {
             try
             {
-                final String siteUrl = request.getPwmDomain().getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
+                final String siteUrl = request.getPwmApplication().getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
                 final URL url = new URL( siteUrl );
                 return url.getHost();
             }
@@ -271,7 +272,7 @@ public class SystemMacros
             int length = 1;
             if ( parameters.size() > 0 && !parameters.get( 0 ).isEmpty() )
             {
-                final int maxLengthPermitted = Integer.parseInt( request.getPwmDomain().getConfig().readAppProperty( AppProperty.MACRO_RANDOM_CHAR_MAX_LENGTH ) );
+                final int maxLengthPermitted = Integer.parseInt( request.getPwmApplication().getConfig().readAppProperty( AppProperty.MACRO_RANDOM_CHAR_MAX_LENGTH ) );
                 try
                 {
                     length = Integer.parseInt( parameters.get( 0 ) );
@@ -396,10 +397,10 @@ public class SystemMacros
                 throws MacroParseException
         {
             String contextName = "[context]";
-            final PwmDomain pwmDomain = request.getPwmDomain();
-            if ( pwmDomain != null )
+            final PwmApplication pwmApplication = request.getPwmApplication();
+            if ( pwmApplication != null )
             {
-                final PwmEnvironment pwmEnvironment = pwmDomain.getPwmApplication().getPwmEnvironment();
+                final PwmEnvironment pwmEnvironment = pwmApplication.getPwmEnvironment();
                 if ( pwmEnvironment != null )
                 {
                     final ContextManager contextManager = pwmEnvironment.getContextManager();

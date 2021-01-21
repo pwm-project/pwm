@@ -262,7 +262,7 @@ public class PwmPasswordRuleUtil
 
     public static boolean containsDisallowedValue( final String password, final String disallowedValue, final int threshold )
     {
-        if ( !StringUtil.isEmpty( disallowedValue ) )
+        if ( StringUtil.notEmpty( disallowedValue ) )
         {
             if ( threshold > 0 )
             {

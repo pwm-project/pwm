@@ -26,6 +26,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
+import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -182,7 +183,7 @@ public class DisplayTag extends PwmAbstractTag
         return Display.class;
     }
 
-    private String figureDisplayMessage( final Locale locale, final DomainConfig config, final Class bundleClass )
+    private String figureDisplayMessage( final Locale locale, final DomainConfig config, final Class<? extends PwmDisplayBundle> bundleClass )
     {
         try
         {

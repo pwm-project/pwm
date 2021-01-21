@@ -60,7 +60,7 @@ public class ConfigResetHttpsCommand
             final StoredConfigKey key = StoredConfigKey.forSetting( setting, null, DomainID.systemId() );
             modifier.resetSetting( key, null );
         }
-        configurationReader.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmDomain(), SessionLabel.CLI_SESSION_LABEL );
+        configurationReader.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
         out( "success" );
     }
 

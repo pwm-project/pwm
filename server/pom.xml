@@ -45,6 +45,7 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <release>${maven.compiler.release}</release>
                     <showWarnings>true</showWarnings>
                     <compilerArgs>
                         <arg>-Xmaxwarns</arg>
@@ -307,11 +308,6 @@
             <groupId>org.xeustechnologies</groupId>
             <artifactId>jcl-core</artifactId>
             <version>2.8</version>
-        </dependency>
-        <dependency>
-            <groupId>net.iharder</groupId>
-            <artifactId>base64</artifactId>
-            <version>2.3.9</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>

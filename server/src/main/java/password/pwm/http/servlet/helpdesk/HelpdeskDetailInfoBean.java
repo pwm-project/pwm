@@ -48,7 +48,7 @@ import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.ViewableUserInfoDisplayReader;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -122,18 +122,18 @@ public class HelpdeskDetailInfoBean implements Serializable
         }
 
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                pwmRequest.getPwmDomain(),
+                pwmRequest.getPwmApplication(),
                 pwmRequest.getLabel(),
                 actorLocale,
                 userIdentity,
                 theUser.getChaiProvider()
         );
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmDomain(), pwmRequest.getLabel(), userInfo, null );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userInfo, null );
 
         try
         {
 
-            final AccountInformationProfile accountInformationProfile = pwmRequest.getPwmSession().getSessionManager().getAccountInfoProfile();
+            final AccountInformationProfile accountInformationProfile = pwmRequest.getAccountInfoProfile();
 
             final List<AccountInformationBean.ActivityRecord> userHistory = AccountInformationBean.makeAuditInfo(
                     pwmRequest.getPwmDomain(),
@@ -351,7 +351,7 @@ public class HelpdeskDetailInfoBean implements Serializable
             }
             else
             {
-                final String value = JavaHelper.isEmpty( entry.getValue() )
+                final String value = CollectionUtil.isEmpty( entry.getValue() )
                         ? ""
                         : entry.getValue().iterator().next();
                 profileData.add( new DisplayElement(

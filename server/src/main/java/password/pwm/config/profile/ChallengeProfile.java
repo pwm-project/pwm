@@ -28,7 +28,7 @@ import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.SettingReader;
+import password.pwm.config.StoredSettingReader;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.data.ChallengeItemConfiguration;
 import password.pwm.config.value.data.UserPermission;
@@ -81,7 +81,7 @@ public class ChallengeProfile implements Profile, Serializable
             final StoredConfiguration storedConfiguration
     )
     {
-        final SettingReader settingReader = new SettingReader( storedConfiguration, profileID, domainID );
+        final StoredSettingReader settingReader = new StoredSettingReader( storedConfiguration, profileID, domainID );
 
         final int minRandomRequired = Math.toIntExact( settingReader.readSettingAsLong( PwmSetting.CHALLENGE_MIN_RANDOM_REQUIRED ) );
 
@@ -180,7 +180,7 @@ public class ChallengeProfile implements Profile, Serializable
     }
 
     private static ChallengeSet readChallengeSet(
-            final SettingReader settingReader,
+            final StoredSettingReader settingReader,
             final Locale locale,
             final PwmSetting requiredChallenges,
             final PwmSetting randomChallenges,

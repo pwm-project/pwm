@@ -237,7 +237,11 @@ public class PwmPasswordRuleValidator
         }
         if ( userInfo != null )
         {
-            final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity() );
+            final MacroRequest macroRequest = MacroRequest.forUser(
+                    pwmDomain.getPwmApplication(),
+                    PwmConstants.DEFAULT_LOCALE,
+                    SessionLabel.SYSTEM_LABEL,
+                    userInfo.getUserIdentity() );
             final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean( userInfo, pwmDomain.getConfig(), locale, macroRequest );
             sendData.put( "userInfo", publicUserInfoBean );
         }

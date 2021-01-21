@@ -23,29 +23,31 @@ package password.pwm.http.state;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmHttpResponseWrapper;
+import password.pwm.http.PwmCookiePath;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.PwmSessionBean;
+import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.svc.secure.DomainSecureService;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 class CryptoCookieBeanImpl implements SessionBeanProvider
 {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( CryptoCookieBeanImpl.class );
 
-    private static final PwmHttpResponseWrapper.CookiePath COOKIE_PATH = PwmHttpResponseWrapper.CookiePath.PwmServlet;
+    private static final PwmCookiePath COOKIE_PATH = PwmCookiePath.PwmServlet;
 
     @Override
-    public <E extends PwmSessionBean> E getSessionBean( final PwmRequest pwmRequest, final Class<E> theClass ) throws PwmUnrecoverableException
+    public <E extends PwmSessionBean> E getSessionBean( final PwmRequest pwmRequest, final Class<E> theClass )
+            throws PwmUnrecoverableException
     {
         final Map<Class<? extends PwmSessionBean>, PwmSessionBean> sessionBeans = getRequestBeanMap( pwmRequest );
 
@@ -59,13 +61,16 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
 
         try
         {
-            final String rawValue = pwmRequest.readCookie( cookieName );
+            final Optional<String> rawValue = pwmRequest.readCookie( cookieName );
             final PwmSecurityKey key = keyForSession( pwmRequest );
-            final E cookieBean = pwmRequest.getPwmDomain().getSecureService().decryptObject( rawValue, key, theClass );
-            if ( validateCookie( pwmRequest, cookieName, cookieBean ) )
+            if ( rawValue.isPresent() )
             {
-                sessionBeans.put( theClass, cookieBean );
-                return cookieBean;
+                final E cookieBean = pwmRequest.getPwmDomain().getSecureService().decryptObject( rawValue.get(), key, theClass );
+                if ( validateCookie( pwmRequest, cookieName, cookieBean ) )
+                {
+                    sessionBeans.put( theClass, cookieBean );
+                    return cookieBean;
+                }
             }
         }
         catch ( final PwmException e )

@@ -18,17 +18,8 @@
  * limitations under the License.
  */
 
-package password.pwm.svc.event;
+package password.pwm.util.i18n;
 
-import password.pwm.bean.SessionLabel;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserInfo;
-
-import java.util.List;
-
-public interface UserHistoryStore
+public class PwmLocale
 {
-    void updateUserHistory( SessionLabel sessionLabel, UserAuditRecord auditRecord ) throws PwmUnrecoverableException;
-
-    List<UserAuditRecord> readUserHistory( SessionLabel sessionLabel, UserInfo userInfo ) throws PwmUnrecoverableException;
 }

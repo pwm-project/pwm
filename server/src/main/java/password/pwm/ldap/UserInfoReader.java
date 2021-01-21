@@ -26,6 +26,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.SearchScope;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.ResponseInfoBean;
@@ -99,14 +100,14 @@ public class UserInfoReader implements UserInfo
             final PasswordData currentPassword,
             final SessionLabel sessionLabel,
             final Locale locale,
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final ChaiProvider chaiProvider
     )
             throws ChaiUnavailableException
     {
         this.userIdentity = userIdentity;
         this.currentPassword = currentPassword;
-        this.pwmDomain = pwmDomain;
+        this.pwmDomain = pwmApplication.domains().get( userIdentity.getDomainID() );
         this.locale = locale;
         this.sessionLabel = sessionLabel;
 
@@ -119,14 +120,15 @@ public class UserInfoReader implements UserInfo
             final PasswordData currentPassword,
             final SessionLabel sessionLabel,
             final Locale locale,
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final ChaiProvider chaiProvider
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
+        final PwmDomain pwmDomain = pwmApplication.domains().get( userIdentity.getDomainID() );
         LdapOperationsHelper.addConfiguredUserObjectClass( sessionLabel, userIdentity, pwmDomain );
 
-        final UserInfoReader userInfo = new UserInfoReader( userIdentity, currentPassword, sessionLabel, locale, pwmDomain, chaiProvider );
+        final UserInfoReader userInfo = new UserInfoReader( userIdentity, currentPassword, sessionLabel, locale, pwmApplication, chaiProvider );
         final UserInfo selfCachedReference = CachingProxyWrapper.create( UserInfo.class, userInfo );
         userInfo.selfCachedReference = selfCachedReference;
         return selfCachedReference;

@@ -22,8 +22,10 @@ package password.pwm.util.cli.commands;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChallengeSet;
+import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.ChallengeProfile;
@@ -46,7 +48,7 @@ public class ImportResponsesCommand extends AbstractCliCommand
     void doCommand( )
             throws Exception
     {
-        final PwmDomain pwmDomain = cliEnvironment.getPwmDomain();
+        final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
         final File inputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
         try ( BufferedReader reader = new BufferedReader( new InputStreamReader( new FileInputStream( inputFile ), PwmConstants.DEFAULT_CHARSET.toString() ) ) )
@@ -63,6 +65,7 @@ public class ImportResponsesCommand extends AbstractCliCommand
                 inputData = JsonUtil.deserialize( line, RestChallengesServer.JsonChallengesData.class );
 
                 final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( inputData.username );
+                final PwmDomain pwmDomain = figureDomain( userIdentity, pwmApplication );
                 final ChaiUser user = pwmDomain.getProxiedChaiUser( userIdentity );
                 if ( user.exists() )
                 {
@@ -91,6 +94,25 @@ public class ImportResponsesCommand extends AbstractCliCommand
 
             out( "output complete, " + counter + " responses imported in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         }
+    }
+
+    private PwmDomain figureDomain( final UserIdentity userIdentity, final PwmApplication pwmApplication )
+    {
+        if ( pwmApplication.isMultiDomain() )
+        {
+            final DomainID domainID = userIdentity.getDomainID();
+            if ( domainID == null )
+            {
+                throw new IllegalArgumentException( "user '" + userIdentity + " does not have a domain specified" );
+            }
+            final PwmDomain pwmDomain = pwmApplication.domains().get( domainID );
+            if ( pwmDomain == null )
+            {
+                throw new IllegalArgumentException( "user '" + userIdentity + " has an invalid domain specified" );
+            }
+            return pwmDomain;
+        }
+        return pwmApplication.domains().values().iterator().next();
     }
 
     @Override

@@ -20,6 +20,7 @@
 
 package password.pwm.config.stored;
 
+import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.value.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
@@ -27,9 +28,9 @@ import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.time.Instant;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public interface StoredConfiguration
 {
@@ -41,13 +42,13 @@ public interface StoredConfiguration
 
     Optional<String> readConfigProperty( ConfigurationProperty propertyName );
 
-    PwmSettingTemplateSet getTemplateSet();
+    Map<DomainID, PwmSettingTemplateSet> getTemplateSet();
 
     Optional<ValueMetaData> readSettingMetadata( StoredConfigKey storedConfigKey );
 
-    Map<String, String> readLocaleBundleMap( PwmLocaleBundle bundleName, String keyName );
+    Map<String, String> readLocaleBundleMap( PwmLocaleBundle bundleName, String keyName, DomainID domainID );
 
-    Stream<StoredConfigKey> keys();
+    Iterator<StoredConfigKey> keys();
 
     Optional<ValueMetaData> readMetaData( StoredConfigKey storedConfigKey );
 

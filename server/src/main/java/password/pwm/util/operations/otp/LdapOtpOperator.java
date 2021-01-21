@@ -34,7 +34,10 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
+
+import java.util.Optional;
 
 /**
  * @author Menno Pieters, Jason D. Rivard
@@ -53,7 +56,7 @@ public class LdapOtpOperator extends AbstractOtpOperator
      * Read OTP secret and instantiate a OTP User Configuration object.
      */
     @Override
-    public OTPUserRecord readOtpUserConfiguration(
+    public Optional<OTPUserRecord> readOtpUserConfiguration(
             final UserIdentity userIdentity,
             final String userGUID
     )
@@ -68,18 +71,19 @@ public class LdapOtpOperator extends AbstractOtpOperator
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        OTPUserRecord otp = null;
         try
         {
             final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
-            String value = theUser.readStringAttribute( ldapStorageAttribute );
-            if ( config.readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
+            final String value = theUser.readStringAttribute( ldapStorageAttribute );
+            if ( StringUtil.notEmpty( value ) && config.readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
             {
-                value = decryptAttributeValue( value );
-            }
-            if ( value != null )
-            {
-                otp = decomposeOtpAttribute( value );
+                final String decryptAttributeValue = decryptAttributeValue( value );
+
+                if ( decryptAttributeValue != null )
+                {
+                    final OTPUserRecord otp = decomposeOtpAttribute( decryptAttributeValue );
+                    return Optional.ofNullable( otp );
+                }
             }
         }
         catch ( final ChaiOperationException e )
@@ -94,7 +98,7 @@ public class LdapOtpOperator extends AbstractOtpOperator
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        return otp;
+        return Optional.empty();
     }
 
     @Override

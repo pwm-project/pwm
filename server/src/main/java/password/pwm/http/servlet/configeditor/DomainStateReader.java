@@ -29,8 +29,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ConfigManagerBean;
-import password.pwm.http.servlet.PwmServletDefinition;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -71,7 +71,7 @@ class DomainStateReader
     public DomainManageMode getMode()
             throws PwmUnrecoverableException
     {
-        if ( getAppConfig().getDomainIDs().size() < 2 )
+        if ( !getAppConfig().isMultiDomain() )
         {
             return DomainManageMode.single;
         }
@@ -90,6 +90,19 @@ class DomainStateReader
         return DomainManageMode.domain;
     }
 
+    public DomainID getDomainIDForLocaleBundle()
+            throws PwmUnrecoverableException
+    {
+        // stub setting used here to emulate LocaleBundle domain-ness
+        return getDomainID( PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE );
+    }
+
+    public DomainID getDomainIDForDomainSetting( )
+            throws PwmUnrecoverableException
+    {
+        return getDomainID( PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE );
+    }
+
     public DomainID getDomainID( final PwmSetting pwmSetting )
             throws PwmUnrecoverableException
     {
@@ -106,7 +119,7 @@ class DomainStateReader
             {
                 return optionalDomainID.get();
             }
-            throw new IllegalStateException( "invalid domain" );
+            throw new IllegalStateException( "invalid domain in request" );
         }
 
         if ( pwmSetting.getCategory().getScope() == PwmSettingScope.SYSTEM )
@@ -139,22 +152,25 @@ class DomainStateReader
             throws PwmUnrecoverableException
     {
         final PwmURL pwmURL = pwmRequest.getURL();
-        String postPath = pwmURL.getPostServletPath( PwmServletDefinition.ConfigEditor );
+        final List<String> pathSegments = pwmURL.splitPaths();
 
-        while ( postPath.startsWith( "/" ) )
+        if ( pathSegments.size() <= 1 )
         {
-            postPath = postPath.substring( 1 );
+            return Optional.empty();
         }
 
-        if ( DomainID.systemId().stringValue().equals( postPath ) )
+        final String lastSegment = pathSegments.get( pathSegments.size() - 1 );
+
+        if ( DomainID.systemId().stringValue().equals( lastSegment ) )
         {
             return Optional.of( DomainID.systemId() );
         }
 
-        if ( getAppConfig().getDomainIDs().contains( postPath ) )
+        if ( getAppConfig().getDomainIDs().contains( lastSegment ) )
         {
-            return Optional.of( DomainID.create( postPath ) );
+            return Optional.of( DomainID.create( lastSegment ) );
         }
+
         return Optional.empty();
     }
 }

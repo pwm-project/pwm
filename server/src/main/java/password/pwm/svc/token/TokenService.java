@@ -55,7 +55,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
-import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.DataStore;
@@ -135,7 +135,7 @@ public class TokenService implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
+        this.pwmDomain = pwmApplication.domains().get( domainID );
 
         LOGGER.trace( () -> "opening" );
 
@@ -356,7 +356,7 @@ public class TokenService implements PwmService
         {
             if ( errorInformation != null )
             {
-                returnRecords.add( HealthRecord.forMessage( HealthMessage.CryptoTokenWithNewUserVerification, errorInformation.toDebugStr() ) );
+                returnRecords.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.CryptoTokenWithNewUserVerification, errorInformation.toDebugStr() ) );
             }
         }
 
@@ -370,13 +370,13 @@ public class TokenService implements PwmService
                     {
                         final String label = PwmSetting.NEWUSER_EMAIL_VERIFICATION.toMenuLocationDebug( newUserProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE );
                         final String label2 = PwmSetting.TOKEN_STORAGEMETHOD.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
-                        returnRecords.add( HealthRecord.forMessage( HealthMessage.CryptoTokenWithNewUserVerification, label, label2 ) );
+                        returnRecords.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.CryptoTokenWithNewUserVerification, label, label2 ) );
                     }
                     if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_SMS_VERIFICATION ) )
                     {
                         final String label = PwmSetting.NEWUSER_SMS_VERIFICATION.toMenuLocationDebug( newUserProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE );
                         final String label2 = PwmSetting.TOKEN_STORAGEMETHOD.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
-                        returnRecords.add( HealthRecord.forMessage( HealthMessage.CryptoTokenWithNewUserVerification, label, label2 ) );
+                        returnRecords.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.CryptoTokenWithNewUserVerification, label, label2 ) );
                     }
                 }
             }
@@ -574,9 +574,9 @@ public class TokenService implements PwmService
                     tokenType,
                     userEnteredCode
             );
-            if ( tokenPayload.getDestination() != null && !StringUtil.isEmpty( tokenPayload.getDestination().getValue() ) )
+            if ( tokenPayload.getDestination() != null && StringUtil.notEmpty( tokenPayload.getDestination().getValue() ) )
             {
-                pwmDomain.getIntruderManager().clear( RecordType.TOKEN_DEST, tokenPayload.getDestination().getValue() );
+                pwmDomain.getIntruderManager().clear( IntruderRecordType.TOKEN_DEST, tokenPayload.getDestination().getValue() );
             }
             markTokenAsClaimed( tokenMachine.keyFromKey( userEnteredCode ), sessionLabel, tokenPayload );
             return tokenPayload;
@@ -758,7 +758,7 @@ public class TokenService implements PwmService
             }
 
             final PwmDomain pwmDomain = tokenSendInfo.getPwmDomain();
-            pwmDomain.getIntruderManager().mark( RecordType.TOKEN_DEST, toAddress, null );
+            pwmDomain.getIntruderManager().mark( IntruderRecordType.TOKEN_DEST, toAddress, null );
 
             final EmailItemBean configuredEmailSetting = tokenSendInfo.getConfiguredEmailSetting();
             final EmailItemBean tokenizedEmail = configuredEmailSetting.applyBodyReplacement(
@@ -789,7 +789,7 @@ public class TokenService implements PwmService
             final String modifiedMessage = tokenSendInfo.getSmsMessage().replaceAll( "%TOKEN%", tokenSendInfo.getTokenKey() );
 
             final PwmDomain pwmDomain = tokenSendInfo.getPwmDomain();
-            pwmDomain.getIntruderManager().mark( RecordType.TOKEN_DEST, smsNumber, tokenSendInfo.getSessionLabel() );
+            pwmDomain.getIntruderManager().mark( IntruderRecordType.TOKEN_DEST, smsNumber, tokenSendInfo.getSessionLabel() );
 
             pwmDomain.getPwmApplication().sendSmsUsingQueue( smsNumber, modifiedMessage, tokenSendInfo.getSessionLabel(), tokenSendInfo.getMacroRequest() );
             LOGGER.debug( () -> "token SMS added to send queue for " + smsNumber );

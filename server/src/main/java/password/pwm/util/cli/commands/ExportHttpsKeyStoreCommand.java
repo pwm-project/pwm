@@ -48,7 +48,7 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand
         final String password = getOptionalPassword();
         final String alias = ( String ) cliEnvironment.getOptions().get( ALIAS_OPTIONNAME );
 
-        final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication( cliEnvironment.getPwmDomain().getPwmApplication(), new PasswordData( password ), alias );
+        final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication( cliEnvironment.getPwmApplication(), new PasswordData( password ), alias );
 
         try ( FileOutputStream fos = new FileOutputStream( outputFile ) )
         {

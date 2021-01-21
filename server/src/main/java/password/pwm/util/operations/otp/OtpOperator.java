@@ -30,13 +30,15 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 
+import java.util.Optional;
+
 /**
  * @author mpieters
  */
 public interface OtpOperator
 {
 
-    OTPUserRecord readOtpUserConfiguration(
+    Optional<OTPUserRecord> readOtpUserConfiguration(
             UserIdentity theUser,
             String userGUID
     )

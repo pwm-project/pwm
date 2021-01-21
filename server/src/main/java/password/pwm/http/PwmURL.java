@@ -22,6 +22,8 @@ package password.pwm.http;
 
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
+import password.pwm.config.AppConfig;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -30,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -43,22 +46,18 @@ public class PwmURL
 
     private final URI uri;
     private final String contextPath;
+    private final AppConfig appConfig;
 
-    public PwmURL(
+    private PwmURL(
             final URI uri,
-            final String contextPath
+            final String contextPath,
+            final AppConfig appConfig
     )
     {
-        Objects.requireNonNull( uri );
-        this.uri = uri.normalize();
-        this.contextPath = contextPath;
-    }
 
-    public PwmURL(
-            final HttpServletRequest req
-    )
-    {
-        this( URI.create( req.getRequestURL().toString() ), req.getContextPath() );
+        this.uri = Objects.requireNonNull( uri ).normalize();
+        this.contextPath = Objects.requireNonNull( contextPath );
+        this.appConfig = Objects.requireNonNull( appConfig );
     }
 
     /**
@@ -102,142 +101,129 @@ public class PwmURL
         return true;
     }
 
-    public boolean isLoginServlet( )
+    public static PwmURL create(
+            final HttpServletRequest req
+    )
+            throws PwmUnrecoverableException
     {
-        return isPwmServletURL( PwmServletDefinition.Login );
+        return new PwmURL(
+                URI.create( req.getRequestURL().toString() ),
+                req.getContextPath(),
+                ContextManager.getPwmApplication( req ).getConfig() );
+    }
+
+    public static PwmURL create(
+            final HttpServletRequest req,
+            final AppConfig appConfig
+    )
+    {
+        return new PwmURL(
+                URI.create( req.getRequestURL().toString() ),
+                req.getContextPath(),
+                appConfig );
+    }
+
+    public static PwmURL create(
+            final URI uri,
+            final String contextPath,
+            final AppConfig appConfig
+    )
+            throws PwmUnrecoverableException
+    {
+        return new PwmURL( uri, contextPath, appConfig );
     }
 
     public boolean isResourceURL( )
     {
-        return checkIfStartsWithURL( PwmConstants.URL_PREFIX_PUBLIC + "/resources/" ) || isReferenceURL();
+        return checkIfStartsWithURL( List.of( PwmConstants.URL_PREFIX_PUBLIC + "/resources/" ) ) || isReferenceURL();
     }
 
     public boolean isReferenceURL( )
     {
-        return checkIfMatchesURL( PwmConstants.URL_PREFIX_PUBLIC + "/reference" ) || checkIfStartsWithURL( PwmConstants.URL_PREFIX_PUBLIC + "/reference/" );
+        return checkIfMatchesURL(
+                List.of( PwmConstants.URL_PREFIX_PUBLIC + "/reference" ) )
+                || checkIfStartsWithURL( List.of( PwmConstants.URL_PREFIX_PUBLIC + "/reference/" ) );
     }
 
-    public boolean isLogoutURL( )
-    {
-        return isPwmServletURL( PwmServletDefinition.Logout );
-    }
-
-    public boolean isForgottenPasswordServlet( )
-    {
-        return isPwmServletURL( PwmServletDefinition.ForgottenPassword );
-    }
-
-    public boolean isForgottenUsernameServlet( )
-    {
-        return isPwmServletURL( PwmServletDefinition.ForgottenUsername );
-    }
-
-    public boolean isUserActivationServlet( )
-    {
-        return isPwmServletURL( PwmServletDefinition.ActivateUser );
-    }
-
-    public boolean isNewUserRegistrationServlet( )
-    {
-        return isPwmServletURL( PwmServletDefinition.NewUser );
-    }
-
-    public boolean isOauthConsumer( )
-    {
-        return isPwmServletURL( PwmServletDefinition.OAuthConsumer );
-    }
 
     public boolean isPrivateUrl( )
     {
-        return checkIfStartsWithURL( PwmConstants.URL_PREFIX_PRIVATE + "/" );
+        return checkIfStartsWithURL( List.of( PwmConstants.URL_PREFIX_PRIVATE + "/" ) );
     }
 
     public boolean isAdminUrl( )
     {
-        return isPwmServletURL( PwmServletDefinition.Admin );
+        return matches( PwmServletDefinition.Admin );
     }
 
     public boolean isIndexPage( )
     {
-        return checkIfMatchesURL(
+        return checkIfMatchesURL( List.of(
                 "",
                 "/",
                 PwmConstants.URL_PREFIX_PRIVATE,
                 PwmConstants.URL_PREFIX_PUBLIC,
                 PwmConstants.URL_PREFIX_PRIVATE + "/",
                 PwmConstants.URL_PREFIX_PUBLIC + "/"
-        );
+        ) );
     }
 
     public boolean isPublicUrl( )
     {
-        return checkIfStartsWithURL( PwmConstants.URL_PREFIX_PUBLIC + "/" );
+        return checkIfStartsWithURL( List.of( PwmConstants.URL_PREFIX_PUBLIC + "/" ) );
     }
 
     public boolean isCommandServletURL( )
     {
-        return isPwmServletURL( PwmServletDefinition.PublicCommand )
-                || isPwmServletURL( PwmServletDefinition.PrivateCommand );
+        return matches( PwmServletDefinition.PublicCommand )
+                || matches( PwmServletDefinition.PrivateCommand );
 
     }
 
     public boolean isRestService( )
     {
-        return checkIfStartsWithURL( PwmConstants.URL_PREFIX_PUBLIC + "/rest/" );
+        return checkIfStartsWithURL( List.of( PwmConstants.URL_PREFIX_PUBLIC + "/rest/" ) );
 
     }
 
     public boolean isConfigManagerURL( )
     {
-        return checkIfStartsWithURL( PwmConstants.URL_PREFIX_PRIVATE + "/config/" );
-    }
-
-    public boolean isClientApiServlet( )
-    {
-        return isPwmServletURL( PwmServletDefinition.ClientApi );
+        return checkIfStartsWithURL( List.of( PwmConstants.URL_PREFIX_PRIVATE + "/config/" ) );
     }
 
     public boolean isConfigGuideURL( )
     {
-        return isPwmServletURL( PwmServletDefinition.ConfigGuide );
+        return matches( PwmServletDefinition.ConfigGuide );
     }
 
-    public boolean isPwmServletURL( final PwmServletDefinition pwmServletDefinition )
-    {
-        return checkIfStartsWithURL( pwmServletDefinition.urlPatterns() );
-    }
 
     public boolean isChangePasswordURL( )
     {
-        return isPwmServletURL( PwmServletDefinition.PrivateChangePassword )
-                || isPwmServletURL( PwmServletDefinition.PublicChangePassword );
-    }
-
-    public boolean isSetupResponsesURL( )
-    {
-        return isPwmServletURL( PwmServletDefinition.SetupResponses );
-    }
-
-    public boolean isSetupOtpSecretURL( )
-    {
-        return isPwmServletURL( PwmServletDefinition.SetupOtp );
-    }
-
-    public boolean isProfileUpdateURL( )
-    {
-        return isPwmServletURL( PwmServletDefinition.UpdateProfile );
+        return matches( PwmServletDefinition.PrivateChangePassword )
+                || matches( PwmServletDefinition.PublicChangePassword );
     }
 
     public Optional<PwmServletDefinition> forServletDefinition()
     {
         for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
         {
-            if ( isPwmServletURL( pwmServletDefinition ) )
+            if ( checkIfStartsWithURL( pwmServletDefinition.urlPatterns() ) )
             {
                 return Optional.of( pwmServletDefinition );
             }
         }
         return Optional.empty();
+    }
+
+    public boolean matches( final PwmServletDefinition servletDefinition )
+    {
+        return matches( Collections.singleton( servletDefinition ) );
+    }
+
+    public boolean matches( final Collection<PwmServletDefinition> servletDefinitions )
+    {
+        final Optional<PwmServletDefinition> foundDefinition = forServletDefinition();
+        return foundDefinition.isPresent() && servletDefinitions.contains( foundDefinition.get() );
     }
 
     public boolean isLocalizable( )
@@ -253,17 +239,13 @@ public class PwmURL
         return uri.toString();
     }
 
-    private boolean checkIfStartsWithURL( final String... url )
+    private boolean checkIfStartsWithURL( final List<String> url )
     {
-        final String servletRequestPath = uri.getPath();
-        if ( servletRequestPath == null )
-        {
-            return false;
-        }
+        final String servletRequestPath = pathMinusContextAndDomain();
 
         for ( final String loopURL : url )
         {
-            if ( servletRequestPath.startsWith( contextPath + loopURL ) )
+            if ( servletRequestPath.startsWith( loopURL ) )
             {
                 return true;
             }
@@ -272,24 +254,24 @@ public class PwmURL
         return false;
     }
 
-    private boolean checkIfMatchesURL( final String... url )
+    private boolean checkIfMatchesURL( final List<String> url )
     {
-        final String servletRequestPath = uri.getPath();
-        if ( servletRequestPath == null )
-        {
-            return false;
-        }
+        final String servletRequestPath = pathMinusContextAndDomain();
 
         for ( final String loopURL : url )
         {
-            final String testURL = contextPath + loopURL;
-            if ( servletRequestPath.equals( testURL ) )
+            if ( servletRequestPath.equals( loopURL ) )
             {
                 return true;
             }
         }
 
         return false;
+    }
+
+    public List<String> splitPaths()
+    {
+        return splitPathString( this.uri.getPath() );
     }
 
     public static List<String> splitPathString( final String input )
@@ -418,26 +400,48 @@ public class PwmURL
 
     public String determinePwmServletPath( )
     {
-        final String requestPath = this.uri.getPath();
+        final String requestPath = this.pathMinusContextAndDomain();
         for ( final PwmServletDefinition servletDefinition : PwmServletDefinition.values() )
         {
             for ( final String pattern : servletDefinition.urlPatterns() )
             {
-                final String testPath = contextPath + pattern;
-                if ( requestPath.startsWith( testPath ) )
+                if ( requestPath.startsWith( pattern ) )
                 {
-                    return testPath;
+                    return pattern;
                 }
             }
         }
         return requestPath;
     }
 
+    private String pathMinusContextAndDomain()
+    {
+        String path = this.uri.getPath();
+        if ( path.startsWith( this.contextPath ) )
+        {
+            path = path.substring( this.contextPath.length() );
+        }
+
+        if ( appConfig.isMultiDomain() )
+        {
+            for ( final String domain : appConfig.getDomainIDs() )
+            {
+                final String testPath = '/' + domain;
+                if ( path.startsWith( testPath ) )
+                {
+                    return path.substring( testPath.length() );
+                }
+            }
+        }
+
+        return path;
+    }
+
     public static boolean testIfUrlMatchesAllowedPattern(
             final String testURI,
             final List<String> whiteList,
             final SessionLabel sessionLabel
-            )
+    )
     {
         final String regexPrefix = "regex:";
         for ( final String loopFragment : whiteList )

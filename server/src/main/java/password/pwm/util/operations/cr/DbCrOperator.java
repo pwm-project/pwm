@@ -40,6 +40,8 @@ import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.logging.PwmLogger;
 
+import java.util.Optional;
+
 
 public class DbCrOperator implements CrOperator
 {
@@ -59,7 +61,7 @@ public class DbCrOperator implements CrOperator
     }
 
     @Override
-    public ResponseSet readResponseSet(
+    public Optional<ResponseSet> readResponseSet(
             final SessionLabel sessionLabel,
             final ChaiUser theUser,
             final UserIdentity userIdentity,
@@ -77,12 +79,12 @@ public class DbCrOperator implements CrOperator
         try
         {
             final DatabaseAccessor databaseAccessor = pwmDomain.getPwmApplication().getDatabaseService().getAccessor();
-            final String responseStringBlob = databaseAccessor.get( DatabaseTable.PWM_RESPONSES, userGUID );
-            if ( responseStringBlob != null && responseStringBlob.length() > 0 )
+            final Optional<String> responseStringBlob = databaseAccessor.get( DatabaseTable.PWM_RESPONSES, userGUID );
+            if ( responseStringBlob.isPresent() )
             {
-                final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML( responseStringBlob, theUser );
+                final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML( responseStringBlob.get(), theUser );
                 LOGGER.debug( sessionLabel, () -> "found responses for " + theUser.getEntryDN() + " in remote database: " + userResponseSet.toString() );
-                return userResponseSet;
+                return Optional.of( userResponseSet );
             }
             else
             {
@@ -101,17 +103,17 @@ public class DbCrOperator implements CrOperator
             final ErrorInformation errorInformation = new ErrorInformation( e.getErrorInformation().getError(), errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
-    public ResponseInfoBean readResponseInfo( final SessionLabel sessionLabel, final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID )
+    public Optional<ResponseInfoBean> readResponseInfo( final SessionLabel sessionLabel, final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID )
             throws PwmUnrecoverableException
     {
         try
         {
-            final ResponseSet responseSet = readResponseSet( sessionLabel, theUser, userIdentity, userGUID );
-            return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean( responseSet, DataStorageMethod.DB );
+            final Optional<ResponseSet> responseSet = readResponseSet( sessionLabel, theUser, userIdentity, userGUID );
+            return responseSet.isEmpty() ? Optional.empty() : Optional.of( CrOperators.convertToNoAnswerInfoBean( responseSet.get(), DataStorageMethod.DB ) );
         }
         catch ( final ChaiException e )
         {

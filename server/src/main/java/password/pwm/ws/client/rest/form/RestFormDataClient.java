@@ -91,7 +91,7 @@ public class RestFormDataClient
             final Map<String, String> configuredHeaders = new LinkedHashMap<>( remoteWebServiceConfiguration.getHeaders() );
 
             // add basic auth header;
-            if ( !StringUtil.isEmpty( remoteWebServiceConfiguration.getUsername() ) && !StringUtil.isEmpty( remoteWebServiceConfiguration.getPassword() ) )
+            if ( StringUtil.notEmpty( remoteWebServiceConfiguration.getUsername() ) && StringUtil.notEmpty( remoteWebServiceConfiguration.getPassword() ) )
             {
                 final String authHeaderValue = new BasicAuthInfo( remoteWebServiceConfiguration.getUsername(),
                         new PasswordData( remoteWebServiceConfiguration.getPassword() ) )

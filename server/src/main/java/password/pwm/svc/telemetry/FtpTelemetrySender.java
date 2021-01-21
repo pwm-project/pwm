@@ -26,7 +26,7 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 import org.apache.commons.net.ftp.FTPSClient;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TelemetryPublishBean;
@@ -53,7 +53,7 @@ public class FtpTelemetrySender implements TelemetrySender
     private Settings settings;
 
     @Override
-    public void init( final PwmDomain pwmDomain, final String initString )
+    public void init( final PwmApplication pwmApplication, final String initString )
     {
         settings = JsonUtil.deserialize( initString, Settings.class );
     }

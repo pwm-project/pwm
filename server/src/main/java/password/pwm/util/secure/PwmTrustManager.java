@@ -22,9 +22,10 @@ package password.pwm.util.secure;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
@@ -53,9 +54,9 @@ public class PwmTrustManager implements X509TrustManager
         this.settings = trustManagerSettings;
     }
 
-    public static PwmTrustManager createPwmTrustManager( final DomainConfig config, final List<X509Certificate> trustedCertificates )
+    public static PwmTrustManager createPwmTrustManager( final AppConfig config, final List<X509Certificate> trustedCertificates )
     {
-        final TrustManagerSettings trustManagerSettings = TrustManagerSettings.fromConfiguration( config.getAppConfig() );
+        final TrustManagerSettings trustManagerSettings = TrustManagerSettings.fromConfiguration( config );
 
         return new PwmTrustManager( trustManagerSettings, trustedCertificates );
     }
@@ -96,7 +97,7 @@ public class PwmTrustManager implements X509TrustManager
     {
         final Optional<List<X509Certificate>> rootCa = X509Utils.extractRootCaCertificates( trustedCertificates );
 
-        if ( JavaHelper.isEmpty( trustedCertificates ) )
+        if ( CollectionUtil.isEmpty( trustedCertificates ) )
         {
             final String errorMsg = "no ROOT certificates in configuration trust store for this operation";
             throw new CertificateException( errorMsg );

@@ -42,12 +42,13 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.util.java.CollectionUtil" %>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmRequest formPwmRequest = PwmRequest.forRequest(request,response); %>
 <% final Locale formLocale = formPwmRequest.getLocale(); %>
 <% final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormConfiguration); %>
-<% if (JavaHelper.isEmpty(formConfigurationList)) { %>
+<% if ( CollectionUtil.isEmpty(formConfigurationList)) { %>
 <!-- [ form definition is not available ] -->
 <% } else { %>
 <%

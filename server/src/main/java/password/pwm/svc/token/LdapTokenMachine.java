@@ -95,7 +95,7 @@ class LdapTokenMachine implements TokenMachine
             {
                 return Optional.empty();
             }
-            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmDomain, sessionLabel, user, null );
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmDomain.getPwmApplication(), sessionLabel, user, null );
             final String tokenAttributeValue = userInfo.readStringAttribute( tokenAttribute );
             if ( tokenAttribute != null && tokenAttributeValue.length() > 0 )
             {

@@ -43,6 +43,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -92,6 +93,24 @@ public class LdapConnectionService implements PwmService
 
     private final StatisticCounterBundle<StatKey> stats = new StatisticCounterBundle<>( StatKey.class );
 
+    public static long totalLdapConnectionCount( final PwmApplication pwmApplication )
+    {
+        return pwmApplication.domains().values().stream()
+                .map( PwmDomain::getLdapConnectionService )
+                .map( LdapConnectionService::connectionCount )
+                .map( Long::valueOf )
+                .reduce( 0L, Long::sum );
+    }
+
+    public static int totalLdapProfileCount( final PwmApplication pwmApplication )
+    {
+        return pwmApplication.domains().values().stream()
+                .map( PwmDomain::getConfig )
+                .map( s -> s.getLdapProfiles().size() )
+                .map( Integer::valueOf )
+                .reduce( 0, Integer::sum );
+    }
+
     enum StatKey
     {
         createdProxies,
@@ -126,7 +145,7 @@ public class LdapConnectionService implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
+        this.pwmDomain = pwmApplication.domains().get( domainID );
         this.chaiProviderFactory = ChaiProviderFactory.newProviderFactory();
 
         useThreadLocal = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROXY_USE_THREAD_LOCAL ) );
@@ -139,8 +158,8 @@ public class LdapConnectionService implements PwmService
                 pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROXY_IDLE_THREAD_LOCAL_TIMEOUT_MS ),
                 60_000 );
         final TimeDuration idleWeakTimeout = TimeDuration.of( idleWeakTimeoutMS, TimeDuration.Unit.MILLISECONDS );
-        this.executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
-        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ThreadLocalCleaner(), executorService, idleWeakTimeout, idleWeakTimeout );
+        this.executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain.getPwmApplication(), this.getClass() );
+        pwmDomain.getPwmApplication().getPwmScheduler().scheduleFixedRateJob( new ThreadLocalCleaner(), executorService, idleWeakTimeout, idleWeakTimeout );
 
         final int connectionsPerProfile = maxSlotsPerProfile( pwmDomain );
         LOGGER.trace( () -> "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
@@ -338,7 +357,7 @@ public class LdapConnectionService implements PwmService
             if ( optionalLastLdapError.isPresent() )
             {
                 lastLdapFailureStr = optionalLastLdapError.get();
-                if ( !StringUtil.isEmpty( lastLdapFailureStr ) )
+                if ( StringUtil.notEmpty( lastLdapFailureStr ) )
                 {
                     final Map<String, ErrorInformation> fromJson = JsonUtil.deserialize( lastLdapFailureStr, new TypeToken<Map<String, ErrorInformation>>()
                     {
@@ -456,7 +475,7 @@ public class LdapConnectionService implements PwmService
         debugInfo.put( DebugKey.ThreadLocals, String.valueOf( threadLocalConnections.get( ) ) );
         debugInfo.put( DebugKey.CreatedProviders, String.valueOf( stats.get( StatKey.createdProxies ) ) );
         debugInfo.put( DebugKey.DiscardedThreadLocals, String.valueOf( stats.get( StatKey.clearedThreadLocals ) ) );
-        return Collections.unmodifiableMap( JavaHelper.enumMapToStringMap( debugInfo ) );
+        return Collections.unmodifiableMap( CollectionUtil.enumMapToStringMap( debugInfo ) );
     }
 
     @Data

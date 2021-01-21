@@ -30,7 +30,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Message;
 import password.pwm.svc.email.EmailServerUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -50,7 +50,7 @@ public class SmtpCertImportFunction implements SettingUIFunction
         final String profile = key.getProfileID();
 
         final List<X509Certificate> certs = EmailServerUtil.readCertificates( pwmRequest.getAppConfig(), profile );
-        if ( !JavaHelper.isEmpty( certs ) )
+        if ( !CollectionUtil.isEmpty( certs ) )
         {
             final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
             modifier.writeSetting( key, X509CertificateValue.fromX509( certs ), userIdentity );

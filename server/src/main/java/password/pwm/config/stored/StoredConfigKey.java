@@ -35,7 +35,6 @@ import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey>
 {
@@ -106,9 +105,9 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
         return new StoredConfigKey( RecordType.SETTING, domainID, pwmSetting.getKey(), profileID );
     }
 
-    static StoredConfigKey forLocaleBundle( final PwmLocaleBundle localeBundle, final String key )
+    static StoredConfigKey forLocaleBundle( final PwmLocaleBundle localeBundle, final String key, final DomainID domainID )
     {
-        return new StoredConfigKey( RecordType.LOCALE_BUNDLE, PwmConstants.DOMAIN_ID_PLACEHOLDER, localeBundle.getKey(), key );
+        return new StoredConfigKey( RecordType.LOCALE_BUNDLE, domainID, localeBundle.getKey(), key );
     }
 
     static StoredConfigKey forConfigurationProperty( final ConfigurationProperty configurationProperty )
@@ -147,7 +146,7 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
             case SETTING:
             {
                 final PwmSetting pwmSetting = this.toPwmSetting();
-                final boolean hasProfileID = !StringUtil.isEmpty( profileID );
+                final boolean hasProfileID = StringUtil.notEmpty( profileID );
                 if ( pwmSetting.getCategory().hasProfiles() && !hasProfileID )
                 {
                     throw new IllegalStateException( "profileID is required for setting " + pwmSetting.getKey() );
@@ -187,11 +186,15 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
         switch ( recordType )
         {
             case SETTING:
-                final boolean correctProfile = toPwmSetting().getCategory().hasProfiles() && !StringUtil.isEmpty( profileID );
-                return correctProfile
-                        ? prefix + toPwmSetting().toMenuLocationDebug( profileID, locale )
-                        : prefix + toPwmSetting().toMenuLocationDebug( null, locale ) + separator + "[profile: " + profileID + "]";
-
+                if ( toPwmSetting().getCategory().hasProfiles()  )
+                {
+                    return prefix + toPwmSetting().toMenuLocationDebug( profileID, locale );
+                }
+                else if ( StringUtil.notEmpty( profileID ) )
+                {
+                    return prefix + toPwmSetting().toMenuLocationDebug( null, locale ) + separator + "[profile: " + profileID + "]";
+                }
+                return prefix + toPwmSetting().toMenuLocationDebug( null, locale );
             case PROPERTY:
                 return prefix + this.getRecordID();
 
@@ -293,28 +296,6 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
                 JavaHelper.unhandledSwitchStatement( getRecordType() );
                 throw new IllegalStateException();
         }
-    }
-
-    public static Stream<StoredConfigKey> filterBySettingSyntax( final PwmSettingSyntax pwmSettingSyntax, final Stream<StoredConfigKey> input )
-    {
-
-        if ( input == null )
-        {
-            return Stream.empty();
-        }
-
-        return filterByType( RecordType.SETTING, input )
-                .filter( ( k ) -> k.toPwmSetting().getSyntax() == pwmSettingSyntax );
-    }
-
-    public static Stream<StoredConfigKey> filterByType( final RecordType recordType, final Stream<StoredConfigKey> input )
-    {
-        if ( input == null )
-        {
-            return Stream.empty();
-        }
-
-        return input.filter( ( k ) -> k.isRecordType( recordType ) );
     }
 
     public static Comparator<StoredConfigKey> comparator()

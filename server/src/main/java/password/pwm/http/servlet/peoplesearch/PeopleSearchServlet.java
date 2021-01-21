@@ -322,17 +322,13 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     {
         if ( pwmRequest.getURL().isPublicUrl() )
         {
-            final Optional<PeopleSearchProfile> profile = pwmRequest.getDomainConfig().getPublicPeopleSearchProfile();
-            if ( !profile.isPresent() )
-            {
-                throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "public peoplesearch profile not assigned" );
-            }
-            return profile.get();
+            return pwmRequest.getDomainConfig().getPublicPeopleSearchProfile().orElseThrow(
+                    () -> PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "public peoplesearch profile not assigned" ) );
         }
 
         if ( pwmRequest.isAuthenticated() )
         {
-            return pwmRequest.getPwmSession().getSessionManager().getPeopleSearchProfile();
+            return pwmRequest.getPeopleSearchProfile();
         }
 
         throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "unable to load peoplesearch profile for authenticated user" );

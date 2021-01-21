@@ -35,15 +35,16 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
-import password.pwm.http.PwmHttpResponseWrapper;
+import password.pwm.http.PwmCookiePath;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmURL;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
-import password.pwm.svc.intruder.IntruderManager;
+import password.pwm.svc.intruder.IntruderService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.JsonUtil;
@@ -56,6 +57,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -197,7 +199,7 @@ public class CaptchaUtility
                     captchaSkipCookieName,
                     cookieValue,
                     captchaSkipCookieLifetimeSeconds,
-                    PwmHttpResponseWrapper.CookiePath.Application
+                    PwmCookiePath.Domain
             );
         }
     }
@@ -226,8 +228,8 @@ public class CaptchaUtility
         final String captchaSkipCookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME );
         if ( allowedSkipValue != null )
         {
-            final String cookieValue = pwmRequest.readCookie( captchaSkipCookieName );
-            if ( allowedSkipValue.equals( cookieValue ) )
+            final Optional<String> cookieValue = pwmRequest.readCookie( captchaSkipCookieName );
+            if ( cookieValue.isPresent() && allowedSkipValue.equals( cookieValue.get() ) )
             {
                 LOGGER.debug( pwmRequest, () -> "browser has a valid " + captchaSkipCookieName + " cookie value of " + allowedSkipValue + ", skipping captcha check" );
                 return true;
@@ -272,23 +274,23 @@ public class CaptchaUtility
 
         if ( protectedModules != null )
         {
-            if ( protectedModules.contains( ApplicationPage.LOGIN ) && pwmURL.isLoginServlet() )
+            if ( protectedModules.contains( ApplicationPage.LOGIN ) && pwmURL.matches( PwmServletDefinition.Login ) )
             {
                 enabled = true;
             }
-            else if ( protectedModules.contains( ApplicationPage.FORGOTTEN_PASSWORD ) && pwmURL.isForgottenPasswordServlet() )
+            else if ( protectedModules.contains( ApplicationPage.FORGOTTEN_PASSWORD ) && pwmURL.matches( PwmServletDefinition.ForgottenPassword ) )
             {
                 enabled = true;
             }
-            else if ( protectedModules.contains( ApplicationPage.FORGOTTEN_USERNAME ) && pwmURL.isForgottenUsernameServlet() )
+            else if ( protectedModules.contains( ApplicationPage.FORGOTTEN_USERNAME ) && pwmURL.matches( PwmServletDefinition.ForgottenUsername ) )
             {
                 enabled = true;
             }
-            else if ( protectedModules.contains( ApplicationPage.USER_ACTIVATION ) && pwmURL.isUserActivationServlet() )
+            else if ( protectedModules.contains( ApplicationPage.USER_ACTIVATION ) && pwmURL.matches( PwmServletDefinition.ActivateUser ) )
             {
                 enabled = true;
             }
-            else if ( protectedModules.contains( ApplicationPage.NEW_USER_REGISTRATION ) && pwmURL.isNewUserRegistrationServlet() )
+            else if ( protectedModules.contains( ApplicationPage.NEW_USER_REGISTRATION ) && pwmURL.matches( PwmServletDefinition.NewUser ) )
             {
                 enabled = true;
             }
@@ -336,10 +338,10 @@ public class CaptchaUtility
         }
 
         final String configValue = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_PARAM );
-        if ( !StringUtil.isEmpty( configValue ) )
+        if ( StringUtil.notEmpty( configValue ) )
         {
             final String requestValue = pwmRequest.readParameterAsString( PwmConstants.PARAM_SKIP_CAPTCHA );
-            if ( !StringUtil.isEmpty( requestValue ) )
+            if ( StringUtil.notEmpty( requestValue ) )
             {
                 if ( StringUtil.nullSafeEquals( configValue, requestValue ) )
                 {
@@ -373,7 +375,7 @@ public class CaptchaUtility
             return true;
         }
 
-        final IntruderManager intruderManager = pwmRequest.getPwmDomain().getIntruderManager();
+        final IntruderService intruderManager = pwmRequest.getPwmDomain().getIntruderManager();
         if ( intruderManager == null || intruderManager.status() != PwmService.STATUS.OPEN )
         {
             return false;

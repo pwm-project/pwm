@@ -21,7 +21,7 @@
 package password.pwm.i18n;
 
 import password.pwm.PwmConstants;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ public enum PwmLocaleBundle
     PwmLocaleBundle( final Class<? extends PwmDisplayBundle> theClass, final Flag... flags )
     {
         this.theClass = theClass;
-        this.flags = JavaHelper.enumSetFromArray( flags );
+        this.flags = CollectionUtil.enumSetFromArray( flags );
     }
 
     public Class<? extends PwmDisplayBundle> getTheClass( )

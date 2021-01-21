@@ -20,24 +20,22 @@
 
 package password.pwm.http;
 
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
+import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class PwmSessionWrapper
+public class PwmSessionFactory
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSessionWrapper.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSessionFactory.class );
 
-    private transient PwmSession pwmSession;
-
-    private PwmSessionWrapper( )
+    private PwmSessionFactory( )
     {
 
     }
@@ -54,24 +52,29 @@ public class PwmSessionWrapper
         setHttpSessionIdleTimeout( pwmDomain, pwmSession, httpSession );
     }
 
-
-    public static PwmSession readPwmSession( final HttpSession httpSession )
-            throws PwmUnrecoverableException
+    private static PwmSession createSession( final PwmDomain pwmDomain )
     {
-        final PwmSession returnSession = ( PwmSession ) httpSession.getAttribute( PwmConstants.SESSION_ATTR_PWM_SESSION );
-        if ( returnSession == null )
-        {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "attempt to read PwmSession from HttpSession failed" ) );
-        }
-        return returnSession;
+        // handle pwmSession init and assignment.
+
+        return PwmSession.createPwmSession( pwmDomain );
     }
 
-    public static PwmSession readPwmSession(
-            final HttpServletRequest httpRequest
-    )
-            throws PwmUnrecoverableException
+
+    public static PwmSession readPwmSession( final HttpSession httpSession, final PwmDomain pwmdomain )
     {
-        return readPwmSession( httpRequest.getSession() );
+        final Map<DomainID, PwmSession> map = getDomainSessionMap( httpSession );
+        return map.computeIfAbsent( pwmdomain.getDomainID(), k -> createSession( pwmdomain ) );
+    }
+
+    public static Map<DomainID, PwmSession> getDomainSessionMap( final HttpSession httpSession )
+    {
+        Map<DomainID, PwmSession> map = ( Map<DomainID, PwmSession> ) httpSession.getAttribute( PwmConstants.SESSION_ATTR_PWM_SESSION );
+        if ( map == null )
+        {
+            map = new ConcurrentHashMap<>();
+            httpSession.setAttribute( PwmConstants.SESSION_ATTR_PWM_SESSION, map );
+        }
+        return map;
     }
 
     public static void setHttpSessionIdleTimeout(

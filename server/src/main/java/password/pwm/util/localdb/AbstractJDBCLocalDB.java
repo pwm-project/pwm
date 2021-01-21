@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -244,7 +245,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     }
 
     @Override
-    public String get( final LocalDB.DB db, final String key )
+    public Optional<String> get( final LocalDB.DB db, final String key )
             throws LocalDBException
     {
         preCheck( false );
@@ -262,7 +263,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             resultSet = statement.executeQuery();
             if ( resultSet.next() )
             {
-                return resultSet.getString( VALUE_COLUMN );
+                return Optional.ofNullable( resultSet.getString( VALUE_COLUMN ) );
             }
         }
         catch ( final SQLException ex )
@@ -275,7 +276,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             close( resultSet );
             lock.readLock().unlock();
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override

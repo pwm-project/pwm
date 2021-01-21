@@ -48,12 +48,16 @@ import password.pwm.i18n.Display;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -103,12 +107,17 @@ public class UserMatchViewerFunction implements SettingUIFunction
         final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmDomain.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( config ) );
         final StoredValue storedValue = StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
         final List<UserPermission> permissions = ValueTypeConverter.valueToUserPermissions( storedValue );
+        final PwmDomain tempDomain = tempApplication.domains().get( key.getDomainID() );
 
-        validateUserPermissionLdapValues( tempApplication.getDefaultDomain(), permissions );
+        validateUserPermissionLdapValues( tempDomain, permissions );
 
         final int maxSearchSeconds = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.CONFIG_EDITOR_USER_PERMISSION_TIMEOUT_SECONDS ) );
         final TimeDuration maxSearchTime = TimeDuration.of( maxSearchSeconds, TimeDuration.Unit.SECONDS );
-        return UserPermissionUtility.discoverMatchingUsers( tempApplication.getDefaultDomain(), permissions, SessionLabel.SYSTEM_LABEL, maxResultSize, maxSearchTime );
+        final Iterator<UserIdentity> matches =  UserPermissionUtility.discoverMatchingUsers( tempDomain, permissions, SessionLabel.SYSTEM_LABEL, maxResultSize, maxSearchTime );
+        final List<UserIdentity> sortedResults = new ArrayList<>( CollectionUtil.iteratorToList( matches ) );
+        Collections.sort( sortedResults );
+        return Collections.unmodifiableList ( sortedResults );
+
     }
 
     private static void validateUserPermissionLdapValues(

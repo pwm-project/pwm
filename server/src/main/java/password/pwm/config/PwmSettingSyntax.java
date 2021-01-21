@@ -71,7 +71,7 @@ public enum PwmSettingSyntax
     OPTIONLIST( OptionListValue.factory() ),
     FILE( FileValue.factory() ),
     PROFILE( StringArrayValue.factory() ),
-    DOMAINS( StringArrayValue.factory() ),
+    DOMAIN( StringArrayValue.factory() ),
     VERIFICATION_METHOD( VerificationMethodValue.factory() ),
     PRIVATE_KEY( PrivateKeyValue.factory() ),
     NAMED_SECRET( NamedSecretValue.factory() ),

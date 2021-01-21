@@ -40,27 +40,29 @@ public class StoredConfigKeyTest
     @Test
     public void testKeyEquality()
     {
+        final DomainID domainID = DomainID.systemId();
+
         {
-            final StoredConfigKey key1 = StoredConfigKey.forSetting( PwmSetting.PWM_SITE_URL, null, DomainID.systemId() );
-            final StoredConfigKey key2 = StoredConfigKey.forSetting( PwmSetting.PWM_SITE_URL, null, DomainID.systemId() );
+            final StoredConfigKey key1 = StoredConfigKey.forSetting( PwmSetting.PWM_SITE_URL, null, domainID );
+            final StoredConfigKey key2 = StoredConfigKey.forSetting( PwmSetting.PWM_SITE_URL, null, domainID );
             Assert.assertEquals( key1, key2 );
         }
         {
-            final StoredConfigKey key1 = StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey() );
-            final StoredConfigKey key2 = StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey() );
+            final StoredConfigKey key1 = StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey(), domainID );
+            final StoredConfigKey key2 = StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey(), domainID );
             Assert.assertEquals( key1, key2 );
         }
         {
-            final StoredConfigKey key1 = StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey() );
-            final StoredConfigKey key2 = StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Admin.getKey() );
+            final StoredConfigKey key1 = StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey(), domainID );
+            final StoredConfigKey key2 = StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Admin.getKey(), domainID );
             Assert.assertNotEquals( key1, key2 );
         }
         {
             final Set<StoredConfigKey> set = new HashSet<>();
-            set.add( StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey() ) );
-            set.add( StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey() ) );
+            set.add( StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey(), domainID ) );
+            set.add( StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey(), domainID ) );
             Assert.assertEquals( 1, set.size() );
-            set.add( StoredConfigKey.forLocaleBundle( PwmLocaleBundle.CONFIG, Config.Display_AboutTemplates.getKey() ) );
+            set.add( StoredConfigKey.forLocaleBundle( PwmLocaleBundle.CONFIG, Config.Display_AboutTemplates.getKey(), domainID ) );
             Assert.assertEquals( 2, set.size() );
         }
     }

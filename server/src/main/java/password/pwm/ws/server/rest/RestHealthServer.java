@@ -26,7 +26,7 @@ import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.health.HealthMonitor;
+import password.pwm.health.HealthService;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.svc.stats.Statistic;
@@ -92,13 +92,13 @@ public class RestHealthServer extends RestServlet
             final Locale locale
     )
     {
-        final HealthMonitor healthMonitor = pwmDomain.getPwmApplication().getHealthMonitor();
-        final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList<>( healthMonitor.getHealthRecords() );
+        final HealthService healthService = pwmDomain.getPwmApplication().getHealthMonitor();
+        final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList<>( healthService.getHealthRecords() );
         final List<HealthRecord> healthRecordBeans = HealthRecord.fromHealthRecords( healthRecords, locale,
                 pwmDomain.getConfig() );
         return HealthData.builder()
-                .timestamp( healthMonitor.getLastHealthCheckTime() )
-                .overall( healthMonitor.getMostSevereHealthStatus().toString() )
+                .timestamp( healthService.getLastHealthCheckTime() )
+                .overall( healthService.getMostSevereHealthStatus().toString() )
                 .records( healthRecordBeans )
                 .build();
 

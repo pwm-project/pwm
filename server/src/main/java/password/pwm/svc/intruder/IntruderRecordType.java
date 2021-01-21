@@ -20,22 +20,25 @@
 
 package password.pwm.svc.intruder;
 
-import password.pwm.error.PwmException;
-import password.pwm.util.java.ClosableIterator;
+import password.pwm.svc.stats.Statistic;
 
-public interface RecordManager
+public enum IntruderRecordType
 {
-    boolean checkSubject( String subject );
+    ADDRESS( Statistic.LOCKED_ADDRESSES ),
+    USERNAME( Statistic.LOCKED_USERS ),
+    USER_ID( Statistic.LOCKED_USERIDS ),
+    ATTRIBUTE( Statistic.LOCKED_ATTRIBUTES ),
+    TOKEN_DEST( Statistic.LOCKED_TOKENDESTS ),;
 
-    void markSubject( String subject );
+    private final Statistic lockStatistic;
 
-    void clearSubject( String subject );
+    IntruderRecordType( final Statistic lockStatistic )
+    {
+        this.lockStatistic = lockStatistic;
+    }
 
-    boolean isAlerted( String subject );
-
-    void markAlerted( String subject );
-
-    IntruderRecord readIntruderRecord( String subject );
-
-    ClosableIterator<IntruderRecord> iterator( ) throws PwmException;
+    public Statistic getLockStatistic( )
+    {
+        return lockStatistic;
+    }
 }

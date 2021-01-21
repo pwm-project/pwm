@@ -21,6 +21,7 @@
 package password.pwm.ldap.permission;
 
 import com.novell.ldapchai.util.StringHelper;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
@@ -33,6 +34,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.util.java.QueueBackedIterator;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -40,6 +42,7 @@ import password.pwm.util.logging.PwmLogger;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -129,7 +132,7 @@ public class UserPermissionUtility
         return match;
     }
 
-    public static List<UserIdentity> discoverMatchingUsers(
+    public static Iterator<UserIdentity> discoverMatchingUsers(
             final PwmDomain pwmDomain,
             final List<UserPermission> userPermissions,
             final SessionLabel sessionLabel,
@@ -140,7 +143,7 @@ public class UserPermissionUtility
     {
         if ( userPermissions == null )
         {
-            return Collections.emptyList();
+            return Collections.emptyIterator();
         }
 
         final List<UserPermission> sortedPermissions = new ArrayList<>( userPermissions );
@@ -178,10 +181,8 @@ public class UserPermissionUtility
             }
         }
 
-        final List<UserIdentity> strippedResults = stripUserMatchesOutsideUserContexts( sessionLabel, pwmDomain, resultSet );
-        final List<UserIdentity> sortedResults = new ArrayList<>( strippedResults );
-        Collections.sort( sortedResults );
-        return Collections.unmodifiableList( sortedResults );
+        final List<UserIdentity> strippedResults = stripUserMatchesOutsideUserContexts( sessionLabel, pwmDomain.getPwmApplication(), resultSet );
+        return new QueueBackedIterator<>( strippedResults );
     }
 
     static Optional<String> profileIdForPermission( final UserPermission userPermission )
@@ -212,14 +213,14 @@ public class UserPermissionUtility
 
     static List<UserIdentity> stripUserMatchesOutsideUserContexts(
             final SessionLabel sessionLabel,
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final List<UserIdentity> userIdentities
     )
     {
         final Instant startTime = Instant.now();
         final List<UserIdentity> output = userIdentities
                 .stream()
-                .filter( ( u ) -> testUserWithinConfiguredUserContexts( sessionLabel, pwmDomain, u ) )
+                .filter( ( u ) -> testUserWithinConfiguredUserContexts( sessionLabel, pwmApplication, u ) )
                 .collect( Collectors.toList() );
 
         final int removedValues = userIdentities.size() - output.size();
@@ -235,12 +236,14 @@ public class UserPermissionUtility
 
     public static boolean testUserWithinConfiguredUserContexts(
             final SessionLabel sessionLabel,
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final UserIdentity userIdentity
     )
     {
         final String ldapProfileID = userIdentity.getLdapProfileID();
+        final PwmDomain pwmDomain = pwmApplication.domains().get( userIdentity.getDomainID() );
         final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( ldapProfileID );
+
         try
         {
             final List<String> rootContexts = ldapProfile.getRootContexts( pwmDomain );

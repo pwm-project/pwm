@@ -87,7 +87,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
 
     public String debugLog()
     {
-        if ( engine != null && !StringUtil.isEmpty( engine.getDebugLog() ) )
+        if ( engine != null && StringUtil.notEmpty( engine.getDebugLog() ) )
         {
             return engine.getDebugLog();
         }
@@ -104,7 +104,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
+        this.pwmDomain = pwmApplication.domains().get( domainID );
 
         if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) )
         {
@@ -231,7 +231,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
                 final ErrorInformation errorInformation = pwNotifyStoredJobState.getLastError();
                 if ( errorInformation != null )
                 {
-                    returnRecords.add( HealthRecord.forMessage( HealthMessage.PwNotify_Failure, errorInformation.toDebugStr() ) );
+                    returnRecords.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.PwNotify_Failure, errorInformation.toDebugStr() ) );
                 }
             }
         }

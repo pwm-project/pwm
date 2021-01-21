@@ -20,7 +20,7 @@
 
 package password.pwm.util;
 
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
@@ -29,14 +29,14 @@ import password.pwm.util.localdb.LocalDBDataStore;
 
 public abstract class DataStoreFactory
 {
-    public static DataStore autoDbOrLocalDBstore( final PwmDomain pwmDomain, final DatabaseTable table, final LocalDB.DB db )
+    public static DataStore autoDbOrLocalDBstore( final PwmApplication pwmApplication, final DatabaseTable table, final LocalDB.DB db )
             throws PwmUnrecoverableException
     {
-        if ( pwmDomain.getConfig().getAppConfig().hasDbConfigured() )
+        if ( pwmApplication.getConfig().hasDbConfigured() )
         {
-            return new DatabaseDataStore( pwmDomain.getPwmApplication().getDatabaseService(), table );
+            return new DatabaseDataStore( pwmApplication.getDatabaseService(), table );
         }
 
-        return new LocalDBDataStore( pwmDomain.getPwmApplication().getLocalDB(), db );
+        return new LocalDBDataStore( pwmApplication.getLocalDB(), db );
     }
 }

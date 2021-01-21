@@ -45,6 +45,7 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.HttpContentType;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -106,7 +107,7 @@ public class EmailServerUtil
         final PasswordData password = profile.readSettingAsPassword( PwmSetting.EMAIL_PASSWORD );
 
         final SmtpServerType smtpServerType = profile.readSettingAsEnum( PwmSetting.EMAIL_SERVER_TYPE, SmtpServerType.class );
-        if ( !StringUtil.isEmpty( address )
+        if ( StringUtil.notEmpty( address )
                 && port > 0
         )
         {
@@ -138,11 +139,11 @@ public class EmailServerUtil
             throws PwmUnrecoverableException
     {
         final List<X509Certificate> configuredCerts = emailServerProfile.readSettingAsCertificate( PwmSetting.EMAIL_SERVER_CERTS );
-        if ( JavaHelper.isEmpty( configuredCerts ) )
+        if ( CollectionUtil.isEmpty( configuredCerts ) )
         {
-            return X509Utils.getDefaultJavaTrustManager( appConfig.getDefaultDomainConfig() );
+            return X509Utils.getDefaultJavaTrustManager( appConfig );
         }
-        final TrustManager certMatchingTrustManager = PwmTrustManager.createPwmTrustManager( appConfig.getDefaultDomainConfig(), configuredCerts );
+        final TrustManager certMatchingTrustManager = PwmTrustManager.createPwmTrustManager( appConfig, configuredCerts );
         return new TrustManager[]
                 {
                         certMatchingTrustManager,
@@ -372,7 +373,7 @@ public class EmailServerUtil
     {
         final Instant startTime = Instant.now();
         // Login to SMTP server first if both username and password is given
-        final boolean authenticated = !StringUtil.isEmpty( server.getUsername() ) && server.getPassword() != null;
+        final boolean authenticated = StringUtil.notEmpty( server.getUsername() ) && server.getPassword() != null;
 
         final Transport transport = server.getSession().getTransport( );
 
@@ -403,7 +404,7 @@ public class EmailServerUtil
     {
         final EmailServerProfile emailServerProfile = appConfig.getEmailServerProfiles().get( profile );
         final CertificateReadingTrustManager certReaderTm = CertificateReadingTrustManager.newCertReaderTrustManager(
-                appConfig.getDefaultDomainConfig(),
+                appConfig,
                 X509Utils.ReadCertificateFlag.ReadOnlyRootCA );
         final TrustManager[] trustManagers =  new TrustManager[]
                 {

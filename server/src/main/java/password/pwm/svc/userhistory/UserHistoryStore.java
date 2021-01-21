@@ -18,13 +18,18 @@
  * limitations under the License.
  */
 
-package password.pwm.health;
+package password.pwm.svc.userhistory;
 
-import password.pwm.PwmDomain;
+import password.pwm.bean.SessionLabel;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.UserInfo;
+import password.pwm.svc.event.UserAuditRecord;
 
 import java.util.List;
 
-public interface HealthChecker
+public interface UserHistoryStore
 {
-    List<HealthRecord> doHealthCheck( PwmDomain pwmDomain );
+    void updateUserHistory( SessionLabel sessionLabel, UserAuditRecord auditRecord ) throws PwmUnrecoverableException;
+
+    List<UserAuditRecord> readUserHistory( SessionLabel sessionLabel, UserInfo userInfo ) throws PwmUnrecoverableException;
 }

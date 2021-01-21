@@ -24,19 +24,17 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.pub.SessionStateInfoBean;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.SettingReader;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Admin;
-import password.pwm.ldap.LdapConnectionService;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.util.i18n.LocaleHelper;
@@ -69,7 +67,7 @@ public class SessionTrackService implements PwmService
             .maximumSize( 10 )
             .build();
 
-    private PwmDomain pwmDomain;
+    private PwmApplication pwmApplication;
 
 
     @Override
@@ -82,7 +80,7 @@ public class SessionTrackService implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
+        this.pwmApplication = pwmApplication;
     }
 
     @Override
@@ -195,7 +193,7 @@ public class SessionTrackService implements PwmService
 
     public void outputToCsv(
             final Locale locale,
-            final DomainConfig config,
+            final SettingReader config,
             final OutputStream outputStream
             )
             throws IOException
@@ -301,7 +299,7 @@ public class SessionTrackService implements PwmService
 
     public String generateNewSessionID()
     {
-        final PwmRandom pwmRandom = pwmDomain.getSecureService().pwmRandom();
+        final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
 
         for ( int safetyCounter = 0; safetyCounter < 1000; safetyCounter++ )
         {
@@ -313,14 +311,5 @@ public class SessionTrackService implements PwmService
         }
 
         throw new IllegalStateException( "unable to generate unique sessionID value" );
-    }
-
-    public static long totalLdapConnectionCount( final PwmApplication pwmApplication )
-    {
-        return pwmApplication.getDomains().values().stream()
-                .map( PwmDomain::getLdapConnectionService )
-                .map( LdapConnectionService::connectionCount )
-                .map( Long::valueOf )
-                .reduce( 0L, Long::sum );
     }
 }

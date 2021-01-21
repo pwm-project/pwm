@@ -23,7 +23,7 @@ package password.pwm.util.logging;
 import org.apache.log4j.Logger;
 import org.apache.log4j.RollingFileAppender;
 import org.apache.log4j.varia.NullAppender;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
@@ -50,7 +50,7 @@ public class PwmLogger
 {
     private static LocalDBLogger localDBLogger;
     private static PwmLogLevel minimumDbLogLevel;
-    private static PwmDomain pwmDomain;
+    private static PwmApplication pwmApplication;
     private static RollingFileAppender fileAppender;
     private static boolean initialized;
 
@@ -63,10 +63,10 @@ public class PwmLogger
         initialized = true;
     }
 
-    static void setPwmApplication( final PwmDomain pwmDomain )
+    static void setPwmApplication( final PwmApplication pwmApplication )
     {
-        PwmLogger.pwmDomain = pwmDomain;
-        if ( pwmDomain != null )
+        PwmLogger.pwmApplication = pwmApplication;
+        if ( pwmApplication != null )
         {
             initialized = true;
         }
@@ -222,11 +222,11 @@ public class PwmLogger
                     messageInfo.put( "errorMessage", logEvent.getMessage() );
 
                     final String messageInfoStr = JsonUtil.serializeMap( messageInfo );
-                    final AuditRecord auditRecord = new AuditRecordFactory( pwmDomain ).createSystemAuditRecord(
+                    final AuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createSystemAuditRecord(
                             AuditEvent.FATAL_EVENT,
                             messageInfoStr
                     );
-                    pwmDomain.getAuditManager().submit( sessionLabel, auditRecord );
+                    pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
                 }
             }
         }

@@ -119,7 +119,7 @@ public class IdleTimeoutCalculator
         if ( domainConfig.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE ) )
         {
             final String helpdeskProfileID = userInfo.getProfileIDs().get( ProfileDefinition.Helpdesk );
-            if ( !StringUtil.isEmpty( helpdeskProfileID ) )
+            if ( StringUtil.notEmpty( helpdeskProfileID ) )
             {
                 final HelpdeskProfile helpdeskProfile = domainConfig.getHelpdeskProfiles().get( helpdeskProfileID );
                 final long helpdeskIdleTimeout = helpdeskProfile.readSettingAsLong( PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS );
@@ -132,7 +132,7 @@ public class IdleTimeoutCalculator
         if ( domainConfig.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
         {
             final String peopleSearchID = userInfo.getProfileIDs().get( ProfileDefinition.PeopleSearch );
-            if ( !StringUtil.isEmpty( peopleSearchID ) )
+            if ( StringUtil.notEmpty( peopleSearchID ) )
             {
                 final PeopleSearchProfile peopleSearchProfile = domainConfig.getPeopleSearchProfiles().get( peopleSearchID );
                 final long peopleSearchIdleTimeout = peopleSearchProfile.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS );
@@ -190,11 +190,11 @@ public class IdleTimeoutCalculator
         }
 
         final DomainConfig config = pwmDomain.getConfig();
-        if ( pwmURL.isPwmServletURL( PwmServletDefinition.Helpdesk ) )
+        if ( pwmURL.matches( PwmServletDefinition.Helpdesk ) )
         {
             if ( config.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE ) )
             {
-                final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile( );
+                final HelpdeskProfile helpdeskProfile = pwmRequest.getHelpdeskProfile( );
                 if ( helpdeskProfile != null )
                 {
                     final long helpdeskIdleTimeout = helpdeskProfile.readSettingAsLong( PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS );
@@ -208,13 +208,13 @@ public class IdleTimeoutCalculator
 
         if (
                 (
-                        pwmURL.isPwmServletURL( PwmServletDefinition.PrivatePeopleSearch )
-                                || pwmURL.isPwmServletURL( PwmServletDefinition.PublicPeopleSearch )
+                        pwmURL.matches( PwmServletDefinition.PrivatePeopleSearch )
+                                || pwmURL.matches( PwmServletDefinition.PublicPeopleSearch )
                 )
                         && pwmURL.isPrivateUrl()
                 )
         {
-            final PeopleSearchProfile peopleSearchProfile = pwmSession.getSessionManager().getPeopleSearchProfile( );
+            final PeopleSearchProfile peopleSearchProfile = pwmRequest.getPeopleSearchProfile( );
             if ( peopleSearchProfile != null )
             {
                 final long peopleSearchIdleTimeout = peopleSearchProfile.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS );
@@ -225,7 +225,7 @@ public class IdleTimeoutCalculator
             }
         }
 
-        if ( pwmURL.isPwmServletURL( PwmServletDefinition.ConfigEditor ) )
+        if ( pwmURL.matches( PwmServletDefinition.ConfigEditor ) )
         {
             try
             {
@@ -244,7 +244,7 @@ public class IdleTimeoutCalculator
             }
         }
 
-        if ( pwmURL.isPwmServletURL( PwmServletDefinition.ConfigGuide ) )
+        if ( pwmURL.matches( PwmServletDefinition.ConfigGuide ) )
         {
             if ( pwmDomain.getApplicationMode() == PwmApplicationMode.NEW )
             {

@@ -21,12 +21,13 @@
 package password.pwm.util.i18n;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.pub.SessionStateInfoBean;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplateSet;
+import password.pwm.config.SettingReader;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
@@ -66,7 +67,7 @@ public class LocaleHelper
         ltr,
     }
 
-    public static Optional<Class> classForShortName( final String shortName )
+    public static Optional<Class<? extends PwmDisplayBundle>> classForShortName( final String shortName )
     {
         if ( StringUtil.isEmpty( shortName ) )
         {
@@ -75,7 +76,7 @@ public class LocaleHelper
         final String className = PwmLocaleBundle.class.getPackage().getName() + "." + shortName;
         try
         {
-            return Optional.of( Class.forName( className ) );
+            return Optional.of( ( Class<? extends PwmDisplayBundle> ) Class.forName( className ) );
         }
         catch ( final ClassNotFoundException e )
         {
@@ -83,7 +84,7 @@ public class LocaleHelper
         }
     }
 
-    public static String getLocalizedMessage( final Locale locale, final PwmDisplayBundle key, final DomainConfig config )
+    public static String getLocalizedMessage( final Locale locale, final PwmDisplayBundle key, final SettingReader config )
     {
         return getLocalizedMessage( locale, key.getKey(), config, key.getClass() );
     }
@@ -104,12 +105,12 @@ public class LocaleHelper
         );
     }
 
-    public static String getLocalizedMessage( final String key, final DomainConfig config, final Class bundleClass )
+    public static String getLocalizedMessage( final String key, final SettingReader config, final Class<? extends PwmDisplayBundle> bundleClass )
     {
         return getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, key, config, bundleClass );
     }
 
-    public static String getLocalizedMessage( final Locale locale, final String key, final DomainConfig config, final Class bundleClass )
+    public static String getLocalizedMessage( final Locale locale, final String key, final SettingReader config, final Class<? extends PwmDisplayBundle> bundleClass )
     {
         return getLocalizedMessage( locale, key, config, bundleClass, null );
     }
@@ -117,8 +118,8 @@ public class LocaleHelper
     public static String getLocalizedMessage(
             final Locale locale,
             final String key,
-            final DomainConfig config,
-            final Class bundleClass,
+            final SettingReader config,
+            final Class<? extends PwmDisplayBundle> bundleClass,
             final String[] values
     )
     {
@@ -135,7 +136,7 @@ public class LocaleHelper
             }
         }
 
-        if ( returnValue == null || returnValue.isEmpty() )
+        if ( StringUtil.isEmpty( returnValue ) )
         {
             final ResourceBundle bundle = getMessageBundle( locale, bundleClass );
             if ( bundle == null )
@@ -150,11 +151,8 @@ public class LocaleHelper
             }
             catch ( final MissingResourceException e )
             {
-                final String errorMsg = "missing key '" + key + "' for " + bundleClass.getName();
-                if ( config != null && config.getAppConfig().isDevDebugMode() )
-                {
-                    LOGGER.warn( () -> errorMsg );
-                }
+                //final String errorMsg = "missing key '" + key + "' for " + bundleClass.getName();
+                //.warn( () -> errorMsg, e );
                 returnValue = key;
             }
         }
@@ -175,7 +173,7 @@ public class LocaleHelper
         return macroRequest.expandMacros( returnValue );
     }
 
-    private static ResourceBundle getMessageBundle( final Locale locale, final Class bundleClass )
+    private static ResourceBundle getMessageBundle( final Locale locale, final Class<? extends PwmDisplayBundle> bundleClass )
     {
         if ( !PwmDisplayBundle.class.isAssignableFrom( bundleClass ) )
         {
@@ -330,7 +328,7 @@ public class LocaleHelper
     {
         final Map<Locale, String> returnObj = new LinkedHashMap<>();
         final Collection<Locale> localeList = domainConfig == null
-                ? new ArrayList<>( PwmConstants.INCLUDED_LOCALES )
+                ? new ArrayList<>( List.of( PwmConstants.DEFAULT_LOCALE ) )
                 : new ArrayList<>( domainConfig.getAppConfig().getKnownLocales() );
 
         final String defaultValue = getLocalizedMessage( defaultLocale, key, domainConfig, bundleClass );
@@ -413,7 +411,7 @@ public class LocaleHelper
 
     public static Locale getLocaleForSessionID( final PwmDomain pwmDomain, final String sessionID )
     {
-        if ( pwmDomain != null && !StringUtil.isEmpty( sessionID ) )
+        if ( pwmDomain != null && StringUtil.notEmpty( sessionID ) )
         {
             final Iterator<SessionStateInfoBean> sessionInfoIterator = pwmDomain.getSessionTrackService().getSessionInfoIterator();
             while ( sessionInfoIterator.hasNext() )
@@ -452,9 +450,8 @@ public class LocaleHelper
     public static List<Locale> highLightedLocales()
     {
         final List<String> strValues = PwmConstants.HIGHLIGHT_LOCALES;
-        final List<Locale> returnList = strValues.stream().map( LocaleHelper::parseLocaleString ).collect( Collectors.toList() );
-        return Collections.unmodifiableList( returnList );
-
+        return strValues.stream().map( LocaleHelper::parseLocaleString )
+                .collect( Collectors.toUnmodifiableList() );
     }
 
     static List<Locale> knownBuiltInLocales( )

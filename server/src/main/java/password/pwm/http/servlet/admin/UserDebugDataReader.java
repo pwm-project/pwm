@@ -64,7 +64,7 @@ public class UserDebugDataReader
     {
 
 
-        final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxyForOfflineUser( pwmDomain, sessionLabel, userIdentity );
+        final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxyForOfflineUser( pwmDomain.getPwmApplication(), sessionLabel, userIdentity );
 
         final Map<Permission, String> permissions = UserDebugDataReader.permissionMap( pwmDomain, sessionLabel, userIdentity );
 
@@ -88,7 +88,7 @@ public class UserDebugDataReader
             /* disregard */
         }
 
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, locale, sessionLabel, userIdentity );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), locale, sessionLabel, userIdentity );
 
         final PwNotifyUserStatus pwNotifyUserStatus = readPwNotifyUserStatus( pwmDomain, userIdentity, sessionLabel );
 

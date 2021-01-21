@@ -20,13 +20,15 @@
 
 package password.pwm.svc.wordlist;
 
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
@@ -45,19 +47,22 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-public class SharedHistoryManager implements PwmService
+public class SharedHistoryService implements PwmService
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( SharedHistoryManager.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( SharedHistoryService.class );
 
     private static final String KEY_OLDEST_ENTRY = "oldest_entry";
     private static final String KEY_VERSION = "version";
     private static final String KEY_SALT = "salt";
+
+    private static final String DATA_FORMAT_VERSION = "2";
 
     // 1 hour
     private static final int MIN_CLEANER_FREQUENCY = 1000 * 60 * 60;
@@ -76,10 +81,10 @@ public class SharedHistoryManager implements PwmService
     private String salt;
     private long oldestEntry;
 
-    private final Settings settings = new Settings();
+    private Settings settings = Settings.builder().build();
     private final Lock addWordLock = new ReentrantLock();
 
-    public SharedHistoryManager( ) throws LocalDBException
+    public SharedHistoryService( )
     {
     }
 
@@ -114,12 +119,12 @@ public class SharedHistoryManager implements PwmService
         try
         {
             final String hashedWord = hashWord( testWord );
-            final boolean inDB = localDB.contains( WORDS_DB, hashedWord );
-            if ( inDB )
+            final Optional<String> storedValue = localDB.get( WORDS_DB, hashedWord );
+            if ( storedValue.isPresent() )
             {
-                final long timeStamp = Long.parseLong( localDB.get( WORDS_DB, hashedWord ) );
-                final long entryAge = System.currentTimeMillis() - timeStamp;
-                if ( entryAge < settings.maxAgeMs )
+                final Instant timeStamp = Instant.ofEpochMilli( Long.parseLong(  storedValue.get() ) );
+                final TimeDuration entryAge = TimeDuration.between( Instant.now(), timeStamp );
+                if ( entryAge.isLongerThan( settings.getMaxAge( ) ) )
                 {
                     result = true;
                 }
@@ -170,13 +175,13 @@ public class SharedHistoryManager implements PwmService
         }
     }
 
-    private boolean checkDbVersion( )
+    private void checkDbVersion( )
             throws Exception
     {
         LOGGER.trace( () -> "checking version number stored in LocalDB" );
 
-        final Object versionInDB = localDB.get( META_DB, KEY_VERSION );
-        final String currentVersion = "version=" + settings.version;
+        final String versionInDB = localDB.get( META_DB, KEY_VERSION ).orElse( "" );
+        final String currentVersion = "version=" + settings.getVersion();
         final boolean result = currentVersion.equals( versionInDB );
 
         if ( !result )
@@ -190,11 +195,9 @@ public class SharedHistoryManager implements PwmService
         {
             LOGGER.trace( () -> "existing db version matches current db version db=(" + versionInDB + ")  current=(" + currentVersion + ")" );
         }
-
-        return result;
     }
 
-    private void init( final PwmDomain pwmDomain, final long maxAgeMs )
+    private void init( final PwmApplication pwmApplication, final TimeDuration maxAge )
     {
         final Instant startTime = Instant.now();
 
@@ -212,17 +215,17 @@ public class SharedHistoryManager implements PwmService
 
         try
         {
-            final String oldestEntryStr = localDB.get( META_DB, KEY_OLDEST_ENTRY );
-            if ( oldestEntryStr == null || oldestEntryStr.length() < 1 )
+            final Optional<String> oldestEntryStr = localDB.get( META_DB, KEY_OLDEST_ENTRY );
+            if ( oldestEntryStr.isPresent() )
             {
-                oldestEntry = 0;
-                LOGGER.trace( () -> "no oldestEntry timestamp stored, will rescan" );
+                oldestEntry = Long.parseLong( oldestEntryStr.get() );
+                LOGGER.trace( () -> "oldest timestamp loaded from localDB, age is " + TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
             }
             else
             {
-                oldestEntry = Long.parseLong( oldestEntryStr );
-                LOGGER.trace( () -> "oldest timestamp loaded from localDB, age is " + TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
-            }
+                oldestEntry = 0;
+                LOGGER.trace( () -> "no oldestEntry timestamp stored, will rescan" );
+                }
         }
         catch ( final LocalDBException e )
         {
@@ -235,7 +238,7 @@ public class SharedHistoryManager implements PwmService
         {
             final long size = localDB.size( WORDS_DB );
             LOGGER.debug( () -> "open with " + size + " words"
-                    + ", maxAgeMs=" + TimeDuration.of( maxAgeMs, TimeDuration.Unit.MILLISECONDS ).asCompactString()
+                    + ", maxAgeMs=" + maxAge.asCompactString()
                     + ", oldestEntry=" + TimeDuration.fromCurrent( oldestEntry ).asCompactString(),
                     () -> TimeDuration.fromCurrent( startTime ) );
         }
@@ -249,15 +252,14 @@ public class SharedHistoryManager implements PwmService
         status = STATUS.OPEN;
         //populateFromWordlist();  //only used for debugging!!!
 
-        if ( pwmDomain.getApplicationMode() == PwmApplicationMode.RUNNING || pwmDomain.getApplicationMode() == PwmApplicationMode.CONFIGURATION )
+        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING || pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION )
         {
-            long frequencyMs = maxAgeMs > MAX_CLEANER_FREQUENCY ? MAX_CLEANER_FREQUENCY : maxAgeMs;
-            frequencyMs = frequencyMs < MIN_CLEANER_FREQUENCY ? MIN_CLEANER_FREQUENCY : frequencyMs;
+            final long frequencyMs = JavaHelper.rangeCheck( MIN_CLEANER_FREQUENCY, MAX_CLEANER_FREQUENCY, maxAge.asMillis() );
             final TimeDuration frequency = TimeDuration.of( frequencyMs, TimeDuration.Unit.MILLISECONDS );
 
             LOGGER.debug( () -> "scheduling cleaner task to run once every " + frequency.asCompactString() );
-            executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain.getPwmApplication(), this.getClass() );
-            pwmDomain.getPwmApplication().getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), executorService, null, frequency );
+            executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), executorService, null, frequency );
         }
     }
 
@@ -364,12 +366,13 @@ public class SharedHistoryManager implements PwmService
             }
 
             final long oldestEntryAge = System.currentTimeMillis() - oldestEntry;
-            if ( oldestEntryAge < settings.maxAgeMs )
-            {
+            if ( settings.getMaxAge().isLongerThan( oldestEntryAge ) )
+
+                {
                 LOGGER.debug( () -> "skipping wordDB reduce operation, eldestEntry="
                         + TimeDuration.asCompactString( oldestEntryAge )
                         + ", maxAge="
-                        + TimeDuration.asCompactString( settings.maxAgeMs ) );
+                        + settings.getMaxAge().asCompactString() );
                 return;
             }
 
@@ -379,7 +382,7 @@ public class SharedHistoryManager implements PwmService
             long localOldestEntry = System.currentTimeMillis();
 
             LOGGER.debug( () -> "beginning wordDB reduce operation, examining " + initialSize
-                    + " words for entries older than " + TimeDuration.asCompactString( settings.maxAgeMs ) );
+                    + " words for entries older than " + settings.getMaxAge().asCompactString() );
 
             LocalDB.LocalDBIterator<Map.Entry<String, String>> keyIterator = null;
             try
@@ -393,7 +396,7 @@ public class SharedHistoryManager implements PwmService
                     final long timeStamp = Long.parseLong( value );
                     final long entryAge = System.currentTimeMillis() - timeStamp;
 
-                    if ( entryAge > settings.maxAgeMs )
+                    if ( settings.getMaxAge().isLongerThan( entryAge ) )
                     {
                         localDB.remove( WORDS_DB, key );
                         removeCount++;
@@ -452,15 +455,11 @@ public class SharedHistoryManager implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        final PwmDomain pwmDomain = pwmApplication.getDefaultDomain();
         // convert to MS;
-        settings.maxAgeMs = 1000 * pwmDomain.getConfig().readSettingAsLong( PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE );
-        settings.caseInsensitive = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_CASE_INSENSITIVE ) );
-        settings.hashName = pwmDomain.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_HASH_NAME );
-        settings.hashIterations = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_HASH_ITERATIONS ) );
-        settings.version = "2" + "_" + settings.hashName + "_" + settings.hashIterations + "_" + settings.caseInsensitive;
 
-        final int saltLength = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_SALT_LENGTH ) );
+        settings = Settings.fromConfiguration( pwmApplication );
+
+        final int saltLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_SALT_LENGTH ) );
         this.localDB = pwmApplication.getLocalDB();
 
         boolean needsClearing = false;
@@ -471,14 +470,14 @@ public class SharedHistoryManager implements PwmService
             return;
         }
 
-        if ( settings.maxAgeMs < 1 )
+        if ( settings.getMaxAge().isShorterThan( TimeDuration.SECOND ) )
         {
-            LOGGER.debug( () -> "max age=" + settings.maxAgeMs + ", will remain closed" );
+            LOGGER.debug( () -> "max age=" + settings.getMaxAge().asCompactString() + ", will remain closed" );
             needsClearing = true;
         }
 
         {
-            this.salt = localDB.get( META_DB, KEY_SALT );
+            this.salt = localDB.get( META_DB, KEY_SALT ).orElse( null );
             if ( salt == null || salt.length() < saltLength )
             {
                 LOGGER.warn( () -> "stored global salt value is not present, creating new salt" );
@@ -501,24 +500,40 @@ public class SharedHistoryManager implements PwmService
             }
         }
 
-        new Thread( new Runnable()
+        new Thread( () ->
         {
-            @Override
-            public void run( )
-            {
-                LOGGER.debug( () -> "starting up in background thread" );
-                init( pwmDomain, settings.maxAgeMs );
-            }
+            LOGGER.debug( () -> "starting up in background thread" );
+            init( pwmApplication, settings.getMaxAge() );
         }, PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + " initializer" ).start();
     }
 
+    @Value
+    @Builder
     private static class Settings
     {
-        private String version;
-        private String hashName;
-        private int hashIterations;
-        private long maxAgeMs;
-        private boolean caseInsensitive;
+        private final String hashName;
+        private final int hashIterations;
+        private final TimeDuration maxAge;
+        private final boolean caseInsensitive;
+
+        public String getVersion()
+        {
+            return DATA_FORMAT_VERSION + "_" + hashName + "_" + hashIterations + "_" + caseInsensitive;
+        }
+
+        static Settings fromConfiguration( final PwmApplication pwmApplication )
+        {
+            final AppConfig config = pwmApplication.getConfig();
+
+
+            return Settings.builder()
+                    .maxAge( TimeDuration.of( config.getDomainConfigs().get( DomainID.DOMAIN_ID_DEFAULT )
+                            .readSettingAsLong( PwmSetting.PASSWORD_SHAREDHISTORY_MAX_AGE ), TimeDuration.Unit.SECONDS ) )
+                    .caseInsensitive( Boolean.parseBoolean( config.readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_CASE_INSENSITIVE ) ) )
+                    .hashName( config.readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_HASH_NAME ) )
+                    .hashIterations( Integer.parseInt( config.readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_HASH_ITERATIONS ) ) )
+                    .build();
+        }
     }
 
     @Override

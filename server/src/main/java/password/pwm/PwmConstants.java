@@ -22,14 +22,12 @@ package password.pwm;
 
 import com.novell.ldapchai.ChaiConstant;
 import org.apache.commons.csv.CSVFormat;
-import password.pwm.bean.DomainID;
 import password.pwm.util.java.StringUtil;
 
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -94,9 +92,6 @@ public abstract class PwmConstants
     public static final String PROFILE_ID_ALL = "all";
     public static final String PROFILE_ID_DEFAULT = "default";
 
-    public static final DomainID DOMAIN_ID_DEFAULT = DomainID.create( "default" );
-    public static final DomainID DOMAIN_ID_PLACEHOLDER = DomainID.create( "default" );
-
     public static final String TOKEN_KEY_PWD_CHG_DATE = "_lastPwdChange";
 
     public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle( "httpHeaderAuthorizationBasic" );
@@ -111,26 +106,10 @@ public abstract class PwmConstants
 
     public static final String REQUEST_ATTR_FORGOTTEN_PW_USERINFO_CACHE = "ForgottenPw-UserInfoCache";
     public static final String REQUEST_ATTR_FORGOTTEN_PW_AVAIL_TOKEN_DEST_CACHE = "ForgottenPw-AvailableTokenDestCache";
+    public static final String REQUEST_ATTR_DOMAIN = "domain";
     public static final String REQUEST_ATTR_PWM_APPLICATION = "PwmApplication";
 
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle( "log.removedValue" );
-
-    public static final Collection<Locale> INCLUDED_LOCALES = Collections.emptyList();
-
-    static
-    {
-        /*
-        final List<Locale> localeList = new ArrayList<>();
-        final String inputString = readPwmConstantsBundle( "includedLocales" );
-        final List<String> inputList = JsonUtil.deserializeStringList( inputString );
-        for ( final String localeKey : inputList )
-        {
-            localeList.add( new Locale( localeKey ) );
-        }
-        INCLUDED_LOCALES = Collections.unmodifiableCollection( localeList );
-
-         */
-    }
 
     public static final String URL_JSP_CONFIG_GUIDE = "WEB-INF/jsp/configguide-%1%.jsp";
 
@@ -153,7 +132,6 @@ public abstract class PwmConstants
     public static final String PARAM_PASSWORD = "password";
     public static final String PARAM_CONTEXT = "context";
     public static final String PARAM_LDAP_PROFILE = "ldapProfile";
-    public static final String PARAM_DOMAIN = "domain";
 
     public static final String PARAM_SKIP_CAPTCHA = "skipCaptcha";
     public static final String PARAM_POST_LOGIN_URL = "posturl";

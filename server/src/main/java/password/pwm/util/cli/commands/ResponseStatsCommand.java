@@ -23,6 +23,7 @@ package password.pwm.util.cli.commands;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.ResponseInfoBean;
@@ -35,6 +36,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.cli.CliParameters;
+import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.operations.CrService;
@@ -48,8 +50,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.TreeMap;
 
 public class ResponseStatsCommand extends AbstractCliCommand
@@ -59,13 +59,13 @@ public class ResponseStatsCommand extends AbstractCliCommand
     void doCommand( )
             throws Exception
     {
-        final PwmDomain pwmDomain = cliEnvironment.getPwmDomain();
-        out( "searching for users" );
-        final List<UserIdentity> userIdentities = readAllUsersFromLdap( pwmDomain );
-        out( "found " + userIdentities.size() + " users, reading...." );
+        final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
+        final ResponseStats responseStats = new ResponseStats();
 
-        final ResponseStats responseStats = makeStatistics( pwmDomain, userIdentities );
-
+        for ( final PwmDomain pwmDomain : pwmApplication.domains().values() )
+        {
+            makeStatistics( pwmDomain, responseStats );
+        }
         final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
         final long startTime = System.currentTimeMillis();
         out( "beginning output to " + outputFile.getAbsolutePath() );
@@ -84,31 +84,30 @@ public class ResponseStatsCommand extends AbstractCliCommand
 
     static int userCounter = 0;
 
-    ResponseStats makeStatistics(
+    void makeStatistics(
             final PwmDomain pwmDomain,
-            final List<UserIdentity> userIdentities
+            final ResponseStats responseStats
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
-        final ResponseStats responseStats = new ResponseStats();
-        final Timer timer = new Timer();
-        timer.scheduleAtFixedRate( new TimerTask()
-        {
-            @Override
-            public void run( )
-            {
-                out( "processing...  " + userCounter + " users read" );
-            }
-        }, 30 * 1000, 30 * 1000 );
+        out( "searching for users in domain " + pwmDomain.getDomainID() );
+        final List<UserIdentity> userIdentities = readAllUsersFromLdap( pwmDomain );
+        out( "found " + userIdentities.size() + " users, reading...." );
+
+
+        final ConditionalTaskExecutor debugOutputter = new ConditionalTaskExecutor(
+                () -> out( "processing...  " + userCounter + " users read" ),
+                new ConditionalTaskExecutor.TimeDurationPredicate( TimeDuration.SECONDS_30 )
+        );
+
         final CrService crService = pwmDomain.getCrService();
         for ( final UserIdentity userIdentity : userIdentities )
         {
             userCounter++;
             final Optional<ResponseInfoBean> responseInfoBean = crService.readUserResponseInfo( null, userIdentity, pwmDomain.getProxiedChaiUser( userIdentity ) );
             responseInfoBean.ifPresent( infoBean -> makeStatistics( responseStats, infoBean ) );
+            debugOutputter.conditionallyExecuteTask();
         }
-        timer.cancel();
-        return responseStats;
     }
 
     static void makeStatistics( final ResponseStats responseStats, final ResponseInfoBean responseInfoBean )

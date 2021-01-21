@@ -38,7 +38,7 @@ import password.pwm.ldap.auth.SimpleLdapAuthenticator;
 import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.BasicAuthInfo;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -74,7 +74,7 @@ public class RestAuthenticationProcessor
             if ( namedSecretName != null )
             {
                 LOGGER.trace( sessionLabel, () -> "authenticating with named secret '" + namedSecretName + "'" );
-                final Set<WebServiceUsage> usages = JavaHelper.copiedEnumSet( JavaHelper.readEnumSetFromStringCollection(
+                final Set<WebServiceUsage> usages = CollectionUtil.copiedEnumSet( CollectionUtil.readEnumSetFromStringCollection(
                         WebServiceUsage.class,
                         pwmDomain.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET ).get( namedSecretName ).getUsage()
                 ), WebServiceUsage.class );
@@ -119,7 +119,7 @@ public class RestAuthenticationProcessor
                         RestAuthenticationType.LDAP,
                         null,
                         userIdentity,
-                        Collections.unmodifiableSet( JavaHelper.copiedEnumSet( WebServiceUsage.forType( RestAuthenticationType.LDAP ), WebServiceUsage.class ) ),
+                        Collections.unmodifiableSet( CollectionUtil.copiedEnumSet( WebServiceUsage.forType( RestAuthenticationType.LDAP ), WebServiceUsage.class ) ),
                         thirdParty,
                         chaiProvider
                 );
@@ -127,7 +127,7 @@ public class RestAuthenticationProcessor
         }
 
         final Set<WebServiceUsage> publicUsages = WebServiceUsage.forType( RestAuthenticationType.PUBLIC );
-        final Set<WebServiceUsage> enabledUsages = JavaHelper.copiedEnumSet(
+        final Set<WebServiceUsage> enabledUsages = CollectionUtil.copiedEnumSet(
                 pwmDomain.getConfig().readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class ), WebServiceUsage.class );
         enabledUsages.retainAll( publicUsages );
 

@@ -23,11 +23,14 @@ package password.pwm.svc.report;
 import com.novell.ldapchai.cr.Answer;
 import lombok.Builder;
 import lombok.Value;
+import password.pwm.bean.DomainID;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.option.DataStorageMethod;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.TimeDuration;
@@ -66,7 +69,7 @@ public class ReportSummaryData
 
     private final Map<DataStorageMethod, LongAdder> responseStorage = new ConcurrentHashMap<>();
     private final Map<Answer.FormatType, LongAdder> responseFormatType = new ConcurrentHashMap<>();
-    private final Map<String, LongAdder> ldapProfile = new ConcurrentHashMap<>();
+    private final Map<DomainID, Map<String, LongAdder>> ldapProfile = new ConcurrentHashMap<>();
     private final Map<Integer, LongAdder> pwExpireDays = new ConcurrentHashMap<>();
     private final Map<Integer, LongAdder> accountExpireDays = new ConcurrentHashMap<>();
     private final Map<Integer, LongAdder> changePwDays = new ConcurrentHashMap<>();
@@ -116,117 +119,119 @@ public class ReportSummaryData
                         e -> e.getValue().sum() ) ) );
     }
 
-    void update( final UserCacheRecord userCacheRecord )
+    void update( final UserReportRecord userReportRecord )
     {
         totalUsers.increment();
 
-        if ( userCacheRecord.isHasResponses() )
+        if ( userReportRecord.isHasResponses() )
         {
             hasResponses.increment();
         }
 
-        if ( userCacheRecord.isHasHelpdeskResponses() )
+        if ( userReportRecord.isHasHelpdeskResponses() )
         {
             hasHelpdeskResponses.increment();
         }
 
-        if ( userCacheRecord.getResponseSetTime() != null )
+        if ( userReportRecord.getResponseSetTime() != null )
         {
             hasResponseSetTime.increment();
-            incrementIfWithinTimeWindow( userCacheRecord, responseSetDays );
+            incrementIfWithinTimeWindow( userReportRecord, responseSetDays );
         }
 
-        if ( userCacheRecord.getPasswordExpirationTime() != null )
+        if ( userReportRecord.getPasswordExpirationTime() != null )
         {
             hasPasswordExpirationTime.increment();
-            incrementIfWithinTimeWindow( userCacheRecord, pwExpireDays );
+            incrementIfWithinTimeWindow( userReportRecord, pwExpireDays );
         }
 
-        if ( userCacheRecord.getAccountExpirationTime() != null )
+        if ( userReportRecord.getAccountExpirationTime() != null )
         {
             hasAccountExpirationTime.increment();
-            incrementIfWithinTimeWindow( userCacheRecord, accountExpireDays );
+            incrementIfWithinTimeWindow( userReportRecord, accountExpireDays );
         }
 
-        if ( userCacheRecord.getLastLoginTime() != null )
+        if ( userReportRecord.getLastLoginTime() != null )
         {
             hasLoginTime.increment();
-            incrementIfWithinTimeWindow( userCacheRecord, loginDays );
+            incrementIfWithinTimeWindow( userReportRecord, loginDays );
         }
 
-        if ( userCacheRecord.getPasswordChangeTime() != null )
+        if ( userReportRecord.getPasswordChangeTime() != null )
         {
             hasChangePwTime.increment();
-            incrementIfWithinTimeWindow( userCacheRecord, changePwDays );
+            incrementIfWithinTimeWindow( userReportRecord, changePwDays );
         }
 
-        if ( userCacheRecord.getPasswordExpirationNoticeSendTime() != null )
+        if ( userReportRecord.getPasswordExpirationNoticeSendTime() != null )
         {
             hasReceivedPwExpireNotification.increment();
-            incrementIfWithinTimeWindow( userCacheRecord, pwExpireNotificationDays );
+            incrementIfWithinTimeWindow( userReportRecord, pwExpireNotificationDays );
         }
 
-        if ( userCacheRecord.getPasswordStatus() != null )
+        if ( userReportRecord.getPasswordStatus() != null )
         {
-            if ( userCacheRecord.getPasswordStatus().isExpired() )
+            if ( userReportRecord.getPasswordStatus().isExpired() )
             {
                 pwExpired.increment();
             }
-            if ( userCacheRecord.getPasswordStatus().isPreExpired() )
+            if ( userReportRecord.getPasswordStatus().isPreExpired() )
             {
                 pwPreExpired.increment();
             }
-            if ( userCacheRecord.getPasswordStatus().isWarnPeriod() )
+            if ( userReportRecord.getPasswordStatus().isWarnPeriod() )
             {
                 pwWarnPeriod.increment();
             }
         }
 
-        if ( userCacheRecord.getResponseStorageMethod() != null )
+        if ( userReportRecord.getResponseStorageMethod() != null )
         {
-            final DataStorageMethod method = userCacheRecord.getResponseStorageMethod();
+            final DataStorageMethod method = userReportRecord.getResponseStorageMethod();
             responseStorage
                     .computeIfAbsent( method, dataStorageMethod -> new LongAdder() )
                     .increment();
         }
 
-        if ( userCacheRecord.getLdapProfile() != null )
+        if ( userReportRecord.getLdapProfile() != null )
         {
-            final String userProfile = userCacheRecord.getLdapProfile();
+            final DomainID domainID = userReportRecord.getDomainID();
+            final String userProfile = userReportRecord.getLdapProfile();
             ldapProfile
+                    .computeIfAbsent( domainID, type -> new ConcurrentHashMap<>() )
                     .computeIfAbsent( userProfile, type -> new LongAdder() )
                     .increment();
         }
 
-        if ( userCacheRecord.getResponseFormatType() != null )
+        if ( userReportRecord.getResponseFormatType() != null )
         {
-            final Answer.FormatType type = userCacheRecord.getResponseFormatType();
+            final Answer.FormatType type = userReportRecord.getResponseFormatType();
             responseFormatType
                     .computeIfAbsent( type, formatType -> new LongAdder() )
                     .increment();
         }
 
-        if ( userCacheRecord.isHasOtpSecret() )
+        if ( userReportRecord.isHasOtpSecret() )
         {
             hasOtpSecret.increment();
         }
 
-        if ( userCacheRecord.getOtpSecretSetTime() != null )
+        if ( userReportRecord.getOtpSecretSetTime() != null )
         {
             hasOtpSecretSetTime.increment();
-            incrementIfWithinTimeWindow( userCacheRecord, otpSetDays );
+            incrementIfWithinTimeWindow( userReportRecord, otpSetDays );
         }
     }
 
     private void incrementIfWithinTimeWindow(
-            final UserCacheRecord userCacheRecord,
+            final UserReportRecord userReportRecord,
             final Map<Integer, LongAdder> map
     )
     {
         for ( final Map.Entry<Integer, LongAdder> entry : map.entrySet() )
         {
             final int day = entry.getKey();
-            final Instant eventDate = userCacheRecord.getOtpSecretSetTime();
+            final Instant eventDate = userReportRecord.getOtpSecretSetTime();
             final long timeWindow = MS_DAY * day;
             final LongAdder number = entry.getValue();
 
@@ -247,7 +252,7 @@ public class ReportSummaryData
     }
 
 
-    public List<PresentationRow> asPresentableCollection( final DomainConfig config, final Locale locale )
+    public List<PresentationRow> asPresentableCollection( final AppConfig config, final Locale locale )
     {
         final ArrayList<PresentationRow> returnCollection = new ArrayList<>();
         final PresentationRowBuilder builder = new PresentationRowBuilder( config, this.totalUsers.sum(), locale );
@@ -258,15 +263,19 @@ public class ReportSummaryData
             return returnCollection;
         }
 
-        if ( config.getLdapProfiles().keySet().size() > 1 )
+
+        for ( final Map.Entry<DomainID, Map<String, LongAdder>> domainIDMapEntry : new TreeMap<>( ldapProfile ).entrySet() )
         {
-            for ( final Map.Entry<String, LongAdder> entry : new TreeMap<>( ldapProfile ).entrySet() )
+            for ( final Map.Entry<String, LongAdder> profileMapEntry : new TreeMap<>( domainIDMapEntry.getValue() ).entrySet() )
             {
-                final String userProfile = entry.getKey();
-                final long count = entry.getValue().sum();
-                final String displayName = config.getLdapProfiles().containsKey( userProfile )
-                        ? config.getLdapProfiles().get( userProfile ).getDisplayName( locale )
-                        : userProfile;
+                final DomainID domainID = domainIDMapEntry.getKey();
+                final DomainConfig domainConfig = config.getDomainConfigs().get( domainID );
+                final String userProfile = profileMapEntry.getKey();
+                final LdapProfile ldapProfile = domainConfig.getLdapProfiles().get( userProfile );
+                final long count = profileMapEntry.getValue().sum();
+
+                final String displayName = ( config.getDomainConfigs().size() > 1 ? "[" + domainConfig.getDisplayName( locale ) + "] " : "" )
+                        + ldapProfile.getDisplayName( locale );
                 returnCollection.add(
                         builder.makeRow( "Field_Report_Sum_LdapProfile", count, displayName ) );
             }
@@ -308,12 +317,12 @@ public class ReportSummaryData
 
         returnCollection.add( builder.makeRow( "Field_Report_Sum_HaveResponses", this.hasResponses.sum() ) );
         returnCollection.add( builder.makeRow( "Field_Report_Sum_HaveHelpdeskResponses", this.hasHelpdeskResponses.sum() ) );
-        for ( final DataStorageMethod storageMethod : JavaHelper.copiedEnumSet( this.getResponseStorage().keySet(), DataStorageMethod.class ) )
+        for ( final DataStorageMethod storageMethod : CollectionUtil.copiedEnumSet( this.getResponseStorage().keySet(), DataStorageMethod.class ) )
         {
             final long count = this.getResponseStorage().get( storageMethod );
             returnCollection.add( builder.makeRow( "Field_Report_Sum_StorageMethod", count, storageMethod.toString() ) );
         }
-        for ( final Answer.FormatType formatType : JavaHelper.copiedEnumSet( this.getResponseFormatType().keySet(), Answer.FormatType.class ) )
+        for ( final Answer.FormatType formatType : CollectionUtil.copiedEnumSet( this.getResponseFormatType().keySet(), Answer.FormatType.class ) )
         {
             final long count = this.getResponseFormatType().get( formatType );
             returnCollection.add( builder.makeRow( "Field_Report_Sum_ResponseFormatType", count, formatType.toString() ) );
@@ -369,7 +378,7 @@ public class ReportSummaryData
     @Value
     public static class PresentationRowBuilder
     {
-        private final DomainConfig config;
+        private final AppConfig config;
         private final long totalUsers;
         private final Locale locale;
 
@@ -393,10 +402,10 @@ public class ReportSummaryData
             final String display = replacement == null
                     ? LocaleHelper.getLocalizedMessage( locale, labelKey, config, Admin.class )
                     : LocaleHelper.getLocalizedMessage( locale, labelKey, config, Admin.class, new String[]
-                    {
-                            replacement,
+                            {
+                                    replacement,
                             }
-            );
+                    );
             final String pct = valueCount > 0 ? new Percent( valueCount, totalUsers ).pretty( 2 ) : "";
             final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );
             final String formattedCount = numberFormat.format( valueCount );

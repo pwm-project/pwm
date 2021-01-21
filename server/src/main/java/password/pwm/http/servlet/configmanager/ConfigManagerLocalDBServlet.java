@@ -23,9 +23,9 @@ package password.pwm.http.servlet.configmanager;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.config.DomainConfig;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -60,6 +60,7 @@ import java.io.OutputStream;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 @WebServlet(
         name = "ConfigManagerLocalDBServlet",
@@ -184,50 +185,53 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
             return;
         }
 
-        final InputStream inputStream = pwmRequest.readFileUploadStream( PwmConstants.PARAM_FILE_UPLOAD );
+        final Optional<InputStream> optionalFileUpload = pwmRequest.readFileUploadStream( PwmConstants.PARAM_FILE_UPLOAD );
 
-        final ContextManager contextManager = ContextManager.getContextManager( pwmRequest );
-        LocalDB localDB = null;
-        try
+        if ( optionalFileUpload.isPresent() )
         {
-            localDB = pwmApplication.getLocalDB();
-            final File localDBLocation = pwmApplication.getLocalDB().getFileLocation();
-            final DomainConfig domainConfig = pwmDomain.getConfig();
-            contextManager.shutdown();
-
-            localDB.close();
-            localDB = LocalDBFactory.getInstance( localDBLocation, false, null, domainConfig.getAppConfig() );
-
-            final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
-            LOGGER.info( pwmRequest, () -> "beginning LocalDB import" );
-            localDBUtility.importLocalDB( inputStream,
-                    LOGGER.asAppendable( PwmLogLevel.DEBUG, pwmRequest.getLabel() ) );
-            LOGGER.info( pwmRequest, () -> "completed LocalDB import" );
-            localDB.close();
-        }
-        catch ( final Exception e )
-        {
-            final ErrorInformation errorInformation = e instanceof PwmException
-                    ? ( ( PwmException ) e ).getErrorInformation()
-                    : new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
-            pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
-            LOGGER.error( pwmRequest, () -> "error during LocalDB import: " + errorInformation.toDebugStr() );
-            return;
-        }
-        finally
-        {
-            if ( localDB != null )
+            final ContextManager contextManager = ContextManager.getContextManager( pwmRequest );
+            LocalDB localDB = null;
+            try ( InputStream inputStream = optionalFileUpload.get() )
             {
-                try
-                {
-                    localDB.close();
-                }
-                catch ( final Exception e )
-                {
-                    LOGGER.error( pwmRequest, () -> "error closing LocalDB after import process: " + e.getMessage() );
-                }
+                localDB = pwmApplication.getLocalDB();
+                final File localDBLocation = pwmApplication.getLocalDB().getFileLocation();
+                final DomainConfig domainConfig = pwmDomain.getConfig();
+                contextManager.shutdown();
+
+                localDB.close();
+                localDB = LocalDBFactory.getInstance( localDBLocation, false, null, domainConfig.getAppConfig() );
+
+                final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
+                LOGGER.info( pwmRequest, () -> "beginning LocalDB import" );
+                localDBUtility.importLocalDB( inputStream,
+                        LOGGER.asAppendable( PwmLogLevel.DEBUG, pwmRequest.getLabel() ) );
+                LOGGER.info( pwmRequest, () -> "completed LocalDB import" );
+                localDB.close();
             }
-            contextManager.initialize();
+            catch ( final Exception e )
+            {
+                final ErrorInformation errorInformation = e instanceof PwmException
+                        ? ( ( PwmException ) e ).getErrorInformation()
+                        : new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
+                pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
+                LOGGER.error( pwmRequest, () -> "error during LocalDB import: " + errorInformation.toDebugStr() );
+                return;
+            }
+            finally
+            {
+                if ( localDB != null )
+                {
+                    try
+                    {
+                        localDB.close();
+                    }
+                    catch ( final Exception e )
+                    {
+                        LOGGER.error( pwmRequest, () -> "error closing LocalDB after import process: " + e.getMessage() );
+                    }
+                }
+                contextManager.initialize();
+            }
         }
 
         pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );

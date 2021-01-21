@@ -41,6 +41,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.Set;
 
 public class ConfigAccessFilter extends AbstractPwmFilter
 {
@@ -88,7 +89,8 @@ public class ConfigAccessFilter extends AbstractPwmFilter
     @Override
     boolean isInterested( final PwmApplicationMode mode, final PwmURL pwmURL )
     {
-        return true;
+        final Set<PwmServletDefinition> configAuthServlets = PwmServletDefinition.withFlag( PwmServletDefinition.Flag.RequiresConfigAuth );
+        return pwmURL.matches( configAuthServlets );
     }
 
     public static ProcessStatus checkAuthentication(
@@ -107,10 +109,10 @@ public class ConfigAccessFilter extends AbstractPwmFilter
             return ProcessStatus.Continue;
         }
 
-        if ( !pwmRequest.getURL().isPwmServletURL( PwmServletDefinition.ConfigManager_Login ) )
+        if ( !pwmRequest.getURL().matches( PwmServletDefinition.ConfigManager_Login ) )
         {
-            configManagerBean.setPrePasswordEntryUrl( pwmRequest.getHttpServletRequest().getRequestURL().toString() );
-            pwmRequest.sendRedirect( PwmServletDefinition.ConfigManager_Login );
+            configManagerBean.setPrePasswordEntryUrl( pwmRequest.getURLwithQueryString() );
+            pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.ConfigManager_Login );
             return ProcessStatus.Halt;
         }
         return ProcessStatus.Continue;

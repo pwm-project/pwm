@@ -119,7 +119,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
 
     public static SetupOtpProfile getSetupOtpProfile( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmSession().getSessionManager().getSetupOTPProfile( );
+        return pwmRequest.getSetupOTPProfile( );
     }
 
     @Override
@@ -254,7 +254,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
         if ( allowSkip )
         {
             pwmRequest.getPwmSession().getLoginInfoBean().getLoginFlags().add( LoginInfoBean.LoginFlag.skipOtp );
-            pwmRequest.sendRedirectToContinue();
+            pwmRequest.getPwmResponse().sendRedirectToContinue();
             return ProcessStatus.Halt;
         }
 
@@ -271,7 +271,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
         pwmSession.getLoginInfoBean().setFlag( LoginInfoBean.LoginFlag.skipOtp );
         pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, SetupOtpBean.class );
 
-        pwmRequest.sendRedirectToContinue();
+        pwmRequest.getPwmResponse().sendRedirectToContinue();
         return ProcessStatus.Halt;
     }
 

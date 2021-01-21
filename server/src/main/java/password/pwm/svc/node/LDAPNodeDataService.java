@@ -23,7 +23,6 @@ package password.pwm.svc.node;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import lombok.Value;
-import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -45,14 +44,15 @@ class LDAPNodeDataService implements NodeDataServiceProvider
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPNodeDataService.class );
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private static final String VALUE_PREFIX = "0006#.#.#";
 
-    LDAPNodeDataService( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    LDAPNodeDataService( final PwmDomain pwmDomain )
+            throws PwmUnrecoverableException
     {
-        this.pwmApplication = Objects.requireNonNull( pwmApplication );
+        this.pwmDomain = Objects.requireNonNull( pwmDomain );
 
-        final LdapProfile ldapProfile = pwmApplication.getDefaultDomain().getConfig().getDefaultLdapProfile();
+        final LdapProfile ldapProfile = pwmDomain.getConfig().getDefaultLdapProfile();
         final String testUser = ldapProfile.readSettingAsString( PwmSetting.LDAP_TEST_USER_DN );
 
         if ( StringUtil.isEmpty( testUser ) )
@@ -69,7 +69,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
     {
         final Map<String, StoredNodeData> returnData = new LinkedHashMap<>(  );
 
-        final LDAPHelper ldapHelper = LDAPHelper.createLDAPHelper( pwmApplication.getDefaultDomain() );
+        final LDAPHelper ldapHelper = LDAPHelper.createLDAPHelper( pwmDomain );
 
         try
         {
@@ -99,7 +99,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
         final Map<String, StoredNodeData> currentServerData = readStoredData();
         final StoredNodeData removeNode = currentServerData.get( storedNodeData.getInstanceID() );
 
-        final LDAPHelper ldapHelper = LDAPHelper.createLDAPHelper( pwmApplication.getDefaultDomain() );
+        final LDAPHelper ldapHelper = LDAPHelper.createLDAPHelper( pwmDomain );
 
         final String newRawValue = VALUE_PREFIX + JsonUtil.serialize( storedNodeData );
 
@@ -126,7 +126,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
     @Override
     public int purgeOutdatedNodes( final TimeDuration maxNodeAge ) throws PwmUnrecoverableException
     {
-        final LDAPHelper ldapHelper = LDAPHelper.createLDAPHelper( pwmApplication.getDefaultDomain() );
+        final LDAPHelper ldapHelper = LDAPHelper.createLDAPHelper( pwmDomain );
 
         int nodesPurged = 0;
 

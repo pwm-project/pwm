@@ -58,13 +58,17 @@ class StoredConfigData
     {
         return input.stream()
                 .filter( ( t ) -> t.getKey() != null && t.getMetaData() != null )
-                .collect( Collectors.toMap( StoredConfigData.ValueAndMetaCarrier::getKey, StoredConfigData.ValueAndMetaCarrier::getMetaData ) );
+                .collect( Collectors.toMap(
+                        StoredConfigData.ValueAndMetaCarrier::getKey,
+                        StoredConfigData.ValueAndMetaCarrier::getMetaData ) );
     }
 
     static Map<StoredConfigKey, StoredValue> carrierAsStoredValueMap( final Collection<ValueAndMetaCarrier> input )
     {
         return input.stream()
                 .filter( ( t ) -> t.getKey() != null && t.getValue() != null )
-                .collect( Collectors.toMap( StoredConfigData.ValueAndMetaCarrier::getKey, StoredConfigData.ValueAndMetaCarrier::getValue ) );
+                .collect( Collectors.toMap(
+                        StoredConfigData.ValueAndMetaCarrier::getKey,
+                        StoredConfigData.ValueAndMetaCarrier::getValue ) );
     }
 }

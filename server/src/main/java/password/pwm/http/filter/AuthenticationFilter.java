@@ -50,6 +50,7 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -65,15 +66,25 @@ public class AuthenticationFilter extends AbstractPwmFilter
     private static final PwmLogger LOGGER = PwmLogger.getLogger( AuthenticationFilter.class.getName() );
 
     @Override
+    boolean isInterested( final PwmApplicationMode mode, final PwmURL pwmURL )
+    {
+        return ( pwmURL.isPrivateUrl()
+                || pwmURL.isAdminUrl()
+                || pwmURL.isChangePasswordURL() )
+                && ( !pwmURL.isResourceURL() && !pwmURL.isRestService()
+        );
+    }
+
+    @Override
     public void processFilter(
             final PwmApplicationMode mode,
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
     )
-            throws IOException, ServletException
+            throws IOException, ServletException, PwmUnrecoverableException
     {
         final PwmURL pwmURL = pwmRequest.getURL();
-        if ( pwmURL.isPublicUrl() && !pwmURL.isLoginServlet() )
+        if ( pwmURL.isPublicUrl() && !pwmURL.matches( PwmServletDefinition.Login ) )
         {
             chain.doFilter();
             return;
@@ -119,13 +130,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
             pwmRequest.respondWithError( e.getErrorInformation(), true );
         }
     }
-
-    @Override
-    boolean isInterested( final PwmApplicationMode mode, final PwmURL pwmURL )
-    {
-        return !pwmURL.isResourceURL() && !pwmURL.isRestService();
-    }
-
+    
     private void processAuthenticatedSession(
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
@@ -250,7 +255,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         {
             pwmSession.getSessionStateBean().setSessionIdRecycleNeeded( true );
             LOGGER.debug( pwmRequest, () -> "session authenticated during request, issuing redirect to originally requested url: " + originalRequestedUrl );
-            pwmRequest.sendRedirect( originalRequestedUrl );
+            pwmRequest.getPwmResponse().sendRedirect( originalRequestedUrl );
             return;
         }
 
@@ -262,7 +267,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
             return;
         }
 
-        if ( pwmRequest.getURL().isLoginServlet() )
+        if ( pwmRequest.getURL().matches( PwmServletDefinition.Login ) )
         {
             chain.doFilter();
             return;
@@ -276,7 +281,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
         //user is not authenticated so forward to LoginPage.
         LOGGER.trace( pwmRequest, () -> "user requested resource requiring authentication (" + req.getRequestURI()
-                        + "), but is not authenticated; redirecting to LoginServlet" );
+                + "), but is not authenticated; redirecting to LoginServlet" );
 
         LoginServlet.redirectToLoginServlet( pwmRequest );
     }
@@ -292,7 +297,12 @@ public class AuthenticationFilter extends AbstractPwmFilter
         final UserInfo userInfo = pwmSession.getUserInfo();
         final LoginInfoBean loginInfoBean = pwmSession.getLoginInfoBean();
 
-        if ( pwmURL.isResourceURL() || pwmURL.isConfigManagerURL() || pwmURL.isLogoutURL() || pwmURL.isLoginServlet() )
+        final List<PwmServletDefinition> ignoredServlets = List.of(
+                PwmServletDefinition.Login,
+                PwmServletDefinition.ConfigManager,
+                PwmServletDefinition.Logout );
+
+        if ( pwmURL.isResourceURL() || pwmURL.matches( ignoredServlets ) )
         {
             return ProcessStatus.Continue;
         }
@@ -308,8 +318,8 @@ public class AuthenticationFilter extends AbstractPwmFilter
             if ( !pwmURL.isChangePasswordURL() )
             {
                 LOGGER.debug( pwmRequest, () -> "user is authenticated via forgotten password mechanism, redirecting to change password servlet" );
-                pwmRequest.sendRedirect(
-                        pwmRequest.getContextPath()
+                pwmRequest.getPwmResponse().sendRedirect(
+                        pwmRequest.getBasePath()
                                 + PwmConstants.URL_PREFIX_PUBLIC
                                 + "/"
                                 + PwmServletDefinition.PrivateChangePassword.servletUrlName() );
@@ -335,10 +345,10 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
         if ( userInfo.isRequiresResponseConfig() && !pwmSession.getLoginInfoBean().isLoginFlag( LoginInfoBean.LoginFlag.skipSetupCr ) )
         {
-            if ( !pwmURL.isSetupResponsesURL() )
+            if ( !pwmURL.matches( PwmServletDefinition.SetupResponses ) )
             {
                 LOGGER.debug( pwmRequest, () -> "user is required to setup responses, redirecting to setup responses servlet" );
-                pwmRequest.sendRedirect( PwmServletDefinition.SetupResponses );
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.SetupResponses );
                 return ProcessStatus.Halt;
             }
             else
@@ -349,10 +359,10 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
         if ( userInfo.isRequiresOtpConfig() && !pwmSession.getLoginInfoBean().isLoginFlag( LoginInfoBean.LoginFlag.skipOtp ) )
         {
-            if ( !pwmURL.isSetupOtpSecretURL() )
+            if ( !pwmURL.matches( PwmServletDefinition.SetupOtp ) )
             {
                 LOGGER.debug( pwmRequest, () -> "user is required to setup OTP configuration, redirecting to OTP setup page" );
-                pwmRequest.sendRedirect( PwmServletDefinition.SetupOtp );
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.SetupOtp );
                 return ProcessStatus.Halt;
             }
             else
@@ -363,10 +373,10 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
         if ( userInfo.isRequiresUpdateProfile() )
         {
-            if ( !pwmURL.isProfileUpdateURL() )
+            if ( !pwmURL.matches( PwmServletDefinition.UpdateProfile ) )
             {
                 LOGGER.debug( pwmRequest, () -> "user is required to update profile, redirecting to profile update servlet" );
-                pwmRequest.sendRedirect( PwmServletDefinition.UpdateProfile );
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.UpdateProfile );
                 return ProcessStatus.Halt;
             }
             else
@@ -380,13 +390,13 @@ public class AuthenticationFilter extends AbstractPwmFilter
             if ( userInfo.isRequiresNewPassword() && !loginInfoBean.isLoginFlag( LoginInfoBean.LoginFlag.skipNewPw ) )
             {
                 LOGGER.debug( pwmRequest, () -> "user password in ldap requires changing, redirecting to change password servlet" );
-                pwmRequest.sendRedirect( PwmServletDefinition.PrivateChangePassword );
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.PrivateChangePassword );
                 return ProcessStatus.Halt;
             }
             else if ( loginInfoBean.getLoginFlags().contains( LoginInfoBean.LoginFlag.forcePwChange ) )
             {
                 LOGGER.debug( pwmRequest, () -> "previous activity in application requires forcing pw change, redirecting to change password servlet" );
-                pwmRequest.sendRedirect( PwmServletDefinition.PrivateChangePassword );
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.PrivateChangePassword );
                 return ProcessStatus.Halt;
             }
             else

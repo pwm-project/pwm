@@ -63,6 +63,7 @@ import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -213,7 +214,7 @@ class PeopleSearchDataReader
             orgChartData.setChildren( List.copyOf( sortedChildren.values() ) );
         }
 
-        if ( !StringUtil.isEmpty( peopleSearchConfiguration.getOrgChartAssistantAttr( userIdentity ) ) )
+        if ( StringUtil.notEmpty( peopleSearchConfiguration.getOrgChartAssistantAttr( userIdentity ) ) )
         {
             final List<UserIdentity> assistantIdentities = readUserDNAttributeValues( userIdentity, peopleSearchConfiguration.getOrgChartAssistantAttr( userIdentity ) );
             if ( assistantIdentities != null && !assistantIdentities.isEmpty() )
@@ -591,13 +592,13 @@ class PeopleSearchDataReader
         final Locale locale = pwmRequest.getLocale();
         final ChaiProvider chaiProvider = pwmRequest.getPwmDomain().getProxiedChaiUser( userIdentity ).getChaiProvider();
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                pwmRequest.getPwmDomain(),
+                pwmRequest.getPwmApplication(),
                 pwmRequest.getLabel(),
                 locale,
                 userIdentity,
                 chaiProvider
         );
-        return MacroRequest.forUser( pwmRequest.getPwmDomain(), pwmRequest.getLabel(), userInfo, null );
+        return MacroRequest.forUser( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), userInfo, null );
     }
 
     void checkIfUserIdentityViewable(
@@ -785,7 +786,7 @@ class PeopleSearchDataReader
 
                 case advanced:
                 {
-                    if ( JavaHelper.isEmpty( searchRequest.nonEmptySearchValues() ) )
+                    if ( CollectionUtil.isEmpty( searchRequest.nonEmptySearchValues() ) )
                     {
                         return SearchResultBean.builder().searchResults( Collections.emptyList() ).build();
                     }
@@ -796,7 +797,7 @@ class PeopleSearchDataReader
                     {
                         final String attribute = formConfiguration.getName();
                         final String value = requestSearchValues.get( attribute );
-                        if ( !StringUtil.isEmpty( value ) )
+                        if ( StringUtil.notEmpty( value ) )
                         {
                             formValues.put( formConfiguration, value );
                         }
@@ -906,7 +907,7 @@ class PeopleSearchDataReader
         final List<String> returnValues = new ArrayList<>(  );
         final String mailtoAttr = this.peopleSearchConfiguration.getEmailAttribute( userIdentity );
         final String value = readUserAttribute( userIdentity, mailtoAttr );
-        if ( !StringUtil.isEmpty( value ) )
+        if ( StringUtil.notEmpty( value ) )
         {
             returnValues.add( value );
         }
@@ -1028,7 +1029,7 @@ class PeopleSearchDataReader
                 for ( final Map.Entry<String, AttributeDetailBean> entry : userDetailBean.getDetail().entrySet() )
                 {
                     final List<String> values = entry.getValue().getValues();
-                    if ( JavaHelper.isEmpty( values ) )
+                    if ( CollectionUtil.isEmpty( values ) )
                     {
                         outputRowValues.add( " " );
                     }
@@ -1050,7 +1051,7 @@ class PeopleSearchDataReader
             if ( depth > 0 && orgChartExportState.getRowCounter().get() < peopleSearchConfiguration.getExportCsvMaxItems() )
             {
                 final List<OrgChartReferenceBean> children = orgChartDataBean.getChildren();
-                if ( !JavaHelper.isEmpty( children ) )
+                if ( !CollectionUtil.isEmpty( children ) )
                 {
                     for ( final OrgChartReferenceBean child : children )
                     {

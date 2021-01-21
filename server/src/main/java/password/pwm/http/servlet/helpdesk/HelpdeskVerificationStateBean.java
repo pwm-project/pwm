@@ -129,7 +129,11 @@ class HelpdeskVerificationStateBean implements Serializable
         final Map<Instant, ViewableValidationRecord> returnRecords = new TreeMap<>();
         for ( final HelpdeskValidationRecord record : records )
         {
-            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmDomain, SessionLabel.SYSTEM_LABEL, record.getIdentity(), PwmConstants.DEFAULT_LOCALE );
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
+                    pwmDomain.getPwmApplication(),
+                    SessionLabel.SYSTEM_LABEL,
+                    record.getIdentity(),
+                    PwmConstants.DEFAULT_LOCALE );
             final String username = userInfo.getUsername();
             final String profile = pwmDomain.getConfig().getLdapProfiles().get( record.getIdentity().getLdapProfileID() ).getDisplayName( locale );
             final String method = record.getMethod().getLabel( pwmDomain.getConfig(), locale );

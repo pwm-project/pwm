@@ -20,25 +20,7 @@
 
 package password.pwm.svc.event;
 
-import java.io.Serializable;
-
-public class SystemAuditRecord extends AuditRecord implements Serializable
+public interface SystemAuditRecord extends AuditRecord
 {
 
-    protected String instance;
-
-    SystemAuditRecord(
-            final AuditEvent eventCode,
-            final String message,
-            final String instance
-    )
-    {
-        super( eventCode, message );
-        this.instance = instance;
-    }
-
-    public String getInstance( )
-    {
-        return instance;
-    }
 }

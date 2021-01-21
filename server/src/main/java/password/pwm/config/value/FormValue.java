@@ -26,7 +26,7 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
@@ -161,7 +161,7 @@ public class FormValue extends AbstractValue implements StoredValue
     @Override
     public String toDebugString( final Locale locale )
     {
-        if ( !JavaHelper.isEmpty( values ) )
+        if ( !CollectionUtil.isEmpty( values ) )
         {
             final StringBuilder sb = new StringBuilder();
             for ( final FormConfiguration formRow : values )
@@ -179,11 +179,11 @@ public class FormValue extends AbstractValue implements StoredValue
                 sb.append( "\n" );
                 sb.append( " Label:" ).append( JsonUtil.serializeMap( formRow.getLabels() ) ).append( "\n" );
                 sb.append( " Description:" ).append( JsonUtil.serializeMap( formRow.getDescription() ) ).append( "\n" );
-                if ( formRow.getType() == FormConfiguration.Type.select && JavaHelper.isEmpty( formRow.getSelectOptions() ) )
+                if ( formRow.getType() == FormConfiguration.Type.select && CollectionUtil.isEmpty( formRow.getSelectOptions() ) )
                 {
                     sb.append( " Select Options: " ).append( JsonUtil.serializeMap( formRow.getSelectOptions() ) ).append( "\n" );
                 }
-                if ( !StringUtil.isEmpty( formRow.getRegex() ) )
+                if ( StringUtil.notEmpty( formRow.getRegex() ) )
                 {
                     sb.append( " Regex:" ).append( formRow.getRegex() )
                             .append( " Regex Error:" ).append( JsonUtil.serializeMap( formRow.getRegexErrors() ) );

@@ -21,7 +21,7 @@
 package password.pwm.util.cli.commands;
 
 import password.pwm.AppAttribute;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.util.cli.CliParameters;
 
 public class ResetInstanceIDCommand extends AbstractCliCommand
@@ -29,15 +29,15 @@ public class ResetInstanceIDCommand extends AbstractCliCommand
     @Override
     public void doCommand( ) throws Exception
     {
-        final PwmDomain pwmDomain = cliEnvironment.getPwmDomain();
-        final String currentInstanceID = pwmDomain.getPwmApplication().getInstanceID();
+        final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
+        final String currentInstanceID = pwmApplication.getInstanceID();
         
         if ( !promptForContinue( "Proceeding will change the existing instanceID (\"" + currentInstanceID + "\") of this server and can not be undone." ) )
         {
             return;
         }
 
-        pwmDomain.getPwmApplication().writeAppAttribute( AppAttribute.INSTANCE_ID, null );
+        pwmApplication.writeAppAttribute( AppAttribute.INSTANCE_ID, null );
         out( "instanceID has been cleared" );
     }
 

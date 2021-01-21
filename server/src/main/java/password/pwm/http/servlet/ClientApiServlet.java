@@ -355,7 +355,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         settingMap.put( "runtimeNonce", pwmDomain.getPwmApplication().getRuntimeNonce() );
         settingMap.put( "applicationMode", pwmDomain.getApplicationMode() );
 
-        final String contextPath = request.getContextPath();
+        final String contextPath = pwmRequest.getBasePath();
         settingMap.put( "url-context", contextPath );
         settingMap.put( "url-logout", contextPath + PwmServletDefinition.Logout.servletUrl() );
         settingMap.put( "url-command", contextPath + PwmServletDefinition.PublicCommand.servletUrl() );
@@ -365,14 +365,14 @@ public class ClientApiServlet extends ControlledPwmServlet
         if ( pwmRequest.isAuthenticated() )
         {
             final String profileID = pwmSession.getUserInfo().getProfileIDs().get( ProfileDefinition.ChangePassword );
-            if ( !StringUtil.isEmpty( profileID ) )
+            if ( StringUtil.notEmpty( profileID ) )
             {
                 final ChangePasswordProfile changePasswordProfile = pwmRequest.getDomainConfig().getChangePasswordProfile().get( profileID );
                 final String configuredGuideText = changePasswordProfile.readSettingAsLocalizedString(
                         PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,
                         pwmSession.getSessionStateBean().getLocale()
                 );
-                if ( !StringUtil.isEmpty( configuredGuideText ) )
+                if ( StringUtil.notEmpty( configuredGuideText ) )
                 {
                     final MacroRequest macroRequest = pwmSession.getSessionManager().getMacroMachine();
                     final String expandedText = macroRequest.expandMacros( configuredGuideText );

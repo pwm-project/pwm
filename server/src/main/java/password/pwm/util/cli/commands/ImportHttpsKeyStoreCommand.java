@@ -84,7 +84,7 @@ public class ImportHttpsKeyStoreCommand extends AbstractCliCommand
             return;
         }
 
-        configurationReader.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmDomain(), SessionLabel.CLI_SESSION_LABEL );
+        configurationReader.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
         out( "success: keystore has been imported" );
     }
 

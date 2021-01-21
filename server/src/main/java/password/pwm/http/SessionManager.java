@@ -26,24 +26,16 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.Permission;
 import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.profile.AccountInformationProfile;
-import password.pwm.config.profile.ChangePasswordProfile;
-import password.pwm.config.profile.DeleteAccountProfile;
-import password.pwm.config.profile.HelpdeskProfile;
-import password.pwm.config.profile.PeopleSearchProfile;
-import password.pwm.config.profile.Profile;
-import password.pwm.config.profile.ProfileDefinition;
-import password.pwm.config.profile.SetupOtpProfile;
-import password.pwm.config.profile.UpdateProfileProfile;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -106,10 +98,11 @@ public class SessionManager
 
         try
         {
+            final AppConfig appConfig = pwmDomain.getConfig().getAppConfig();
             this.chaiProvider = LdapOperationsHelper.createChaiProvider(
                     pwmDomain,
                     pwmSession.getLabel(),
-                    userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() ),
+                    userIdentity.getLdapProfile( appConfig ),
                     pwmDomain.getConfig(),
                     userIdentity.getUserDN(),
                     userPassword
@@ -224,10 +217,18 @@ public class SessionManager
                         () -> String.format( "checking permission %s for user %s", permission.toString(), pwmSession.getUserInfo().getUserIdentity().toDelimitedKey() ) );
             }
 
-            final PwmSetting setting = permission.getPwmSetting();
-            final List<UserPermission> userPermission = pwmDomain.getConfig().readSettingAsUserPermission( setting );
-            final boolean result = UserPermissionUtility.testUserPermission( pwmDomain, pwmSession.getLabel(), pwmSession.getUserInfo().getUserIdentity(), userPermission );
-            status = result ? Permission.PermissionStatus.GRANTED : Permission.PermissionStatus.DENIED;
+            if ( permission == Permission.PWMADMIN && !pwmDomain.getConfig().isAdministrativeDomain() )
+            {
+                status = Permission.PermissionStatus.DENIED;
+            }
+            else
+            {
+                final PwmSetting setting = permission.getPwmSetting();
+                final List<UserPermission> userPermission = pwmDomain.getConfig().readSettingAsUserPermission( setting );
+                final boolean result = UserPermissionUtility.testUserPermission( pwmDomain, pwmSession.getLabel(), pwmSession.getUserInfo().getUserIdentity(), userPermission );
+                status = result ? Permission.PermissionStatus.GRANTED : Permission.PermissionStatus.DENIED;
+            }
+
             pwmSession.getUserSessionDataCacheBean().setPermission( permission, status );
 
             {
@@ -250,56 +251,6 @@ public class SessionManager
         final UserInfo userInfoBean = pwmSession.isAuthenticated()
                 ? pwmSession.getUserInfo()
                 : null;
-        return MacroRequest.forUser( pwmDomain, pwmSession.getLabel(), userInfoBean, pwmSession.getLoginInfoBean() );
-    }
-
-    public Profile getProfile( final PwmDomain pwmDomain, final ProfileDefinition profileDefinition ) throws PwmUnrecoverableException
-    {
-        if ( profileDefinition.isAuthenticated() && !pwmSession.isAuthenticated() )
-        {
-            throw new IllegalStateException( "can not read authenticated profile while session is unauthenticated" );
-        }
-
-        final String profileID = pwmSession.getUserInfo().getProfileIDs().get( profileDefinition );
-        if ( profileID != null )
-        {
-            return pwmDomain.getConfig().getProfileMap( profileDefinition ).get( profileID );
-        }
-        throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
-    }
-
-    public HelpdeskProfile getHelpdeskProfile() throws PwmUnrecoverableException
-    {
-        return ( HelpdeskProfile ) getProfile( pwmDomain, ProfileDefinition.Helpdesk );
-    }
-
-    public SetupOtpProfile getSetupOTPProfile() throws PwmUnrecoverableException
-    {
-        return ( SetupOtpProfile ) getProfile( pwmDomain, ProfileDefinition.SetupOTPProfile );
-    }
-
-    public UpdateProfileProfile getUpdateAttributeProfile() throws PwmUnrecoverableException
-    {
-        return ( UpdateProfileProfile ) getProfile( pwmDomain, ProfileDefinition.UpdateAttributes );
-    }
-
-    public PeopleSearchProfile getPeopleSearchProfile() throws PwmUnrecoverableException
-    {
-        return ( PeopleSearchProfile ) getProfile( pwmDomain, ProfileDefinition.PeopleSearch );
-    }
-
-    public DeleteAccountProfile getSelfDeleteProfile() throws PwmUnrecoverableException
-    {
-        return ( DeleteAccountProfile ) getProfile( pwmDomain, ProfileDefinition.DeleteAccount );
-    }
-
-    public ChangePasswordProfile getChangePasswordProfile() throws PwmUnrecoverableException
-    {
-        return ( ChangePasswordProfile ) getProfile( pwmDomain, ProfileDefinition.ChangePassword );
-    }
-
-    public AccountInformationProfile getAccountInfoProfile() throws PwmUnrecoverableException
-    {
-        return ( AccountInformationProfile ) getProfile( pwmDomain, ProfileDefinition.AccountInformation );
+        return MacroRequest.forUser( pwmDomain.getPwmApplication(), pwmSession.getLabel(), userInfoBean, pwmSession.getLoginInfoBean() );
     }
 }

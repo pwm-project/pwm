@@ -24,7 +24,7 @@ import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.value.StoredValue;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -71,7 +71,7 @@ public class ConfigSearchMachine
         return StoredConfigurationUtil.allPossibleSettingKeysForConfiguration( storedConfiguration )
                 .parallelStream()
                 .filter( k -> k.getRecordType() == StoredConfigKey.RecordType.SETTING )
-                .filter( k -> JavaHelper.isEmpty( domainScope ) || domainScope.contains( k.getDomainID() ) )
+                .filter( k -> CollectionUtil.isEmpty( domainScope ) || domainScope.contains( k.getDomainID() ) )
                 .filter( k -> matchSetting( k, searchTerm ) )
                 .sorted()
                 .collect( Collectors.toCollection( LinkedHashSet::new ) );

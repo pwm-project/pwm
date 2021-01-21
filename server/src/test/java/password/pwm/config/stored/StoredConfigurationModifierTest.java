@@ -22,7 +22,6 @@ package password.pwm.config.stored;
 
 import org.junit.Assert;
 import org.junit.Test;
-import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.NumericValue;
@@ -38,7 +37,7 @@ public class StoredConfigurationModifierTest
     @Test
     public void testWriteSetting() throws PwmUnrecoverableException
     {
-        final DomainID domainID = PwmConstants.DOMAIN_ID_DEFAULT;
+        final DomainID domainID = DomainID.DOMAIN_ID_DEFAULT;
         final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.NOTES, null, domainID );
 
 
@@ -50,13 +49,13 @@ public class StoredConfigurationModifierTest
         final StoredConfiguration newConfig = modifier.newStoredConfiguration();
 
         final String notesText = ValueTypeConverter.valueToString( newConfig.readStoredValue( key ).orElseThrow() );
-        Assert.assertEquals( notesText, "notes test" );
+        Assert.assertEquals( "notes test", notesText );
     }
 
     @Test
     public void testCopyProfileID() throws PwmUnrecoverableException
     {
-        final DomainID domainID = PwmConstants.DOMAIN_ID_DEFAULT;
+        final DomainID domainID = DomainID.DOMAIN_ID_DEFAULT;
         final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newConfig();
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
 
@@ -73,7 +72,7 @@ public class StoredConfigurationModifierTest
                 "newProfile",
                 null );
 
-        final List<String> profileNames = StoredConfigurationUtil.profilesForSetting( PwmConstants.DOMAIN_ID_PLACEHOLDER, PwmSetting.HELPDESK_RESULT_LIMIT, postCopyConfig );
+        final List<String> profileNames = StoredConfigurationUtil.profilesForSetting( domainID, PwmSetting.HELPDESK_RESULT_LIMIT, postCopyConfig );
         Assert.assertEquals( 2, profileNames.size() );
         Assert.assertTrue( profileNames.contains( "default" ) );
         Assert.assertTrue( profileNames.contains( "newProfile" ) );

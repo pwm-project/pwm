@@ -1295,8 +1295,11 @@ FileValueHandler.draw = function(keyName) {
 };
 
 FileValueHandler.uploadFile = function(keyName) {
+    var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','uploadFile');
+    url = PWM_MAIN.addParamToUrl(url, 'key',keyName);
+
     var options = {};
-    options['url'] = "editor?processAction=uploadFile&key=" + keyName;
+    options['url'] = url;
     options['nextFunction'] = function() {
         PWM_MAIN.showWaitDialog({loadFunction:function(){
                 FileValueHandler.init(keyName);

@@ -55,7 +55,7 @@ import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
@@ -107,7 +107,7 @@ class ActivateUserUtils
                 // execute configured actions
                 LOGGER.debug( pwmRequest, () -> "executing configured pre-actions to user " + theUser.getEntryDN() );
                 final List<ActionConfiguration> configValues = activateUserProfile.readSettingAsAction( PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES );
-                if ( !JavaHelper.isEmpty( configValues ) )
+                if ( !CollectionUtil.isEmpty( configValues ) )
                 {
                     final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, userIdentity );
 

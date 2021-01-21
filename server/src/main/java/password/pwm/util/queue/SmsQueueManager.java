@@ -48,7 +48,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -360,7 +360,7 @@ public class SmsQueueManager implements PwmService
     }
 
     private static void determineIfResultSuccessful(
-            final DomainConfig config,
+            final AppConfig config,
             final int resultCode,
             final String resultBody
     )
@@ -411,7 +411,7 @@ public class SmsQueueManager implements PwmService
         ) );
     }
 
-    static String formatSmsNumber( final DomainConfig config, final String smsNumber )
+    static String formatSmsNumber( final AppConfig config, final String smsNumber )
     {
         final SmsNumberFormat format = config.readSettingAsEnum( PwmSetting.SMS_PHONE_NUMBER_FORMAT, SmsNumberFormat.class );
 
@@ -504,7 +504,7 @@ public class SmsQueueManager implements PwmService
 
             final PwmHttpClient pwmHttpClient;
             {
-                if ( JavaHelper.isEmpty( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) ) )
+                if ( CollectionUtil.isEmpty( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) ) )
                 {
                     pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( );
                 }
@@ -527,7 +527,7 @@ public class SmsQueueManager implements PwmService
                 final String responseBody = pwmHttpClientResponse.getBody();
                 lastResponseBody = responseBody;
 
-                determineIfResultSuccessful( config.getDefaultDomainConfig(), resultCode, responseBody );
+                determineIfResultSuccessful( config, resultCode, responseBody );
                 LOGGER.debug( () -> "SMS send successful, HTTP status: " + resultCode );
             }
             catch ( final PwmUnrecoverableException e )
@@ -556,7 +556,7 @@ public class SmsQueueManager implements PwmService
                 final String senderId = config.readSettingAsString( PwmSetting.SMS_SENDER_ID );
                 requestData = requestData.replace( TOKEN_SENDERID, smsDataEncode( senderId, encoding ) );
                 requestData = requestData.replace( TOKEN_MESSAGE, smsDataEncode( message, encoding ) );
-                requestData = requestData.replace( TOKEN_TO, smsDataEncode( formatSmsNumber( config.getDefaultDomainConfig(), to ), encoding ) );
+                requestData = requestData.replace( TOKEN_TO, smsDataEncode( formatSmsNumber( config, to ), encoding ) );
             }
 
             if ( requestData.contains( TOKEN_REQUESTID ) )
@@ -621,7 +621,7 @@ public class SmsQueueManager implements PwmService
                 }
 
 
-                if ( !StringUtil.isEmpty( contentType ) && httpMethod == HttpMethod.POST )
+                if ( StringUtil.notEmpty( contentType ) && httpMethod == HttpMethod.POST )
                 {
                     headers.put( HttpHeader.ContentType.getHttpName(), contentType );
                 }

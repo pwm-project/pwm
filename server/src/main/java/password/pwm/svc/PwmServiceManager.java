@@ -185,7 +185,7 @@ public class PwmServiceManager
         }
         initialized = false;
 
-        LOGGER.trace( () -> "closed all services in ", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "closed all services", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     private void shutDownService( final PwmServiceEnum pwmServiceEnum, final PwmService serviceInstance )

@@ -54,9 +54,9 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
     public String servletUriRemainder( final PwmRequest pwmRequest, final String command ) throws PwmUnrecoverableException
     {
         String uri = pwmRequest.getURLwithoutQueryString();
-        if ( uri.startsWith( pwmRequest.getContextPath() ) )
+        if ( uri.startsWith( pwmRequest.getBasePath() ) )
         {
-            uri = uri.substring( pwmRequest.getContextPath().length() );
+            uri = uri.substring( pwmRequest.getBasePath().length() );
         }
         for ( final String servletUri : getServletDefinition().urlPatterns() )
         {
@@ -201,7 +201,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         final String protocol = pwmRequest.getHttpServletRequest().getProtocol();
         if ( protocol != null && protocol.startsWith( "HTTP/1.0" ) )
         {
-            pwmRequest.sendRedirect( location );
+            pwmRequest.getPwmResponse().sendRedirect( location );
         }
         else
         {

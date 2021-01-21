@@ -24,6 +24,7 @@ import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
@@ -117,8 +118,16 @@ public class PrivateKeyValue extends AbstractValue
 
                         if ( !certificates.isEmpty() && privateKey != null )
                         {
-                            final PrivateKeyCertificate privateKeyCertificate = new PrivateKeyCertificate( certificates, privateKey );
-                            return new PrivateKeyValue( privateKeyCertificate );
+                            try
+                            {
+                                final PrivateKeyCertificate privateKeyCertificate = new PrivateKeyCertificate( certificates, privateKey );
+                                return new PrivateKeyValue( privateKeyCertificate );
+                            }
+                            catch ( final PwmUnrecoverableException e )
+                            {
+                                LOGGER.error( () -> "error reading privateKey for setting: '" + pwmSetting.getKey() + "': " + e.getMessage(), e );
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
@@ -219,7 +228,7 @@ public class PrivateKeyValue extends AbstractValue
                 ? new X509Utils.DebugInfoFlag[]
                 {
                         X509Utils.DebugInfoFlag.IncludeCertificateDetail,
-                        }
+                }
                 : null;
         final Map<String, Object> returnMap = new LinkedHashMap<>();
         returnMap.put( "certificates", X509Utils.makeDebugInfoMap( privateKeyCertificate.getCertificates(), flags ) );

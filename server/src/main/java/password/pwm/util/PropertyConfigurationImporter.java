@@ -20,7 +20,6 @@
 
 package password.pwm.util;
 
-import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigKey;
@@ -60,7 +59,7 @@ import java.util.regex.Pattern;
 public class PropertyConfigurationImporter
 {
     private static final String LDAP_PROFILE = "default";
-    private static final DomainID DOMAIN_ID = PwmConstants.DOMAIN_ID_DEFAULT;
+    private static final DomainID DOMAIN_ID = DomainID.DOMAIN_ID_DEFAULT;
 
 
     private Map<String, String> inputMap;
@@ -272,7 +271,7 @@ public class PropertyConfigurationImporter
         for ( final PropertyKey propertyKey : interestedProperties )
         {
             final String value = inputMap.get( propertyKey.name() );
-            if ( !StringUtil.isEmpty( value ) )
+            if ( StringUtil.notEmpty( value ) )
             {
                 permissions.add( UserPermission.builder()
                         .type( UserPermissionType.ldapQuery )
@@ -298,7 +297,7 @@ public class PropertyConfigurationImporter
             throws IOException
     {
         final String base64Cert = inputMap.get( propertyKey.name( ) );
-        if ( !StringUtil.isEmpty( base64Cert ) )
+        if ( StringUtil.notEmpty( base64Cert ) )
         {
             final List<X509Certificate> returnCerts = new ArrayList<>( );
             for ( final String splitB64Cert : StringUtil.splitAndTrim( base64Cert, "," ) )

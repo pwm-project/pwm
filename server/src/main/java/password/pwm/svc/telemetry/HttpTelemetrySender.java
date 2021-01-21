@@ -22,7 +22,7 @@ package password.pwm.svc.telemetry;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TelemetryPublishBean;
@@ -45,13 +45,13 @@ public class HttpTelemetrySender implements TelemetrySender
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( HttpTelemetrySender.class );
 
-    private PwmDomain pwmDomain;
+    private PwmApplication pwmApplication;
     private Settings settings;
 
     @Override
-    public void init( final PwmDomain pwmDomain, final String initString )
+    public void init( final PwmApplication pwmDomain, final String initString )
     {
-        this.pwmDomain = pwmDomain;
+        this.pwmApplication = pwmDomain;
         settings = JsonUtil.deserialize( initString, HttpTelemetrySender.Settings.class );
     }
 
@@ -62,7 +62,7 @@ public class HttpTelemetrySender implements TelemetrySender
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
                 .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous )
                 .build();
-        final PwmHttpClient pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
+        final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
         final String body = JsonUtil.serialize( statsPublishBean );
         final Map<String, String> headers = new HashMap<>();
         headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );

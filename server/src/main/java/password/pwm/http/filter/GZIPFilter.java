@@ -90,7 +90,7 @@ public class GZIPFilter implements Filter
     {
         try
         {
-            final PwmURL pwmURL = new PwmURL( ( HttpServletRequest ) servletRequest );
+            final PwmURL pwmURL = PwmURL.create( ( HttpServletRequest ) servletRequest );
 
             // resource servlet does its own gzip compression with fancy server-side caching
             if ( pwmURL.isResourceURL() )

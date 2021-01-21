@@ -20,7 +20,7 @@
 
 package password.pwm.config.option;
 
-import password.pwm.config.DomainConfig;
+import password.pwm.config.SettingReader;
 import password.pwm.i18n.Display;
 
 import java.io.Serializable;
@@ -52,13 +52,13 @@ public enum IdentityVerificationMethod implements Serializable, ConfigurationOpt
         return userSelectable;
     }
 
-    public String getLabel( final DomainConfig domainConfig, final Locale locale )
+    public String getLabel( final SettingReader settingReader, final Locale locale )
     {
-        return Display.getLocalizedMessage( locale, this.labelKey, domainConfig );
+        return Display.getLocalizedMessage( locale, this.labelKey, settingReader );
     }
 
-    public String getDescription( final DomainConfig domainConfig, final Locale locale )
+    public String getDescription( final SettingReader settingReader, final Locale locale )
     {
-        return Display.getLocalizedMessage( locale, this.descriptionKey, domainConfig );
+        return Display.getLocalizedMessage( locale, this.descriptionKey, settingReader );
     }
 }

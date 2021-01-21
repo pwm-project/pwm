@@ -70,7 +70,7 @@ public interface XmlDocument
         )
         {
             final List<XmlElement> elements = evaluateXpathToElements( xpathExpression );
-            if ( JavaHelper.isEmpty( elements ) )
+            if ( CollectionUtil.isEmpty( elements ) )
             {
                 return Optional.empty();
             }

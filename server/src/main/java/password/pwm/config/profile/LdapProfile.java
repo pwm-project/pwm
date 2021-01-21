@@ -204,7 +204,7 @@ public class LdapProfile extends AbstractProfile implements Profile
     {
         final String testUserDN = this.readSettingAsString( pwmSetting );
 
-        if ( !StringUtil.isEmpty( testUserDN ) )
+        if ( StringUtil.notEmpty( testUserDN ) )
         {
             return UserIdentity.create( testUserDN, this.getIdentifier(), pwmDomain.getDomainID() ).canonicalized( pwmDomain.getPwmApplication() );
         }

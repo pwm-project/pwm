@@ -41,6 +41,8 @@ import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.logging.PwmLogger;
 
+import java.util.Optional;
+
 /**
  * @author mpieters
  */
@@ -55,7 +57,7 @@ public class DbOtpOperator extends AbstractOtpOperator
     }
 
     @Override
-    public OTPUserRecord readOtpUserConfiguration( final UserIdentity theUser, final String userGUID )
+    public Optional<OTPUserRecord> readOtpUserConfiguration( final UserIdentity theUser, final String userGUID )
             throws PwmUnrecoverableException
     {
         LOGGER.trace( () -> String.format( "Enter: readOtpUserConfiguration(%s, %s)", theUser, userGUID ) );
@@ -64,25 +66,24 @@ public class DbOtpOperator extends AbstractOtpOperator
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_GUID, "cannot save otp to db, user does not have a GUID" ) );
         }
 
-        OTPUserRecord otpConfig = null;
         try
         {
             final DatabaseAccessor databaseAccessor = pwmDomain.getPwmApplication().getDatabaseAccessor();
-            String value = databaseAccessor.get( DatabaseTable.OTP, userGUID );
-            if ( value != null && value.length() > 0 )
+            final Optional<String> strValue = databaseAccessor.get( DatabaseTable.OTP, userGUID );
+            if ( strValue.isPresent() )
             {
                 if ( getPwmApplication().getConfig().readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
                 {
-                    value = decryptAttributeValue( value );
-                }
-                if ( value != null )
-                {
-                    otpConfig = decomposeOtpAttribute( value );
-                }
-                if ( otpConfig != null )
-                {
-                    final OTPUserRecord finalOtpConfig = otpConfig;
-                    LOGGER.debug( () -> "found user OTP secret in db: " + finalOtpConfig.toString() );
+                    final String decryptAttributeValue = decryptAttributeValue( strValue.get() );
+                    if ( decryptAttributeValue != null )
+                    {
+                        final OTPUserRecord otpConfig = decomposeOtpAttribute( decryptAttributeValue );
+                        if ( otpConfig != null )
+                        {
+                            LOGGER.debug( () -> "found user OTP secret in db: " + otpConfig.toString() );
+                            return Optional.of( otpConfig );
+                        }
+                    }
                 }
             }
         }
@@ -90,7 +91,7 @@ public class DbOtpOperator extends AbstractOtpOperator
         {
             throw new PwmUnrecoverableException( e.getErrorInformation() );
         }
-        return otpConfig;
+        return Optional.empty();
     }
 
     @Override

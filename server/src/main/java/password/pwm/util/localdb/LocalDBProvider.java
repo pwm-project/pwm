@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public interface LocalDBProvider
@@ -49,7 +50,7 @@ public interface LocalDBProvider
             throws LocalDBException;
 
     @LocalDB.ReadOperation
-    String get( LocalDB.DB db, String key )
+    Optional<String> get( LocalDB.DB db, String key )
             throws LocalDBException;
 
     @LocalDB.WriteOperation

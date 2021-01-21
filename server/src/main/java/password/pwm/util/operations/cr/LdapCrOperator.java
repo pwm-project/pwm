@@ -42,6 +42,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
+import java.util.Optional;
 
 public class LdapCrOperator implements CrOperator
 {
@@ -61,28 +62,28 @@ public class LdapCrOperator implements CrOperator
     }
 
     @Override
-    public ResponseSet readResponseSet( final SessionLabel sessionLabel, final ChaiUser theUser, final UserIdentity userIdentity, final String userGuid )
+    public Optional<ResponseSet> readResponseSet( final SessionLabel sessionLabel, final ChaiUser theUser, final UserIdentity userIdentity, final String userGuid )
             throws PwmUnrecoverableException
     {
         try
         {
-            return ChaiCrFactory.readChaiResponseSet( theUser );
+            return Optional.ofNullable( ChaiCrFactory.readChaiResponseSet( theUser ) );
         }
         catch ( final ChaiException e )
         {
             LOGGER.debug( sessionLabel, () -> "ldap error reading response set: " + e.getMessage() );
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
-    public ResponseInfoBean readResponseInfo( final SessionLabel sessionLabel, final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID )
+    public Optional<ResponseInfoBean> readResponseInfo( final SessionLabel sessionLabel, final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID )
             throws PwmUnrecoverableException
     {
         try
         {
-            final ResponseSet responseSet = readResponseSet( sessionLabel, theUser, userIdentity, userGUID );
-            return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean( responseSet, DataStorageMethod.LDAP );
+            final Optional<ResponseSet> responseSet = readResponseSet( sessionLabel, theUser, userIdentity, userGUID );
+            return responseSet.isEmpty() ? Optional.empty() : Optional.of( CrOperators.convertToNoAnswerInfoBean( responseSet.get(), DataStorageMethod.LDAP ) );
         }
         catch ( final ChaiException e )
         {

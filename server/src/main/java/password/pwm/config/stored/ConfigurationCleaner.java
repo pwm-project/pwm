@@ -31,9 +31,9 @@ import password.pwm.config.option.WebServiceUsage;
 import password.pwm.config.value.OptionListValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StringValue;
-import password.pwm.config.value.ValueFactory;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -49,12 +49,12 @@ class ConfigurationCleaner
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigurationCleaner.class );
 
     private static final List<PwmExceptionLoggingConsumer<StoredConfigurationModifier>> STORED_CONFIG_POST_PROCESSORS = List.of(
-                    new UpdateDeprecatedAdComplexitySettings(),
-                    new UpdateDeprecatedMinPwdLifetimeSetting(),
-                    new UpdateDeprecatedPublicHealthSetting(),
-                    new ProfileNonProfiledSettings(),
-                    new CheckForSuperfluousProfileSettings(),
-                    new RemoveDefaultSettings() );
+            new UpdateDeprecatedAdComplexitySettings(),
+            new UpdateDeprecatedMinPwdLifetimeSetting(),
+            new UpdateDeprecatedPublicHealthSetting(),
+            new ProfileNonProfiledSettings(),
+            new RemoveSuperfluousProfileSettings(),
+            new RemoveDefaultSettings() );
 
     static void postProcessStoredConfig(
             final StoredConfigurationModifier storedConfiguration
@@ -71,7 +71,7 @@ class ConfigurationCleaner
         {
             final StoredConfiguration existingConfig = modifier.newStoredConfiguration();
 
-            modifier.newStoredConfiguration().keys()
+            CollectionUtil.iteratorToStream( modifier.newStoredConfiguration().keys() )
                     .filter( key -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                     .filter( key -> key.toPwmSetting() == PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY )
                     .forEach( key -> doConversion( existingConfig, key, modifier ) );
@@ -130,7 +130,7 @@ class ConfigurationCleaner
                 {
                     final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID, domainID );
                     final Optional<StoredValue> oldValue = oldConfig.readStoredValue( key );
-                    if ( oldValue.isPresent() && !ValueFactory.isDefaultValue( oldConfig.getTemplateSet(), PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, oldValue.get() ) )
+                    if ( oldValue.isPresent() && !StoredConfigurationUtil.isDefaultValue( oldConfig, key ) )
                     {
                         final boolean enforceEnabled = ValueTypeConverter.valueToBoolean( oldValue.get() );
                         final StoredValue value = enforceEnabled
@@ -192,7 +192,7 @@ class ConfigurationCleaner
                 throws PwmUnrecoverableException
         {
             final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
-            inputConfig.keys()
+            CollectionUtil.iteratorToStream( inputConfig.keys() )
                     .filter( ( key ) -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                     .filter( ( key ) -> key.toPwmSetting().getCategory().hasProfiles() )
                     .filter( ( key ) -> StringUtil.isEmpty( key.getProfileID() ) )
@@ -239,14 +239,14 @@ class ConfigurationCleaner
         }
     }
 
-    private static class CheckForSuperfluousProfileSettings implements PwmExceptionLoggingConsumer<StoredConfigurationModifier>
+    private static class RemoveSuperfluousProfileSettings implements PwmExceptionLoggingConsumer<StoredConfigurationModifier>
     {
         @Override
         public void accept( final StoredConfigurationModifier modifier )
                 throws PwmUnrecoverableException
         {
             final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
-            inputConfig.keys()
+            CollectionUtil.iteratorToStream( inputConfig.keys() )
                     .filter( ( key ) -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                     .filter( ( key ) -> key.toPwmSetting().getCategory().hasProfiles() )
                     .filter( ( key ) -> verifyProfileIsValid( key, inputConfig ) )
@@ -282,10 +282,9 @@ class ConfigurationCleaner
                 throws PwmUnrecoverableException
         {
             final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
-            final PwmSettingTemplateSet templateSet = inputConfig.getTemplateSet();
-            inputConfig.keys()
+            CollectionUtil.iteratorToStream( inputConfig.keys() )
                     .filter( ( key ) -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
-                    .filter( key -> !valueIsDefault( key, inputConfig, templateSet ) )
+                    .filter( key -> !valueIsDefault( key, inputConfig, inputConfig.getTemplateSet().get( key.getDomainID() ) ) )
                     .forEach( ( key ) -> removeDefaultValue( key, inputConfig, modifier ) );
         }
 

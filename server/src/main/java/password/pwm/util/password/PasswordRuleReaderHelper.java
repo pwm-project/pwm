@@ -159,7 +159,7 @@ public class PasswordRuleReaderHelper
 
         for ( final String value : values )
         {
-            if ( !StringUtil.isEmpty( value ) )
+            if ( StringUtil.notEmpty( value ) )
             {
                 String valueToCompile = value;
 

@@ -22,9 +22,9 @@ package password.pwm.config.stored;
 
 import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
@@ -35,8 +35,8 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.FileSystemUtility;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -52,7 +52,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Read the PWM configuration.
@@ -144,7 +144,7 @@ public class ConfigurationReader
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                         {
                                 errorMsg,
-                                }
+                        }
                 );
                 this.configMode = PwmApplicationMode.ERROR;
                 e.printStackTrace();
@@ -152,13 +152,13 @@ public class ConfigurationReader
             }
 
             final List<String> validationErrorMsgs = StoredConfigurationUtil.validateValues( storedConfiguration );
-            if ( !JavaHelper.isEmpty( validationErrorMsgs ) )
+            if ( !CollectionUtil.isEmpty( validationErrorMsgs ) )
             {
                 final String errorMsg = "value error in config file, please investigate: " + validationErrorMsgs.get( 0 );
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                         {
                                 errorMsg,
-                                }
+                        }
                 );
                 this.configMode = PwmApplicationMode.ERROR;
                 throw new PwmUnrecoverableException( errorInformation );
@@ -170,7 +170,7 @@ public class ConfigurationReader
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                     {
                             errorMsg,
-                            }
+                    }
             );
             this.configMode = PwmApplicationMode.ERROR;
             throw new PwmUnrecoverableException( errorInformation );
@@ -195,20 +195,20 @@ public class ConfigurationReader
 
     public void saveConfiguration(
             final StoredConfiguration storedConfiguration,
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final SessionLabel sessionLabel
     )
             throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
         File backupDirectory = null;
         int backupRotations = 0;
-        if ( pwmDomain != null )
+        if ( pwmApplication != null )
         {
             final AppConfig domainConfig = new AppConfig( storedConfiguration );
             final String backupDirSetting = domainConfig.readAppProperty( AppProperty.BACKUP_LOCATION );
             if ( backupDirSetting != null && backupDirSetting.length() > 0 )
             {
-                final File pwmPath = pwmDomain.getPwmApplication().getPwmEnvironment().getApplicationPath();
+                final File pwmPath = pwmApplication.getPwmEnvironment().getApplicationPath();
                 backupDirectory = FileSystemUtility.figureFilepath( backupDirSetting, pwmPath );
             }
             backupRotations = Integer.parseInt( domainConfig.readAppProperty( AppProperty.BACKUP_CONFIG_COUNT ) );
@@ -243,14 +243,14 @@ public class ConfigurationReader
             }
         }
 
-        if ( pwmDomain != null && pwmDomain.getAuditManager() != null )
+        if ( pwmApplication != null && pwmApplication.getAuditManager() != null )
         {
-            auditModifiedSettings( pwmDomain, storedConfiguration, sessionLabel );
+            auditModifiedSettings( pwmApplication, storedConfiguration, sessionLabel );
         }
 
         try
         {
-            outputConfigurationFile( storedConfiguration, pwmDomain, sessionLabel, backupRotations, backupDirectory );
+            outputConfigurationFile( storedConfiguration, pwmApplication, sessionLabel, backupRotations, backupDirectory );
         }
         finally
         {
@@ -258,37 +258,49 @@ public class ConfigurationReader
         }
     }
 
-    private static void auditModifiedSettings( final PwmDomain pwmDomain, final StoredConfiguration newConfig, final SessionLabel sessionLabel )
+    private static void auditModifiedSettings( final PwmApplication pwmApplication, final StoredConfiguration newConfig, final SessionLabel sessionLabel )
             throws PwmUnrecoverableException
     {
-        final Set<StoredConfigKey> changedKeys = StoredConfigurationUtil.changedValues( newConfig, pwmDomain.getConfig().getStoredConfiguration() );
+        final Instant startTime = Instant.now();
+
+        final StoredConfiguration oldConfig = pwmApplication.getConfig().getStoredConfiguration();
+        final List<StoredConfigKey> changedKeys = StoredConfigurationUtil.changedValues( newConfig, oldConfig ).stream()
+                .filter( key -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) || key.isRecordType( StoredConfigKey.RecordType.LOCALE_BUNDLE ) )
+                .sorted()
+                .collect( Collectors.toUnmodifiableList() );
+
+        int changeCount = 0;
 
         for ( final StoredConfigKey key : changedKeys )
         {
-            if ( key.getRecordType() == StoredConfigKey.RecordType.SETTING
-                    || key.getRecordType() == StoredConfigKey.RecordType.LOCALE_BUNDLE )
-            {
-                final Optional<StoredValue> storedValue = newConfig.readStoredValue( key );
-                if ( storedValue.isPresent() )
-                {
-                    final Optional<ValueMetaData> valueMetaData = newConfig.readMetaData( key );
-                    final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
-                    final String modifyMessage = "configuration record '" + key.getLabel( PwmConstants.DEFAULT_LOCALE )
-                            + "' has been modified, new value: " + storedValue.get().toDebugString( PwmConstants.DEFAULT_LOCALE );
-                    pwmDomain.getAuditManager().submit( sessionLabel, new AuditRecordFactory( pwmDomain ).createUserAuditRecord(
-                            AuditEvent.MODIFY_CONFIGURATION,
-                            userIdentity,
-                            sessionLabel,
-                            modifyMessage
-                    ) );
-                }
-            }
+            final Optional<ValueMetaData> valueMetaData = newConfig.readMetaData( key );
+            final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
+
+            final Optional<StoredValue> storedValue = newConfig.readStoredValue( key );
+            String modifyMessage = "configuration record '" + key.getLabel( PwmConstants.DEFAULT_LOCALE ) + "' has been ";
+
+            modifyMessage += storedValue.map( value -> "modified, new value: " + value.toDebugString( PwmConstants.DEFAULT_LOCALE ) )
+                    .orElse( "removed" );
+
+            final String finalMsg = modifyMessage;
+            LOGGER.trace( () -> "sending audit notice: " + finalMsg );
+
+            pwmApplication.getAuditManager().submit( sessionLabel, new AuditRecordFactory( pwmApplication ).createUserAuditRecord(
+                    AuditEvent.MODIFY_CONFIGURATION,
+                    userIdentity,
+                    sessionLabel,
+                    modifyMessage ) );
+
+            changeCount++;
         }
+
+        final int finalChangeCount = changeCount;
+        LOGGER.debug( () -> "sent " + finalChangeCount + " audit notifications about changed settings", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     private void outputConfigurationFile(
             final StoredConfiguration storedConfiguration,
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final int backupRotations,
             final File backupDirectory
@@ -306,10 +318,10 @@ public class ConfigurationReader
         }
 
         LOGGER.info( () -> "saved configuration", () -> TimeDuration.fromCurrent( saveFileStartTime ) );
-        if ( pwmDomain != null )
+        if ( pwmApplication != null )
         {
             final String actualChecksum = StoredConfigurationUtil.valueHash( storedConfiguration );
-            pwmDomain.getPwmApplication().writeAppAttribute( AppAttribute.CONFIG_HASH, actualChecksum );
+            pwmApplication.writeAppAttribute( AppAttribute.CONFIG_HASH, actualChecksum );
         }
 
         LOGGER.trace( () -> "renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath() );

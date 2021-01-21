@@ -48,7 +48,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -62,6 +61,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAccumulator;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class JavaHelper
 {
@@ -144,38 +145,10 @@ public class JavaHelper
         return new String( chars );
     }
 
-    public static <E extends Enum<E>> Set<E> readEnumSetFromStringCollection( final Class<E> enumClass, final Collection<String> inputs )
-    {
-        final Set<E> returnList = EnumSet.noneOf( enumClass );
-        for ( final String input : inputs )
-        {
-            final E item = readEnumFromString( enumClass, null, input );
-            if ( item != null )
-            {
-                returnList.add( item );
-            }
-        }
-        return Collections.unmodifiableSet( returnList );
-    }
-
-    public static <E extends Enum<E>> Set<E> enumSetFromArray( final E[] arrayValues )
-    {
-        return arrayValues == null || arrayValues.length == 0
-                ? Collections.emptySet()
-                : Collections.unmodifiableSet( EnumSet.copyOf( Arrays.asList( arrayValues ) ) );
-    }
-
-    public static <E extends Enum<E>> Map<String, String> enumMapToStringMap( final Map<E, String> inputMap )
-    {
-        return Collections.unmodifiableMap( inputMap.entrySet().stream()
-                .collect( Collectors.toMap( entry -> entry.getKey().name(), Map.Entry::getValue, ( a, b ) -> b, java.util.LinkedHashMap::new ) ) );
-    }
-
     public static <E extends Enum<E>> E readEnumFromString( final Class<E> enumClass, final E defaultValue, final String input )
     {
         return readEnumFromString( enumClass, input ).orElse( defaultValue );
     }
-
 
     public static <E extends Enum<E>> Optional<E> readEnumFromPredicate( final Class<E> enumClass, final Predicate<E> match )
     {
@@ -190,6 +163,21 @@ public class JavaHelper
         }
 
         return EnumSet.allOf( enumClass ).stream().filter( match ).findFirst();
+    }
+
+    public static <E extends Enum<E>> Set<E> readEnumsFromPredicate( final Class<E> enumClass, final Predicate<E> match )
+    {
+        if ( match == null )
+        {
+            return Collections.emptySet();
+        }
+
+        if ( enumClass == null || !enumClass.isEnum() )
+        {
+            return Collections.emptySet();
+        }
+
+        return EnumSet.allOf( enumClass ).stream().filter( match ).collect( Collectors.toUnmodifiableSet() );
     }
 
     public static <E extends Enum<E>> Optional<E> readEnumFromString( final Class<E> enumClass, final String input )
@@ -299,10 +287,10 @@ public class JavaHelper
         return byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET );
     }
 
-    public static ImmutableByteArray copyToBytes( final InputStream inputStream )
+    public static ImmutableByteArray copyToBytes( final InputStream inputStream, final int maxLength )
             throws IOException
     {
-        final byte[] bytes = IOUtils.toByteArray( inputStream );
+        final byte[] bytes = IOUtils.toByteArray( inputStream, maxLength );
         return ImmutableByteArray.of( bytes );
     }
 
@@ -506,16 +494,6 @@ public class JavaHelper
         return sb.toString();
     }
 
-    public static boolean isEmpty( final Collection collection )
-    {
-        return collection == null || collection.isEmpty();
-    }
-
-    public static boolean isEmpty( final Map map )
-    {
-        return map == null || map.isEmpty();
-    }
-
     public static int rangeCheck( final int min, final int max, final int value )
     {
         return ( int ) rangeCheck( ( long ) min, ( long ) max, ( long ) value );
@@ -652,13 +630,6 @@ public class JavaHelper
         return ByteBuffer.allocate( 8 ).putLong( input ).array();
     }
 
-    public static <E extends Enum<E>> EnumSet<E> copiedEnumSet( final Collection<E> source, final Class<E> classOfT )
-    {
-        return JavaHelper.isEmpty( source )
-                ? EnumSet.noneOf( classOfT )
-                : EnumSet.copyOf( source );
-    }
-
     public static String requireNonEmpty( final String input )
     {
         return requireNonEmpty( input, "non-empty string value required" );
@@ -673,23 +644,24 @@ public class JavaHelper
         return input;
     }
 
-    public static <K extends Enum<K>, V> EnumMap<K, V> copiedEnumMap( final Map<K, V> source, final Class<K> classOfT )
+    public static byte[] gunzip( final byte[] bytes )
+            throws IOException
     {
-        if ( source == null )
+        try (  GZIPInputStream inputGzipStream = new GZIPInputStream( new ByteArrayInputStream( bytes ) ) )
         {
-            return new EnumMap<>( classOfT );
+            return inputGzipStream.readAllBytes();
         }
-
-        final EnumMap<K, V> returnMap = new EnumMap<>( classOfT );
-        for ( final Map.Entry<K, V> entry : source.entrySet() )
-        {
-            final K key = entry.getKey();
-            if ( key != null )
-            {
-                returnMap.put( key, entry.getValue() );
-            }
-        }
-        return returnMap;
     }
-    
+
+    public static byte[] gzip( final byte[] bytes )
+            throws IOException
+    {
+        try ( ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             GZIPOutputStream gzipOutputStream = new GZIPOutputStream( byteArrayOutputStream ) )
+        {
+            gzipOutputStream.write( bytes );
+            gzipOutputStream.close();
+            return byteArrayOutputStream.toByteArray();
+        }
+    }
 }

@@ -124,9 +124,9 @@ public class PasswordRuleChecks
 
         final List<ErrorInformation> errorList = new ArrayList<>();
         final MacroRequest macroRequest = userInfo == null || userInfo.getUserIdentity() == null
-                ? MacroRequest.forNonUserSpecific( pwmDomain, SessionLabel.SYSTEM_LABEL )
+                ? MacroRequest.forNonUserSpecific( pwmDomain.getPwmApplication(), SessionLabel.SYSTEM_LABEL )
                 : MacroRequest.forUser(
-                pwmDomain,
+                pwmDomain.getPwmApplication(),
                 PwmConstants.DEFAULT_LOCALE,
                 SessionLabel.SYSTEM_LABEL,
                 userInfo.getUserIdentity()
@@ -164,7 +164,7 @@ public class PasswordRuleChecks
             final PasswordRuleReaderHelper ruleHelper = ruleCheckData.getRuleHelper();
 
             //check against old password
-            if ( !StringUtil.isEmpty( oldPassword ) && ruleHelper.readBooleanValue( PwmPasswordRule.DisallowCurrent ) )
+            if ( StringUtil.notEmpty( oldPassword ) && ruleHelper.readBooleanValue( PwmPasswordRule.DisallowCurrent ) )
             {
                 if ( oldPassword.equalsIgnoreCase( password ) )
                 {

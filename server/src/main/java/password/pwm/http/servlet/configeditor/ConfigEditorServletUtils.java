@@ -21,10 +21,11 @@
 package password.pwm.http.servlet.configeditor;
 
 import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
-import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.stored.StoredConfigKey;
@@ -45,9 +46,11 @@ import password.pwm.health.ConfigurationChecker;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.ConfigManagerBean;
+import password.pwm.http.servlet.configguide.ConfigGuideForm;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -68,18 +71,17 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
 public class ConfigEditorServletUtils
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigEditorServletUtils.class );
-
 
     public static Optional<FileValue> readFileUploadToSettingValue(
             final PwmRequest pwmRequest,
             final int maxFileSize
     )
-            throws IOException
+            throws PwmUnrecoverableException, IOException
     {
 
         final Map<String, PwmRequest.FileUploadItem> fileUploads;
@@ -104,11 +106,7 @@ public class ConfigEditorServletUtils
         if ( fileUploads.containsKey( PwmConstants.PARAM_FILE_UPLOAD ) )
         {
             final PwmRequest.FileUploadItem uploadItem = fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD );
-
-            final Map<FileValue.FileInformation, FileValue.FileContent> newFileValueMap = new LinkedHashMap<>();
-            newFileValueMap.put( new FileValue.FileInformation( uploadItem.getName(), uploadItem.getType() ), new FileValue.FileContent( uploadItem.getContent() ) );
-
-            return Optional.of( new FileValue( newFileValueMap ) );
+            return Optional.of( FileValue.newFileValue( uploadItem.getName(), uploadItem.getType(), uploadItem.getContent() ) );
         }
 
         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "no file found in upload" );
@@ -129,9 +127,11 @@ public class ConfigEditorServletUtils
                 pwmRequest.getPwmDomain().getConfig().getStoredConfiguration(),
                 configManagerBean.getStoredConfiguration() );
 
+        final List<StoredConfigKey> keys = CollectionUtil.iteratorToStream(  configManagerBean.getStoredConfiguration().keys() ).collect( Collectors.toList() );
+
         final Map<String, String> changeLogMap = StoredConfigurationUtil.makeDebugMap(
                 configManagerBean.getStoredConfiguration(),
-                changeLog.stream(),
+                keys,
                 locale );
 
         final StringBuilder output = new StringBuilder();
@@ -165,9 +165,14 @@ public class ConfigEditorServletUtils
         {
             final Locale locale = pwmRequest.getLocale();
             final ConfigurationChecker configurationChecker = new ConfigurationChecker();
-            final DomainConfig config = new AppConfig( configManagerBean.getStoredConfiguration() ).getDefaultDomainConfig();
+
+            final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmRequest.getPwmApplication()
+                    .getPwmEnvironment()
+                    .makeRuntimeInstance( new AppConfig( configManagerBean.getStoredConfiguration() ) ) );
+            final PwmDomain tempDomain = tempApplication.domains().get( ConfigGuideForm.DOMAIN_ID );
+
             final List<HealthRecord> healthRecords = configurationChecker.doHealthCheck(
-                    config,
+                    new AppConfig( configManagerBean.getStoredConfiguration() ),
                     pwmRequest.getLocale()
             );
 
@@ -175,7 +180,7 @@ public class ConfigEditorServletUtils
 
             return HealthData.builder()
                     .overall( "CONFIG" )
-                    .records( password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords( healthRecords, locale, config ) )
+                    .records( password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords( healthRecords, locale, tempDomain.getConfig() ) )
                     .build();
         }
         catch ( final Exception e )
@@ -192,7 +197,9 @@ public class ConfigEditorServletUtils
             final String key
 
     )
+            throws PwmUnrecoverableException
     {
+        final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
         final ConfigEditorServlet.ReadSettingResponse.ReadSettingResponseBuilder builder = ConfigEditorServlet.ReadSettingResponse.builder();
         final StringTokenizer st = new StringTokenizer( key, "-" );
         st.nextToken();
@@ -200,7 +207,7 @@ public class ConfigEditorServletUtils
         final PwmLocaleBundle pwmLocaleBundle = PwmLocaleBundle.forKey( localeBundleName )
                 .orElseThrow( () -> new IllegalArgumentException( "unknown locale bundle name '" + localeBundleName + "'" ) );
         final String keyName = st.nextToken();
-        final Map<String, String> bundleMap = storedConfig.readLocaleBundleMap( pwmLocaleBundle, keyName );
+        final Map<String, String> bundleMap = storedConfig.readLocaleBundleMap( pwmLocaleBundle, keyName, domainID );
         if ( bundleMap == null || bundleMap.isEmpty() )
         {
             final Map<String, String> defaultValueMap = new LinkedHashMap<>();
@@ -307,7 +314,7 @@ public class ConfigEditorServletUtils
             final PwmRequest pwmRequest,
             final ConfigManagerBean configManagerBean
     )
-            throws IOException, ServletException
+            throws IOException, ServletException, PwmUnrecoverableException
     {
         try
         {
@@ -327,7 +334,7 @@ public class ConfigEditorServletUtils
                 ) );
             }
 
-            final int maxFileSize = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CONFIG_MAX_JDBC_JAR_SIZE ) );
+            final int maxFileSize = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CONFIG_MAX_FILEVALUE_SIZE ) );
             final Map<String, PwmRequest.FileUploadItem> fileUploads = pwmRequest.readFileUploads( maxFileSize, 1 );
             final InputStream fileIs = fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD ).getContent().newByteArrayInputStream();
 

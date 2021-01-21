@@ -295,7 +295,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         {
             case exitForgottenPassword:
                 clearForgottenPasswordBean( pwmRequest );
-                pwmRequest.sendRedirectToContinue();
+                pwmRequest.getPwmResponse().sendRedirectToContinue();
                 return ProcessStatus.Halt;
 
             case gotoSearch:
@@ -655,7 +655,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         {
             LOGGER.debug( pwmRequest, () -> "oauth return detected, however current session did not issue an oauth request; will restart forgotten password sequence" );
             pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, ForgottenPasswordBean.class );
-            pwmRequest.sendRedirect( PwmServletDefinition.ForgottenPassword );
+            pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.ForgottenPassword );
             return ProcessStatus.Halt;
         }
 
@@ -663,7 +663,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         {
             LOGGER.debug( pwmRequest, () -> "oauth return detected, however current session does not have a user identity stored; will restart forgotten password sequence" );
             pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, ForgottenPasswordBean.class );
-            pwmRequest.sendRedirect( PwmServletDefinition.ForgottenPassword );
+            pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.ForgottenPassword );
             return ProcessStatus.Halt;
         }
 
@@ -726,8 +726,8 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         }
         final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
 
-        final ResponseSet responseSet = ForgottenPasswordUtil.readResponseSet( pwmRequest.getPwmRequestContext(), forgottenPasswordBean );
-        if ( responseSet == null )
+        final Optional<ResponseSet> responseSet = ForgottenPasswordUtil.readResponseSet( pwmRequest.getPwmRequestContext(), forgottenPasswordBean );
+        if ( responseSet.isEmpty() )
         {
             final String errorMsg = "attempt to check responses, but responses are not loaded into session bean";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
@@ -745,7 +745,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             final boolean responsesPassed;
             try
             {
-                responsesPassed = responseSet.test( crMap );
+                responsesPassed = responseSet.get().test( crMap );
             }
             catch ( final ChaiUnavailableException e )
             {
@@ -757,9 +757,9 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             }
 
             // special case for nmas, clear out existing challenges and input fields.
-            if ( !responsesPassed && responseSet instanceof NMASCrOperator.NMASCRResponseSet )
+            if ( !responsesPassed && responseSet.get() instanceof NMASCrOperator.NMASCRResponseSet )
             {
-                forgottenPasswordBean.setPresentableChallengeSet( responseSet.getPresentableChallengeSet().asChallengeSetBean() );
+                forgottenPasswordBean.setPresentableChallengeSet( responseSet.get().getPresentableChallengeSet().asChallengeSetBean() );
             }
 
             if ( responsesPassed )
@@ -1001,7 +1001,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         }
 
         final String agreementMsg = forgottenPasswordProfile.readSettingAsLocalizedString( PwmSetting.RECOVERY_AGREEMENT_MESSAGE, pwmRequest.getLocale() );
-        if ( !StringUtil.isEmpty( agreementMsg ) && !forgottenPasswordBean.isAgreementPassed() )
+        if ( StringUtil.notEmpty( agreementMsg ) && !forgottenPasswordBean.isAgreementPassed() )
         {
             final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
             final String expandedText = macroRequest.expandMacros( agreementMsg );
@@ -1242,7 +1242,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             pwmSession.getLoginInfoBean().getLoginFlags().add( LoginInfoBean.LoginFlag.forcePwChange );
 
             // redirect user to change password screen.
-            pwmRequest.sendRedirect( PwmServletDefinition.PublicChangePassword.servletUrlName() );
+            pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.PublicChangePassword.servletUrlName() );
         }
         catch ( final PwmUnrecoverableException e )
         {

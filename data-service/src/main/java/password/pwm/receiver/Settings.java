@@ -95,6 +95,6 @@ public class Settings
     public boolean isFtpEnabled( )
     {
         final String value = settings.get( Setting.ftpSite );
-        return !StringUtil.isEmpty( value );
+        return StringUtil.notEmpty( value );
     }
 }

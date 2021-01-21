@@ -34,7 +34,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.bean.ForgottenPasswordStage;
 import password.pwm.http.servlet.forgottenpw.ForgottenPasswordStateMachine;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -129,7 +129,7 @@ public class RestForgottenPasswordServer extends RestServlet
         }
 
         ErrorInformation errorInformation = null;
-        if ( !newState && !JavaHelper.isEmpty( jsonInput.getForm() ) )
+        if ( !newState && !CollectionUtil.isEmpty( jsonInput.getForm() ) )
         {
             try
             {

@@ -21,10 +21,9 @@
 package password.pwm.health;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.DomainID;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.error.PwmException;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseTable;
@@ -32,25 +31,32 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
-public class DatabaseStatusChecker implements HealthChecker
+public class DatabaseStatusChecker implements HealthSupplier
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseStatusChecker.class );
 
     @Override
-    public List<HealthRecord> doHealthCheck( final PwmDomain pwmDomain )
+    public List<Supplier<List<HealthRecord>>> jobs( final PwmApplication pwmApplication )
     {
-        return Collections.emptyList();
+        final Supplier<List<HealthRecord>> supplier = () -> doHealthCheck( pwmApplication );
+        return Collections.singletonList( supplier );
     }
 
-    public static List<HealthRecord> checkNewDatabaseStatus( final PwmDomain pwmDomain, final DomainConfig config )
+    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
     {
-        return checkDatabaseStatus( pwmDomain, config );
+        return checkDatabaseStatus( pwmApplication, pwmApplication.getConfig() );
     }
 
-    private static List<HealthRecord> checkDatabaseStatus( final PwmDomain pwmDomain, final DomainConfig config )
+    public static List<HealthRecord> checkNewDatabaseStatus( final PwmApplication pwmApplication, final AppConfig config )
     {
-        if ( !config.getAppConfig().hasDbConfigured() )
+        return checkDatabaseStatus( pwmApplication, config );
+    }
+
+    private static List<HealthRecord> checkDatabaseStatus( final PwmApplication pwmApplication, final AppConfig config )
+    {
+        if ( !config.hasDbConfigured() )
         {
             return Collections.singletonList( HealthRecord.forMessage(
                     DomainID.systemId(),
@@ -61,7 +67,7 @@ public class DatabaseStatusChecker implements HealthChecker
         PwmApplication runtimeInstance = null;
         try
         {
-            final PwmEnvironment runtimeEnvironment = pwmDomain.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( config.getAppConfig() );
+            final PwmEnvironment runtimeEnvironment = pwmApplication.getPwmEnvironment().makeRuntimeInstance( config );
             runtimeInstance = PwmApplication.createPwmApplication( runtimeEnvironment );
             final DatabaseAccessor accessor = runtimeInstance.getDatabaseService().getAccessor();
             accessor.get( DatabaseTable.PWM_META, "test" );

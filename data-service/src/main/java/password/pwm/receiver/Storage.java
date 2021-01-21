@@ -115,7 +115,7 @@ public class Storage
             if ( v != null )
             {
                 final String string = StringBinding.entryToString( new ArrayByteIterable( v ) );
-                if ( !StringUtil.isEmpty( string ) )
+                if ( StringUtil.notEmpty( string ) )
                 {
                     return JsonUtil.deserialize( string, TelemetryPublishBean.class );
                 }

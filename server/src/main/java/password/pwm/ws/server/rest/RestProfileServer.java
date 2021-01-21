@@ -134,7 +134,7 @@ public class RestProfileServer extends RestServlet
             final List<FormConfiguration> formFields = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
 
             final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                    restRequest.getDomain(),
+                    restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
                     restRequest.getLocale(),
                     targetUserIdentity.getUserIdentity(),
@@ -244,7 +244,7 @@ public class RestProfileServer extends RestServlet
         }
 
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                restRequest.getDomain(),
+                restRequest.getPwmApplication(),
                 restRequest.getSessionLabel(),
                 restRequest.getLocale(),
                 targetUserIdentity.getUserIdentity(),
@@ -252,7 +252,7 @@ public class RestProfileServer extends RestServlet
         );
 
         final MacroRequest macroRequest = MacroRequest.forUser(
-                restRequest.getDomain(),
+                restRequest.getPwmApplication(),
                 restRequest.getLocale(),
                 restRequest.getSessionLabel(),
                 targetUserIdentity.getUserIdentity()

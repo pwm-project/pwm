@@ -56,6 +56,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.zip.Deflater;
@@ -245,12 +246,11 @@ public class XodusLocalDB implements LocalDBProvider
     @Override
     public boolean contains( final LocalDB.DB db, final String key ) throws LocalDBException
     {
-        checkStatus( false );
-        return get( db, key ) != null;
+        return get( db, key ).isPresent();
     }
 
     @Override
-    public String get( final LocalDB.DB db, final String key ) throws LocalDBException
+    public Optional<String> get( final LocalDB.DB db, final String key ) throws LocalDBException
     {
         checkStatus( false );
         return environment.computeInReadonlyTransaction( transaction ->
@@ -259,9 +259,9 @@ public class XodusLocalDB implements LocalDBProvider
             final ByteIterable returnValue = store.get( transaction, bindMachine.keyToEntry( key ) );
             if ( returnValue != null )
             {
-                return bindMachine.entryToValue( returnValue );
+                return Optional.of( bindMachine.entryToValue( returnValue ) );
             }
-            return null;
+            return Optional.empty();
         } );
     }
 

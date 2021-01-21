@@ -81,7 +81,7 @@ public class OnejarHelper
         final Properties newProps = new Properties();
         newProps.setProperty( "sslEnabledProtocols",  sslProtocolSettingValue );
         final String ciphers = appConfig.readSettingAsString( PwmSetting.HTTPS_CIPHERS );
-        if ( !StringUtil.isEmpty( ciphers ) )
+        if ( StringUtil.notEmpty( ciphers ) )
         {
             newProps.setProperty( "ciphers", ciphers );
         }

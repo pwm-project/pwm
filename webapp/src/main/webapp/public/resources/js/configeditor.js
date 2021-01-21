@@ -81,7 +81,7 @@ PWM_CFGEDIT.syntaxFunctionMap = {
     PROFILE: function (settingKey) {
         StringArrayValueHandler.init(settingKey);
     },
-    DOMAINS: function (settingKey) {
+    DOMAIN: function (settingKey) {
         StringArrayValueHandler.init(settingKey);
     },
     LOCALIZED_STRING: function (settingKey) {
@@ -443,7 +443,10 @@ PWM_CFGEDIT.initDomainMenu = function() {
    {
        var domainMenuElement = PWM_MAIN.getObject('domainMenu');
        var html = '<select id="domainMenuSelect">';
-       html += '<option value="system">System</option>';
+
+       var systemSelected = PWM_VAR['selectedDomainId'] === 'system';
+       html += '<option value="system"' + ( systemSelected ? ' selected' : '') + '>System</option>';
+
        PWM_MAIN.JSLibrary.forEachInArray( domainList, function(domainId){
            var selected = PWM_VAR['selectedDomainId'] === domainId;
            html += '<option ' + ( selected ? 'selected ' : '') + 'value="' + domainId + '">Domain: ' + domainId + "</option>";
@@ -452,6 +455,7 @@ PWM_CFGEDIT.initDomainMenu = function() {
        domainMenuElement.innerHTML = html;
        PWM_MAIN.addEventHandler('domainMenuSelect','change',function(){
            var selectedDomain = PWM_MAIN.JSLibrary.readValueOfSelectElement('domainMenuSelect');
+           PWM_MAIN.Preferences.writeSessionStorage('configEditor-lastSelected', null);
            PWM_MAIN.gotoUrl(PWM_GLOBAL['url-context'] + '/private/config/editor/' + selectedDomain );
        });
    }
@@ -926,7 +930,12 @@ PWM_CFGEDIT.loadMainPageBody = function() {
         if (lastSelected) {
             PWM_CFGEDIT.dispatchNavigationItem(lastSelected);
         } else {
-            PWM_CFGEDIT.dispatchNavigationItem({id: 'TEMPLATES', type: 'category', category: 'TEMPLATES'});
+            var systemSelected = PWM_VAR['selectedDomainId'] === 'system';
+            if (systemSelected) {
+                PWM_CFGEDIT.dispatchNavigationItem({id: 'DOMAINS', type: 'category', category: 'DOMAINS'});
+            } else {
+                PWM_CFGEDIT.dispatchNavigationItem({id: 'TEMPLATES', type: 'category', category: 'TEMPLATES'});
+            }
         }
 
         require(["dojo/io-query"], function (ioQuery) {

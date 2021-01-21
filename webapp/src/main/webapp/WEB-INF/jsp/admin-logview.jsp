@@ -114,7 +114,7 @@
                     </p>
                     <p>
                         The LocalDB is configured to capture events of level
-                        <i><%=JspUtility.getPwmRequest( pageContext ).getDomainConfig().readSettingAsString(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL)%>
+                        <i><%=JspUtility.getPwmRequest( pageContext ).getAppConfig().readSettingAsString(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL)%>
                         </i> and higher.
                     </p>
                 </div>

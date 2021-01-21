@@ -23,20 +23,22 @@ package password.pwm.bean;
 import org.jetbrains.annotations.NotNull;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingScope;
+import password.pwm.config.value.StringValue;
 import password.pwm.util.java.JavaHelper;
 
 import java.io.Serializable;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 public class DomainID implements Comparable<DomainID>, Serializable
 {
+    public static final List<String> DOMAIN_RESERVED_WORDS = List.of( "system", "private", "public", "pwm", "sspr", "domain", "profile", "password" );
+    public static final DomainID DOMAIN_ID_DEFAULT = create( "default" );
+    public static final DomainID DOMAIN_ID_PLACEHOLDER = create( "default" );
+
     private static final String SYSTEM_ID = "system";
     private static final DomainID SYSTEM_DOMAIN_ID = new DomainID( SYSTEM_ID );
-
-   // private static final Pattern PATTERN = Pattern.compile( "(?!.*system.*)([a-zA-Z][a-zA-Z0-9]{2,10})" );
-    private static final Pattern PATTERN = PwmSetting.DOMAIN_LIST.getRegExPattern();
 
     // sort placing 'system' first then alphabetically.
     private static final Comparator<DomainID> COMPARATOR = Comparator.comparing( DomainID::isSystem )
@@ -52,10 +54,12 @@ public class DomainID implements Comparable<DomainID>, Serializable
 
     public static DomainID create( final String domainID )
     {
-        final Pattern pattern = PATTERN;
-        if ( !pattern.matcher( domainID ).matches() )
+        Objects.requireNonNull( domainID );
+        
+        final List<String> errorMessages = StringValue.validateValue( PwmSetting.DOMAIN_LIST, domainID );
+        if ( !errorMessages.isEmpty() )
         {
-            throw new IllegalArgumentException( "domainID value '" + domainID + " ' does not match required syntax pattern" );
+            throw new IllegalArgumentException( "domainID value '" + domainID + "' does not match required syntax pattern for user defined domains: " + errorMessages.get( 0 ) );
         }
         return new DomainID( domainID );
     }

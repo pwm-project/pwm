@@ -21,8 +21,9 @@
 package password.pwm.http;
 
 import com.novell.ldapchai.util.StringHelper;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.stats.EpsStatistic;
@@ -64,15 +65,16 @@ public class HttpEventManager implements
         try
         {
             final ContextManager contextManager = ContextManager.getContextManager( httpSession );
-            final PwmDomain pwmDomain = contextManager.getPwmApplication().getDomains().get( PwmConstants.DOMAIN_ID_PLACEHOLDER );
-            httpSession.setAttribute( PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmDomain.getPwmApplication().getRuntimeNonce() );
+            final PwmApplication pwmApplication = contextManager.getPwmApplication();
+            httpSession.setAttribute( PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmApplication.getRuntimeNonce() );
 
-            if ( pwmDomain.getStatisticsManager() != null )
+            if ( pwmApplication.getStatisticsManager() != null )
             {
-                pwmDomain.getStatisticsManager().updateEps( EpsStatistic.SESSIONS, 1 );
+                pwmApplication.getStatisticsManager().updateEps( EpsStatistic.SESSIONS, 1 );
             }
 
             LOGGER.trace( () -> "new http session created" );
+
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -84,35 +86,32 @@ public class HttpEventManager implements
     public void sessionDestroyed( final HttpSessionEvent httpSessionEvent )
     {
         final HttpSession httpSession = httpSessionEvent.getSession();
-        try
+        final Map<DomainID, PwmSession> domainIDPwmSessionMap = PwmSessionFactory.getDomainSessionMap( httpSession );
+        for ( final PwmSession pwmSession : domainIDPwmSessionMap.values() )
         {
-            if ( httpSession.getAttribute( PwmConstants.SESSION_ATTR_PWM_SESSION ) != null )
+            try
             {
-                String debugMsg = "destroyed session";
-                final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( httpSession );
-                if ( pwmSession != null )
+                if ( httpSession.getAttribute( PwmConstants.SESSION_ATTR_PWM_SESSION ) != null )
                 {
-                    debugMsg += ": " + makeSessionDestroyedDebugMsg( pwmSession );
+                    final String debugMsg = "destroyed session" + ": " + makeSessionDestroyedDebugMsg( pwmSession );
                     pwmSession.unauthenticateUser( null );
-                }
 
-                final PwmDomain pwmDomain = ContextManager.getPwmApplication( httpSession.getServletContext() )
-                        .getDomains().get( PwmConstants.DOMAIN_ID_PLACEHOLDER );
-                if ( pwmDomain != null )
-                {
-                    pwmDomain.getSessionTrackService().removeSessionData( pwmSession );
+                    final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession.getServletContext() );
+                    if ( pwmApplication != null )
+                    {
+                        pwmApplication.getSessionTrackService().removeSessionData( pwmSession );
+                    }
+                    LOGGER.trace( pwmSession.getLabel(), () -> debugMsg );
                 }
-                final String outputMsg = debugMsg;
-                LOGGER.trace( pwmSession.getLabel(), () -> outputMsg );
+                else
+                {
+                    LOGGER.trace( () -> "invalidated uninitialized session" );
+                }
             }
-            else
+            catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.trace( () -> "invalidated uninitialized session" );
+                LOGGER.warn( () -> "error during httpSessionDestroyed: " + e.getMessage() );
             }
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            LOGGER.warn( () -> "error during httpSessionDestroyed: " + e.getMessage() );
         }
     }
 
@@ -165,36 +164,41 @@ public class HttpEventManager implements
     @Override
     public void sessionWillPassivate( final HttpSessionEvent event )
     {
+        /*
         try
         {
-            final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( event.getSession() );
+            final PwmSession pwmSession = PwmSessionFactory.readPwmSession( event.getSession() );
             LOGGER.trace( pwmSession.getLabel(), () -> "passivating session" );
         }
         catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( () -> "unable to passivate session: " + e.getMessage() );
         }
+
+         */
     }
 
     @Override
     public void sessionDidActivate( final HttpSessionEvent event )
     {
+        /*
         try
         {
             final HttpSession httpSession = event.getSession();
-            final PwmSession pwmSession = PwmSessionWrapper.readPwmSession( httpSession );
+            final PwmSession pwmSession = PwmSessionFactory.readPwmSession( httpSession );
             LOGGER.trace( pwmSession.getLabel(), () -> "activating (de-passivating) session" );
-            final PwmDomain pwmDomain = ContextManager.getPwmApplication( httpSession.getServletContext() )
-                    .getDomains().get( PwmConstants.DOMAIN_ID_PLACEHOLDER );
-            if ( pwmDomain != null )
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession.getServletContext() );
+            if ( pwmApplication != null )
             {
-                pwmDomain.getSessionTrackService().addSessionData( pwmSession );
+                pwmApplication.getSessionTrackService().addSessionData( pwmSession );
             }
         }
         catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( () -> "unable to activate (de-passivate) session: " + e.getMessage() );
         }
+
+         */
     }
 
     private static String makeSessionDestroyedDebugMsg( final PwmSession pwmSession )

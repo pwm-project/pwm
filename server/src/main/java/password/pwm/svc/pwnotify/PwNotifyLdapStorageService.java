@@ -103,7 +103,7 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
     {
         final ConfigObjectRecord configObjectRecord = getUserCOR( userIdentity, CoreType.User );
         final String payload = configObjectRecord.getPayload();
-        if ( !StringUtil.isEmpty( payload ) )
+        if ( StringUtil.notEmpty( payload ) )
         {
             return Optional.ofNullable( JsonUtil.deserialize( payload, PwNotifyUserStatus.class ) );
         }

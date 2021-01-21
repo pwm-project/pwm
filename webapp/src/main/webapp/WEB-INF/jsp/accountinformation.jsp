@@ -32,6 +32,7 @@
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.http.servlet.accountinfo.AccountInformationBean" %>
 <%@ page import="password.pwm.http.bean.DisplayElement" %>
+<%@ page import="password.pwm.util.java.CollectionUtil" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -56,7 +57,7 @@
                     <% } %>
                 </table>
             </div>
-            <% if (!JavaHelper.isEmpty(accountInformationBean.getFormData())) { %>
+            <% if (!CollectionUtil.isEmpty(accountInformationBean.getFormData())) { %>
             <input name="tabs" type="radio" id="tab-2" class="input"/>
             <label for="tab-2" class="label"><pwm:display key="Title_UserData"/></label>
             <div class="tab-content-pane" id="UserData" title="<pwm:display key="<%=Display.Title_UserData.toString()%>"/>" class="tabContent">
@@ -70,7 +71,7 @@
                 </div>
             </div>
             <% } %>
-            <% if (!JavaHelper.isEmpty(accountInformationBean.getPasswordRules())) { %>
+            <% if (!CollectionUtil.isEmpty(accountInformationBean.getPasswordRules())) { %>
             <input name="tabs" type="radio" id="tab-3" class="input"/>
             <label for="tab-3" class="label"><pwm:display key="Title_PasswordPolicy"/></label>
             <div class="tab-content-pane" id="PasswordPolicy" title="<pwm:display key="Title_PasswordPolicy"/>" class="tabContent">
@@ -92,7 +93,7 @@
                 </div>
             </div>
             <% } %>
-            <% if (!JavaHelper.isEmpty(accountInformationBean.getAuditData())) {%>
+            <% if (!CollectionUtil.isEmpty(accountInformationBean.getAuditData())) {%>
             <input name="tabs" type="radio" id="tab-4" class="input"/>
             <label for="tab-4" class="label"><pwm:display key="Title_UserEventHistory"/></label>
             <div class="tab-content-pane" id="UserEventHistory" title="<pwm:display key="Title_UserEventHistory"/>" class="tabContent">

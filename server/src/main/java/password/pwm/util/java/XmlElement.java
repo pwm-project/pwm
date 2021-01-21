@@ -96,7 +96,7 @@ public interface XmlElement
         public Optional<XmlElement> getChild( final String elementName )
         {
             final List<XmlElement> children = getChildren( elementName );
-            if ( JavaHelper.isEmpty( children ) )
+            if ( CollectionUtil.isEmpty( children ) )
             {
                 return Optional.empty();
             }

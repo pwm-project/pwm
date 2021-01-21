@@ -23,6 +23,7 @@ package password.pwm.config;
 import password.pwm.PwmConstants;
 import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.XmlElement;
@@ -506,7 +507,7 @@ public enum PwmSettingCategory
             final Set<PwmSettingCategory> categories = Arrays.stream( PwmSettingCategory.values() )
                     .filter( ( loopCategory ) -> loopCategory.getParent() == category )
                     .collect( Collectors.toUnmodifiableSet() );
-            return Collections.unmodifiableSet( JavaHelper.copiedEnumSet( categories, PwmSettingCategory.class ) );
+            return Collections.unmodifiableSet( CollectionUtil.copiedEnumSet( categories, PwmSettingCategory.class ) );
         }
 
         public static Set<PwmSetting> readSettings( final PwmSettingCategory category )
@@ -514,7 +515,7 @@ public enum PwmSettingCategory
             final Set<PwmSetting> settings = Arrays.stream( PwmSetting.values() )
                     .filter( ( setting ) -> setting.getCategory() == category )
                     .collect( Collectors.toSet() );
-            return Collections.unmodifiableSet( JavaHelper.copiedEnumSet( settings, PwmSetting.class ) );
+            return Collections.unmodifiableSet( CollectionUtil.copiedEnumSet( settings, PwmSetting.class ) );
         }
     }
 }

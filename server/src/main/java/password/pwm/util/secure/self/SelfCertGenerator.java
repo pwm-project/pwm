@@ -33,9 +33,9 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import password.pwm.svc.secure.SystemSecureService;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.svc.secure.DomainSecureService;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -54,11 +54,11 @@ class SelfCertGenerator
     private static volatile boolean bouncyCastleInitialized;
 
     private final Settings settings;
-    private final DomainSecureService domainSecureService;
+    private final SystemSecureService secureService;
 
-    SelfCertGenerator( final Settings settings,  final DomainSecureService domainSecureService )
+    SelfCertGenerator( final Settings settings,  final SystemSecureService secureService )
     {
-        this.domainSecureService = domainSecureService;
+        this.secureService = secureService;
         this.settings = settings;
     }
 
@@ -144,7 +144,7 @@ class SelfCertGenerator
         throws Exception
     {
         final KeyPairGenerator kpGen = KeyPairGenerator.getInstance( settings.getKeyAlg(), "BC" );
-        kpGen.initialize( settings.getKeySize(), domainSecureService == null ? new SecureRandom() : domainSecureService.pwmRandom() );
+        kpGen.initialize( settings.getKeySize(), secureService == null ? new SecureRandom() : secureService.pwmRandom() );
         return kpGen.generateKeyPair();
     }
 

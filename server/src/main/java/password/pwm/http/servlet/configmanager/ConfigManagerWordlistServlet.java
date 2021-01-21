@@ -56,6 +56,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 
 @WebServlet(
         name = "ConfigManagerWordlistServlet",
@@ -157,19 +158,22 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
             return;
         }
 
-        final InputStream inputStream = pwmRequest.readFileUploadStream( PwmConstants.PARAM_FILE_UPLOAD );
+        final Optional<InputStream> optionalInputStream = pwmRequest.readFileUploadStream( PwmConstants.PARAM_FILE_UPLOAD );
 
-        try
+        if ( optionalInputStream.isPresent() )
         {
-            wordlistType.forType( pwmRequest.getPwmApplication() ).populate( inputStream );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
-            final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
-            LOGGER.debug( pwmRequest, errorInfo );
-            pwmRequest.outputJsonResult( restResultBean );
-            return;
+            try ( InputStream inputStream = optionalInputStream.get() )
+            {
+                wordlistType.forType( pwmRequest.getPwmApplication() ).populate( inputStream );
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
+                final RestResultBean restResultBean = RestResultBean.fromError( errorInfo, pwmRequest );
+                LOGGER.debug( pwmRequest, errorInfo );
+                pwmRequest.outputJsonResult( restResultBean );
+                return;
+            }
         }
 
         pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
@@ -253,7 +257,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                                 "Population Timestamp",
                                 JavaHelper.toIsoDate( wordlistStatus.getStoreDate() ) ) );
                     }
-                    if ( wordlistStatus.getRemoteInfo() != null && !StringUtil.isEmpty( wordlistStatus.getRemoteInfo().getHash() ) )
+                    if ( wordlistStatus.getRemoteInfo() != null && StringUtil.notEmpty( wordlistStatus.getRemoteInfo().getHash() ) )
                     {
                         presentableValues.add( new DisplayElement(
                                 wordlistType.name() + "_sha256Hash",
@@ -279,7 +283,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                 if ( activity == Wordlist.Activity.Importing )
                 {
                     final String percentComplete = wordlist.getImportPercentComplete();
-                    if ( !StringUtil.isEmpty( percentComplete ) )
+                    if ( StringUtil.notEmpty( percentComplete ) )
                     {
                         presentableValues.add( new DisplayElement(
                                 "percentComplete",

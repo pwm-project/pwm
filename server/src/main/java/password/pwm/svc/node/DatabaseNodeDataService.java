@@ -35,6 +35,7 @@ import password.pwm.util.logging.PwmLogger;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 class DatabaseNodeDataService implements NodeDataServiceProvider
 {
@@ -87,9 +88,12 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
                 final String dbKey = tableIterator.next().getKey();
                 if ( dbKey.startsWith( KEY_PREFIX_NODE ) )
                 {
-                    final String rawValueInDb = databaseAccessor.get( TABLE, dbKey );
-                    final StoredNodeData nodeDataInDb = JsonUtil.deserialize( rawValueInDb, StoredNodeData.class );
-                    returnList.put( nodeDataInDb.getInstanceID(), nodeDataInDb );
+                    final Optional<String> rawValueInDb = databaseAccessor.get( TABLE, dbKey );
+                    rawValueInDb.ifPresent( s ->
+                    {
+                        final StoredNodeData nodeDataInDb = JsonUtil.deserialize( s, StoredNodeData.class );
+                        returnList.put( nodeDataInDb.getInstanceID(), nodeDataInDb );
+                    } );
                 }
             }
         }

@@ -23,16 +23,14 @@ package password.pwm.svc.event;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.option.DataStorageMethod;
-import password.pwm.config.option.UserEventStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -50,7 +48,6 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -75,10 +72,9 @@ public class AuditService implements PwmService
 
     private SyslogAuditService syslogManager;
     private ErrorInformation lastError;
-    private UserHistoryStore userHistoryStore;
     private AuditVault auditVault;
 
-    private PwmDomain pwmDomain;
+    private PwmApplication pwmApplication;
 
     public AuditService( )
     {
@@ -94,32 +90,30 @@ public class AuditService implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
+        this.pwmApplication = pwmApplication;
 
-        final Instant startTime = Instant.now();
+        settings = AuditSettings.fromConfig( pwmApplication.getConfig() );
 
-        settings = AuditSettings.fromConfig( pwmDomain.getConfig() );
-
-        if ( pwmDomain.getApplicationMode() == null || pwmDomain.getApplicationMode() == PwmApplicationMode.READ_ONLY )
+        if ( pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
             this.status = STATUS.CLOSED;
             LOGGER.warn( () -> "unable to start - Application is in read-only mode" );
             return;
         }
 
-        if ( pwmDomain.getPwmApplication().getLocalDB() == null || pwmDomain.getPwmApplication().getLocalDB().status() != LocalDB.Status.OPEN )
+        if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
             this.status = STATUS.CLOSED;
             LOGGER.warn( () -> "unable to start - LocalDB is not available" );
             return;
         }
 
-        final List<String> syslogConfigString = pwmDomain.getConfig().readSettingAsStringArray( PwmSetting.AUDIT_SYSLOG_SERVERS );
+        final List<String> syslogConfigString = pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.AUDIT_SYSLOG_SERVERS );
         if ( syslogConfigString != null && !syslogConfigString.isEmpty() )
         {
             try
             {
-                syslogManager = new SyslogAuditService( pwmDomain );
+                syslogManager = new SyslogAuditService( pwmApplication );
             }
             catch ( final Exception e )
             {
@@ -127,77 +121,6 @@ public class AuditService implements PwmService
                 LOGGER.error( errorInformation::toDebugStr );
             }
         }
-        {
-            final UserEventStorageMethod userEventStorageMethod = pwmDomain.getConfig().readSettingAsEnum(
-                    PwmSetting.EVENTS_USER_STORAGE_METHOD,
-                    UserEventStorageMethod.class
-            );
-            final String debugMsg;
-            final DataStorageMethod storageMethodUsed;
-            switch ( userEventStorageMethod )
-            {
-                case AUTO:
-                    if ( pwmDomain.getConfig().getAppConfig().hasDbConfigured() )
-                    {
-                        debugMsg = "starting using auto-configured data store, Remote Database selected";
-                        this.userHistoryStore = new DatabaseUserHistory( pwmDomain );
-                        storageMethodUsed = DataStorageMethod.DB;
-                    }
-                    else
-                    {
-                        debugMsg = "starting using auto-configured data store, LDAP selected";
-                        this.userHistoryStore = new LdapXmlUserHistory( pwmDomain );
-                        storageMethodUsed = DataStorageMethod.LDAP;
-                    }
-                    break;
-
-                case DATABASE:
-                    this.userHistoryStore = new DatabaseUserHistory( pwmDomain );
-                    debugMsg = "starting using Remote Database data store";
-                    storageMethodUsed = DataStorageMethod.DB;
-                    break;
-
-                case LDAP:
-                    this.userHistoryStore = new LdapXmlUserHistory( pwmDomain );
-                    debugMsg = "starting using LocalDB data store";
-                    storageMethodUsed = DataStorageMethod.LDAP;
-                    break;
-
-                default:
-                    lastError = new ErrorInformation( PwmError.ERROR_INTERNAL, "unknown storageMethod selected: " + userEventStorageMethod );
-                    status = STATUS.CLOSED;
-                    return;
-            }
-            LOGGER.debug( () -> debugMsg, () -> TimeDuration.fromCurrent( startTime ) );
-            serviceInfo = ServiceInfoBean.builder().storageMethod( storageMethodUsed ).build();
-        }
-        {
-            final TimeDuration maxRecordAge = TimeDuration.of( pwmDomain.getConfig().readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_AGE ), TimeDuration.Unit.SECONDS );
-            final long maxRecords = pwmDomain.getConfig().readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_EVENTS );
-            final AuditVault.Settings settings = new AuditVault.Settings(
-                    maxRecords,
-                    maxRecordAge
-            );
-
-            if ( pwmDomain.getPwmApplication().getLocalDB() != null && pwmDomain.getApplicationMode() != PwmApplicationMode.READ_ONLY )
-            {
-                if ( maxRecords < 1 )
-                {
-                    LOGGER.debug( () -> "localDB audit vault will remain closed due to max records setting" );
-                    pwmDomain.getPwmApplication().getLocalDB().truncate( LocalDB.DB.AUDIT_EVENTS );
-                }
-                else
-                {
-                    auditVault = new LocalDbAuditVault();
-                    auditVault.init( pwmDomain, pwmDomain.getPwmApplication().getLocalDB(), settings );
-                }
-            }
-            else
-            {
-                LOGGER.debug( () -> "localDB audit vault will remain closed due to application mode" );
-            }
-        }
-
         this.status = STATUS.OPEN;
     }
 
@@ -234,6 +157,7 @@ public class AuditService implements PwmService
         if ( lastError != null )
         {
             healthRecords.add( HealthRecord.forMessage(
+                    DomainID.systemId(),
                     HealthMessage.ServiceClosed,
                     this.getClass().getSimpleName(),
                     lastError.toDebugStr() ) );
@@ -247,20 +171,6 @@ public class AuditService implements PwmService
         return auditVault.readVault();
     }
 
-    public List<UserAuditRecord> readUserHistory( final PwmSession pwmSession )
-            throws PwmUnrecoverableException
-    {
-        return readUserHistory( pwmSession.getLabel(), pwmSession.getUserInfo() );
-    }
-
-    public List<UserAuditRecord> readUserHistory( final SessionLabel sessionLabel, final UserInfo userInfoBean )
-            throws PwmUnrecoverableException
-    {
-        final Instant startTime = Instant.now();
-        final List<UserAuditRecord> results = userHistoryStore.readUserHistory( sessionLabel, userInfoBean );
-        LOGGER.trace( sessionLabel, () -> "read " + results.size() + " user history records", () -> TimeDuration.fromCurrent( startTime ) );
-        return results;
-    }
 
     private void sendAsEmail( final AuditRecord record )
             throws PwmUnrecoverableException
@@ -279,16 +189,18 @@ public class AuditService implements PwmService
             case SYSTEM:
                 for ( final String toAddress : settings.getSystemEmailAddresses() )
                 {
-                    sendAsEmail( pwmDomain, record, toAddress, settings.getAlertFromAddress() );
+                    sendAsEmail( pwmApplication, record, toAddress, settings.getAlertFromAddress() );
                 }
                 break;
 
             case USER:
             case HELPDESK:
+            {
                 for ( final String toAddress : settings.getUserEmailAddresses() )
                 {
-                    sendAsEmail( pwmDomain, record, toAddress, settings.getAlertFromAddress() );
+                    sendAsEmail( pwmApplication, record, toAddress, settings.getAlertFromAddress() );
                 }
+            }
                 break;
 
             default:
@@ -298,7 +210,7 @@ public class AuditService implements PwmService
     }
 
     private static void sendAsEmail(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final AuditRecord record,
             final String toAddress,
             final String fromAddress
@@ -306,10 +218,10 @@ public class AuditService implements PwmService
     )
             throws PwmUnrecoverableException
     {
-        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmDomain, SessionLabel.AUDITING_SESSION_LABEL );
+        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, SessionLabel.AUDITING_SESSION_LABEL );
 
-        String subject = macroRequest.expandMacros( pwmDomain.getConfig().readAppProperty( AppProperty.AUDIT_EVENTS_EMAILSUBJECT ) );
-        subject = subject.replace( "%EVENT%", record.getEventCode().getLocalizedString( pwmDomain.getConfig(), PwmConstants.DEFAULT_LOCALE ) );
+        String subject = macroRequest.expandMacros( pwmApplication.getConfig().readAppProperty( AppProperty.AUDIT_EVENTS_EMAILSUBJECT ) );
+        subject = subject.replace( "%EVENT%", record.getEventCode().getLocalizedString( pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE ) );
 
         final String body;
         {
@@ -324,7 +236,7 @@ public class AuditService implements PwmService
                 .subject( subject )
                 .bodyPlain( body )
                 .build();
-        pwmDomain.getPwmApplication().getEmailQueue().submitEmail( emailItem, null, macroRequest );
+        pwmApplication.getEmailQueue().submitEmail( emailItem, null, macroRequest );
     }
 
     public Instant eldestVaultRecord( )
@@ -347,6 +259,7 @@ public class AuditService implements PwmService
     public void submit( final AuditEvent auditEvent, final UserInfo userInfo, final PwmSession pwmSession )
             throws PwmUnrecoverableException
     {
+        final PwmDomain pwmDomain = pwmApplication.domains().get( userInfo.getUserIdentity().getDomainID() );
         final AuditRecordFactory auditRecordFactory = new AuditRecordFactory( pwmDomain, pwmSession.getSessionManager().getMacroMachine( ) );
         final UserAuditRecord auditRecord = auditRecordFactory.createUserAuditRecord( auditEvent, userInfo, pwmSession );
         submit( pwmSession.getLabel(), auditRecord );
@@ -398,16 +311,21 @@ public class AuditService implements PwmService
         // add to user history record
         if ( auditRecord instanceof UserAuditRecord )
         {
-            if ( settings.getUserStoredEvents().contains( auditRecord.getEventCode() ) )
+            final DomainID domainID = auditRecord.getDomain();
+            if ( domainID != null )
             {
-                final String perpetratorDN = ( ( UserAuditRecord ) auditRecord ).getPerpetratorDN();
-                if ( !StringUtil.isEmpty( perpetratorDN ) )
+                final PwmDomain pwmDomain = pwmApplication.domains().get( domainID );
+                if ( pwmDomain != null )
                 {
-                    userHistoryStore.updateUserHistory( sessionLabel, ( UserAuditRecord ) auditRecord );
-                }
-                else
-                {
-                    LOGGER.trace( sessionLabel, () -> "skipping update of user history, audit record does not have a perpetratorDN: " + JsonUtil.serialize( auditRecord ) );
+                    final String perpetratorDN = ( ( UserAuditRecord ) auditRecord ).getPerpetratorDN();
+                    if ( StringUtil.notEmpty( perpetratorDN ) )
+                    {
+                        pwmDomain.getUserHistoryService().write( sessionLabel, ( UserAuditRecord ) auditRecord );
+                    }
+                    else
+                    {
+                        LOGGER.trace( sessionLabel, () -> "skipping update of user history, audit record does not have a perpetratorDN: " + JsonUtil.serialize( auditRecord ) );
+                    }
                 }
             }
         }
@@ -426,7 +344,7 @@ public class AuditService implements PwmService
         }
 
         // update statistics
-        StatisticsManager.incrementStat( pwmDomain, Statistic.AUDIT_EVENTS );
+        StatisticsManager.incrementStat( pwmApplication, Statistic.AUDIT_EVENTS );
     }
 
 
@@ -455,6 +373,7 @@ public class AuditService implements PwmService
             headers.add( LocaleHelper.getLocalizedMessage( locale, "Field_Audit_TargetDN", config, password.pwm.i18n.Admin.class ) );
             headers.add( LocaleHelper.getLocalizedMessage( locale, "Field_Audit_SourceAddress", config, password.pwm.i18n.Admin.class ) );
             headers.add( LocaleHelper.getLocalizedMessage( locale, "Field_Audit_SourceHost", config, password.pwm.i18n.Admin.class ) );
+            headers.add( LocaleHelper.getLocalizedMessage( locale, "Field_Audit_Domain", config, password.pwm.i18n.Admin.class ) );
             csvPrinter.printRecord( headers );
         }
 
@@ -491,6 +410,10 @@ public class AuditService implements PwmService
                 lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getTargetDN() );
                 lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getSourceAddress() );
                 lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getSourceHost() );
+            }
+            if ( loopRecord.getDomain() != null )
+            {
+                lineOutput.add( loopRecord.getDomain().stringValue() );
             }
             csvPrinter.printRecord( lineOutput );
         }

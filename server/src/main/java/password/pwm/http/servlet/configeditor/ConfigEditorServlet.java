@@ -199,11 +199,13 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         {
             if ( mode == DomainManageMode.single )
             {
-                pwmRequest.sendRedirect( PwmServletDefinition.ConfigEditor );
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.ConfigEditor );
             }
             else
             {
-                pwmRequest.sendRedirect( pwmRequest.getContextPath() + PwmServletDefinition.ConfigEditor.servletUrl() + "/system" );
+                final DomainID baseDomain = pwmRequest.getDomainID();
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.ConfigEditor.servletUrl()
+                                + "/" + baseDomain.stringValue() );
             }
             return;
         }
@@ -278,8 +280,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
-
-
     @ActionHandler( action = "readSetting" )
     private ProcessStatus restReadSetting(
             final PwmRequest pwmRequest
@@ -329,6 +329,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final String settingKey = pwmRequest.readParameterAsString( "key" );
         final String bodyString = pwmRequest.readRequestBodyAsString();
         final UserIdentity loggedInUser = pwmRequest.getUserInfoIfLoggedIn();
+
         final ReadSettingResponse readSettingResponse;
 
         final StoredConfiguration storedConfiguration;
@@ -342,7 +343,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final Map<String, String> valueMap = JsonUtil.deserializeStringMap( bodyString );
             final Map<String, String> outputMap = new LinkedHashMap<>( valueMap );
 
-            modifier.writeLocaleBundleMap( pwmLocaleBundle, keyName, outputMap );
+            final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
+            modifier.writeLocaleBundleMap( domainID, pwmLocaleBundle, keyName, outputMap );
             storedConfiguration = modifier.newStoredConfiguration();
             readSettingResponse = ConfigEditorServletUtils.handleLocaleBundleReadSetting( pwmRequest, storedConfiguration, settingKey );
         }
@@ -388,7 +390,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final PwmLocaleBundle pwmLocaleBundle = PwmLocaleBundle.forKey( st.nextToken() )
                     .orElseThrow( () -> new IllegalArgumentException( "unknown locale bundle name" ) );
             final String keyName = st.nextToken();
-            modifier.resetLocaleBundleMap( pwmLocaleBundle, keyName );
+            final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
+            modifier.resetLocaleBundleMap( pwmLocaleBundle, keyName, domainID );
         }
         else
         {
@@ -447,7 +450,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorString, new String[]
                     {
                             errorString,
-                            }
+                    }
             );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInfo, pwmRequest ) );
             LOGGER.error( pwmRequest, errorInfo );
@@ -610,7 +613,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         LOGGER.debug( pwmRequest, () -> "beginning restLdapHealthCheck" );
         final String profileID = pwmRequest.readParameterAsString( "profile" );
-        final DomainConfig config = new AppConfig( configManagerBean.getStoredConfiguration() ).getDefaultDomainConfig();
+        final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.LDAP_SERVER_URLS );
+        final DomainConfig config = new AppConfig( configManagerBean.getStoredConfiguration() ).getDomainConfigs().get( domainID );
         final HealthData healthData = LDAPHealthChecker.healthForNewConfiguration( pwmRequest.getPwmDomain(), config, pwmRequest.getLocale(), profileID, true, true );
         final RestResultBean restResultBean = RestResultBean.withData( healthData );
 
@@ -628,9 +632,10 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         LOGGER.debug( pwmRequest, () -> "beginning restDatabaseHealthCheck" );
-        final DomainConfig config = new AppConfig( configManagerBean.getStoredConfiguration() ).getDefaultDomainConfig();
-        final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus( pwmRequest.getPwmDomain(), config );
-        final HealthData healthData = HealthRecord.asHealthDataBean( config, pwmRequest.getLocale(), healthRecords );
+        final AppConfig config = new AppConfig( configManagerBean.getStoredConfiguration() );
+        final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.LDAP_SERVER_URLS );
+        final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus( pwmRequest.getPwmApplication(), config );
+        final HealthData healthData = HealthRecord.asHealthDataBean( config.getDomainConfigs().get( domainID ), pwmRequest.getLocale(), healthRecords );
         final RestResultBean restResultBean = RestResultBean.withData( healthData );
         pwmRequest.outputJsonResult( restResultBean );
         LOGGER.debug( pwmRequest, () -> "completed restDatabaseHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
@@ -647,7 +652,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         LOGGER.debug( pwmRequest, () -> "beginning restSmsHealthCheck" );
 
-        final DomainConfig config = new AppConfig( configManagerBean.getStoredConfiguration() ).getDefaultDomainConfig();
+        final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.LDAP_SERVER_URLS );
+        final DomainConfig config = new AppConfig( configManagerBean.getStoredConfiguration() ).getDomainConfigs().get( domainID );
         final StringBuilder output = new StringBuilder();
         output.append( "beginning SMS send process:\n" );
 
@@ -749,7 +755,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final PwmSetting pwmSetting = PwmSetting.forKey( settingKey )
                 .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( pwmSetting );
-        final int maxFileSize = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CONFIG_MAX_JDBC_JAR_SIZE ) );
+        final int maxFileSize = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CONFIG_MAX_FILEVALUE_SIZE ) );
 
         if ( pwmSetting == PwmSetting.HTTPS_CERT )
         {
@@ -769,6 +775,12 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             modifier.writeSetting( key, fileValue.get(), userIdentity );
             configManagerBean.setStoredConfiguration( modifier.newStoredConfiguration() );
             pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
+            LOGGER.trace( pwmRequest, () -> "file upload completed for setting " + key.toString() + ", file: "
+                    + fileValue.get().toDebugJsonObject( pwmRequest.getLocale() ) );
+        }
+        else
+        {
+            LOGGER.trace( pwmRequest, () -> "file upload requested but no file present in request" );
         }
 
         return ProcessStatus.Halt;
@@ -813,8 +825,10 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     private ProcessStatus restConfigSettingData( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
+        final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final SettingData settingData =  SettingDataMaker.generateSettingData(
+                domainID,
                 configManagerBean.getStoredConfiguration(),
                 pwmRequest.getLabel(),
                 pwmRequest.getLocale()
@@ -826,7 +840,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "testMacro" )
-    private ProcessStatus restTestMacro( final PwmRequest pwmRequest ) throws IOException, ServletException
+    private ProcessStatus restTestMacro( final PwmRequest pwmRequest ) throws IOException, ServletException, PwmUnrecoverableException
     {
         try
         {
@@ -859,6 +873,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
         final String profile = inputMap.get( "profile" );
         final String dn = inputMap.getOrDefault( "dn", "" );
+        final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForDomainSetting(  );
 
         final LdapBrowser ldapBrowser = new LdapBrowser(
                 pwmRequest.getPwmDomain().getLdapConnectionService().getChaiProviderFactory(),
@@ -868,12 +883,12 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         LdapBrowser.LdapBrowseResult result;
         try
         {
-            result = ldapBrowser.doBrowse( profile, dn );
+            result = ldapBrowser.doBrowse( domainID, profile, dn );
         }
         catch ( final PwmUnrecoverableException e )
         {
             // Probably was given a bad dn, better just browse without a DN than error out completely
-            result = ldapBrowser.doBrowse( profile, "" );
+            result = ldapBrowser.doBrowse( domainID, profile, "" );
         }
 
         ldapBrowser.close();

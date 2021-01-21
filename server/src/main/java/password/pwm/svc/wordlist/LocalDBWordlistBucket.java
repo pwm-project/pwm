@@ -66,7 +66,7 @@ class LocalDBWordlistBucket extends AbstractWordlistBucket implements WordlistBu
     {
         try
         {
-            return pwmApplication.getLocalDB().get( db, key );
+            return pwmApplication.getLocalDB().get( db, key ).orElse( null );
         }
         catch ( final Exception e )
         {

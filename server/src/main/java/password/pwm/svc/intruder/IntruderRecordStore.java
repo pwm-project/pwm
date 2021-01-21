@@ -26,9 +26,11 @@ import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
 
-interface RecordStore
+import java.util.Optional;
+
+interface IntruderRecordStore
 {
-    IntruderRecord read( String key ) throws PwmUnrecoverableException;
+    Optional<IntruderRecord> read( String key ) throws PwmUnrecoverableException;
 
     void write( String key, IntruderRecord record ) throws PwmOperationalException, PwmUnrecoverableException;
 

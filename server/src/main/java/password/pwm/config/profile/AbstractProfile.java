@@ -22,7 +22,7 @@ package password.pwm.config.profile;
 
 import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.SettingReader;
+import password.pwm.config.StoredSettingReader;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.VerificationMethodValue;
@@ -43,13 +43,13 @@ public abstract class AbstractProfile implements Profile
 {
     private final String identifier;
     private final StoredConfiguration storedConfiguration;
-    private final SettingReader settingReader;
+    private final StoredSettingReader settingReader;
 
     AbstractProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedConfiguration )
     {
         this.identifier = identifier;
         this.storedConfiguration = storedConfiguration;
-        this.settingReader = new SettingReader( storedConfiguration, identifier, domainID );
+        this.settingReader = new StoredSettingReader( storedConfiguration, identifier, domainID );
     }
 
     @Override
@@ -140,7 +140,7 @@ public abstract class AbstractProfile implements Profile
         return storedConfiguration;
     }
 
-    protected SettingReader getSettingReader()
+    protected StoredSettingReader getSettingReader()
     {
         return settingReader;
     }

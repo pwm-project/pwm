@@ -34,6 +34,7 @@ import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -47,11 +48,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class CertificateChecker implements HealthSupplier, HealthChecker
+public class CertificateChecker implements HealthSupplier
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( CertificateChecker.class );
 
-    @Override
     public List<HealthRecord> doHealthCheck( final PwmDomain pwmDomain )
     {
         final CertificateCheckJob job = new CertificateCheckJob( pwmDomain.getPwmApplication().getConfig() );
@@ -86,7 +86,7 @@ public class CertificateChecker implements HealthSupplier, HealthChecker
                 TimeDuration.Unit.SECONDS );
 
         final List<HealthRecord> records = new ArrayList<>();
-        appConfig.getStoredConfiguration().keys()
+        CollectionUtil.iteratorToStream( appConfig.getStoredConfiguration().keys() )
                 .filter( k -> k.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                 .forEach( k ->
                 {

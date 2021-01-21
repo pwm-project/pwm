@@ -250,7 +250,7 @@ public class FormUtility
                 if ( ( !itemIsHidden && !itemIsReadOnly ) || checkReadOnlyAndHidden )
                 {
                     final String value = formValues.get( formItem );
-                    if ( !StringUtil.isEmpty( value ) )
+                    if ( StringUtil.notEmpty( value ) )
                     {
                         filterClauses.put( formItem.getName(), value );
                         labelMap.put( formItem.getName(), formItem.getLabel( locale ) );
@@ -620,7 +620,7 @@ public class FormUtility
         for ( final Map.Entry<PwmSetting, TokenDestinationItem.Type> entry : settingTypeMap.entrySet() )
         {
             final String attrName = ldapProfile.readSettingAsString( entry.getKey() );
-            if ( !StringUtil.isEmpty( attrName ) )
+            if ( StringUtil.notEmpty( attrName ) )
             {
                 for ( final FormConfiguration formConfiguration : formConfigurations )
                 {

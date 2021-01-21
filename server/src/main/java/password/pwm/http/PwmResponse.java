@@ -22,21 +22,27 @@ package password.pwm.http;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import password.pwm.AppProperty;
+import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.http.servlet.command.CommandServlet;
 import password.pwm.i18n.Message;
+import password.pwm.util.Validator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -45,6 +51,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class PwmResponse extends PwmHttpResponseWrapper
@@ -81,10 +88,10 @@ public class PwmResponse extends PwmHttpResponseWrapper
     public PwmResponse(
             final HttpServletResponse response,
             final PwmRequest pwmRequest,
-            final DomainConfig domainConfig
+            final AppConfig appConfig
     )
     {
-        super( pwmRequest.getHttpServletRequest(), response, pwmRequest.getAppConfig() );
+        super( pwmRequest.getHttpServletRequest(), response, appConfig );
         this.pwmRequest = pwmRequest;
     }
 
@@ -137,7 +144,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         if ( showMessage )
         {
             LOGGER.trace( pwmRequest, () -> "skipping success page due to configuration setting" );
-            final String redirectUrl = pwmRequest.getContextPath()
+            final String redirectUrl = pwmRequest.getBasePath()
                     + PwmServletDefinition.PublicCommand.servletUrl()
                     + "?processAction=next";
             sendRedirect( redirectUrl );
@@ -158,7 +165,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
             final ErrorInformation errorInformation,
             final Flag... flags
     )
-            throws IOException, ServletException
+            throws IOException, ServletException, PwmUnrecoverableException
     {
         LOGGER.error( pwmRequest.getLabel(), errorInformation );
 
@@ -203,7 +210,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
             final boolean showDetail = pwmRequest.getPwmDomain().determineIfDetailErrorMsgShown();
             final String errorStatusText = showDetail
                     ? errorInformation.toDebugStr()
-                    : errorInformation.toUserStr( pwmRequest.getPwmSession(), pwmRequest.getPwmDomain() );
+                    : errorInformation.toUserStr( pwmRequest.getPwmSession(), pwmRequest.getDomainConfig() );
             getHttpServletResponse().sendError( HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errorStatusText );
         }
 
@@ -225,13 +232,13 @@ public class PwmResponse extends PwmHttpResponseWrapper
     }
 
 
-    public void writeEncryptedCookie( final String cookieName, final Serializable cookieValue, final CookiePath path )
+    public void writeEncryptedCookie( final String cookieName, final Serializable cookieValue, final PwmCookiePath path )
             throws PwmUnrecoverableException
     {
         writeEncryptedCookie( cookieName, cookieValue, -1, path );
     }
 
-    public void writeEncryptedCookie( final String cookieName, final Serializable cookieValue, final int seconds, final CookiePath path )
+    public void writeEncryptedCookie( final String cookieName, final Serializable cookieValue, final int seconds, final PwmCookiePath path )
             throws PwmUnrecoverableException
     {
         final String jsonValue = JsonUtil.serialize( cookieValue );
@@ -246,24 +253,51 @@ public class PwmResponse extends PwmHttpResponseWrapper
         this.setContentType( contentType );
     }
 
-    @Override
     public void sendRedirect( final String url )
             throws IOException
     {
         sendRedirect( url, RedirectType.Found_302 );
     }
 
+    public void sendRedirectToIntoPage() throws IOException
+    {
+        final String redirectURL = pwmRequest.getPwmDomain().getConfig().readSettingAsString( PwmSetting.URL_INTRO );
+        sendRedirect( redirectURL );
+    }
+
+    public void sendRedirect( final PwmServletDefinition pwmServletDefinition )
+            throws PwmUnrecoverableException, IOException
+    {
+        sendRedirect( pwmRequest.getBasePath() + pwmServletDefinition.servletUrl() );
+    }
+
+    public void sendRedirectToContinue( )
+            throws PwmUnrecoverableException, IOException
+    {
+        String redirectURL = pwmRequest.getBasePath() + PwmServletDefinition.PublicCommand.servletUrl();
+        redirectURL = PwmURL.appendAndEncodeUrlParameters(
+                redirectURL,
+                Collections.singletonMap( PwmConstants.PARAM_ACTION_REQUEST, CommandServlet.CommandAction.next.toString() )
+        );
+        sendRedirect( redirectURL );
+    }
+
     public void sendRedirect( final String url, final RedirectType redirectType )
             throws IOException
     {
+        Objects.requireNonNull ( url );
         preCommitActions();
 
-        final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
-        resp.setStatus( redirectType.getCode() );
+        final String basePath = pwmRequest.getBasePath();
+        final String effectiveUrl = url.startsWith( basePath )
+                ? url
+                : basePath + url;
 
         // http "other" redirect
-        resp.setHeader( HttpHeader.Location.getHttpName(), url );
-        LOGGER.trace( pwmRequest, () -> "sending " + redirectType.getCode() + " redirect to " + url );
+        final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
+        resp.setStatus( redirectType.getCode() );
+        resp.setHeader( HttpHeader.Location.getHttpName(), effectiveUrl.toString() );
+        LOGGER.trace( pwmRequest, () -> "sending " + redirectType.getCode() + " redirect to " + effectiveUrl.toString() );
     }
 
     private void preCommitActions( )
@@ -288,4 +322,80 @@ public class PwmResponse extends PwmHttpResponseWrapper
     {
         pwmResponseFlags.add( flag );
     }
+
+    public void writeCookie(
+            final String cookieName,
+            final String cookieValue,
+            final int seconds,
+            final PwmCookiePath path,
+            final PwmHttpResponseWrapper.Flag... flags
+    )
+            throws PwmUnrecoverableException
+    {
+        if ( this.getHttpServletResponse().isCommitted() )
+        {
+            LOGGER.warn( () -> "attempt to write cookie '" + cookieName + "' after response is committed" );
+        }
+
+        final AppConfig appConfig = pwmRequest.getAppConfig();
+
+        final boolean secureFlag;
+        {
+            final String configValue = appConfig.readAppProperty( AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG );
+            if ( configValue == null || "auto".equalsIgnoreCase( configValue ) )
+            {
+                secureFlag = pwmRequest.getHttpServletRequest().isSecure();
+            }
+            else
+            {
+                secureFlag = Boolean.parseBoolean( configValue );
+            }
+        }
+
+        final boolean httpOnlyEnabled = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.HTTP_COOKIE_HTTPONLY_ENABLE ) );
+        final boolean httpOnly = httpOnlyEnabled && !JavaHelper.enumArrayContainsValue( flags, PwmHttpResponseWrapper.Flag.NonHttpOnly );
+
+        final String value;
+        {
+            if ( cookieValue == null )
+            {
+                value = null;
+            }
+            else
+            {
+                if ( JavaHelper.enumArrayContainsValue( flags, PwmHttpResponseWrapper.Flag.BypassSanitation ) )
+                {
+                    value = StringUtil.urlEncode( cookieValue );
+                }
+                else
+                {
+                    value = StringUtil.urlEncode(
+                            Validator.sanitizeHeaderValue( appConfig, cookieValue )
+                    );
+                }
+            }
+        }
+
+        final Cookie theCookie = new Cookie( cookieName, value );
+        theCookie.setMaxAge( JavaHelper.rangeCheck( -1, Integer.MAX_VALUE, seconds ) );
+        theCookie.setHttpOnly( httpOnly );
+        theCookie.setSecure( secureFlag );
+
+        theCookie.setPath( path == null
+                ? PwmCookiePath.CurrentURL.toStringPath( pwmRequest )
+                : path.toStringPath( pwmRequest ) );
+        if ( value != null && value.length() > 2000 )
+        {
+            LOGGER.warn( () -> "writing large cookie to response: cookieName=" + cookieName + ", length=" + value.length() );
+        }
+        this.getHttpServletResponse().addCookie( theCookie );
+        addSameSiteCookieAttribute();
+    }
+
+    public void removeCookie( final String cookieName, final PwmCookiePath path )
+            throws PwmUnrecoverableException
+    {
+        writeCookie( cookieName, null, 0, path );
+    }
+
 }

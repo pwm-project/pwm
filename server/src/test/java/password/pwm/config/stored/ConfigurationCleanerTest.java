@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
@@ -44,6 +45,7 @@ import java.util.Set;
 public class ConfigurationCleanerTest
 {
     private static DomainConfig domainConfig;
+    private static final DomainID DOMAIN_ID = DomainID.create( "default" );
 
     @BeforeClass
     public static void setUp() throws Exception
@@ -53,7 +55,7 @@ public class ConfigurationCleanerTest
         try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ) )
         {
             final StoredConfiguration storedConfiguration = StoredConfigurationFactory.input( xmlFile );
-            domainConfig = new AppConfig( storedConfiguration ).getDefaultDomainConfig();
+            domainConfig = new AppConfig( storedConfiguration ).getDomainConfigs().get( DOMAIN_ID );
         }
     }
 
@@ -74,7 +76,7 @@ public class ConfigurationCleanerTest
     public void testProfiledSettings()
     {
         final List<String> profileList = StoredConfigurationUtil.profilesForSetting(
-                PwmConstants.DOMAIN_ID_PLACEHOLDER, PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER, domainConfig.getStoredConfiguration() );
+                DOMAIN_ID, PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER, domainConfig.getStoredConfiguration() );
         Assert.assertEquals( 1, profileList.size() );
 
         final PeopleSearchProfile peopleSearchProfile = domainConfig.getPeopleSearchProfiles().get( PwmConstants.PROFILE_ID_DEFAULT );
@@ -89,7 +91,7 @@ public class ConfigurationCleanerTest
 
         {
             final Set<WebServiceUsage> usages = domainConfig.readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class );
-            Assert.assertEquals( usages.size(), 2 );
+            Assert.assertEquals( 2, usages.size() );
             Assert.assertTrue( usages.contains( WebServiceUsage.Statistics ) );
             Assert.assertTrue( usages.contains( WebServiceUsage.Health ) );
         }

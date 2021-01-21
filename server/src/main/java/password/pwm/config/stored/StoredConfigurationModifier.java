@@ -20,8 +20,8 @@
 
 package password.pwm.config.stored;
 
+import password.pwm.bean.DomainID;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StringValue;
@@ -38,11 +38,13 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class StoredConfigurationModifier
 {
     private final AtomicReference<StoredConfigData> ref = new AtomicReference<>( );
+    private final AtomicInteger modifications = new AtomicInteger();
 
     private StoredConfigurationModifier( final StoredConfiguration storedConfiguration )
     {
@@ -79,25 +81,11 @@ public class StoredConfigurationModifier
         Objects.requireNonNull( key );
         Objects.requireNonNull( value );
 
-        final String profileID = key.getProfileID();
-        final PwmSetting setting = key.toPwmSetting();
-
         update( ( storedConfigData ) ->
-        {
-            if ( StringUtil.isEmpty( profileID ) && setting.getCategory().hasProfiles() )
-            {
-                throw new IllegalArgumentException( "writing of setting " + setting.getKey() + " requires a non-null profileID" );
-            }
-            if ( !StringUtil.isEmpty( profileID ) && !setting.getCategory().hasProfiles() )
-            {
-                throw new IllegalArgumentException( "cannot specify profile for non-profile setting" );
-            }
-
-            return storedConfigData.toBuilder()
-                    .storedValue( key, value )
-                    .metaData( key, valueMetaData )
-                    .build();
-        } );
+                storedConfigData.toBuilder()
+                        .storedValue( key, value )
+                        .metaData( key, valueMetaData )
+                        .build() );
     }
 
     public void writeConfigProperty(
@@ -128,14 +116,14 @@ public class StoredConfigurationModifier
         } );
     }
 
-    public void resetLocaleBundleMap( final PwmLocaleBundle pwmLocaleBundle, final String keyName )
+    public void resetLocaleBundleMap( final PwmLocaleBundle pwmLocaleBundle, final String keyName, final DomainID domainID )
             throws PwmUnrecoverableException
     {
         update( ( storedConfigData ) ->
         {
             final Map<StoredConfigKey, StoredValue> existingStoredValues = new HashMap<>( storedConfigData.getStoredValues() );
 
-            final StoredConfigKey key = StoredConfigKey.forLocaleBundle( pwmLocaleBundle, keyName );
+            final StoredConfigKey key = StoredConfigKey.forLocaleBundle( pwmLocaleBundle, keyName, domainID );
             existingStoredValues.remove( key );
 
             return storedConfigData.toBuilder()
@@ -181,6 +169,7 @@ public class StoredConfigurationModifier
     }
 
     public void writeLocaleBundleMap(
+            final DomainID domainID,
             final PwmLocaleBundle pwmLocaleBundle,
             final String keyName,
             final Map<String, String> localeMap
@@ -189,13 +178,18 @@ public class StoredConfigurationModifier
     {
         update( ( storedConfigData ) ->
         {
-            final StoredConfigKey key = StoredConfigKey.forLocaleBundle( pwmLocaleBundle, keyName );
+            final StoredConfigKey key = StoredConfigKey.forLocaleBundle( pwmLocaleBundle, keyName, domainID );
             final StoredValue value = new LocalizedStringValue( localeMap );
 
             return storedConfigData.toBuilder()
                     .storedValue( key, value )
                     .build();
         } );
+    }
+
+    public int modifications()
+    {
+        return modifications.get();
     }
 
 
@@ -240,6 +234,7 @@ public class StoredConfigurationModifier
                     throw new RuntimeException( e );
                 }
             } );
+            modifications.incrementAndGet();
         }
         catch ( final RuntimeException e )
         {

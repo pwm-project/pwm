@@ -21,9 +21,8 @@
 package password.pwm.health;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.bean.DomainID;
-import password.pwm.config.DomainConfig;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
@@ -32,24 +31,32 @@ import password.pwm.util.localdb.LocalDB;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
-public class LocalDBHealthChecker implements HealthChecker
+public class LocalDBHealthChecker implements HealthSupplier
 {
+
     @Override
-    public List<HealthRecord> doHealthCheck( final PwmDomain pwmDomain )
+    public List<Supplier<List<HealthRecord>>> jobs( final PwmApplication pwmApplication )
     {
-        if ( pwmDomain == null )
+        final Supplier<List<HealthRecord>> supplier = () -> doHealthCheck( pwmApplication );
+        return Collections.singletonList( supplier );
+    }
+
+    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
+    {
+        if ( pwmApplication == null )
         {
             return null;
         }
 
         final List<HealthRecord> healthRecords = new ArrayList<>();
 
-        final LocalDB localDB = pwmDomain.getPwmApplication().getLocalDB();
+        final LocalDB localDB = pwmApplication.getLocalDB();
 
         if ( localDB == null )
         {
-            final String detailedError = pwmDomain.getLastLocalDBFailure() == null ? "unknown, check logs" : pwmDomain.getLastLocalDBFailure().toDebugStr();
+            final String detailedError = pwmApplication.getLastLocalDBFailure() == null ? "unknown, check logs" : pwmApplication.getLastLocalDBFailure().toDebugStr();
             healthRecords.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.LocalDB_BAD, detailedError ) );
             return healthRecords;
         }
@@ -66,7 +73,7 @@ public class LocalDBHealthChecker implements HealthChecker
             return healthRecords;
         }
 
-        healthRecords.addAll( checkSpaceRemaining( pwmDomain ) );
+        healthRecords.addAll( checkSpaceRemaining( pwmApplication ) );
 
         if ( healthRecords.isEmpty() )
         {
@@ -76,11 +83,10 @@ public class LocalDBHealthChecker implements HealthChecker
         return healthRecords;
     }
 
-    private List<HealthRecord> checkSpaceRemaining( final PwmDomain pwmDomain )
+    private List<HealthRecord> checkSpaceRemaining( final PwmApplication pwmApplication )
     {
-        final DomainConfig domainConfig = pwmDomain.getConfig();
-        final long minFreeSpace = JavaHelper.silentParseLong( domainConfig.readAppProperty( AppProperty.HEALTH_DISK_MIN_FREE_WARNING ), 500_000_000 );
-        final long freeSpace = FileSystemUtility.diskSpaceRemaining( pwmDomain.getPwmApplication().getLocalDB().getFileLocation() );
+        final long minFreeSpace = JavaHelper.silentParseLong( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_DISK_MIN_FREE_WARNING ), 500_000_000 );
+        final long freeSpace = FileSystemUtility.diskSpaceRemaining( pwmApplication.getLocalDB().getFileLocation() );
 
         if ( freeSpace < minFreeSpace )
         {

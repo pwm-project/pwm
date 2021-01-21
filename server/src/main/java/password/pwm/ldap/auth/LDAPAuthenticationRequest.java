@@ -48,8 +48,8 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
-import password.pwm.svc.intruder.IntruderManager;
-import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.intruder.IntruderService;
+import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
@@ -209,9 +209,9 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     {
         log( PwmLogLevel.DEBUG, () -> "preparing to authenticate user using authenticationType=" + this.requestedAuthType + " using strategy " + this.strategy );
 
-        final IntruderManager intruderManager = pwmDomain.getIntruderManager();
+        final IntruderService intruderManager = pwmDomain.getIntruderManager();
         intruderManager.convenience().checkUserIdentity( userIdentity );
-        intruderManager.check( RecordType.ADDRESS, sessionLabel.getSourceAddress() );
+        intruderManager.check( IntruderRecordType.ADDRESS, sessionLabel.getSourceAddress() );
 
         // verify user is not account disabled
         AuthenticationUtility.checkIfUserEligibleToAuthentication( pwmDomain, userIdentity );
@@ -361,7 +361,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                 ? "none"
                 : authenticationResult.getUserProvider().getChaiConfiguration().getSetting( ChaiSetting.BIND_DN ) ) );
 
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, PwmConstants.DEFAULT_LOCALE, sessionLabel, userIdentity );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), PwmConstants.DEFAULT_LOCALE, sessionLabel, userIdentity );
         final AuditRecord auditRecord = new AuditRecordFactory( pwmDomain, macroRequest ).createUserAuditRecord(
                 AuditEvent.AUTHENTICATE,
                 this.userIdentity,

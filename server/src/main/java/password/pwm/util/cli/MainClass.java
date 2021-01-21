@@ -28,10 +28,8 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.AppConfig;
-import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -86,6 +84,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.TreeMap;
 
@@ -198,28 +197,28 @@ public class MainClass
         final File configurationFile = locateConfigurationFile( applicationPath );
 
         final ConfigurationReader configReader = loadConfiguration( configurationFile );
-        final DomainConfig config = configReader.getConfiguration().getDomainConfigs().get( PwmConstants.DOMAIN_ID_PLACEHOLDER );
+        final AppConfig config = configReader.getConfiguration();
 
-        final PwmDomain pwmDomain;
+        final PwmApplication pwmApplication;
         final LocalDB localDB;
 
         if ( parameters.needsPwmApplication )
         {
-            pwmDomain = loadPwmApplication( applicationPath, mainOptions.getApplicationFlags(), config.getAppConfig(), configurationFile, parameters.readOnly );
-            localDB = pwmDomain.getPwmApplication().getLocalDB();
+            pwmApplication = loadPwmApplication( applicationPath, mainOptions.getApplicationFlags(), config, configurationFile, parameters.readOnly );
+            localDB = pwmApplication.getLocalDB();
         }
         else if ( parameters.needsLocalDB )
         {
-            pwmDomain = null;
+            pwmApplication = null;
             localDB = loadPwmDB( config, parameters.readOnly, applicationPath );
         }
         else
         {
-            pwmDomain = null;
+            pwmApplication = null;
             localDB = null;
         }
 
-        out( "environment initialized" );
+        out( PwmConstants.PWM_APP_NAME + " environment initialized" );
         out( "" );
 
         final Writer outputStream = new OutputStreamWriter( System.out, PwmConstants.DEFAULT_CHARSET );
@@ -228,7 +227,7 @@ public class MainClass
                 .configurationFile( configurationFile )
                 .config( config )
                 .applicationPath( applicationPath )
-                .pwmDomain( pwmDomain )
+                .pwmApplication( pwmApplication )
                 .localDB( localDB )
                 .debugWriter( outputStream )
                 .options( options )
@@ -390,11 +389,11 @@ public class MainClass
             return;
         }
 
-        if ( cliEnvironment.getPwmDomain() != null )
+        if ( cliEnvironment.getPwmApplication() != null )
         {
             try
             {
-                cliEnvironment.getPwmDomain().shutdown();
+                cliEnvironment.getPwmApplication().shutdown();
             }
             catch ( final Exception e )
             {
@@ -438,7 +437,7 @@ public class MainClass
     }
 
     private static LocalDB loadPwmDB(
-            final DomainConfig config,
+            final AppConfig config,
             final boolean readonly,
             final File applicationPath
     )
@@ -447,7 +446,7 @@ public class MainClass
         final File databaseDirectory;
         final String pwmDBLocationSetting = config.readAppProperty( AppProperty.LOCALDB_LOCATION );
         databaseDirectory = FileSystemUtility.figureFilepath( pwmDBLocationSetting, applicationPath );
-        return LocalDBFactory.getInstance( databaseDirectory, readonly, null, config.getAppConfig() );
+        return LocalDBFactory.getInstance( databaseDirectory, readonly, null, config );
     }
 
     private static ConfigurationReader loadConfiguration( final File configurationFile ) throws Exception
@@ -464,7 +463,7 @@ public class MainClass
         return reader;
     }
 
-    private static PwmDomain loadPwmApplication(
+    private static PwmApplication loadPwmApplication(
             final File applicationPath,
             final Collection<PwmEnvironment.ApplicationFlag> flags,
             final AppConfig config,
@@ -500,7 +499,7 @@ public class MainClass
             out( "application is in non running state: " + runningMode );
         }
 
-        return pwmApplication.getDefaultDomain();
+        return pwmApplication;
     }
 
     private static File locateConfigurationFile( final File applicationPath )
@@ -522,10 +521,10 @@ public class MainClass
         }
         else
         {
-            final String appPathStr = PwmEnvironment.ParseHelper.readValueFromSystem( PwmEnvironment.EnvironmentParameter.applicationPath, null );
-            if ( appPathStr != null && !appPathStr.isEmpty() )
+            final Optional<String> appPathStr = PwmEnvironment.ParseHelper.readValueFromSystem( PwmEnvironment.EnvironmentParameter.applicationPath, null );
+            if ( appPathStr.isPresent() )
             {
-                applicationPath = new File( appPathStr );
+                applicationPath = new File( appPathStr.get() );
             }
             else
             {

@@ -36,7 +36,6 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 public class LocalDbAuditVault implements AuditVault
@@ -151,39 +150,16 @@ public class LocalDbAuditVault implements AuditVault
 
     private static AuditRecord deSerializeRecord( final String input )
     {
-        final Map<String, String> tempMap = JsonUtil.deserializeStringMap( input );
-        String errorMsg = "";
         try
         {
-            if ( tempMap != null )
-            {
-                final String eventCode = tempMap.get( "eventCode" );
-                if ( eventCode != null && eventCode.length() > 0 )
-                {
-                    final AuditEvent event;
-                    try
-                    {
-                        event = AuditEvent.valueOf( eventCode );
-                    }
-                    catch ( final IllegalArgumentException e )
-                    {
-                        errorMsg = "error de-serializing audit record: " + e.getMessage();
-                        final String errorMsgFinal = errorMsg;
-                        LOGGER.error( () -> errorMsgFinal );
-                        return null;
-                    }
-                    final Class clazz = event.getType().getDataClass();
-                    final com.google.gson.reflect.TypeToken typeToken = com.google.gson.reflect.TypeToken.get( clazz );
-                    return JsonUtil.deserialize( input, typeToken );
-                }
-            }
+            return JsonUtil.deserialize( input, AuditRecordData.class );
         }
         catch ( final Exception e )
         {
-            errorMsg = e.getMessage();
+            final String finalErrorMsg = e.getMessage();
+            LOGGER.debug( () -> "unable to deserialize stored record '" + input + "', error: " + finalErrorMsg );
         }
-        final String finalErrorMsg = errorMsg;
-        LOGGER.debug( () -> "unable to deserialize stored record '" + input + "', error: " + finalErrorMsg );
+
         return null;
     }
 
@@ -209,7 +185,7 @@ public class LocalDbAuditVault implements AuditVault
         if ( auditDB != null && !auditDB.isEmpty() )
         {
             final String stringFirstRecord = auditDB.getFirst();
-            final UserAuditRecord firstRecord = JsonUtil.deserialize( stringFirstRecord, UserAuditRecord.class );
+            final AuditRecordData firstRecord = JsonUtil.deserialize( stringFirstRecord, AuditRecordData.class );
             oldestRecord = firstRecord.getTimestamp();
         }
     }

@@ -24,6 +24,8 @@ package password.pwm.error;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 
+import java.io.IOException;
+
 /**
  * A general exception thrown by PWM.
  */
@@ -67,6 +69,12 @@ public class PwmUnrecoverableException extends PwmException
     public static PwmUnrecoverableException newException( final PwmError error, final String message )
     {
         return new PwmUnrecoverableException( new ErrorInformation( error, message ) );
+    }
+
+    public static PwmUnrecoverableException convert( final IOException e )
+    {
+        final String msg = "unexpected io error: " + e.getMessage();
+        return PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, msg );
     }
 }
 

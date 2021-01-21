@@ -31,9 +31,8 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.IdleTimeoutCalculator;
-import password.pwm.http.PwmHttpResponseWrapper;
+import password.pwm.http.PwmCookiePath;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmResponse;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.stats.Statistic;
@@ -50,7 +49,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( CryptoCookieLoginImpl.class );
 
-    private static final PwmResponse.CookiePath COOKIE_PATH = PwmHttpResponseWrapper.CookiePath.Application;
+    private static final PwmCookiePath COOKIE_PATH = PwmCookiePath.Domain;
     private String cookieName = "SESSION";
 
     @Override

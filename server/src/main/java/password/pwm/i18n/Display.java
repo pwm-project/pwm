@@ -20,7 +20,7 @@
 
 package password.pwm.i18n;
 
-import password.pwm.config.DomainConfig;
+import password.pwm.config.SettingReader;
 import password.pwm.util.i18n.LocaleHelper;
 
 import java.util.Locale;
@@ -321,7 +321,7 @@ public enum Display implements PwmDisplayBundle
     Value_Default,
     Placeholder_Search,;
 
-    public static String getLocalizedMessage( final Locale locale, final Display key, final DomainConfig config )
+    public static String getLocalizedMessage( final Locale locale, final Display key, final SettingReader config )
     {
         return LocaleHelper.getLocalizedMessage( locale, key.toString(), config, Display.class );
     }

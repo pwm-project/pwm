@@ -216,7 +216,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
         final ArrayList<RemoteWebServiceConfiguration> output = new ArrayList<>();
         for ( final RemoteWebServiceConfiguration remoteWebServiceConfiguration : values )
         {
-            if ( !StringUtil.isEmpty( remoteWebServiceConfiguration.getPassword() ) )
+            if ( StringUtil.notEmpty( remoteWebServiceConfiguration.getPassword() ) )
             {
                 output.add( remoteWebServiceConfiguration.toBuilder().password( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT ).build() );
             }

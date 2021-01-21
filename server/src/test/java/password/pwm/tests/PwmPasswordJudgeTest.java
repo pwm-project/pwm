@@ -22,7 +22,6 @@ package password.pwm.tests;
 
 import org.junit.Assert;
 import org.junit.Test;
-import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
@@ -41,7 +40,7 @@ import java.util.List;
 
 public class PwmPasswordJudgeTest
 {
-    private static final DomainID DOMAIN_ID = PwmConstants.DOMAIN_ID_DEFAULT;
+    private static final DomainID DOMAIN_ID = DomainID.DOMAIN_ID_DEFAULT;
 
     private static DomainConfig makeConfig() throws PwmUnrecoverableException
     {
@@ -50,7 +49,7 @@ public class PwmPasswordJudgeTest
         modifier.writeSetting( key, new StringValue( StrengthMeterType.PWM.name() ), null );
         final StoredConfiguration storedConfiguration = modifier.newStoredConfiguration();
         final AppConfig appConfig = new AppConfig( storedConfiguration );
-        return appConfig.getDefaultDomainConfig();
+        return appConfig.getDomainConfigs().get( DomainID.create( "default" ) );
     }
 
 

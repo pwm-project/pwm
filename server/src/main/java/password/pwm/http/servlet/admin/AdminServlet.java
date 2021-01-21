@@ -50,14 +50,14 @@ import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.search.UserSearchEngine;
-import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditEventType;
 import password.pwm.svc.event.AuditRecord;
-import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.pwnotify.PwNotifyStoredJobState;
 import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
-import password.pwm.svc.report.UserCacheRecord;
+import password.pwm.svc.report.UserReportRecord;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.i18n.LocaleHelper;
@@ -235,7 +235,7 @@ public class AdminServlet extends ControlledPwmServlet
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try
         {
-            final ReportCsvUtility reportCsvUtility = new ReportCsvUtility( pwmDomain );
+            final ReportCsvUtility reportCsvUtility = new ReportCsvUtility( pwmRequest.getPwmApplication() );
             reportCsvUtility.outputToCsv( outputStream, true, pwmRequest.getLocale() );
         }
         catch ( final Exception e )
@@ -266,7 +266,7 @@ public class AdminServlet extends ControlledPwmServlet
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try
         {
-            final ReportCsvUtility reportCsvUtility = new ReportCsvUtility( pwmDomain );
+            final ReportCsvUtility reportCsvUtility = new ReportCsvUtility( pwmRequest.getPwmApplication() );
             reportCsvUtility.outputSummaryToCsv( outputStream, pwmRequest.getLocale() );
         }
         catch ( final Exception e )
@@ -367,7 +367,7 @@ public class AdminServlet extends ControlledPwmServlet
         );
 
         LOGGER.trace( pwmRequest, () -> "issuing command '" + reportCommand + "' to report engine" );
-        pwmRequest.getPwmDomain().getReportService().executeCommand( reportCommand );
+        pwmRequest.getPwmApplication().getReportService().executeCommand( reportCommand );
 
         final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
         pwmRequest.outputJsonResult( restResultBean );
@@ -379,7 +379,7 @@ public class AdminServlet extends ControlledPwmServlet
             throws IOException
     {
         final ReportStatusBean returnMap = ReportStatusBean.makeReportStatusData(
-                pwmRequest.getPwmDomain().getReportService(),
+                pwmRequest.getPwmApplication().getReportService(),
                 pwmRequest.getPwmSession().getSessionStateBean().getLocale()
         );
         final RestResultBean restResultBean = RestResultBean.withData( returnMap );
@@ -391,11 +391,10 @@ public class AdminServlet extends ControlledPwmServlet
     private ProcessStatus processReportSummary( final PwmRequest pwmRequest )
             throws IOException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
-        returnMap.put( "raw", pwmDomain.getReportService().getSummaryData() );
-        returnMap.put( "presentable", pwmDomain.getReportService().getSummaryData().asPresentableCollection(
-                pwmDomain.getConfig(),
+        returnMap.put( "raw", pwmRequest.getPwmApplication().getReportService().getSummaryData() );
+        returnMap.put( "presentable", pwmRequest.getPwmApplication().getReportService().getSummaryData().asPresentableCollection(
+                pwmRequest.getAppConfig(),
                 pwmRequest.getPwmSession().getSessionStateBean().getLocale()
         ) );
 
@@ -410,17 +409,17 @@ public class AdminServlet extends ControlledPwmServlet
     {
         final int maximum = Math.min( pwmRequest.readParameterAsInt( "maximum", 1000 ), 10 * 1000 );
 
-        final ReportService reportService = pwmRequest.getPwmDomain().getReportService();
-        final ArrayList<UserCacheRecord> reportData = new ArrayList<>();
+        final ReportService reportService = pwmRequest.getPwmApplication().getReportService();
+        final ArrayList<UserReportRecord> reportData = new ArrayList<>();
 
-        try ( ClosableIterator<UserCacheRecord> cacheBeanIterator = reportService.iterator() )
+        try ( ClosableIterator<UserReportRecord> cacheBeanIterator = reportService.iterator() )
         {
             while ( cacheBeanIterator.hasNext() && reportData.size() < maximum )
             {
-                final UserCacheRecord userCacheRecord = cacheBeanIterator.next();
-                if ( userCacheRecord != null )
+                final UserReportRecord userReportRecord = cacheBeanIterator.next();
+                if ( userReportRecord != null )
                 {
-                    reportData.add( userCacheRecord );
+                    reportData.add( userReportRecord );
                 }
             }
         }
@@ -471,7 +470,7 @@ public class AdminServlet extends ControlledPwmServlet
         final Instant startTime = Instant.now();
         final TimeDuration maxSearchTime = TimeDuration.SECONDS_10;
         final int max = readMaxParameter( pwmRequest, 100, 10 * 1000 );
-        final AuditEvent.Type auditDataType = AuditEvent.Type.valueOf( pwmRequest.readParameterAsString( "type", AuditEvent.Type.USER.name() ) );
+        final AuditEventType auditDataType = AuditEventType.valueOf( pwmRequest.readParameterAsString( "type", AuditEventType.USER.name() ) );
         final ArrayList<AuditRecord> records = new ArrayList<>();
         final Iterator<AuditRecord> iterator = pwmRequest.getPwmDomain().getAuditManager().readVault();
 
@@ -524,7 +523,7 @@ public class AdminServlet extends ControlledPwmServlet
         final TreeMap<String, Object> returnData = new TreeMap<>();
         try
         {
-            for ( final RecordType recordType : RecordType.values() )
+            for ( final IntruderRecordType recordType : IntruderRecordType.values() )
             {
                 returnData.put( recordType.toString(), pwmRequest.getPwmDomain().getIntruderManager().getRecords( recordType, max ) );
             }
@@ -625,7 +624,7 @@ public class AdminServlet extends ControlledPwmServlet
             pwmRequest.forwardToJsp( currentPage.getJspURL() );
             return;
         }
-        pwmRequest.sendRedirect( pwmRequest.getContextPath() + PwmServletDefinition.Admin.servletUrl() + Page.dashboard.getUrlSuffix() );
+        pwmRequest.getPwmResponse().sendRedirect( pwmRequest.getBasePath() + PwmServletDefinition.Admin.servletUrl() + Page.dashboard.getUrlSuffix() );
     }
 
     private static int readMaxParameter( final PwmRequest pwmRequest, final int defaultValue, final int maxValue )
@@ -725,7 +724,7 @@ public class AdminServlet extends ControlledPwmServlet
                         "Last Job Duration", TimeDuration.between( pwNotifyStoredJobState.getLastStart(), pwNotifyStoredJobState.getLastCompletion() ).asLongString( locale ) ) );
             }
 
-            if ( !StringUtil.isEmpty( pwNotifyStoredJobState.getServerInstance() ) )
+            if ( StringUtil.notEmpty( pwNotifyStoredJobState.getServerInstance() ) )
             {
                 statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
                         "Last Job Server Instance", pwNotifyStoredJobState.getServerInstance() ) );

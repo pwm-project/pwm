@@ -146,7 +146,7 @@ class NewUserFormUtils
             {
                 final String attrName = formConfiguration.getName();
                 final String value = newUserForm.getFormData().get( attrName );
-                if ( !StringUtil.isEmpty( value ) )
+                if ( StringUtil.notEmpty( value ) )
                 {
                     ldapData.put( attrName, value );
                 }
@@ -182,7 +182,7 @@ class NewUserFormUtils
             for ( final FormConfiguration formConfiguration : formConfigurations )
             {
                 final String name = formConfiguration.getName();
-                final boolean formHasValue = !StringUtil.isEmpty( newFormValues.get( name ) );
+                final boolean formHasValue = StringUtil.notEmpty( newFormValues.get( name ) );
 
                 if ( formConfiguration.isReadonly() || ( !formHasValue && injectedValues.containsKey( name ) ) )
                 {

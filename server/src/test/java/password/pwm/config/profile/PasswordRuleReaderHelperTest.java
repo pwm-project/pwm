@@ -60,14 +60,14 @@ public class PasswordRuleReaderHelperTest
                 .username( "fflintstone" )
                 .build();
 
-        return  MacroRequest.forUser( pwmApplication.getDefaultDomain(), null, userInfo, null );
+        return  MacroRequest.forUser( pwmApplication, null, userInfo, null );
     }
 
     private PasswordRuleReaderHelper makeRuleHelper( final boolean enableMacros )
     {
         final Map<String, String> passwordPolicyRules = new HashMap<>( );
         passwordPolicyRules.put( PwmPasswordRule.AllowMacroInRegExSetting.getKey(), Boolean.toString( enableMacros ) );
-        return new PasswordRuleReaderHelper( PwmPasswordPolicy.createPwmPasswordPolicy( passwordPolicyRules ) );
+        return new PasswordRuleReaderHelper( PwmPasswordPolicy.createPwmPasswordPolicy( PwmPasswordPolicy.defaultPolicy().getDomainID(), passwordPolicyRules ) );
     }
 
     @Test
@@ -81,7 +81,7 @@ public class PasswordRuleReaderHelperTest
         final List<Pattern> patterns = ruleHelper.readRegExSetting( PwmPasswordRule.RegExMatch, macroRequest, input );
 
         final String expected = "fflintstone, First Name: Fred, Last Name: Flintstone, Email: fred@flintstones.tv";
-        Assert.assertEquals( patterns.size(), 1 );
+        Assert.assertEquals( 1, patterns.size() );
         Assert.assertEquals( expected, patterns.get( 0 ).pattern() );
     }
 
@@ -95,7 +95,7 @@ public class PasswordRuleReaderHelperTest
 
         final List<Pattern> patterns = ruleHelper.readRegExSetting( PwmPasswordRule.RegExMatch, macroRequest, input );
 
-        Assert.assertEquals( patterns.size(), 2 );
+        Assert.assertEquals( 2, patterns.size() );
         Assert.assertEquals( "^fflintstone[0-9]+$", patterns.get( 0 ).pattern() );
         Assert.assertEquals( "^password$", patterns.get( 1 ).pattern() );
     }

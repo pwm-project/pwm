@@ -487,13 +487,13 @@ public class EmailService implements PwmService
             if ( EmailServerUtil.examineSendFailure( e, emailServiceSettings.getRetryableStatusResponses() ) )
             {
                 LOGGER.error( () -> "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", will retry" );
-                StatisticsManager.incrementStat( pwmApplication.getDefaultDomain(), Statistic.EMAIL_SEND_FAILURES );
+                StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_FAILURES );
                 return WorkQueueProcessor.ProcessResult.RETRY;
             }
             else
             {
                 LOGGER.error( () -> "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", permanent failure, discarding message" );
-                StatisticsManager.incrementStat( pwmApplication.getDefaultDomain(), Statistic.EMAIL_SEND_DISCARDS );
+                StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_DISCARDS );
                 return WorkQueueProcessor.ProcessResult.FAILED;
             }
         }
@@ -529,7 +529,7 @@ public class EmailService implements PwmService
             lastSendError.set( null );
 
             LOGGER.debug( () -> "sent email: " + emailItemBean.toDebugString(), () -> sendTime );
-            StatisticsManager.incrementStat( pwmApplication.getDefaultDomain(), Statistic.EMAIL_SEND_SUCCESSES );
+            StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_SUCCESSES );
         }
         catch ( final MessagingException | PwmException e )
         {

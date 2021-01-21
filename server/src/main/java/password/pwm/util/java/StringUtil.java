@@ -20,7 +20,6 @@
 
 package password.pwm.util.java;
 
-import net.iharder.Base64;
 import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -239,21 +238,6 @@ public abstract class StringUtil
     {
         GZIP,
         URL_SAFE,;
-
-        private static int asBase64UtilOptions( final Base64Options... options )
-        {
-            int b64UtilOptions = 0;
-
-            if ( JavaHelper.enumArrayContainsValue( options, Base64Options.GZIP ) )
-            {
-                b64UtilOptions = b64UtilOptions | Base64.GZIP;
-            }
-            if ( JavaHelper.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
-            {
-                b64UtilOptions = b64UtilOptions | Base64.URL_SAFE;
-            }
-            return b64UtilOptions;
-        }
     }
 
     public static String escapeJS( final String input )
@@ -307,12 +291,6 @@ public abstract class StringUtil
         }
     }
 
-    public static byte[] base64Decode( final String input )
-            throws IOException
-    {
-        return Base64.decode( input );
-    }
-
     public static String base32Encode( final byte[] input )
             throws IOException
     {
@@ -323,28 +301,54 @@ public abstract class StringUtil
     public static byte[] base64Decode( final String input, final StringUtil.Base64Options... options )
             throws IOException
     {
-        final int b64UtilOptions = Base64Options.asBase64UtilOptions( options );
-
-        return Base64.decode( input, b64UtilOptions );
-    }
-
-    public static String base64Encode( final byte[] input )
-    {
-        return Base64.encodeBytes( input );
-    }
-
-    public static String base64Encode( final byte[] input, final StringUtil.Base64Options... options )
-            throws IOException
-    {
-        final int b64UtilOptions = Base64Options.asBase64UtilOptions( options );
-
-        if ( b64UtilOptions > 0 )
+        final byte[] decodedBytes;
+        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
         {
-            return Base64.encodeBytes( input, b64UtilOptions );
+            decodedBytes = java.util.Base64.getUrlDecoder().decode( input );
         }
         else
         {
-            return Base64.encodeBytes( input );
+            decodedBytes = java.util.Base64.getMimeDecoder().decode( input );
+        }
+
+        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.GZIP ) )
+        {
+            return JavaHelper.gunzip( decodedBytes );
+        }
+        else
+        {
+            return decodedBytes;
+        }
+    }
+
+
+    public static String base64Encode( final byte[] input, final StringUtil.Base64Options... options )
+            throws PwmUnrecoverableException
+    {
+        final byte[] compressedBytes;
+        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.GZIP ) )
+        {
+            try
+            {
+                compressedBytes = JavaHelper.gzip( input );
+            }
+            catch ( final IOException e )
+            {
+                throw PwmUnrecoverableException.convert( e );
+            }
+        }
+        else
+        {
+            compressedBytes = input;
+        }
+
+        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
+        {
+            return java.util.Base64.getUrlEncoder().encodeToString( compressedBytes );
+        }
+        else
+        {
+            return java.util.Base64.getMimeEncoder().encodeToString( compressedBytes );
         }
     }
 
@@ -509,6 +513,11 @@ public abstract class StringUtil
         return StringUtils.isEmpty( input );
     }
 
+    public static boolean notEmpty( final CharSequence input )
+    {
+        return !StringUtils.isEmpty( input );
+    }
+
     public static boolean isTrimEmpty( final String input )
     {
         return isEmpty( input ) || input.trim().length() == 0;
@@ -566,23 +575,55 @@ public abstract class StringUtil
         return stripAllChars( input, Character::isWhitespace );
     }
 
-    public static String stripAllChars( final String input, final Predicate<Character> stripPredicate )
+    public static String stripAllChars( final String input, final Predicate<Character> characterPredicate )
     {
-        final StringBuilder sb = new StringBuilder( input );
-        int index = 0;
-        while ( index < sb.length() )
+        if ( isEmpty( input ) )
         {
-            final char loopChar = sb.charAt( index );
-            if ( stripPredicate.test( loopChar ) )
+            return "";
+        }
+
+        if ( characterPredicate == null )
+        {
+            return input;
+        }
+
+        // count of valid output chars
+        int copiedChars = 0;
+
+        // loop through input chars and stop if stripped char is found
+        while ( copiedChars < input.length() )
+        {
+            if ( !characterPredicate.test( input.charAt( copiedChars ) ) )
             {
-                sb.deleteCharAt( index );
+                copiedChars++;
             }
             else
             {
-                index++;
+                break;
             }
         }
-        return sb.toString();
+
+        // return input string if we made it through input without detecting stripped char
+        if ( copiedChars >= input.length() )
+        {
+            return input;
+        }
+
+        // creating sb with input gives good length value and handles copy of chars so far...
+        final StringBuilder sb = new StringBuilder( input );
+
+        // loop through remaining chars and copy one by one
+        for ( int loopIndex = copiedChars; loopIndex < input.length(); loopIndex++ )
+        {
+            final char loopChar = input.charAt( loopIndex );
+            if ( !characterPredicate.test( loopChar ) )
+            {
+                sb.setCharAt( copiedChars, loopChar );
+                copiedChars++;
+            }
+        }
+
+        return sb.substring( 0, copiedChars );
     }
 
     public static String insertRepeatedLineBreaks( final String input, final int periodicity )
@@ -629,20 +670,10 @@ public abstract class StringUtil
             return true;
         }
 
-        final String lcaseValue = value.toLowerCase();
-        for ( final String item : collection )
-        {
-            if ( item != null )
-            {
-                final String lcaseItem = item.toLowerCase();
-                if ( lcaseItem.equalsIgnoreCase( lcaseValue ) )
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        final String lCaseValue = value.toLowerCase();
+        return collection.stream()
+                .map( String::toLowerCase )
+                .anyMatch( lCaseValue::equals );
     }
 
     public static void validateLdapSearchFilter( final String filter )

@@ -23,12 +23,11 @@ package password.pwm.health;
 import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.servlet.configmanager.DebugItemGenerator;
+import password.pwm.util.debug.DebugItemGenerator;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
@@ -48,9 +47,7 @@ import java.lang.management.ThreadInfo;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,22 +58,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.zip.ZipOutputStream;
 
-public class HealthMonitor implements PwmService
+public class HealthService implements PwmService
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( HealthMonitor.class );
-
-    private static final List<HealthChecker> HEALTH_CHECKERS = List.of(
-            new LDAPHealthChecker(),
-            new JavaChecker(),
-            new CertificateChecker(),
-            new ConfigurationChecker(),
-            new LocalDBHealthChecker(),
-            new ApplianceStatusChecker() );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( HealthService.class );
 
     private static final List<HealthSupplier> HEALTH_SUPPLIERS = List.of(
-        new CertificateChecker() );
+            new LDAPHealthChecker(),
+            new JavaChecker(),
+            new ConfigurationChecker(),
+            new LocalDBHealthChecker(),
+            new ApplianceStatusChecker(),
+            new CertificateChecker() );
+
 
     private ExecutorService executorService;
     private ExecutorService supportZipWriterService;
@@ -86,7 +82,6 @@ public class HealthMonitor implements PwmService
     private final AtomicInteger healthCheckCount = new AtomicInteger( 0 );
 
     private STATUS status = STATUS.CLOSED;
-    private PwmDomain pwmDomain;
     private PwmApplication pwmApplication;
     private volatile HealthData healthData = emptyHealthData();
 
@@ -96,7 +91,7 @@ public class HealthMonitor implements PwmService
         AdPasswordPolicyApiCheck,
     }
 
-    public HealthMonitor( )
+    public HealthService( )
     {
     }
 
@@ -105,11 +100,10 @@ public class HealthMonitor implements PwmService
             throws PwmException
     {
         this.pwmApplication = Objects.requireNonNull( pwmApplication );
-        this.pwmDomain = pwmApplication.getDefaultDomain();
         this.healthData = emptyHealthData();
-        settings = HealthMonitorSettings.fromConfiguration( pwmDomain.getConfig() );
+        settings = HealthMonitorSettings.fromConfiguration( pwmApplication.getConfig() );
 
-        if ( !Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.HEALTHCHECK_ENABLED ) ) )
+        if ( !settings.isHealthCheckEnabled() )
         {
             LOGGER.debug( () -> "health monitor will remain inactive due to AppProperty " + AppProperty.HEALTHCHECK_ENABLED.getKey() );
             status = STATUS.CLOSED;
@@ -120,14 +114,9 @@ public class HealthMonitor implements PwmService
         supportZipWriterService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
         scheduleNextZipOutput();
 
+        if ( settings.getThreadDumpInterval().as( TimeDuration.Unit.SECONDS ) > 0 )
         {
-            final int threadDumpIntervalSeconds = JavaHelper.silentParseInt( pwmDomain.getConfig().readAppProperty(
-                    AppProperty.LOGGING_EXTRA_PERIODIC_THREAD_DUMP_INTERVAL ), 0 );
-            if ( threadDumpIntervalSeconds > 0 )
-            {
-                final TimeDuration interval =  TimeDuration.of( threadDumpIntervalSeconds, TimeDuration.Unit.SECONDS );
-                pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ThreadDumpLogger(), executorService, TimeDuration.SECOND, interval );
-            }
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ThreadDumpLogger(), executorService, TimeDuration.SECOND, settings.getThreadDumpInterval() );
         }
 
         status = STATUS.OPEN;
@@ -149,20 +138,7 @@ public class HealthMonitor implements PwmService
         {
             return HealthStatus.GOOD;
         }
-        return getMostSevereHealthStatus( getHealthRecords( ) );
-    }
-
-    public static HealthStatus getMostSevereHealthStatus( final Collection<HealthRecord> healthRecords )
-    {
-        final EnumSet<HealthStatus> tempSet = EnumSet.noneOf( HealthStatus.class );
-        if ( healthRecords != null )
-        {
-            for ( final HealthRecord record : healthRecords )
-            {
-                tempSet.add( record.getStatus() );
-            }
-        }
-        return HealthStatus.mostSevere( tempSet ).orElse( HealthStatus.GOOD );
+        return HealthUtils.getMostSevereHealthStatus( getHealthRecords( ) );
     }
 
     @Override
@@ -238,30 +214,13 @@ public class HealthMonitor implements PwmService
         final Instant startTime = Instant.now();
         LOGGER.trace( () -> "beginning health check execution #" + counter  );
         final List<HealthRecord> tempResults = new ArrayList<>();
-        for ( final HealthChecker loopChecker : HEALTH_CHECKERS )
-        {
-            try
-            {
-                final List<HealthRecord> loopResults = loopChecker.doHealthCheck( pwmDomain );
-                if ( loopResults != null )
-                {
-                    tempResults.addAll( loopResults );
-                }
-            }
-            catch ( final Exception e )
-            {
-                if ( status == STATUS.OPEN )
-                {
-                    LOGGER.warn( () -> "unexpected error during healthCheck: " + e.getMessage(), e );
-                }
-            }
-        }
 
-        for ( final PwmService service : pwmDomain.getPwmServices() )
+
+        for ( final Supplier<List<HealthRecord>> loopSupplier : gatherSuppliers( pwmApplication ) )
         {
             try
             {
-                final List<HealthRecord> loopResults = service.healthCheck();
+                final List<HealthRecord> loopResults = loopSupplier.get();
                 if ( loopResults != null )
                 {
                     tempResults.addAll( loopResults );
@@ -278,6 +237,35 @@ public class HealthMonitor implements PwmService
 
         healthData = new HealthData( Collections.unmodifiableSet( new TreeSet<>( tempResults ) ), Instant.now() );
         LOGGER.trace( () -> "completed health check execution #" + counter, () -> TimeDuration.fromCurrent( startTime ) );
+    }
+
+    private static List<Supplier<List<HealthRecord>>> gatherSuppliers( final PwmApplication pwmApplication )
+    {
+        final List<Supplier<List<HealthRecord>>> suppliers = new ArrayList<>();
+
+        for ( final PwmService service : pwmApplication.getAppAndDomainPwmServices() )
+        {
+            try
+            {
+                final List<HealthRecord> loopResults = service.healthCheck();
+                if ( loopResults != null )
+                {
+                    final Supplier<List<HealthRecord>> wrappedSupplier = () -> loopResults;
+                    suppliers.add( wrappedSupplier );
+                }
+            }
+            catch ( final Exception e )
+            {
+                LOGGER.warn( () -> "unexpected error during healthCheck: " + e.getMessage(), e );
+            }
+        }
+
+        for ( final HealthSupplier supplier : HEALTH_SUPPLIERS )
+        {
+            suppliers.addAll( supplier.jobs( pwmApplication ) );
+        }
+
+        return Collections.unmodifiableList( suppliers );
     }
 
     @Override
@@ -340,21 +328,21 @@ public class HealthMonitor implements PwmService
 
     private void scheduleNextZipOutput()
     {
-        final int intervalSeconds = JavaHelper.silentParseInt( pwmDomain.getConfig().readAppProperty( AppProperty.HEALTH_SUPPORT_BUNDLE_WRITE_INTERVAL_SECONDS ), 0 );
+        final int intervalSeconds = JavaHelper.silentParseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_SUPPORT_BUNDLE_WRITE_INTERVAL_SECONDS ), 0 );
         if ( intervalSeconds > 0 )
         {
             final TimeDuration intervalDuration = TimeDuration.of( intervalSeconds, TimeDuration.Unit.SECONDS );
-            pwmApplication.getPwmScheduler().scheduleJob( new SupportZipFileWriter( pwmDomain ), supportZipWriterService, intervalDuration );
+            pwmApplication.getPwmScheduler().scheduleJob( new SupportZipFileWriter( pwmApplication ), supportZipWriterService, intervalDuration );
         }
     }
 
     private class SupportZipFileWriter implements Runnable
     {
-        private final PwmDomain pwmDomain;
+        private final PwmApplication pwmApplication;
 
-        SupportZipFileWriter( final PwmDomain pwmDomain )
+        SupportZipFileWriter( final PwmApplication pwmApplication )
         {
-            this.pwmDomain = pwmDomain;
+            this.pwmApplication = pwmApplication;
         }
 
         @Override
@@ -375,14 +363,14 @@ public class HealthMonitor implements PwmService
         private void writeSupportZipToAppPath()
                 throws IOException, PwmUnrecoverableException
         {
-            final File appPath = pwmApplication.getPwmEnvironment().getApplicationPath();
+            final File appPath = HealthService.this.pwmApplication.getPwmEnvironment().getApplicationPath();
             if ( !appPath.exists() )
             {
                 return;
             }
 
-            final int rotationCount = JavaHelper.silentParseInt( pwmDomain.getConfig().readAppProperty( AppProperty.HEALTH_SUPPORT_BUNDLE_FILE_WRITE_COUNT ), 10 );
-            final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmDomain, SessionLabel.HEALTH_SESSION_LABEL );
+            final int rotationCount = JavaHelper.silentParseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_SUPPORT_BUNDLE_FILE_WRITE_COUNT ), 10 );
+            final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmApplication, SessionLabel.HEALTH_SESSION_LABEL );
 
             final File supportPath = new File( appPath.getPath() + File.separator + "support" );
 

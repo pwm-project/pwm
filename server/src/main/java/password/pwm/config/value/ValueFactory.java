@@ -85,7 +85,15 @@ public class ValueFactory
         }
 
         final StoredValue defaultValue = pwmSetting.getDefaultValue( templateSet );
-        return Objects.equals( storedValue, defaultValue );
+
+        if ( Objects.equals( defaultValue, storedValue ) )
+        {
+            return true;
+        }
+
+        final String defaultHash = defaultValue.valueHash();
+        final String valueHash = storedValue.valueHash();
+        return Objects.equals( defaultHash, valueHash );
     }
 }
 

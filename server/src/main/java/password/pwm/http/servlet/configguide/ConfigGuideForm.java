@@ -20,7 +20,6 @@
 
 package password.pwm.http.servlet.configguide;
 
-import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplate;
@@ -42,7 +41,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -57,7 +56,7 @@ public class ConfigGuideForm
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigGuideForm.class );
 
     static final String LDAP_PROFILE_NAME = "default";
-    static final DomainID DOMAIN_ID = PwmConstants.DOMAIN_ID_DEFAULT;
+    public static final DomainID DOMAIN_ID = DomainID.DOMAIN_ID_DEFAULT;
 
     public static Map<ConfigGuideFormField, String> defaultForm( )
     {
@@ -85,7 +84,7 @@ public class ConfigGuideForm
             throws PwmUnrecoverableException
     {
         final String formValue = formData.get( formField );
-        if ( !StringUtil.isEmpty( formValue ) )
+        if ( StringUtil.notEmpty( formValue ) )
         {
             final PwmSettingTemplate template = PwmSettingTemplate.templateForString( formValue, type );
             modifySetting( modifier, pwmSetting, null, new StringValue( template.toString() ) );
@@ -135,7 +134,7 @@ public class ConfigGuideForm
             modifySetting( modifier, PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE_NAME, newValue );
         }
 
-        if ( configGuideBean.isUseConfiguredCerts() && !JavaHelper.isEmpty( configGuideBean.getLdapCertificates() ) )
+        if ( configGuideBean.isUseConfiguredCerts() && !CollectionUtil.isEmpty( configGuideBean.getLdapCertificates() ) )
         {
             final StoredValue newStoredValue = X509CertificateValue.fromX509( configGuideBean.getLdapCertificates() );
             modifySetting( modifier, PwmSetting.LDAP_SERVER_CERTS, LDAP_PROFILE_NAME, newStoredValue );
@@ -254,8 +253,7 @@ public class ConfigGuideForm
     {
         try
         {
-            final StoredConfiguration storedConfiguration = generateStoredConfig( configGuideBean );
-            final String uriString = PwmSetting.LDAP_SERVER_URLS.getExample( storedConfiguration.getTemplateSet() );
+            final String uriString = getSettingExample( configGuideBean, PwmSetting.LDAP_SERVER_URLS );
             final URI uri = new URI( uriString );
             return uri.getHost();
         }
@@ -269,5 +267,12 @@ public class ConfigGuideForm
     public static boolean readCheckedFormField( final String value )
     {
         return "on".equalsIgnoreCase( value ) || "true".equalsIgnoreCase( value );
+    }
+
+    public static String getSettingExample( final ConfigGuideBean configGuideBean, final PwmSetting pwmSetting )
+            throws PwmUnrecoverableException
+    {
+        final StoredConfiguration storedConfiguration = generateStoredConfig( configGuideBean );
+        return pwmSetting.getExample( storedConfiguration.getTemplateSet().get( ConfigGuideForm.DOMAIN_ID ) );
     }
 }

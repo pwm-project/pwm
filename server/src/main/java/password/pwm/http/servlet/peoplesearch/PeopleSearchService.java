@@ -50,11 +50,11 @@ public class PeopleSearchService implements PwmService
     public void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmDomain = pwmApplication.getDefaultDomain();
+        this.pwmDomain = pwmApplication.domains().get( domainID );
 
         final int maxThreadCount = 5;
 
-        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, PeopleSearchService.class ), true );
+        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmDomain.getPwmApplication(), PeopleSearchService.class ), true );
         threadPoolExecutor = new ThreadPoolExecutor(
                 maxThreadCount,
                 maxThreadCount,

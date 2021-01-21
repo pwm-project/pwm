@@ -180,7 +180,7 @@ public class RestCheckPasswordServer extends RestServlet
 
             final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.getUsername() );
             final UserInfo userInfo = UserInfoFactory.newUserInfo(
-                    restRequest.getDomain(),
+                    restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
                     restRequest.getLocale(),
                     targetUserIdentity.getUserIdentity(),

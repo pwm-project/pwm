@@ -142,7 +142,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
         headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
         headers.put( HttpHeader.AcceptLanguage.getHttpName(), locale.toLanguageTag() );
 
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain, sessionLabel, userInfo, null );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), sessionLabel, userInfo, null );
 
         final RemoteVerificationRequestBean remoteVerificationRequestBean = RemoteVerificationRequestBean.builder()
             .responseSessionID( this.remoteSessionID )

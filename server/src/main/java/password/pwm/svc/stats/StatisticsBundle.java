@@ -83,7 +83,7 @@ public class StatisticsBundle
         for ( final Statistic loopStat : Statistic.values() )
         {
             final String value = loadedMap.get( loopStat.name() );
-            if ( !StringUtil.isEmpty( value ) )
+            if ( StringUtil.notEmpty( value ) )
             {
                 final long longValue = JavaHelper.silentParseLong( value, 0 );
                 final LongAccumulator longAdder = JavaHelper.newAbsLongAccumulator();
@@ -95,7 +95,7 @@ public class StatisticsBundle
         for ( final AvgStatistic loopStat : AvgStatistic.values() )
         {
             final String value = loadedMap.get( loopStat.name() );
-            if ( !StringUtil.isEmpty( value ) )
+            if ( StringUtil.notEmpty( value ) )
             {
                 final AverageBean avgBean = JsonUtil.deserialize( value, AverageBean.class );
                 bundle.avgMap.put( loopStat, avgBean );

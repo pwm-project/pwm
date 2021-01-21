@@ -40,14 +40,14 @@ import password.pwm.http.ContextManager;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
-import password.pwm.http.PwmHttpResponseWrapper;
+import password.pwm.http.PwmCookiePath;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.svc.intruder.RecordType;
+import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -78,7 +78,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigManagerLoginServlet.class );
 
     private static final String COOKIE_NAME = PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN;
-    private static final PwmHttpResponseWrapper.CookiePath COOKIE_PATH = PwmHttpResponseWrapper.CookiePath.CurrentURL;
+    private static final PwmCookiePath COOKIE_PATH = PwmCookiePath.CurrentURL;
 
     public enum ConfigManagerLoginAction implements ProcessAction
     {
@@ -139,7 +139,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         final StoredConfiguration storedConfig = runningConfigReader.getStoredConfiguration();
 
         final String password = pwmRequest.readParameterAsString( "password" );
-        if ( !StringUtil.isEmpty( password ) )
+        if ( StringUtil.notEmpty( password ) )
         {
             if ( StoredConfigurationUtil.verifyPassword( storedConfig, password ) )
             {
@@ -151,7 +151,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             {
                 LOGGER.trace( pwmRequest, () -> "configuration password is not correct" );
                 pwmDomain.getIntruderManager().convenience().markAddressAndSession( pwmRequest );
-                pwmDomain.getIntruderManager().mark( RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmRequest.getLabel() );
+                pwmDomain.getIntruderManager().mark( IntruderRecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmRequest.getLabel() );
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_PASSWORD_ONLY_BAD );
                 updateLoginHistory( pwmRequest, pwmRequest.getUserInfoIfLoggedIn(), false );
                 setLastError( pwmRequest, errorInformation );
@@ -258,7 +258,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
         configManagerBean.setPasswordVerified( true );
         pwmDomain.getIntruderManager().convenience().clearAddressAndSession( pwmSession );
-        pwmDomain.getIntruderManager().clear( RecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME );
+        pwmDomain.getIntruderManager().clear( IntruderRecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME );
         pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded( true );
         if ( persistentLoginEnabled && "on".equals( pwmRequest.readParameterAsString( "remember" ) ) )
         {
@@ -273,7 +273,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             return ProcessStatus.Halt;
         }
 
-        pwmRequest.sendRedirect( pwmRequest.getURLwithQueryString() );
+        pwmRequest.getPwmResponse().sendRedirect( pwmRequest.getURLwithQueryString() );
         return ProcessStatus.Continue;
     }
 
@@ -290,7 +290,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             return;
         }
 
-        pwmRequest.sendRedirect( PwmServletDefinition.ConfigManager );
+        pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.ConfigManager );
     }
 
 
@@ -330,10 +330,10 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
         try
         {
-            final String cookieValue = pwmRequest.readCookie( COOKIE_NAME );
-            if ( !StringUtil.isEmpty( cookieValue ) )
+            final Optional<String> cookieValue = pwmRequest.readCookie( COOKIE_NAME );
+            if ( cookieValue.isPresent() )
             {
-                final PersistentLoginInfo persistentLoginInfo = pwmRequest.getPwmDomain().getSecureService().decryptObject( cookieValue, PersistentLoginInfo.class );
+                final PersistentLoginInfo persistentLoginInfo = pwmRequest.getPwmDomain().getSecureService().decryptObject( cookieValue.get(), PersistentLoginInfo.class );
                 if ( persistentLoginInfo != null && persistentLoginInfo.getIssueTimestamp() != null )
                 {
                     final int maxLoginSeconds = figureMaxLoginSeconds( pwmRequest );

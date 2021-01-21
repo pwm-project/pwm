@@ -29,7 +29,6 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
-import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.ConfigurationProperty;
@@ -48,8 +47,8 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.DatabaseStatusChecker;
 import password.pwm.health.HealthMessage;
-import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
+import password.pwm.health.HealthUtils;
 import password.pwm.health.LDAPHealthChecker;
 import password.pwm.http.ContextManager;
 import password.pwm.http.HttpMethod;
@@ -166,7 +165,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         if ( pwmDomain.getApplicationMode() != PwmApplicationMode.NEW )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "ConfigGuide unavailable unless in NEW mode" );
-            LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, errorInformation::toDebugStr );
             throw new PwmUnrecoverableException( errorInformation );
         }
 
@@ -186,7 +185,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 final URI ldapServerUri = new URI( ldapServerString );
                 if ( "ldaps".equalsIgnoreCase( ldapServerUri.getScheme() ) )
                 {
-                    final DomainConfig tempConfig = new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) ).getDefaultDomainConfig();
+                    final AppConfig tempConfig = new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
                     configGuideBean.setLdapCertificates( X509Utils.readRemoteCertificates( ldapServerUri, tempConfig ) );
                     configGuideBean.setCertsTrustedbyKeystore( X509Utils.testIfLdapServerCertsInDefaultKeystore( ldapServerUri ) );
                 }
@@ -240,12 +239,12 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmRequest.getPwmApplication()
                 .getPwmEnvironment()
                 .makeRuntimeInstance( tempAppConfig ) );
-        final PwmDomain tempDomain = tempApplication.getDefaultDomain();
-        final DomainConfig tempDomainConfig = tempDomain.getConfig();
+        final PwmDomain tempDomain = tempApplication.domains().get( ConfigGuideForm.DOMAIN_ID );
+        // final DomainConfig tempDomainConfig = tempDomain.getConfig();
 
         final LDAPHealthChecker ldapHealthChecker = new LDAPHealthChecker();
         final List<HealthRecord> records = new ArrayList<>();
-        final LdapProfile ldapProfile = tempDomainConfig.getDefaultLdapProfile();
+        final LdapProfile ldapProfile = tempDomain.getConfig().getDefaultLdapProfile();
 
         switch ( configGuideBean.getStep() )
         {
@@ -272,7 +271,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             case LDAP_PROXY:
             {
-                records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempDomain, tempDomainConfig, ldapProfile, false ) );
+                records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempDomain, tempDomain.getConfig(), ldapProfile, false ) );
                 if ( records.isEmpty() )
                 {
                     records.add( password.pwm.health.HealthRecord.forMessage( ConfigGuideForm.DOMAIN_ID, HealthMessage.LDAP_OK ) );
@@ -282,7 +281,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             case LDAP_CONTEXT:
             {
-                records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempDomain, tempDomainConfig, ldapProfile, true ) );
+                records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempDomain, tempDomain.getConfig(), ldapProfile, true ) );
                 if ( records.isEmpty() )
                 {
                     records.add( HealthRecord.forMessage(
@@ -304,8 +303,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 final String testUserValue = configGuideBean.getFormData().get( ConfigGuideFormField.PARAM_LDAP_TEST_USER );
                 if ( testUserValue != null && !testUserValue.isEmpty() )
                 {
-                    records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempDomain, tempDomainConfig, ldapProfile, false ) );
-                    records.addAll( ldapHealthChecker.doLdapTestUserCheck( tempDomainConfig, ldapProfile, tempDomain ) );
+                    records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempDomain, tempDomain.getConfig(), ldapProfile, false ) );
+                    records.addAll( ldapHealthChecker.doLdapTestUserCheck( tempDomain.getConfig(), ldapProfile, tempDomain ) );
                 }
                 else
                 {
@@ -320,7 +319,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             case DATABASE:
             {
-                records.addAll( DatabaseStatusChecker.checkNewDatabaseStatus( pwmRequest.getPwmDomain(), tempDomainConfig ) );
+                records.addAll( DatabaseStatusChecker.checkNewDatabaseStatus( pwmRequest.getPwmApplication(), tempAppConfig ) );
             }
             break;
 
@@ -329,9 +328,9 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         }
 
         final HealthData jsonOutput = HealthData.builder()
-                .records( password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords( records, pwmRequest.getLocale(), tempDomainConfig ) )
+                .records( password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords( records, pwmRequest.getLocale(), tempDomain.getConfig() ) )
                 .timestamp( Instant.now() )
-                .overall( HealthMonitor.getMostSevereHealthStatus( records ).toString() )
+                .overall( HealthUtils.getMostSevereHealthStatus( records ).toString() )
                 .build();
         final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
         pwmRequest.outputJsonResult( restResultBean );
@@ -344,7 +343,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     )
             throws IOException, PwmUnrecoverableException
     {
-        final DomainID domainID = PwmConstants.DOMAIN_ID_DEFAULT;
+        final DomainID domainID = ConfigGuideForm.DOMAIN_ID;
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
 
         StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
@@ -365,7 +364,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 pwmRequest.getPwmDomain().getLdapConnectionService().getChaiProviderFactory(),
                 storedConfiguration
         );
-        final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse( profile, dn );
+        final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse( domainID, profile, dn );
         ldapBrowser.close();
 
         LOGGER.trace( pwmRequest, () -> "performed ldapBrowse operation in "
@@ -514,7 +513,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         try
         {
             final ConfigGuideBean configGuideBean = getBean( pwmRequest );
-            final int maxFileSize = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CONFIG_MAX_JDBC_JAR_SIZE ) );
+            final int maxFileSize = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CONFIG_MAX_FILEVALUE_SIZE ) );
             final Optional<FileValue> fileValue = ConfigEditorServletUtils.readFileUploadToSettingValue( pwmRequest, maxFileSize );
             fileValue.ifPresent( configGuideBean::setDatabaseDriver );
             final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
@@ -565,7 +564,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final PwmSetting pwmSetting = PwmSetting.forKey( settingKey )
                 .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
 
-        final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, profileID, PwmConstants.DOMAIN_ID_DEFAULT );
+        final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, profileID, DomainID.DOMAIN_ID_DEFAULT );
 
         final Object returnValue;
         returnValue = StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key ).toNativeObject();
@@ -593,7 +592,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
         final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
 
-        final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, profileID, PwmConstants.DOMAIN_ID_DEFAULT );
+        final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, profileID, DomainID.DOMAIN_ID_DEFAULT );
 
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
 
@@ -635,6 +634,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
 
         final SettingData settingData = SettingDataMaker.generateSettingData(
+                ConfigGuideForm.DOMAIN_ID,
                 storedConfiguration,
                 pwmRequest.getLabel(),
                 pwmRequest.getLocale()

@@ -33,7 +33,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.ClientApiServlet;
 import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
@@ -74,7 +74,7 @@ public enum PwmValue
     PwmValue( final ValueOutput valueOutput, final Flag... flags )
     {
         this.valueOutput = valueOutput;
-        this.flags = JavaHelper.enumSetFromArray( flags );
+        this.flags = CollectionUtil.enumSetFromArray( flags );
     }
 
     public ValueOutput getValueOutput( )

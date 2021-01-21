@@ -28,6 +28,7 @@ import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -142,7 +143,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                             for ( final ActionConfiguration.WebAction webAction : value.getWebActions() )
                             {
                                 // add success status if empty list
-                                final List<Integer> successStatus = JavaHelper.isEmpty( webAction.getSuccessStatus() )
+                                final List<Integer> successStatus = CollectionUtil.isEmpty( webAction.getSuccessStatus() )
                                         ? Collections.singletonList( 200 )
                                         : webAction.getSuccessStatus();
 
@@ -193,7 +194,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
             for ( final ActionConfiguration.WebAction webAction : value.getWebActions() )
             {
-                if ( !StringUtil.isEmpty( webAction.getPassword() ) )
+                if ( StringUtil.notEmpty( webAction.getPassword() ) )
                 {
                     try
                     {
@@ -275,7 +276,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
             for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
             {
-                final String debugPwdValue = !StringUtil.isEmpty( webAction.getPassword() )
+                final String debugPwdValue = StringUtil.notEmpty( webAction.getPassword() )
                         ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT
                         : null;
 
@@ -314,11 +315,11 @@ public class ActionValue extends AbstractValue implements StoredValue
                                 ? ""
                                 : PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT
                 );
-                if ( !JavaHelper.isEmpty( webAction.getSuccessStatus() ) )
+                if ( !CollectionUtil.isEmpty( webAction.getSuccessStatus() ) )
                 {
                     sb.append( "\n    successStatus=" ).append( StringUtil.collectionToString( webAction.getSuccessStatus() ) );
                 }
-                if ( !StringUtil.isEmpty( webAction.getBody() ) )
+                if ( StringUtil.notEmpty( webAction.getBody() ) )
                 {
                     sb.append( "\n    body=" ).append( webAction.getBody() );
                 }
@@ -361,7 +362,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
             {
                 final List webActionsList = (List) actionConfigurationMap.get( "webActions" );
-                if ( !JavaHelper.isEmpty( webAction.getCertificates() ) )
+                if ( !CollectionUtil.isEmpty( webAction.getCertificates() ) )
                 {
                     final Map webActionMap = (Map) webActionsList.get( webActionCounter );
                     final List<Map<String, String>> certificateInfos = new ArrayList<>();

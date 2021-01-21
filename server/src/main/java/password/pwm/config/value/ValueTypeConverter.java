@@ -32,6 +32,7 @@ import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -335,7 +336,7 @@ public final class ValueTypeConverter
         }
 
         final Set<String> strValues = ( Set<String> ) value.toNativeObject();
-        return JavaHelper.readEnumSetFromStringCollection( enumClass, strValues );
+        return CollectionUtil.readEnumSetFromStringCollection( enumClass, strValues );
     }
 
     public static List<String> valueToProfileID( final PwmSetting profileSetting, final StoredValue storedValue )
@@ -350,7 +351,7 @@ public final class ValueTypeConverter
         final List<String> returnSet = profiles
                 .stream()
                 .distinct()
-                .filter( ( profile ) -> !StringUtil.isEmpty( profile ) )
+                .filter( ( profile ) -> StringUtil.notEmpty( profile ) )
                 .collect( Collectors.toCollection( ArrayList::new ) );
 
         if ( returnSet.isEmpty() )

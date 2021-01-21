@@ -25,6 +25,7 @@ import password.pwm.util.DataStore;
 import password.pwm.util.java.ClosableIterator;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class LocalDBDataStore implements DataStore
 {
@@ -50,7 +51,7 @@ public class LocalDBDataStore implements DataStore
     }
 
     @Override
-    public String get( final String key ) throws PwmDataStoreException
+    public Optional<String> get( final String key ) throws PwmDataStoreException
     {
         return localDB.get( db, key );
     }

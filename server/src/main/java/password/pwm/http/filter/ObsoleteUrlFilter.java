@@ -80,17 +80,18 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter
         }
 
         final String requestUrl = pwmRequest.getURLwithoutQueryString();
-        final String requestServletUrl = requestUrl.substring( pwmRequest.getContextPath().length() );
+        final String requestServletUrl = requestUrl.substring( pwmRequest.getBasePath().length() );
 
         for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
         {
             boolean match = false;
+            patternLoop:
             for ( final String patternUrl : pwmServletDefinition.urlPatterns() )
             {
                 if ( patternUrl.equals( requestServletUrl ) )
                 {
                     match = true;
-                    break;
+                    break patternLoop;
                 }
             }
 
@@ -103,7 +104,7 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter
                             + "' detected, redirecting to canonical URL of '"
                             + pwmServletDefinition.servletUrl() + "'" );
                     StatisticsManager.incrementStat( pwmRequest, Statistic.OBSOLETE_URL_REQUESTS );
-                    pwmRequest.sendRedirect( pwmServletDefinition );
+                    pwmRequest.getPwmResponse().sendRedirect( pwmServletDefinition );
                     return ProcessStatus.Halt;
                 }
             }
@@ -120,11 +121,11 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter
 
         for ( final Map.Entry<String, String> entry : STATIC_REDIRECTS.entrySet() )
         {
-            final String testUrl = pwmRequest.getContextPath() + entry.getKey();
+            final String testUrl = pwmRequest.getBasePath() + entry.getKey();
             if ( StringUtil.nullSafeEquals( requestUrl, testUrl ) )
             {
-                final String nextUrl = pwmRequest.getContextPath() + entry.getValue();
-                pwmRequest.sendRedirect( nextUrl );
+                final String nextUrl = pwmRequest.getBasePath() + entry.getValue();
+                pwmRequest.getPwmResponse().sendRedirect( nextUrl );
                 return ProcessStatus.Halt;
             }
         }

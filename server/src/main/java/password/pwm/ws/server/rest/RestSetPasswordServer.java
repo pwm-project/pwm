@@ -194,7 +194,7 @@ public class RestSetPasswordServer extends RestServlet
             }
 
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
-                    restRequest.getDomain(),
+                    restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getUserIdentity(),
                     restRequest.getLocale()

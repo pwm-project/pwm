@@ -21,13 +21,20 @@
 package password.pwm.svc.event;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.svc.userhistory.LdapXmlUserHistory;
 import password.pwm.util.SampleDataGenerator;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlDocument;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
+import password.pwm.util.localdb.TestHelper;
 
 import java.time.Instant;
 import java.util.List;
@@ -36,14 +43,20 @@ import java.util.ResourceBundle;
 
 public class LdapXmlUserHistoryTest
 {
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     @Test
     public void inputParserTest()
+            throws Exception
     {
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
+        final PwmDomain pwmDomain = pwmApplication.domains().get( DomainID.DOMAIN_ID_DEFAULT );
         final ResourceBundle bundle = ResourceBundle.getBundle( LdapXmlUserHistoryTest.class.getName() );
         final String xmlValue1 =  bundle.getString( "xmlValue1" );
         final LdapXmlUserHistory.StoredHistory storedHistory = LdapXmlUserHistory.StoredHistory.fromXml( xmlValue1 );
 
-        final List<UserAuditRecord> auditEventList = storedHistory.asAuditRecords( SampleDataGenerator.sampleUserData() );
+        final List<UserAuditRecord> auditEventList = storedHistory.asAuditRecords( new AuditRecordFactory( pwmDomain ), SampleDataGenerator.sampleUserData() );
         //System.out.println( JsonUtil.serializeCollection( auditEventList, JsonUtil.Flag.PrettyPrint ) );
 
         Assert.assertEquals( 20, auditEventList.size() );
@@ -73,7 +86,7 @@ public class LdapXmlUserHistoryTest
     public void outputTest() throws PwmUnrecoverableException
     {
         final LdapXmlUserHistory.StoredHistory storedHistory = new LdapXmlUserHistory.StoredHistory();
-        storedHistory.addEvent( LdapXmlUserHistory.StoredEvent.fromAuditRecord( UserAuditRecord.builder()
+        storedHistory.addEvent( LdapXmlUserHistory.StoredEvent.fromAuditRecord( AuditRecordData.builder()
                 .timestamp( Instant.parse( "2020-02-27T17:26:30Z" ) )
                 .eventCode( AuditEvent.CHANGE_PASSWORD )
 

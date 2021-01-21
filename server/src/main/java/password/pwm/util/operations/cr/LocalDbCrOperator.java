@@ -36,6 +36,8 @@ import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 
+import java.util.Optional;
+
 public class LocalDbCrOperator implements CrOperator
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LocalDbCrOperator.class );
@@ -53,7 +55,7 @@ public class LocalDbCrOperator implements CrOperator
     }
 
     @Override
-    public ResponseSet readResponseSet(
+    public Optional<ResponseSet> readResponseSet(
             final SessionLabel sessionLabel,
             final ChaiUser theUser,
             final UserIdentity userIdentity,
@@ -77,12 +79,12 @@ public class LocalDbCrOperator implements CrOperator
 
         try
         {
-            final String responseStringBlob = localDB.get( LocalDB.DB.RESPONSE_STORAGE, userGUID );
-            if ( responseStringBlob != null && responseStringBlob.length() > 0 )
+            final Optional<String> responseStringBlob = localDB.get( LocalDB.DB.RESPONSE_STORAGE, userGUID );
+            if ( responseStringBlob.isPresent() )
             {
-                final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML( responseStringBlob, theUser );
+                final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML( responseStringBlob.get(), theUser );
                 LOGGER.debug( sessionLabel, () -> "found user responses in LocalDB: " + userResponseSet.toString() );
-                return userResponseSet;
+                return Optional.of( userResponseSet );
             }
         }
         catch ( final LocalDBException e )
@@ -97,11 +99,11 @@ public class LocalDbCrOperator implements CrOperator
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
-    public ResponseInfoBean readResponseInfo(
+    public Optional<ResponseInfoBean> readResponseInfo(
             final SessionLabel sessionLabel,
             final ChaiUser theUser,
             final UserIdentity userIdentity,
@@ -111,8 +113,10 @@ public class LocalDbCrOperator implements CrOperator
     {
         try
         {
-            final ResponseSet responseSet = readResponseSet( sessionLabel, theUser, userIdentity, userGUID );
-            return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean( responseSet, DataStorageMethod.LOCALDB );
+            final Optional<ResponseSet> responseSet = readResponseSet( sessionLabel, theUser, userIdentity, userGUID );
+            return responseSet.isEmpty()
+                    ? Optional.empty()
+                    : Optional.of( CrOperators.convertToNoAnswerInfoBean( responseSet.get(), DataStorageMethod.LOCALDB ) );
         }
         catch ( final ChaiException e )
         {

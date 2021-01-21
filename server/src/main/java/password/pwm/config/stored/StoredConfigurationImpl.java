@@ -20,13 +20,14 @@
 
 package password.pwm.config.stored;
 
-import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplate;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StringValue;
+import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.java.JavaHelper;
@@ -36,10 +37,13 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * Immutable in-memory configuration.
@@ -52,7 +56,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
     private final Instant modifyTime;
     private final Map<StoredConfigKey, StoredValue> storedValues;
     private final Map<StoredConfigKey, ValueMetaData> metaValues;
-    private final PwmSettingTemplateSet templateSet;
+    private final Map<DomainID, PwmSettingTemplateSet> templateSet;
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( StoredConfigurationImpl.class );
 
@@ -60,9 +64,9 @@ public class StoredConfigurationImpl implements StoredConfiguration
     {
         this.createTime = storedConfigData.getCreateTime();
         this.modifyTime = storedConfigData.getModifyTime();
-        this.metaValues = Map.copyOf( storedConfigData.getMetaDatas() );
-        this.templateSet = readTemplateSet( storedConfigData.getStoredValues() );
-        this.storedValues = Map.copyOf( storedConfigData.getStoredValues() );
+        this.metaValues = Map.copyOf( new TreeMap<>( storedConfigData.getMetaDatas() ) );
+        this.templateSet = TemplateSetReader.readTemplateSet( storedConfigData.getStoredValues() );
+        this.storedValues = Map.copyOf( new TreeMap<>( storedConfigData.getStoredValues() ) );
     }
 
     StoredConfigurationImpl()
@@ -71,7 +75,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
         this.modifyTime = Instant.now();
         this.storedValues = Collections.emptyMap();
         this.metaValues = Collections.emptyMap();
-        this.templateSet = readTemplateSet( Collections.emptyMap() );
+        this.templateSet = TemplateSetReader.readTemplateSet( Collections.emptyMap() );
     }
 
     @Override
@@ -98,9 +102,9 @@ public class StoredConfigurationImpl implements StoredConfiguration
     }
 
     @Override
-    public Map<String, String> readLocaleBundleMap( final PwmLocaleBundle pwmLocaleBundle, final String keyName )
+    public Map<String, String> readLocaleBundleMap( final PwmLocaleBundle pwmLocaleBundle, final String keyName, final DomainID domainID )
     {
-        final StoredConfigKey key = StoredConfigKey.forLocaleBundle( pwmLocaleBundle, keyName );
+        final StoredConfigKey key = StoredConfigKey.forLocaleBundle( pwmLocaleBundle, keyName, domainID );
         final StoredValue value = storedValues.get( key );
         if ( value != null )
         {
@@ -110,45 +114,67 @@ public class StoredConfigurationImpl implements StoredConfiguration
     }
 
     @Override
-    public PwmSettingTemplateSet getTemplateSet()
+    public Map<DomainID, PwmSettingTemplateSet> getTemplateSet()
     {
         return templateSet;
     }
 
-    private static PwmSettingTemplateSet readTemplateSet( final Map<StoredConfigKey, StoredValue> valueMap )
+    private static class TemplateSetReader
     {
-        final Set<PwmSettingTemplate> templates = EnumSet.noneOf( PwmSettingTemplate.class );
-        readTemplateValue( valueMap, PwmSetting.TEMPLATE_LDAP ).ifPresent( templates::add );
-        readTemplateValue( valueMap, PwmSetting.TEMPLATE_STORAGE ).ifPresent( templates::add );
-        readTemplateValue( valueMap, PwmSetting.DB_VENDOR_TEMPLATE ).ifPresent( templates::add );
-        return new PwmSettingTemplateSet( templates );
-    }
-
-    private static Optional<PwmSettingTemplate> readTemplateValue( final Map<StoredConfigKey, StoredValue> valueMap, final PwmSetting pwmSetting )
-    {
-        final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, null, PwmConstants.DOMAIN_ID_PLACEHOLDER );
-        final StoredValue storedValue = valueMap.get( key );
-
-        if ( storedValue != null )
+        private static Map<DomainID, PwmSettingTemplateSet> readTemplateSet( final Map<StoredConfigKey, StoredValue> valueMap )
         {
-            try
-            {
-                final String strValue = ( String ) storedValue.toNativeObject();
-                return Optional.ofNullable( JavaHelper.readEnumFromString( PwmSettingTemplate.class, null, strValue ) );
-            }
-            catch ( final IllegalStateException e )
-            {
-                LOGGER.error( () -> "error reading template", e );
-            }
+            final List<String> domainStrList = ValueTypeConverter.valueToStringArray( valueMap.getOrDefault(
+                    StoredConfigKey.forSetting( PwmSetting.DOMAIN_LIST, null, DomainID.systemId() ),
+                    PwmSetting.DOMAIN_LIST.getDefaultValue( PwmSettingTemplateSet.getDefault() ) ) );
+
+            final List<DomainID> domainIDList = domainStrList.stream().map( DomainID::create ).collect( Collectors.toList() );
+
+            final Map<DomainID, PwmSettingTemplateSet> templateSets = domainIDList.stream().collect( Collectors.toMap(
+                    domainID -> domainID,
+                    domainID -> readTemplateSet( valueMap, domainID )
+            ) );
+            templateSets.put( DomainID.systemId(), PwmSettingTemplateSet.getDefault() );
+            return Map.copyOf( new TreeMap<>( templateSets ) );
         }
 
-        return Optional.empty();
+        private static PwmSettingTemplateSet readTemplateSet( final Map<StoredConfigKey, StoredValue> valueMap, final DomainID domain )
+        {
+            final Set<PwmSettingTemplate> templates = EnumSet.noneOf( PwmSettingTemplate.class );
+            readTemplateValue( valueMap, domain, PwmSetting.TEMPLATE_LDAP ).ifPresent( templates::add );
+            readTemplateValue( valueMap, domain, PwmSetting.TEMPLATE_STORAGE ).ifPresent( templates::add );
+            readTemplateValue( valueMap, domain, PwmSetting.DB_VENDOR_TEMPLATE ).ifPresent( templates::add );
+            return new PwmSettingTemplateSet( templates );
+        }
+
+        private static Optional<PwmSettingTemplate> readTemplateValue(
+                final Map<StoredConfigKey, StoredValue> valueMap,
+                final DomainID domainID,
+                final PwmSetting pwmSetting )
+        {
+            final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, null, domainID );
+            final StoredValue storedValue = valueMap.get( key );
+
+            if ( storedValue != null )
+            {
+                try
+                {
+                    final String strValue = ( String ) storedValue.toNativeObject();
+                    return Optional.ofNullable( JavaHelper.readEnumFromString( PwmSettingTemplate.class, null, strValue ) );
+                }
+                catch ( final IllegalStateException e )
+                {
+                    LOGGER.error( () -> "error reading template", e );
+                }
+            }
+
+            return Optional.empty();
+        }
     }
 
     @Override
-    public Stream<StoredConfigKey> keys()
+    public Iterator<StoredConfigKey> keys()
     {
-        return storedValues.keySet().stream();
+        return storedValues.keySet().iterator();
     }
 
     @Override

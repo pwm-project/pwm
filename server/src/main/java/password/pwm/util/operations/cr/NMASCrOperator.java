@@ -74,6 +74,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JsonUtil;
@@ -106,6 +107,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
@@ -265,7 +267,7 @@ public class NMASCrOperator implements CrOperator
     }
 
     @Override
-    public ResponseSet readResponseSet(
+    public Optional<ResponseSet> readResponseSet(
             final SessionLabel sessionLabel,
             final ChaiUser theUser,
             final UserIdentity userIdentity,
@@ -273,21 +275,21 @@ public class NMASCrOperator implements CrOperator
     )
             throws PwmUnrecoverableException
     {
-        pwmDomain.getIntruderManager().convenience().checkUserIdentity( userIdentity );
+        IntruderServiceClient.checkUserIdentity( pwmDomain.getPwmApplication(), userIdentity );
 
         try
         {
             if ( theUser.getChaiProvider().getDirectoryVendor() != DirectoryVendor.EDIRECTORY )
             {
-                return null;
+                return Optional.empty();
             }
 
             final ResponseSet responseSet = new NMASCRResponseSet( pwmDomain, userIdentity );
             if ( responseSet.getChallengeSet() == null )
             {
-                return null;
+                return Optional.empty();
             }
-            return responseSet;
+            return Optional.of( responseSet );
         }
         catch ( final PwmException e )
         {
@@ -301,7 +303,7 @@ public class NMASCrOperator implements CrOperator
     }
 
     @Override
-    public ResponseInfoBean readResponseInfo(
+    public Optional<ResponseInfoBean> readResponseInfo(
             final SessionLabel sessionLabel,
             final ChaiUser theUser,
             final UserIdentity userIdentity,
@@ -314,17 +316,17 @@ public class NMASCrOperator implements CrOperator
             if ( theUser.getChaiProvider().getDirectoryVendor() != DirectoryVendor.EDIRECTORY )
             {
                 LOGGER.debug( sessionLabel, () -> "skipping request to read NMAS responses for " + userIdentity + ", directory type is not eDirectory" );
-                return null;
+                return Optional.empty();
             }
 
             final ResponseSet responseSet = NmasCrFactory.readNmasResponseSet( theUser );
             if ( responseSet == null )
             {
-                return null;
+                return Optional.empty();
             }
             final ResponseInfoBean responseInfoBean = CrOperators.convertToNoAnswerInfoBean( responseSet, DataStorageMethod.NMAS );
             responseInfoBean.setTimestamp( null );
-            return responseInfoBean;
+            return Optional.of( responseInfoBean );
         }
         catch ( final ChaiException e )
         {

@@ -128,7 +128,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
     static ChangePasswordProfile getProfile( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        return pwmRequest.getPwmSession().getSessionManager().getChangePasswordProfile( );
+        return pwmRequest.getChangePasswordProfile( );
     }
 
     @ActionHandler( action = "reset" )
@@ -142,7 +142,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         }
 
         pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, ChangePasswordBean.class );
-        pwmRequest.sendRedirectToContinue();
+        pwmRequest.getPwmResponse().sendRedirectToContinue();
 
         return ProcessStatus.Halt;
     }
@@ -162,7 +162,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                 {
                     case skip:
                         pwmRequest.getPwmSession().getLoginInfoBean().setFlag( LoginInfoBean.LoginFlag.skipNewPw );
-                        pwmRequest.sendRedirectToContinue();
+                        pwmRequest.getPwmResponse().sendRedirectToContinue();
                         return ProcessStatus.Halt;
 
                     case change:
@@ -472,7 +472,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         }
 
         final String agreementMsg = changePasswordProfile.readSettingAsLocalizedString( PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, pwmRequest.getLocale() );
-        if ( !StringUtil.isEmpty( agreementMsg ) && !changePasswordBean.isAgreementPassed() )
+        if ( StringUtil.notEmpty( agreementMsg ) && !changePasswordBean.isAgreementPassed() )
         {
             final MacroRequest macroRequest = pwmSession.getSessionManager().getMacroMachine();
             final String expandedText = macroRequest.expandMacros( agreementMsg );

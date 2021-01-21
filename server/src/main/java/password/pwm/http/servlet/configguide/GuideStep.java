@@ -24,12 +24,11 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingTemplate;
+import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
-
-import java.util.Set;
 
 public enum GuideStep
 {
@@ -128,7 +127,7 @@ public enum GuideStep
         {
             try
             {
-                final Set<PwmSettingTemplate> templates = ConfigGuideForm.generateStoredConfig( configGuideBean ).getTemplateSet().getTemplates();
+                final PwmSettingTemplateSet templates = ConfigGuideForm.generateStoredConfig( configGuideBean ).getTemplateSet().get( ConfigGuideForm.DOMAIN_ID );
                 return templates.contains( PwmSettingTemplate.LDAP );
             }
             catch ( final PwmUnrecoverableException e )
@@ -145,7 +144,7 @@ public enum GuideStep
         {
             try
             {
-                final Set<PwmSettingTemplate> templates = ConfigGuideForm.generateStoredConfig( configGuideBean ).getTemplateSet().getTemplates();
+                final PwmSettingTemplateSet templates = ConfigGuideForm.generateStoredConfig( configGuideBean ).getTemplateSet().get( ConfigGuideForm.DOMAIN_ID );
                 return templates.contains( PwmSettingTemplate.DB );
             }
             catch ( final PwmUnrecoverableException e )

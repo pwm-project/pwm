@@ -33,6 +33,7 @@ import java.sql.SQLException;
 import java.util.AbstractMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -196,7 +197,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
     }
 
     @Override
-    public String get(
+    public Optional<String> get(
             final DatabaseTable table,
             final String key
     )
@@ -219,7 +220,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                 {
                     if ( resultSet.next() )
                     {
-                        return resultSet.getString( DatabaseService.VALUE_COLUMN );
+                        return Optional.ofNullable( resultSet.getString( DatabaseService.VALUE_COLUMN ) );
                     }
                 }
             }
@@ -227,7 +228,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             {
                 processSqlException( debugInfo, e );
             }
-            return null;
+            return Optional.empty();
         } );
     }
 

@@ -429,7 +429,7 @@ public class FormConfiguration implements Serializable
                     if ( value.equals( key ) )
                     {
                         final String displayValue = entry.getValue();
-                        if ( !StringUtil.isEmpty( displayValue ) )
+                        if ( StringUtil.notEmpty( displayValue ) )
                         {
                             return displayValue;
                         }

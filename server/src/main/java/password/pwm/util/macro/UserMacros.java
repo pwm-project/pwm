@@ -21,8 +21,11 @@
 package password.pwm.util.macro;
 
 import password.pwm.AppProperty;
+import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.java.StringUtil;
@@ -51,6 +54,8 @@ public class UserMacros
             new UserLdapProfileMacro(),
             new OtpSetupTimeMacro(),
             new ResponseSetupTimeMacro(),
+            new DefaultDomainEmailFromAddressMacro(),
+
 
             new TargetUserIDMacro(),
             new TargetUserLdapMacro(),
@@ -79,7 +84,7 @@ public class UserMacros
             final UserInfo userInfo;
             {
                 final Optional<UserInfo> optionalUserInfo = loadUserInfo( macroRequest );
-                if ( !optionalUserInfo.isPresent() )
+                if ( optionalUserInfo.isEmpty() )
                 {
                     return "";
                 }
@@ -111,8 +116,8 @@ public class UserMacros
                 }
 
                 final int maxLengthPermitted = Integer.parseInt(
-                        macroRequest.getPwmDomain() != null
-                                ?  macroRequest.getPwmDomain().getConfig().readAppProperty( AppProperty.MACRO_LDAP_ATTR_CHAR_MAX_LENGTH )
+                        macroRequest.getPwmApplication() != null
+                                ?  macroRequest.getPwmApplication().getConfig().readAppProperty( AppProperty.MACRO_LDAP_ATTR_CHAR_MAX_LENGTH )
                                 :  AppProperty.MACRO_LDAP_ATTR_CHAR_MAX_LENGTH.getDefaultValue()
                 );
 
@@ -263,7 +268,7 @@ public class UserMacros
                 if ( optionalUserInfo.isPresent() )
                 {
                     final String username = optionalUserInfo.get().getUsername();
-                    if ( !StringUtil.isEmpty( username ) )
+                    if ( StringUtil.notEmpty( username ) )
                     {
                         return username;
                     }
@@ -498,7 +503,7 @@ public class UserMacros
                 if ( optionalUserInfo.isPresent() )
                 {
                     final String emailAddress = optionalUserInfo.get().getUserEmailAddress();
-                    if ( !StringUtil.isEmpty( emailAddress ) )
+                    if ( StringUtil.notEmpty( emailAddress ) )
                     {
 
                         return emailAddress;
@@ -598,6 +603,44 @@ public class UserMacros
         public Set<MacroDefinitionFlag> flags( )
         {
             return FLAGS;
+        }
+    }
+
+    public static class DefaultDomainEmailFromAddressMacro extends AbstractUserMacro
+    {
+        private static final Pattern PATTERN = Pattern.compile( "@DefaultEmailFromAddress@" );
+
+        @Override
+        public Pattern getRegExPattern( )
+        {
+            return PATTERN;
+        }
+
+        @Override
+        public String replaceValue(
+                final String matchValue,
+                final MacroRequest request
+        )
+                throws MacroParseException
+        {
+            final UserInfo userInfo = request.getUserInfo();
+            if ( userInfo != null )
+            {
+                final UserIdentity userIdentity = userInfo.getUserIdentity();
+                if ( userIdentity != null )
+                {
+                    final DomainID domainID = userIdentity.getDomainID();
+                    if ( domainID != null )
+                    {
+                        final PwmDomain pwmDomain = request.getPwmApplication().domains().get( domainID );
+                        if ( pwmDomain != null )
+                        {
+                            return pwmDomain.getConfig().readSettingAsString( PwmSetting.EMAIL_DOMAIN_FROM_ADDRESS );
+                        }
+                    }
+                }
+            }
+            throw new MacroParseException( "@DefaultEmailFromAddress@: domain unspecified on macro request" );
         }
     }
 
