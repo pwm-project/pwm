@@ -233,7 +233,7 @@ public class OAuthMachine
             final Map<String, String> requestParams = new HashMap<>();
             requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
             requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ATTRIBUTES ), settings.getDnAttributeName() );
-            restResults = makeHttpRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, accessToken );
+            restResults = makeHttpGetRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, accessToken );
         }
 
         final String resultBody = restResults.getBody();
@@ -285,6 +285,71 @@ public class OAuthMachine
 
             pwmHttpClientRequest = PwmHttpClientRequest.builder()
                     .method( HttpMethod.POST )
+                    .url( requestUrl )
+                    .body( requestBody )
+                    .headers( headers )
+                    .build();
+        }
+
+        final PwmHttpClientResponse pwmHttpClientResponse;
+        try
+        {
+            final PwmHttpClientConfiguration config = PwmHttpClientConfiguration.builder()
+                    .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
+                    .certificates( JavaHelper.isEmpty( certs ) ? null : certs )
+                    .maskBodyDebugOutput( true )
+                    .build();
+            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmApplication().getHttpClientService().getPwmHttpClient( config );
+            pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, pwmRequest.getLabel() );
+        }
+        catch ( final PwmException e )
+        {
+            final String errorMsg = "error during " + debugText + " http request to oauth server, remote error: " + e.getErrorInformation().toDebugStr();
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg ) );
+        }
+
+
+        if ( pwmHttpClientResponse.getStatusCode() != HttpStatus.SC_OK )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation(
+                    PwmError.ERROR_OAUTH_ERROR,
+                    "unexpected HTTP status code (" + pwmHttpClientResponse.getStatusCode() + ") during " + debugText + " request to " + requestUrl
+            ) );
+        }
+
+        return pwmHttpClientResponse;
+    }
+
+    private static PwmHttpClientResponse makeHttpGetRequest(
+            final PwmRequest pwmRequest,
+            final String debugText,
+            final OAuthSettings settings,
+            final String requestUrl,
+            final Map<String, String> requestParams,
+            final String accessToken
+    )
+            throws PwmUnrecoverableException
+    {
+        final String requestBody = PwmURL.encodeParametersToFormBody( requestParams );
+        final List<X509Certificate> certs = settings.getCertificates();
+
+        final PwmHttpClientRequest pwmHttpClientRequest;
+        {
+            final Map<String, String> headers = new HashMap<>( );
+            if ( StringUtil.isEmpty(  accessToken ) )
+            {
+                headers.put( HttpHeader.Authorization.getHttpName(),
+                        new BasicAuthInfo( settings.getClientID(), settings.getSecret() ).toAuthHeader() );
+            }
+            else
+            {
+                headers.put( HttpHeader.Authorization.getHttpName(),
+                        "Bearer " + accessToken );
+            }
+            headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValueWithEncoding() );
+
+            pwmHttpClientRequest = PwmHttpClientRequest.builder()
+                    .method( HttpMethod.GET )
                     .url( requestUrl )
                     .body( requestBody )
                     .headers( headers )
