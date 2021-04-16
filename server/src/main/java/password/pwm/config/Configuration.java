@@ -366,15 +366,7 @@ public class Configuration
 
     public HttpMethod readSettingAsHttpMethod( final PwmSetting setting )
     {
-        final password.pwm.config.option.HttpMethod method = readSettingAsEnum( setting, password.pwm.config.option.HttpMethod.class );
-        if ( method == password.pwm.config.option.HttpMethod.POST )
-        {
-            return HttpMethod.POST;
-        }
-        else
-        {
-            return HttpMethod.GET;
-        }
+        return readSettingAsEnum( setting, password.pwm.config.option.HttpMethod.class ) == password.pwm.config.option.HttpMethod.POST ? HttpMethod.POST : HttpMethod.GET;
     }
 
     private PwmSecurityKey tempInstanceKey = null;
