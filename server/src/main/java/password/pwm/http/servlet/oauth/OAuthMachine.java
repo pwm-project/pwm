@@ -230,11 +230,11 @@ public class OAuthMachine
         {
             final Configuration config = pwmRequest.getConfig();
             final String requestUrl = settings.getAttributesUrl();
+            final HttpMethod requestMethod = settings.getAttributesMethod();
             final Map<String, String> requestParams = new HashMap<>();
-            final HttpMethod method = HttpMethod.GET;
             requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
             requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ATTRIBUTES ), settings.getDnAttributeName() );
-            restResults = makeHttpRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, accessToken, method );
+            restResults = makeHttpRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, accessToken, requestMethod );
         }
 
         final String resultBody = restResults.getBody();
