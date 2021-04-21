@@ -681,6 +681,10 @@
             <label>OAuth Profile Service URL</label>
             <value><![CDATA[http://ldap.example.com:8180/osp/a/idm/auth/oauth2/getattributes]]></value>
         </setting>
+        <setting key="oauth.idserver.attributesMethod" syntax="SELECT" syntaxVersion="0" modifyTime="2018-07-11T05:43:23Z" modifyUser="default|cn=testuser,ou=example,o=org">
+            <label>OAuth Profile Service HTTP Method</label>
+            <value><![CDATA[POST]]></value>
+        </setting>
         <setting key="oauth.idserver.serverCerts" syntax="X509CERT" syntaxVersion="0" modifyTime="2016-11-07T16:57:44Z" modifyUser="default|cn=testuser,ou=example,o=org">
             <default />
         </setting>
@@ -735,6 +739,10 @@
         <setting key="recovery.oauth.idserver.attributesUrl" syntax="STRING" profile="default" syntaxVersion="0" modifyTime="2016-11-14T06:47:22Z" modifyUser="default|cn=testuser,ou=example,o=org">
             <label>OAuth Profile Service URL</label>
             <value><![CDATA[https://db.example.org44/osp/a/TOP/auth/oauth2/getattributes]]></value>
+        </setting>
+        <setting key="recovery.oauth.idserver.attributesMethod" syntax="SELECT" syntaxVersion="0" modifyTime="2018-07-11T05:43:23Z" modifyUser="default|cn=testuser,ou=example,o=org">
+            <label>OAuth Profile Service HTTP Method</label>
+            <value><![CDATA[POST]]></value>
         </setting>
         <setting key="recovery.oauth.idserver.clientName" syntax="STRING" profile="default" syntaxVersion="0" modifyTime="2016-11-14T19:55:23Z" modifyUser="default|cn=testuser,ou=example,o=org">
             <label>OAuth Client ID</label>

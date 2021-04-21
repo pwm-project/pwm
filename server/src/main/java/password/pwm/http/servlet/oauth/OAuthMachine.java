@@ -171,7 +171,7 @@ public class OAuthMachine
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_ID ), clientID );
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_SECRET ), settings.getSecret().getStringValue() );
 
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "oauth code resolver", settings, requestUrl, requestParams, null );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "oauth code resolver", settings, requestUrl, requestParams, null, HttpMethod.POST );
 
         final OAuthResolveResults results = resolveResultsFromResponseBody( pwmRequest, restResults.getBody() );
 
@@ -215,7 +215,7 @@ public class OAuthMachine
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN ), refreshCode );
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_GRANT_TYPE ), grantType );
 
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth refresh resolver", settings, requestUrl, requestParams, null );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth refresh resolver", settings, requestUrl, requestParams, null, HttpMethod.POST );
 
         return resolveResultsFromResponseBody( pwmRequest, restResults.getBody() );
     }
@@ -230,10 +230,11 @@ public class OAuthMachine
         {
             final Configuration config = pwmRequest.getConfig();
             final String requestUrl = settings.getAttributesUrl();
+            final HttpMethod requestMethod = settings.getAttributesMethod();
             final Map<String, String> requestParams = new HashMap<>();
             requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
             requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ATTRIBUTES ), settings.getDnAttributeName() );
-            restResults = makeHttpRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, accessToken );
+            restResults = makeHttpRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, accessToken, requestMethod );
         }
 
         final String resultBody = restResults.getBody();
@@ -261,7 +262,8 @@ public class OAuthMachine
             final OAuthSettings settings,
             final String requestUrl,
             final Map<String, String> requestParams,
-            final String accessToken
+            final String accessToken,
+            final HttpMethod method
     )
             throws PwmUnrecoverableException
     {
@@ -284,7 +286,7 @@ public class OAuthMachine
             headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValueWithEncoding() );
 
             pwmHttpClientRequest = PwmHttpClientRequest.builder()
-                    .method( HttpMethod.POST )
+                    .method( method )
                     .url( requestUrl )
                     .body( requestBody )
                     .headers( headers )
@@ -481,7 +483,8 @@ public class OAuthMachine
         }
 
         LOGGER.debug( sessionLabel, () -> "preparing to send username to OAuth /sign endpoint for future injection to /grant redirect" );
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth pre-inject username signing service", settings, signUrl, requestPayload, null );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth pre-inject username signing service", settings,
+                                                                    signUrl, requestPayload, null, HttpMethod.POST );
 
         final String resultBody = restResults.getBody();
         final Map<String, String> resultBodyMap = JsonUtil.deserializeStringMap( resultBody );

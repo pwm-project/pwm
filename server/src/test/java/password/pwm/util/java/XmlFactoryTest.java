@@ -41,6 +41,6 @@ public class XmlFactoryTest
         Assert.assertTrue( configIsEditable.isPresent() );
         Assert.assertEquals( "false", configIsEditable.get().getText() );
         final List<XmlElement> allSettings = xmlDocument.evaluateXpathToElements( "//setting" );
-        Assert.assertEquals( 279, allSettings.size() );
+        Assert.assertEquals( 281, allSettings.size() );
     }
 }

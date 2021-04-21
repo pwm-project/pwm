@@ -70,6 +70,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureService;
+import password.pwm.http.HttpMethod;
 
 import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
@@ -361,6 +362,11 @@ public class Configuration
             return null;
         }
         return ( PrivateKeyCertificate ) readStoredValue( setting ).toNativeObject();
+    }
+
+    public HttpMethod readSettingAsHttpMethod( final PwmSetting setting )
+    {
+        return readSettingAsEnum( setting, password.pwm.config.option.HttpMethod.class ) == password.pwm.config.option.HttpMethod.POST ? HttpMethod.POST : HttpMethod.GET;
     }
 
     private PwmSecurityKey tempInstanceKey = null;

@@ -2471,6 +2471,15 @@
         <example>https://oauthserver.example.com/osp/a/idm/auth/oauth2/getattributes</example>
         <default/>
     </setting>
+    <setting hidden="false" key="recovery.oauth.idserver.attributesMethod" level="2" required="true">
+        <default>
+            <value>POST</value>
+        </default>
+        <options>
+            <option value="POST">POST</option>
+            <option value="GET">GET</option>
+        </options>
+    </setting>
     <setting hidden="false" key="recovery.oauth.idserver.serverCerts" level="2">
         <default/>
         <properties>
@@ -4063,6 +4072,15 @@
     <setting hidden="false" key="oauth.idserver.attributesUrl" level="2">
         <example>https://oauthserver.example.com/osp/a/idm/auth/oauth2/getattributes</example>
         <default/>
+    </setting>
+    <setting hidden="false" key="oauth.idserver.attributesMethod" level="2" required="true">
+        <default>
+            <value>POST</value>
+        </default>
+        <options>
+            <option value="POST">POST</option>
+            <option value="GET">GET</option>
+        </options>
     </setting>
     <setting hidden="false" key="oauth.idserver.serverCerts" level="2">
         <default/>

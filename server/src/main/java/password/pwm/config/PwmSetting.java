@@ -810,6 +810,8 @@ public enum PwmSetting
             "recovery.oauth.idserver.codeResolveUrl", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH ),
     RECOVERY_OAUTH_ID_ATTRIBUTES_URL(
             "recovery.oauth.idserver.attributesUrl", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH ),
+    RECOVERY_OAUTH_ID_ATTRIBUTES_METHOD(
+            "recovery.oauth.idserver.attributesMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_OAUTH ),
     RECOVERY_OAUTH_ID_CERTIFICATE(
             "recovery.oauth.idserver.serverCerts", PwmSettingSyntax.X509CERT, PwmSettingCategory.RECOVERY_OAUTH ),
     RECOVERY_OAUTH_ID_CLIENTNAME(
@@ -1178,6 +1180,8 @@ public enum PwmSetting
             "oauth.idserver.codeResolveUrl", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH ),
     OAUTH_ID_ATTRIBUTES_URL(
             "oauth.idserver.attributesUrl", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH ),
+    OAUTH_ID_ATTRIBUTES_METHOD(
+            "oauth.idserver.attributesMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.OAUTH ),
     OAUTH_ID_CERTIFICATE(
             "oauth.idserver.serverCerts", PwmSettingSyntax.X509CERT, PwmSettingCategory.OAUTH ),
     OAUTH_ID_CLIENTNAME(
