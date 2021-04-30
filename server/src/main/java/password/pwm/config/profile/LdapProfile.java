@@ -27,6 +27,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfiguration;
@@ -60,6 +61,7 @@ public class LdapProfile extends AbstractProfile implements Profile
     }
 
     public Map<String, String> getSelectableContexts(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain
     )
             throws PwmUnrecoverableException
@@ -71,13 +73,14 @@ public class LdapProfile extends AbstractProfile implements Profile
         {
             final String dn = entry.getKey();
             final String label = entry.getValue();
-            final String canonicalDN = readCanonicalDN( pwmDomain, dn );
+            final String canonicalDN = readCanonicalDN( sessionLabel, pwmDomain, dn );
             canonicalValues.put( canonicalDN, label );
         }
         return Collections.unmodifiableMap( canonicalValues );
     }
 
     public List<String> getRootContexts(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain
     )
             throws PwmUnrecoverableException
@@ -86,7 +89,7 @@ public class LdapProfile extends AbstractProfile implements Profile
         final List<String> canonicalValues = new ArrayList<>();
         for ( final String dn : rawValues )
         {
-            final String canonicalDN = readCanonicalDN( pwmDomain, dn );
+            final String canonicalDN = readCanonicalDN( sessionLabel, pwmDomain, dn );
             canonicalValues.add( canonicalDN );
         }
         return Collections.unmodifiableList( canonicalValues );
@@ -112,10 +115,10 @@ public class LdapProfile extends AbstractProfile implements Profile
         return configUsernameAttr != null && configUsernameAttr.length() > 0 ? configUsernameAttr : ldapNamingAttribute;
     }
 
-    public ChaiProvider getProxyChaiProvider( final PwmDomain pwmDomain ) throws PwmUnrecoverableException
+    public ChaiProvider getProxyChaiProvider( final SessionLabel sessionLabel, final PwmDomain pwmDomain ) throws PwmUnrecoverableException
     {
         verifyIsEnabled();
-        return pwmDomain.getProxyChaiProvider( this.getIdentifier() );
+        return pwmDomain.getProxyChaiProvider( sessionLabel, this.getIdentifier() );
     }
 
     @Override
@@ -131,6 +134,7 @@ public class LdapProfile extends AbstractProfile implements Profile
     }
 
     public String readCanonicalDN(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final String dnValue
     )
@@ -163,7 +167,7 @@ public class LdapProfile extends AbstractProfile implements Profile
         {
             try
             {
-                final ChaiProvider chaiProvider = this.getProxyChaiProvider( pwmDomain );
+                final ChaiProvider chaiProvider = this.getProxyChaiProvider( sessionLabel, pwmDomain );
                 final ChaiEntry chaiEntry = chaiProvider.getEntryFactory().newChaiEntry( dnValue );
                 canonicalValue = chaiEntry.readCanonicalDN();
 
@@ -190,23 +194,28 @@ public class LdapProfile extends AbstractProfile implements Profile
         return canonicalValue;
     }
 
-    public UserIdentity getTestUser( final PwmDomain pwmDomain ) throws PwmUnrecoverableException
+    public UserIdentity getTestUser( final SessionLabel sessionLabel, final PwmDomain pwmDomain ) throws PwmUnrecoverableException
     {
-        return readUserIdentity( pwmDomain, PwmSetting.LDAP_TEST_USER_DN );
+        return readUserIdentity( sessionLabel, pwmDomain, PwmSetting.LDAP_TEST_USER_DN );
     }
 
-    public UserIdentity getProxyUser( final PwmDomain pwmDomain ) throws PwmUnrecoverableException
+    public UserIdentity getProxyUser( final SessionLabel sessionLabel, final PwmDomain pwmDomain ) throws PwmUnrecoverableException
     {
-        return readUserIdentity( pwmDomain, PwmSetting.LDAP_PROXY_USER_DN );
+        return readUserIdentity( sessionLabel, pwmDomain, PwmSetting.LDAP_PROXY_USER_DN );
     }
 
-    private UserIdentity readUserIdentity( final PwmDomain pwmDomain, final PwmSetting pwmSetting ) throws PwmUnrecoverableException
+    private UserIdentity readUserIdentity(
+            final SessionLabel sessionLabel,
+            final PwmDomain pwmDomain,
+            final PwmSetting pwmSetting
+    )
+            throws PwmUnrecoverableException
     {
         final String testUserDN = this.readSettingAsString( pwmSetting );
 
         if ( StringUtil.notEmpty( testUserDN ) )
         {
-            return UserIdentity.create( testUserDN, this.getIdentifier(), pwmDomain.getDomainID() ).canonicalized( pwmDomain.getPwmApplication() );
+            return UserIdentity.create( testUserDN, this.getIdentifier(), pwmDomain.getDomainID() ).canonicalized( sessionLabel, pwmDomain.getPwmApplication() );
         }
 
         return null;

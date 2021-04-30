@@ -41,23 +41,25 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceEnum;
 import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
+import password.pwm.svc.db.DatabaseAccessor;
+import password.pwm.svc.db.DatabaseService;
 import password.pwm.svc.email.EmailService;
 import password.pwm.svc.event.AuditEvent;
-import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditService;
-import password.pwm.svc.event.SystemAuditRecord;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.httpclient.HttpClientService;
-import password.pwm.svc.intruder.IntruderService;
 import password.pwm.svc.intruder.IntruderRecordType;
+import password.pwm.svc.intruder.IntruderSystemService;
 import password.pwm.svc.node.NodeService;
-import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.secure.SystemSecureService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
 import password.pwm.svc.sessiontrack.UserAgentUtils;
 import password.pwm.svc.shorturl.UrlShortenerService;
+import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.svc.stats.StatisticsService;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.SharedHistoryService;
@@ -66,8 +68,6 @@ import password.pwm.util.MBeanUtility;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
-import password.pwm.util.db.DatabaseAccessor;
-import password.pwm.util.db.DatabaseService;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
@@ -81,7 +81,6 @@ import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogManager;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
-import password.pwm.util.queue.SmsQueueManager;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 import password.pwm.util.secure.PwmRandom;
 
@@ -96,11 +95,13 @@ import java.security.KeyStore;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -118,7 +119,9 @@ public class PwmApplication
     private Map<DomainID, PwmDomain> domains;
     private String runtimeNonce = PwmRandom.getInstance().randomUUID().toString();
 
-    private final PwmServiceManager pwmServiceManager = new PwmServiceManager( this, DomainID.systemId(), PwmServiceEnum.forScope( PwmSettingScope.SYSTEM ) );
+    private final PwmServiceManager pwmServiceManager = new PwmServiceManager(
+            SessionLabel.SYSTEM_LABEL,
+            this, DomainID.systemId(), PwmServiceEnum.forScope( PwmSettingScope.SYSTEM ) );
 
     private final Instant startupTime = Instant.now();
     private Instant installTime = Instant.now();
@@ -136,9 +139,10 @@ public class PwmApplication
     {
         this.pwmEnvironment = Objects.requireNonNull( pwmEnvironment );
 
-
-        pwmEnvironment.verifyIfApplicationPathIsSetProperly();
-
+        if ( !pwmEnvironment.isInternalRuntimeInstance() )
+        {
+            pwmEnvironment.verifyIfApplicationPathIsSetProperly();
+        }
 
         try
         {
@@ -249,7 +253,7 @@ public class PwmApplication
         LOGGER.debug( () -> "application environment flags: " + JsonUtil.serializeCollection( pwmEnvironment.getFlags() ) );
         LOGGER.debug( () -> "application environment parameters: " + JsonUtil.serializeMap( pwmEnvironment.getParameters() ) );
 
-        pwmScheduler = new PwmScheduler( getInstanceID() );
+        pwmScheduler = new PwmScheduler( this );
 
         pwmServiceManager.initAllServices();
 
@@ -262,7 +266,7 @@ public class PwmApplication
         {
             final TimeDuration totalTime = TimeDuration.fromCurrent( startTime );
             LOGGER.info( () -> PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")" );
-            StatisticsManager.incrementStat( this, Statistic.PWM_STARTUPS );
+            StatisticsClient.incrementStat( this, Statistic.PWM_STARTUPS );
             LOGGER.debug( () -> "buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
 
             pwmScheduler.immediateExecuteRunnableInNewThread( this::postInitTasks, this.getClass().getSimpleName() + " postInit tasks" );
@@ -302,10 +306,6 @@ public class PwmApplication
     {
         final Instant startTime = Instant.now();
 
-        getPwmScheduler().immediateExecuteRunnableInNewThread( UserAgentUtils::initializeCache, "initialize useragent cache" );
-        getPwmScheduler().immediateExecuteRunnableInNewThread( PwmSettingMetaDataReader::initCache, "initialize PwmSetting cache" );
-
-
         if ( Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
         {
             outputConfigurationToLog( this );
@@ -313,18 +313,7 @@ public class PwmApplication
         }
 
         // send system audit event
-        try
-        {
-            final SystemAuditRecord auditRecord = new AuditRecordFactory( this ).createSystemAuditRecord(
-                    AuditEvent.STARTUP,
-                    null
-            );
-            getAuditManager().submit( null, auditRecord );
-        }
-        catch ( final PwmException e )
-        {
-            LOGGER.warn( () -> "unable to submit start alert event " + e.getMessage() );
-        }
+        AuditServiceClient.submitSystemEvent( this, SessionLabel.SYSTEM_LABEL, AuditEvent.STARTUP );
 
         try
         {
@@ -338,7 +327,7 @@ public class PwmApplication
 
         try
         {
-            this.getIntruderService().clear( IntruderRecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME );
+            this.getAdminDomain().getIntruderService().clear( IntruderRecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME );
         }
         catch ( final Exception e )
         {
@@ -366,11 +355,15 @@ public class PwmApplication
             }
         }
 
+        getPwmScheduler().immediateExecuteRunnableInNewThread( UserAgentUtils::initializeCache, "initialize useragent cache" );
+        getPwmScheduler().immediateExecuteRunnableInNewThread( PwmSettingMetaDataReader::initCache, "initialize PwmSetting cache" );
+
         MBeanUtility.registerMBean( this );
         LOGGER.trace( () -> "completed post init tasks", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
-    public static PwmApplication createPwmApplication( final PwmEnvironment pwmEnvironment ) throws PwmUnrecoverableException
+    public static PwmApplication createPwmApplication( final PwmEnvironment pwmEnvironment )
+            throws PwmUnrecoverableException
     {
         return new PwmApplication( pwmEnvironment );
     }
@@ -427,24 +420,17 @@ public class PwmApplication
 
     public void shutdown( final boolean keepServicesRunning )
     {
-        LOGGER.warn( () -> "shutting down" );
+        final Instant startTime = Instant.now();
+
+        if ( keepServicesRunning )
         {
-            // send system audit event
-            try
-            {
-                final SystemAuditRecord auditRecord = new AuditRecordFactory( this ).createSystemAuditRecord(
-                        AuditEvent.SHUTDOWN,
-                        null
-                );
-                if ( getAuditManager() != null )
-                {
-                    getAuditManager().submit( null, auditRecord );
-                }
-            }
-            catch ( final PwmException e )
-            {
-                LOGGER.warn( () -> "unable to submit shutdown alert event " + e.getMessage() );
-            }
+            LOGGER.warn( () -> "preparing for restart" );
+            AuditServiceClient.submitSystemEvent( this, SessionLabel.SYSTEM_LABEL, AuditEvent.RESTART );
+        }
+        else
+        {
+            LOGGER.warn( () -> "shutting down" );
+            AuditServiceClient.submitSystemEvent( this, SessionLabel.SYSTEM_LABEL, AuditEvent.SHUTDOWN );
         }
 
         MBeanUtility.unregisterMBean( this );
@@ -489,8 +475,14 @@ public class PwmApplication
         {
             try
             {
-                LOGGER.trace( () -> "beginning close of LocalDB" );
+                final Instant startCloseDbTime = Instant.now();
+                LOGGER.debug( () -> "beginning close of LocalDB" );
                 localDB.close();
+                final TimeDuration closeLocalDbDuration = TimeDuration.fromCurrent( startCloseDbTime );
+                if ( closeLocalDbDuration.isLongerThan( TimeDuration.SECONDS_10 ) )
+                {
+                    LOGGER.info( () -> "completed close of LocalDB", () -> closeLocalDbDuration );
+                }
             }
             catch ( final Exception e )
             {
@@ -506,7 +498,8 @@ public class PwmApplication
 
         pwmScheduler.shutdown();
 
-        LOGGER.info( () -> PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " closed for bidness, cya!" );
+        LOGGER.info( () -> PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION
+                + " closed for bidness, cya!", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     private static void outputKeystore( final PwmApplication pwmApplication ) throws Exception
@@ -719,8 +712,6 @@ public class PwmApplication
     }
 
 
-
-
     private Instant fetchInstallDate( final Instant startupTime )
     {
         if ( localDB != null )
@@ -756,6 +747,11 @@ public class PwmApplication
             }
         }
 
+        if ( pwmApplication.getLocalDB() == null || pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING )
+        {
+            return DEFAULT_INSTANCE_ID;
+        }
+
         {
             final Optional<String> optionalStoredInstanceID = readAppAttribute( AppAttribute.INSTANCE_ID, String.class );
             if ( optionalStoredInstanceID.isPresent() )
@@ -786,9 +782,9 @@ public class PwmApplication
         return ( SharedHistoryService ) pwmServiceManager.getService( PwmServiceEnum.SharedHistoryManager );
     }
 
-    public IntruderService getIntruderService( )
+    public IntruderSystemService getIntruderSystemService( ) throws PwmUnrecoverableException
     {
-        return ( IntruderService ) pwmServiceManager.getService( PwmServiceEnum.IntruderManager );
+        return ( IntruderSystemService ) pwmServiceManager.getService( PwmServiceEnum.IntruderSystemService );
     }
 
     public LocalDBLogger getLocalDBLogger( )
@@ -808,28 +804,39 @@ public class PwmApplication
 
     public List<PwmService> getPwmServices( )
     {
-        final List<PwmService> pwmServices = new ArrayList<>();
+        final List<PwmService> pwmServices = new ArrayList<>( this.pwmServiceManager.getRunningServices() );
         pwmServices.add( this.localDBLogger );
-        pwmServices.addAll( this.pwmServiceManager.getRunningServices() );
         return Collections.unmodifiableList( pwmServices );
     }
 
-    public List<PwmService> getAppAndDomainPwmServices( )
+    public Map<DomainID, List<PwmService>> getAppAndDomainPwmServices( )
     {
-        final List<PwmService> pwmServices = new ArrayList<>( getPwmServices() );
-        domains().values().forEach( domain -> pwmServices.addAll( domain.getPwmServices() ) );
-        return Collections.unmodifiableList( pwmServices );
+        final Map<DomainID, List<PwmService>> pwmServices = new LinkedHashMap<>();
 
+        for ( final PwmService pwmService : getPwmServices() )
+        {
+            pwmServices.computeIfAbsent( DomainID.systemId(), k -> new ArrayList<>() ).add( pwmService );
+        }
+
+        for ( final PwmDomain pwmDomain : domains().values() )
+        {
+            for ( final PwmService pwmService : pwmDomain.getPwmServices() )
+            {
+                pwmServices.computeIfAbsent( pwmDomain.getDomainID(), k -> new ArrayList<>() ).add( pwmService );
+            }
+        }
+
+        return Collections.unmodifiableMap( pwmServices );
     }
 
     public WordlistService getWordlistService( )
     {
-        return ( WordlistService ) pwmServiceManager.getService( PwmServiceEnum.WordlistManager );
+        return ( WordlistService ) pwmServiceManager.getService( PwmServiceEnum.WordlistService );
     }
 
     public SeedlistService getSeedlistManager( )
     {
-        return ( SeedlistService ) pwmServiceManager.getService( PwmServiceEnum.SeedlistManager );
+        return ( SeedlistService ) pwmServiceManager.getService( PwmServiceEnum.SeedlistService );
     }
 
     public ReportService getReportService( )
@@ -839,22 +846,17 @@ public class PwmApplication
 
     public EmailService getEmailQueue( )
     {
-        return ( EmailService ) pwmServiceManager.getService( PwmServiceEnum.EmailQueueManager );
+        return ( EmailService ) pwmServiceManager.getService( PwmServiceEnum.EmailService );
     }
 
-    public AuditService getAuditManager( )
+    public AuditService getAuditService( )
     {
         return ( AuditService ) pwmServiceManager.getService( PwmServiceEnum.AuditService );
     }
 
-    public SmsQueueManager getSmsQueue( )
+    public SmsQueueService getSmsQueue( )
     {
-        return ( SmsQueueManager ) pwmServiceManager.getService( PwmServiceEnum.SmsQueueManager );
-    }
-
-    public PwNotifyService getPwNotifyService( )
-    {
-        return ( PwNotifyService ) pwmServiceManager.getService( PwmServiceEnum.PwExpiryNotifyService );
+        return ( SmsQueueService ) pwmServiceManager.getService( PwmServiceEnum.SmsQueueManager );
     }
 
     public UrlShortenerService getUrlShortener( )
@@ -894,9 +896,9 @@ public class PwmApplication
         return ( DatabaseService ) pwmServiceManager.getService( PwmServiceEnum.DatabaseService );
     }
 
-    public StatisticsManager getStatisticsManager( )
+    public StatisticsService getStatisticsManager( )
     {
-        return ( StatisticsManager ) pwmServiceManager.getService( PwmServiceEnum.StatisticsManager );
+        return ( StatisticsService ) pwmServiceManager.getService( PwmServiceEnum.StatisticsService );
     }
 
     public SessionStateService getSessionStateService( )
@@ -942,7 +944,7 @@ public class PwmApplication
             final MacroRequest macroRequest
     )
     {
-        final SmsQueueManager smsQueue = getSmsQueue();
+        final SmsQueueService smsQueue = getSmsQueue();
         if ( smsQueue == null )
         {
             LOGGER.error( sessionLabel, () -> "SMS queue is unavailable, unable to send SMS to: " + to );
@@ -1118,5 +1120,34 @@ public class PwmApplication
             }
         }
         return false;
+    }
+
+    public enum Condition
+    {
+        RunningMode( ( pwmApplication ) -> pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING ),
+        LocalDBOpen( ( pwmApplication ) -> pwmApplication.getLocalDB() != null && LocalDB.Status.OPEN == pwmApplication.getLocalDB().status() ),
+        NotInternalInstance( pwmApplication -> !pwmApplication.getPwmEnvironment().isInternalRuntimeInstance() ),;
+
+        private final Function<PwmApplication, Boolean> function;
+
+        Condition( final Function<PwmApplication, Boolean> function )
+        {
+            this.function = function;
+        }
+
+        private boolean matches( final PwmApplication pwmApplication )
+        {
+            return function.apply( pwmApplication );
+        }
+    }
+
+    public boolean checkConditions( final Set<Condition> conditions )
+    {
+        if ( conditions == null )
+        {
+            return true;
+        }
+
+        return conditions.stream().allMatch( ( c ) -> c.matches( this ) );
     }
 }

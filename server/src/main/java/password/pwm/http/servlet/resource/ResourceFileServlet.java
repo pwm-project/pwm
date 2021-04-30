@@ -32,7 +32,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.http.servlet.PwmServlet;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.TimeDuration;
@@ -214,7 +214,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             pwmRequest.debugHttpRequestToLog( debugText, () -> TimeDuration.fromCurrent( pwmRequest.getRequestStartTime() ) );
 
             final MovingAverage cacheHitRatio = resourceService.getCacheHitRatio();
-            StatisticsManager.incrementStat( pwmDomain, Statistic.HTTP_RESOURCE_REQUESTS );
+            StatisticsClient.incrementStat( pwmDomain, Statistic.HTTP_RESOURCE_REQUESTS );
             cacheHitRatio.update( fromCache ? 1 : 0 );
         }
         catch ( final Exception e )

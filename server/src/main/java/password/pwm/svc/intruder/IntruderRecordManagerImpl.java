@@ -20,17 +20,20 @@
 
 package password.pwm.svc.intruder;
 
+import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.svc.secure.SecureService;
 import password.pwm.util.java.ClosableIterator;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
-import password.pwm.util.secure.SecureEngine;
 
 class IntruderRecordManagerImpl implements IntruderRecordManager
 {
@@ -38,15 +41,24 @@ class IntruderRecordManagerImpl implements IntruderRecordManager
 
     private final IntruderRecordType recordType;
     private final IntruderRecordStore recordStore;
-    private final IntruderSettings.IntruderRecordTypeSettings settings;
+    private final IntruderSettings.TypeSettings settings;
+    private final SecureService secureService;
+    private final DomainID domainID;
+    private final PwmHashAlgorithm storageHashAlgorithm;
 
-    private static final PwmHashAlgorithm KEY_HASH_ALG = PwmHashAlgorithm.SHA256;
-
-    IntruderRecordManagerImpl( final IntruderRecordType recordType, final IntruderRecordStore recordStore, final IntruderSettings.IntruderRecordTypeSettings settings )
+    IntruderRecordManagerImpl(
+            final PwmDomain pwmDomain,
+            final IntruderRecordType recordType,
+            final IntruderRecordStore recordStore,
+            final IntruderSettings settings
+    )
     {
+        this.domainID = pwmDomain.getDomainID();
+        this.secureService = pwmDomain.getSecureService();
         this.recordType = recordType;
         this.recordStore = recordStore;
-        this.settings = settings;
+        this.settings = settings.getTargetSettings().get( recordType );
+        this.storageHashAlgorithm = settings.getStorageHashAlgorithm();
     }
 
     @Override
@@ -85,7 +97,7 @@ class IntruderRecordManagerImpl implements IntruderRecordManager
 
         if ( record == null )
         {
-            record = new IntruderRecord( recordType, subject );
+            record = new IntruderRecord( domainID, recordType, subject );
         }
 
         final TimeDuration age = TimeDuration.fromCurrent( record.getTimeStamp() );
@@ -93,7 +105,7 @@ class IntruderRecordManagerImpl implements IntruderRecordManager
         {
             final IntruderRecord finalRecord = record;
             LOGGER.debug( () -> "re-setting existing outdated record=" + JsonUtil.serialize( finalRecord ) + " (" + age.asCompactString() + ")" );
-            record = new IntruderRecord( recordType, subject );
+            record = new IntruderRecord( domainID, recordType, subject );
         }
 
         record.incrementAttemptCount();
@@ -166,18 +178,17 @@ class IntruderRecordManagerImpl implements IntruderRecordManager
 
     private String makeKey( final String subject ) throws PwmOperationalException
     {
-        final String hash;
+        JavaHelper.requireNonEmpty( subject );
+
         try
         {
-            hash = SecureEngine.hash( subject, KEY_HASH_ALG );
+            return secureService.hash( storageHashAlgorithm, subject ) + "-" + domainID + "-" + recordType;
         }
         catch ( final PwmUnrecoverableException e )
         {
-            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "error generating md5sum for intruder record: " + e.getMessage() );
+            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "error generating hash for intruder record: " + e.getMessage() );
         }
-        return hash + recordType.toString();
     }
-
 
     @Override
     public ClosableIterator<IntruderRecord> iterator( ) throws PwmException
@@ -185,11 +196,11 @@ class IntruderRecordManagerImpl implements IntruderRecordManager
         return new RecordIterator<>( recordStore.iterator() );
     }
 
-    static class RecordIterator<IntruderRecord> implements ClosableIterator<IntruderRecord>
+    private static class RecordIterator<IntruderRecord> implements ClosableIterator<IntruderRecord>
     {
-        private ClosableIterator<IntruderRecord> innerIter;
+        private final ClosableIterator<IntruderRecord> innerIter;
 
-        RecordIterator( final ClosableIterator<IntruderRecord> recordIterator ) throws PwmOperationalException
+        RecordIterator( final ClosableIterator<IntruderRecord> recordIterator )
         {
             this.innerIter = recordIterator;
         }

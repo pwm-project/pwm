@@ -104,7 +104,7 @@ public class ConfigLocaleStats
         {
             final int totalCount = PwmSetting.values().length;
             final int presentCount = descriptionPresentLocalizations.get( locale );
-            final Percent percent = new Percent( presentCount, totalCount );
+            final Percent percent = Percent.of( presentCount, totalCount );
             descriptionPercentLocalizations.put( locale, percent.pretty() );
         }
 

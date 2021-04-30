@@ -26,7 +26,6 @@ import password.pwm.config.PwmSettingCategory;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
@@ -38,8 +37,6 @@ import java.util.regex.Pattern;
 
 public abstract class StaticMacros
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( StaticMacros.class );
-
     static final List<Macro> STATIC_MACROS = List.of(
             new PwmSettingReference(),
             new PwmSettingCategoryReference(),

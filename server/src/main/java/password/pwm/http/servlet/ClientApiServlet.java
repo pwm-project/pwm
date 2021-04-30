@@ -47,7 +47,7 @@ import password.pwm.i18n.Display;
 import password.pwm.svc.sessiontrack.UserAgentUtils;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -58,7 +58,7 @@ import password.pwm.util.secure.SecureEngine;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestHealthServer;
 import password.pwm.ws.server.rest.RestStatisticsServer;
-import password.pwm.ws.server.rest.bean.HealthData;
+import password.pwm.ws.server.rest.bean.PublicHealthData;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -223,7 +223,7 @@ public class ClientApiServlet extends ControlledPwmServlet
 
         try
         {
-            final HealthData jsonOutput = RestHealthServer.processGetHealthCheckData(
+            final PublicHealthData jsonOutput = RestHealthServer.processGetHealthCheckData(
                     pwmRequest.getPwmDomain(),
                     pwmRequest.getLocale() );
             final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
@@ -427,7 +427,7 @@ public class ClientApiServlet extends ControlledPwmServlet
             final Map<String, Map<String, String>> ldapProfiles = new LinkedHashMap<>();
             for ( final String ldapProfile : pwmDomain.getConfig().getLdapProfiles().keySet() )
             {
-                final Map<String, String> contexts = pwmDomain.getConfig().getLdapProfiles().get( ldapProfile ).getSelectableContexts( pwmDomain );
+                final Map<String, String> contexts = pwmDomain.getConfig().getLdapProfiles().get( ldapProfile ).getSelectableContexts( pwmRequest.getLabel(), pwmDomain );
                 ldapProfiles.put( ldapProfile, contexts );
             }
             settingMap.put( "ldapProfiles", ldapProfiles );
@@ -477,7 +477,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         final String statName = pwmRequest.readParameterAsString( "statName" );
         final String days = pwmRequest.readParameterAsString( "days" );
 
-        final StatisticsManager statisticsManager = pwmRequest.getPwmDomain().getStatisticsManager();
+        final StatisticsService statisticsManager = pwmRequest.getPwmDomain().getStatisticsManager();
         final RestStatisticsServer.OutputVersion1.JsonOutput jsonOutput = new RestStatisticsServer.OutputVersion1.JsonOutput();
         jsonOutput.EPS = RestStatisticsServer.OutputVersion1.addEpsStats( statisticsManager );
 

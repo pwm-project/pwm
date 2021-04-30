@@ -169,7 +169,7 @@ public class LocaleHelper
             }
         }
 
-        final MacroRequest macroRequest = MacroRequest.forStatic();
+        final MacroRequest macroRequest = MacroRequest.forStatic( );
         return macroRequest.expandMacros( returnValue );
     }
 

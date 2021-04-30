@@ -195,7 +195,7 @@ public class LocalDBUtility
             final Appendable debugOutput
     )
     {
-        final Percent percentComplete = new Percent( exportLineCounter, totalLines );
+        final Percent percentComplete = Percent.of( exportLineCounter, totalLines );
         final String percentStr = percentComplete.pretty( 2 );
         final long secondsRemaining = totalLines / eventRateMeter.readEventRate().longValue();
 
@@ -305,9 +305,7 @@ public class LocalDBUtility
             }
 
             this.debugOutputWriter = ConditionalTaskExecutor.forPeriodicTask( () ->
-            {
-                writeStringToOut( debugOutput, debugStatsString() );
-            }, TimeDuration.of( 30, TimeDuration.Unit.SECONDS ) );
+                    writeStringToOut( debugOutput, debugStatsString() ), TimeDuration.of( 30, TimeDuration.Unit.SECONDS ) );
         }
 
         void doImport( final InputStream inputStream )

@@ -44,7 +44,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-class ConfigurationCleaner
+public class ConfigurationCleaner
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigurationCleaner.class );
 
@@ -56,7 +56,7 @@ class ConfigurationCleaner
             new RemoveSuperfluousProfileSettings(),
             new RemoveDefaultSettings() );
 
-    static void postProcessStoredConfig(
+    public static void postProcessStoredConfig(
             final StoredConfigurationModifier storedConfiguration
     )
     {

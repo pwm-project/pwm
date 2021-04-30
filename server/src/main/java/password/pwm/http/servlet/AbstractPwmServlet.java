@@ -32,8 +32,10 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.Validator;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
@@ -47,9 +49,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collection;
+import java.util.function.Supplier;
 
 public abstract class AbstractPwmServlet extends HttpServlet implements PwmServlet
 {
+
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( AbstractPwmServlet.class );
 
@@ -228,16 +232,8 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         {
             case ERROR_DIRECTORY_UNAVAILABLE:
                 LOGGER.fatal( pwmRequest.getLabel(), () -> e.getErrorInformation().toDebugStr() );
-                try
-                {
-                    pwmDomain.getStatisticsManager().incrementValue( Statistic.LDAP_UNAVAILABLE_COUNT );
-                }
-                catch ( final Throwable e1 )
-                {
-                    //noop
-                }
+                StatisticsClient.incrementStat( pwmRequest, Statistic.LDAP_UNAVAILABLE_COUNT );
                 break;
-
 
             case ERROR_PASSWORD_REQUIRED:
                 LOGGER.warn(
@@ -255,23 +251,12 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 }
                 break;
 
-
             case ERROR_INTERNAL:
             default:
-                LOGGER.fatal( pwmRequest.getLabel(), () -> "unexpected error: " + e.getErrorInformation().toDebugStr() );
-                try
-                {
-                    // try to update stats
-                    if ( pwmDomain != null )
-                    {
-                        pwmDomain.getStatisticsManager().incrementValue( Statistic.PWM_UNKNOWN_ERRORS );
-                    }
-                }
-                catch ( final Throwable e1 )
-                {
-                    //noop
-                }
-                break;
+                final Supplier<CharSequence> msg = () -> "unexpected error: " + e.getErrorInformation().toDebugStr();
+                final PwmLogLevel level = e.getError().isTrivial() ? PwmLogLevel.TRACE : PwmLogLevel.ERROR;
+                LOGGER.log( level, pwmRequest.getLabel(), msg );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.PWM_UNKNOWN_ERRORS );
         }
         return false;
     }

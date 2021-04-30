@@ -104,7 +104,7 @@ public class DailySummaryJob implements Runnable
     {
         if ( !checkIfEnabled( pwmDomain ) )
         {
-            LOGGER.debug( () -> "skipping daily summary alert job, setting "
+            LOGGER.trace( () -> "skipping daily summary alert job, setting "
                     + PwmSetting.EVENTS_ALERT_DAILY_SUMMARY.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE )
                     + " not configured" );
             return;

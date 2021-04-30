@@ -20,12 +20,14 @@
 
 package password.pwm.http.bean;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.io.Serializable;
 import java.util.List;
 
 @Getter
+@EqualsAndHashCode
 public class DisplayElement implements Serializable
 {
     private String key;

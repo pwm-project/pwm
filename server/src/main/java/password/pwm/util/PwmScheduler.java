@@ -52,13 +52,14 @@ public class PwmScheduler
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmScheduler.class );
     private static final AtomicLoopIntIncrementer THREAD_ID_COUNTER = new AtomicLoopIntIncrementer();
-    private final ScheduledExecutorService applicationExecutorService;
-    private final String instanceID;
 
-    public PwmScheduler( final String instanceID )
+    private final ScheduledExecutorService applicationExecutorService;
+    private final PwmApplication pwmApplication;
+
+    public PwmScheduler( final PwmApplication pwmApplication )
     {
-        this.instanceID = instanceID;
-        applicationExecutorService = makeSingleThreadExecutorService( instanceID, this.getClass() );
+        this.pwmApplication = Objects.requireNonNull( pwmApplication );
+        applicationExecutorService = makeSingleThreadExecutorService( pwmApplication.getInstanceID(), this.getClass() );
     }
 
     public void shutdown()
@@ -79,8 +80,7 @@ public class PwmScheduler
             final String threadName
     )
     {
-        // if the app executor service is closed then this PwmScheduler is effectively closed.
-        if ( applicationExecutorService.isShutdown() )
+        if ( checkIfSchedulerClosed() )
         {
             return null;
         }
@@ -89,7 +89,7 @@ public class PwmScheduler
 
         final String name = "runtime thread #" + THREAD_ID_COUNTER.next() + " " + threadName;
 
-        final ScheduledExecutorService executor = makeSingleThreadExecutorService( instanceID, callable.getClass() );
+        final ScheduledExecutorService executor = makeSingleThreadExecutorService( pwmApplication.getInstanceID(), callable.getClass() );
 
         final Callable<V> runnableWrapper = () ->
         {
@@ -129,6 +129,11 @@ public class PwmScheduler
             final TimeDuration delay
     )
     {
+        if ( checkIfSchedulerClosed() )
+        {
+            return null;
+        }
+
         Objects.requireNonNull( runnable );
         Objects.requireNonNull( executor );
         Objects.requireNonNull( delay );
@@ -149,6 +154,12 @@ public class PwmScheduler
     )
             throws PwmUnrecoverableException
     {
+        if ( checkIfSchedulerClosed() )
+        {
+            return;
+        }
+
+
         final List<Future<?>> futures = new ArrayList<>();
         for ( final Callable<?> callable : runnableList )
         {
@@ -198,10 +209,11 @@ public class PwmScheduler
             final TimeDuration frequency
     )
     {
-        if ( applicationExecutorService.isShutdown() )
+        if ( checkIfSchedulerClosed() )
         {
             return;
         }
+
 
         if ( initialDelay != null )
         {
@@ -222,6 +234,11 @@ public class PwmScheduler
             final Class clazz
     )
     {
+        if ( pwmApplication.getPwmScheduler().checkIfSchedulerClosed() )
+        {
+            return null;
+        }
+
         final ThreadPoolExecutor executor = new ThreadPoolExecutor(
                 1,
                 1,
@@ -373,6 +390,16 @@ public class PwmScheduler
                 hasFailed = true;
             }
         }
+    }
+
+    private boolean checkIfSchedulerClosed()
+    {
+        return false;
+        /*
+        return pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY
+                || pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
+                || applicationExecutorService.isShutdown();
+        */
     }
 
     public static Instant nextZuluZeroTime( )

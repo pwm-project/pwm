@@ -35,7 +35,6 @@ public class DomainID implements Comparable<DomainID>, Serializable
 {
     public static final List<String> DOMAIN_RESERVED_WORDS = List.of( "system", "private", "public", "pwm", "sspr", "domain", "profile", "password" );
     public static final DomainID DOMAIN_ID_DEFAULT = create( "default" );
-    public static final DomainID DOMAIN_ID_PLACEHOLDER = create( "default" );
 
     private static final String SYSTEM_ID = "system";
     private static final DomainID SYSTEM_DOMAIN_ID = new DomainID( SYSTEM_ID );

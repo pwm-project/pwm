@@ -25,7 +25,6 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.bean.DomainID;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -37,7 +36,7 @@ import password.pwm.http.ContextManager;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.IdleTimeoutCalculator;
 import password.pwm.http.JspUrl;
-import password.pwm.http.ProcessStatus;
+import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmResponse;
@@ -46,7 +45,7 @@ import password.pwm.http.PwmSessionFactory;
 import password.pwm.http.PwmURL;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.IPMatcher;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
@@ -76,11 +75,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 public class RequestInitializationFilter implements Filter
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( RequestInitializationFilter.class );
 
     @Override
@@ -98,7 +95,9 @@ public class RequestInitializationFilter implements Filter
     public void doFilter(
             final ServletRequest servletRequest,
             final ServletResponse servletResponse,
-            final FilterChain filterChain ) throws IOException, ServletException
+            final FilterChain filterChain
+    )
+            throws IOException, ServletException
     {
 
         final HttpServletRequest req = ( HttpServletRequest ) servletRequest;
@@ -114,11 +113,6 @@ public class RequestInitializationFilter implements Filter
         {
             LOGGER.error( () -> "unable to load pwmApplication: " + e.getMessage() );
             throw new ServletException( e.getMessage() );
-        }
-
-        if ( initializeDomainIdInRequest( localPwmApplication, req, resp ) == ProcessStatus.Halt )
-        {
-            return;
         }
 
         final PwmURL pwmURL = PwmURL.create( req, localPwmApplication.getConfig() );
@@ -163,8 +157,6 @@ public class RequestInitializationFilter implements Filter
             servletRequest.getServletContext().getRequestDispatcher( url ).forward( servletRequest, servletResponse );
             return;
         }
-
-
 
         try
         {
@@ -359,8 +351,7 @@ public class RequestInitializationFilter implements Filter
             resp.setHeader( HttpHeader.ContentLanguage, pwmRequest.getLocale().toLanguageTag() );
         }
 
-        addStaticResponseHeaders( pwmApplication, resp.getHttpServletResponse() );
-
+        addStaticResponseHeaders( pwmApplication, pwmRequest.getHttpServletRequest(), resp.getHttpServletResponse() );
 
         if ( pwmSession != null )
         {
@@ -386,6 +377,7 @@ public class RequestInitializationFilter implements Filter
 
     public static void addStaticResponseHeaders(
             final PwmApplication pwmApplication,
+            final HttpServletRequest req,
             final HttpServletResponse resp
     )
             throws PwmUnrecoverableException
@@ -399,6 +391,7 @@ public class RequestInitializationFilter implements Filter
         final boolean includeXXSSProtection = Boolean.parseBoolean( config.readAppProperty( AppProperty.HTTP_HEADER_SEND_XXSSPROTECTION ) );
         final boolean includeXFrameDeny = config.readSettingAsBoolean( PwmSetting.SECURITY_PREVENT_FRAMING );
         final boolean includeXAmb = Boolean.parseBoolean( config.readAppProperty( AppProperty.HTTP_HEADER_SEND_XAMB ) );
+        final boolean includeDomain = Boolean.parseBoolean( config.readAppProperty( AppProperty.HTTP_HEADER_SEND_XDOMAIN ) );
 
         makeNoiseHeader( pwmApplication, config ).ifPresent( noiseHeader -> resp.setHeader( HttpHeader.XNoise.getHttpName(), noiseHeader ) );
 
@@ -440,7 +433,18 @@ public class RequestInitializationFilter implements Filter
             ) );
         }
 
-        resp.setHeader( HttpHeader.CacheControl.getHttpName(), "no-cache, no-store, must-revalidate, proxy-revalidate" );
+        if ( includeDomain && pwmApplication.isMultiDomain() )
+        {
+            resp.setHeader( HttpHeader.XDomain.getHttpName(), PwmHttpRequestWrapper.readDomainIdFromRequest( req ).stringValue() );
+        }
+
+        {
+            final String cacheControl = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_HEADER_CACHE_CONTROL );
+            if ( StringUtil.notEmpty( cacheControl ) )
+            {
+                resp.setHeader( HttpHeader.CacheControl.getHttpName(), cacheControl );
+            }
+        }
     }
 
 
@@ -617,7 +621,7 @@ public class RequestInitializationFilter implements Filter
         checkTrial( pwmRequest );
 
         // check intruder
-        pwmRequest.getPwmDomain().getIntruderManager().convenience().checkAddressAndSession( pwmRequest.getPwmSession() );
+        pwmRequest.getPwmDomain().getIntruderService().client().checkAddressAndSession( pwmRequest.getPwmSession() );
     }
 
     private static void checkIfSourceAddressChanged( final PwmRequest pwmRequest )
@@ -813,14 +817,14 @@ public class RequestInitializationFilter implements Filter
     {
         if ( PwmConstants.TRIAL_MODE )
         {
-            final StatisticsManager statisticsManager = pwmRequest.getPwmDomain().getStatisticsManager();
-            final String currentAuthString = statisticsManager.getStatBundleForKey( StatisticsManager.KEY_CURRENT ).getStatistic( Statistic.AUTHENTICATIONS );
+            final StatisticsService statisticsManager = pwmRequest.getPwmDomain().getStatisticsManager();
+            final String currentAuthString = statisticsManager.getStatBundleForKey( StatisticsService.KEY_CURRENT ).getStatistic( Statistic.AUTHENTICATIONS );
             if ( new BigInteger( currentAuthString ).compareTo( BigInteger.valueOf( PwmConstants.TRIAL_MAX_AUTHENTICATIONS ) ) > 0 )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TRIAL_VIOLATION, "maximum usage per server startup exceeded" ) );
             }
 
-            final String totalAuthString = statisticsManager.getStatBundleForKey( StatisticsManager.KEY_CUMULATIVE ).getStatistic( Statistic.AUTHENTICATIONS );
+            final String totalAuthString = statisticsManager.getStatBundleForKey( StatisticsService.KEY_CUMULATIVE ).getStatistic( Statistic.AUTHENTICATIONS );
             if ( new BigInteger( totalAuthString ).compareTo( BigInteger.valueOf( PwmConstants.TRIAL_MAX_TOTAL_AUTH ) ) > 0 )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TRIAL_VIOLATION, "maximum usage for this server has been exceeded" ) );
@@ -868,68 +872,6 @@ public class RequestInitializationFilter implements Filter
             return Optional.of( pwmRandom.alphaNumericString( pwmRandom.nextInt( noiseLength ) + 11 ) );
         }
 
-        return Optional.empty();
-    }
-
-    ProcessStatus initializeDomainIdInRequest(
-            final PwmApplication pwmApplication,
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException
-    {
-        if ( pwmApplication.isMultiDomain() )
-        {
-            final Optional<DomainID> requestDomainID = readDomainFromRequest( pwmApplication, req );
-            if ( requestDomainID.isPresent() )
-            {
-                req.setAttribute( PwmConstants.REQUEST_ATTR_DOMAIN, requestDomainID.get().stringValue() );
-            }
-            else
-            {
-                try
-                {
-                    final DomainID redirectDomain = pwmApplication.getAdminDomain().getDomainID();
-                    final String redirectUrl = req.getContextPath() + "/" + redirectDomain.stringValue() + "/";
-                    resp.sendRedirect( redirectUrl );
-                    LOGGER.debug( () -> "request does not indicate domain, redirecting to admin domain url: " + redirectUrl );
-                    return ProcessStatus.Halt;
-                }
-                catch ( final PwmUnrecoverableException e )
-                {
-                    final String msg = "error redirecting non-domain request to admin domain: " + e.getMessage();
-                    resp.sendError( 500, msg );
-                    LOGGER.error( () -> msg );
-                    return ProcessStatus.Halt;
-                }
-            }
-        }
-        else
-        {
-            final String domainStr = pwmApplication.getConfig().getDomainIDs().iterator().next();
-            req.setAttribute( PwmConstants.REQUEST_ATTR_DOMAIN, domainStr );
-        }
-
-        return ProcessStatus.Continue;
-    }
-
-    public static Optional<DomainID> readDomainFromRequest( final PwmApplication pwmApplication, final HttpServletRequest req )
-    {
-        final PwmURL pwmURL = PwmURL.create( req, pwmApplication.getConfig() );
-        final List<String> urlPaths = pwmURL.splitPaths();
-        if ( urlPaths.size() <= 1 )
-        {
-            return Optional.empty();
-        }
-
-        final String domainPath = urlPaths.get( 1 );
-
-        final Set<String> domains = pwmApplication.getConfig().getDomainIDs();
-
-        if ( domains.contains( domainPath ) )
-        {
-            return Optional.of( DomainID.create( domainPath ) );
-        }
         return Optional.empty();
     }
 }

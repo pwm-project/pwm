@@ -31,6 +31,7 @@ import org.junit.rules.TemporaryFolder;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
@@ -454,7 +455,8 @@ public class PasswordRuleChecksTest
         final Map<String, String> policyMap = new HashMap<>( PwmPasswordPolicy.defaultPolicy().getPolicyMap() );
         policyMap.putAll( policy );
         final PwmPasswordPolicy pwmPasswordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy( PwmPasswordPolicy.defaultPolicy().getDomainID(), policyMap );
-        final List<ErrorInformation> errorResults = PasswordRuleChecks.extendedPolicyRuleChecker( pwmDomain, pwmPasswordPolicy, password, null, null );
+        final List<ErrorInformation> errorResults = PasswordRuleChecks.extendedPolicyRuleChecker(
+                SessionLabel.TEST_SESSION_LABEL, pwmDomain, pwmPasswordPolicy, password, null, null );
         return errorResults.stream().map( ErrorInformation::getError ).collect( Collectors.toSet() );
     }
 

@@ -29,24 +29,24 @@ import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
-import password.pwm.ldap.UserInfo;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
@@ -62,50 +62,43 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class AuditService implements PwmService
+public class AuditService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( AuditService.class );
 
-    private STATUS status = STATUS.CLOSED;
     private AuditSettings settings;
-    private ServiceInfoBean serviceInfo = ServiceInfoBean.builder().build();
 
     private SyslogAuditService syslogManager;
     private ErrorInformation lastError;
     private AuditVault auditVault;
+    private final StatisticCounterBundle<DebugKey> statisticCounterBundle = new StatisticCounterBundle( DebugKey.class );
 
-    private PwmApplication pwmApplication;
+    enum DebugKey
+    {
+        emailsSent,
+        writes,
+    }
 
     public AuditService( )
     {
     }
 
     @Override
-    public STATUS status( )
-    {
-        return status;
-    }
-
-    @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmApplication = pwmApplication;
-
         settings = AuditSettings.fromConfig( pwmApplication.getConfig() );
 
         if ( pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
-            this.status = STATUS.CLOSED;
             LOGGER.warn( () -> "unable to start - Application is in read-only mode" );
-            return;
+            return STATUS.CLOSED;
         }
 
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
-            this.status = STATUS.CLOSED;
             LOGGER.warn( () -> "unable to start - LocalDB is not available" );
-            return;
+            return STATUS.CLOSED;
         }
 
         final List<String> syslogConfigString = pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.AUDIT_SYSLOG_SERVERS );
@@ -121,7 +114,11 @@ public class AuditService implements PwmService
                 LOGGER.error( errorInformation::toDebugStr );
             }
         }
-        this.status = STATUS.OPEN;
+
+        auditVault = new LocalDbAuditVault();
+        auditVault.init( pwmApplication, pwmApplication.getLocalDB(), settings );
+
+        return STATUS.OPEN;
     }
 
     @Override
@@ -137,40 +134,19 @@ public class AuditService implements PwmService
             auditVault.close();
         }
 
-        this.status = STATUS.CLOSED;
+        setStatus( STATUS.CLOSED );
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
-        if ( status != STATUS.OPEN )
-        {
-            return Collections.emptyList();
-        }
-
-        final List<HealthRecord> healthRecords = new ArrayList<>();
-        if ( syslogManager != null )
-        {
-            healthRecords.addAll( syslogManager.healthCheck() );
-        }
-
-        if ( lastError != null )
-        {
-            healthRecords.add( HealthRecord.forMessage(
-                    DomainID.systemId(),
-                    HealthMessage.ServiceClosed,
-                    this.getClass().getSimpleName(),
-                    lastError.toDebugStr() ) );
-        }
-
-        return Collections.unmodifiableList( healthRecords );
+        return Collections.emptyList();
     }
 
     public Iterator<AuditRecord> readVault( )
     {
         return auditVault.readVault();
     }
-
 
     private void sendAsEmail( final AuditRecord record )
             throws PwmUnrecoverableException
@@ -189,7 +165,7 @@ public class AuditService implements PwmService
             case SYSTEM:
                 for ( final String toAddress : settings.getSystemEmailAddresses() )
                 {
-                    sendAsEmail( pwmApplication, record, toAddress, settings.getAlertFromAddress() );
+                    sendAsEmail( getPwmApplication(), record, toAddress, settings.getAlertFromAddress() );
                 }
                 break;
 
@@ -198,7 +174,7 @@ public class AuditService implements PwmService
             {
                 for ( final String toAddress : settings.getUserEmailAddresses() )
                 {
-                    sendAsEmail( pwmApplication, record, toAddress, settings.getAlertFromAddress() );
+                    sendAsEmail( getPwmApplication(), record, toAddress, settings.getAlertFromAddress() );
                 }
             }
                 break;
@@ -209,7 +185,7 @@ public class AuditService implements PwmService
         }
     }
 
-    private static void sendAsEmail(
+    private void sendAsEmail(
             final PwmApplication pwmApplication,
             final AuditRecord record,
             final String toAddress,
@@ -218,7 +194,7 @@ public class AuditService implements PwmService
     )
             throws PwmUnrecoverableException
     {
-        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, SessionLabel.AUDITING_SESSION_LABEL );
+        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, getSessionLabel() );
 
         String subject = macroRequest.expandMacros( pwmApplication.getConfig().readAppProperty( AppProperty.AUDIT_EVENTS_EMAILSUBJECT ) );
         subject = subject.replace( "%EVENT%", record.getEventCode().getLocalizedString( pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE ) );
@@ -236,12 +212,14 @@ public class AuditService implements PwmService
                 .subject( subject )
                 .bodyPlain( body )
                 .build();
+
         pwmApplication.getEmailQueue().submitEmail( emailItem, null, macroRequest );
+        statisticCounterBundle.increment( DebugKey.emailsSent );
     }
 
     public Instant eldestVaultRecord( )
     {
-        if ( status != STATUS.OPEN || auditVault == null )
+        if ( status() != STATUS.OPEN || auditVault == null )
         {
             return null;
         }
@@ -256,22 +234,12 @@ public class AuditService implements PwmService
                 : auditVault.sizeToDebugString();
     }
 
-    public void submit( final AuditEvent auditEvent, final UserInfo userInfo, final PwmSession pwmSession )
-            throws PwmUnrecoverableException
-    {
-        final PwmDomain pwmDomain = pwmApplication.domains().get( userInfo.getUserIdentity().getDomainID() );
-        final AuditRecordFactory auditRecordFactory = new AuditRecordFactory( pwmDomain, pwmSession.getSessionManager().getMacroMachine( ) );
-        final UserAuditRecord auditRecord = auditRecordFactory.createUserAuditRecord( auditEvent, userInfo, pwmSession );
-        submit( pwmSession.getLabel(), auditRecord );
-    }
-
     public void submit( final SessionLabel sessionLabel, final AuditRecord auditRecord )
             throws PwmUnrecoverableException
     {
-
         final String jsonRecord = JsonUtil.serialize( auditRecord );
 
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             LOGGER.debug( sessionLabel, () -> "discarding audit event (AuditManager is not open); event=" + jsonRecord );
             return;
@@ -314,7 +282,7 @@ public class AuditService implements PwmService
             final DomainID domainID = auditRecord.getDomain();
             if ( domainID != null )
             {
-                final PwmDomain pwmDomain = pwmApplication.domains().get( domainID );
+                final PwmDomain pwmDomain = getPwmApplication().domains().get( domainID );
                 if ( pwmDomain != null )
                 {
                     final String perpetratorDN = ( ( UserAuditRecord ) auditRecord ).getPerpetratorDN();
@@ -344,14 +312,15 @@ public class AuditService implements PwmService
         }
 
         // update statistics
-        StatisticsManager.incrementStat( pwmApplication, Statistic.AUDIT_EVENTS );
+        statisticCounterBundle.increment( DebugKey.writes );
+        StatisticsClient.incrementStat( getPwmApplication(), Statistic.AUDIT_EVENTS );
     }
 
 
     public int outputVaultToCsv( final OutputStream outputStream, final Locale locale, final boolean includeHeader )
             throws IOException
     {
-        final DomainConfig config = null;
+        final AppConfig config = getPwmApplication().getConfig();
 
         final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
 
@@ -425,7 +394,10 @@ public class AuditService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        return serviceInfo;
+        return ServiceInfoBean.builder()
+                .storageMethod( DataStorageMethod.LOCALDB )
+                .debugProperties( statisticCounterBundle.debugStats() )
+                .build();
     }
 
     public int syslogQueueSize( )

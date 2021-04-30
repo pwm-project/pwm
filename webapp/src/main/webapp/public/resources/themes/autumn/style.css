@@ -74,6 +74,7 @@ p {
     color: black;
     padding: 5px 5px 40px 5px;
     border: 0;
+    border-radius: 5px;
 }
 
 #centerbody.tile-centerbody {
@@ -83,7 +84,7 @@ p {
 }
 
 .header-button {
-    margin: 0px;
+    margin: 0;
     margin-top: 6px;
     margin-left: 6px;
     border: 1px solid transparent;

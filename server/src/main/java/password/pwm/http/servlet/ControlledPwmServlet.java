@@ -213,7 +213,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
     public @interface ActionHandler
     {
         String action( );
-    }
+            }
 
     private Map<String, Method> createMethodCache()
     {

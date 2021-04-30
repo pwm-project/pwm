@@ -20,10 +20,12 @@
 
 package password.pwm.svc.wordlist;
 
-import org.apache.commons.io.input.CountingInputStream;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.EventRateMeter;
+import password.pwm.util.java.CopyingInputStream;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.BufferedReader;
@@ -31,6 +33,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.zip.ZipEntry;
@@ -44,7 +47,8 @@ class WordlistZipReader implements AutoCloseable, Closeable
     private static final PwmLogger LOGGER = PwmLogger.forClass( WordlistZipReader.class );
 
     private final ZipInputStream zipStream;
-    private final CountingInputStream countingInputStream;
+    private final LongAdder byteCounter = new LongAdder();
+    private final EventRateMeter eventRateMeter;
     private final LongAdder lineCounter = new LongAdder();
 
     private BufferedReader reader;
@@ -54,13 +58,26 @@ class WordlistZipReader implements AutoCloseable, Closeable
     {
         Objects.requireNonNull( inputStream );
 
-        countingInputStream = new CountingInputStream( inputStream );
-        zipStream = new ZipInputStream( countingInputStream );
+        eventRateMeter = new EventRateMeter( TimeDuration.MINUTE );
+        final CopyingInputStream copyingInputStream = new CopyingInputStream( inputStream, this::updateReadBytes );
+        zipStream = new ZipInputStream( copyingInputStream );
         nextZipEntry();
         if ( zipEntry == null )
         {
             throw new IllegalStateException( "input stream does not contain any zip file entries" );
         }
+    }
+
+    private void updateReadBytes( final byte[] b )
+    {
+        if ( b == null )
+        {
+            return;
+        }
+
+        final int count = b.length;
+        eventRateMeter.markEvents( count );
+        byteCounter.add( count );
     }
 
     private void nextZipEntry( )
@@ -145,6 +162,11 @@ class WordlistZipReader implements AutoCloseable, Closeable
         return line;
     }
 
+    BigDecimal getEventRate()
+    {
+        return eventRateMeter.readEventRate();
+    }
+
     long getLineCount()
     {
         return lineCounter.sum();
@@ -152,6 +174,6 @@ class WordlistZipReader implements AutoCloseable, Closeable
 
     long getByteCount()
     {
-        return countingInputStream.getByteCount();
+        return byteCounter.sum();
     }
 }

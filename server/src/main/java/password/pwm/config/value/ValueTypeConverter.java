@@ -40,7 +40,6 @@ import password.pwm.util.logging.PwmLogger;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -192,20 +191,12 @@ public final class ValueTypeConverter
         }
 
         final List<String> results = new ArrayList<>( ( List<String> ) value.toNativeObject() );
-        for ( final Iterator iter = results.iterator(); iter.hasNext(); )
-        {
-            final Object loopString = iter.next();
-            if ( loopString == null || loopString.toString().length() < 1 )
-            {
-                iter.remove();
-            }
-        }
-        return results;
+        results.removeIf( StringUtil::isEmpty );
+        return List.copyOf( results );
     }
 
     public static List<UserPermission> valueToUserPermissions( final StoredValue value )
     {
-
         Objects.requireNonNull( value );
 
         if ( !( value instanceof UserPermissionValue ) )
@@ -214,15 +205,8 @@ public final class ValueTypeConverter
         }
 
         final List<UserPermission> results = new ArrayList<>( ( List<UserPermission> ) value.toNativeObject() );
-        for ( final Iterator iter = results.iterator(); iter.hasNext(); )
-        {
-            final Object loopString = iter.next();
-            if ( loopString == null || loopString.toString().length() < 1 )
-            {
-                iter.remove();
-            }
-        }
-        return results;
+        results.removeIf( Objects::isNull );
+        return List.copyOf( results );
     }
 
     public static Map<String, List<ChallengeItemConfiguration>> valueToChallengeItems( final StoredValue value )

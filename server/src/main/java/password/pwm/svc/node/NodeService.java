@@ -32,6 +32,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -42,31 +43,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class NodeService implements PwmService
+public class NodeService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( NodeService.class );
 
-    private STATUS status = STATUS.CLOSED;
     private NodeMachine nodeMachine;
     private DataStorageMethod dataStore;
-    private ErrorInformation startupError;
-
 
     @Override
-    public STATUS status( )
-    {
-        return status;
-    }
-
-    @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
         final boolean serviceEnabled = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.NODE_SERVICE_ENABLED );
         if ( !serviceEnabled )
         {
-            status = STATUS.CLOSED;
-            return;
+            return STATUS.CLOSED;
         }
 
         try
@@ -91,34 +82,34 @@ public class NodeService implements PwmService
                     {
                         LOGGER.trace( () -> "starting ldap-backed node service provider" );
                         nodeServiceSettings = NodeServiceSettings.fromConfigForLDAP( pwmApplication.getConfig() );
-                        clusterDataServiceProvider = new LDAPNodeDataService( pwmApplication.getAdminDomain() );
+                        clusterDataServiceProvider = new LDAPNodeDataService( this, pwmApplication.getAdminDomain() );
                     }
                     break;
 
                     default:
                         LOGGER.debug( () -> "no suitable storage method configured " );
                         JavaHelper.unhandledSwitchStatement( dataStore );
-                        return;
+                        return STATUS.CLOSED;
 
                 }
 
                 nodeMachine = new NodeMachine( pwmApplication, clusterDataServiceProvider, nodeServiceSettings );
-                status = STATUS.OPEN;
-                return;
             }
         }
         catch ( final PwmUnrecoverableException e )
         {
-            startupError = e.getErrorInformation();
+            setStartupError( e.getErrorInformation() );
             LOGGER.error( () -> "error starting up node service: " + e.getMessage() );
+            return STATUS.CLOSED;
         }
         catch ( final Exception e )
         {
-            startupError = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, "error starting up node service: " + e.getMessage() );
-            LOGGER.error( startupError );
+            setStartupError( new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, "error starting up node service: " + e.getMessage() ) );
+            LOGGER.error( getStartupError() );
+            return STATUS.CLOSED;
         }
 
-        status = STATUS.CLOSED;
+        return STATUS.OPEN;
     }
 
     @Override
@@ -129,11 +120,11 @@ public class NodeService implements PwmService
             nodeMachine.close();
             nodeMachine = null;
         }
-        status = STATUS.CLOSED;
+        setStatus( STATUS.CLOSED );
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
         if ( nodeMachine != null )
         {
@@ -147,12 +138,12 @@ public class NodeService implements PwmService
             }
         }
 
-        if ( startupError != null )
+        if ( getStartupError() != null )
         {
             return Collections.singletonList( HealthRecord.forMessage(
                     DomainID.systemId(),
                     HealthMessage.Cluster_Error,
-                    startupError.getDetailedErrorMsg() ) );
+                    getStartupError().getDetailedErrorMsg() ) );
         }
 
         return Collections.emptyList();
@@ -175,7 +166,7 @@ public class NodeService implements PwmService
 
     public boolean isMaster( )
     {
-        if ( status == STATUS.OPEN && nodeMachine != null )
+        if ( status() == STATUS.OPEN && nodeMachine != null )
         {
             return nodeMachine.isMaster();
         }
@@ -185,7 +176,7 @@ public class NodeService implements PwmService
 
     public List<NodeInfo> nodes( ) throws PwmUnrecoverableException
     {
-        if ( status == STATUS.OPEN && nodeMachine != null )
+        if ( status() == STATUS.OPEN && nodeMachine != null )
         {
             return nodeMachine.nodes();
         }
@@ -196,12 +187,12 @@ public class NodeService implements PwmService
             throws PwmUnrecoverableException
     {
         {
-            final UserIdentity userIdentity = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( pwmDomain );
+            final UserIdentity userIdentity = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( getSessionLabel(), pwmDomain );
             if ( userIdentity == null )
             {
                 final String msg = "LDAP storage type selected, but LDAP test user not defined.";
                 LOGGER.debug( () -> msg );
-                startupError = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, msg );
+                setStartupError( new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, msg ) );
             }
         }
 
@@ -210,7 +201,7 @@ public class NodeService implements PwmService
             {
                 final String msg = "DB storage type selected, but remote DB is not configured.";
                 LOGGER.debug( () -> msg );
-                startupError = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, msg );
+                setStartupError( new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, msg ) );
             }
         }
     }

@@ -35,7 +35,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.TimeDuration;
@@ -184,43 +184,48 @@ public class RandomPasswordGenerator
         // initial creation
         password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig.getMinimumLength() ) );
 
-        // read a rule validator
-
-
-        // modify until it passes all the rules
-        final int maxTryCount = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_ATTEMPTS ) );
-        final int jitterCount = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_JITTER_COUNT ) );
         boolean validPassword = false;
-        while ( !validPassword && tryCount < maxTryCount )
+
+        // read a rule validator
+        // modify until it passes all the rules
         {
-            tryCount++;
-            validPassword = true;
+            final int maxTryCount = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_ATTEMPTS ) );
+            final int jitterCount = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_JITTER_COUNT ) );
+            {
+                final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create(
+                        sessionLabel, pwmDomain, randomGenPolicy, PwmPasswordRuleValidator.Flag.FailFast );
 
-            if ( tryCount % jitterCount == 0 )
-            {
-                password.delete( 0, password.length() );
-                password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig.getMinimumLength() ) );
-            }
+                while ( !validPassword && tryCount < maxTryCount )
+                {
+                    tryCount++;
+                    validPassword = true;
 
-            final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmDomain, randomGenPolicy, PwmPasswordRuleValidator.Flag.FailFast );
-            final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator(
-                    password.toString(), null, null );
-            if ( errors != null && !errors.isEmpty() )
-            {
-                validPassword = false;
-                modifyPasswordBasedOnErrors( pwmRandom, password, errors, seedMachine );
-            }
-            else if ( checkPasswordAgainstDisallowedHttpValues( pwmDomain.getConfig(), password.toString() ) )
-            {
-                validPassword = false;
-                password.delete( 0, password.length() );
-                password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig.getMinimumLength() ) );
+                    if ( tryCount % jitterCount == 0 )
+                    {
+                        password.delete( 0, password.length() );
+                        password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig.getMinimumLength() ) );
+                    }
+
+                    final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator(
+                            password.toString(), null, null );
+                    if ( errors != null && !errors.isEmpty() )
+                    {
+                        validPassword = false;
+                        modifyPasswordBasedOnErrors( pwmRandom, password, errors, seedMachine );
+                    }
+                    else if ( checkPasswordAgainstDisallowedHttpValues( pwmDomain.getConfig(), password.toString() ) )
+                    {
+                        validPassword = false;
+                        password.delete( 0, password.length() );
+                        password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig.getMinimumLength() ) );
+                    }
+                }
             }
         }
 
         // report outcome
         {
-            final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmDomain, randomGenPolicy );
+            final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create( sessionLabel, pwmDomain, randomGenPolicy );
             if ( validPassword )
             {
                 final int finalTryCount = tryCount;
@@ -241,7 +246,7 @@ public class RandomPasswordGenerator
             }
         }
 
-        StatisticsManager.incrementStat( pwmDomain, Statistic.GENERATED_PASSWORDS );
+        StatisticsClient.incrementStat( pwmDomain, Statistic.GENERATED_PASSWORDS );
 
         final String logText = "real-time random password generator called"
                 + " (" + TimeDuration.compactFromCurrent( startTime ) + ")";

@@ -44,7 +44,7 @@ import password.pwm.i18n.Config;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.queue.SmsQueueManager;
+import password.pwm.svc.sms.SmsQueueService;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -355,8 +355,8 @@ public class LDAPPermissionCalculator implements Serializable
             case CHALLENGE_USER_ATTRIBUTE:
             {
                 final Set<DataStorageMethod> storageMethods = EnumSet.noneOf( DataStorageMethod.class );
-                storageMethods.addAll( domainConfig.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE ) );
-                storageMethods.addAll( domainConfig.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE ) );
+                storageMethods.addAll( domainConfig.readGenericStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE ) );
+                storageMethods.addAll( domainConfig.readGenericStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE ) );
                 if ( !storageMethods.contains( DataStorageMethod.LDAP ) )
                 {
                     return Collections.emptyList();
@@ -367,7 +367,7 @@ public class LDAPPermissionCalculator implements Serializable
 
             case SMS_USER_PHONE_ATTRIBUTE:
             {
-                if ( !SmsQueueManager.smsIsConfigured( domainConfig.getAppConfig() ) )
+                if ( !SmsQueueService.smsIsConfigured( domainConfig.getAppConfig() ) )
                 {
                     return Collections.emptyList();
                 }

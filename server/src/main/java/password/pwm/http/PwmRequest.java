@@ -35,6 +35,7 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.AccountInformationProfile;
@@ -149,12 +150,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public PwmSession getPwmSession( )
     {
-        return getPwmSession( this.getPwmDomain() );
-    }
-
-    public PwmSession getPwmSession( final PwmDomain pwmDomain )
-    {
-        return PwmSessionFactory.readPwmSession( this.getHttpServletRequest().getSession(), pwmDomain );
+        return PwmSessionFactory.readPwmSession( this.getHttpServletRequest().getSession(), getPwmDomain() );
     }
 
     public SessionLabel getLabel( )
@@ -184,7 +180,9 @@ public class PwmRequest extends PwmHttpRequestWrapper
         {
             return PwmConstants.DEFAULT_LOCALE;
         }
-        return getPwmSession().getSessionStateBean().getLocale();
+
+        final Locale userLocale = getPwmSession().getSessionStateBean().getLocale();
+        return userLocale != null ? userLocale : PwmConstants.DEFAULT_LOCALE;
     }
 
     public void forwardToJsp( final JspUrl jspURL )
@@ -612,9 +610,10 @@ public class PwmRequest extends PwmHttpRequestWrapper
     {
         final String rawContextPath = this.getHttpServletRequest().getContextPath();
 
-        if ( getAppConfig().isMultiDomain() )
+        final AppConfig appConfig = getAppConfig();
+        if ( appConfig.isMultiDomain() && appConfig.readSettingAsBoolean( PwmSetting.DOMAIN_DOMAIN_PATHS ) )
         {
-            return rawContextPath + "/" + this.getDomainID().stringValue();
+            return rawContextPath + "/" + StringUtil.urlPathEncode( this.getDomainID().stringValue() );
         }
 
         return rawContextPath;

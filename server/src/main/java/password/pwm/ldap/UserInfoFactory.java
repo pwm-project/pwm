@@ -52,7 +52,7 @@ public class UserInfoFactory
     {
         final PwmDomain pwmDomain = pwmApplication.domains().get( userIdentity.getDomainID() );
         final String userLdapProfile = userIdentity.getLdapProfileID();
-        final ChaiProvider provider = pwmDomain.getProxyChaiProvider( userLdapProfile );
+        final ChaiProvider provider = pwmDomain.getProxyChaiProvider( sessionLabel, userLdapProfile );
         return newUserInfo(
                 pwmApplication,
                 sessionLabel,
@@ -71,8 +71,8 @@ public class UserInfoFactory
             throws PwmUnrecoverableException
     {
         final PwmDomain pwmDomain = pwmApplication.domains().get( userIdentity.getDomainID() );
-        final Locale ldapLocale = LdapOperationsHelper.readLdapStoredLanguage( pwmDomain, userIdentity );
-        final ChaiProvider provider = pwmDomain.getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        final Locale ldapLocale = LdapOperationsHelper.readLdapStoredLanguage( sessionLabel, pwmDomain, userIdentity );
+        final ChaiProvider provider = pwmDomain.getProxyChaiProvider( sessionLabel, userIdentity.getLdapProfileID() );
         return newUserInfo( pwmApplication, sessionLabel, ldapLocale, userIdentity, provider, null );
     }
 
@@ -82,7 +82,8 @@ public class UserInfoFactory
     )
             throws PwmUnrecoverableException
     {
-        final ChaiProvider provider = pwmRequestContext.getPwmDomain().getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
+        final ChaiProvider provider = pwmRequestContext.getPwmDomain().getProxyChaiProvider( sessionLabel, userIdentity.getLdapProfileID() );
         return newUserInfo( pwmRequestContext.getPwmApplication(), pwmRequestContext.getSessionLabel(), pwmRequestContext.getLocale(), userIdentity, provider, null );
     }
 
@@ -95,7 +96,7 @@ public class UserInfoFactory
             throws PwmUnrecoverableException
     {
         final PwmDomain pwmDomain = pwmApplication.domains().get( userIdentity.getDomainID() );
-        final ChaiProvider provider = pwmDomain.getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        final ChaiProvider provider = pwmDomain.getProxyChaiProvider( sessionLabel, userIdentity.getLdapProfileID() );
         return newUserInfo( pwmApplication, sessionLabel, userLocale, userIdentity, provider, null );
     }
 

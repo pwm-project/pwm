@@ -664,4 +664,12 @@ public class JavaHelper
             return byteArrayOutputStream.toByteArray();
         }
     }
+
+    public static byte[] addByteArrays( final byte[] a, final byte[] b )
+    {
+        final byte[] newByteArray = new byte[ a.length + b.length ];
+        System.arraycopy( a, 0, newByteArray, 0, a.length );
+        System.arraycopy( b, 0, newByteArray, a.length, b.length );
+        return newByteArray;
+    }
 }

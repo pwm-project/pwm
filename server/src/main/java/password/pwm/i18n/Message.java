@@ -58,6 +58,7 @@ public enum Message implements PwmDisplayBundle
 
     EventLog_Startup( null ),
     EventLog_Shutdown( null ),
+    EventLog_Restart( null ),
     EventLog_FatalEvent( null ),
     EventLog_ModifyConfiguration( null ),
     EventLog_IntruderAttempt( null ),

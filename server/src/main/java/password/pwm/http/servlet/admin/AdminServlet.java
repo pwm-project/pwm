@@ -53,13 +53,13 @@ import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.event.AuditEventType;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.intruder.IntruderRecordType;
+import password.pwm.svc.intruder.PublicIntruderRecord;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.pwnotify.PwNotifyStoredJobState;
 import password.pwm.svc.report.ReportCsvUtility;
 import password.pwm.svc.report.ReportService;
 import password.pwm.svc.report.UserReportRecord;
-import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.db.DatabaseException;
+import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
@@ -108,7 +108,6 @@ import java.util.zip.ZipOutputStream;
 )
 public class AdminServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( AdminServlet.class );
 
     public enum AdminAction implements AbstractPwmServlet.ProcessAction
@@ -205,7 +204,7 @@ public class AdminServlet extends ControlledPwmServlet
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try
         {
-            pwmDomain.getAuditManager().outputVaultToCsv( outputStream, pwmRequest.getLocale(), true );
+            pwmDomain.getAuditService().outputVaultToCsv( outputStream, pwmRequest.getLocale(), true );
         }
         catch ( final Exception e )
         {
@@ -295,7 +294,7 @@ public class AdminServlet extends ControlledPwmServlet
         final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
         try
         {
-            final StatisticsManager statsManager = pwmDomain.getStatisticsManager();
+            final StatisticsService statsManager = pwmDomain.getStatisticsManager();
             statsManager.outputStatsToCsv( outputStream, pwmRequest.getLocale(), true );
         }
         catch ( final Exception e )
@@ -472,7 +471,7 @@ public class AdminServlet extends ControlledPwmServlet
         final int max = readMaxParameter( pwmRequest, 100, 10 * 1000 );
         final AuditEventType auditDataType = AuditEventType.valueOf( pwmRequest.readParameterAsString( "type", AuditEventType.USER.name() ) );
         final ArrayList<AuditRecord> records = new ArrayList<>();
-        final Iterator<AuditRecord> iterator = pwmRequest.getPwmDomain().getAuditManager().readVault();
+        final Iterator<AuditRecord> iterator = pwmRequest.getPwmDomain().getAuditService().readVault();
 
         while (
                 iterator.hasNext()
@@ -516,16 +515,16 @@ public class AdminServlet extends ControlledPwmServlet
 
     @ActionHandler( action = "intruderData" )
     private ProcessStatus restIntruderDataHandler( final PwmRequest pwmRequest )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException
+            throws  PwmUnrecoverableException, IOException
     {
         final int max = readMaxParameter( pwmRequest, 1000, 10 * 1000 );
 
-        final TreeMap<String, Object> returnData = new TreeMap<>();
+        final TreeMap<String, List<PublicIntruderRecord>> returnData = new TreeMap<>();
         try
         {
             for ( final IntruderRecordType recordType : IntruderRecordType.values() )
             {
-                returnData.put( recordType.toString(), pwmRequest.getPwmDomain().getIntruderManager().getRecords( recordType, max ) );
+                returnData.put( recordType.toString(), pwmRequest.getPwmApplication().getIntruderSystemService().getRecords( recordType, max ) );
             }
         }
         catch ( final PwmException e )
@@ -744,7 +743,8 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "readPwNotifyLog" )
-    public ProcessStatus restreadPwNotifyLog( final PwmRequest pwmRequest ) throws IOException, DatabaseException, PwmUnrecoverableException
+    public ProcessStatus restreadPwNotifyLog( final PwmRequest pwmRequest )
+            throws IOException
     {
         final PwNotifyService pwNotifyService = pwmRequest.getPwmDomain().getPwNotifyService();
 

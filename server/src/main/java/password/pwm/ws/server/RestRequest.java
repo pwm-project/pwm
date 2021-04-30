@@ -127,10 +127,10 @@ public class RestRequest extends PwmHttpRequestWrapper
             }
             return getRestAuthentication().getChaiProvider();
         }
-        return getDomain().getProxyChaiProvider( ldapProfileID );
+        return getDomain().getProxyChaiProvider( getSessionLabel(), ldapProfileID );
     }
 
-    public PwmRequestContext commonValues()
+    public PwmRequestContext getPwmRestRequest()
     {
         return new PwmRequestContext( getPwmApplication(), pwmDomain.getDomainID(), this.getSessionLabel(), this.getLocale(), requestID );
     }

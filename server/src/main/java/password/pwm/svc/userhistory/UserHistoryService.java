@@ -32,15 +32,12 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.http.PwmSession;
 import password.pwm.ldap.UserInfo;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
-import password.pwm.svc.event.AuditRecord;
-import password.pwm.svc.event.AuditVault;
-import password.pwm.svc.event.SyslogAuditService;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -50,21 +47,17 @@ import password.pwm.util.logging.PwmLogger;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
-public class UserHistoryService implements PwmService
+public class UserHistoryService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserHistoryService.class );
 
-    private STATUS status = STATUS.CLOSED;
     private UserHistorySettings settings;
     private ServiceInfoBean serviceInfo = ServiceInfoBean.builder().build();
 
-    private SyslogAuditService syslogManager;
     private ErrorInformation lastError;
     private UserHistoryStore userHistoryStore;
-    private AuditVault auditVault;
 
     private PwmDomain pwmDomain;
 
@@ -73,32 +66,26 @@ public class UserHistoryService implements PwmService
     }
 
     @Override
-    public STATUS status( )
-    {
-        return status;
-    }
-
-    @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
         this.pwmDomain = pwmApplication.domains().get( domainID );
 
         if ( pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
-            this.status = STATUS.CLOSED;
-            LOGGER.warn( () -> "unable to start - Application is in read-only mode" );
-            return;
+            LOGGER.trace( getSessionLabel(), () -> "unable to start - Application is in read-only mode" );
+            return STATUS.CLOSED;
         }
 
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
-            this.status = STATUS.CLOSED;
-            LOGGER.warn( () -> "unable to start - LocalDB is not available" );
-            return;
+            LOGGER.trace( getSessionLabel(), () -> "unable to start - LocalDB is not available" );
+            return STATUS.CLOSED;
         }
 
         init( pwmDomain );
+
+        return STATUS.OPEN;
     }
 
     private void init( final PwmDomain pwmDomain )
@@ -139,43 +126,31 @@ public class UserHistoryService implements PwmService
 
                 default:
                     lastError = new ErrorInformation( PwmError.ERROR_INTERNAL, "unknown storageMethod selected: " + settings.getUserEventStorageMethod() );
-                    status = STATUS.CLOSED;
+                    setStatus( STATUS.CLOSED );
                     return;
             }
+            LOGGER.trace( getSessionLabel(), () -> debugMsg );
             serviceInfo = ServiceInfoBean.builder().storageMethod( storageMethodUsed ).build();
         }
-        this.status = STATUS.OPEN;
+
+        setStatus( STATUS.OPEN );
     }
 
     @Override
     public void close( )
     {
-        if ( syslogManager != null )
-        {
-            syslogManager.close();
-        }
-
-        if ( auditVault != null )
-        {
-            auditVault.close();
-        }
-
-        this.status = STATUS.CLOSED;
+        setStatus( STATUS.CLOSED );
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             return Collections.emptyList();
         }
 
         final List<HealthRecord> healthRecords = new ArrayList<>();
-        if ( syslogManager != null )
-        {
-            healthRecords.addAll( syslogManager.healthCheck() );
-        }
 
         if ( lastError != null )
         {
@@ -189,17 +164,6 @@ public class UserHistoryService implements PwmService
         return Collections.unmodifiableList( healthRecords );
     }
 
-    public Iterator<AuditRecord> readVault( )
-    {
-        return auditVault.readVault();
-    }
-
-    public List<UserAuditRecord> readUserHistory( final PwmSession pwmSession )
-            throws PwmUnrecoverableException
-    {
-        return readUserHistory( pwmSession.getLabel(), pwmSession.getUserInfo() );
-    }
-
     public List<UserAuditRecord> readUserHistory( final SessionLabel sessionLabel, final UserInfo userInfoBean )
             throws PwmUnrecoverableException
     {
@@ -209,18 +173,16 @@ public class UserHistoryService implements PwmService
         return results;
     }
 
-
     public void write( final SessionLabel sessionLabel, final UserAuditRecord auditRecord )
             throws PwmUnrecoverableException
     {
-
         // add to user history record
         if ( settings.getUserStoredEvents().contains( auditRecord.getEventCode() ) )
         {
-            final String perpetratorDN = ( ( UserAuditRecord ) auditRecord ).getPerpetratorDN();
+            final String perpetratorDN = auditRecord.getPerpetratorDN();
             if ( StringUtil.notEmpty( perpetratorDN ) )
             {
-                userHistoryStore.updateUserHistory( sessionLabel, ( UserAuditRecord ) auditRecord );
+                userHistoryStore.updateUserHistory( sessionLabel, auditRecord );
             }
             else
             {
@@ -229,7 +191,7 @@ public class UserHistoryService implements PwmService
         }
 
         // update statistics
-        StatisticsManager.incrementStat( pwmDomain, Statistic.AUDIT_EVENTS );
+        StatisticsClient.incrementStat( pwmDomain, Statistic.AUDIT_EVENTS );
     }
 
 
@@ -238,5 +200,4 @@ public class UserHistoryService implements PwmService
     {
         return serviceInfo;
     }
-
 }

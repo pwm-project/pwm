@@ -62,12 +62,15 @@ public class WordlistConfiguration implements Serializable
     private final LocalDB.DB db;
     private final PwmSetting wordlistFilenameSetting;
     private final boolean testMode;
+    private final int warmupLookups;
 
     @Builder.Default
     private final Collection<String> commentPrefixes = new ArrayList<>();
 
     private final TimeDuration autoImportRecheckDuration;
     private final TimeDuration importDurationGoal;
+    private final TimeDuration bucketCheckLogWarningTimeout;
+
     private final int importMinTransactions;
     private final int importMaxTransactions;
     private final long importMaxChars;
@@ -122,6 +125,10 @@ public class WordlistConfiguration implements Serializable
                 .testMode( Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.WORDLIST_TEST_MODE ) ) )
                 .minWordSize( Integer.parseInt( appConfig.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MIN ) ) )
                 .maxWordSize( Integer.parseInt( appConfig.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MAX ) ) )
+                .warmupLookups( Integer.parseInt( appConfig.readAppProperty( AppProperty.WORDLIST_WARMUP_COUNT ) ) )
+                .bucketCheckLogWarningTimeout( TimeDuration.of(
+                        Long.parseLong( appConfig.readAppProperty( AppProperty.WORDLIST_BUCKET_CHECK_WARNING_TIMEOUT_MS ) ),
+                        TimeDuration.Unit.MILLISECONDS ) )
                 .autoImportRecheckDuration( TimeDuration.of(
                         Long.parseLong( appConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_AUTO_IMPORT_RECHECK_SECONDS ) ),
                         TimeDuration.Unit.SECONDS ) )

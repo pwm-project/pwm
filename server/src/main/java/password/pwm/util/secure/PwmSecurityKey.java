@@ -24,6 +24,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.secure.SecureService;
+import password.pwm.util.java.JavaHelper;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -35,7 +36,6 @@ import java.util.Map;
 
 public class PwmSecurityKey
 {
-
     enum Type
     {
         AES,
@@ -123,4 +123,11 @@ public class PwmSecurityKey
             throw new PwmUnrecoverableException( errorInformation );
         }
     }
+
+    public PwmSecurityKey add( final PwmSecurityKey otherKey )
+    {
+        final byte[] newKeyMaterial = JavaHelper.addByteArrays( this.keyData, otherKey.keyData );
+        return new PwmSecurityKey( newKeyMaterial );
+    }
+
 }

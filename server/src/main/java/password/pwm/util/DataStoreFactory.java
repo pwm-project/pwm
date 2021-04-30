@@ -22,8 +22,8 @@ package password.pwm.util;
 
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.db.DatabaseDataStore;
-import password.pwm.util.db.DatabaseTable;
+import password.pwm.svc.db.DatabaseDataStore;
+import password.pwm.svc.db.DatabaseTable;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
 

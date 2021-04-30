@@ -20,8 +20,7 @@
 
 package password.pwm.svc.event;
 
-import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
@@ -43,10 +42,8 @@ public class LocalDbAuditVault implements AuditVault
     private static final PwmLogger LOGGER = PwmLogger.forClass( LocalDbAuditVault.class );
 
     private LocalDBStoredQueue auditDB;
-    private Settings settings;
+    private AuditSettings settings;
     private Instant oldestRecord;
-
-    private int maxBulkRemovals = 105;
 
     private ExecutorService executorService;
     private volatile PwmService.STATUS status = PwmService.STATUS.CLOSED;
@@ -60,23 +57,22 @@ public class LocalDbAuditVault implements AuditVault
 
     @Override
     public void init(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final LocalDB localDB,
-            final Settings settings
+            final AuditSettings settings
     )
             throws PwmException
     {
         this.settings = settings;
-        this.auditDB = LocalDBStoredQueue.createLocalDBStoredQueue( pwmDomain.getPwmApplication(), localDB, LocalDB.DB.AUDIT_EVENTS );
-        this.maxBulkRemovals = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.AUDIT_EVENTS_LOCALDB_MAX_BULK_REMOVALS ) );
+        this.auditDB = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, localDB, LocalDB.DB.AUDIT_EVENTS );
 
         readOldestRecord();
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain.getPwmApplication(), this.getClass() );
+        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
         status = PwmService.STATUS.OPEN;
         final TimeDuration jobFrequency = TimeDuration.of( 10, TimeDuration.Unit.MINUTES );
-        pwmDomain.getPwmApplication().getPwmScheduler().scheduleFixedRateJob( new TrimmerThread(), executorService, TimeDuration.SECONDS_10, jobFrequency );
+        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new TrimmerThread(), executorService, TimeDuration.SECONDS_10, jobFrequency );
     }
 
     @Override
@@ -142,8 +138,8 @@ public class LocalDbAuditVault implements AuditVault
     public String sizeToDebugString( )
     {
         final long storedEvents = this.size();
-        final long maxEvents = settings.getMaxRecordCount();
-        final Percent percent = new Percent( storedEvents, maxEvents );
+        final long maxEvents = settings.getMaxRecords();
+        final Percent percent = Percent.of( storedEvents, maxEvents );
 
         return storedEvents + " / " + maxEvents + " (" + percent.pretty( 2 ) + ")";
     }
@@ -174,7 +170,7 @@ public class LocalDbAuditVault implements AuditVault
         final String jsonRecord = JsonUtil.serialize( record );
         auditDB.addLast( jsonRecord );
 
-        if ( auditDB.size() > settings.getMaxRecordCount() )
+        if ( auditDB.size() > settings.getMaxRecords() )
         {
             removeRecords( 1 );
         }
@@ -230,7 +226,7 @@ public class LocalDbAuditVault implements AuditVault
                 return false;
             }
 
-            if ( auditDB.size() > settings.getMaxRecordCount() + maxRemovals )
+            if ( auditDB.size() > settings.getMaxRecords() + maxRemovals )
             {
                 removeRecords( maxRemovals );
                 return true;

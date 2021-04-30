@@ -37,6 +37,7 @@ public enum AuditEvent
     // system events
     STARTUP( Message.EventLog_Startup, Admin.EventLog_Narrative_Startup, AuditEventType.SYSTEM ),
     SHUTDOWN( Message.EventLog_Shutdown, Admin.EventLog_Narrative_Shutdown, AuditEventType.SYSTEM ),
+    RESTART( Message.EventLog_Restart, Admin.EventLog_Narrative_Restart, AuditEventType.SYSTEM ),
     FATAL_EVENT( Message.EventLog_FatalEvent, Admin.EventLog_Narrative_FatalEvent, AuditEventType.SYSTEM ),
     INTRUDER_LOCK( Message.EventLog_IntruderLockout, Admin.EventLog_Narrative_IntruderLockout, AuditEventType.SYSTEM ),
     INTRUDER_ATTEMPT( Message.EventLog_IntruderAttempt, Admin.EventLog_Narrative_IntruderAttempt, AuditEventType.SYSTEM ),

@@ -22,8 +22,8 @@ package password.pwm.http.servlet.helpdesk;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -37,15 +37,16 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.permission.UserPermissionType;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -210,9 +211,9 @@ public class HelpdeskServletUtil
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final UserIdentity actorUserIdentity = pwmRequest.getUserInfoIfLoggedIn().canonicalized( pwmRequest.getPwmApplication() );
+        final UserIdentity actorUserIdentity = pwmRequest.getUserInfoIfLoggedIn().canonicalized( pwmRequest.getLabel(), pwmRequest.getPwmApplication() );
 
-        if ( actorUserIdentity.canonicalEquals( userIdentity, pwmRequest.getPwmApplication() ) )
+        if ( actorUserIdentity.canonicalEquals( pwmRequest.getLabel(), userIdentity, pwmRequest.getPwmApplication() ) )
         {
             final String errorMsg = "cannot select self";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, errorMsg );
@@ -233,7 +234,7 @@ public class HelpdeskServletUtil
         }
 
         final HelpdeskDetailInfoBean helpdeskDetailInfoBean = HelpdeskDetailInfoBean.makeHelpdeskDetailInfo( pwmRequest, helpdeskProfile, userIdentity );
-        final HelpdeskAuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createHelpdeskAuditRecord(
+        final HelpdeskAuditRecord auditRecord = AuditRecordFactory.make( pwmRequest ).createHelpdeskAuditRecord(
                 AuditEvent.HELPDESK_VIEW_DETAIL,
                 pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
                 null,
@@ -241,9 +242,9 @@ public class HelpdeskServletUtil
                 pwmRequest.getLabel().getSourceAddress(),
                 pwmRequest.getLabel().getSourceHostname()
         );
-        pwmRequest.getPwmDomain().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+        AuditServiceClient.submit( pwmRequest, auditRecord );
 
-        StatisticsManager.incrementStat( pwmRequest, Statistic.HELPDESK_USER_LOOKUP );
+        StatisticsClient.incrementStat( pwmRequest, Statistic.HELPDESK_USER_LOOKUP );
         return helpdeskDetailInfoBean;
     }
 
@@ -329,7 +330,7 @@ public class HelpdeskServletUtil
     {
         final boolean useProxy = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY );
         return useProxy
-                ? pwmRequest.getPwmDomain().getProxiedChaiUser( userIdentity )
+                ? pwmRequest.getPwmDomain().getProxiedChaiUser( pwmRequest.getLabel(), userIdentity )
                 : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
     }
 

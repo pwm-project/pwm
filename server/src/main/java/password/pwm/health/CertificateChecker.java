@@ -23,7 +23,6 @@ package password.pwm.health;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmDomain;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.stored.StoredConfigKey;
@@ -52,14 +51,10 @@ public class CertificateChecker implements HealthSupplier
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( CertificateChecker.class );
 
-    public List<HealthRecord> doHealthCheck( final PwmDomain pwmDomain )
+    @Override
+    public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplierRequest request )
     {
-        final CertificateCheckJob job = new CertificateCheckJob( pwmDomain.getPwmApplication().getConfig() );
-        return Collections.unmodifiableList( job.get() );
-    }
-
-    public List<Supplier<List<HealthRecord>>> jobs( final PwmApplication pwmApplication )
-    {
+        final PwmApplication pwmApplication = request.getPwmApplication();
         return Collections.singletonList( new CertificateCheckJob( pwmApplication.getConfig() ) );
     }
 

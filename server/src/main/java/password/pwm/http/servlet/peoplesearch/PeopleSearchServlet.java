@@ -43,7 +43,7 @@ import password.pwm.http.servlet.peoplesearch.bean.SearchResultBean;
 import password.pwm.http.servlet.peoplesearch.bean.UserDetailBean;
 import password.pwm.ldap.PhotoDataBean;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -194,7 +194,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
             addExpiresHeadersToResponse( pwmRequest );
             pwmRequest.outputJsonResult( RestResultBean.withData( orgChartData ) );
-            StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_ORGCHART );
+            StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_ORGCHART );
         }
         catch ( final PwmException e )
         {
@@ -220,7 +220,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
         addExpiresHeadersToResponse( pwmRequest );
         pwmRequest.outputJsonResult( RestResultBean.withData( detailData ) );
-        pwmRequest.getPwmDomain().getStatisticsManager().incrementValue( Statistic.PEOPLESEARCH_DETAILS );
+        StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_DETAILS );
 
         return ProcessStatus.Halt;
     }
@@ -347,7 +347,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
         final PeopleSearchProfile peopleSearchProfile = peopleSearchProfile( pwmRequest );
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest, peopleSearchProfile );
-        final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmApplication() );
+        final UserIdentity userIdentity = UserIdentity.fromKey( pwmRequest.getLabel(), userKey, pwmRequest.getPwmApplication() );
         peopleSearchDataReader.checkIfUserIdentityViewable( userIdentity );
         return userIdentity;
     }

@@ -61,8 +61,8 @@ class LdapUserDNTypeHelper implements PermissionTypeHelper
         }
 
         final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() );
-        final String userCanonicalDN = ldapProfile.readCanonicalDN( pwmDomain, userIdentity.getUserDN() );
-        final String configuredCanonicalDN = ldapProfile.readCanonicalDN( pwmDomain, userPermission.getLdapBase() );
+        final String userCanonicalDN = ldapProfile.readCanonicalDN( sessionLabel, pwmDomain, userIdentity.getUserDN() );
+        final String configuredCanonicalDN = ldapProfile.readCanonicalDN( sessionLabel, pwmDomain, userPermission.getLdapBase() );
         return Objects.equals( userCanonicalDN, configuredCanonicalDN );
     }
 

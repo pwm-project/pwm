@@ -44,7 +44,11 @@ public class SelfCertFactory
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SelfCertFactory.class );
 
-    public static KeyStore getExistingCertOrGenerateNewCert( final PwmApplication pwmApplication, final PasswordData password, final String alias )
+    public static KeyStore getExistingCertOrGenerateNewCert(
+            final PwmApplication pwmApplication,
+            final PasswordData password,
+            final String alias
+    )
         throws Exception
     {
         final Settings settings = Settings.fromConfiguration( pwmApplication.getConfig() );

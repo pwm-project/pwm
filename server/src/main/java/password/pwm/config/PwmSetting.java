@@ -61,31 +61,37 @@ public enum PwmSetting
             "domain.list", PwmSettingSyntax.DOMAIN, PwmSettingCategory.DOMAINS ),
     DOMAIN_SYSTEM_ADMIN(
             "domain.system.adminDomain", PwmSettingSyntax.STRING, PwmSettingCategory.DOMAINS ),
+    DOMAIN_DOMAIN_PATHS(
+            "domain.system.domainPaths", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.DOMAINS ),
 
     // application settings
     APP_PROPERTY_OVERRIDES(
             "pwm.appProperty.overrides", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.APPLICATION ),
+    HIDE_CONFIGURATION_HEALTH_WARNINGS(
+            "display.hideConfigHealthWarnings", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APPLICATION ),
 
     // domain settings
     PWM_SITE_URL(
             "pwm.selfURL", PwmSettingSyntax.STRING, PwmSettingCategory.APPLICATION ),
+
+
+    // domain settings
+    URL_FORWARD(
+            "pwm.forwardURL", PwmSettingSyntax.STRING, PwmSettingCategory.URL_SETTINGS ),
+    URL_LOGOUT(
+            "pwm.logoutURL", PwmSettingSyntax.STRING, PwmSettingCategory.URL_SETTINGS ),
+    URL_HOME(
+            "pwm.homeURL", PwmSettingSyntax.STRING, PwmSettingCategory.URL_SETTINGS ),
+    URL_INTRO(
+            "pwm.introURL", PwmSettingSyntax.SELECT, PwmSettingCategory.URL_SETTINGS ),
+    DOMAIN_HOSTS(
+            "domain.hosts", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.URL_SETTINGS ),
+
+    // telemetry
     PUBLISH_STATS_ENABLE(
             "pwm.publishStats.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.TELEMETRY ),
     PUBLISH_STATS_SITE_DESCRIPTION(
             "pwm.publishStats.siteDescription", PwmSettingSyntax.STRING, PwmSettingCategory.TELEMETRY ),
-    URL_FORWARD(
-            "pwm.forwardURL", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL ),
-    URL_LOGOUT(
-            "pwm.logoutURL", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL ),
-    URL_HOME(
-            "pwm.homeURL", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL ),
-    URL_INTRO(
-            "pwm.introURL", PwmSettingSyntax.SELECT, PwmSettingCategory.GENERAL ),
-    IDLE_TIMEOUT_SECONDS(
-            "idleTimeoutSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.GENERAL ),
-    HIDE_CONFIGURATION_HEALTH_WARNINGS(
-            "display.hideConfigHealthWarnings", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.GENERAL ),
-
 
     KNOWN_LOCALES(
             "knownLocales", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.LOCALIZATION ),
@@ -129,6 +135,8 @@ public enum PwmSetting
             "display.idleTimeout", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES ),
     PASSWORD_SHOW_STRENGTH_METER(
             "password.showStrengthMeter", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES ),
+    IDLE_TIMEOUT_SECONDS(
+            "idleTimeoutSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.UI_FEATURES ),
     DISPLAY_CSS_CUSTOM_STYLE(
             "display.css.customStyleLocation", PwmSettingSyntax.STRING, PwmSettingCategory.UI_WEB ),
     DISPLAY_CSS_CUSTOM_MOBILE_STYLE(
@@ -144,7 +152,7 @@ public enum PwmSetting
 
     // change password
     CHANGE_PASSWORD_PROFILE_LIST(
-            "changePassword.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+            "changePassword.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
     CHANGE_PASSWORD_ENABLE(
             "changePassword.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHANGE_PASSWORD_SETTINGS ),
     QUERY_MATCH_CHANGE_PASSWORD(
@@ -180,7 +188,7 @@ public enum PwmSetting
     ACCOUNT_INFORMATION_ENABLED(
             "display.accountInformation", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ACCOUNT_INFO_SETTINGS ),
     ACCOUNT_INFORMATION_PROFILE_LIST(
-            "accountInfo.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+            "accountInfo.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
     ACCOUNT_INFORMATION_QUERY_MATCH(
             "accountInfo.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.ACCOUNT_INFO_PROFILE ),
     ACCOUNT_INFORMATION_HISTORY(
@@ -193,7 +201,7 @@ public enum PwmSetting
 
     // delete info
     DELETE_ACCOUNT_PROFILE_LIST(
-            "deleteAccount.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+            "deleteAccount.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
     DELETE_ACCOUNT_ENABLE(
             "deleteAccount.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.DELETE_ACCOUNT_SETTINGS ),
     DELETE_ACCOUNT_PERMISSION(
@@ -291,7 +299,7 @@ public enum PwmSetting
 
     // ldap global settings
     LDAP_PROFILE_LIST(
-            "ldap.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+            "ldap.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
     LDAP_IDLE_TIMEOUT(
             "ldap.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.LDAP_GLOBAL ),
     DEFAULT_OBJECT_CLASSES(
@@ -312,7 +320,7 @@ public enum PwmSetting
 
     // New multiple email settings
     EMAIL_SERVERS(
-            "email.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.APPLICATION ),
+            "email.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_SYSTEM ),
     EMAIL_SERVER_ADDRESS(
             "email.smtp.address", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SERVERS ),
     EMAIL_SERVER_TYPE(
@@ -451,7 +459,7 @@ public enum PwmSetting
     PASSWORD_POLICY_CASE_SENSITIVITY(
             "password.policy.caseSensitivity", PwmSettingSyntax.SELECT, PwmSettingCategory.PASSWORD_GLOBAL ),
     PASSWORD_PROFILE_LIST(
-            "password.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+            "password.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
 
 
     // wordlist settings
@@ -606,7 +614,7 @@ public enum PwmSetting
     INTRUDER_ENABLE(
             "intruder.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.INTRUDER_SETTINGS ),
     INTRUDER_STORAGE_METHOD(
-            "intruder.storageMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.INTRUDER_SETTINGS ),
+            "intruder.storageMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.INTRUDER_SYSTEM_SETTINGS ),
     SECURITY_SIMULATE_LDAP_BAD_PASSWORD(
             "security.ldap.simulateBadPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.INTRUDER_SETTINGS ),
 
@@ -653,7 +661,7 @@ public enum PwmSetting
 
     // OTP
     OTP_PROFILE_LIST(
-            "otp.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+            "otp.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
     OTP_SETUP_USER_PERMISSION(
             "otp.secret.allowSetup.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.OTP_PROFILE ),
     OTP_ALLOW_SETUP(
@@ -741,7 +749,7 @@ public enum PwmSetting
 
     // challenge policy profile
     CHALLENGE_PROFILE_LIST(
-            "challenge.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+            "challenge.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
     CHALLENGE_POLICY_QUERY_MATCH(
             "challenge.policy.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.CHALLENGE_POLICY ),
     CHALLENGE_RANDOM_CHALLENGES(
@@ -778,7 +786,7 @@ public enum PwmSetting
 
     // recovery profile
     RECOVERY_PROFILE_LIST(
-            "recovery.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+            "recovery.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
     RECOVERY_PROFILE_QUERY_MATCH(
             "recovery.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.RECOVERY_DEF ),
     RECOVERY_VERIFICATION_METHODS(
@@ -844,7 +852,7 @@ public enum PwmSetting
             "newUser.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.NEWUSER_SETTINGS ),
 
     NEWUSER_PROFILE_LIST(
-            "newUser.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+            "newUser.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
 
     NEWUSER_FORM(
             "newUser.form", PwmSettingSyntax.FORM, PwmSettingCategory.NEWUSER_PROFILE ),
@@ -917,7 +925,7 @@ public enum PwmSetting
             "activateUser.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.ACTIVATION_SETTINGS ),
 
     ACTIVATE_USER_PROFILE_LIST(
-            "activateUser.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+            "activateUser.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
 
     ACTIVATE_USER_QUERY_MATCH(
             "activateUser.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.ACTIVATION_PROFILE ),
@@ -936,7 +944,7 @@ public enum PwmSetting
     UPDATE_PROFILE_ENABLE(
             "updateAttributes.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_SETTINGS ),
     UPDATE_PROFILE__PROFILE_LIST(
-            "updateAttributes.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+            "updateAttributes.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
     UPDATE_PROFILE_QUERY_MATCH(
             "updateAttributes.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.UPDATE_PROFILE ),
     UPDATE_PROFILE_WRITE_ATTRIBUTES(
@@ -980,7 +988,7 @@ public enum PwmSetting
     PEOPLE_SEARCH_PUBLIC_PROFILE(
             "peopleSearch.public.profile", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH_SETTINGS ),
     PEOPLESEARCH_PROFILE_LIST(
-            "peopleSearch.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+            "peopleSearch.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
     PEOPLE_SEARCH_QUERY_MATCH(
             "peopleSearch.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH_PROFILE ),
     PEOPLE_SEARCH_SEARCH_FORM(
@@ -1059,7 +1067,7 @@ public enum PwmSetting
     HELPDESK_ENABLE(
             "helpdesk.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_SETTINGS ),
     HELPDESK_PROFILE_LIST(
-            "helpdesk.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL ),
+            "helpdesk.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
     HELPDESK_PROFILE_QUERY_MATCH(
             "helpdesk.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.HELPDESK_BASE ),
     HELPDESK_SEARCH_FORM(
@@ -1451,9 +1459,13 @@ public enum PwmSetting
 
         static <T> T referenceForTempleSet(
                 final List<TemplateSetReference<T>> templateSetReferences,
-                final PwmSettingTemplateSet pwmSettingTemplate
+                final PwmSettingTemplateSet pwmSettingTemplateSet
         )
         {
+            final PwmSettingTemplateSet effectiveTemplateSet = pwmSettingTemplateSet == null
+                    ? PwmSettingTemplateSet.getDefault()
+                    : pwmSettingTemplateSet;
+
             if ( templateSetReferences == null || templateSetReferences.isEmpty() )
             {
                 throw new IllegalStateException( "templateSetReferences can not be null" );
@@ -1469,7 +1481,7 @@ public enum PwmSetting
                 for ( final TemplateSetReference<T> templateSetReference : templateSetReferences )
                 {
                     final Set<PwmSettingTemplate> temporarySet = CollectionUtil.copiedEnumSet( templateSetReference.getSettingTemplates(), PwmSettingTemplate.class );
-                    temporarySet.retainAll( pwmSettingTemplate.getTemplates() );
+                    temporarySet.retainAll( effectiveTemplateSet.getTemplates() );
                     final int matchCount = temporarySet.size();
                     if ( matchCount == matchCountExamSize )
                     {

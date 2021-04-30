@@ -64,6 +64,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
@@ -75,10 +76,12 @@ import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
@@ -99,6 +102,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -280,7 +284,7 @@ public class PasswordUtility
         // but we do it just in case.
         try
         {
-            final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmDomain, userInfo.getPasswordPolicy() );
+            final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create( pwmRequest.getLabel(), pwmDomain, userInfo.getPasswordPolicy() );
             pwmPasswordRuleValidator.testPassword( newPassword, null, userInfo, pwmSession.getSessionManager().getActor( ) );
         }
         catch ( final PwmDataValidationException e )
@@ -340,7 +344,7 @@ public class PasswordUtility
 
         // update statistics
         {
-            pwmDomain.getStatisticsManager().incrementValue( Statistic.PASSWORD_CHANGES );
+            StatisticsClient.incrementStat( pwmRequest, Statistic.PASSWORD_CHANGES );
         }
 
         {
@@ -402,7 +406,8 @@ public class PasswordUtility
                     theUser
             );
 
-            final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(
+            final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create(
+                    sessionLabel,
                     pwmDomain,
                     passwordPolicy,
                     PwmPasswordRuleValidator.Flag.BypassLdapRuleCheck
@@ -424,7 +429,7 @@ public class PasswordUtility
         {
             final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
             bindDN = chaiProvider.getChaiConfiguration().getSetting( ChaiSetting.BIND_DN );
-            bindIsSelf = userIdentity.canonicalEquals( UserIdentity.create(
+            bindIsSelf = userIdentity.canonicalEquals( sessionLabel, UserIdentity.create(
                     bindDN,
                     userIdentity.getLdapProfileID(),
                     pwmDomain.getDomainID() ),
@@ -530,11 +535,11 @@ public class PasswordUtility
         setPassword( pwmDomain, pwmRequest.getLabel(), chaiUser.getChaiProvider(), userInfo, null, newPassword );
 
         // create a proxy user object for pwm to update/read the user.
-        final ChaiUser proxiedUser = pwmDomain.getProxiedChaiUser( userIdentity );
+        final ChaiUser proxiedUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
 
         // mark the event log
         {
-            final HelpdeskAuditRecord auditRecord = new AuditRecordFactory( pwmDomain, pwmRequest ).createHelpdeskAuditRecord(
+            final HelpdeskAuditRecord auditRecord = AuditRecordFactory.make( pwmRequest ).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_SET_PASSWORD,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     null,
@@ -542,15 +547,16 @@ public class PasswordUtility
                     pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress(),
                     pwmRequest.getPwmSession().getSessionStateBean().getSrcHostname()
             );
-            pwmDomain.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+            AuditServiceClient.submit( pwmRequest, auditRecord );
         }
 
         // update statistics
-        pwmDomain.getStatisticsManager().incrementValue( Statistic.HELPDESK_PASSWORD_SET );
+        StatisticsClient.incrementStat( pwmRequest, Statistic.HELPDESK_PASSWORD_SET );
 
         {
             // execute configured actions
-            LOGGER.debug( sessionLabel, () -> "executing changepassword and helpdesk post password change writeAttributes to user " + userIdentity );
+            LOGGER.debug( pwmRequest, () -> "executing changePassword and helpdesk post password change writeAttributes to user " + userIdentity );
+
             final List<ActionConfiguration> actions = new ArrayList<>();
             actions.addAll( changePasswordProfile.readSettingAsAction( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES ) );
             actions.addAll( helpdeskProfile.readSettingAsAction( PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES ) );
@@ -586,7 +592,7 @@ public class PasswordUtility
             pwmDomain.getCrService().clearResponses( pwmRequest.getLabel(), userIdentity, proxiedUser, userGUID );
 
             // mark the event log
-            final HelpdeskAuditRecord auditRecord = new AuditRecordFactory( pwmDomain, pwmRequest ).createHelpdeskAuditRecord(
+            final HelpdeskAuditRecord auditRecord = AuditRecordFactory.make( pwmRequest ).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_CLEAR_RESPONSES,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     null,
@@ -594,7 +600,7 @@ public class PasswordUtility
                     pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress(),
                     pwmRequest.getPwmSession().getSessionStateBean().getSrcHostname()
             );
-            pwmDomain.getAuditManager().submit( sessionLabel, auditRecord );
+            AuditServiceClient.submit( pwmRequest, auditRecord );
         }
 
         // send email notification
@@ -625,11 +631,11 @@ public class PasswordUtility
                 final MessageSendMethod messageSendMethod = forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_SENDNEWPW_METHOD, MessageSendMethod.class );
 
                 PasswordUtility.sendNewPassword(
-                    userInfo,
+                        userInfo,
                         pwmDomain,
-                    newPassword,
-                    pwmRequest.getLocale(),
-                    messageSendMethod
+                        newPassword,
+                        pwmRequest.getLocale(),
+                        messageSendMethod
                 );
             }
         }
@@ -643,7 +649,7 @@ public class PasswordUtility
             throws PwmUnrecoverableException
     {
         final Map<String, Instant> returnValue = new LinkedHashMap<>();
-        final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( sessionLabel, userIdentity.getLdapProfileID() );
         final Collection<ChaiConfiguration> perReplicaConfigs = ChaiUtility.splitConfigurationPerReplica(
                 chaiProvider.getChaiConfiguration(),
                 Collections.singletonMap( ChaiSetting.FAILOVER_CONNECT_RETRIES, "1" )
@@ -1038,8 +1044,7 @@ public class PasswordUtility
     }
 
     public static PasswordCheckInfo checkEnteredPassword(
-            final PwmDomain pwmDomain,
-            final Locale locale,
+            final PwmRequestContext pwmRequestContext,
             final ChaiUser user,
             final UserInfo userInfo,
             final LoginInfoBean loginInfoBean,
@@ -1048,10 +1053,11 @@ public class PasswordUtility
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        if ( userInfo == null )
-        {
-            throw new NullPointerException( "userInfoBean cannot be null" );
-        }
+        Objects.requireNonNull( userInfo );
+
+        final PwmDomain pwmDomain = pwmRequestContext.getPwmDomain();
+        final Locale locale = pwmRequestContext.getLocale();
+        final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
 
         boolean pass = false;
         String userMessage = "";
@@ -1104,7 +1110,7 @@ public class PasswordUtility
                 }
                 if ( !pass )
                 {
-                    final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmDomain, userInfo.getPasswordPolicy(), locale );
+                    final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create( sessionLabel, pwmDomain, userInfo.getPasswordPolicy(), locale );
                     final PasswordData oldPassword = loginInfoBean == null ? null : loginInfoBean.getUserCurrentPassword();
                     pwmPasswordRuleValidator.testPassword( password, oldPassword, userInfo, user );
                     pass = true;
@@ -1250,11 +1256,11 @@ public class PasswordUtility
         final MacroRequest macroRequest = userInfo == null
                 ? null
                 : MacroRequest.forUser(
-                pwmDomain.getPwmApplication(),
-                pwmRequest.getLabel(),
-                userInfo,
-                null
-        );
+                        pwmDomain.getPwmApplication(),
+                        pwmRequest.getLabel(),
+                        userInfo,
+                        null
+                );
 
         pwmDomain.getPwmApplication().getEmailQueue().submitEmail( configuredEmailSetting, userInfo, macroRequest );
     }
@@ -1266,7 +1272,7 @@ public class PasswordUtility
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
+        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
         return determinePwdLastModified( pwmDomain, sessionLabel, theUser, userIdentity );
     }
 

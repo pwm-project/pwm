@@ -217,7 +217,7 @@ public class PhotoDataReader
     {
         return LdapOperationsHelper.readPhotoDataFromLdap(
                 pwmRequest.getDomainConfig(),
-                pwmRequest.getPwmDomain().getProxiedChaiUser( userIdentity ).getChaiProvider(),
+                pwmRequest.getPwmDomain().getProxiedChaiUser( pwmRequest.getLabel(), userIdentity ).getChaiProvider(),
                 userIdentity
         );
     }

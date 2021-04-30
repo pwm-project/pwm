@@ -22,8 +22,8 @@ package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.StringHelper;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.ShortcutItem;
@@ -36,9 +36,10 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ShortcutsBean;
-import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.permission.UserPermissionType;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
@@ -218,7 +219,6 @@ public class ShortcutServlet extends AbstractPwmServlet
             throws PwmUnrecoverableException,  IOException, ServletException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
         final String link = pwmRequest.readParameterAsString( "link" );
         final Map<String, ShortcutItem> visibleItems = shortcutsBean.getVisibleItems();
@@ -227,7 +227,7 @@ public class ShortcutServlet extends AbstractPwmServlet
         {
             final ShortcutItem item = visibleItems.get( link );
 
-            pwmDomain.getStatisticsManager().incrementValue( Statistic.SHORTCUTS_SELECTED );
+            StatisticsClient.incrementStat( pwmRequest, Statistic.SHORTCUTS_SELECTED );
             LOGGER.trace( pwmRequest, () -> "shortcut link selected: " + link + ", setting link for 'forwardURL' to " + item.getShortcutURI() );
             pwmSession.getSessionStateBean().setForwardURL( item.getShortcutURI().toString() );
 

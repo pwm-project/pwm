@@ -25,7 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import password.pwm.bean.DomainID;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.SettingReader;
-import password.pwm.ws.server.rest.bean.HealthData;
+import password.pwm.ws.server.rest.bean.PublicHealthData;
+import password.pwm.ws.server.rest.bean.PublicHealthRecord;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -138,15 +139,15 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
         return Collections.singletonList( this );
     }
 
-    public static HealthData asHealthDataBean(
+    public static PublicHealthData asHealthDataBean(
             final DomainConfig domainConfig,
             final Locale locale,
             final List<HealthRecord> profileRecords
     )
     {
-        final List<password.pwm.ws.server.rest.bean.HealthRecord> healthRecordBeans = password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords(
+        final List<PublicHealthRecord> healthRecordBeans = PublicHealthRecord.fromHealthRecords(
                 profileRecords, locale, domainConfig );
-        return HealthData.builder()
+        return PublicHealthData.builder()
                 .timestamp( Instant.now() )
                 .overall( HealthUtils.getMostSevereHealthStatus( profileRecords ).toString() )
                 .records( healthRecordBeans )

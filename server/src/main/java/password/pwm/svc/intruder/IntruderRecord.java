@@ -21,6 +21,8 @@
 package password.pwm.svc.intruder;
 
 import lombok.Data;
+import password.pwm.bean.DomainID;
+import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -29,22 +31,25 @@ import java.time.Instant;
 public class IntruderRecord implements Serializable
 {
     private IntruderRecordType type;
+    private DomainID domainID;
     private String subject;
     private Instant timeStamp = Instant.now();
     private int attemptCount = 0;
     private boolean alerted = false;
 
-    public IntruderRecord( final IntruderRecordType type, final String subject )
+    public IntruderRecord( final DomainID domainID, final IntruderRecordType type, final String subject )
     {
         if ( type == null )
         {
             throw new IllegalArgumentException( "type must have a value" );
         }
-        if ( subject == null || subject.length() < 1 )
+        if ( StringUtil.isEmpty( subject ) )
         {
             throw new IllegalArgumentException( "subject must have a value" );
         }
+
         this.type = type;
+        this.domainID = domainID;
         this.subject = subject;
     }
 

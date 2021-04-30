@@ -255,7 +255,10 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                         null,
                         pwmRequest.getLabel()
                 );
-                if ( resolvedIdentity != null && resolvedIdentity.canonicalEquals( pwmSession.getUserInfo().getUserIdentity(), pwmDomain.getPwmApplication() ) )
+                if ( resolvedIdentity != null && resolvedIdentity.canonicalEquals(
+                        pwmRequest.getLabel(),
+                        pwmSession.getUserInfo().getUserIdentity(),
+                        pwmDomain.getPwmApplication() ) )
                 {
                     LOGGER.debug( pwmRequest, () -> "verified incoming oauth code for already authenticated session does resolve to same as logged in user" );
                 }

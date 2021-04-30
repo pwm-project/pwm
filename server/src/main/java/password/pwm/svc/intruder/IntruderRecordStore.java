@@ -23,6 +23,7 @@ package password.pwm.svc.intruder;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.ClosableIterator;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
 
@@ -30,6 +31,8 @@ import java.util.Optional;
 
 interface IntruderRecordStore
 {
+    StatisticCounterBundle<DebugKeys> getStats();
+
     Optional<IntruderRecord> read( String key ) throws PwmUnrecoverableException;
 
     void write( String key, IntruderRecord record ) throws PwmOperationalException, PwmUnrecoverableException;
@@ -37,4 +40,13 @@ interface IntruderRecordStore
     ClosableIterator<IntruderRecord> iterator( ) throws PwmOperationalException, PwmUnrecoverableException;
 
     void cleanup( TimeDuration maxRecordAge ) throws LocalDBException;
+
+    enum DebugKeys
+    {
+        reads,
+        writes,
+        cleanupCycles,
+        cleanupExamines,
+        cleanupRemoves,
+    }
 }

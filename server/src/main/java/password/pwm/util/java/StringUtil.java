@@ -44,7 +44,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -226,7 +228,7 @@ public abstract class StringUtil
     {
         final String compare1 = value1 == null ? "" : value1;
         final String compare2 = value2 == null ? "" : value2;
-        return compare1.equalsIgnoreCase( compare2 );
+        return Objects.equals( compare1.toLowerCase( PwmConstants.DEFAULT_LOCALE ), compare2.toLowerCase( PwmConstants.DEFAULT_LOCALE ) );
     }
 
     public static boolean nullSafeEquals( final String value1, final String value2 )
@@ -464,7 +466,7 @@ public abstract class StringUtil
 
     public static String mapToString( final Map map )
     {
-        return mapToString( map, "=", "," );
+        return mapToString( map, "=", ", " );
     }
 
     public static String mapToString( final Map map, final String keyValueSeparator, final String recordSeparator )
@@ -626,6 +628,62 @@ public abstract class StringUtil
         return sb.substring( 0, copiedChars );
     }
 
+    public static String replaceAllChars( final String input, final Function<Character, Optional<String>> replacementFunction )
+    {
+        if ( isEmpty( input ) )
+        {
+            return "";
+        }
+
+        if ( replacementFunction == null )
+        {
+            return input;
+        }
+
+        // count of valid output chars
+        int copiedChars = 0;
+
+        // loop through input chars and stop if replacement char is needed
+        while ( copiedChars < input.length() )
+        {
+            final Character indexChar = input.charAt( copiedChars );
+            final Optional<String> replacementStr = replacementFunction.apply( indexChar );
+            if ( replacementStr.isEmpty() )
+            {
+                copiedChars++;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        // return input string if we made it through input without detecting replacement char
+        if ( copiedChars >= input.length() )
+        {
+            return input;
+        }
+
+        final StringBuilder sb = new StringBuilder( input.substring( 0, copiedChars ) );
+
+        // loop through remaining chars and copy one by one
+        for ( int loopIndex = copiedChars; loopIndex < input.length(); loopIndex++ )
+        {
+            final char loopChar = input.charAt( loopIndex );
+            final Optional<String> replacementStr = replacementFunction.apply( loopChar );
+            if ( replacementStr.isPresent() )
+            {
+                sb.append( replacementStr.get() );
+            }
+            else
+            {
+                sb.append( loopChar );
+            }
+        }
+
+        return sb.toString();
+    }
+
     public static String insertRepeatedLineBreaks( final String input, final int periodicity )
     {
         final String lineSeparator = System.lineSeparator();
@@ -650,9 +708,12 @@ public abstract class StringUtil
         int index = 0;
         while ( index < inputLength )
         {
-            final int endIndex = Math.min( index + periodicity, inputLength );
-            output.append( input, index, endIndex );
-            output.append( insertValue );
+            final int endIndex = index + periodicity;
+            output.append( input, index, Math.min( endIndex, inputLength ) );
+            if ( endIndex < inputLength )
+            {
+                output.append( insertValue );
+            }
             index += periodicity;
         }
         return output.toString();
@@ -696,5 +757,33 @@ public abstract class StringUtil
     public static InputStream stringToInputStream( final String input )
     {
         return new ByteArrayInputStream( input.getBytes( PwmConstants.DEFAULT_CHARSET ) );
+    }
+
+    private static final Map<Character, String> URL_PATH_ENCODING_REPLACEMENTS = Map.ofEntries(
+            Map.entry( ' ', "%20" ),
+            Map.entry( '!', "%21" ),
+            Map.entry( '#', "%23" ),
+            Map.entry( '$', "%24" ),
+            Map.entry( '&', "%26" ),
+            Map.entry( '\'', "%27" ),
+            Map.entry( '(', "%28" ),
+            Map.entry( ')', "%29" ),
+            Map.entry( '*', "%2A" ),
+            Map.entry( '+', "%2B" ),
+            Map.entry( ',', "%2C" ),
+            Map.entry( '/', "%2F" ),
+            Map.entry( ':', "%3A" ),
+            Map.entry( ';', "%3B" ),
+            Map.entry( '=', "%3D" ),
+            Map.entry( '?', "%3F" ),
+            Map.entry( '@', "%40" ),
+            Map.entry( '[', "%5B" ),
+            Map.entry( ']', "%5D" )
+    );
+
+    public static String urlPathEncode( final String input )
+    {
+        return replaceAllChars( input,
+                character -> Optional.ofNullable( URL_PATH_ENCODING_REPLACEMENTS.getOrDefault( character, null ) ) );
     }
 }

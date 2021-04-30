@@ -17,7 +17,7 @@
         <npm.version>6.14.8</npm.version>
     </properties>
 
-    <name>PWM Password Self Service: Angular Client JAR</name>
+    <name>PWM Password Self Service: Angular Client WebJAR</name>
 
     <profiles>
         <profile>

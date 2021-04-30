@@ -31,8 +31,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.event.AuditEvent;
-import password.pwm.svc.event.AuditRecord;
-import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -222,11 +221,7 @@ public class PwmLogger
                     messageInfo.put( "errorMessage", logEvent.getMessage() );
 
                     final String messageInfoStr = JsonUtil.serializeMap( messageInfo );
-                    final AuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createSystemAuditRecord(
-                            AuditEvent.FATAL_EVENT,
-                            messageInfoStr
-                    );
-                    pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
+                    AuditServiceClient.submitSystemEvent( pwmApplication, SessionLabel.SYSTEM_LABEL, AuditEvent.FATAL_EVENT, messageInfoStr );
                 }
             }
         }

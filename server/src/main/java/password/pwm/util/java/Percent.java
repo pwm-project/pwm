@@ -28,13 +28,14 @@ public class Percent
 {
     private static final BigDecimal BIG_DECIMAL_ONE_HUNDRED = new BigDecimal( "100" );
     private static final int DEFAULT_SCALE = 2;
-    private static final RoundingMode DEFAULT_ROUNDINGMODE = RoundingMode.UP;
+    private static final RoundingMode DEFAULT_ROUNDING_MODE = RoundingMode.UP;
+
+    public static final Percent ZERO = of( 0, 1 );
+    public static final Percent ONE_HUNDRED = of( 1, 1 );
+
     private final BigDecimal percentage;
 
-    public static final Percent ZERO = new Percent( 0, 1 );
-    public static final Percent ONE_HUNDRED = new Percent( 1, 1 );
-
-    public Percent( final BigDecimal numerator, final BigDecimal denominator )
+    private Percent( final BigDecimal numerator, final BigDecimal denominator )
     {
         if ( numerator == null )
         {
@@ -51,37 +52,37 @@ public class Percent
         percentage = numerator.divide( denominator, MathContext.DECIMAL32 ).multiply( BIG_DECIMAL_ONE_HUNDRED );
     }
 
-    public Percent( final BigDecimal numerator, final long denominator )
+    public static Percent of( final BigDecimal numerator, final long denominator )
     {
-        this( numerator, BigDecimal.valueOf( denominator ) );
+        return of( numerator, BigDecimal.valueOf( denominator ) );
     }
 
-    public Percent( final float numerator, final float denominator )
+    public static Percent of( final float numerator, final float denominator )
     {
-        this( BigDecimal.valueOf( numerator ), BigDecimal.valueOf( denominator ) );
+        return of( BigDecimal.valueOf( numerator ), BigDecimal.valueOf( denominator ) );
     }
 
-    public Percent( final long numerator, final long denominator )
+    public static Percent of( final long numerator, final long denominator )
     {
-        this( BigDecimal.valueOf( numerator ), BigDecimal.valueOf( denominator ) );
+        return of( BigDecimal.valueOf( numerator ), BigDecimal.valueOf( denominator ) );
+    }
+
+    public static Percent of( final BigDecimal numerator, final BigDecimal denominator )
+    {
+        return new Percent( numerator, denominator );
     }
 
     public BigDecimal asBigDecimal( final int decimals )
     {
         final BigDecimal pct = asBigDecimal();
         return pct.scale() > decimals
-                ? pct.setScale( decimals, DEFAULT_ROUNDINGMODE )
+                ? pct.setScale( decimals, DEFAULT_ROUNDING_MODE )
                 : pct;
     }
 
     public BigDecimal asBigDecimal( )
     {
         return percentage;
-    }
-
-    public long asLong( )
-    {
-        return asBigDecimal().longValue();
     }
 
     public float asFloat( )

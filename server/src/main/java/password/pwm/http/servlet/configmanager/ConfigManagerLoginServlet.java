@@ -150,8 +150,8 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             else
             {
                 LOGGER.trace( pwmRequest, () -> "configuration password is not correct" );
-                pwmDomain.getIntruderManager().convenience().markAddressAndSession( pwmRequest );
-                pwmDomain.getIntruderManager().mark( IntruderRecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmRequest.getLabel() );
+                pwmDomain.getIntruderService().client().markAddressAndSession( pwmRequest );
+                pwmDomain.getIntruderService().mark( IntruderRecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmRequest.getLabel() );
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_PASSWORD_ONLY_BAD );
                 updateLoginHistory( pwmRequest, pwmRequest.getUserInfoIfLoggedIn(), false );
                 setLastError( pwmRequest, errorInformation );
@@ -257,8 +257,8 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         configManagerBean.setPasswordVerified( true );
-        pwmDomain.getIntruderManager().convenience().clearAddressAndSession( pwmSession );
-        pwmDomain.getIntruderManager().clear( IntruderRecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME );
+        pwmDomain.getIntruderService().client().clearAddressAndSession( pwmSession );
+        pwmDomain.getIntruderService().clear( IntruderRecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME );
         pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded( true );
         if ( persistentLoginEnabled && "on".equals( pwmRequest.readParameterAsString( "remember" ) ) )
         {

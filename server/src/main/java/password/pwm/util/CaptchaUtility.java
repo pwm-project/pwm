@@ -44,9 +44,9 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
-import password.pwm.svc.intruder.IntruderService;
+import password.pwm.svc.intruder.IntruderDomainService;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -155,7 +155,7 @@ public class CaptchaUtility
                 {
                     writeCaptchaSkipCookie( pwmRequest );
                     LOGGER.trace( pwmRequest, () -> "captcha verification passed" );
-                    StatisticsManager.incrementStat( pwmRequest, Statistic.CAPTCHA_SUCCESSES );
+                    StatisticsClient.incrementStat( pwmRequest, Statistic.CAPTCHA_SUCCESSES );
                     return true;
                 }
 
@@ -180,7 +180,7 @@ public class CaptchaUtility
         }
 
         LOGGER.trace( pwmRequest, () -> "captcha verification failed" );
-        StatisticsManager.incrementStat( pwmRequest, Statistic.CAPTCHA_FAILURES );
+        StatisticsClient.incrementStat( pwmRequest, Statistic.CAPTCHA_FAILURES );
         return false;
     }
 
@@ -313,7 +313,7 @@ public class CaptchaUtility
 
     public static void prepareCaptchaDisplay( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
     {
-        StatisticsManager.incrementStat( pwmRequest, Statistic.CAPTCHA_PRESENTATIONS );
+        StatisticsClient.incrementStat( pwmRequest, Statistic.CAPTCHA_PRESENTATIONS );
 
         final String reCaptchaPublicKey = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.RECAPTCHA_KEY_PUBLIC );
         pwmRequest.setAttribute( PwmRequestAttribute.CaptchaPublicKey, reCaptchaPublicKey );
@@ -375,7 +375,7 @@ public class CaptchaUtility
             return true;
         }
 
-        final IntruderService intruderManager = pwmRequest.getPwmDomain().getIntruderManager();
+        final IntruderDomainService intruderManager = pwmRequest.getPwmDomain().getIntruderService();
         if ( intruderManager == null || intruderManager.status() != PwmService.STATUS.OPEN )
         {
             return false;

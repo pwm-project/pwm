@@ -406,7 +406,7 @@ public class ReportSummaryData
                                     replacement,
                             }
                     );
-            final String pct = valueCount > 0 ? new Percent( valueCount, totalUsers ).pretty( 2 ) : "";
+            final String pct = valueCount > 0 ? Percent.of( valueCount, totalUsers ).pretty( 2 ) : "";
             final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );
             final String formattedCount = numberFormat.format( valueCount );
             return new PresentationRow( display, formattedCount, pct );

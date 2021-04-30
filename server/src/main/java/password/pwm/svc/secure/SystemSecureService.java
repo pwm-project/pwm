@@ -28,10 +28,9 @@ import password.pwm.error.PwmException;
 public class SystemSecureService extends AbstractSecureService
 {
     @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID ) throws PwmException
+    public void preAbstractSecureInit( final PwmApplication pwmApplication, final DomainID domainID ) throws PwmException
     {
         final AppConfig config = pwmApplication.getConfig();
         this.pwmSecurityKey = config.getSecurityKey();
-        innerInit( pwmApplication );
     }
 }

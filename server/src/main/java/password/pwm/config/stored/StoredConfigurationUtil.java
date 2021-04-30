@@ -55,13 +55,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -254,16 +254,22 @@ public abstract class StoredConfigurationUtil
 
     public static Map<String, String> makeDebugMap(
             final StoredConfiguration storedConfiguration,
-            final List<StoredConfigKey> interestedItems,
+            final Collection<StoredConfigKey> interestedItems,
             final Locale locale
     )
     {
-        return Collections.unmodifiableMap( new TreeMap<>( interestedItems.stream()
+        return Collections.unmodifiableMap( interestedItems.stream()
                 .filter( key -> !key.isRecordType( StoredConfigKey.RecordType.PROPERTY ) )
+                .sorted()
                 .collect( Collectors.toMap(
                         key -> key.getLabel( locale ),
-                        key -> StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key ).toDebugString( locale )
-                ) ) ) );
+                        key -> StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key ).toDebugString( locale ),
+                        ( u, v ) ->
+                        {
+                            throw new IllegalStateException(  String.format( "duplicate key %s", u ) );
+                        },
+                        LinkedHashMap::new
+                ) ) );
     }
 
     public static Set<StoredConfigKey> allPossibleSettingKeysForConfiguration(
@@ -301,7 +307,6 @@ public abstract class StoredConfigurationUtil
 
         return PwmSetting.sortedValues().stream()
                 .filter( ( setting ) -> domainID.inScope( setting.getCategory().getScope() ) )
-                .parallel()
                 .flatMap( function )
                 .collect( Collectors.toUnmodifiableSet() )
                 .stream();

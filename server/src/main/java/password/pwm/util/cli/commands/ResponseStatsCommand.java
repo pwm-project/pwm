@@ -39,7 +39,7 @@ import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.operations.CrService;
+import password.pwm.svc.cr.CrService;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -95,16 +95,17 @@ public class ResponseStatsCommand extends AbstractCliCommand
         out( "found " + userIdentities.size() + " users, reading...." );
 
 
-        final ConditionalTaskExecutor debugOutputter = new ConditionalTaskExecutor(
+        final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask(
                 () -> out( "processing...  " + userCounter + " users read" ),
-                new ConditionalTaskExecutor.TimeDurationPredicate( TimeDuration.SECONDS_30 )
-        );
+                TimeDuration.SECONDS_30 );
 
         final CrService crService = pwmDomain.getCrService();
         for ( final UserIdentity userIdentity : userIdentities )
         {
             userCounter++;
-            final Optional<ResponseInfoBean> responseInfoBean = crService.readUserResponseInfo( null, userIdentity, pwmDomain.getProxiedChaiUser( userIdentity ) );
+            final Optional<ResponseInfoBean> responseInfoBean = crService.readUserResponseInfo(
+                    SessionLabel.CLI_SESSION_LABEL, userIdentity,
+                    pwmDomain.getProxiedChaiUser( SessionLabel.CLI_SESSION_LABEL, userIdentity ) );
             responseInfoBean.ifPresent( infoBean -> makeStatistics( responseStats, infoBean ) );
             debugOutputter.conditionallyExecuteTask();
         }

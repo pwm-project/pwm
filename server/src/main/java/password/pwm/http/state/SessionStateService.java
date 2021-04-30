@@ -30,18 +30,20 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.PwmSessionBean;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-public class SessionStateService implements PwmService
+public class SessionStateService extends AbstractPwmService implements PwmService
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( SessionStateService.class );
 
     private SessionBeanProvider sessionBeanProvider = new LocalSessionBeanImpl();
@@ -52,13 +54,13 @@ public class SessionStateService implements PwmService
     private final Map<Class<? extends PwmSessionBean>, PwmSessionBean> beanInstanceCache = new HashMap<>();
 
     @Override
-    public STATUS status( )
+    protected Set<PwmApplication.Condition> openConditions()
     {
-        return STATUS.OPEN;
+        return Collections.emptySet();
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
         {
@@ -108,8 +110,9 @@ public class SessionStateService implements PwmService
             }
         }
 
+        LOGGER.trace( getSessionLabel(), () -> "initialized " + sessionBeanProvider.getClass().getName() + " provider" );
 
-        LOGGER.trace( () -> "initialized " + sessionBeanProvider.getClass().getName() + " provider" );
+        return STATUS.OPEN;
     }
 
     @Override
@@ -118,9 +121,9 @@ public class SessionStateService implements PwmService
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

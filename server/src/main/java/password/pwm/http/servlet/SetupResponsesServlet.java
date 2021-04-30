@@ -32,8 +32,8 @@ import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Value;
 import password.pwm.Permission;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.config.PwmSetting;
@@ -55,8 +55,10 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -218,12 +220,13 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
 
             // mark the event log
-            final UserAuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createUserAuditRecord(
+            final UserAuditRecord auditRecord = AuditRecordFactory.make( pwmRequest ).createUserAuditRecord(
                     AuditEvent.CLEAR_RESPONSES,
                     pwmSession.getUserInfo(),
                     pwmSession
             );
-            pwmDomain.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+
+            AuditServiceClient.submit( pwmRequest, auditRecord );
 
             pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.SetupResponses );
         }
@@ -437,8 +440,9 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         final String userGUID = pwmSession.getUserInfo().getUserGuid();
         pwmDomain.getCrService().writeResponses( pwmRequest.getLabel(), pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID, responseInfoBean );
         pwmSession.reloadUserInfoBean( pwmRequest );
-        pwmDomain.getStatisticsManager().incrementValue( Statistic.SETUP_RESPONSES );
-        pwmDomain.getAuditManager().submit( AuditEvent.SET_RESPONSES, pwmSession.getUserInfo(), pwmSession );
+
+        StatisticsClient.incrementStat( pwmRequest, Statistic.SETUP_RESPONSES );
+        AuditServiceClient.submitUserEvent( pwmRequest, AuditEvent.SET_RESPONSES, pwmSession.getUserInfo() );
     }
 
     private static Map<Challenge, String> readResponsesFromHttpRequest(

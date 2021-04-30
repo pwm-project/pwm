@@ -32,7 +32,7 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -100,7 +100,7 @@ public class RestFormSigningServer extends RestServlet
                 final DomainSecureService securityService = restRequest.getDomain().getSecureService();
                 final SignedFormData signedFormData = new SignedFormData( Instant.now(), inputFormData );
                 final String signedValue = securityService.encryptObjectToString( signedFormData );
-                StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_SIGNING_FORM );
+                StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_SIGNING_FORM );
                 LOGGER.trace( () -> "processed request signing form for form with keys '"
                         + JsonUtil.serializeCollection( inputFormData.keySet() )
                         + "' and timestamp " + signedFormData.getTimestamp().toString() );

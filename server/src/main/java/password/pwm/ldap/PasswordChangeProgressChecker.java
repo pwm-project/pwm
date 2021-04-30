@@ -158,7 +158,7 @@ public class PasswordChangeProgressChecker
         else
         {
             final long totalMs = TimeDuration.between( tracker.beginTime, estimatedCompletion ).asMillis();
-            percentage = new Percent( elapsedMs, totalMs + 1 );
+            percentage = Percent.of( elapsedMs, totalMs + 1 );
         }
         tracker.itemCompletions.putAll( newItemProgress );
         return new PasswordChangeProgress(
@@ -341,7 +341,7 @@ public class PasswordChangeProgressChecker
                         tempHashSet.add( date );
                     }
                 }
-                final Percent pctComplete = new Percent( duplicateValues + 1, checkResults.size() );
+                final Percent pctComplete = Percent.of( duplicateValues + 1, checkResults.size() );
                 final ProgressRecord progressRecord = makeReplicaProgressRecord( pctComplete );
                 LOGGER.trace( () -> "read password replication sync status as: " + JsonUtil.serialize( progressRecord ) );
                 return progressRecord;

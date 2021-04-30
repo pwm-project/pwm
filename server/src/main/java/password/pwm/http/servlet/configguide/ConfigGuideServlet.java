@@ -28,6 +28,7 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
@@ -60,6 +61,7 @@ import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.configeditor.ConfigEditorServletUtils;
+import password.pwm.http.servlet.configeditor.data.NavTreeSettings;
 import password.pwm.http.servlet.configeditor.data.SettingData;
 import password.pwm.http.servlet.configeditor.data.SettingDataMaker;
 import password.pwm.i18n.Message;
@@ -71,7 +73,8 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
 import password.pwm.ws.server.RestResultBean;
-import password.pwm.ws.server.rest.bean.HealthData;
+import password.pwm.ws.server.rest.bean.PublicHealthData;
+import password.pwm.ws.server.rest.bean.PublicHealthRecord;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -240,11 +243,12 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 .getPwmEnvironment()
                 .makeRuntimeInstance( tempAppConfig ) );
         final PwmDomain tempDomain = tempApplication.domains().get( ConfigGuideForm.DOMAIN_ID );
-        // final DomainConfig tempDomainConfig = tempDomain.getConfig();
 
         final LDAPHealthChecker ldapHealthChecker = new LDAPHealthChecker();
         final List<HealthRecord> records = new ArrayList<>();
         final LdapProfile ldapProfile = tempDomain.getConfig().getDefaultLdapProfile();
+
+        final SessionLabel sessionLabel = pwmRequest.getLabel();
 
         switch ( configGuideBean.getStep() )
         {
@@ -271,7 +275,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             case LDAP_PROXY:
             {
-                records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempDomain, tempDomain.getConfig(), ldapProfile, false ) );
+                records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( sessionLabel, tempDomain, tempDomain.getConfig(), ldapProfile, false ) );
                 if ( records.isEmpty() )
                 {
                     records.add( password.pwm.health.HealthRecord.forMessage( ConfigGuideForm.DOMAIN_ID, HealthMessage.LDAP_OK ) );
@@ -281,7 +285,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             case LDAP_CONTEXT:
             {
-                records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempDomain, tempDomain.getConfig(), ldapProfile, true ) );
+                records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( sessionLabel, tempDomain, tempDomain.getConfig(), ldapProfile, true ) );
                 if ( records.isEmpty() )
                 {
                     records.add( HealthRecord.forMessage(
@@ -303,8 +307,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 final String testUserValue = configGuideBean.getFormData().get( ConfigGuideFormField.PARAM_LDAP_TEST_USER );
                 if ( testUserValue != null && !testUserValue.isEmpty() )
                 {
-                    records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempDomain, tempDomain.getConfig(), ldapProfile, false ) );
-                    records.addAll( ldapHealthChecker.doLdapTestUserCheck( tempDomain.getConfig(), ldapProfile, tempDomain ) );
+                    records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( sessionLabel, tempDomain, tempDomain.getConfig(), ldapProfile, false ) );
+                    records.addAll( ldapHealthChecker.doLdapTestUserCheck( sessionLabel, tempDomain.getConfig(), ldapProfile, tempDomain ) );
                 }
                 else
                 {
@@ -327,8 +331,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 JavaHelper.unhandledSwitchStatement( configGuideBean.getStep() );
         }
 
-        final HealthData jsonOutput = HealthData.builder()
-                .records( password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords( records, pwmRequest.getLocale(), tempDomain.getConfig() ) )
+        final PublicHealthData jsonOutput = PublicHealthData.builder()
+                .records( PublicHealthRecord.fromHealthRecords( records, pwmRequest.getLocale(), tempDomain.getConfig() ) )
                 .timestamp( Instant.now() )
                 .overall( HealthUtils.getMostSevereHealthStatus( records ).toString() )
                 .build();
@@ -361,6 +365,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final String dn = inputMap.getOrDefault( "dn", "" );
 
         final LdapBrowser ldapBrowser = new LdapBrowser(
+                pwmRequest.getLabel(),
                 pwmRequest.getPwmDomain().getLdapConnectionService().getChaiProviderFactory(),
                 storedConfiguration
         );
@@ -612,7 +617,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         }
         catch ( final Exception e )
         {
-            final String errorMsg = "error writing default value for setting " + pwmSetting.toString() + ", error: " + e.getMessage();
+            final String errorMsg = "error writing default value for setting " + pwmSetting + ", error: " + e.getMessage();
             LOGGER.error( () -> errorMsg, e );
             throw new IllegalStateException( errorMsg, e );
         }
@@ -637,7 +642,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 ConfigGuideForm.DOMAIN_ID,
                 storedConfiguration,
                 pwmRequest.getLabel(),
-                pwmRequest.getLocale()
+                pwmRequest.getLocale(),
+                NavTreeSettings.forBasic()
         );
 
         final RestResultBean restResultBean = RestResultBean.withData( settingData );

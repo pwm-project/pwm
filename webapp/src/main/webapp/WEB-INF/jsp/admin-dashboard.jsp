@@ -263,7 +263,12 @@
                 <div style="max-height: 600px; overflow: auto;">
                     <table class="nomargin">
                         <tr>
-                            <th style="font-weight:bold;">
+                            <pwm:if test="<%=PwmIfTest.multiDomain%>">
+                            <td style="font-weight:bold;">
+                                Domain
+                            </td>
+                            </pwm:if>
+                            <td style="font-weight:bold;">
                                 Service
                             </td>
                             <td style="font-weight:bold;">
@@ -277,7 +282,12 @@
                             </td>
                         </tr>
                         <% for (final AppDashboardData.ServiceData loopService : appDashboardData.getServices()) { %>
-                        <tr id="serviceName-<%=loopService.getName()%>">
+                        <tr id="serviceName-<%=loopService.getGuid()%>">
+                            <pwm:if test="<%=PwmIfTest.multiDomain%>">
+                                <td>
+                                    <%= loopService.getDomainID() %>
+                                </td>
+                            </pwm:if>
                             <td>
                                 <%= loopService.getName() %>
                                 <% if (!CollectionUtil.isEmpty(loopService.getDebugData())) { %>
@@ -522,7 +532,7 @@
             });
             <% for (final AppDashboardData.ServiceData loopService : appDashboardData.getServices()) { %>
             <% if (!CollectionUtil.isEmpty(loopService.getDebugData())) { %>
-            PWM_MAIN.addEventHandler('serviceName-<%=loopService.getName()%>','click',function(){
+            PWM_MAIN.addEventHandler('serviceName-<%=loopService.getGuid()%>','click',function(){
                 var tableText = '<table>';
                 <% for (final Map.Entry<String,String> entry : loopService.getDebugData().entrySet()) { %>
                 tableText += '<tr><td><%=StringUtil.escapeJS(entry.getKey())%></td>'

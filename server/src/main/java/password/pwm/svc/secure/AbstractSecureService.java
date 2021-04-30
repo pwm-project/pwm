@@ -22,13 +22,19 @@ package password.pwm.svc.secure;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.bean.DomainID;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
+import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.CopyingInputStream;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StatisticCounterBundle;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmHashAlgorithm;
@@ -43,9 +49,13 @@ import java.io.Serializable;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 
-public abstract class AbstractSecureService implements PwmService, SecureService
+public abstract class AbstractSecureService extends AbstractPwmService implements PwmService, SecureService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( DomainSecureService.class );
 
@@ -54,42 +64,77 @@ public abstract class AbstractSecureService implements PwmService, SecureService
     private PwmHashAlgorithm defaultHashAlgorithm;
     private PwmRandom pwmRandom;
 
-    @Override
-    public STATUS status( )
+    private final StatisticCounterBundle<StatKey> stats = new StatisticCounterBundle<>( StatKey.class );
+
+    enum StatKey
     {
-        return STATUS.OPEN;
+        hashOperations,
+        hashBytes,
+        encryptOperations,
+        encryptBytes,
+        decryptOperations,
+        decryptBytes,
     }
 
-    protected void innerInit( final PwmApplication pwmApplication ) throws PwmException
+    enum DebugKeys
     {
+        blockAlgorithm,
+        hashAlgorithm,
+    }
+
+    @Override
+    protected Set<PwmApplication.Condition> openConditions()
+    {
+        return Collections.emptySet();
+    }
+
+    protected STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
+    {
+        preAbstractSecureInit( pwmApplication, domainID );
+
         {
             final String defaultBlockAlgString = pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG );
             defaultBlockAlgorithm = JavaHelper.readEnumFromString( PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, defaultBlockAlgString );
-            LOGGER.debug( () -> "using default ephemeral block algorithm: " + defaultBlockAlgorithm.getLabel() );
         }
         {
             final String defaultHashAlgString = pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_HASH_ALG );
             defaultHashAlgorithm = JavaHelper.readEnumFromString( PwmHashAlgorithm.class, PwmHashAlgorithm.SHA512, defaultHashAlgString );
-            LOGGER.debug( () -> "using default ephemeral hash algorithm: " + defaultHashAlgString );
         }
+        LOGGER.debug( getSessionLabel(), () -> "using default algorithms: " + StringUtil.mapToString( debugData() ) );
+
+        return STATUS.OPEN;
     }
+
+    protected abstract void preAbstractSecureInit( PwmApplication pwmApplication, DomainID domainID )
+            throws PwmException;
 
     @Override
     public void close( )
     {
-
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
-        return null;
+        return Collections.emptyList();
+    }
+
+    private Map<DebugKeys, String> debugData()
+    {
+        return Map.of(
+                DebugKeys.blockAlgorithm, defaultBlockAlgorithm.getLabel(),
+                DebugKeys.hashAlgorithm, defaultHashAlgorithm.getAlgName() );
     }
 
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        return null;
+        return ServiceInfoBean.builder()
+                .debugProperties( CollectionUtil.combineMaps( List.of(
+                        stats.debugStats(),
+                        CollectionUtil.enumMapToStringMap( debugData() ) ) ) )
+                .build();
     }
 
     public PwmBlockAlgorithm getDefaultBlockAlgorithm( )
@@ -105,24 +150,32 @@ public abstract class AbstractSecureService implements PwmService, SecureService
     public String encryptToString( final String value )
             throws PwmUnrecoverableException
     {
+        stats.increment( StatKey.encryptOperations );
+        stats.increment( StatKey.encryptBytes, value.length() );
         return SecureEngine.encryptToString( value, pwmSecurityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE );
     }
 
     public String encryptToString( final String value, final PwmSecurityKey securityKey )
             throws PwmUnrecoverableException
     {
+        stats.increment( StatKey.encryptOperations );
+        stats.increment( StatKey.encryptBytes, value.length() );
         return SecureEngine.encryptToString( value, securityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE );
     }
 
     public String encryptObjectToString( final Serializable serializableObject ) throws PwmUnrecoverableException
     {
         final String jsonValue = JsonUtil.serialize( serializableObject );
+        stats.increment( StatKey.encryptOperations );
+        stats.increment( StatKey.encryptBytes, jsonValue.length() );
         return encryptToString( jsonValue );
     }
 
     public String encryptObjectToString( final Serializable serializableObject, final PwmSecurityKey securityKey ) throws PwmUnrecoverableException
     {
         final String jsonValue = JsonUtil.serialize( serializableObject );
+        stats.increment( StatKey.encryptOperations );
+        stats.increment( StatKey.encryptBytes, jsonValue.length() );
         return encryptToString( jsonValue, securityKey );
     }
 
@@ -131,6 +184,8 @@ public abstract class AbstractSecureService implements PwmService, SecureService
     )
             throws PwmUnrecoverableException
     {
+        stats.increment( StatKey.decryptOperations );
+        stats.increment( StatKey.decryptBytes, value.length() );
         return SecureEngine.decryptStringValue( value, pwmSecurityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE );
     }
 
@@ -140,18 +195,24 @@ public abstract class AbstractSecureService implements PwmService, SecureService
     )
             throws PwmUnrecoverableException
     {
+        stats.increment( StatKey.decryptOperations );
+        stats.increment( StatKey.decryptBytes, value.length() );
         return SecureEngine.decryptStringValue( value, securityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE );
     }
 
     public <T extends Serializable> T decryptObject( final String value, final Class<T> returnClass ) throws PwmUnrecoverableException
     {
         final String decryptedValue = decryptStringValue( value );
+        stats.increment( StatKey.decryptOperations );
+        stats.increment( StatKey.decryptBytes, value.length() );
         return JsonUtil.deserialize( decryptedValue, returnClass );
     }
 
     public <T extends Serializable> T decryptObject( final String value, final PwmSecurityKey securityKey, final Class<T> returnClass ) throws PwmUnrecoverableException
     {
         final String decryptedValue = decryptStringValue( value, securityKey );
+        stats.increment( StatKey.decryptOperations );
+        stats.increment( StatKey.decryptBytes, value.length() );
         return JsonUtil.deserialize( decryptedValue, returnClass );
     }
 
@@ -160,6 +221,8 @@ public abstract class AbstractSecureService implements PwmService, SecureService
     )
             throws PwmUnrecoverableException
     {
+        stats.increment( StatKey.hashOperations );
+        stats.increment( StatKey.hashBytes, input.length() );
         return SecureEngine.hash( input, defaultHashAlgorithm );
     }
 
@@ -170,15 +233,9 @@ public abstract class AbstractSecureService implements PwmService, SecureService
     )
             throws PwmUnrecoverableException
     {
+        stats.increment( StatKey.hashOperations );
+        stats.increment( StatKey.hashBytes, input.length() );
         return SecureEngine.hash( input, pwmHashAlgorithm );
-    }
-
-    public DigestInputStream digestInputStream(
-            final InputStream inputStream
-    )
-            throws PwmUnrecoverableException
-    {
-        return digestInputStream( this.getDefaultHashAlgorithm(), inputStream );
     }
 
     public DigestInputStream digestInputStream(
@@ -190,7 +247,9 @@ public abstract class AbstractSecureService implements PwmService, SecureService
         try
         {
             final MessageDigest messageDigest = MessageDigest.getInstance( pwmHashAlgorithm.getAlgName() );
-            return new DigestInputStream( inputStream, messageDigest );
+            stats.increment( StatKey.hashOperations );
+            final Consumer<byte[]> consumer = bytes -> stats.increment( StatKey.hashBytes, bytes.length );
+            return new DigestInputStream( new CopyingInputStream( inputStream, consumer ), messageDigest );
         }
         catch ( final NoSuchAlgorithmException e )
         {
@@ -204,6 +263,8 @@ public abstract class AbstractSecureService implements PwmService, SecureService
     )
             throws PwmUnrecoverableException
     {
+        stats.increment( StatKey.hashOperations );
+        stats.increment( StatKey.hashBytes, input.length );
         return SecureEngine.hash( input, defaultHashAlgorithm );
     }
 
@@ -213,7 +274,9 @@ public abstract class AbstractSecureService implements PwmService, SecureService
     )
             throws PwmUnrecoverableException
     {
-        return SecureEngine.hash( input, defaultHashAlgorithm );
+        stats.increment( StatKey.hashOperations );
+        final Consumer<byte[]> consumer = bytes -> stats.increment( StatKey.hashBytes, bytes.length );
+        return SecureEngine.hash( new CopyingInputStream( input, consumer ), defaultHashAlgorithm );
     }
 
     @Override
@@ -222,6 +285,8 @@ public abstract class AbstractSecureService implements PwmService, SecureService
     )
             throws IOException, PwmUnrecoverableException
     {
+        stats.increment( StatKey.hashOperations );
+        stats.increment( StatKey.hashBytes, file.length() );
         return SecureEngine.hash( file, defaultHashAlgorithm );
     }
 
@@ -239,4 +304,5 @@ public abstract class AbstractSecureService implements PwmService, SecureService
         final String hash = this.pwmSecurityKey.keyHash( this  );
         return new PwmSecurityKey( hash + appendage );
     }
+
 }

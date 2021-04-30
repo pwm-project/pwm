@@ -35,7 +35,7 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.password.RandomPasswordGenerator;
@@ -209,7 +209,7 @@ public class RestSetPasswordServer extends RestServlet
                     newPassword
             );
 
-            StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_SETPASSWORD );
+            StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_SETPASSWORD );
             final JsonInputData jsonResultData = new JsonInputData( targetUserIdentity.getUserIdentity().toDelimitedKey(), null, random );
             return RestResultBean.forSuccessMessage( jsonResultData, restRequest, Message.Success_PasswordChange );
         }

@@ -57,6 +57,7 @@ public enum Statistic
     HTTP_REQUESTS( "HttpRequests", null ),
     HTTP_RESOURCE_REQUESTS( "HttpResourceRequests", null ),
     HTTP_SESSIONS( "HttpSessions", null ),
+    HTTP_CLIENT_REQUESTS( "HttpClientRequests", null ),
     ACTIVATED_USERS( "ActivatedUsers", null ),
     NEW_USERS( "NewUsers", new ConfigSettingDetail( PwmSetting.NEWUSER_ENABLE ) ),
     GUESTS( "Guests", new ConfigSettingDetail( PwmSetting.GUEST_ENABLE ) ),

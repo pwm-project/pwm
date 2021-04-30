@@ -84,7 +84,8 @@ public class FileValue extends AbstractValue implements StoredValue
         public static FileContent fromEncodedString( final String input )
                 throws IOException
         {
-            return new FileContent( input );
+            final String whitespaceStripped = StringUtil.stripAllWhitespace( input );
+            return new FileContent( whitespaceStripped );
         }
 
         public static FileContent fromBytes( final ImmutableByteArray contents )

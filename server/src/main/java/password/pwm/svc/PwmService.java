@@ -26,6 +26,7 @@ import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
@@ -57,6 +58,10 @@ public interface PwmService
     List<HealthRecord> healthCheck( );
 
     ServiceInfoBean serviceInfo( );
+
+    DomainID getDomainID();
+
+    SessionLabel getSessionLabel();
 
     interface ServiceInfo
     {

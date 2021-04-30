@@ -22,6 +22,7 @@ package password.pwm.util.localdb;
 
 import password.pwm.PwmApplication;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
@@ -34,14 +35,15 @@ import java.util.Map;
 
 public class LocalDBService implements PwmService
 {
-    private PwmApplication pwmDomain;
+    private PwmApplication pwmApplication;
+    private DomainID domainID;
 
     @Override
     public STATUS status( )
     {
-        if ( pwmDomain != null
-                && pwmDomain.getLocalDB() != null
-                && pwmDomain.getLocalDB().status() == LocalDB.Status.OPEN )
+        if ( pwmApplication != null
+                && pwmApplication.getLocalDB() != null
+                && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN )
         {
             return STATUS.OPEN;
         }
@@ -52,7 +54,20 @@ public class LocalDBService implements PwmService
     @Override
     public void init( final PwmApplication pwmApplication, final DomainID domainID ) throws PwmException
     {
-        this.pwmDomain = pwmApplication;
+        this.pwmApplication = pwmApplication;
+        this.domainID = domainID;
+    }
+
+    @Override
+    public DomainID getDomainID()
+    {
+        return domainID;
+    }
+
+    @Override
+    public SessionLabel getSessionLabel()
+    {
+        return SessionLabel.forPwmService( this, getDomainID() );
     }
 
     @Override
@@ -73,7 +88,7 @@ public class LocalDBService implements PwmService
         final Map<String, String> returnInfo = new LinkedHashMap<>();
         if ( status() == STATUS.OPEN )
         {
-            final Map<String, Serializable> localDbInfo = pwmDomain.getLocalDB().debugInfo();
+            final Map<String, Serializable> localDbInfo = pwmApplication.getLocalDB().debugInfo();
             for ( final Map.Entry<String, Serializable> entry : localDbInfo.entrySet() )
             {
                 returnInfo.put( entry.getKey(), String.valueOf( entry.getValue() ) );

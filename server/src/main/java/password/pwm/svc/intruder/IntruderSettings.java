@@ -22,10 +22,13 @@ package password.pwm.svc.intruder;
 
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.config.AppConfig;
+import password.pwm.AppProperty;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IntruderStorageMethod;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.secure.PwmHashAlgorithm;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -36,23 +39,28 @@ import java.util.Map;
 @Builder
 public class IntruderSettings
 {
-    private final Map<IntruderRecordType, IntruderRecordTypeSettings> targetSettings;
+    private final Map<IntruderRecordType, TypeSettings> targetSettings;
     private final IntruderStorageMethod intruderStorageMethod;
+    private final PwmHashAlgorithm storageHashAlgorithm;
 
-    public static IntruderSettings fromConfiguration( final AppConfig config )
+    public static IntruderSettings fromConfiguration( final DomainConfig config )
     {
+        final PwmHashAlgorithm storageHashAlgorithm = JavaHelper.readEnumFromString( PwmHashAlgorithm.class, config.readAppProperty( AppProperty.INTRUDER_STORAGE_HASH_ALGORITHM ) )
+                .orElse( PwmHashAlgorithm.SHA256 );
+
         return IntruderSettings.builder()
                 .targetSettings( makeTypeSettings( config ) )
-                .intruderStorageMethod( config.readSettingAsEnum( PwmSetting.INTRUDER_STORAGE_METHOD, IntruderStorageMethod.class ) )
+                .intruderStorageMethod( config.getAppConfig().readSettingAsEnum( PwmSetting.INTRUDER_STORAGE_METHOD, IntruderStorageMethod.class ) )
+                .storageHashAlgorithm( storageHashAlgorithm )
                 .build();
     }
 
-    private static Map<IntruderRecordType, IntruderRecordTypeSettings> makeTypeSettings( final AppConfig config )
+    private static Map<IntruderRecordType, TypeSettings> makeTypeSettings( final DomainConfig config )
     {
-        final Map<IntruderRecordType, IntruderRecordTypeSettings> targetSettings = new EnumMap<>( IntruderRecordType.class );
+        final Map<IntruderRecordType, TypeSettings> targetSettings = new EnumMap<>( IntruderRecordType.class );
 
         {
-            final IntruderRecordTypeSettings settings = IntruderRecordTypeSettings.builder()
+            final TypeSettings settings = TypeSettings.builder()
                     .checkCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_USER_MAX_ATTEMPTS ) )
                     .resetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_USER_RESET_TIME ), TimeDuration.Unit.SECONDS ) )
                     .checkDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_USER_CHECK_TIME ), TimeDuration.Unit.SECONDS ) )
@@ -63,7 +71,7 @@ public class IntruderSettings
         }
 
         {
-            final IntruderRecordTypeSettings settings = IntruderRecordTypeSettings.builder()
+            final TypeSettings settings = TypeSettings.builder()
                     .checkCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_MAX_ATTEMPTS ) )
                     .resetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_RESET_TIME ), TimeDuration.Unit.MILLISECONDS ) )
                     .checkDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ATTRIBUTE_CHECK_TIME ), TimeDuration.Unit.MILLISECONDS ) )
@@ -72,7 +80,7 @@ public class IntruderSettings
             targetSettings.put( IntruderRecordType.ATTRIBUTE, settings );
         }
         {
-            final IntruderRecordTypeSettings settings = IntruderRecordTypeSettings.builder()
+            final TypeSettings settings = TypeSettings.builder()
                     .checkCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_MAX_ATTEMPTS ) )
                     .resetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_RESET_TIME ), TimeDuration.Unit.SECONDS ) )
                     .checkDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_TOKEN_DEST_CHECK_TIME ), TimeDuration.Unit.SECONDS ) )
@@ -81,7 +89,7 @@ public class IntruderSettings
             targetSettings.put( IntruderRecordType.TOKEN_DEST, settings );
         }
         {
-            final IntruderRecordTypeSettings settings = IntruderRecordTypeSettings.builder()
+            final TypeSettings settings = TypeSettings.builder()
                     .checkCount( ( int ) config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_MAX_ATTEMPTS ) )
                     .resetDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_RESET_TIME ), TimeDuration.Unit.SECONDS ) )
                     .checkDuration( TimeDuration.of( config.readSettingAsLong( PwmSetting.INTRUDER_ADDRESS_CHECK_TIME ), TimeDuration.Unit.SECONDS ) )
@@ -95,7 +103,7 @@ public class IntruderSettings
 
     @Value
     @Builder
-    public static class IntruderRecordTypeSettings implements Serializable
+    public static class TypeSettings implements Serializable
     {
         private TimeDuration checkDuration;
         private int checkCount;

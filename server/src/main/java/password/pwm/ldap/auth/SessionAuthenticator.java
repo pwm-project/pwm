@@ -28,8 +28,8 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
@@ -39,17 +39,17 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.UserSearchEngine;
-import password.pwm.svc.intruder.IntruderService;
+import password.pwm.svc.intruder.IntruderDomainService;
 import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -89,7 +89,7 @@ public class SessionAuthenticator
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
-        pwmDomain.getIntruderManager().check( IntruderRecordType.USERNAME, username );
+        pwmDomain.getIntruderService().check( IntruderRecordType.USERNAME, username );
         UserIdentity userIdentity = null;
         try
         {
@@ -193,7 +193,7 @@ public class SessionAuthenticator
     )
             throws ImpossiblePasswordPolicyException, PwmUnrecoverableException, PwmOperationalException
     {
-        pwmDomain.getIntruderManager().check( IntruderRecordType.USERNAME, username );
+        pwmDomain.getIntruderService().check( IntruderRecordType.USERNAME, username );
 
         UserIdentity userIdentity = null;
         try
@@ -340,10 +340,10 @@ public class SessionAuthenticator
     {
         LOGGER.error( sessionLabel, () -> "ldap error during search: " + exception.getMessage() );
 
-        final IntruderService intruderManager = pwmDomain.getIntruderManager();
+        final IntruderDomainService intruderManager = pwmDomain.getIntruderService();
         if ( intruderManager != null )
         {
-            intruderManager.convenience().markAddressAndSession( pwmRequest );
+            intruderManager.client().markAddressAndSession( pwmRequest );
 
             if ( username != null )
             {
@@ -352,7 +352,7 @@ public class SessionAuthenticator
 
             if ( userIdentity != null )
             {
-                intruderManager.convenience().markUserIdentity( userIdentity, sessionLabel );
+                intruderManager.client().markUserIdentity( userIdentity, sessionLabel );
             }
         }
     }
@@ -363,7 +363,7 @@ public class SessionAuthenticator
     )
             throws PwmUnrecoverableException
     {
-        final IntruderService intruderManager = pwmDomain.getIntruderManager();
+        final IntruderDomainService intruderManager = pwmDomain.getIntruderService();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         final LoginInfoBean loginInfoBean = pwmRequest.getPwmSession().getLoginInfoBean();
@@ -385,7 +385,7 @@ public class SessionAuthenticator
                         pwmRequest.getLabel(),
                         ssBean.getLocale(),
                         userIdentity,
-                        pwmDomain.getProxyChaiProvider( userIdentity.getLdapProfileID() )
+                        pwmDomain.getProxyChaiProvider( sessionLabel, userIdentity.getLdapProfileID() )
                 );
             }
             else
@@ -415,24 +415,20 @@ public class SessionAuthenticator
 
         //notify the intruder manager with a successful login
         intruderManager.clear( IntruderRecordType.USERNAME, pwmSession.getUserInfo().getUsername() );
-        intruderManager.convenience().clearUserIdentity( userIdentity );
-        intruderManager.convenience().clearAddressAndSession( pwmSession );
+        intruderManager.client().clearUserIdentity( userIdentity );
+        intruderManager.client().clearAddressAndSession( pwmSession );
 
-        if ( pwmDomain.getStatisticsManager() != null )
+        if ( pwmSession.getUserInfo().getPasswordStatus().isWarnPeriod() )
         {
-            final StatisticsManager statisticsManager = pwmDomain.getStatisticsManager();
-            if ( pwmSession.getUserInfo().getPasswordStatus().isWarnPeriod() )
-            {
-                statisticsManager.incrementValue( Statistic.AUTHENTICATION_EXPIRED_WARNING );
-            }
-            else if ( pwmSession.getUserInfo().getPasswordStatus().isPreExpired() )
-            {
-                statisticsManager.incrementValue( Statistic.AUTHENTICATION_PRE_EXPIRED );
-            }
-            else if ( pwmSession.getUserInfo().getPasswordStatus().isExpired() )
-            {
-                statisticsManager.incrementValue( Statistic.AUTHENTICATION_EXPIRED );
-            }
+            StatisticsClient.incrementStat( pwmRequest, Statistic.AUTHENTICATION_EXPIRED_WARNING );
+        }
+        else if ( pwmSession.getUserInfo().getPasswordStatus().isPreExpired() )
+        {
+            StatisticsClient.incrementStat( pwmRequest, Statistic.AUTHENTICATION_PRE_EXPIRED );
+        }
+        else if ( pwmSession.getUserInfo().getPasswordStatus().isExpired() )
+        {
+            StatisticsClient.incrementStat( pwmRequest, Statistic.AUTHENTICATION_EXPIRED );
         }
 
         //clear permission cache - needs rechecking after login

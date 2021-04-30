@@ -30,30 +30,39 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.DataStore;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 class IntruderDataStore implements IntruderRecordStore
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( IntruderDataStore.class );
-    private static final int MAX_REMOVALS_PER_CYCLE = 10 * 1000;
 
-    private final IntruderService intruderManager;
     private final DataStore dataStore;
+    private final Supplier<PwmService.STATUS> serviceStatus;
+    private final StatisticCounterBundle<DebugKeys> stats = new StatisticCounterBundle<>( DebugKeys.class );
+    private final PwmService intruderService;
 
-    private Instant eldestRecord = Instant.now();
+    private Instant eldestRecord;
 
-    IntruderDataStore( final DataStore dataStore, final IntruderService intruderManager )
+    IntruderDataStore( final PwmService intruderService, final DataStore dataStore, final Supplier<PwmService.STATUS> serviceStatus )
     {
+        this.intruderService = intruderService;
         this.dataStore = dataStore;
-        this.intruderManager = intruderManager;
+        this.serviceStatus = serviceStatus;
+    }
+
+    @Override
+    public StatisticCounterBundle<DebugKeys> getStats()
+    {
+        return stats;
     }
 
     @Override
@@ -65,6 +74,7 @@ class IntruderDataStore implements IntruderRecordStore
             return Optional.empty();
         }
 
+        stats.increment( DebugKeys.reads );
         final Optional<String> value;
         try
         {
@@ -72,12 +82,8 @@ class IntruderDataStore implements IntruderRecordStore
         }
         catch ( final PwmDataStoreException e )
         {
-            LOGGER.error( () -> "error reading stored intruder record: " + e.getMessage() );
-            if ( e.getError() == PwmError.ERROR_DB_UNAVAILABLE )
-            {
-                throw new PwmUnrecoverableException( e.getErrorInformation() );
-            }
-            return Optional.empty();
+            final String msg = "error reading stored intruder record: " + e.getMessage();
+            throw new PwmUnrecoverableException( new ErrorInformation( e.getError(), msg ) );
         }
 
         if ( value.isEmpty() )
@@ -91,24 +97,24 @@ class IntruderDataStore implements IntruderRecordStore
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error decoding IntruderRecord:" + e.getMessage() );
-        }
+            //read failed, try to delete record
+            try
+            {
+                dataStore.remove( key );
+            }
+            catch ( final PwmDataStoreException e2 )
+            {
+                LOGGER.error( intruderService.getSessionLabel(), e2.getErrorInformation() );
+            }
 
-        //read failed, try to delete record
-        try
-        {
-            dataStore.remove( key );
+            final String msg = "error reading stored intruder record: " + e.getMessage();
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
-        catch ( final PwmDataStoreException e )
-        {
-            /*noop*/
-        }
-
-        return Optional.empty();
     }
 
     @Override
-    public void write( final String key, final IntruderRecord record ) throws PwmOperationalException, PwmUnrecoverableException
+    public void write( final String key, final IntruderRecord record )
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         final String jsonRecord = JsonUtil.serialize( record );
         try
@@ -119,14 +125,16 @@ class IntruderDataStore implements IntruderRecordStore
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_LOCALDB_UNAVAILABLE, "error writing to LocalDB: " + e.getMessage() ) );
         }
+        stats.increment( DebugKeys.writes );
     }
 
     @Override
-    public ClosableIterator<IntruderRecord> iterator( ) throws PwmOperationalException, PwmUnrecoverableException
+    public ClosableIterator<IntruderRecord> iterator()
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         try
         {
-            return new RecordIterator( dataStore.iterator() );
+            return new RecordIterator( dataStore.iterator( ) );
         }
         catch ( final PwmDataStoreException e )
         {
@@ -137,25 +145,50 @@ class IntruderDataStore implements IntruderRecordStore
     private class RecordIterator implements ClosableIterator<IntruderRecord>
     {
         private final ClosableIterator<Map.Entry<String, String>> dbIterator;
+        private String currentKey;
+        private IntruderRecord currentRecord;
 
         private RecordIterator( final ClosableIterator<Map.Entry<String, String>> dbIterator )
         {
             this.dbIterator = dbIterator;
+            doNext();
         }
 
         @Override
         public boolean hasNext( )
         {
-            return dbIterator.hasNext();
+            return currentRecord != null;
         }
 
         @Override
         public IntruderRecord next( )
         {
-            final String key = dbIterator.next().getKey();
+            if ( currentRecord != null )
+            {
+                final IntruderRecord returnRecord = currentRecord;
+                doNext();
+                return returnRecord;
+            }
+
+            throw new NoSuchElementException();
+        }
+
+        private void doNext()
+        {
+            currentRecord = null;
+
             try
             {
-                return read( key ).orElse( null );
+                while ( dbIterator.hasNext() )
+                {
+                    currentKey = dbIterator.next().getKey();
+                    final Optional<IntruderRecord> record = read( currentKey );
+                    if ( record.isPresent() )
+                    {
+                        currentRecord = record.get();
+                        return;
+                    }
+                }
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -166,7 +199,14 @@ class IntruderDataStore implements IntruderRecordStore
         @Override
         public void remove( )
         {
-            throw new UnsupportedOperationException();
+            try
+            {
+                dataStore.remove( currentKey );
+            }
+            catch ( final PwmDataStoreException | PwmUnrecoverableException e )
+            {
+                throw new IllegalStateException( e );
+            }
         }
 
         @Override
@@ -180,74 +220,51 @@ class IntruderDataStore implements IntruderRecordStore
     @Override
     public void cleanup( final TimeDuration maxRecordAge )
     {
-        if ( TimeDuration.fromCurrent( eldestRecord ).isShorterThan( maxRecordAge ) )
+        if ( eldestRecord != null && TimeDuration.fromCurrent( eldestRecord ).isShorterThan( maxRecordAge ) )
         {
+            LOGGER.trace( intruderService.getSessionLabel(), () -> "skipping table cleanup: eldest record is younger than max age" );
             return;
         }
+
         eldestRecord = Instant.now();
 
+        stats.increment( DebugKeys.cleanupCycles );
         final Instant startTime = Instant.now();
-        final int recordsExamined = 0;
+
+        int recordsExamined = 0;
         int recordsRemoved = 0;
 
-        boolean complete = false;
-
-        while ( !complete && intruderManager.status() == PwmService.STATUS.OPEN )
+        try ( ClosableIterator<IntruderRecord> iterator = this.iterator( ) )
         {
+            while ( this.serviceStatus.get() == PwmService.STATUS.OPEN && iterator.hasNext() )
+            {
+                final IntruderRecord record = iterator.next();
+                stats.increment( DebugKeys.cleanupExamines );
+                recordsExamined++;
 
-            final List<String> recordsToRemove = discoverPurgableKeys( maxRecordAge );
-            if ( recordsToRemove.isEmpty() )
-            {
-                complete = true;
-            }
-            try
-            {
-                for ( final String key : recordsToRemove )
+                if ( TimeDuration.fromCurrent( record.getTimeStamp() ).isLongerThan( maxRecordAge ) )
                 {
-                    dataStore.remove( key );
+                    iterator.remove();
+                    stats.increment( DebugKeys.cleanupRemoves );
+                    recordsRemoved++;
+                }
+                if ( eldestRecord.compareTo( record.getTimeStamp() ) > 0 )
+                {
+                    eldestRecord = record.getTimeStamp();
                 }
             }
-            catch ( final PwmException e )
-            {
-                LOGGER.error( () -> "unable to perform removal of identified stale records: " + e.getMessage() );
-            }
-            recordsRemoved += recordsToRemove.size();
-            recordsToRemove.clear();
         }
+        catch ( final PwmException e )
+        {
+            LOGGER.error( intruderService.getSessionLabel(), () -> "unable to perform intruder table cleanup: " + e.getMessage() );
+        }
+
         {
             final int finalRemoved = recordsRemoved;
-            LOGGER.trace( () -> "completed cleanup of intruder table in "
+            final int finalExamined = recordsExamined;
+            LOGGER.trace( intruderService.getSessionLabel(), () -> "completed cleanup of intruder table in "
                     + TimeDuration.compactFromCurrent( startTime ) + ", recordsExamined="
-                    + recordsExamined + ", recordsRemoved=" + finalRemoved );
+                    + finalExamined + ", recordsRemoved=" + finalRemoved );
         }
-    }
-
-    private List<String> discoverPurgableKeys( final TimeDuration maxRecordAge )
-    {
-        final List<String> recordsToRemove = new ArrayList<>();
-        try ( ClosableIterator<Map.Entry<String, String>> dbIterator = dataStore.iterator() )
-        {
-            while ( intruderManager.status() == PwmService.STATUS.OPEN && dbIterator.hasNext() && recordsToRemove.size() < MAX_REMOVALS_PER_CYCLE )
-            {
-                final String key = dbIterator.next().getKey();
-                final Optional<IntruderRecord> record = read( key );
-                if ( record.isPresent() )
-                {
-                    if ( TimeDuration.fromCurrent( record.get().getTimeStamp() ).isLongerThan( maxRecordAge ) )
-                    {
-                        recordsToRemove.add( key );
-                    }
-                    if ( eldestRecord.compareTo( record.get().getTimeStamp() ) > 0 )
-                    {
-                        eldestRecord = record.get().getTimeStamp();
-                    }
-                }
-            }
-        }
-        catch ( final PwmDataStoreException | PwmUnrecoverableException e )
-        {
-            LOGGER.error( () -> "unable to perform intruder table cleanup: " + e.getMessage() );
-        }
-        return recordsToRemove;
     }
 }

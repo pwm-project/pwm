@@ -32,9 +32,9 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.i18n.Message;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.operations.OtpService;
-import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.svc.otp.OtpService;
+import password.pwm.svc.otp.OTPUserRecord;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
@@ -107,7 +107,7 @@ public class RestVerifyOtpServer extends RestServlet
                     false
             );
 
-            StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_VERIFYOTP );
+            StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_VERIFYOTP );
             return RestResultBean.forSuccessMessage( verified, restRequest, Message.Success_Unknown );
         }
         catch ( final ChaiUnavailableException e )

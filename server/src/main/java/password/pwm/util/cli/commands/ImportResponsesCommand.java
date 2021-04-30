@@ -27,6 +27,7 @@ import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
@@ -64,9 +65,9 @@ public class ImportResponsesCommand extends AbstractCliCommand
                 final RestChallengesServer.JsonChallengesData inputData;
                 inputData = JsonUtil.deserialize( line, RestChallengesServer.JsonChallengesData.class );
 
-                final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( inputData.username );
+                final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( SessionLabel.CLI_SESSION_LABEL, inputData.username );
                 final PwmDomain pwmDomain = figureDomain( userIdentity, pwmApplication );
-                final ChaiUser user = pwmDomain.getProxiedChaiUser( userIdentity );
+                final ChaiUser user = pwmDomain.getProxiedChaiUser( SessionLabel.CLI_SESSION_LABEL, userIdentity );
                 if ( user.exists() )
                 {
                     out( "writing responses to user '" + user.getEntryDN() + "'" );

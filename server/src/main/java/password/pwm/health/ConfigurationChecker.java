@@ -20,6 +20,7 @@
 
 package password.pwm.health;
 
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -27,6 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
@@ -61,11 +63,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -74,9 +78,9 @@ public class ConfigurationChecker implements HealthSupplier
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigurationChecker.class );
 
-    private static final List<Class<? extends ConfigHealthCheck>> ALL_CHECKS = List.of(
+    private static final List<Class<? extends ConfigDomainHealthCheck>> DOMAIN_CHECKS = List.of(
             VerifyNewUserPasswordPolicy.class,
-            VerifyBasicConfigs.class,
+            VerifyBasicDomainConfigs.class,
             VerifyPasswordStrengthLevels.class,
             VerifyPasswordPolicyConfigs.class,
             VerifyResponseLdapAttribute.class,
@@ -87,27 +91,77 @@ public class ConfigurationChecker implements HealthSupplier
             VerifyPasswordWaitTimes.class,
             VerifyUserPermissionSettings.class );
 
+    private static final List<Class<? extends ConfigSystemHealthCheck>> SYSTEM_CHECKS = List.of(
+            VerifyBasicSystemConfigs.class,
+            VerifyDbConfiguredIfNeededSystem.class );
+
     @Override
-    public List<Supplier<List<HealthRecord>>> jobs( final PwmApplication pwmApplication )
+    public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplier.HealthSupplierRequest request )
     {
+        final PwmApplication pwmApplication = request.getPwmApplication();
+        final SessionLabel sessionLabel = request.getSessionLabel();
+
+        if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.HIDE_CONFIGURATION_HEALTH_WARNINGS ) )
+        {
+            return Collections.emptyList();
+        }
+
         final List<Supplier<List<HealthRecord>>> suppliers = new ArrayList<>();
         suppliers.add( () -> checkAppMode( pwmApplication ) );
         for ( final PwmDomain domain : pwmApplication.domains().values() )
         {
-            final Supplier<List<HealthRecord>> supplier = () -> allChecks( domain.getConfig(), PwmConstants.DEFAULT_LOCALE );
-            suppliers.add( supplier );
+            suppliers.add( () -> allDomainChecks( sessionLabel, domain.getConfig(), PwmConstants.DEFAULT_LOCALE ) );
         }
+        suppliers.add( () -> allSystemChecks( sessionLabel, pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE ) );
         return suppliers;
     }
 
-    public List<HealthRecord> doHealthCheck( final AppConfig appConfig, final Locale locale )
+    public List<HealthRecord> doHealthCheck( final PwmApplication tempApp, final SessionLabel sessionLabel )
     {
-        final List<HealthRecord> healthRecords = new ArrayList<>();
-        for ( final DomainConfig domain : appConfig.getDomainConfigs().values() )
+        final HealthSupplier.HealthSupplierRequest request = new HealthSupplierRequest( tempApp, sessionLabel );
+        return jobs( request ).stream().map( Supplier::get ).flatMap( Collection::stream ).collect( Collectors.toList() );
+    }
+
+    private List<HealthRecord> allDomainChecks( final SessionLabel sessionLabel, final DomainConfig config, final Locale locale )
+    {
+        final List<HealthRecord> records = new ArrayList<>();
+        for ( final Class<? extends ConfigDomainHealthCheck> clazz : DOMAIN_CHECKS )
         {
-           healthRecords.addAll( allChecks( domain, locale ) );
+            final ConfigDomainHealthCheck healthCheckClass;
+            try
+            {
+                healthCheckClass = clazz.getDeclaredConstructor().newInstance();
+                records.addAll( healthCheckClass.healthCheck( new DomainHealthCheckRequest( config, locale, sessionLabel ) ) );
+            }
+            catch ( final Exception e )
+            {
+                LOGGER.error( () -> "unexpected error during health check operation for class " + clazz.toString() + ", error:" + e.getMessage(), e );
+            }
         }
-        return Collections.unmodifiableList( healthRecords );
+        return Collections.unmodifiableList( records );
+    }
+
+    private List<HealthRecord> allSystemChecks(
+            final SessionLabel sessionLabel,
+            final AppConfig config,
+            final Locale locale
+    )
+    {
+        final List<HealthRecord> records = new ArrayList<>();
+        for ( final Class<? extends ConfigSystemHealthCheck> clazz : SYSTEM_CHECKS )
+        {
+            final ConfigSystemHealthCheck healthCheckClass;
+            try
+            {
+                healthCheckClass = clazz.getDeclaredConstructor().newInstance();
+                records.addAll( healthCheckClass.healthCheck( new SystemHealthCheckRequest( config, locale, sessionLabel ) ) );
+            }
+            catch ( final Exception e )
+            {
+                LOGGER.error( () -> "unexpected error during health check operation for class " + clazz.toString() + ", error:" + e.getMessage(), e );
+            }
+        }
+        return Collections.unmodifiableList( records );
     }
 
     private List<HealthRecord> checkAppMode( final PwmApplication pwmApplication )
@@ -123,59 +177,30 @@ public class ConfigurationChecker implements HealthSupplier
         return Collections.unmodifiableList( records );
     }
 
-    private List<HealthRecord> allChecks(
-            final DomainConfig config,
-            final Locale locale
-    )
-    {
-        if ( config.readSettingAsBoolean( PwmSetting.HIDE_CONFIGURATION_HEALTH_WARNINGS ) )
-        {
-            return Collections.emptyList();
-        }
-
-        final List<HealthRecord> records = new ArrayList<>();
-        for ( final Class<? extends ConfigHealthCheck> clazz : ALL_CHECKS )
-        {
-            final ConfigHealthCheck healthCheckClass;
-            try
-            {
-                healthCheckClass = clazz.getDeclaredConstructor().newInstance();
-                records.addAll( healthCheckClass.healthCheck( config, locale ) );
-            }
-            catch ( final Exception e )
-            {
-                LOGGER.error( () -> "unexpected error during health check operation for class " + clazz.toString() + ", error:" + e.getMessage(), e );
-            }
-        }
-        return Collections.unmodifiableList( records );
-    }
-
-    static class VerifyNewUserPasswordPolicy implements ConfigHealthCheck
+    static class VerifyNewUserPasswordPolicy implements ConfigDomainHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final DomainConfig domainConfig, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainHealthCheckRequest domainHealthCheckRequest )
         {
+            final DomainConfig config = domainHealthCheckRequest.getDomainConfig();
             final List<HealthRecord> records = new ArrayList<>();
 
-            if ( domainConfig.readSettingAsBoolean( PwmSetting.NEWUSER_ENABLE ) )
+            if ( config.readSettingAsBoolean( PwmSetting.NEWUSER_ENABLE ) )
             {
-
-
-
-                for ( final NewUserProfile newUserProfile : domainConfig.getNewUserProfiles().values() )
+                for ( final NewUserProfile newUserProfile : config.getNewUserProfiles().values() )
                 {
                     try
                     {
                         final PwmApplication tempApplication = PwmApplication.createPwmApplication( PwmEnvironment.builder().build()
-                                .makeRuntimeInstance( domainConfig.getAppConfig() ) );
+                                .makeRuntimeInstance( config.getAppConfig() ) );
                         final PwmDomain tempDomain = tempApplication.domains().get( ConfigGuideForm.DOMAIN_ID );
 
-                        newUserProfile.getNewUserPasswordPolicy( tempDomain, PwmConstants.DEFAULT_LOCALE );
+                        newUserProfile.getNewUserPasswordPolicy( domainHealthCheckRequest.getSessionLabel(), tempDomain, PwmConstants.DEFAULT_LOCALE );
                     }
                     catch ( final PwmUnrecoverableException e )
                     {
                         records.add( HealthRecord.forMessage(
-                                domainConfig.getDomainID(),
+                                config.getDomainID(),
                                 HealthMessage.NewUser_PwTemplateBad,
                                 PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( newUserProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE ),
                                 e.getMessage() ) );
@@ -184,20 +209,50 @@ public class ConfigurationChecker implements HealthSupplier
             }
 
             return Collections.unmodifiableList( records );
-
         }
     }
 
-
-
-    static class VerifyBasicConfigs implements ConfigHealthCheck
+    static class VerifyBasicSystemConfigs implements ConfigSystemHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
+        public List<HealthRecord> healthCheck( final SystemHealthCheckRequest systemHealthCheckRequest )
         {
+            final AppConfig config = systemHealthCheckRequest.getDomainConfig();
+            final Locale locale = systemHealthCheckRequest.getLocale();
+
+            final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
+            final List<HealthRecord> records = new ArrayList<>();
+
+            if ( Boolean.parseBoolean( config.readAppProperty( AppProperty.LDAP_PROMISCUOUS_ENABLE ) ) )
+            {
+                final String appPropertyKey = "AppProperty" + separator + AppProperty.LDAP_PROMISCUOUS_ENABLE.getKey();
+                records.add( HealthRecord.forMessage(
+                        DomainID.systemId(),
+                        HealthMessage.Config_PromiscuousLDAP,
+                        appPropertyKey ) );
+            }
+
+            if ( config.readSettingAsBoolean( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS ) )
+            {
+                records.add( HealthRecord.forMessage(
+                        DomainID.systemId(),
+                        HealthMessage.Config_ShowDetailedErrors,
+                        PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.toMenuLocationDebug( null, locale ) ) );
+            }
+            return Collections.unmodifiableList( records );
+        }
+    }
+
+    static class VerifyBasicDomainConfigs implements ConfigDomainHealthCheck
+    {
+        @Override
+        public List<HealthRecord> healthCheck( final DomainHealthCheckRequest domainHealthCheckRequest )
+        {
+            final DomainConfig config = domainHealthCheckRequest.getDomainConfig();
+            final Locale locale = domainHealthCheckRequest.getLocale();
+
             final List<HealthRecord> records = new ArrayList<>();
             final String siteUrl = config.getAppConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
-            final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
 
             if ( siteUrl == null || siteUrl.isEmpty() || siteUrl.equals(
                     PwmSetting.PWM_SITE_URL.getDefaultValue( config.getTemplate() ).toNativeObject() ) )
@@ -214,23 +269,6 @@ public class ConfigurationChecker implements HealthSupplier
                         config.getDomainID(),
                         HealthMessage.Config_LDAPWireTrace,
                         PwmSetting.LDAP_ENABLE_WIRE_TRACE.toMenuLocationDebug( null, locale ) ) );
-            }
-
-            if ( Boolean.parseBoolean( config.readAppProperty( AppProperty.LDAP_PROMISCUOUS_ENABLE ) ) )
-            {
-                final String appPropertyKey = "AppProperty" + separator + AppProperty.LDAP_PROMISCUOUS_ENABLE.getKey();
-                records.add( HealthRecord.forMessage(
-                        config.getDomainID(),
-                        HealthMessage.Config_PromiscuousLDAP,
-                        appPropertyKey ) );
-            }
-
-            if ( config.getAppConfig().readSettingAsBoolean( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS ) )
-            {
-                records.add( HealthRecord.forMessage(
-                        config.getDomainID(),
-                        HealthMessage.Config_ShowDetailedErrors,
-                        PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.toMenuLocationDebug( null, locale ) ) );
             }
 
             if ( config.getLdapProfiles().isEmpty() )
@@ -291,11 +329,12 @@ public class ConfigurationChecker implements HealthSupplier
         }
     }
 
-    static class VerifyPasswordStrengthLevels implements ConfigHealthCheck
+    static class VerifyPasswordStrengthLevels implements ConfigDomainHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainHealthCheckRequest domainHealthCheckRequest )
         {
+            final DomainConfig config = domainHealthCheckRequest.getDomainConfig();
             final List<HealthRecord> records = new ArrayList<>();
 
             final List<StoredConfigKey> interestedKeys = CollectionUtil.iteratorToStream( config.getStoredConfiguration().keys() )
@@ -303,62 +342,71 @@ public class ConfigurationChecker implements HealthSupplier
                     .filter( key -> key.toPwmSetting().getSyntax() == PwmSettingSyntax.PASSWORD )
                     .collect( Collectors.toList() );
 
-            try
+            for ( final StoredConfigKey key : interestedKeys )
             {
-                for ( final StoredConfigKey key : interestedKeys )
+                try
                 {
-                    final PwmSetting pwmSetting = key.toPwmSetting();
-                    final StoredValue storedValue = config.getStoredConfiguration().readStoredValue( key ).orElseThrow();
-                    final PasswordData passwordValue = ValueTypeConverter.valueToPassword( storedValue );
-                    if ( passwordValue != null )
-                    {
-                        final String stringValue = passwordValue.getStringValue();
-
-                        if ( StringUtil.notEmpty( stringValue ) )
-                        {
-                            final int strength = PasswordUtility.judgePasswordStrength( config, stringValue );
-                            if ( strength < 50 )
-                            {
-                                records.add( HealthRecord.forMessage(
-                                        config.getDomainID(),
-                                        HealthMessage.Config_WeakPassword,
-                                        pwmSetting.toMenuLocationDebug( key.getProfileID(), locale ), String.valueOf( strength ) ) );
-                            }
-                        }
-                    }
+                    checkKey( domainHealthCheckRequest, key ).ifPresent( records::add );
                 }
-            }
-            catch ( final PwmUnrecoverableException e )
-            {
-                LOGGER.error( () -> "unexpected error examining password strength of configuration: " );
+                catch ( final PwmUnrecoverableException e )
+                {
+                    LOGGER.error( () -> "unexpected error examining password strength of configuration: " );
+                }
             }
 
             return Collections.unmodifiableList( records );
         }
+
+        private Optional<HealthRecord> checkKey( final DomainHealthCheckRequest domainHealthCheckRequest, final StoredConfigKey key )
+                throws PwmUnrecoverableException
+        {
+            final StoredConfiguration config = domainHealthCheckRequest.getDomainConfig().getStoredConfiguration();
+            final PwmSetting pwmSetting = key.toPwmSetting();
+            final StoredValue storedValue = config.readStoredValue( key ).orElseThrow();
+            final PasswordData passwordValue = ValueTypeConverter.valueToPassword( storedValue );
+
+            if ( passwordValue != null )
+            {
+                final String stringValue = passwordValue.getStringValue();
+
+                if ( StringUtil.notEmpty( stringValue ) )
+                {
+                    final int strength = PasswordUtility.judgePasswordStrength( domainHealthCheckRequest.getDomainConfig(), stringValue );
+                    if ( strength < 50 )
+                    {
+                        return Optional.of( HealthRecord.forMessage(
+                                domainHealthCheckRequest.getDomainConfig().getDomainID(),
+                                HealthMessage.Config_WeakPassword,
+                                pwmSetting.toMenuLocationDebug( key.getProfileID(), domainHealthCheckRequest.getLocale() ), String.valueOf( strength ) ) );
+                    }
+                }
+            }
+
+            return Optional.empty();
+        }
     }
 
-    static class VerifyResponseLdapAttribute implements ConfigHealthCheck
+    static class VerifyResponseLdapAttribute implements ConfigDomainHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck(
-                final DomainConfig config,
-                final Locale locale
-        )
+        public List<HealthRecord> healthCheck( final DomainHealthCheckRequest domainHealthCheckRequest )
         {
+            final DomainConfig config = domainHealthCheckRequest.getDomainConfig();
+            final Locale locale = domainHealthCheckRequest.getLocale();
+
             final List<HealthRecord> records = new ArrayList<>();
-            final PwmSetting[] interestedSettings = new PwmSetting[]
-                    {
+            final List<PwmSetting> interestedSettings = List.of(
                             PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE,
-                            PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE,
-                    };
+                            PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE );
+
             for ( final PwmSetting loopSetting : interestedSettings )
             {
-                if ( config.getResponseStorageLocations( loopSetting ).contains( DataStorageMethod.LDAP ) )
+                if ( config.readGenericStorageLocations( loopSetting ).contains( DataStorageMethod.LDAP ) )
                 {
                     for ( final LdapProfile ldapProfile : config.getLdapProfiles().values() )
                     {
                         final String responseAttr = ldapProfile.readSettingAsString( PwmSetting.CHALLENGE_USER_ATTRIBUTE );
-                        final boolean hasResponseAttribute = responseAttr != null && !responseAttr.isEmpty();
+                        final boolean hasResponseAttribute = StringUtil.notEmpty( responseAttr );
                         if ( !hasResponseAttribute )
                         {
                             records.add( HealthRecord.forMessage(
@@ -375,11 +423,14 @@ public class ConfigurationChecker implements HealthSupplier
         }
     }
 
-    static class VerifyDbConfiguredIfNeeded implements ConfigHealthCheck
+    static class VerifyDbConfiguredIfNeeded implements ConfigDomainHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainHealthCheckRequest domainHealthCheckRequest )
         {
+            final DomainConfig config = domainHealthCheckRequest.getDomainConfig();
+            final Locale locale = domainHealthCheckRequest.getLocale();
+
             final List<HealthRecord> records = new ArrayList<>();
             if ( !config.getAppConfig().hasDbConfigured() )
             {
@@ -388,12 +439,11 @@ public class ConfigurationChecker implements HealthSupplier
                     final List<PwmSetting> settingsToCheck = List.of(
                             PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE,
                             PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE,
-                            PwmSetting.INTRUDER_STORAGE_METHOD,
                             PwmSetting.EVENTS_USER_STORAGE_METHOD );
 
                     for ( final PwmSetting loopSetting : settingsToCheck )
                     {
-                        if ( config.getResponseStorageLocations( loopSetting ).contains( DataStorageMethod.DB ) )
+                        if ( config.readGenericStorageLocations( loopSetting ).contains( DataStorageMethod.DB ) )
                         {
                             causalSettings.add( loopSetting );
                         }
@@ -414,7 +464,7 @@ public class ConfigurationChecker implements HealthSupplier
                 }
             }
 
-            if ( config.getResponseStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE ).contains( DataStorageMethod.LOCALDB ) )
+            if ( config.readGenericStorageLocations( PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE ).contains( DataStorageMethod.LOCALDB ) )
             {
                 records.add( HealthRecord.forMessage(
                         config.getDomainID(),
@@ -422,7 +472,7 @@ public class ConfigurationChecker implements HealthSupplier
                         PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE.toMenuLocationDebug( null, locale ) ) );
             }
 
-            if ( config.getOtpSecretStorageLocations( PwmSetting.OTP_SECRET_WRITE_PREFERENCE ).contains( DataStorageMethod.LOCALDB ) )
+            if ( config.readGenericStorageLocations( PwmSetting.OTP_SECRET_WRITE_PREFERENCE ).contains( DataStorageMethod.LOCALDB ) )
             {
                 records.add( HealthRecord.forMessage(
                         config.getDomainID(),
@@ -434,11 +484,52 @@ public class ConfigurationChecker implements HealthSupplier
         }
     }
 
-    static class VerifyPasswordPolicyConfigs implements ConfigHealthCheck
+    static class VerifyDbConfiguredIfNeededSystem implements ConfigSystemHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
+        public List<HealthRecord> healthCheck( final SystemHealthCheckRequest systemHealthCheckRequest )
         {
+            final AppConfig config = systemHealthCheckRequest.getDomainConfig();
+            final Locale locale = systemHealthCheckRequest.getLocale();
+            final List<HealthRecord> records = new ArrayList<>();
+            if ( !config.hasDbConfigured() )
+            {
+                final Set<PwmSetting> causalSettings = new LinkedHashSet<>();
+                {
+                    final List<PwmSetting> settingsToCheck = List.of(
+                            PwmSetting.INTRUDER_STORAGE_METHOD  );
+
+                    for ( final PwmSetting loopSetting : settingsToCheck )
+                    {
+                        if ( config.readGenericStorageLocations( loopSetting ).contains( DataStorageMethod.DB ) )
+                        {
+                            causalSettings.add( loopSetting );
+                        }
+                    }
+                }
+
+
+                for ( final PwmSetting setting : causalSettings )
+                {
+                    records.add( HealthRecord.forMessage(
+                            DomainID.systemId(),
+                            HealthMessage.Config_MissingDB,
+                            setting.toMenuLocationDebug( null, locale ) ) );
+                }
+            }
+
+            return records;
+        }
+    }
+
+    static class VerifyPasswordPolicyConfigs implements ConfigDomainHealthCheck
+    {
+        @Override
+        public List<HealthRecord> healthCheck( final DomainHealthCheckRequest domainHealthCheckRequest )
+        {
+            final DomainConfig config = domainHealthCheckRequest.getDomainConfig();
+            final Locale locale = domainHealthCheckRequest.getLocale();
+
             final List<HealthRecord> records = new ArrayList<>();
             for ( final String profileID : config.getPasswordProfileIDs() )
             {
@@ -456,11 +547,14 @@ public class ConfigurationChecker implements HealthSupplier
         }
     }
 
-    static class VerifyNewUserLdapProfile implements ConfigHealthCheck
+    static class VerifyNewUserLdapProfile implements ConfigDomainHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainHealthCheckRequest domainHealthCheckRequest )
         {
+            final DomainConfig config = domainHealthCheckRequest.getDomainConfig();
+            final Locale locale = domainHealthCheckRequest.getLocale();
+
             final List<HealthRecord> records = new ArrayList<>();
             for ( final NewUserProfile newUserProfile : config.getNewUserProfiles().values() )
             {
@@ -482,11 +576,14 @@ public class ConfigurationChecker implements HealthSupplier
         }
     }
 
-    static class VerifyIfDeprecatedJsFormOptionUsed implements ConfigHealthCheck
+    static class VerifyIfDeprecatedJsFormOptionUsed implements ConfigDomainHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainHealthCheckRequest domainHealthCheckRequest )
         {
+            final DomainConfig config = domainHealthCheckRequest.getDomainConfig();
+            final Locale locale = domainHealthCheckRequest.getLocale();
+
             final List<HealthRecord> records = new ArrayList<>();
 
             final List<StoredConfigKey> interestedKeys = CollectionUtil.iteratorToStream( config.getStoredConfiguration().keys() )
@@ -517,11 +614,14 @@ public class ConfigurationChecker implements HealthSupplier
         }
     }
 
-    static class VerifyIfDeprecatedSendMethodValuesUsed implements ConfigHealthCheck
+    static class VerifyIfDeprecatedSendMethodValuesUsed implements ConfigDomainHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainHealthCheckRequest domainHealthCheckRequest )
         {
+            final DomainConfig config = domainHealthCheckRequest.getDomainConfig();
+            final Locale locale = domainHealthCheckRequest.getLocale();
+
             final Set<MessageSendMethod> deprecatedMethods = Arrays
                     .stream( MessageSendMethod.values() )
                     .filter( MessageSendMethod::isDeprecated )
@@ -605,11 +705,14 @@ public class ConfigurationChecker implements HealthSupplier
         }
     }
 
-    static class VerifyPasswordWaitTimes implements ConfigHealthCheck
+    static class VerifyPasswordWaitTimes implements ConfigDomainHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainHealthCheckRequest domainHealthCheckRequest )
         {
+            final DomainConfig config = domainHealthCheckRequest.getDomainConfig();
+            final Locale locale = domainHealthCheckRequest.getLocale();
+
             final List<HealthRecord> records = new ArrayList<>();
 
             for ( final ChangePasswordProfile changePasswordProfile : config.getChangePasswordProfile().values() )
@@ -637,11 +740,14 @@ public class ConfigurationChecker implements HealthSupplier
 
 
 
-    static class VerifyUserPermissionSettings implements ConfigHealthCheck
+    static class VerifyUserPermissionSettings implements ConfigDomainHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final DomainConfig config, final Locale locale )
+        public List<HealthRecord> healthCheck( final DomainHealthCheckRequest domainHealthCheckRequest )
         {
+            final DomainConfig config = domainHealthCheckRequest.getDomainConfig();
+            final Locale locale = domainHealthCheckRequest.getLocale();
+
             final List<HealthRecord> records = new ArrayList<>();
             final StoredConfiguration storedConfiguration = config.getStoredConfiguration();
             final List<StoredConfigKey> interestedKeys = CollectionUtil.iteratorToStream( config.getStoredConfiguration().keys() )
@@ -713,10 +819,29 @@ public class ConfigurationChecker implements HealthSupplier
         }
     }
 
-    interface ConfigHealthCheck
+    @Value
+    static class DomainHealthCheckRequest
     {
-        List<HealthRecord> healthCheck(
-                DomainConfig domainConfig,
-                Locale locale );
+        private final DomainConfig domainConfig;
+        private final Locale locale;
+        private final SessionLabel sessionLabel;
+    }
+
+    interface ConfigDomainHealthCheck
+    {
+        List<HealthRecord> healthCheck( DomainHealthCheckRequest domainHealthCheckRequest );
+    }
+
+    @Value
+    static class SystemHealthCheckRequest
+    {
+        private final AppConfig domainConfig;
+        private final Locale locale;
+        private final SessionLabel sessionLabel;
+    }
+
+    interface ConfigSystemHealthCheck
+    {
+        List<HealthRecord> healthCheck( SystemHealthCheckRequest systemHealthCheckRequest );
     }
 }

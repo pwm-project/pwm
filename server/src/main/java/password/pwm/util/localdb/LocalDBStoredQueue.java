@@ -1137,7 +1137,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
 
                 final AtomicInteger examinedRecords = new AtomicInteger( 0 );
 
-                final ConditionalTaskExecutor conditionalTaskExecutor = new ConditionalTaskExecutor( () ->
+                final Runnable checkPointProcess = () ->
                 {
                     try
                     {
@@ -1150,11 +1150,14 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
                     }
                     catch ( final Exception e )
                     {
-                        LOGGER.error( () -> "unexpected error during output of debug message during stored queue repair operation: " + e.getMessage(), e );
+                        LOGGER.error( () -> "unexpected error during output of debug message during stored queue repair operation: "
+                                + e.getMessage(), e );
                     }
-                },
-                        new ConditionalTaskExecutor.TimeDurationPredicate( TimeDuration.SECONDS_10 )
-                );
+                };
+
+                final ConditionalTaskExecutor conditionalTaskExecutor = ConditionalTaskExecutor.forPeriodicTask(
+                        checkPointProcess,
+                        TimeDuration.SECONDS_10 );
 
                 // trim the top.
                 while ( !headPosition.equals( tailPosition ) && localDB.get( db, headPosition.key() ) == null )

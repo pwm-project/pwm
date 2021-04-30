@@ -21,7 +21,7 @@
 package password.pwm.util.cli.commands;
 
 import password.pwm.PwmApplication;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.TimeDuration;
 
@@ -38,7 +38,7 @@ public class ExportStatsCommand extends AbstractCliCommand
             throws Exception
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
-        final StatisticsManager statsManger = pwmApplication.getStatisticsManager();
+        final StatisticsService statsManger = pwmApplication.getStatisticsManager();
 
         final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
         final long startTime = System.currentTimeMillis();

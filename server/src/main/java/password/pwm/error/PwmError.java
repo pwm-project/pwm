@@ -146,11 +146,11 @@ public enum PwmError
     ERROR_MISSING_PARAMETER(
             5013, "Error_MissingParameter", Collections.emptySet() ),
     ERROR_INTERNAL(
-            5015, "Error_Internal", null, ErrorFlag.ForceLogout ),
+            5015, "Error_Internal", null ),
     ERROR_CANT_MATCH_USER(
             5016, "Error_CantMatchUser", Collections.emptySet() ),
     ERROR_DIRECTORY_UNAVAILABLE(
-            5017, "Error_DirectoryUnavailable", null, ErrorFlag.ForceLogout ),
+            5017, "Error_DirectoryUnavailable", null ),
     ERROR_ACTIVATION_VALIDATIONFAIL(
             5018, "Error_ActivationValidationFailed", Collections.emptySet() ),
     ERROR_SERVICE_NOT_AVAILABLE(
@@ -184,7 +184,7 @@ public enum PwmError
     ERROR_INVALID_CONFIG(
             5033, "Error_InvalidConfig", Collections.emptySet() ),
     ERROR_INVALID_FORMID(
-            5034, "Error_InvalidFormID", Collections.emptySet() ),
+            5034, "Error_InvalidFormID", Collections.emptySet(), ErrorFlag.Trivial ),
     ERROR_INCORRECT_REQ_SEQUENCE(
             5035, "Error_IncorrectRequestSequence", Collections.emptySet() ),
     ERROR_TOKEN_MISSING_CONTACT(
@@ -310,6 +310,8 @@ public enum PwmError
             6000, "Error_RemoteErrorValue", Collections.emptySet(), ErrorFlag.Permanent ),
     ERROR_TELEMETRY_SEND_ERROR(
             6001, "Error_TelemetrySendError", Collections.emptySet() ),
+    ERROR_HTTP_CLIENT(
+            6002, "Error_HttpError", Collections.emptySet() ),
 
     ERROR_FIELD_REQUIRED(
             5100, "Error_FieldRequired", Collections.emptySet() ),
@@ -351,17 +353,17 @@ public enum PwmError
 
     /* End of list*/;
 
-    enum ErrorFlag
+    private enum ErrorFlag
     {
         Permanent,
-        ForceLogout,
+        Trivial,
     }
 
     private final int errorCode;
     private final String resourceKey;
     private final Set<ChaiError> chaiErrorCode;
     private final boolean errorIsPermanent;
-    private final boolean forceLogout;
+    private final boolean trivial;
 
     PwmError(
             final int errorCode,
@@ -373,9 +375,8 @@ public enum PwmError
         this.resourceKey = resourceKey;
         this.errorCode = errorCode;
         this.errorIsPermanent = JavaHelper.enumArrayContainsValue( errorFlags, ErrorFlag.Permanent );
-        this.forceLogout = JavaHelper.enumArrayContainsValue( errorFlags, ErrorFlag.ForceLogout );
+        this.trivial = JavaHelper.enumArrayContainsValue( errorFlags, ErrorFlag.Trivial );
         this.chaiErrorCode = chaiErrorCode == null ? Collections.emptySet() : Set.copyOf( chaiErrorCode );
-
     }
 
     public String getLocalizedMessage( final Locale locale, final SettingReader config, final String... fieldValue )
@@ -420,9 +421,9 @@ public enum PwmError
         return null;
     }
 
-    private boolean isForceLogout( )
+    public boolean isTrivial()
     {
-        return forceLogout;
+        return trivial;
     }
 
     public boolean isErrorIsPermanent( )

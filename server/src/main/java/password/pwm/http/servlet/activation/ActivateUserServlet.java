@@ -54,6 +54,7 @@ import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
@@ -242,7 +243,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
                     ssBean.getLocale() );
 
             // check for intruders
-            pwmDomain.getIntruderManager().convenience().checkAttributes( formValues );
+            pwmDomain.getIntruderService().client().checkAttributes( formValues );
 
             // read the context attr
             final String contextParam = pwmRequest.readParameterAsString( PwmConstants.PARAM_CONTEXT );
@@ -272,13 +273,13 @@ public class ActivateUserServlet extends ControlledPwmServlet
             ActivateUserUtils.validateParamsAgainstLDAP( pwmRequest, formValues, userIdentity );
 
             ActivateUserUtils.initUserActivationBean( pwmRequest, userIdentity );
-            pwmDomain.getIntruderManager().convenience().clearAttributes( formValues );
-            pwmDomain.getIntruderManager().convenience().clearAddressAndSession( pwmSession );
+            pwmDomain.getIntruderService().client().clearAttributes( formValues );
+            pwmDomain.getIntruderService().client().clearAddressAndSession( pwmSession );
         }
         catch ( final PwmOperationalException e )
         {
-            pwmDomain.getIntruderManager().convenience().markAttributes( formValues, pwmRequest.getLabel() );
-            pwmDomain.getIntruderManager().convenience().markAddressAndSession( pwmRequest );
+            pwmDomain.getIntruderService().client().markAttributes( formValues, pwmRequest.getLabel() );
+            pwmDomain.getIntruderService().client().markAddressAndSession( pwmRequest );
             setLastError( pwmRequest, e.getErrorInformation() );
             LOGGER.debug( pwmRequest, e.getErrorInformation() );
         }
@@ -383,13 +384,14 @@ public class ActivateUserServlet extends ControlledPwmServlet
         if ( !activateUserBean.isAgreementPassed() )
         {
             activateUserBean.setAgreementPassed( true );
-            final AuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createUserAuditRecord(
+            final AuditRecord auditRecord = AuditRecordFactory.make( pwmRequest ).createUserAuditRecord(
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getLabel(),
                     "ActivateUser"
             );
-            pwmRequest.getPwmDomain().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+
+            AuditServiceClient.submit( pwmRequest, auditRecord );
         }
 
         return ProcessStatus.Continue;
@@ -476,8 +478,8 @@ public class ActivateUserServlet extends ControlledPwmServlet
         catch ( final PwmOperationalException e )
         {
             LOGGER.debug( pwmRequest, e.getErrorInformation() );
-            pwmDomain.getIntruderManager().convenience().markUserIdentity( activateUserBean.getUserIdentity(), pwmRequest );
-            pwmDomain.getIntruderManager().convenience().markAddressAndSession( pwmRequest );
+            pwmDomain.getIntruderService().client().markUserIdentity( activateUserBean.getUserIdentity(), pwmRequest );
+            pwmDomain.getIntruderService().client().markAddressAndSession( pwmRequest );
             pwmRequest.respondWithError( e.getErrorInformation() );
         }
     }

@@ -33,7 +33,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -97,7 +97,7 @@ public class RestStatusServer extends RestServlet
                     macroRequest
             );
 
-            StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_STATUS );
+            StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_STATUS );
 
             final RestResultBean restResultBean = RestResultBean.withData( publicUserInfoBean );
             LOGGER.debug( restRequest.getSessionLabel(), () -> "completed REST status request, result="

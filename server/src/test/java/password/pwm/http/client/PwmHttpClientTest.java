@@ -147,8 +147,8 @@ public class PwmHttpClientTest
         final String url = String.format( "https://localhost:%d/simpleHello", wireMockRule.httpsPort() );
 
         // Obtain the HTTP client
-        final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), makeAppConfig( null, true, false ) );
-        final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient(
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), makeAppConfig( null, true, false ) );
+        final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(
                 PwmHttpClientConfiguration.builder().trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous ).build()
         );
 

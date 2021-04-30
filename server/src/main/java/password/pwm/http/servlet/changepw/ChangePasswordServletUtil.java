@@ -45,6 +45,7 @@ import password.pwm.ldap.PasswordChangeProgressChecker;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordUtility;
@@ -237,7 +238,7 @@ public class ChangePasswordServletUtil
         ChangePasswordServletUtil.sendChangePasswordEmailNotice( pwmRequest );
 
         // send audit event
-        pwmDomain.getAuditManager().submit( AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfo(), pwmSession );
+        AuditServiceClient.submitUserEvent( pwmRequest, AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfo() );
     }
 
     static boolean warnPageShouldBeShown(

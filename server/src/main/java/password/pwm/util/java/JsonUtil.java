@@ -52,6 +52,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.LongAdder;
 
 public class JsonUtil
 {
@@ -372,6 +373,24 @@ public class JsonUtil
         }
     }
 
+    private static class LongAdderTypeAdaptor implements JsonSerializer<LongAdder>, JsonDeserializer<LongAdder>
+    {
+        @Override
+        public LongAdder deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
+        {
+            final long longValue = json.getAsLong();
+            final LongAdder longAddr = new LongAdder();
+            longAddr.add( longValue );
+            return longAddr;
+        }
+
+        @Override
+        public JsonElement serialize( final LongAdder src, final Type typeOfSrc, final JsonSerializationContext context )
+        {
+            return new JsonPrimitive( src.longValue() );
+        }
+    }
+
     private static GsonBuilder registerTypeAdapters( final GsonBuilder gsonBuilder )
     {
         gsonBuilder.registerTypeAdapter( Date.class, new DateTypeAdapter() );
@@ -381,6 +400,7 @@ public class JsonUtil
         gsonBuilder.registerTypeAdapter( PasswordData.class, new PasswordDataTypeAdapter() );
         gsonBuilder.registerTypeAdapter( PwmLdapVendorTypeAdaptor.class, new PwmLdapVendorTypeAdaptor() );
         gsonBuilder.registerTypeAdapter( DomainID.class, new DomainIDTypeAdaptor() );
+        gsonBuilder.registerTypeAdapter( LongAdder.class, new LongAdderTypeAdaptor() );
         return gsonBuilder;
     }
 

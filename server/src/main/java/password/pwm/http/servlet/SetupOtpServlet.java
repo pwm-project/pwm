@@ -24,8 +24,8 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import net.glxn.qrgen.QRCode;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -45,17 +45,18 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupOtpBean;
 import password.pwm.ldap.auth.AuthenticationType;
-import password.pwm.svc.PwmService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.event.UserAuditRecord;
+import password.pwm.svc.otp.OTPUserRecord;
+import password.pwm.svc.otp.OtpService;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.Validator;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.OtpService;
-import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -191,18 +192,16 @@ public class SetupOtpServlet extends ControlledPwmServlet
                 pwmSession.reloadUserInfoBean( pwmRequest );
 
                 // mark the event log
-                final UserAuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createUserAuditRecord(
+                final UserAuditRecord auditRecord = AuditRecordFactory.make( pwmRequest ).createUserAuditRecord(
                         AuditEvent.SET_OTP_SECRET,
                         pwmSession.getUserInfo(),
                         pwmSession
                 );
-                pwmDomain.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
 
+                AuditServiceClient.submit( pwmRequest, auditRecord );
 
-                if ( pwmDomain.getStatisticsManager() != null && pwmDomain.getStatisticsManager().status() == PwmService.STATUS.OPEN )
-                {
-                    pwmDomain.getStatisticsManager().incrementValue( Statistic.SETUP_OTP_SECRET );
-                }
+                StatisticsClient.incrementStat( pwmRequest, Statistic.SETUP_OTP_SECRET );
+
             }
             catch ( final Exception e )
             {

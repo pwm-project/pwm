@@ -29,12 +29,13 @@ import password.pwm.util.logging.PwmLogger;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
 import java.util.function.BooleanSupplier;
 
 class WordlistInspector implements Runnable
 {
     private final AbstractWordlist rootWordlist;
-    private final PwmApplication pwmDomain;
+    private final PwmApplication pwmApplication;
     private final BooleanSupplier cancelFlag;
 
     WordlistInspector(
@@ -43,7 +44,7 @@ class WordlistInspector implements Runnable
             final BooleanSupplier cancelFlag
     )
     {
-        this.pwmDomain = Objects.requireNonNull( pwmApplication );
+        this.pwmApplication = Objects.requireNonNull( pwmApplication );
         this.rootWordlist = Objects.requireNonNull( rootWordlist );
         this.cancelFlag = Objects.requireNonNull( cancelFlag );
     }
@@ -55,19 +56,28 @@ class WordlistInspector implements Runnable
         {
             checkPopulation();
         }
+        catch ( final CancellationException e )
+        {
+            getLogger().debug( rootWordlist.getSessionLabel(), () -> "population worker cancelled" );
+        }
         catch ( final Exception e )
         {
-            getLogger().error( () -> "unexpected error running population worker: " + e.getMessage(), e );
+            getLogger().error( rootWordlist.getSessionLabel(), () -> "unexpected error running population worker: " + e.getMessage(), e );
         }
     }
 
-    private void checkPopulation( )
-            throws Exception
+    private void cancelCheck()
     {
         if ( cancelFlag.getAsBoolean() )
         {
-            return;
+            throw new CancellationException();
         }
+    }
+
+    private void checkPopulation()
+            throws Exception
+    {
+        cancelCheck();
 
         rootWordlist.setActivity( Wordlist.Activity.ReadingWordlistFile );
         final boolean autoImportUrlConfigured = StringUtil.notEmpty( rootWordlist.getConfiguration().getAutoImportUrl() );
@@ -75,10 +85,7 @@ class WordlistInspector implements Runnable
 
         if ( checkIfClearIsNeeded( existingStatus, autoImportUrlConfigured ) )
         {
-            if ( cancelFlag.getAsBoolean() )
-            {
-                return;
-            }
+            cancelCheck();
 
             rootWordlist.clearImpl( Wordlist.Activity.ReadingWordlistFile );
         }
@@ -90,10 +97,7 @@ class WordlistInspector implements Runnable
             return;
         }
 
-        if ( cancelFlag.getAsBoolean() )
-        {
-            return;
-        }
+        cancelCheck();
 
         if ( autoImportUrlConfigured )
         {
@@ -103,17 +107,16 @@ class WordlistInspector implements Runnable
             }
             catch ( final PwmUnrecoverableException e )
             {
-                getLogger().error( () -> "error importing auto-import wordlist: " + e.getMessage() );
+                getLogger().error( rootWordlist.getSessionLabel(), () -> "error importing auto-import wordlist: " + e.getMessage() );
                 rootWordlist.setAutoImportError( e.getErrorInformation() );
             }
         }
 
+        cancelCheck();
+
         existingStatus = rootWordlist.readWordlistStatus();
 
-        if ( cancelFlag.getAsBoolean() )
-        {
-            return;
-        }
+        cancelCheck();
 
         boolean needsBuiltInPopulation = false;
 
@@ -122,43 +125,42 @@ class WordlistInspector implements Runnable
                 && !existingStatus.isCompleted()
         )
         {
-            getLogger().debug( () -> "auto-import did not complete and failed with an error, will (temporarily) import built-in wordlist." );
+            getLogger().debug( rootWordlist.getSessionLabel(), () -> "auto-import did not complete and failed with an error, will (temporarily) import built-in wordlist." );
             needsBuiltInPopulation = true;
         }
         else if ( !autoImportUrlConfigured )
         {
-            final WordlistSource source = WordlistSource.forBuiltIn( pwmDomain, rootWordlist.getConfiguration() );
+            final WordlistSource source = WordlistSource.forBuiltIn( pwmApplication, rootWordlist.getConfiguration() );
 
             if ( existingStatus.getSourceType() != WordlistSourceType.Temporary_BuiltIn )
             {
-                getLogger().debug( () -> "auto-import is not configured, and existing wordlist is not of type BuiltIn, will reload." );
+                getLogger().debug( rootWordlist.getSessionLabel(), () -> "auto-import is not configured, and existing wordlist is not of type BuiltIn, will reload." );
                 needsBuiltInPopulation = true;
             }
             else if ( !existingStatus.isCompleted() )
             {
-                getLogger().debug( () -> "existing built-in store was not completed, will re-import" );
+                getLogger().debug( rootWordlist.getSessionLabel(), () -> "existing built-in store was not completed, will re-import" );
                 needsBuiltInPopulation = true;
             }
             else
             {
-                final WordlistSourceInfo builtInInfo = source.readRemoteWordlistInfo( pwmDomain, cancelFlag, getLogger() );
+                final WordlistSourceInfo builtInInfo = source.readRemoteWordlistInfo( pwmApplication, cancelFlag, getLogger() );
                 if ( !builtInInfo.equals( existingStatus.getRemoteInfo() ) )
                 {
-                    getLogger().debug( () -> "existing built-in store does not match imported wordlist, will re-import" );
+                    getLogger().debug( rootWordlist.getSessionLabel(), () -> "existing built-in store does not match imported wordlist, will re-import" );
                     needsBuiltInPopulation = true;
                 }
             }
         }
 
-        if ( cancelFlag.getAsBoolean() )
-        {
-            return;
-        }
+        cancelCheck();
 
         if ( needsBuiltInPopulation )
         {
             populateBuiltIn( autoImportUrlConfigured ? WordlistSourceType.Temporary_BuiltIn : WordlistSourceType.BuiltIn );
         }
+
+        cancelCheck();
     }
 
     private boolean checkIfClearIsNeeded(
@@ -173,14 +175,14 @@ class WordlistInspector implements Runnable
 
         if ( wordlistStatus.getVersion() != WordlistStatus.CURRENT_VERSION )
         {
-            getLogger().debug( () -> "stored version '" + wordlistStatus.getVersion() + "' is not current version '"
+            getLogger().debug( rootWordlist.getSessionLabel(), () -> "stored version '" + wordlistStatus.getVersion() + "' is not current version '"
                     + WordlistStatus.CURRENT_VERSION + "', will clear" );
             return true;
         }
 
         if ( !Objects.equals( wordlistStatus.getConfigHash(), rootWordlist.getConfiguration().configHash() ) )
         {
-            getLogger().debug( () -> "stored configuration hash '" + wordlistStatus.getConfigHash()
+            getLogger().debug( rootWordlist.getSessionLabel(), () -> "stored configuration hash '" + wordlistStatus.getConfigHash()
                     + "' does not match current configuration hash '"
                     + rootWordlist.getConfiguration().configHash() + "', will clear" );
             return true;
@@ -192,7 +194,7 @@ class WordlistInspector implements Runnable
             {
                 if ( !autoImportUrlConfigured )
                 {
-                    getLogger().debug( () -> "existing stored list is AutoImport but auto-import is not configured, will clear" );
+                    getLogger().debug( rootWordlist.getSessionLabel(), () -> "existing stored list is AutoImport but auto-import is not configured, will clear" );
                     return true;
                 }
 
@@ -200,24 +202,15 @@ class WordlistInspector implements Runnable
                 final String configuredUrl = rootWordlist.getConfiguration().getAutoImportUrl();
                 if ( !StringUtil.nullSafeEquals( storedImportUrl, configuredUrl ) )
                 {
-                    getLogger().debug( () -> "auto import url has been modified since import, will clear" );
+                    getLogger().debug( rootWordlist.getSessionLabel(), () -> "auto import url has been modified since import, will clear" );
                     return true;
                 }
             }
             break;
 
             case BuiltIn:
-            {
-                if ( autoImportUrlConfigured )
-                {
-                    return false;
-                }
-            }
-            break;
-
             case Temporary_BuiltIn:
             {
-
                 if ( autoImportUrlConfigured )
                 {
                     return false;
@@ -274,19 +267,19 @@ class WordlistInspector implements Runnable
 
             case Temporary_BuiltIn:
             {
-                final WordlistSource testWordlistSource = WordlistSource.forAutoImport( pwmDomain, rootWordlist.getConfiguration() );
+                final WordlistSource testWordlistSource = WordlistSource.forAutoImport( pwmApplication, rootWordlist.getConfiguration() );
                 try
                 {
-                    testWordlistSource.readRemoteWordlistInfo( pwmDomain, cancelFlag, getLogger() );
+                    testWordlistSource.readRemoteWordlistInfo( pwmApplication, cancelFlag, getLogger() );
                 }
                 catch ( final PwmUnrecoverableException e )
                 {
                     rootWordlist.setAutoImportError( e.getErrorInformation() );
-                    getLogger().debug( () -> "existing stored list is not type AutoImport but auto-import is configured"
+                    getLogger().debug( rootWordlist.getSessionLabel(), () -> "existing stored list is not type AutoImport but auto-import is configured"
                             + ", however auto-import returns error so will keep existing built-in wordlist; error: " + e.getMessage() );
                     return true;
                 }
-                getLogger().debug( () -> "existing stored list is not type AutoImport but auto-import is configured, will clear" );
+                getLogger().debug( rootWordlist.getSessionLabel(), () -> "existing stored list is not type AutoImport but auto-import is configured, will clear" );
                 rootWordlist.clearImpl( Wordlist.Activity.ReadingWordlistFile );
             }
             break;
@@ -320,24 +313,26 @@ class WordlistInspector implements Runnable
     )
             throws IOException, PwmUnrecoverableException
     {
-        final WordlistSource source = WordlistSource.forAutoImport( pwmDomain, rootWordlist.getConfiguration() );
-        final WordlistSourceInfo remoteInfo = source.readRemoteWordlistInfo( pwmDomain, cancelFlag, getLogger() );
+        final WordlistSource source = WordlistSource.forAutoImport( pwmApplication, rootWordlist.getConfiguration() );
+        final WordlistSourceInfo remoteInfo = source.readRemoteWordlistInfo( pwmApplication, cancelFlag, getLogger() );
+
+        cancelCheck();
 
         boolean needsAutoImport = false;
         if ( remoteInfo == null )
         {
-            getLogger().warn( () -> "can not read remote wordlist data from url " + rootWordlist.getConfiguration().getAutoImportUrl() );
+            getLogger().warn( rootWordlist.getSessionLabel(), () -> "can not read remote wordlist data from url " + rootWordlist.getConfiguration().getAutoImportUrl() );
         }
         else
         {
             if ( !remoteInfo.equals( existingStatus.getRemoteInfo() ) )
             {
-                getLogger().debug( () -> "auto-import url remote hash does not equal currently stored hash, will start auto-import" );
+                getLogger().debug( rootWordlist.getSessionLabel(), () -> "auto-import url remote hash does not equal currently stored hash, will start auto-import" );
                 needsAutoImport = true;
             }
             else if ( !existingStatus.isCompleted() )
             {
-                getLogger().debug( () -> "auto-import did not previously complete, will continue previous import" );
+                getLogger().debug( rootWordlist.getSessionLabel(), () -> "auto-import did not previously complete, will continue previous import" );
                 needsAutoImport = true;
             }
 
@@ -355,8 +350,8 @@ class WordlistInspector implements Runnable
     private void populateBuiltIn( final WordlistSourceType wordlistSourceType )
             throws IOException, PwmUnrecoverableException
     {
-        final WordlistSource wordlistSource = WordlistSource.forBuiltIn( pwmDomain, rootWordlist.getConfiguration() );
-        final WordlistSourceInfo wordlistSourceInfo = wordlistSource.readRemoteWordlistInfo( pwmDomain, cancelFlag, getLogger() );
+        final WordlistSource wordlistSource = WordlistSource.forBuiltIn( pwmApplication, rootWordlist.getConfiguration() );
+        final WordlistSourceInfo wordlistSourceInfo = wordlistSource.readRemoteWordlistInfo( pwmApplication, cancelFlag, getLogger() );
         final WordlistImporter wordlistImporter = new WordlistImporter(
                 wordlistSourceInfo,
                 wordlistSource.getZipWordlistReader(),
@@ -371,7 +366,7 @@ class WordlistInspector implements Runnable
             throws IOException, PwmUnrecoverableException
     {
         rootWordlist.setAutoImportError( null );
-        final WordlistSource wordlistSource = WordlistSource.forAutoImport( pwmDomain, rootWordlist.getConfiguration() );
+        final WordlistSource wordlistSource = WordlistSource.forAutoImport( pwmApplication, rootWordlist.getConfiguration() );
         final WordlistImporter wordlistImporter = new WordlistImporter(
                 wordlistSourceInfo,
                 wordlistSource.getZipWordlistReader(),

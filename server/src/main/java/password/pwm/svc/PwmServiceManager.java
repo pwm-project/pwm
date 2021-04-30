@@ -23,6 +23,7 @@ package password.pwm.svc;
 import password.pwm.PwmApplication;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -47,10 +48,18 @@ public class PwmServiceManager
     private final PwmApplication pwmApplication;
     private final Map<PwmServiceEnum, PwmService> runningServices = new ConcurrentHashMap<>();
     private final List<PwmServiceEnum> availableServices;
+    private final SessionLabel sessionLabel;
+
     private boolean initialized;
 
-    public PwmServiceManager( final PwmApplication pwmApplication, final DomainID domainID, final List<PwmServiceEnum> services )
+    public PwmServiceManager(
+            final SessionLabel sessionLabel,
+            final PwmApplication pwmApplication,
+            final DomainID domainID,
+            final List<PwmServiceEnum> services
+    )
     {
+        this.sessionLabel = sessionLabel;
         this.domainID = Objects.requireNonNull( domainID );
         this.availableServices = List.copyOf( services );
         this.pwmApplication = Objects.requireNonNull( pwmApplication );
@@ -78,7 +87,7 @@ public class PwmServiceManager
 
         final String logVerb = initialized ? "restart" : "start";
         final StatisticCounterBundle<InitializationStats> statCounter = new StatisticCounterBundle<>( InitializationStats.class );
-        LOGGER.trace( () -> "beginning service " + logVerb + " process" );
+        LOGGER.trace( sessionLabel, () -> "beginning service " + logVerb + " process" );
 
         for ( final PwmServiceEnum serviceClassEnum : availableServices )
         {
@@ -115,7 +124,7 @@ public class PwmServiceManager
 
         initialized = true;
 
-        LOGGER.trace( () -> logVerb + "ed services, " + statCounter.debugStats(), () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> logVerb + "ed services, " + statCounter.debugStats(), () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     private PwmService initService( final PwmServiceEnum pwmServiceEnum )
@@ -139,10 +148,11 @@ public class PwmServiceManager
 
         try
         {
-            LOGGER.debug( () -> "initializing service " + serviceName );
+            LOGGER.trace( sessionLabel, () -> "initializing service " + serviceName );
             newServiceInstance.init( pwmApplication, domainID );
             final TimeDuration startupDuration = TimeDuration.fromCurrent( startTime );
-            LOGGER.debug( () -> "completed initialization of service " + serviceName + " in " + startupDuration.asCompactString() + ", status=" + newServiceInstance.status() );
+            LOGGER.debug( sessionLabel, () -> "completed initialization of service " + serviceName + " in " + startupDuration.asCompactString()
+                    + ", status=" + newServiceInstance.status() );
         }
         catch ( final PwmException e )
         {
@@ -156,7 +166,7 @@ public class PwmServiceManager
                 errorMsg += ", cause: " + e.getCause();
             }
             final String errorMsgFinal = errorMsg;
-            LOGGER.fatal( () -> errorMsgFinal );
+            LOGGER.fatal( sessionLabel, () -> errorMsgFinal );
             e.printStackTrace();
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR, errorMsg ) );
         }
@@ -170,7 +180,7 @@ public class PwmServiceManager
             return;
         }
 
-        LOGGER.trace( () -> "beginning to close all services" );
+        LOGGER.trace( sessionLabel, () -> "beginning to close all services" );
         final Instant startTime = Instant.now();
 
 
@@ -185,13 +195,13 @@ public class PwmServiceManager
         }
         initialized = false;
 
-        LOGGER.trace( () -> "closed all services", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> "closed all services", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     private void shutDownService( final PwmServiceEnum pwmServiceEnum, final PwmService serviceInstance )
     {
 
-        LOGGER.trace( () -> "closing service " + pwmServiceEnum.serviceName( domainID ) );
+        LOGGER.trace( sessionLabel, () -> "closing service " + pwmServiceEnum.serviceName( domainID ) );
 
         try
         {
@@ -202,7 +212,7 @@ public class PwmServiceManager
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error closing " + pwmServiceEnum.serviceName( domainID ) + ": " + e.getMessage(), e );
+            LOGGER.error( sessionLabel, () -> "error closing " + pwmServiceEnum.serviceName( domainID ) + ": " + e.getMessage(), e );
         }
     }
 

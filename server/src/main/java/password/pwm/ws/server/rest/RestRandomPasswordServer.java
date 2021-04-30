@@ -32,7 +32,7 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.java.StringUtil;
@@ -217,7 +217,7 @@ public class RestRandomPasswordServer extends RestServlet
         final JsonOutput outputMap = new JsonOutput();
         outputMap.password = randomPassword.getStringValue();
 
-        StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_SETPASSWORD );
+        StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_SETPASSWORD );
 
         return outputMap;
     }

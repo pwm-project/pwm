@@ -32,8 +32,10 @@ import java.util.function.Supplier;
 public class JavaChecker implements HealthSupplier
 {
     @Override
-    public List<Supplier<List<HealthRecord>>> jobs( final PwmApplication pwmApplication )
+    public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplier.HealthSupplierRequest request )
     {
+        final PwmApplication pwmApplication = request.getPwmApplication();
+
         final Supplier<List<HealthRecord>> supplier = () -> doHealthCheck( pwmApplication );
         return Collections.singletonList( supplier );
     }

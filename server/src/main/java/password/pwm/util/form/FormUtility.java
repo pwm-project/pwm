@@ -226,6 +226,7 @@ public class FormUtility
 
     @SuppressWarnings( "checkstyle:MethodLength" )
     public static void validateFormValueUniqueness(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final Map<FormConfiguration, String> formValues,
             final Locale locale,
@@ -348,7 +349,7 @@ public class FormUtility
                 {
                     // since only one value searched, it must be that one value
                     final String attributeName = labelMap.values().iterator().next();
-                    LOGGER.trace( () -> "found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity );
+                    LOGGER.trace( sessionLabel, () -> "found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity );
                     final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
                             {
                                     attributeName,
@@ -365,7 +366,7 @@ public class FormUtility
                     final boolean compareResult;
                     try
                     {
-                        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
+                        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
                         compareResult = theUser.compareStringAttribute( name, value );
                     }
                     catch ( final ChaiOperationException | ChaiUnavailableException e )
@@ -377,7 +378,7 @@ public class FormUtility
                     if ( compareResult )
                     {
                         final String label = labelMap.get( name );
-                        LOGGER.trace( () ->  "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
+                        LOGGER.trace( sessionLabel, () ->  "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
                         final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
                                 {
                                         label,
