@@ -32,8 +32,8 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.provider.DirectoryVendor;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -48,14 +48,15 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
-import password.pwm.svc.intruder.IntruderService;
+import password.pwm.svc.event.AuditServiceClient;
+import password.pwm.svc.intruder.IntruderDomainService;
 import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.PasswordData;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
@@ -63,6 +64,7 @@ import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
+import password.pwm.util.password.RandomPasswordGenerator;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -209,12 +211,12 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     {
         log( PwmLogLevel.DEBUG, () -> "preparing to authenticate user using authenticationType=" + this.requestedAuthType + " using strategy " + this.strategy );
 
-        final IntruderService intruderManager = pwmDomain.getIntruderManager();
-        intruderManager.convenience().checkUserIdentity( userIdentity );
+        final IntruderDomainService intruderManager = pwmDomain.getIntruderService();
+        intruderManager.client().checkUserIdentity( userIdentity );
         intruderManager.check( IntruderRecordType.ADDRESS, sessionLabel.getSourceAddress() );
 
         // verify user is not account disabled
-        AuthenticationUtility.checkIfUserEligibleToAuthentication( pwmDomain, userIdentity );
+        AuthenticationUtility.checkIfUserEligibleToAuthentication( sessionLabel, pwmDomain, userIdentity );
 
     }
 
@@ -247,6 +249,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             {
                 boolean permitAuthDespiteError = false;
                 final DirectoryVendor vendor = pwmDomain.getProxyChaiProvider(
+                        sessionLabel,
                         userIdentity.getLdapProfileID() ).getDirectoryVendor();
                 if ( PwmError.PASSWORD_NEW_PASSWORD_REQUIRED == e.getError() )
                 {
@@ -296,7 +299,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                 if ( !permitAuthDespiteError )
                 {
                     // auth failed, presumably due to wrong password.
-                    StatisticsManager.incrementStat( pwmDomain, Statistic.AUTHENTICATION_FAILURES );
+                    StatisticsClient.incrementStat( pwmDomain, Statistic.AUTHENTICATION_FAILURES );
                     throw e;
                 }
             }
@@ -345,9 +348,9 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     )
             throws PwmUnrecoverableException
     {
-        final StatisticsManager statisticsManager = pwmDomain.getStatisticsManager();
-        statisticsManager.incrementValue( Statistic.AUTHENTICATIONS );
-        statisticsManager.updateEps( EpsStatistic.AUTHENTICATION, 1 );
+        final StatisticsService statisticsManager = pwmDomain.getStatisticsManager();
+        StatisticsClient.incrementStat( pwmDomain.getPwmApplication(), Statistic.AUTHENTICATIONS );
+        StatisticsClient.updateEps( pwmDomain.getPwmApplication(), EpsStatistic.AUTHENTICATION );
         statisticsManager.updateAverageValue( AvgStatistic.AVG_AUTHENTICATION_TIME,
                 TimeDuration.fromCurrent( startTime ).asMillis() );
 
@@ -362,14 +365,14 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                 : authenticationResult.getUserProvider().getChaiConfiguration().getSetting( ChaiSetting.BIND_DN ) ) );
 
         final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), PwmConstants.DEFAULT_LOCALE, sessionLabel, userIdentity );
-        final AuditRecord auditRecord = new AuditRecordFactory( pwmDomain, macroRequest ).createUserAuditRecord(
+        final AuditRecord auditRecord = AuditRecordFactory.make( sessionLabel, pwmDomain, macroRequest ).createUserAuditRecord(
                 AuditEvent.AUTHENTICATE,
                 this.userIdentity,
                 makeAuditLogMessage( authenticationResult.getAuthenticationType() ),
                 sessionLabel.getSourceAddress(),
                 sessionLabel.getSourceHostname()
         );
-        pwmDomain.getAuditManager().submit( sessionLabel, auditRecord );
+        AuditServiceClient.submit( pwmDomain.getPwmApplication(), sessionLabel, auditRecord );
         pwmDomain.getSessionTrackService().addRecentLogin( userIdentity );
 
 
@@ -480,7 +483,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
 
         final boolean configAlwaysUseProxy = pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN );
 
-        final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( sessionLabel, userIdentity.getLdapProfileID() );
         final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
 
         // try setting a random password on the account to authenticate.

@@ -37,6 +37,7 @@ import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -131,9 +132,6 @@ public class RestCheckPasswordServer extends RestServlet
 
         final JsonInput jsonInput;
         {
-
-
-
             final JsonInput jsonBody = RestUtility.deserializeJsonBody( restRequest, JsonInput.class, RestUtility.Flag.AllowNullReturn );
 
             jsonInput = new JsonInput(
@@ -194,11 +192,10 @@ public class RestCheckPasswordServer extends RestServlet
                     userInfo
             );
 
-            restRequest.getDomain().getStatisticsManager().incrementValue( Statistic.REST_CHECKPASSWORD );
+            StatisticsClient.incrementStat( restRequest.getPwmApplication(), Statistic.REST_CHECKPASSWORD );
 
             final PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
-                    restRequest.getDomain(),
-                    restRequest.getLocale(),
+                    restRequest.getPwmRestRequest(),
                     targetUserIdentity.getChaiUser(),
                     checkRequest.getUserInfo(),
                     null,

@@ -63,7 +63,9 @@ import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
@@ -170,7 +172,7 @@ public class ForgottenPasswordUtil
 
         try
         {
-            final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
+            final ChaiUser theUser = pwmDomain.getProxiedChaiUser( pwmRequestContext.getSessionLabel(), userIdentity );
             responseSet = pwmDomain.getCrService().readUserResponseSet(
                     pwmRequestContext.getSessionLabel(),
                     userIdentity,
@@ -414,7 +416,7 @@ public class ForgottenPasswordUtil
                         .build()
         );
 
-        pwmRequestContext.getPwmDomain().getStatisticsManager().incrementValue( Statistic.RECOVERY_TOKENS_SENT );
+        StatisticsClient.incrementStat( pwmRequestContext.getPwmApplication(), Statistic.RECOVERY_TOKENS_SENT );
     }
 
 
@@ -434,7 +436,7 @@ public class ForgottenPasswordUtil
         }
 
         final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
-        final ChaiUser theUser = pwmRequest.getPwmDomain().getProxiedChaiUser( userIdentity );
+        final ChaiUser theUser = pwmRequest.getPwmDomain().getProxiedChaiUser( pwmRequest.getLabel(), userIdentity );
 
         try
         {
@@ -493,12 +495,13 @@ public class ForgottenPasswordUtil
 
             // mark the event log
             {
-                final AuditRecord auditRecord = new AuditRecordFactory( pwmDomain ).createUserAuditRecord(
+                final AuditRecord auditRecord = AuditRecordFactory.make( pwmRequest ).createUserAuditRecord(
                         AuditEvent.RECOVER_PASSWORD,
                         userIdentity,
                         pwmRequest.getLabel()
                 );
-                pwmDomain.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+
+                AuditServiceClient.submit( pwmRequest, auditRecord );
             }
 
             final MessageSendMethod messageSendMethod = forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_SENDNEWPW_METHOD, MessageSendMethod.class );
@@ -698,7 +701,7 @@ public class ForgottenPasswordUtil
             final Optional<ResponseSet> responseSet;
             try
             {
-                final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userInfo.getUserIdentity() );
+                final ChaiUser theUser = pwmDomain.getProxiedChaiUser( pwmRequestContext.getSessionLabel(), userInfo.getUserIdentity() );
                 responseSet = pwmDomain.getCrService().readUserResponseSet(
                         sessionLabel,
                         userInfo.getUserIdentity(),
@@ -727,7 +730,7 @@ public class ForgottenPasswordUtil
         {
             try
             {
-                final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( userInfo.getUserIdentity() );
+                final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( pwmRequestContext.getSessionLabel(), userInfo.getUserIdentity() );
                 if ( chaiUser.isPasswordLocked() )
                 {
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTRUDER_LDAP ) );

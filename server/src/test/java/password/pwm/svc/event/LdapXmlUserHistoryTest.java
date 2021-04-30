@@ -27,6 +27,7 @@ import org.junit.rules.TemporaryFolder;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.userhistory.LdapXmlUserHistory;
 import password.pwm.util.SampleDataGenerator;
@@ -56,7 +57,8 @@ public class LdapXmlUserHistoryTest
         final String xmlValue1 =  bundle.getString( "xmlValue1" );
         final LdapXmlUserHistory.StoredHistory storedHistory = LdapXmlUserHistory.StoredHistory.fromXml( xmlValue1 );
 
-        final List<UserAuditRecord> auditEventList = storedHistory.asAuditRecords( new AuditRecordFactory( pwmDomain ), SampleDataGenerator.sampleUserData() );
+        final List<UserAuditRecord> auditEventList = storedHistory.asAuditRecords(
+                AuditRecordFactory.make( SessionLabel.TEST_SESSION_LABEL,  pwmDomain ), SampleDataGenerator.sampleUserData() );
         //System.out.println( JsonUtil.serializeCollection( auditEventList, JsonUtil.Flag.PrettyPrint ) );
 
         Assert.assertEquals( 20, auditEventList.size() );

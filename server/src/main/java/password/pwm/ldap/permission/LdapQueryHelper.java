@@ -53,9 +53,9 @@ class LdapQueryHelper implements PermissionTypeHelper
         if ( userPermission.getLdapBase() != null && !userPermission.getLdapBase().trim().isEmpty() )
         {
             final String canonicalBaseDN = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() )
-                    .readCanonicalDN( pwmDomain, userPermission.getLdapBase() );
+                    .readCanonicalDN( sessionLabel, pwmDomain, userPermission.getLdapBase() );
 
-            if ( !UserPermissionUtility.testBaseDnMatch( pwmDomain, canonicalBaseDN, userIdentity ) )
+            if ( !UserPermissionUtility.testBaseDnMatch( sessionLabel, pwmDomain, canonicalBaseDN, userIdentity ) )
             {
                 return false;
             }
@@ -95,7 +95,7 @@ class LdapQueryHelper implements PermissionTypeHelper
     {
         try
         {
-            final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
+            final ChaiUser theUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
             final Map<String, Map<String, String>> results = theUser.getChaiProvider().search(
                     theUser.getEntryDN(),
                     searchFilter,

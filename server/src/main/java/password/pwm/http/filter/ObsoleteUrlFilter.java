@@ -30,7 +30,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -103,7 +103,7 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter
                             + requestServletUrl
                             + "' detected, redirecting to canonical URL of '"
                             + pwmServletDefinition.servletUrl() + "'" );
-                    StatisticsManager.incrementStat( pwmRequest, Statistic.OBSOLETE_URL_REQUESTS );
+                    StatisticsClient.incrementStat( pwmRequest, Statistic.OBSOLETE_URL_REQUESTS );
                     pwmRequest.getPwmResponse().sendRedirect( pwmServletDefinition );
                     return ProcessStatus.Halt;
                 }

@@ -25,8 +25,8 @@ import password.pwm.PwmEnvironment;
 import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.error.PwmException;
-import password.pwm.util.db.DatabaseAccessor;
-import password.pwm.util.db.DatabaseTable;
+import password.pwm.svc.db.DatabaseAccessor;
+import password.pwm.svc.db.DatabaseTable;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
@@ -38,8 +38,9 @@ public class DatabaseStatusChecker implements HealthSupplier
     private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseStatusChecker.class );
 
     @Override
-    public List<Supplier<List<HealthRecord>>> jobs( final PwmApplication pwmApplication )
+    public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplierRequest request )
     {
+        final PwmApplication pwmApplication = request.getPwmApplication();
         final Supplier<List<HealthRecord>> supplier = () -> doHealthCheck( pwmApplication );
         return Collections.singletonList( supplier );
     }

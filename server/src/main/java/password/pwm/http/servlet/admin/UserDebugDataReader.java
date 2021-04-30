@@ -70,7 +70,7 @@ public class UserDebugDataReader
 
         final Map<ProfileDefinition, String> profiles = UserDebugDataReader.profileMap( pwmDomain, sessionLabel, userIdentity );
 
-        final PwmPasswordPolicy ldapPasswordPolicy = PasswordUtility.readLdapPasswordPolicy( pwmDomain, pwmDomain.getProxiedChaiUser( userIdentity ) );
+        final PwmPasswordPolicy ldapPasswordPolicy = PasswordUtility.readLdapPasswordPolicy( pwmDomain, pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity ) );
 
         final PwmPasswordPolicy configPasswordPolicy = PasswordUtility.determineConfiguredPolicyProfileForUser(
                 pwmDomain,

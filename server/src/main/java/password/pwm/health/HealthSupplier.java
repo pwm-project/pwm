@@ -20,12 +20,21 @@
 
 package password.pwm.health;
 
+import lombok.Value;
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 
 import java.util.List;
 import java.util.function.Supplier;
 
 public interface HealthSupplier
 {
-    List<Supplier<List<HealthRecord>>> jobs( PwmApplication pwmApplication );
+    List<Supplier<List<HealthRecord>>> jobs( HealthSupplierRequest request );
+
+    @Value
+    class HealthSupplierRequest
+    {
+        private final PwmApplication pwmApplication;
+        private final SessionLabel sessionLabel;
+    }
 }

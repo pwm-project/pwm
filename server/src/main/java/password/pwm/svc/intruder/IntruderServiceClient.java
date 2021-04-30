@@ -20,7 +20,7 @@
 
 package password.pwm.svc.intruder;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -38,23 +38,23 @@ import java.util.Objects;
 
 public class IntruderServiceClient
 {
-    private final PwmApplication pwmApplication;
-    private final IntruderService intruderService;
+    private final PwmDomain pwmDomain;
+    private final IntruderDomainService intruderService;
 
-    protected IntruderServiceClient( final PwmApplication pwmApplication, final IntruderService intruderService )
+    protected IntruderServiceClient( final PwmDomain pwmDomain, final IntruderDomainService intruderService )
     {
-        this.pwmApplication = Objects.requireNonNull( pwmApplication );
+        this.pwmDomain = Objects.requireNonNull( pwmDomain );
         this.intruderService = Objects.requireNonNull( intruderService );
     }
 
-    public static void checkUserIdentity( final PwmApplication pwmApplication, final UserIdentity userIdentity ) throws PwmUnrecoverableException
+    public static void checkUserIdentity( final PwmDomain pwmDomain, final UserIdentity userIdentity ) throws PwmUnrecoverableException
     {
-        if ( pwmApplication != null )
+        if ( pwmDomain != null )
         {
-            final IntruderService intruderService = pwmApplication.getIntruderService();
+            final IntruderDomainService intruderService = pwmDomain.getIntruderService();
             if ( intruderService != null && intruderService.status() == PwmService.STATUS.OPEN )
             {
-                intruderService.convenience().checkUserIdentity( userIdentity );
+                intruderService.client().checkUserIdentity( userIdentity );
             }
         }
     }
@@ -77,7 +77,7 @@ public class IntruderServiceClient
         {
             final String subject = pwmSession.getSessionStateBean().getSrcAddress();
             intruderService.check( IntruderRecordType.ADDRESS, subject );
-            final int maxAllowedAttempts = ( int ) pwmApplication.getConfig().readSettingAsLong( PwmSetting.INTRUDER_SESSION_MAX_ATTEMPTS );
+            final int maxAllowedAttempts = ( int ) pwmDomain.getConfig().readSettingAsLong( PwmSetting.INTRUDER_SESSION_MAX_ATTEMPTS );
             if ( maxAllowedAttempts != 0 && pwmSession.getSessionStateBean().getIntruderAttempts().get() > maxAllowedAttempts )
             {
                 throw new PwmUnrecoverableException( PwmError.ERROR_INTRUDER_SESSION );

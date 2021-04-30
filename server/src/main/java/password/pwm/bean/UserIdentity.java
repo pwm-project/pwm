@@ -200,7 +200,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         }
     }
 
-    public static UserIdentity fromDelimitedKey( final String key )
+    public static UserIdentity fromDelimitedKey( final SessionLabel sessionLabel, final String key )
             throws PwmUnrecoverableException
     {
         JavaHelper.requireNonEmpty( key );
@@ -211,7 +211,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         }
         catch ( final Exception e )
         {
-            LOGGER.trace( () -> "unable to deserialize UserIdentity: " + key + " using JSON method: " + e.getMessage() );
+            LOGGER.trace( sessionLabel, () -> "unable to deserialize UserIdentity: " + key + " using JSON method: " + e.getMessage() );
         }
 
         // old style
@@ -253,7 +253,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
      * @deprecated  Should be used by calling {@link #fromDelimitedKey(String)} or {@link #fromObfuscatedKey(String, PwmApplication)}.
      */
     @Deprecated
-    public static UserIdentity fromKey( final String key, final PwmApplication pwmApplication )
+    public static UserIdentity fromKey( final SessionLabel sessionLabel, final String key, final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
         JavaHelper.requireNonEmpty( key );
@@ -263,10 +263,10 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             return fromObfuscatedKey( key, pwmApplication );
         }
 
-        return fromDelimitedKey( key );
+        return fromDelimitedKey( sessionLabel, key );
     }
 
-    public boolean canonicalEquals( final UserIdentity otherIdentity, final PwmApplication pwmApplication )
+    public boolean canonicalEquals( final SessionLabel sessionLabel, final UserIdentity otherIdentity, final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
         if ( otherIdentity == null )
@@ -274,8 +274,8 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             return false;
         }
 
-        final UserIdentity thisCanonicalIdentity = this.canonicalized( pwmApplication );
-        final UserIdentity otherCanonicalIdentity = otherIdentity.canonicalized( pwmApplication );
+        final UserIdentity thisCanonicalIdentity = this.canonicalized( sessionLabel, pwmApplication );
+        final UserIdentity otherCanonicalIdentity = otherIdentity.canonicalized( sessionLabel, pwmApplication );
         return thisCanonicalIdentity.equals( otherCanonicalIdentity );
     }
 
@@ -308,7 +308,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         return COMPARATOR.compare( this, otherIdentity );
     }
 
-    public UserIdentity canonicalized( final PwmApplication pwmApplication )
+    public UserIdentity canonicalized( final SessionLabel sessionLabel, final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
         if ( this.canonical )
@@ -316,7 +316,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             return this;
         }
 
-        final ChaiUser chaiUser = pwmApplication.domains().get( this.getDomainID() ).getProxiedChaiUser( this );
+        final ChaiUser chaiUser = pwmApplication.domains().get( this.getDomainID() ).getProxiedChaiUser( sessionLabel, this );
         final String userDN;
         try
         {

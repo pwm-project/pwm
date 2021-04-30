@@ -38,6 +38,7 @@ import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.bean.ForgottenPasswordStage;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -323,7 +324,7 @@ class ForgottenPasswordStageProcessor
             if ( !forgottenPasswordBean.getProgress().isAllPassed() )
             {
                 forgottenPasswordBean.getProgress().setAllPassed( true );
-                pwmDomain.getStatisticsManager().incrementValue( Statistic.RECOVERY_SUCCESSES );
+                StatisticsClient.incrementStat( pwmRequestContext.getPwmApplication(), Statistic.RECOVERY_SUCCESSES );
             }
 
             final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean );

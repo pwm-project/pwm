@@ -43,7 +43,7 @@ import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.FormMap;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.macro.MacroRequest;
@@ -153,7 +153,7 @@ public class RestProfileServer extends RestServlet
         outputData.profile = profileData;
         outputData.formDefinition = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
         final RestResultBean restResultBean = RestResultBean.withData( outputData );
-        StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_PROFILE );
+        StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_PROFILE );
         return restResultBean;
     }
 
@@ -269,7 +269,7 @@ public class RestProfileServer extends RestServlet
                 targetUserIdentity.getChaiUser()
         );
 
-        StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_PROFILE );
+        StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_PROFILE );
         return RestResultBean.forSuccessMessage( restRequest, Message.Success_UpdateProfile );
     }
 }

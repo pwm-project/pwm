@@ -155,7 +155,7 @@ public abstract class RestServlet extends HttpServlet
             return;
         }
 
-        if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.ENABLE_EXTERNAL_WEBSERVICES ) )
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.ENABLE_EXTERNAL_WEBSERVICES ) )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "webservices are not enabled" );
             restResultBean = RestResultBean.fromError(
@@ -175,7 +175,7 @@ public abstract class RestServlet extends HttpServlet
 
             final RestRequest restRequest = RestRequest.forRequest( pwmDomain, restAuthentication, sessionLabel, req );
 
-            RequestInitializationFilter.addStaticResponseHeaders( pwmApplication, resp );
+            RequestInitializationFilter.addStaticResponseHeaders( pwmApplication, req, resp );
 
             preCheck( restRequest );
 

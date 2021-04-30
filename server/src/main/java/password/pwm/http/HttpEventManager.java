@@ -27,6 +27,7 @@ import password.pwm.bean.DomainID;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.stats.EpsStatistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -68,10 +69,7 @@ public class HttpEventManager implements
             final PwmApplication pwmApplication = contextManager.getPwmApplication();
             httpSession.setAttribute( PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmApplication.getRuntimeNonce() );
 
-            if ( pwmApplication.getStatisticsManager() != null )
-            {
-                pwmApplication.getStatisticsManager().updateEps( EpsStatistic.SESSIONS, 1 );
-            }
+            StatisticsClient.updateEps( pwmApplication, EpsStatistic.SESSIONS );
 
             LOGGER.trace( () -> "new http session created" );
 
@@ -164,41 +162,11 @@ public class HttpEventManager implements
     @Override
     public void sessionWillPassivate( final HttpSessionEvent event )
     {
-        /*
-        try
-        {
-            final PwmSession pwmSession = PwmSessionFactory.readPwmSession( event.getSession() );
-            LOGGER.trace( pwmSession.getLabel(), () -> "passivating session" );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            LOGGER.error( () -> "unable to passivate session: " + e.getMessage() );
-        }
-
-         */
     }
 
     @Override
     public void sessionDidActivate( final HttpSessionEvent event )
     {
-        /*
-        try
-        {
-            final HttpSession httpSession = event.getSession();
-            final PwmSession pwmSession = PwmSessionFactory.readPwmSession( httpSession );
-            LOGGER.trace( pwmSession.getLabel(), () -> "activating (de-passivating) session" );
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession.getServletContext() );
-            if ( pwmApplication != null )
-            {
-                pwmApplication.getSessionTrackService().addSessionData( pwmSession );
-            }
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            LOGGER.error( () -> "unable to activate (de-passivate) session: " + e.getMessage() );
-        }
-
-         */
     }
 
     private static String makeSessionDestroyedDebugMsg( final PwmSession pwmSession )
@@ -210,7 +178,7 @@ public class HttpEventManager implements
         final Instant lastAccessedTime = sessionStateBean.getSessionLastAccessedTime();
         final TimeDuration timeDuration = TimeDuration.between( startTime, lastAccessedTime );
         debugItems.put( "firstToLastRequestInterval", timeDuration.asCompactString() );
-        final TimeDuration avgReqDuration = TimeDuration.of( sessionStateBean.getAvgRequestDuration().getLastMillis(), TimeDuration.Unit.MILLISECONDS );
+        final TimeDuration avgReqDuration =  sessionStateBean.getAvgRequestDuration().getAverageAsDuration();
         debugItems.put( "avgRequestDuration", avgReqDuration.asCompactString() );
         return StringHelper.stringMapToString( debugItems, "," );
     }

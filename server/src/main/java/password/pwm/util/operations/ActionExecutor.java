@@ -118,7 +118,7 @@ public class ActionExecutor
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
                 throw new PwmUnrecoverableException( errorInformation );
             }
-            theUser = pwmDomain.getProxiedChaiUser( settings.getUserIdentity() );
+            theUser = pwmDomain.getProxiedChaiUser( sessionLabel, settings.getUserIdentity() );
         }
 
         if ( settings.isExpandPwmMacros() )
@@ -231,7 +231,7 @@ public class ActionExecutor
 
             if ( !successStatus.contains( clientResponse.getStatusCode() ) )
             {
-                LOGGER.trace( () -> "response status code " + clientResponse.getStatusCode() + " is not one of the configured success status codes: "
+                LOGGER.trace( sessionLabel, () -> "response status code " + clientResponse.getStatusCode() + " is not one of the configured success status codes: "
                         + StringUtil.collectionToString( successStatus ) );
 
                 throw new PwmOperationalException( new ErrorInformation(
@@ -250,7 +250,7 @@ public class ActionExecutor
             }
 
             final String errorMsg = "unexpected error during API execution: " + e.getMessage();
-            LOGGER.error( () -> errorMsg );
+            LOGGER.error( sessionLabel, () -> errorMsg );
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
         }
     }

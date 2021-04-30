@@ -45,8 +45,8 @@ import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.operations.CrService;
+import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.svc.cr.CrService;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
@@ -229,7 +229,7 @@ public class RestChallengesServer extends RestServlet
             }
 
             // update statistics
-            StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_CHALLENGES );
+            StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_CHALLENGES );
             return RestResultBean.withData( jsonData );
         }
         catch ( final ChaiException e )
@@ -285,7 +285,7 @@ public class RestChallengesServer extends RestServlet
             crService.writeResponses( restRequest.getSessionLabel(), userIdentity, chaiUser, userGUID, responseInfoBean );
 
             // update statistics
-            StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_CHALLENGES );
+            StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_CHALLENGES );
 
             return RestResultBean.forSuccessMessage( restRequest, Message.Success_SetupResponse );
         }
@@ -333,7 +333,7 @@ public class RestChallengesServer extends RestServlet
             );
 
             // update statistics
-            StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_CHALLENGES );
+            StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_CHALLENGES );
 
             return RestResultBean.forSuccessMessage( restRequest, Message.Success_Unknown );
         }

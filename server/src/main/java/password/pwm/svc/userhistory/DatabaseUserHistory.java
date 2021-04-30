@@ -31,9 +31,9 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.svc.event.AuditEventType;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.event.UserAuditRecord;
-import password.pwm.util.db.DatabaseException;
-import password.pwm.util.db.DatabaseService;
-import password.pwm.util.db.DatabaseTable;
+import password.pwm.svc.db.DatabaseException;
+import password.pwm.svc.db.DatabaseService;
+import password.pwm.svc.db.DatabaseTable;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 

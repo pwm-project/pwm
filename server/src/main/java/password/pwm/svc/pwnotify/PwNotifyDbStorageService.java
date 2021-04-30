@@ -27,8 +27,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.db.DatabaseException;
-import password.pwm.util.db.DatabaseTable;
+import password.pwm.svc.db.DatabaseException;
+import password.pwm.svc.db.DatabaseTable;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 

@@ -27,9 +27,10 @@ import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.debug.DebugItemGenerator;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
+import password.pwm.util.debug.DebugItemGenerator;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
@@ -51,7 +52,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,7 +61,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.zip.ZipOutputStream;
 
-public class HealthService implements PwmService
+public class HealthService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HealthService.class );
 
@@ -81,8 +81,6 @@ public class HealthService implements PwmService
     private final Map<HealthMonitorFlag, Serializable> healthProperties = new ConcurrentHashMap<>();
     private final AtomicInteger healthCheckCount = new AtomicInteger( 0 );
 
-    private STATUS status = STATUS.CLOSED;
-    private PwmApplication pwmApplication;
     private volatile HealthData healthData = emptyHealthData();
 
     enum HealthMonitorFlag
@@ -96,18 +94,16 @@ public class HealthService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmApplication = Objects.requireNonNull( pwmApplication );
         this.healthData = emptyHealthData();
         settings = HealthMonitorSettings.fromConfiguration( pwmApplication.getConfig() );
 
         if ( !settings.isHealthCheckEnabled() )
         {
             LOGGER.debug( () -> "health monitor will remain inactive due to AppProperty " + AppProperty.HEALTHCHECK_ENABLED.getKey() );
-            status = STATUS.CLOSED;
-            return;
+            return STATUS.CLOSED;
         }
 
         executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
@@ -119,12 +115,12 @@ public class HealthService implements PwmService
             pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ThreadDumpLogger(), executorService, TimeDuration.SECOND, settings.getThreadDumpInterval() );
         }
 
-        status = STATUS.OPEN;
+        return STATUS.OPEN;
     }
 
     public Instant getLastHealthCheckTime( )
     {
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             return null;
         }
@@ -134,22 +130,17 @@ public class HealthService implements PwmService
 
     public HealthStatus getMostSevereHealthStatus( )
     {
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             return HealthStatus.GOOD;
         }
         return HealthUtils.getMostSevereHealthStatus( getHealthRecords( ) );
     }
 
-    @Override
-    public STATUS status( )
-    {
-        return status;
-    }
 
     public Set<HealthRecord> getHealthRecords( )
     {
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             return Collections.emptySet();
         }
@@ -158,12 +149,12 @@ public class HealthService implements PwmService
         {
             final Instant startTime = Instant.now();
             LOGGER.trace( () ->  "begin force immediate check" );
-            final Future future = pwmApplication.getPwmScheduler().scheduleJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
+            final Future future = getPwmApplication().getPwmScheduler().scheduleJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
             settings.getMaximumForceCheckWait().pause( future::isDone );
             LOGGER.trace( () ->  "exit force immediate check, done=" + future.isDone(), () -> TimeDuration.fromCurrent( startTime ) );
         }
 
-        pwmApplication.getPwmScheduler().scheduleJob( new UpdateJob(), executorService, settings.getNominalCheckInterval() );
+        getPwmApplication().getPwmScheduler().scheduleJob( new UpdateJob(), executorService, settings.getNominalCheckInterval() );
 
         {
             final HealthData localHealthData = this.healthData;
@@ -188,7 +179,7 @@ public class HealthService implements PwmService
             supportZipWriterService.shutdown();
         }
         healthData = emptyHealthData();
-        status = STATUS.CLOSED;
+        setStatus( STATUS.CLOSED );
     }
 
     private HealthData emptyHealthData()
@@ -197,7 +188,7 @@ public class HealthService implements PwmService
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
         return Collections.emptyList();
     }
@@ -206,7 +197,7 @@ public class HealthService implements PwmService
     private void doHealthChecks( )
     {
         final int counter = healthCheckCount.getAndIncrement();
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             return;
         }
@@ -215,8 +206,7 @@ public class HealthService implements PwmService
         LOGGER.trace( () -> "beginning health check execution #" + counter  );
         final List<HealthRecord> tempResults = new ArrayList<>();
 
-
-        for ( final Supplier<List<HealthRecord>> loopSupplier : gatherSuppliers( pwmApplication ) )
+        for ( final Supplier<List<HealthRecord>> loopSupplier : gatherSuppliers( getPwmApplication(), getSessionLabel() ) )
         {
             try
             {
@@ -228,7 +218,7 @@ public class HealthService implements PwmService
             }
             catch ( final Exception e )
             {
-                if ( status == STATUS.OPEN )
+                if ( status() == STATUS.OPEN )
                 {
                     LOGGER.warn( () -> "unexpected error during healthCheck: " + e.getMessage(), e );
                 }
@@ -239,30 +229,36 @@ public class HealthService implements PwmService
         LOGGER.trace( () -> "completed health check execution #" + counter, () -> TimeDuration.fromCurrent( startTime ) );
     }
 
-    private static List<Supplier<List<HealthRecord>>> gatherSuppliers( final PwmApplication pwmApplication )
+    private static List<Supplier<List<HealthRecord>>> gatherSuppliers(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel
+    )
     {
         final List<Supplier<List<HealthRecord>>> suppliers = new ArrayList<>();
 
-        for ( final PwmService service : pwmApplication.getAppAndDomainPwmServices() )
+        for ( final Map.Entry<DomainID, List<PwmService>> domainIDListEntry : pwmApplication.getAppAndDomainPwmServices().entrySet() )
         {
-            try
+            for ( final PwmService service : domainIDListEntry.getValue() )
             {
-                final List<HealthRecord> loopResults = service.healthCheck();
-                if ( loopResults != null )
+                try
                 {
-                    final Supplier<List<HealthRecord>> wrappedSupplier = () -> loopResults;
-                    suppliers.add( wrappedSupplier );
+                    final List<HealthRecord> loopResults = service.healthCheck();
+                    if ( loopResults != null )
+                    {
+                        final Supplier<List<HealthRecord>> wrappedSupplier = () -> loopResults;
+                        suppliers.add( wrappedSupplier );
+                    }
                 }
-            }
-            catch ( final Exception e )
-            {
-                LOGGER.warn( () -> "unexpected error during healthCheck: " + e.getMessage(), e );
+                catch ( final Exception e )
+                {
+                    LOGGER.warn( () -> "unexpected error during healthCheck: " + e.getMessage(), e );
+                }
             }
         }
 
         for ( final HealthSupplier supplier : HEALTH_SUPPLIERS )
         {
-            suppliers.addAll( supplier.jobs( pwmApplication ) );
+            suppliers.addAll( supplier.jobs( new HealthSupplier.HealthSupplierRequest( pwmApplication, sessionLabel ) ) );
         }
 
         return Collections.unmodifiableList( suppliers );
@@ -328,11 +324,11 @@ public class HealthService implements PwmService
 
     private void scheduleNextZipOutput()
     {
-        final int intervalSeconds = JavaHelper.silentParseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_SUPPORT_BUNDLE_WRITE_INTERVAL_SECONDS ), 0 );
+        final int intervalSeconds = JavaHelper.silentParseInt( getPwmApplication().getConfig().readAppProperty( AppProperty.HEALTH_SUPPORT_BUNDLE_WRITE_INTERVAL_SECONDS ), 0 );
         if ( intervalSeconds > 0 )
         {
             final TimeDuration intervalDuration = TimeDuration.of( intervalSeconds, TimeDuration.Unit.SECONDS );
-            pwmApplication.getPwmScheduler().scheduleJob( new SupportZipFileWriter( pwmApplication ), supportZipWriterService, intervalDuration );
+            getPwmApplication().getPwmScheduler().scheduleJob( new SupportZipFileWriter( getPwmApplication() ), supportZipWriterService, intervalDuration );
         }
     }
 
@@ -354,7 +350,7 @@ public class HealthService implements PwmService
             }
             catch ( final Exception e )
             {
-                LOGGER.debug( SessionLabel.HEALTH_SESSION_LABEL, () -> "error writing support zip to file system: " + e.getMessage() );
+                LOGGER.debug( getSessionLabel(), () -> "error writing support zip to file system: " + e.getMessage() );
             }
 
             scheduleNextZipOutput();
@@ -363,14 +359,14 @@ public class HealthService implements PwmService
         private void writeSupportZipToAppPath()
                 throws IOException, PwmUnrecoverableException
         {
-            final File appPath = HealthService.this.pwmApplication.getPwmEnvironment().getApplicationPath();
+            final File appPath = getPwmApplication().getPwmEnvironment().getApplicationPath();
             if ( !appPath.exists() )
             {
                 return;
             }
 
             final int rotationCount = JavaHelper.silentParseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_SUPPORT_BUNDLE_FILE_WRITE_COUNT ), 10 );
-            final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmApplication, SessionLabel.HEALTH_SESSION_LABEL );
+            final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmApplication, getSessionLabel() );
 
             final File supportPath = new File( appPath.getPath() + File.separator + "support" );
 
@@ -385,7 +381,7 @@ public class HealthService implements PwmService
 
             try ( ZipOutputStream zipOutputStream = new ZipOutputStream( new FileOutputStream( newSupportFile ) ) )
             {
-                LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "beginning periodic support bundle filesystem output" );
+                LOGGER.trace( getSessionLabel(), () -> "beginning periodic support bundle filesystem output" );
                 debugItemGenerator.outputZipDebugFile( zipOutputStream );
             }
 

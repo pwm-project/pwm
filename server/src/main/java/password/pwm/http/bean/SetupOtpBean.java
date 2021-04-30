@@ -22,7 +22,7 @@ package password.pwm.http.bean;
 
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.svc.otp.OTPUserRecord;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;

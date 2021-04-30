@@ -20,7 +20,6 @@
 
 package password.pwm.config.value;
 
-import password.pwm.PwmConstants;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
@@ -41,6 +40,20 @@ import java.util.Locale;
 
 public abstract class AbstractValue implements StoredValue
 {
+    private static final PwmSecurityKey HASHING_KEY;
+
+    static
+    {
+        try
+        {
+            HASHING_KEY = new PwmSecurityKey( "hash-key" );
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            throw new IllegalStateException( "unable to create internal HASHING_KEY: " + e.getMessage() );
+        }
+    }
+
     private final transient LazySupplier<String> valueHashSupplier = new LazySupplier<>( () -> valueHashComputer( AbstractValue.this ) );
 
     public String toString()
@@ -76,9 +89,8 @@ public abstract class AbstractValue implements StoredValue
     {
         try
         {
-            final PwmSecurityKey testingKey = new PwmSecurityKey( "test" );
             final XmlOutputProcessData xmlOutputProcessData = XmlOutputProcessData.builder()
-                    .pwmSecurityKey( testingKey )
+                    .pwmSecurityKey( HASHING_KEY )
                     .storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN )
                     .build();
             final List<XmlElement> xmlValues = storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, xmlOutputProcessData );
@@ -86,8 +98,8 @@ public abstract class AbstractValue implements StoredValue
             document.getRootElement().addContent( xmlValues );
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             XmlFactory.getFactory().outputDocument( document, byteArrayOutputStream );
-            final String stringToHash = byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET );
-            return SecureEngine.hash( stringToHash, PwmHashAlgorithm.SHA512 );
+            final byte[] bytesToHash = byteArrayOutputStream.toByteArray();
+            return SecureEngine.hash( bytesToHash, PwmHashAlgorithm.SHA512 );
 
         }
         catch ( final IOException | PwmUnrecoverableException e )

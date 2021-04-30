@@ -20,11 +20,13 @@
 
 package password.pwm.svc.wordlist;
 
-import password.pwm.PwmApplication;
-import password.pwm.bean.DomainID;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
+
+import java.time.Instant;
 
 
 /**
@@ -39,14 +41,13 @@ public class WordlistService extends AbstractWordlist implements Wordlist
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
-            throws PwmException
+    protected WordlistType getWordlistType()
     {
-        super.init( pwmApplication, WordlistType.WORDLIST );
+        return WordlistType.WORDLIST;
     }
 
     @Override
-    PwmLogger getLogger()
+    protected PwmLogger getLogger()
     {
         return LOGGER;
     }
@@ -54,5 +55,50 @@ public class WordlistService extends AbstractWordlist implements Wordlist
     public boolean containsWord( final String word ) throws PwmUnrecoverableException
     {
         return super.containsWord( this.getWordTypesCache(), word );
+    }
+
+    protected void warmup()
+    {
+        getPwmApplication().getPwmScheduler().immediateExecuteRunnableInNewThread( new WarmupJob(), "wordlist-warmup" );
+    }
+
+    private class WarmupJob implements Runnable
+    {
+        @Override
+        public void run()
+        {
+
+            final Instant startTime = Instant.now();
+            final PwmRandom pwmRandom = getPwmApplication().getSecureService().pwmRandom();
+            final int warmupCount = getConfiguration().getWarmupLookups();
+
+            getLogger().trace( getSessionLabel(),
+                    () -> "beginning warmup using " + warmupCount + " random words" );
+
+            for ( int i = 0; i < warmupCount; i++ )
+            {
+                final String testWord = pwmRandom.alphaNumericString( pwmRandom.nextInt( 10 ) + 5 );
+                try
+                {
+                    containsWord( getWordTypesCache(), testWord );
+
+                    if ( status() != STATUS.OPEN )
+                    {
+                        LOGGER.trace( getSessionLabel(), () -> "exiting cancelled warmup..." );
+                        return;
+                    }
+                }
+                catch ( final PwmException e )
+                {
+                    getLogger().trace( getSessionLabel(), () -> "error during warmup word check: " + e.getMessage() );
+                }
+            }
+
+            getLogger().trace( getSessionLabel(),
+                    () -> "warmup using " + warmupCount + " random words complete",
+                    () -> TimeDuration.fromCurrent( startTime ) );
+
+            outputStats();
+        }
     }
 }

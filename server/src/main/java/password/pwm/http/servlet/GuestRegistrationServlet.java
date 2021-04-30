@@ -25,8 +25,8 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.Permission;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
@@ -52,6 +52,7 @@ import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.FormMap;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
@@ -237,6 +238,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
             // check unique fields against ldap
             FormUtility.validateFormValueUniqueness(
+                    pwmRequest.getLabel(),
                     pwmDomain,
                     formValues,
                     ssBean.getLocale(),
@@ -264,7 +266,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             );
             this.sendUpdateGuestEmailConfirmation( pwmRequest, guestUserInfoBean );
 
-            pwmDomain.getStatisticsManager().incrementValue( Statistic.UPDATED_GUESTS );
+            StatisticsClient.incrementStat( pwmRequest, Statistic.UPDATED_GUESTS );
 
             //everything good so forward to confirmation page.
             pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_UpdateGuest );
@@ -508,7 +510,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             //everything good so forward to success page.
             this.sendGuestUserEmailConfirmation( pwmRequest, userIdentity );
 
-            pwmDomain.getStatisticsManager().incrementValue( Statistic.NEW_USERS );
+            StatisticsClient.incrementStat( pwmRequest, Statistic.NEW_USERS );
 
             pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_CreateGuest );
         }
@@ -530,7 +532,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
     private static Instant readExpirationFromRequest(
             final PwmRequest pwmRequest
     )
-            throws PwmOperationalException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
+            throws PwmOperationalException, ChaiOperationException, PwmUnrecoverableException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final DomainConfig config = pwmDomain.getConfig();

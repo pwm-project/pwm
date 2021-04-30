@@ -35,8 +35,8 @@ import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.provider.SearchScope;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -55,7 +55,7 @@ import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
@@ -98,7 +98,7 @@ public class LdapOperationsHelper
         }
         try
         {
-            final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( userIdentity.getLdapProfileID() );
+            final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( sessionLabel, userIdentity.getLdapProfileID() );
             final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
             addUserObjectClass( sessionLabel, userIdentity, theUser, newObjClasses );
         }
@@ -147,7 +147,7 @@ public class LdapOperationsHelper
             final SessionLabel sessionLabel,
             final LdapProfile ldapProfile,
             final DomainConfig config,
-            final StatisticsManager statisticsManager
+            final StatisticsService statisticsManager
     )
             throws PwmUnrecoverableException
     {
@@ -165,7 +165,7 @@ public class LdapOperationsHelper
             final SessionLabel sessionLabel,
             final LdapProfile ldapProfile,
             final DomainConfig config,
-            final StatisticsManager statisticsManager
+            final StatisticsService statisticsManager
     )
             throws PwmUnrecoverableException
     {
@@ -439,7 +439,7 @@ public class LdapOperationsHelper
         )
                 throws PwmUnrecoverableException
         {
-            final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
+            final ChaiUser theUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
             final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
             final String guidAttributeName = ldapProfile.readSettingAsString( PwmSetting.LDAP_GUID_ATTRIBUTE );
 
@@ -567,7 +567,7 @@ public class LdapOperationsHelper
             try
             {
                 // write it to the directory
-                final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( userIdentity );
+                final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
                 chaiUser.writeStringAttribute( guidAttributeName, newGuid );
                 final String finalNewGuid = newGuid;
                 LOGGER.info( sessionLabel, () -> "added GUID value '" + finalNewGuid + "' to user " + userIdentity );
@@ -578,7 +578,7 @@ public class LdapOperationsHelper
                 final String errorMsg = "unable to write GUID value to user attribute " + guidAttributeName + " : " + e.getMessage()
                         + ", cannot write GUID value to user " + userIdentity;
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-                LOGGER.error( () -> errorInformation.toDebugStr() );
+                LOGGER.error( errorInformation::toDebugStr );
                 throw new PwmUnrecoverableException( errorInformation );
             }
             catch ( final ChaiUnavailableException e )
@@ -812,7 +812,7 @@ public class LdapOperationsHelper
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
+        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
         boolean success = false;
 
         final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
@@ -881,7 +881,7 @@ public class LdapOperationsHelper
             throw new NullPointerException( "invalid user (null)" );
         }
 
-        final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( sessionLabel, userIdentity.getLdapProfileID() );
         final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
 
         // use chai (nmas) to retrieve user password
@@ -955,6 +955,7 @@ public class LdapOperationsHelper
 
 
     public static Locale readLdapStoredLanguage(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final UserIdentity userIdentity
     )
@@ -969,7 +970,7 @@ public class LdapOperationsHelper
 
         try
         {
-            final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( userIdentity );
+            final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
             final String storedValue = chaiUser.readStringAttribute( languageAttr );
             if ( StringUtil.isEmpty( storedValue ) )
             {
@@ -1010,7 +1011,7 @@ public class LdapOperationsHelper
             final String languageCodeValue = LocaleHelper.getBrowserLocaleString( sessionLocale );
             try
             {
-                final ChaiUser user = pwmDomain.getProxiedChaiUser( userIdentity );
+                final ChaiUser user = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
                 user.writeStringAttribute( languageAttr, languageCodeValue );
                 LOGGER.debug( sessionLabel, () -> "wrote current browser session language value '" + languageCodeValue + "' to user attribute " + languageAttr );
             }

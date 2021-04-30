@@ -25,6 +25,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingTemplateSet;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.PwmUnrecoverableException;
@@ -38,6 +39,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SettingDataMaker
@@ -48,19 +50,33 @@ public class SettingDataMaker
             final DomainID domainID,
             final StoredConfiguration storedConfiguration,
             final SessionLabel sessionLabel,
-            final Locale locale
+            final Locale locale,
+            final NavTreeSettings navTreeSettings
     )
             throws PwmUnrecoverableException
     {
         final Instant startGenerateTime = Instant.now();
         final PwmSettingTemplateSet templateSet = storedConfiguration.getTemplateSet().get( domainID );
 
-        final Map<String, SettingInfo> settingMap = Collections.unmodifiableMap( Arrays.stream( PwmSetting.values() )
-                .collect( Collectors.toMap(
-                        PwmSetting::getKey,
-                        pwmSetting -> SettingInfo.forSetting( pwmSetting, templateSet, locale ),
-                        ( u, v ) -> v,
-                        LinkedHashMap::new ) ) );
+        final Map<String, SettingInfo> settingMap;
+        {
+            final Set<PwmSetting> interestedSets = StoredConfigurationUtil.allPossibleSettingKeysForConfiguration( storedConfiguration ).stream()
+                    .filter( k -> k.isRecordType( StoredConfigKey.RecordType.SETTING ) )
+                    .filter( k -> NavTreeDataMaker.settingMatcher( domainID, storedConfiguration, k.toPwmSetting(), k.getProfileID(), navTreeSettings ) )
+                    .map( StoredConfigKey::toPwmSetting )
+                    .collect( Collectors.toSet() );
+
+            settingMap = interestedSets.stream()
+                    .sorted()
+                    .collect( Collectors.toMap(
+                            PwmSetting::getKey,
+                            pwmSetting -> SettingInfo.forSetting( pwmSetting, templateSet, locale ),
+                            ( u, v ) ->
+                            {
+                                throw new IllegalStateException();
+                            },
+                            LinkedHashMap::new ) );
+        }
 
         final Map<String, CategoryInfo> categoryInfoMap = Collections.unmodifiableMap( Arrays.stream( PwmSettingCategory.values() )
                 .collect( Collectors.toMap(

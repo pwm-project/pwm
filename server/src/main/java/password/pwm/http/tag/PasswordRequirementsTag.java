@@ -579,7 +579,7 @@ public class PasswordRequirementsTag extends TagSupport
             if ( getForm() != null && getForm().equalsIgnoreCase( "newuser" ) )
             {
                 final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
-                passwordPolicy = newUserProfile.getNewUserPasswordPolicy( pwmDomain, locale );
+                passwordPolicy = newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() );
             }
             else
             {

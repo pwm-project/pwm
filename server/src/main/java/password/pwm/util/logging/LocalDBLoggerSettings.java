@@ -21,10 +21,11 @@
 package password.pwm.util.logging;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
@@ -32,7 +33,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-@Data
+@Value
 @Builder( toBuilder = true )
 public class LocalDBLoggerSettings implements Serializable
 {
@@ -43,7 +44,7 @@ public class LocalDBLoggerSettings implements Serializable
     static final TimeDuration MINIMUM_MAX_AGE = TimeDuration.HOUR;
 
     @Builder.Default
-    private int maxEvents = 1000 * 1000;
+    private int maxEvents = 1000_000;
 
     @Builder.Default
     private TimeDuration maxAge = TimeDuration.of( 7, TimeDuration.Unit.DAYS );
@@ -52,7 +53,7 @@ public class LocalDBLoggerSettings implements Serializable
     private Set<Flag> flags = Collections.emptySet();
 
     @Builder.Default
-    private int maxBufferSize = 1000;
+    private int maxBufferSize = 10_000;
 
     @Builder.Default
     private TimeDuration maxBufferWaitTime = TimeDuration.of( 1, TimeDuration.Unit.MINUTES );
@@ -64,6 +65,13 @@ public class LocalDBLoggerSettings implements Serializable
     public enum Flag
     {
         DevDebug,
+    }
+
+    TimeDuration cleanerFrequency()
+    {
+        final long ageSlice = this.getMaxAge().asMillis() / 1000;
+        final long cleanerFrequencyMs = JavaHelper.rangeCheck( TimeDuration.MINUTE.asMillis(), ageSlice, TimeDuration.DAY.asMillis() );
+        return TimeDuration.of( cleanerFrequencyMs, TimeDuration.Unit.MILLISECONDS );
     }
 
     LocalDBLoggerSettings applyValueChecks()

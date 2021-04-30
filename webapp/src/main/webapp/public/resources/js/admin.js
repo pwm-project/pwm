@@ -330,9 +330,10 @@ PWM_ADMIN.refreshActiveSessionGrid=function() {
 
 PWM_ADMIN.intruderHeaders = function(){
     return [
+        {field:"domainID",label:PWM_ADMIN.showString('Field_Intruder_Domain')},
         {field:"subject",label:PWM_ADMIN.showString('Field_Intruder_Subject')},
-        {field:"timestamp",label:PWM_ADMIN.showString('Field_Intruder_Timestamp')},
-        {field:"count",label:PWM_ADMIN.showString('Field_Intruder_Count')},
+        {field:"timeStamp",label:PWM_ADMIN.showString('Field_Intruder_Timestamp')},
+        {field:"attemptCount",label:PWM_ADMIN.showString('Field_Intruder_Count')},
         {field:"status",label:PWM_ADMIN.showString('Field_Intruder_Status')}
     ];
 };

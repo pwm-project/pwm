@@ -176,7 +176,7 @@ public class TokenUtil
                         throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
                     }
 
-                    if ( !userIdentity.canonicalEquals( tokenPayload.getUserIdentity(), pwmDomain.getPwmApplication() ) )
+                    if ( !userIdentity.canonicalEquals( pwmRequestContext.getSessionLabel(), tokenPayload.getUserIdentity(), pwmDomain.getPwmApplication() ) )
                     {
                         final String errorMsg = "received token is not for currently authenticated user, received token is for: "
                                 + tokenPayload.getUserIdentity().toDisplayString();

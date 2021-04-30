@@ -23,33 +23,25 @@ package password.pwm.http;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
 
+import java.util.function.Function;
+
 public enum PwmCookiePath
 {
-    Domain,
-    Private,
-    CurrentURL,
-    PwmServlet,;
+    Domain( ( pwmRequest ) -> "/" ),
+    Private( ( pwmRequest ) -> PwmConstants.URL_PREFIX_PRIVATE ),
+    CurrentURL( ( pwmRequest ) -> pwmRequest.getURL().toString() ),
+    PwmServlet( ( pwmRequest ) -> pwmRequest.getURL().determinePwmServletPath() ),;
+
+    private final transient Function<PwmRequest, String> suffixFunction;
+
+    PwmCookiePath( final Function<PwmRequest, String> suffixFunction )
+    {
+        this.suffixFunction = suffixFunction;
+    }
 
     String toStringPath( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        switch ( this )
-        {
-            case Domain:
-                return pwmRequest.getBasePath() + "/";
-
-            case Private:
-                return pwmRequest.getBasePath() + PwmConstants.URL_PREFIX_PRIVATE;
-
-            case CurrentURL:
-                return pwmRequest.getURL().toString();
-
-            case PwmServlet:
-                return pwmRequest.getURL().determinePwmServletPath();
-
-            default:
-                throw new IllegalStateException( "undefined CookiePath type: " + this );
-        }
-
+        return pwmRequest.getBasePath() + suffixFunction.apply( pwmRequest );
     }
 }

@@ -32,7 +32,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoBean;
 import password.pwm.util.macro.MacroRequest;
-import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.svc.otp.OTPUserRecord;
 
 import java.time.Instant;
 import java.util.Collections;

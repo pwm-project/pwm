@@ -30,7 +30,7 @@
 <%@ page import="password.pwm.svc.stats.Statistic" %>
 <%@ page import="password.pwm.svc.stats.StatisticType" %>
 <%@ page import="password.pwm.svc.stats.StatisticsBundle" %>
-<%@ page import="password.pwm.svc.stats.StatisticsManager" %>
+<%@ page import="password.pwm.svc.stats.StatisticsService" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
@@ -43,7 +43,7 @@
 <%
     final Locale locale = JspUtility.locale(request);
 
-    StatisticsManager statsManager = null;
+    StatisticsService statsManager = null;
     String statsPeriodSelect = "";
     String statsChartSelect = "";
     StatisticsBundle stats = null;
@@ -187,10 +187,10 @@
                                               name="statsUpdateForm" id="statsUpdateForm">
                                             <select name="statsPeriodSelect"
                                                     style="width: 350px;">
-                                                <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
+                                                <option value="<%=StatisticsService.KEY_CUMULATIVE%>" <%= StatisticsService.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
                                                     since installation - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getInstallTime()) %></span>
                                                 </option>
-                                                <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
+                                                <option value="<%=StatisticsService.KEY_CURRENT%>" <%= StatisticsService.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
                                                     since startup - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getStartupTime()) %></span>
                                                 </option>
                                                 <% final Map<DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>

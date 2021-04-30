@@ -89,7 +89,7 @@ public class ExportResponsesCommand extends AbstractCliCommand
         int counter = 0;
         for ( final UserIdentity identity : results.keySet() )
         {
-            final ChaiUser user = pwmDomain.getProxiedChaiUser( identity );
+            final ChaiUser user = pwmDomain.getProxiedChaiUser( SessionLabel.CLI_SESSION_LABEL, identity );
             final Optional<ResponseSet> responseSet = pwmDomain.getCrService().readUserResponseSet( null, identity, user );
             if ( responseSet.isPresent() )
             {

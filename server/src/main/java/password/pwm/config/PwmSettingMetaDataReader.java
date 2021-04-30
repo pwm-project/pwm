@@ -167,6 +167,11 @@ public class PwmSettingMetaDataReader
         }
     }
 
+    /**
+     * Not required for normal operation, but executing this gets all the enum values poopulated form XML source.  If run prior to users accessing the settings
+     * module (particularly the config editor) it will increase the initial load performance significantly.  There are no side effects to calling this operation
+     * other than cache population.
+     */
     public static void initCache()
     {
         final Instant startTime = Instant.now();

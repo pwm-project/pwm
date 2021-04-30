@@ -156,14 +156,14 @@ public class DataStoreTokenMachine implements TokenMachine
             {
                 LOGGER.trace( sessionLabel, () -> "error while trying to decrypted stored token payload for key '" + storedHash
                         + "', will purge record, error: " + e.getMessage() );
-                dataStore.remove( storedHash );
+                removeToken( tokenKey );
                 return Optional.empty();
             }
 
             if ( testIfTokenNeedsPurging( tokenPayload ) )
             {
                 LOGGER.trace( sessionLabel, () -> "stored token key '" + storedHash + "', has an outdated issue/expire date and will be purged" );
-                dataStore.remove( storedHash );
+                removeToken( tokenKey );
             }
             else
             {
@@ -186,6 +186,7 @@ public class DataStoreTokenMachine implements TokenMachine
     public void removeToken( final TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException
     {
+        tokenService.getStats().increment( TokenService.StatsKey.tokensRemoved );
         final String storedHash = tokenKey.getStoredHash();
         dataStore.remove( storedHash );
     }

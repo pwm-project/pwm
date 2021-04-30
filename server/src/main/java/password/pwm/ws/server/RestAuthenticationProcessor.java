@@ -168,8 +168,8 @@ public class RestAuthenticationProcessor
         if ( ldapProfile != null )
         {
             {
-                final UserIdentity testUser = ldapProfile.getTestUser( pwmDomain );
-                if ( testUser != null && testUser.canonicalEquals( userIdentity, pwmDomain.getPwmApplication() ) )
+                final UserIdentity testUser = ldapProfile.getTestUser( sessionLabel, pwmDomain );
+                if ( testUser != null && testUser.canonicalEquals( sessionLabel, userIdentity, pwmDomain.getPwmApplication() ) )
                 {
                     final String msg = "rest services can not be authenticated using the configured LDAP profile test user";
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_INVOCATION_ERROR, msg );
@@ -178,8 +178,8 @@ public class RestAuthenticationProcessor
             }
 
             {
-                final UserIdentity testUser = ldapProfile.getTestUser( pwmDomain );
-                if ( testUser != null && testUser.canonicalEquals( userIdentity, pwmDomain.getPwmApplication() ) )
+                final UserIdentity testUser = ldapProfile.getTestUser( sessionLabel, pwmDomain );
+                if ( testUser != null && testUser.canonicalEquals( sessionLabel, userIdentity, pwmDomain.getPwmApplication() ) )
                 {
                     final String msg = "rest services can not be authenticated using the configured LDAP profile proxy user";
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_INVOCATION_ERROR, msg );

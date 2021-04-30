@@ -136,7 +136,7 @@ class LdapTokenMachine implements TokenMachine
             final String encodedTokenPayload = tokenService.toEncryptedString( tokenPayload );
 
             final UserIdentity userIdentity = tokenPayload.getUserIdentity();
-            final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( userIdentity );
+            final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( tokenService.getSessionLabel(), userIdentity );
             chaiUser.writeStringAttribute( tokenAttribute, md5sumToken + KEY_VALUE_DELIMITER + encodedTokenPayload );
         }
         catch ( final ChaiException e )
@@ -157,7 +157,8 @@ class LdapTokenMachine implements TokenMachine
             final UserIdentity userIdentity = payload.get().getUserIdentity();
             try
             {
-                final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( userIdentity );
+                final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( tokenService.getSessionLabel(), userIdentity );
+                tokenService.getStats().increment( TokenService.StatsKey.tokensRemoved );
                 chaiUser.deleteAttribute( tokenAttribute, null );
             }
             catch ( final ChaiException e )

@@ -78,7 +78,12 @@ public class UserMatchViewerFunction implements SettingUIFunction
 
         final Instant startSearchTime = Instant.now();
         final int maxResultSize = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.CONFIG_EDITOR_USER_PERMISSION_MATCH_LIMIT ) );
-        final Collection<UserIdentity> users = discoverMatchingUsers( pwmDomain, maxResultSize, storedConfiguration.newStoredConfiguration(), key );
+        final Collection<UserIdentity> users = discoverMatchingUsers(
+                pwmRequest.getLabel(),
+                pwmDomain,
+                maxResultSize,
+                storedConfiguration.newStoredConfiguration(),
+                key );
         final TimeDuration searchDuration = TimeDuration.fromCurrent( startSearchTime );
 
         final String message = LocaleHelper.getLocalizedMessage(
@@ -96,6 +101,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
     }
 
     public List<UserIdentity> discoverMatchingUsers(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final int maxResultSize,
             final StoredConfiguration storedConfiguration,
@@ -109,7 +115,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
         final List<UserPermission> permissions = ValueTypeConverter.valueToUserPermissions( storedValue );
         final PwmDomain tempDomain = tempApplication.domains().get( key.getDomainID() );
 
-        validateUserPermissionLdapValues( tempDomain, permissions );
+        validateUserPermissionLdapValues( sessionLabel, tempDomain, permissions );
 
         final int maxSearchSeconds = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.CONFIG_EDITOR_USER_PERMISSION_TIMEOUT_SECONDS ) );
         final TimeDuration maxSearchTime = TimeDuration.of( maxSearchSeconds, TimeDuration.Unit.SECONDS );
@@ -121,6 +127,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
     }
 
     private static void validateUserPermissionLdapValues(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final List<UserPermission> permissions
     )
@@ -132,18 +139,23 @@ public class UserMatchViewerFunction implements SettingUIFunction
             {
                 if ( userPermission.getLdapBase() != null && !userPermission.getLdapBase().isEmpty() )
                 {
-                    testIfLdapDNIsValid( pwmDomain, userPermission.getLdapBase(), userPermission.getLdapProfileID() );
+                    testIfLdapDNIsValid( sessionLabel, pwmDomain, userPermission.getLdapBase(), userPermission.getLdapProfileID() );
                 }
             }
             else if ( userPermission.getType() == UserPermissionType.ldapGroup )
             {
-                testIfLdapDNIsValid( pwmDomain, userPermission.getLdapBase(), userPermission.getLdapProfileID() );
+                testIfLdapDNIsValid( sessionLabel, pwmDomain, userPermission.getLdapBase(), userPermission.getLdapProfileID() );
             }
         }
     }
 
 
-    private static void testIfLdapDNIsValid( final PwmDomain pwmDomain, final String baseDN, final String profileID )
+    private static void testIfLdapDNIsValid(
+            final SessionLabel sessionLabel,
+            final PwmDomain pwmDomain,
+            final String baseDN,
+            final String profileID
+    )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final Set<String> profileIDsToTest = new LinkedHashSet<>();
@@ -167,7 +179,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
             ChaiEntry chaiEntry = null;
             try
             {
-                final ChaiProvider proxiedProvider = pwmDomain.getProxyChaiProvider( loopID );
+                final ChaiProvider proxiedProvider = pwmDomain.getProxyChaiProvider( sessionLabel, loopID );
                 chaiEntry = proxiedProvider.getEntryFactory().newChaiEntry( baseDN );
             }
             catch ( final Exception e )

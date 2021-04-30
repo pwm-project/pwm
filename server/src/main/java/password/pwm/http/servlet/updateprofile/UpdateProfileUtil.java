@@ -45,6 +45,7 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.form.FormUtility;
@@ -119,6 +120,7 @@ public class UpdateProfileUtil
     }
 
     static void verifyFormAttributes(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final UserIdentity userIdentity,
             final Locale userLocale,
@@ -138,6 +140,7 @@ public class UpdateProfileUtil
 
         // check unique fields against ldap
         FormUtility.validateFormValueUniqueness(
+                sessionLabel,
                 pwmDomain,
                 formValues,
                 userLocale,
@@ -358,17 +361,17 @@ public class UpdateProfileUtil
         final Map<FormConfiguration, String> formMap = FormUtility.readFormValuesFromMap( formValues, formFields, locale );
 
         // verify form meets the form requirements (may be redundant, but shouldn't hurt)
-        verifyFormAttributes( pwmDomain, userInfo.getUserIdentity(), locale, formMap, false );
+        verifyFormAttributes( sessionLabel, pwmDomain, userInfo.getUserIdentity(), locale, formMap, false );
 
         // write values.
-        LOGGER.info( () -> "updating profile for " + userInfo.getUserIdentity() );
+        LOGGER.info( sessionLabel, () -> "updating profile for " + userInfo.getUserIdentity() );
 
         LdapOperationsHelper.writeFormValuesToLdap( theUser, formMap, macroRequest, false );
 
         postUpdateActionsAndEmail( pwmDomain, sessionLabel, locale, userInfo.getUserIdentity(), updateProfileProfile );
 
         // success, so forward to success page
-        pwmDomain.getStatisticsManager().incrementValue( Statistic.UPDATE_ATTRIBUTES );
+        StatisticsClient.incrementStat( pwmDomain.getPwmApplication(), Statistic.UPDATE_ATTRIBUTES );
     }
 
     private static void postUpdateActionsAndEmail(
@@ -386,7 +389,7 @@ public class UpdateProfileUtil
                 sessionLabel,
                 locale,
                 userIdentity,
-                pwmDomain.getProxiedChaiUser( userIdentity ).getChaiProvider() );
+                pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity ).getChaiProvider() );
         final MacroRequest reloadedMacroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), sessionLabel, reloadedUserInfo, null, null );
 
         {

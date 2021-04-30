@@ -28,6 +28,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.logging.PwmLogger;
 
@@ -35,7 +36,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,24 +44,20 @@ import java.util.regex.PatternSyntaxException;
 /**
  * @author Menno Pieters
  */
-public class UrlShortenerService implements PwmService
+public class UrlShortenerService extends AbstractPwmService implements PwmService
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( UrlShortenerService.class );
 
-    private PwmApplication pwmApplication;
     private BasicUrlShortener theShortener = null;
-    private STATUS status = STATUS.CLOSED;
 
     public UrlShortenerService( )
     {
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmApplication = Objects.requireNonNull( pwmApplication );
         final AppConfig config = pwmApplication.getConfig();
         final String classNameString = config.readSettingAsString( PwmSetting.URL_SHORTENER_CLASS );
         if ( classNameString != null && classNameString.length() > 0 )
@@ -103,23 +99,18 @@ public class UrlShortenerService implements PwmService
                 e.printStackTrace();
             }
         }
-        status = PwmService.STATUS.OPEN;
-    }
 
-    @Override
-    public STATUS status( )
-    {
-        return status;
+        return STATUS.OPEN;
     }
 
     @Override
     public void close( )
     {
-        status = PwmService.STATUS.CLOSED;
+        setStatus( PwmService.STATUS.CLOSED );
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
         return Collections.emptyList();
     }
@@ -128,14 +119,14 @@ public class UrlShortenerService implements PwmService
     {
         if ( theShortener != null )
         {
-            return theShortener.shorten( text, pwmApplication );
+            return theShortener.shorten( text, getPwmApplication() );
         }
         return text;
     }
 
     public String shortenUrlInText( final String text ) throws PwmUnrecoverableException
     {
-        final String urlRegex = pwmApplication.getConfig().readAppProperty( AppProperty.URL_SHORTNER_URL_REGEX );
+        final String urlRegex = getPwmApplication().getConfig().readAppProperty( AppProperty.URL_SHORTNER_URL_REGEX );
         try
         {
             final Pattern p = Pattern.compile( urlRegex );

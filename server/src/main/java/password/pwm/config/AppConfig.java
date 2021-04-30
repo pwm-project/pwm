@@ -25,13 +25,12 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.option.CertificateMatchingMode;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.EmailServerProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.data.UserPermission;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
@@ -40,7 +39,6 @@ import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.security.cert.X509Certificate;
@@ -208,6 +206,11 @@ public class AppConfig implements SettingReader
         return settingReader.readLocalizedBundle( className, keyName );
     }
 
+    public List<DataStorageMethod> readGenericStorageLocations( final PwmSetting setting )
+    {
+        return settingReader.readGenericStorageLocations( setting );
+    }
+
     private class ConfigurationSuppliers
     {
         private final Supplier<Map<String, String>> appPropertyOverrides = new LazySupplier<>( () ->
@@ -216,43 +219,7 @@ public class AppConfig implements SettingReader
 
         private final LazySupplier.CheckedSupplier<PwmSecurityKey, PwmUnrecoverableException> pwmSecurityKey
                 = LazySupplier.checked( () ->
-        {
-            final PasswordData configValue = settingReader.readSettingAsPassword( PwmSetting.PWM_SECURITY_KEY );
-
-            if ( configValue == null || configValue.getStringValue().isEmpty() )
-            {
-                final String errorMsg = "Security Key value is not configured, will generate temp value for use by runtime instance";
-                final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-                LOGGER.warn( errorInfo::toDebugStr );
-                if ( tempInstanceKey == null )
-                {
-                    tempInstanceKey = new PwmSecurityKey( PwmRandom.getInstance().alphaNumericString( 1024 ) );
-                }
-                return tempInstanceKey;
-            }
-            else
-            {
-                final int minSecurityKeyLength = Integer.parseInt( readAppProperty( AppProperty.SECURITY_CONFIG_MIN_SECURITY_KEY_LENGTH ) );
-                if ( configValue.getStringValue().length() < minSecurityKeyLength )
-                {
-                    final String errorMsg = "Security Key must be greater than 32 characters in length";
-                    final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-                    throw new PwmUnrecoverableException( errorInfo );
-                }
-
-                try
-                {
-                    return new PwmSecurityKey( configValue.getStringValue() );
-                }
-                catch ( final Exception e )
-                {
-                    final String errorMsg = "unexpected error generating Security Key crypto: " + e.getMessage();
-                    final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-                    LOGGER.error( errorInfo::toDebugStr, e );
-                    throw new PwmUnrecoverableException( errorInfo );
-                }
-            }
-        } );
+                settingReader.readSecurityKey( PwmSetting.PWM_SECURITY_KEY, AppConfig.this ) );
 
         private final Supplier<Map<Locale, String>> localeFlagMap = new LazySupplier<>( () ->
         {

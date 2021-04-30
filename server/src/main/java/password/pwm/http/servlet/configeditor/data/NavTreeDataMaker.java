@@ -27,7 +27,9 @@ import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
+import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.PwmSettingScope;
+import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.stored.ConfigSearchMachine;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
@@ -327,7 +329,7 @@ public class NavTreeDataMaker
 
         for ( final PwmSetting setting : category.getSettings() )
         {
-            if ( settingMatcher( pwmDomain, storedConfiguration, setting, profile, navTreeSettings ) )
+            if ( settingMatcher( pwmDomain.getDomainID(), storedConfiguration, setting, profile, navTreeSettings ) )
             {
                 return true;
             }
@@ -336,17 +338,22 @@ public class NavTreeDataMaker
         return false;
     }
 
-    private static boolean settingMatcher(
-            final PwmDomain pwmDomain,
+    static boolean settingMatcher(
+            final DomainID domainID,
             final StoredConfiguration storedConfiguration,
             final PwmSetting setting,
             final String profileID,
             final NavTreeSettings navTreeSettings
     )
     {
-        final StoredConfigKey storedConfigKey = StoredConfigKey.forSetting( setting, profileID, pwmDomain.getDomainID() );
-        final boolean valueIsDefault = StoredConfigurationUtil.isDefaultValue( storedConfiguration, storedConfigKey );
+        final StoredConfigKey storedConfigKey = StoredConfigKey.forSetting( setting, profileID, domainID );
 
+        if ( setting.getSyntax() == PwmSettingSyntax.PROFILE && !setting.isHidden() && setting.getCategory().getParent().isHidden() )
+        {
+            return true;
+        }
+
+        final boolean valueIsDefault = StoredConfigurationUtil.isDefaultValue( storedConfiguration, storedConfigKey );
         if ( setting.isHidden() && !valueIsDefault )
         {
             return false;
@@ -371,6 +378,12 @@ public class NavTreeDataMaker
 
         final int level = navTreeSettings.getLevel();
         if ( setting.getLevel() > level )
+        {
+            return false;
+        }
+
+        if ( setting.getFlags().contains( PwmSettingFlag.MultiDomain )
+                && ( !( new AppConfig( storedConfiguration ).isMultiDomain() ) ) )
         {
             return false;
         }

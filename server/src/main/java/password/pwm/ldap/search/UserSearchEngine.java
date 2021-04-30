@@ -42,6 +42,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
@@ -77,7 +78,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 
-public class UserSearchEngine implements PwmService
+public class UserSearchEngine extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserSearchEngine.class );
 
@@ -98,9 +99,9 @@ public class UserSearchEngine implements PwmService
 
     private ThreadPoolExecutor executor;
 
-    private final ConditionalTaskExecutor debugOutputTask = new ConditionalTaskExecutor(
+    private final ConditionalTaskExecutor debugOutputTask = ConditionalTaskExecutor.forPeriodicTask(
             this::periodicDebugOutput,
-            new ConditionalTaskExecutor.TimeDurationPredicate( 1, TimeDuration.Unit.MINUTES )
+            TimeDuration.of( 1, TimeDuration.Unit.MINUTES )
     );
 
     public UserSearchEngine( )
@@ -108,18 +109,20 @@ public class UserSearchEngine implements PwmService
     }
 
     @Override
-    public STATUS status( )
+    protected Set<PwmApplication.Condition> openConditions()
     {
-        return STATUS.OPEN;
+        return Collections.emptySet();
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
         this.pwmDomain = pwmApplication.domains().get( domainID );
         this.executor = createExecutor( pwmDomain );
         this.periodicDebugOutput();
+
+        return STATUS.OPEN;
     }
 
     @Override
@@ -133,7 +136,7 @@ public class UserSearchEngine implements PwmService
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
         return Collections.emptyList();
     }
@@ -157,7 +160,7 @@ public class UserSearchEngine implements PwmService
             UserIdentity inputIdentity = null;
             try
             {
-                inputIdentity = UserIdentity.fromKey( username, pwmDomain.getPwmApplication() );
+                inputIdentity = UserIdentity.fromKey( sessionLabel, username, pwmDomain.getPwmApplication() );
             }
             catch ( final PwmException e )
             {
@@ -168,7 +171,7 @@ public class UserSearchEngine implements PwmService
             {
                 try
                 {
-                    final ChaiUser theUser = pwmDomain.getProxiedChaiUser( inputIdentity );
+                    final ChaiUser theUser = pwmDomain.getProxiedChaiUser( sessionLabel, inputIdentity );
                     if ( theUser.exists() )
                     {
                         final String canonicalDN;
@@ -427,13 +430,13 @@ public class UserSearchEngine implements PwmService
             {
                 for ( final String searchContext : searchContexts )
                 {
-                    validateSpecifiedContext( ldapProfile, searchContext );
+                    validateSpecifiedContext( sessionLabel, ldapProfile, searchContext );
                 }
             }
         }
         else
         {
-            searchContexts = ldapProfile.getRootContexts( pwmDomain );
+            searchContexts = ldapProfile.getRootContexts( sessionLabel, pwmDomain );
         }
 
         final long timeLimitMS = searchConfiguration.getSearchTimeout() != null
@@ -441,7 +444,7 @@ public class UserSearchEngine implements PwmService
                 : ( ldapProfile.readSettingAsLong( PwmSetting.LDAP_SEARCH_TIMEOUT ) * 1000 );
 
         final ChaiProvider chaiProvider = searchConfiguration.getChaiProvider() == null
-                ? pwmDomain.getProxyChaiProvider( ldapProfile.getIdentifier() )
+                ? pwmDomain.getProxyChaiProvider( sessionLabel, ldapProfile.getIdentifier() )
                 : searchConfiguration.getChaiProvider();
 
         final List<UserSearchJob> returnMap = new ArrayList<>();
@@ -514,16 +517,16 @@ public class UserSearchEngine implements PwmService
     }
 
 
-    private void validateSpecifiedContext( final LdapProfile profile, final String context )
+    private void validateSpecifiedContext( final SessionLabel sessionLabel, final LdapProfile profile, final String context )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         Objects.requireNonNull( profile, "ldapProfile can not be null for ldap search context validation" );
         Objects.requireNonNull( context, "context can not be null for ldap search context validation" );
 
-        final String canonicalContext = profile.readCanonicalDN( pwmDomain, context );
+        final String canonicalContext = profile.readCanonicalDN( sessionLabel, pwmDomain, context );
 
         {
-            final Map<String, String> selectableContexts = profile.getSelectableContexts( pwmDomain );
+            final Map<String, String> selectableContexts = profile.getSelectableContexts( sessionLabel, pwmDomain );
             if ( !CollectionUtil.isEmpty( selectableContexts ) && selectableContexts.containsKey( canonicalContext ) )
             {
                 // config pre-validates selectable contexts so this should be permitted
@@ -532,7 +535,7 @@ public class UserSearchEngine implements PwmService
         }
 
         {
-            final List<String> rootContexts = profile.getRootContexts( pwmDomain );
+            final List<String> rootContexts = profile.getRootContexts( sessionLabel, pwmDomain );
             if ( !CollectionUtil.isEmpty( rootContexts ) )
             {
                 for ( final String rootContext : rootContexts )
@@ -614,7 +617,7 @@ public class UserSearchEngine implements PwmService
         }
 
         final UserIdentity userIdentity = results.keySet().iterator().next();
-        validateSpecifiedContext( userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() ), userIdentity.getUserDN() );
+        validateSpecifiedContext( sessionLabel, userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() ), userIdentity.getUserDN() );
         return userIdentity;
     }
 
@@ -766,7 +769,7 @@ public class UserSearchEngine implements PwmService
 
     private void periodicDebugOutput( )
     {
-        LOGGER.debug( () -> "periodic debug status: " + StringUtil.mapToString( debugProperties() ) );
+        LOGGER.trace( () -> "periodic debug status: " + StringUtil.mapToString( debugProperties() ) );
     }
 
     void log( final PwmLogLevel level, final SessionLabel sessionLabel, final int searchID, final int jobID, final String message )

@@ -47,19 +47,20 @@ import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.config.value.data.UserPermission;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.SecureEngine;
 
+import java.io.StringWriter;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -105,7 +106,6 @@ public class DomainConfig implements SettingReader
         final String adminDomainStr = getAppConfig().readSettingAsString( PwmSetting.DOMAIN_SYSTEM_ADMIN );
         return getDomainID().stringValue().equals( adminDomainStr );
     }
-
 
     public List<FormConfiguration> readSettingAsForm( final PwmSetting setting )
     {
@@ -203,7 +203,6 @@ public class DomainConfig implements SettingReader
         return StoredConfigurationUtil.profilesForSetting( this.getDomainID(), PwmSetting.PASSWORD_PROFILE_LIST, storedConfiguration );
     }
 
-
     public List<String> readSettingAsStringArray( final PwmSetting setting )
     {
         return settingReader.readSettingAsStringArray( setting );
@@ -234,31 +233,15 @@ public class DomainConfig implements SettingReader
         return settingReader.readSettingAsPrivateKey( setting );
     }
 
-    private PwmSecurityKey tempInstanceKey = null;
-
     public PwmSecurityKey getSecurityKey( ) throws PwmUnrecoverableException
     {
+        //return configurationSuppliers.pwmSecurityKey.call();
         return getAppConfig().getSecurityKey();
     }
 
-    public List<DataStorageMethod> getResponseStorageLocations( final PwmSetting setting )
+    public List<DataStorageMethod> readGenericStorageLocations( final PwmSetting setting )
     {
-        return getGenericStorageLocations( setting );
-    }
-
-    public List<DataStorageMethod> getOtpSecretStorageLocations( final PwmSetting setting )
-    {
-        return getGenericStorageLocations( setting );
-    }
-
-    private List<DataStorageMethod> getGenericStorageLocations( final PwmSetting setting )
-    {
-        final String input = readSettingAsString( setting );
-
-        return Arrays.stream( input.split( "-" ) )
-                .map( s ->  JavaHelper.readEnumFromString( DataStorageMethod.class, s ) )
-                .flatMap( Optional::stream )
-                .collect( Collectors.toUnmodifiableList() );
+        return settingReader.readGenericStorageLocations( setting );
     }
 
     public LdapProfile getDefaultLdapProfile( ) throws PwmUnrecoverableException
@@ -300,44 +283,22 @@ public class DomainConfig implements SettingReader
             );
         } );
 
+
         private final LazySupplier.CheckedSupplier<PwmSecurityKey, PwmUnrecoverableException> pwmSecurityKey
                 = LazySupplier.checked( () ->
         {
-            final PasswordData configValue = readSettingAsPassword( PwmSetting.PWM_SECURITY_KEY );
+            final StringWriter keyData = new StringWriter();
+            keyData.append( domainID.stringValue() );
+            CollectionUtil.iteratorToStream( getStoredConfiguration().keys() )
+                    .filter( key -> Objects.equals( key.getDomainID(), getDomainID() ) )
+                    .sorted()
+                    .map( storedConfiguration::readStoredValue )
+                    .flatMap( Optional::stream )
+                    .forEach( value -> keyData.append( value.valueHash() ) );
 
-            if ( configValue == null || configValue.getStringValue().isEmpty() )
-            {
-                final String errorMsg = "Security Key value is not configured, will generate temp value for use by runtime instance";
-                final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-                LOGGER.warn( errorInfo::toDebugStr );
-                if ( tempInstanceKey == null )
-                {
-                    tempInstanceKey = new PwmSecurityKey( PwmRandom.getInstance().alphaNumericString( 1024 ) );
-                }
-                return tempInstanceKey;
-            }
-            else
-            {
-                final int minSecurityKeyLength = Integer.parseInt( readAppProperty( AppProperty.SECURITY_CONFIG_MIN_SECURITY_KEY_LENGTH ) );
-                if ( configValue.getStringValue().length() < minSecurityKeyLength )
-                {
-                    final String errorMsg = "Security Key must be greater than 32 characters in length";
-                    final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-                    throw new PwmUnrecoverableException( errorInfo );
-                }
-
-                try
-                {
-                    return new PwmSecurityKey( configValue.getStringValue() );
-                }
-                catch ( final Exception e )
-                {
-                    final String errorMsg = "unexpected err0or generating Security Key crypto: " + e.getMessage();
-                    final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-                    LOGGER.error( errorInfo::toDebugStr, e );
-                    throw new PwmUnrecoverableException( errorInfo );
-                }
-            }
+            final String hashedData = SecureEngine.hash( keyData.toString(), PwmHashAlgorithm.SHA512 );
+            final PwmSecurityKey domainKey = new PwmSecurityKey( hashedData );
+            return getAppConfig().getSecurityKey().add( domainKey );
         } );
     }
 
@@ -411,5 +372,40 @@ public class DomainConfig implements SettingReader
     public String getDisplayName( final Locale locale )
     {
         return getDomainID().toString();
+    }
+
+    public List<DataStorageMethod> getCrReadPreference()
+    {
+        return calculateMethods( PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, PwmSetting.EDIRECTORY_USE_NMAS_RESPONSES );
+    }
+
+    public List<DataStorageMethod> getCrWritePreference()
+    {
+        return calculateMethods( PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE, PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES );
+    }
+
+    private List<DataStorageMethod> calculateMethods(
+            final PwmSetting setting,
+            final PwmSetting addNmasSetting
+    )
+    {
+        final List<DataStorageMethod> methods = new ArrayList<>( this.readGenericStorageLocations( setting ) );
+        if ( methods.size() == 1 && methods.get( 0 ) == DataStorageMethod.AUTO )
+        {
+            methods.clear();
+            if ( getAppConfig().hasDbConfigured() )
+            {
+                methods.add( DataStorageMethod.DB );
+            }
+            else
+            {
+                methods.add( DataStorageMethod.LDAP );
+            }
+        }
+        if ( this.readSettingAsBoolean( addNmasSetting ) )
+        {
+            methods.add( DataStorageMethod.NMAS );
+        }
+        return Collections.unmodifiableList( methods );
     }
 }

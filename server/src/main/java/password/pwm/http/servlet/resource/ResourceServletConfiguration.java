@@ -26,6 +26,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
@@ -81,9 +82,9 @@ class ResourceServletConfiguration
         nonceValue = null;
     }
 
-    private ResourceServletConfiguration( final PwmDomain pwmDomain )
+    private ResourceServletConfiguration( final SessionLabel sessionLabel, final PwmDomain pwmDomain )
     {
-        LOGGER.trace( () -> "initializing" );
+        LOGGER.trace( sessionLabel, () -> "initializing" );
         final DomainConfig domainConfig = pwmDomain.getConfig();
         maxCacheItems = Integer.parseInt( domainConfig.readAppProperty( AppProperty.HTTP_RESOURCES_MAX_CACHE_ITEMS ) );
         cacheExpireSeconds = Long.parseLong( domainConfig.readAppProperty( AppProperty.HTTP_RESOURCES_EXPIRATION_SECONDS ) );
@@ -95,12 +96,14 @@ class ResourceServletConfiguration
         noncePattern = Pattern.compile( noncePrefix + "[^/]*?/" );
         nonceValue = pwmDomain.getPwmApplication().getRuntimeNonce();
 
-        zipResources = makeZipResourcesFromConfig( pwmDomain, domainConfig );
+        zipResources = makeZipResourcesFromConfig( sessionLabel, pwmDomain, domainConfig );
 
-        customFileBundle = makeCustomFileBundle( domainConfig );
+        customFileBundle = makeCustomFileBundle( sessionLabel, domainConfig );
     }
 
-    private Map<String, FileResource> makeCustomFileBundle( final DomainConfig domainConfig )
+    private Map<String, FileResource> makeCustomFileBundle(
+            final SessionLabel sessionLabel,
+            final DomainConfig domainConfig )
     {
         final Map<String, FileResource> customFileBundle = new HashMap<>();
         final Map<FileValue.FileInformation, FileValue.FileContent> files = domainConfig.readSettingAsFile( PwmSetting.DISPLAY_CUSTOM_RESOURCE_BUNDLE );
@@ -109,7 +112,7 @@ class ResourceServletConfiguration
             final Map.Entry<FileValue.FileInformation, FileValue.FileContent> entry = files.entrySet().iterator().next();
             final FileValue.FileInformation fileInformation = entry.getKey();
             final FileValue.FileContent fileContent = entry.getValue();
-            LOGGER.debug( () -> "examining configured zip file resource for items name=" + fileInformation.getFilename() + ", size=" + fileContent.size() );
+            LOGGER.debug( sessionLabel, () -> "examining configured zip file resource for items name=" + fileInformation.getFilename() + ", size=" + fileContent.size() );
 
             try
             {
@@ -117,18 +120,21 @@ class ResourceServletConfiguration
                 final String path = "/tmp/" + domainConfig.getDomainID().stringValue();
                 FileUtils.writeByteArrayToFile( new File( path ), bytes );
 
-                final Map<String, FileResource> customFiles = makeMemoryFileMapFromZipInput( fileContent.getContents() );
+                final Map<String, FileResource> customFiles = makeMemoryFileMapFromZipInput( sessionLabel, fileContent.getContents() );
                 customFileBundle.putAll( customFiles );
             }
             catch ( final IOException e )
             {
-                LOGGER.error( () -> "error assembling memory file map zip bundle: " + e.getMessage() );
+                LOGGER.error( sessionLabel, () -> "error assembling memory file map zip bundle: " + e.getMessage() );
             }
         }
         return Collections.unmodifiableMap( customFileBundle );
     }
 
-    private Map<String, ZipFile> makeZipResourcesFromConfig( final PwmDomain pwmDomain, final DomainConfig domainConfig )
+    private Map<String, ZipFile> makeZipResourcesFromConfig(
+            final SessionLabel sessionLabel,
+            final PwmDomain pwmDomain,
+            final DomainConfig domainConfig )
     {
         final Map<String, ZipFile> zipResources = new HashMap<>();
         final String zipFileResourceParam = domainConfig.getAppConfig().readAppProperty( AppProperty.HTTP_RESOURCES_ZIP_FILES );
@@ -151,25 +157,25 @@ class ResourceServletConfiguration
                         );
                         final ZipFile zipFile = new ZipFile( zipFileFile );
                         zipResources.put( ResourceFileServlet.RESOURCE_PATH + configuredZipFileResource.getUrl(), zipFile );
-                        LOGGER.debug( () -> "registered resource-zip file " + configuredZipFileResource.getZipFile() + " at path " + zipFileFile.getAbsolutePath() );
+                        LOGGER.debug( sessionLabel, () -> "registered resource-zip file " + configuredZipFileResource.getZipFile() + " at path " + zipFileFile.getAbsolutePath() );
                     }
                     catch ( final IOException e )
                     {
-                        LOGGER.warn( () -> "unable to resource-zip file " + configuredZipFileResource + ", error: " + e.getMessage() );
+                        LOGGER.warn( sessionLabel, () -> "unable to resource-zip file " + configuredZipFileResource + ", error: " + e.getMessage() );
                     }
                 }
                 else
                 {
-                    LOGGER.error( () -> "can't register resource-zip file " + configuredZipFileResource.getZipFile() + " because WEB-INF path is unknown" );
+                    LOGGER.error( sessionLabel, () -> "can't register resource-zip file " + configuredZipFileResource.getZipFile() + " because WEB-INF path is unknown" );
                 }
             }
         }
         return Collections.unmodifiableMap( zipResources );
     }
 
-    static ResourceServletConfiguration fromConfig( final PwmDomain pwmDomain )
+    static ResourceServletConfiguration fromConfig( final SessionLabel sessionLabel, final PwmDomain pwmDomain )
     {
-        return new ResourceServletConfiguration( pwmDomain );
+        return new ResourceServletConfiguration( sessionLabel, pwmDomain );
     }
 
     static ResourceServletConfiguration defaultConfiguration( )
@@ -177,7 +183,7 @@ class ResourceServletConfiguration
         return new ResourceServletConfiguration();
     }
 
-    private static Map<String, FileResource> makeMemoryFileMapFromZipInput( final ImmutableByteArray content )
+    private static Map<String, FileResource> makeMemoryFileMapFromZipInput( final SessionLabel sessionLabel, final ImmutableByteArray content )
             throws IOException
     {
         final ZipInputStream stream = new ZipInputStream( content.newByteArrayInputStream() );
@@ -196,7 +202,7 @@ class ResourceServletConfiguration
                 memoryMap.put( name, new MemoryFileResource( name, contents, lastModified ) );
                 {
                     final String finalEntry = entry.getName();
-                    LOGGER.trace( () -> "discovered file in configured resource bundle: " + finalEntry );
+                    LOGGER.trace( sessionLabel, () -> "discovered file in configured resource bundle: " + finalEntry );
                 }
             }
         }

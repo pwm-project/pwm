@@ -61,7 +61,7 @@ import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CacheLoader;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
@@ -123,12 +123,12 @@ class PeopleSearchDataReader
             if ( cachedResult != null )
             {
                 final SearchResultBean copyWithCacheSet = cachedResult.toBuilder().fromCache( true ).build();
-                StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
                 return copyWithCacheSet;
             }
             else
             {
-                StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_MISSES );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_MISSES );
             }
         }
 
@@ -136,7 +136,7 @@ class PeopleSearchDataReader
         final SearchResultBean searchResultBean = makeSearchResultsImpl( searchRequestBean )
                 .toBuilder().fromCache( false ).build();
 
-        StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_SEARCHES );
+        StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_SEARCHES );
         storeDataInCache( cacheKey, searchResultBean );
         LOGGER.trace( pwmRequest, () -> "returning " + searchResultBean.getSearchResults().size()
                 + " results for search request "
@@ -163,13 +163,13 @@ class PeopleSearchDataReader
             final OrgChartDataBean cachedOutput = pwmRequest.getPwmDomain().getCacheService().get( cacheKey, OrgChartDataBean.class );
             if ( cachedOutput != null )
             {
-                StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
                 LOGGER.trace( pwmRequest, () -> "completed makeOrgChartData of " + userIdentity.toDisplayString() + " from cache" );
                 return cachedOutput;
             }
             else
             {
-                StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_MISSES );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_MISSES );
             }
         }
 
@@ -250,12 +250,12 @@ class PeopleSearchDataReader
             final UserDetailBean cachedOutput = pwmRequest.getPwmDomain().getCacheService().get( cacheKey, UserDetailBean.class );
             if ( cachedOutput != null )
             {
-                StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
                 return cachedOutput;
             }
             else
             {
-                StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_MISSES );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_MISSES );
             }
         }
 
@@ -590,7 +590,7 @@ class PeopleSearchDataReader
             throws PwmUnrecoverableException
     {
         final Locale locale = pwmRequest.getLocale();
-        final ChaiProvider chaiProvider = pwmRequest.getPwmDomain().getProxiedChaiUser( userIdentity ).getChaiProvider();
+        final ChaiProvider chaiProvider = pwmRequest.getPwmDomain().getProxiedChaiUser( pwmRequest.getLabel(), userIdentity ).getChaiProvider();
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
                 pwmRequest.getLabel(),
@@ -699,7 +699,7 @@ class PeopleSearchDataReader
     {
         final boolean useProxy = useProxy();
         return useProxy
-                ? pwmRequest.getPwmDomain().getProxiedChaiUser( userIdentity )
+                ? pwmRequest.getPwmDomain().getProxiedChaiUser( pwmRequest.getLabel(), userIdentity )
                 : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
     }
 
@@ -842,7 +842,7 @@ class PeopleSearchDataReader
                 final String userKey = ( String ) map.get( "userKey" );
                 if ( userKey != null )
                 {
-                    final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmApplication() );
+                    final UserIdentity userIdentity = UserIdentity.fromKey( pwmRequest.getLabel(), userKey, pwmRequest.getPwmApplication() );
                     final String displayValue = figureDisplaynameValue( pwmRequest, userIdentity );
                     map.put( "_displayName", displayValue );
                 }

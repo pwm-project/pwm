@@ -76,12 +76,19 @@ public class StringUtilTest
     }
 
     @Test
-    public void whitespaceInsertAndStrip()
+    public void whitespaceInsertAndStripTest()
     {
         final String original = PwmRandom.getInstance().alphaNumericString( 1024 * 1024 );
         final String linebreaks = StringUtil.insertRepeatedLineBreaks( original, 80 );
         final String stripped = StringUtil.stripAllWhitespace( linebreaks );
         Assert.assertEquals( original, stripped );
 
+    }
+
+    @Test
+    public void urlPathEncodeTest()
+    {
+        final String input = "dsad(dsadaasds)dsdasdad";
+        Assert.assertEquals( "dsad%28dsadaasds%29dsdasdad", StringUtil.urlPathEncode( input ) );
     }
 }

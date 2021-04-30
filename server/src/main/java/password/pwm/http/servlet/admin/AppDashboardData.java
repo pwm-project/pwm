@@ -23,8 +23,10 @@ package password.pwm.http.servlet.admin;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmAboutProperty;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmUnrecoverableException;
@@ -58,6 +60,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -73,13 +76,31 @@ public class AppDashboardData implements Serializable
     private static final PwmLogger LOGGER = PwmLogger.forClass( AppDashboardData.class );
 
     @Value
-    public static class ServiceData implements Serializable
+    public static class ServiceData implements Serializable, Comparable<ServiceData>
     {
+        private static final Comparator<ServiceData> COMPARATOR = Comparator.comparing(
+                ServiceData::getDomainID,
+                Comparator.nullsLast( Comparator.naturalOrder() ) )
+                .thenComparing(
+                        ServiceData::getName,
+                        Comparator.nullsLast( Comparator.naturalOrder() ) )
+                .thenComparing(
+                        ServiceData::getStatus,
+                        Comparator.nullsLast( Comparator.naturalOrder() ) );
+
+        private String guid;
+        private DomainID domainID;
         private String name;
         private PwmService.STATUS status;
         private Collection<DataStorageMethod> storageMethod;
         private List<HealthRecord> health;
         private Map<String, String> debugData;
+
+        @Override
+        public int compareTo( final ServiceData otherServiceData )
+        {
+            return COMPARATOR.compare( this, otherServiceData );
+        }
     }
 
     @Value
@@ -133,7 +154,7 @@ public class AppDashboardData implements Serializable
 
         final AppDashboardDataBuilder builder = AppDashboardData.builder();
         builder.about( makeAboutData( pwmDomain, contextManager, locale ) );
-        builder.services( getServiceData( pwmDomain ) );
+        builder.services( makeServiceData( pwmDomain.getPwmApplication() ) );
         builder.localDbInfo( makeLocalDbInfo( pwmDomain, locale ) );
         builder.javaAbout( makeAboutJavaData( pwmDomain, locale ) );
 
@@ -171,7 +192,7 @@ public class AppDashboardData implements Serializable
         builder.sessionCount( pwmDomain.getSessionTrackService().sessionCount() );
         builder.requestsInProgress( pwmDomain.getPwmApplication().getActiveServletRequests().get() );
 
-        LOGGER.trace( () -> "AppDashboardData bean created in ", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "AppDashboardData bean created", () -> TimeDuration.fromCurrent( startTime ) );
         return builder.build();
     }
 
@@ -238,34 +259,44 @@ public class AppDashboardData implements Serializable
         ) );
     }
 
-    private static List<ServiceData> getServiceData( final PwmDomain pwmDomain )
+    public static List<ServiceData> makeServiceData( final PwmApplication pwmApplication )
+            throws PwmUnrecoverableException
     {
-        final Map<String, ServiceData> returnData = new TreeMap<>();
-        for ( final PwmService pwmService : pwmDomain.getPwmServices() )
+        final List<ServiceData> returnData = new ArrayList<>();
+        for ( final Map.Entry<DomainID, List<PwmService>> domainIDListEntry : pwmApplication.getAppAndDomainPwmServices().entrySet() )
         {
-            final PwmService.ServiceInfo serviceInfo = pwmService.serviceInfo();
-            final Collection<DataStorageMethod> storageMethods = serviceInfo == null
-                    ? Collections.emptyList()
-                    : serviceInfo.getStorageMethods() == null
-                    ? Collections.emptyList()
-                    : serviceInfo.getStorageMethods();
+            final DomainID domainID = domainIDListEntry.getKey();
+            for ( final PwmService pwmService : domainIDListEntry.getValue() )
+            {
+                final PwmService.ServiceInfo serviceInfo = pwmService.serviceInfo();
+                final Collection<DataStorageMethod> storageMethods = serviceInfo == null
+                        ? Collections.emptyList()
+                        : serviceInfo.getStorageMethods() == null
+                                ? Collections.emptyList()
+                                : serviceInfo.getStorageMethods();
 
-            final Map<String, String> debugData = serviceInfo == null
-                    ? Collections.emptyMap()
-                    : serviceInfo.getDebugProperties() == null
-                    ? Collections.emptyMap()
-                    : serviceInfo.getDebugProperties();
+                final Map<String, String> debugData = serviceInfo == null
+                        ? Collections.emptyMap()
+                        : serviceInfo.getDebugProperties() == null
+                                ? Collections.emptyMap()
+                                : serviceInfo.getDebugProperties();
 
-            returnData.put( pwmService.getClass().getSimpleName(), new ServiceData(
-                    pwmService.getClass().getSimpleName(),
-                    pwmService.status(),
-                    storageMethods,
-                    pwmService.healthCheck(),
-                    debugData
-            ) );
+                final String guid = pwmApplication.getSecureService().hash( domainID + pwmService.getClass().getSimpleName() );
+
+                returnData.add( new ServiceData(
+                        guid,
+                        domainID,
+                        pwmService.getClass().getSimpleName(),
+                        pwmService.status(),
+                        storageMethods,
+                        pwmService.healthCheck(),
+                        debugData
+                ) );
+            }
         }
 
-        return List.copyOf( returnData.values() );
+        Collections.sort( returnData );
+        return List.copyOf( returnData );
     }
 
     private static List<DisplayElement> makeLocalDbInfo( final PwmDomain pwmDomain, final Locale locale )
@@ -323,16 +354,16 @@ public class AppDashboardData implements Serializable
                 "sharedHistorySize",
                 DisplayElement.Type.number,
                 "Syslog Queue Size",
-                String.valueOf( pwmDomain.getAuditManager().syslogQueueSize() )
+                String.valueOf( pwmDomain.getAuditService().syslogQueueSize() )
         ) );
         localDbInfo.add( new DisplayElement(
                 "localAuditRecords",
                 DisplayElement.Type.number,
                 "Audit Records",
-                pwmDomain.getAuditManager().sizeToDebugString()
+                pwmDomain.getAuditService().sizeToDebugString()
         ) );
         {
-            final Instant eldestAuditRecord = pwmDomain.getAuditManager().eldestVaultRecord();
+            final Instant eldestAuditRecord = pwmDomain.getAuditService().eldestVaultRecord();
             final String display = eldestAuditRecord != null
                     ? TimeDuration.fromCurrent( eldestAuditRecord ).asLongString()
                     : notApplicable;
@@ -366,9 +397,9 @@ public class AppDashboardData implements Serializable
             final String display = pwmDomain.getPwmApplication().getLocalDB() == null
                     ? notApplicable
                     : pwmDomain.getPwmApplication().getLocalDB().getFileLocation() == null
-                    ? notApplicable
-                    : StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize(
-                    pwmDomain.getPwmApplication().getLocalDB().getFileLocation() ) );
+                            ? notApplicable
+                            : StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize(
+                                    pwmDomain.getPwmApplication().getLocalDB().getFileLocation() ) );
             localDbInfo.add( new DisplayElement(
                     "localDbSizeOnDisk",
                     DisplayElement.Type.string,
@@ -380,8 +411,8 @@ public class AppDashboardData implements Serializable
             final String display = pwmDomain.getPwmApplication().getLocalDB() == null
                     ? notApplicable
                     : pwmDomain.getPwmApplication().getLocalDB().getFileLocation() == null
-                    ? notApplicable
-                    : StringUtil.formatDiskSize( FileSystemUtility.diskSpaceRemaining( pwmDomain.getPwmApplication().getLocalDB().getFileLocation() ) );
+                            ? notApplicable
+                            : StringUtil.formatDiskSize( FileSystemUtility.diskSpaceRemaining( pwmDomain.getPwmApplication().getLocalDB().getFileLocation() ) );
             localDbInfo.add( new DisplayElement(
                     "localDbFreeSpace",
                     DisplayElement.Type.string,

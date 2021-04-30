@@ -77,7 +77,6 @@ import java.util.Optional;
 
 public class ConfigGuideUtils
 {
-
     private static final PwmLogger LOGGER = PwmLogger.getLogger( ConfigGuideUtils.class.getName() );
 
     static void writeConfig(
@@ -196,7 +195,7 @@ public class ConfigGuideUtils
     {
         final int ordinal = step.ordinal();
         final int total = GuideStep.values().length - 2;
-        return new Percent( ordinal, total );
+        return Percent.of( ordinal, total );
     }
 
     static void checkLdapServer( final ConfigGuideBean configGuideBean )
@@ -294,6 +293,7 @@ public class ConfigGuideUtils
 
             final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
             final Collection<UserIdentity> results = userMatchViewerFunction.discoverMatchingUsers(
+                    pwmRequest.getLabel(),
                     pwmDomain,
                     1,
                     storedConfiguration,
@@ -302,7 +302,7 @@ public class ConfigGuideUtils
             if ( !results.isEmpty() )
             {
                 final UserIdentity foundIdentity = results.iterator().next();
-                if ( foundIdentity.canonicalEquals( adminIdentity, tempApplication ) )
+                if ( foundIdentity.canonicalEquals( pwmRequest.getLabel(), adminIdentity, tempApplication ) )
                 {
                     records.add( HealthRecord.forMessage( ConfigGuideForm.DOMAIN_ID, HealthMessage.LDAP_AdminUserOk ) );
                 }

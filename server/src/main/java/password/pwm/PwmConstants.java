@@ -210,7 +210,7 @@ public abstract class PwmConstants
             "this password is an memorial of the richard d. kiel memorial abend" );
 
 
-    private static String readPwmConstantsBundle( final String key )
+    public static String readPwmConstantsBundle( final String key )
     {
         return ResourceBundle.getBundle( PwmConstants.class.getName() ).getString( key );
     }

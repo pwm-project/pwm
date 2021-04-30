@@ -32,6 +32,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
@@ -53,10 +54,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public class ResourceServletService implements PwmService
+public class ResourceServletService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ResourceServletService.class );
 
@@ -64,7 +66,6 @@ public class ResourceServletService implements PwmService
     private Cache<CacheKey, CacheEntry> cache;
     private final MovingAverage cacheHitRatio = new MovingAverage( 60 * 60 * 1000 );
     private String resourceNonce = "";
-    private STATUS status = STATUS.CLOSED;
 
     private PwmDomain pwmDomain;
 
@@ -107,58 +108,59 @@ public class ResourceServletService implements PwmService
     {
         final BigDecimal numerator = BigDecimal.valueOf( getCacheHitRatio().getAverage() );
         final BigDecimal denominator = BigDecimal.ONE;
-        return new Percent( numerator, denominator );
+        return Percent.of( numerator, denominator );
     }
 
     @Override
-    public STATUS status( )
+    protected Set<PwmApplication.Condition> openConditions()
     {
-        return status;
+        return Collections.emptySet();
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
         this.pwmDomain = pwmApplication.domains().get( domainID );
         try
         {
-            this.resourceServletConfiguration = ResourceServletConfiguration.fromConfig( pwmDomain );
+            this.resourceServletConfiguration = ResourceServletConfiguration.fromConfig( getSessionLabel(), pwmDomain );
 
             cache = Caffeine.newBuilder()
                     .maximumSize( resourceServletConfiguration.getMaxCacheItems() )
                     .build();
 
-            status = STATUS.OPEN;
+            setStatus( STATUS.OPEN );
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error during cache initialization, will remain closed; error: " + e.getMessage() );
-            status = STATUS.CLOSED;
-            return;
+            LOGGER.error( getSessionLabel(), () -> "error during cache initialization, will remain closed; error: " + e.getMessage() );
+            return STATUS.CLOSED;
         }
 
         try
         {
             final Instant start = Instant.now();
             resourceNonce = makeResourcePathNonce();
-            LOGGER.trace( () -> "calculated nonce", () -> TimeDuration.fromCurrent( start ) );
+            LOGGER.trace( getSessionLabel(), () -> "calculated nonce", () -> TimeDuration.fromCurrent( start ) );
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error during nonce generation, will remain closed; error: " + e.getMessage() );
-            status = STATUS.CLOSED;
+            LOGGER.error( getSessionLabel(), () -> "error during nonce generation, will remain closed; error: " + e.getMessage() );
+            return STATUS.CLOSED;
         }
+
+        return STATUS.OPEN;
     }
 
     @Override
     public void close( )
     {
-        status = STATUS.CLOSED;
+        setStatus( STATUS.CLOSED );
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
         return Collections.emptyList();
     }
@@ -185,7 +187,7 @@ public class ResourceServletService implements PwmService
 
         final Instant startTime = Instant.now();
         final String nonce = checksumAllResources( pwmDomain );
-        LOGGER.debug( () -> "completed generation of nonce '" + nonce + "'", () ->  TimeDuration.fromCurrent( startTime ) );
+        LOGGER.debug( getSessionLabel(), () -> "completed generation of nonce '" + nonce + "'", () ->  TimeDuration.fromCurrent( startTime ) );
 
         final String noncePrefix = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
         return "/" + noncePrefix + nonce;
@@ -282,7 +284,7 @@ public class ResourceServletService implements PwmService
                         if ( resourcePath.exists() )
                         {
                             final Iterator<FileSystemUtility.FileSummaryInformation> iter =
-                                          FileSystemUtility.readFileInformation( Collections.singletonList( resourcePath ) );
+                                    FileSystemUtility.readFileInformation( Collections.singletonList( resourcePath ) );
                             {
                                 while ( iter.hasNext()  )
                                 {

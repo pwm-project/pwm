@@ -23,7 +23,7 @@ package password.pwm;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapConnectionService;
-import password.pwm.util.db.DatabaseService;
+import password.pwm.svc.db.DatabaseService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
@@ -63,7 +63,7 @@ public enum PwmAboutProperty
     app_emailQueueOldestTime( null, pwmApplication -> format( pwmApplication.getEmailQueue().eldestItem() ) ),
     app_smsQueueSize( null, pwmApplication -> Integer.toString( pwmApplication.getSmsQueue().queueSize() ) ),
     app_smsQueueOldestTime( null, pwmApplication -> format( pwmApplication.getSmsQueue().eldestItem() ) ),
-    app_syslogQueueSize( null, pwmApplication -> Integer.toString( pwmApplication.getAuditManager().syslogQueueSize() ) ),
+    app_syslogQueueSize( null, pwmApplication -> Integer.toString( pwmApplication.getAuditService().syslogQueueSize() ) ),
     app_localDbLogSize( null, pwmApplication -> Integer.toString( pwmApplication.getLocalDBLogger().getStoredEventCount() ) ),
     app_localDbLogOldestTime( null, pwmApplication -> format( pwmApplication.getLocalDBLogger().getTailDate() ) ),
     app_localDbStorageSize( null, pwmApplication -> StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( pwmApplication.getLocalDB().getFileLocation() ) ) ),

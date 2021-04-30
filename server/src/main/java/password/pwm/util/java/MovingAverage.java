@@ -21,6 +21,7 @@
 package password.pwm.util.java;
 
 import java.io.Serializable;
+import java.text.NumberFormat;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -48,11 +49,14 @@ import java.util.concurrent.locks.ReentrantLock;
  **/
 public class MovingAverage implements Serializable
 {
-    private long windowMillis;
+    private static final int FORMATTED_FRACTION_DIGITS = 3;
+
+    private final Lock lock = new ReentrantLock();
+    private final long windowMillis;
+
     private long lastMillis;
     private double average;
 
-    private final Lock lock = new ReentrantLock();
 
     /**
      * Construct a {@link MovingAverage}, providing the time window
@@ -91,9 +95,10 @@ public class MovingAverage implements Serializable
                 lastMillis = now;
                 return;
             }
+
             final long deltaTime = now - lastMillis;
-            final double coeff = Math.exp( -1.0 * ( ( double ) deltaTime / windowMillis ) );
-            average = ( 1.0 - coeff ) * sample + coeff * average;
+            final double coefficient = Math.exp( -1.0 * ( ( double ) deltaTime / windowMillis ) );
+            average = ( 1.0 - coefficient ) * sample + coefficient * average;
 
             lastMillis = now;
         }
@@ -101,6 +106,14 @@ public class MovingAverage implements Serializable
         {
             lock.unlock();
         }
+    }
+
+    public String getFormattedAverage()
+    {
+        final double average = getAverage();
+        final NumberFormat nf = NumberFormat.getInstance();
+        nf.setMaximumFractionDigits( FORMATTED_FRACTION_DIGITS );
+        return nf.format( average );
     }
 
     /**
@@ -114,8 +127,19 @@ public class MovingAverage implements Serializable
         return average;
     }
 
-    public long getLastMillis( )
+    public long getLastMillis()
     {
         return lastMillis;
     }
+
+    public void update( final TimeDuration timeDuration )
+    {
+        update( timeDuration.asMillis() );
+    }
+
+    public TimeDuration getAverageAsDuration()
+    {
+        return TimeDuration.of( ( long ) getAverage(), TimeDuration.Unit.MILLISECONDS );
+    }
+
 }

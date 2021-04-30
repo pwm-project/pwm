@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-class DomainStateReader
+public class DomainStateReader
 {
     private final PwmRequest pwmRequest;
 

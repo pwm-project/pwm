@@ -26,7 +26,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import password.pwm.util.operations.otp.OTPPamUtil;
+import password.pwm.svc.otp.OTPPamUtil;
 
 import java.util.List;
 

@@ -20,6 +20,7 @@
 
 package password.pwm.util.localdb;
 
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmDataStoreException;
 import password.pwm.util.DataStore;
 import password.pwm.util.java.ClosableIterator;
@@ -113,5 +114,11 @@ public class LocalDBDataStore implements DataStore
     public long size( ) throws PwmDataStoreException
     {
         return localDB.size( db );
+    }
+
+    @Override
+    public DataStorageMethod getDataStorageMethod()
+    {
+        return DataStorageMethod.LOCALDB;
     }
 }

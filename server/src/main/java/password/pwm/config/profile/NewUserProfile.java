@@ -27,6 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
@@ -34,6 +35,7 @@ import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.password.PasswordUtility;
@@ -70,7 +72,13 @@ public class NewUserProfile extends AbstractProfile implements Profile
         return value != null && !value.isEmpty() ? value : this.getIdentifier();
     }
 
-    public PwmPasswordPolicy getNewUserPasswordPolicy( final PwmDomain pwmDomain, final Locale userLocale )
+    public PwmPasswordPolicy getNewUserPasswordPolicy( final PwmRequestContext pwmRequestContext )
+            throws PwmUnrecoverableException
+    {
+        return getNewUserPasswordPolicy( pwmRequestContext.getSessionLabel(), pwmRequestContext.getPwmDomain(), pwmRequestContext.getLocale() );
+    }
+
+    public PwmPasswordPolicy getNewUserPasswordPolicy( final SessionLabel sessionLabel, final PwmDomain pwmDomain, final Locale locale )
             throws PwmUnrecoverableException
     {
         final DomainConfig domainConfig = pwmDomain.getConfig();
@@ -81,7 +89,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
             newUserPasswordPolicyCache.clear();
         }
 
-        final PwmPasswordPolicy cachedPolicy = newUserPasswordPolicyCache.get( userLocale );
+        final PwmPasswordPolicy cachedPolicy = newUserPasswordPolicyCache.get( locale );
         if ( cachedPolicy != null )
         {
             return cachedPolicy;
@@ -131,7 +139,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
             {
                 try
                 {
-                    final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( ldapProfile.getIdentifier() );
+                    final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( sessionLabel, ldapProfile.getIdentifier() );
                     final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( lookupDN );
                     final UserIdentity userIdentity = UserIdentity.create( lookupDN, ldapProfile.getIdentifier(), pwmDomain.getDomainID() );
                     thePolicy = PasswordUtility.readPasswordPolicyForUser( pwmDomain, null, userIdentity, chaiUser );
@@ -142,7 +150,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
                 }
             }
         }
-        newUserPasswordPolicyCache.put( userLocale, thePolicy );
+        newUserPasswordPolicyCache.put( locale, thePolicy );
         return thePolicy;
     }
 
@@ -190,7 +198,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
                         {
                                 "configured ldap profile for new user profile is invalid.  check setting "
                                         + PwmSetting.NEWUSER_LDAP_PROFILE.toMenuLocationDebug( this.getIdentifier(), PwmConstants.DEFAULT_LOCALE ),
-                                }
+                        }
                 ) );
             }
             return ldapProfile;

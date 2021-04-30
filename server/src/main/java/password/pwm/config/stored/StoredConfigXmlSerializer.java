@@ -22,6 +22,7 @@ package password.pwm.config.stored;
 
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingFlag;
@@ -72,6 +73,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( StoredConfigXmlSerializer.class );
     private static final String XML_FORMAT_VERSION = "5";
+    private static final SessionLabel SESSION_LABEL = SessionLabel.SYSTEM_LABEL;
     private static final boolean ENABLE_PERF_LOGGING = false;
 
     @Override
@@ -375,7 +377,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                 {
                     try
                     {
-                        userIdentity = UserIdentity.fromDelimitedKey( modifyUserValue.get() );
+                        userIdentity = UserIdentity.fromDelimitedKey( SESSION_LABEL, modifyUserValue.get() );
                     }
                     catch ( final Exception e )
                     {
@@ -391,7 +393,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                 {
                     try
                     {
-                        userIdentity = UserIdentity.fromDelimitedKey( metaElement.get().getText().orElse( "" ) );
+                        userIdentity = UserIdentity.fromDelimitedKey( SESSION_LABEL, metaElement.get().getText().orElse( "" ) );
                     }
                     catch ( final DateTimeParseException | PwmUnrecoverableException e )
                     {

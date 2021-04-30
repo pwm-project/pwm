@@ -35,10 +35,10 @@ import java.util.function.Supplier;
 
 public class LocalDBHealthChecker implements HealthSupplier
 {
-
     @Override
-    public List<Supplier<List<HealthRecord>>> jobs( final PwmApplication pwmApplication )
+    public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplierRequest request )
     {
+        final PwmApplication pwmApplication = request.getPwmApplication();
         final Supplier<List<HealthRecord>> supplier = () -> doHealthCheck( pwmApplication );
         return Collections.singletonList( supplier );
     }

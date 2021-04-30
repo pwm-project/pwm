@@ -39,6 +39,7 @@ import password.pwm.ldap.UserInfoBean;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -105,10 +106,7 @@ public class PwmSession implements Serializable
 
         this.sessionStateBean.setSessionLastAccessedTime( Instant.now() );
 
-        if ( pwmDomain.getStatisticsManager() != null )
-        {
-            pwmDomain.getStatisticsManager().incrementValue( Statistic.HTTP_SESSIONS );
-        }
+        StatisticsClient.incrementStat( pwmDomain.getPwmApplication(), Statistic.HTTP_SESSIONS );
 
         pwmDomain.getSessionTrackService().addSessionData( this );
         this.sessionManager = new SessionManager( pwmDomain, this );
@@ -160,7 +158,7 @@ public class PwmSession implements Serializable
                     pwmRequest.getLabel(),
                     getSessionStateBean().getLocale(),
                     oldUserInfoBean.getUserIdentity(),
-                    pwmDomain.getProxyChaiProvider( oldUserInfoBean.getUserIdentity().getLdapProfileID() )
+                    pwmDomain.getProxyChaiProvider( pwmRequest.getLabel(), oldUserInfoBean.getUserIdentity().getLdapProfileID() )
             );
         }
         else
@@ -207,7 +205,6 @@ public class PwmSession implements Serializable
 
         UserIdentity userIdentity = null;
         String userID = null;
-        String domain = null;
         String profile = null;
 
         if ( isAuthenticated() )
@@ -218,7 +215,6 @@ public class PwmSession implements Serializable
                 userIdentity = userInfo.getUserIdentity();
                 userID = userInfo.getUsername();
                 profile = userIdentity.getLdapProfileID();
-                domain = userIdentity.getDomainID().toString();
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -230,7 +226,7 @@ public class PwmSession implements Serializable
                 .sessionID( ssBean.getSessionID() )
                 .userID( userIdentity == null ? null : userIdentity.toDelimitedKey() )
                 .username( userID )
-                .domain( domain )
+                .domain( domainID.stringValue() )
                 .profile( profile )
                 .sourceAddress( ssBean.getSrcAddress() )
                 .sourceHostname( ssBean.getSrcHostname() )

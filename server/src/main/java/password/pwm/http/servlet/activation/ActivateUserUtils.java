@@ -53,7 +53,9 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -83,7 +85,7 @@ class ActivateUserUtils
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
+        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( pwmRequest.getLabel(), userIdentity );
 
         final ActivateUserProfile activateUserProfile = ActivateUserServlet.activateUserProfile( pwmRequest );
 
@@ -129,12 +131,11 @@ class ActivateUserUtils
             pwmSession.getLoginInfoBean().getAuthFlags().add( AuthenticationType.AUTH_FROM_PUBLIC_MODULE );
             pwmSession.getLoginInfoBean().getLoginFlags().add( LoginInfoBean.LoginFlag.forcePwChange );
 
-
             // mark the event log
-            pwmDomain.getAuditManager().submit( AuditEvent.ACTIVATE_USER, pwmSession.getUserInfo(), pwmSession );
+            AuditServiceClient.submitUserEvent( pwmRequest, AuditEvent.ACTIVATE_USER, pwmSession.getUserInfo() );
 
             // update the stats bean
-            pwmDomain.getStatisticsManager().incrementValue( Statistic.ACTIVATED_USERS );
+            StatisticsClient.incrementStat( pwmRequest, Statistic.ACTIVATED_USERS );
 
             // send email or sms
             sendPostActivationNotice( pwmRequest );
@@ -155,7 +156,7 @@ class ActivateUserUtils
             throws ChaiUnavailableException, PwmDataValidationException, PwmUnrecoverableException
     {
         final String searchFilter = figureLdapSearchFilter( pwmRequest );
-        final ChaiProvider chaiProvider = pwmRequest.getPwmDomain().getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        final ChaiProvider chaiProvider = pwmRequest.getPwmDomain().getProxyChaiProvider( pwmRequest.getLabel(), userIdentity.getLdapProfileID() );
         final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
 
         for ( final Map.Entry<FormConfiguration, String> entry : formValues.entrySet() )

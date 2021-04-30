@@ -187,7 +187,7 @@ public class PwmHttpRequestWrapper
         return Collections.unmodifiableMap( outputMap );
     }
 
-    public PasswordData readParameterAsPassword( final String name )
+    public Optional<PasswordData> readParameterAsPassword( final String name )
             throws PwmUnrecoverableException
     {
         final int maxLength = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
@@ -201,10 +201,10 @@ public class PwmHttpRequestWrapper
             if ( sanitizedValue != null )
             {
                 final String trimmedVale = trim ? sanitizedValue.trim() : sanitizedValue;
-                return new PasswordData( trimmedVale );
+                return Optional.of( new PasswordData( trimmedVale ) );
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     public String readParameterAsString( final String name, final int maxLength, final Flag... flags )

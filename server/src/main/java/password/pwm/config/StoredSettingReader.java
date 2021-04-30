@@ -20,9 +20,11 @@
 
 package password.pwm.config;
 
+import password.pwm.AppProperty;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.stored.StoredConfigKey;
@@ -38,16 +40,21 @@ import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.config.value.data.UserPermission;
+import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.PwmSecurityKey;
 
 import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -175,6 +182,16 @@ public class StoredSettingReader implements SettingReader
     public Map<String, NamedSecretData> readSettingAsNamedPasswords( final PwmSetting setting )
     {
         return ValueTypeConverter.valueToNamedPassword( readSetting( setting ) );
+    }
+
+    public List<DataStorageMethod> readGenericStorageLocations( final PwmSetting setting )
+    {
+        final String input = readSettingAsString( setting );
+
+        return Arrays.stream( input.split( "-" ) )
+                .map( s ->  JavaHelper.readEnumFromString( DataStorageMethod.class, s ) )
+                .flatMap( Optional::stream )
+                .collect( Collectors.toUnmodifiableList() );
     }
 
     public PrivateKeyCertificate readSettingAsPrivateKey( final PwmSetting setting )
@@ -341,5 +358,41 @@ public class StoredSettingReader implements SettingReader
 
         dataCache.customText.put( key, localizedMap );
         return localizedMap;
+    }
+
+    public PwmSecurityKey readSecurityKey( final PwmSetting pwmSetting, final AppConfig appConfig )
+            throws PwmUnrecoverableException
+    {
+        final PasswordData configValue = readSettingAsPassword( pwmSetting );
+
+        if ( configValue == null || configValue.getStringValue().isEmpty() )
+        {
+            final String errorMsg = "Security Key value is not configured, will generate temp value for use by runtime instance";
+            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
+            LOGGER.warn( errorInfo::toDebugStr );
+            return new PwmSecurityKey( PwmRandom.getInstance().alphaNumericString( 1024 ) );
+        }
+        else
+        {
+            final int minSecurityKeyLength = Integer.parseInt( appConfig.readAppProperty( AppProperty.SECURITY_CONFIG_MIN_SECURITY_KEY_LENGTH ) );
+            if ( configValue.getStringValue().length() < minSecurityKeyLength )
+            {
+                final String errorMsg = "Security Key must be greater than 32 characters in length";
+                final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
+                throw new PwmUnrecoverableException( errorInfo );
+            }
+
+            try
+            {
+                return new PwmSecurityKey( configValue.getStringValue() );
+            }
+            catch ( final Exception e )
+            {
+                final String errorMsg = "unexpected error generating Security Key crypto: " + e.getMessage();
+                final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
+                LOGGER.error( errorInfo::toDebugStr, e );
+                throw new PwmUnrecoverableException( errorInfo );
+            }
+        }
     }
 }

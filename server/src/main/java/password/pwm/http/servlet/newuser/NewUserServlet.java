@@ -238,7 +238,7 @@ public class NewUserServlet extends ControlledPwmServlet
         // try to read the new user policy to make sure it's readable, that way an exception is thrown here instead of by the jsp
         {
             final Instant startTime = Instant.now();
-            newUserProfile.getNewUserPasswordPolicy( pwmDomain, pwmSession.getSessionStateBean().getLocale() );
+            newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() );
             LOGGER.trace( () -> "read new user password policy in ", () -> TimeDuration.fromCurrent( startTime ) );
         }
 
@@ -340,7 +340,7 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     private boolean readProfileFromUrl( final PwmRequest pwmRequest, final NewUserBean newUserBean )
-            throws PwmUnrecoverableException, ServletException, IOException
+            throws PwmUnrecoverableException, IOException
     {
         final String profileUrlSegment = "profile";
         final String urlRemainder = servletUriRemainder( pwmRequest, profileUrlSegment );
@@ -434,6 +434,7 @@ public class NewUserServlet extends ControlledPwmServlet
             validationFlags.add( FormUtility.ValidationFlag.allowResultCaching );
         }
         FormUtility.validateFormValueUniqueness(
+                pwmRequest.getLabel(),
                 pwmDomain,
                 formValueData,
                 locale,
@@ -445,7 +446,7 @@ public class NewUserServlet extends ControlledPwmServlet
 
         final UserInfo uiBean = UserInfoBean.builder()
                 .cachedPasswordRuleAttributes( FormUtility.asStringMap( formValueData ) )
-                .passwordPolicy( newUserProfile.getNewUserPasswordPolicy( pwmDomain, locale ) )
+                .passwordPolicy( newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() ) )
                 .build();
 
         final boolean promptForPassword = newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_PROMPT_FOR_PASSWORD );
@@ -455,8 +456,7 @@ public class NewUserServlet extends ControlledPwmServlet
         if ( promptForPassword )
         {
             passwordCheckInfo =  PasswordUtility.checkEnteredPassword(
-                    pwmDomain,
-                    locale,
+                    pwmRequest.getPwmRequestContext(),
                     null,
                     uiBean,
                     null,
@@ -698,7 +698,7 @@ public class NewUserServlet extends ControlledPwmServlet
         {
             final TimeDuration elapsedTime = TimeDuration.fromCurrent( startTime );
             complete = false;
-            percentComplete = new Percent( elapsedTime.asMillis(), minWaitTime ).asBigDecimal();
+            percentComplete = Percent.of( elapsedTime.asMillis(), minWaitTime ).asBigDecimal();
         }
 
         final LinkedHashMap<String, Object> outputMap = new LinkedHashMap<>();

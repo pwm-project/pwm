@@ -71,6 +71,7 @@ public enum PwmIfTest
     passwordExpired( new PasswordExpired() ),
     showMaskedTokenSelection( new BooleanAppPropertyTest( AppProperty.TOKEN_MASK_SHOW_SELECTION ) ),
     clientFormShowRegexEnabled( new BooleanAppPropertyTest( AppProperty.CLIENT_FORM_CLIENT_REGEX_ENABLED ) ),
+    multiDomain( new MultiDomainTest() ),
 
     forgottenPasswordEnabled( new BooleanPwmSettingTest( PwmSetting.FORGOTTEN_PASSWORD_ENABLE ) ),
     forgottenUsernameEnabled( new BooleanPwmSettingTest( PwmSetting.FORGOTTEN_USERNAME_ENABLE ) ),
@@ -547,6 +548,16 @@ public enum PwmIfTest
         {
             final ChangePasswordProfile changePasswordProfile = pwmRequest.getChangePasswordProfile();
             return changePasswordProfile.readSettingAsBoolean( PwmSetting.PASSWORD_SHOW_AUTOGEN );
+        }
+    }
+
+
+    private static class MultiDomainTest implements Test
+    {
+        @Override
+        public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws PwmUnrecoverableException
+        {
+            return pwmRequest.getPwmApplication().isMultiDomain();
         }
     }
 }

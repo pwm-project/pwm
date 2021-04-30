@@ -33,6 +33,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
@@ -45,6 +46,7 @@ import password.pwm.util.secure.PwmRandom;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,7 +56,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-public class SharedHistoryService implements PwmService
+public class SharedHistoryService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SharedHistoryService.class );
 
@@ -73,8 +75,6 @@ public class SharedHistoryService implements PwmService
     private static final LocalDB.DB META_DB = LocalDB.DB.SHAREDHISTORY_META;
     private static final LocalDB.DB WORDS_DB = LocalDB.DB.SHAREDHISTORY_WORDS;
 
-    private volatile PwmService.STATUS status = STATUS.CLOSED;
-
     private ExecutorService executorService;
 
     private LocalDB localDB;
@@ -91,7 +91,7 @@ public class SharedHistoryService implements PwmService
     @Override
     public void close( )
     {
-        status = STATUS.CLOSED;
+        setStatus( STATUS.CLOSED );
         if ( executorService != null )
         {
             executorService.shutdown();
@@ -101,7 +101,7 @@ public class SharedHistoryService implements PwmService
 
     public boolean containsWord( final String word )
     {
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             return false;
         }
@@ -133,17 +133,11 @@ public class SharedHistoryService implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.warn( () -> "error checking global history list: " + e.getMessage() );
+            LOGGER.warn( getSessionLabel(), () -> "error checking global history list: " + e.getMessage() );
         }
 
         //LOGGER.trace(pwmSession, "successfully checked word, result=" + result + ", duration=" + new TimeDuration(System.currentTimeMillis(), startTime).asCompactString());
         return result;
-    }
-
-    @Override
-    public PwmService.STATUS status( )
-    {
-        return status;
     }
 
     public Instant getOldestEntryTime( )
@@ -165,7 +159,7 @@ public class SharedHistoryService implements PwmService
             }
             catch ( final Exception e )
             {
-                LOGGER.error( () -> "error checking wordlist size: " + e.getMessage() );
+                LOGGER.error( getSessionLabel(), () -> "error checking wordlist size: " + e.getMessage() );
                 return 0;
             }
         }
@@ -178,7 +172,7 @@ public class SharedHistoryService implements PwmService
     private void checkDbVersion( )
             throws Exception
     {
-        LOGGER.trace( () -> "checking version number stored in LocalDB" );
+        LOGGER.trace( getSessionLabel(), () -> "checking version number stored in LocalDB" );
 
         final String versionInDB = localDB.get( META_DB, KEY_VERSION ).orElse( "" );
         final String currentVersion = "version=" + settings.getVersion();
@@ -186,14 +180,14 @@ public class SharedHistoryService implements PwmService
 
         if ( !result )
         {
-            LOGGER.info( () -> "existing db version does not match current db version db=(" + versionInDB + ")  current=(" + currentVersion + "), clearing db" );
+            LOGGER.info( getSessionLabel(), () -> "existing db version does not match current db version db=(" + versionInDB + ")  current=(" + currentVersion + "), clearing db" );
             localDB.truncate( WORDS_DB );
             localDB.put( META_DB, KEY_VERSION, currentVersion );
             localDB.remove( META_DB, KEY_OLDEST_ENTRY );
         }
         else
         {
-            LOGGER.trace( () -> "existing db version matches current db version db=(" + versionInDB + ")  current=(" + currentVersion + ")" );
+            LOGGER.trace( getSessionLabel(), () -> "existing db version matches current db version db=(" + versionInDB + ")  current=(" + currentVersion + ")" );
         }
     }
 
@@ -208,7 +202,7 @@ public class SharedHistoryService implements PwmService
         catch ( final Exception e )
         {
             LOGGER.error( () -> "error checking db version", e );
-            status = STATUS.CLOSED;
+            setStatus( STATUS.CLOSED );
             return;
         }
 
@@ -219,37 +213,37 @@ public class SharedHistoryService implements PwmService
             if ( oldestEntryStr.isPresent() )
             {
                 oldestEntry = Long.parseLong( oldestEntryStr.get() );
-                LOGGER.trace( () -> "oldest timestamp loaded from localDB, age is " + TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
+                LOGGER.trace( getSessionLabel(), () -> "oldest timestamp loaded from localDB, age is " + TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
             }
             else
             {
                 oldestEntry = 0;
-                LOGGER.trace( () -> "no oldestEntry timestamp stored, will rescan" );
+                LOGGER.trace( getSessionLabel(), () -> "no oldestEntry timestamp stored, will rescan" );
                 }
         }
         catch ( final LocalDBException e )
         {
             LOGGER.error( () -> "unexpected error loading oldest-entry meta record, will remain closed: " + e.getMessage(), e );
-            status = STATUS.CLOSED;
+            setStatus( STATUS.CLOSED );
             return;
         }
 
         try
         {
             final long size = localDB.size( WORDS_DB );
-            LOGGER.debug( () -> "open with " + size + " words"
+            LOGGER.debug( getSessionLabel(), () -> "open with " + size + " words"
                     + ", maxAgeMs=" + maxAge.asCompactString()
                     + ", oldestEntry=" + TimeDuration.fromCurrent( oldestEntry ).asCompactString(),
                     () -> TimeDuration.fromCurrent( startTime ) );
         }
         catch ( final LocalDBException e )
         {
-            LOGGER.error( () -> "unexpected error examining size of DB, will remain closed: " + e.getMessage(), e );
-            status = STATUS.CLOSED;
+            LOGGER.error( getSessionLabel(), () -> "unexpected error examining size of DB, will remain closed: " + e.getMessage(), e );
+            setStatus( STATUS.CLOSED );
             return;
         }
 
-        status = STATUS.OPEN;
+        setStatus( STATUS.OPEN );
         //populateFromWordlist();  //only used for debugging!!!
 
         if ( pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING || pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION )
@@ -285,7 +279,7 @@ public class SharedHistoryService implements PwmService
             final String word
     )
     {
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             return;
         }
@@ -351,7 +345,7 @@ public class SharedHistoryService implements PwmService
             }
             catch ( final LocalDBException e )
             {
-                LOGGER.error( () -> "error during old record purge: " + e.getMessage() );
+                LOGGER.error( getSessionLabel(), () -> "error during old record purge: " + e.getMessage() );
             }
         }
 
@@ -369,7 +363,7 @@ public class SharedHistoryService implements PwmService
             if ( settings.getMaxAge().isLongerThan( oldestEntryAge ) )
 
                 {
-                LOGGER.debug( () -> "skipping wordDB reduce operation, eldestEntry="
+                LOGGER.debug( getSessionLabel(), () -> "skipping wordDB reduce operation, eldestEntry="
                         + TimeDuration.asCompactString( oldestEntryAge )
                         + ", maxAge="
                         + settings.getMaxAge().asCompactString() );
@@ -381,14 +375,14 @@ public class SharedHistoryService implements PwmService
             int removeCount = 0;
             long localOldestEntry = System.currentTimeMillis();
 
-            LOGGER.debug( () -> "beginning wordDB reduce operation, examining " + initialSize
+            LOGGER.debug( getSessionLabel(), () -> "beginning wordDB reduce operation, examining " + initialSize
                     + " words for entries older than " + settings.getMaxAge().asCompactString() );
 
             LocalDB.LocalDBIterator<Map.Entry<String, String>> keyIterator = null;
             try
             {
                 keyIterator = localDB.iterator( WORDS_DB );
-                while ( status == STATUS.OPEN && keyIterator.hasNext() )
+                while ( status() == STATUS.OPEN && keyIterator.hasNext() )
                 {
                     final Map.Entry<String, String> entry = keyIterator.next();
                     final String key = entry.getKey();
@@ -404,7 +398,7 @@ public class SharedHistoryService implements PwmService
                         if ( removeCount % 1000 == 0 )
                         {
                             final int finalRemove = removeCount;
-                            LOGGER.trace( () -> "wordDB reduce operation in progress, removed=" + finalRemove + ", total=" + ( initialSize - finalRemove ) );
+                            LOGGER.trace( getSessionLabel(), () -> "wordDB reduce operation in progress, removed=" + finalRemove + ", total=" + ( initialSize - finalRemove ) );
                         }
                     }
                     else
@@ -424,12 +418,12 @@ public class SharedHistoryService implements PwmService
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.warn( () -> "error returning LocalDB iterator: " + e.getMessage() );
+                    LOGGER.warn( getSessionLabel(), () -> "error returning LocalDB iterator: " + e.getMessage() );
                 }
             }
 
             //update the oldest entry
-            if ( status == STATUS.OPEN )
+            if ( status() == STATUS.OPEN )
             {
                 oldestEntry = localOldestEntry;
                 localDB.put( META_DB, KEY_OLDEST_ENTRY, Long.toString( oldestEntry ) );
@@ -437,7 +431,7 @@ public class SharedHistoryService implements PwmService
 
             {
                 final int finalRemove = removeCount;
-                LOGGER.debug( () -> "completed wordDB reduce operation" + ", removed=" + finalRemove
+                LOGGER.debug( getSessionLabel(), () -> "completed wordDB reduce operation" + ", removed=" + finalRemove
                         + ", totalRemaining=" + size()
                         + ", oldestEntry=" + TimeDuration.asCompactString( oldestEntry )
                         + " in ", () -> TimeDuration.fromCurrent( startTime ) );
@@ -446,17 +440,15 @@ public class SharedHistoryService implements PwmService
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        // convert to MS;
-
         settings = Settings.fromConfiguration( pwmApplication );
 
         final int saltLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_SHAREDHISTORY_SALT_LENGTH ) );
@@ -465,14 +457,14 @@ public class SharedHistoryService implements PwmService
         boolean needsClearing = false;
         if ( localDB == null )
         {
-            LOGGER.info( () -> "LocalDB is not available, will remain closed" );
-            status = STATUS.CLOSED;
-            return;
+            LOGGER.info( getSessionLabel(), () -> "LocalDB is not available, will remain closed" );
+            setStatus( STATUS.CLOSED );
+            return STATUS.CLOSED;
         }
 
         if ( settings.getMaxAge().isShorterThan( TimeDuration.SECOND ) )
         {
-            LOGGER.debug( () -> "max age=" + settings.getMaxAge().asCompactString() + ", will remain closed" );
+            LOGGER.debug( getSessionLabel(), () -> "max age=" + settings.getMaxAge().asCompactString() + ", will remain closed" );
             needsClearing = true;
         }
 
@@ -480,7 +472,7 @@ public class SharedHistoryService implements PwmService
             this.salt = localDB.get( META_DB, KEY_SALT ).orElse( null );
             if ( salt == null || salt.length() < saltLength )
             {
-                LOGGER.warn( () -> "stored global salt value is not present, creating new salt" );
+                LOGGER.warn( getSessionLabel(), () -> "stored global salt value is not present, creating new salt" );
                 this.salt = PwmRandom.getInstance().alphaNumericString( saltLength );
                 localDB.put( META_DB, KEY_SALT, this.salt );
                 needsClearing = true;
@@ -489,22 +481,24 @@ public class SharedHistoryService implements PwmService
 
         if ( needsClearing )
         {
-            LOGGER.trace( () -> "clearing wordlist" );
+            LOGGER.trace( getSessionLabel(), () -> "clearing wordlist" );
             try
             {
                 localDB.truncate( WORDS_DB );
             }
             catch ( final Exception e )
             {
-                LOGGER.error( () -> "error during wordlist truncate", e );
+                LOGGER.error( getSessionLabel(), () -> "error during wordlist truncate", e );
             }
         }
 
-        new Thread( () ->
+        pwmApplication.getPwmScheduler().immediateExecuteRunnableInNewThread( () ->
         {
-            LOGGER.debug( () -> "starting up in background thread" );
+            LOGGER.debug( getSessionLabel(), () -> "starting up in background thread" );
             init( pwmApplication, settings.getMaxAge() );
-        }, PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + " initializer" ).start();
+        }, "shared history initializer" );
+
+        return STATUS.OPEN;
     }
 
     @Value
@@ -539,7 +533,7 @@ public class SharedHistoryService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        if ( status == STATUS.OPEN )
+        if ( status() == STATUS.OPEN )
         {
             return ServiceInfoBean.builder().storageMethod( DataStorageMethod.LOCALDB ).build();
         }

@@ -850,14 +850,16 @@ StringValueHandler.init = function(settingKey) {
     var parentDiv = 'table_setting_' + settingKey;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
     var settingData = PWM_SETTINGS['settings'][settingKey];
+    var textAreaMode = 'TEXT_AREA' === settingData['syntax'];
     PWM_CFGEDIT.readSetting(settingKey,function(data) {
         var inputID = settingKey;
         var bodyHtml = '';
         var value = data;
+        var cssClass = textAreaMode ? 'eulaText' : 'configStringPanel';
         if (value && value.length > 0) {
             bodyHtml += '<table style="border-width: 0">';
             bodyHtml += '<td id="button-' + inputID + '" style="border-width:0; width: 15px"><span class="pwm-icon pwm-icon-edit"/></ta>';
-            bodyHtml += '<td style=""><div class="configStringPanel" id="panel-' + inputID + '"></div></td>';
+            bodyHtml += '<td style=""><div class="' + cssClass + '" id="panel-' + inputID + '"></div></td>';
             if (!settingData['required']) {
                 bodyHtml += '<td style="border-width: 0"><span id="button-' + inputID + '-delete" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span></td>';
             }
@@ -886,11 +888,12 @@ StringValueHandler.init = function(settingKey) {
                 });
             };
             if (isLdapDN) {
-                UILibrary.editLdapDN(writeBackFunc,{currentDN: value});
+                var ldapProfile = PWM_CFGEDIT.readCurrentProfile();
+                UILibrary.editLdapDN(writeBackFunc,{currentDN: value, profile: ldapProfile});
             } else {
                 UILibrary.stringEditorDialog({
                     title:'Edit Value - ' + settingData['label'],
-                    textarea:('TEXT_AREA' === settingData['syntax']),
+                    textarea:(textAreaMode),
                     regex:'pattern' in settingData ? settingData['pattern'] : '.+',
                     placeholder:settingData['placeholder'],
                     value:value,
@@ -919,30 +922,6 @@ TextAreaValueHandler.init = function(settingKey) {
     StringValueHandler.init(settingKey);
 };
 
-TextAreaValueHandler.init2 = function(settingKey) {
-    var parentDiv = 'table_setting_' + settingKey;
-    var parentDivElement = PWM_MAIN.getObject(parentDiv);
-
-    parentDivElement.innerHTML = '<textarea style="max-height:300px; overflow-y: auto" id="value_' + settingKey + '" name="setting_' + settingKey + '">&nbsp;</textarea>';
-
-    PWM_MAIN.clearDijitWidget("value_" + settingKey);
-    require(["dijit/form/Textarea"],function(Textarea){
-        new Textarea({
-            regExp: PWM_SETTINGS['settings'][settingKey]['pattern'],
-            required: PWM_SETTINGS['settings'][settingKey]['required'],
-            invalidMessage: PWM_CONFIG.showString('Warning_InvalidFormat'),
-            style: "width: 550px; max-width:550px; max-height:300px; overflow:auto; white-space: nowrap",
-            onChange: function() {
-                PWM_CFGEDIT.writeSetting(settingKey, this.value);
-            },
-            placeholder: PWM_SETTINGS['settings'][settingKey]['placeholder'],
-            value: PWM_MAIN.showString('Display_PleaseWait'),
-            disabled: true,
-            id: "value_" + settingKey
-        }, "value_" + settingKey);
-        PWM_CFGEDIT.readInitialTextBasedValue(settingKey);
-    });
-};
 
 // -------------------------- select value handler ------------------------------------
 

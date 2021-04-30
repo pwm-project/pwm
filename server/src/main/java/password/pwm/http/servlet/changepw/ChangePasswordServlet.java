@@ -50,6 +50,7 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
@@ -75,6 +76,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
@@ -131,6 +133,11 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         return pwmRequest.getChangePasswordProfile( );
     }
 
+    static ChangePasswordBean getBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    {
+       return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+    }
+
     @ActionHandler( action = "reset" )
     ProcessStatus processResetAction( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
     {
@@ -150,7 +157,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     @ActionHandler( action = "warnResponse" )
     public ProcessStatus processWarnResponse( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
     {
-        final ChangePasswordBean changePasswordBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+        final ChangePasswordBean changePasswordBean = getBean( pwmRequest );
 
         if ( pwmRequest.getPwmSession().getUserInfo().getPasswordStatus().isWarnPeriod() )
         {
@@ -181,7 +188,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     @ActionHandler( action = "change" )
     ProcessStatus processChangeAction( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException, ChaiUnavailableException
     {
-        final ChangePasswordBean changePasswordBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+        final ChangePasswordBean changePasswordBean = getBean( pwmRequest );
 
         final UserInfo userInfo = pwmRequest.getPwmSession().getUserInfo();
 
@@ -190,14 +197,17 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             return ProcessStatus.Continue;
         }
 
-        final PasswordData password1 = pwmRequest.readParameterAsPassword( "password1" );
-        final PasswordData password2 = pwmRequest.readParameterAsPassword( "password2" );
+        final PasswordData password1 = pwmRequest.readParameterAsPassword( "password1" )
+                .orElseThrow( () -> new NoSuchElementException( "missing password1 field" ) );
+        final PasswordData password2 = pwmRequest.readParameterAsPassword( "password2" )
+                .orElseThrow( () -> new NoSuchElementException( "missing password2 field" ) );
 
         // check the password meets the requirements
         try
         {
             final ChaiUser theUser = pwmRequest.getPwmSession().getSessionManager().getActor( );
-            final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmRequest.getPwmDomain(), userInfo.getPasswordPolicy() );
+            final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create(
+                    pwmRequest.getLabel(), pwmRequest.getPwmDomain(), userInfo.getPasswordPolicy() );
             final PasswordData oldPassword = pwmRequest.getPwmSession().getLoginInfoBean().getUserCurrentPassword();
             pwmPasswordRuleValidator.testPassword( password1, oldPassword, userInfo, theUser );
         }
@@ -235,19 +245,19 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     @ActionHandler( action = "agree" )
     ProcessStatus processAgreeAction( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException, ChaiUnavailableException
     {
-        final ChangePasswordBean changePasswordBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+        final ChangePasswordBean changePasswordBean = getBean( pwmRequest );
 
         LOGGER.debug( pwmRequest, () -> "user accepted password change agreement" );
         if ( !changePasswordBean.isAgreementPassed() )
         {
             changePasswordBean.setAgreementPassed( true );
-            final AuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createUserAuditRecord(
+            final AuditRecord auditRecord = AuditRecordFactory.make( pwmRequest ).createUserAuditRecord(
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getLabel(),
                     "ChangePassword"
             );
-            pwmRequest.getPwmDomain().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+            AuditServiceClient.submit( pwmRequest, auditRecord );
         }
 
         return ProcessStatus.Continue;
@@ -257,15 +267,17 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     ProcessStatus processFormAction( final PwmRequest pwmRequest )
             throws ServletException, PwmUnrecoverableException, IOException, ChaiUnavailableException
     {
-        final ChangePasswordBean cpb = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+        final ChangePasswordBean changePasswordBean = getBean( pwmRequest );
         final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         final UserInfo userInfo = pwmRequest.getPwmSession().getUserInfo();
         final LoginInfoBean loginBean = pwmRequest.getPwmSession().getLoginInfoBean();
 
-        final PasswordData currentPassword = pwmRequest.readParameterAsPassword( "currentPassword" );
+        final PasswordData currentPassword = pwmRequest.readParameterAsPassword( "currentPassword" )
+                .orElseThrow( () -> new NoSuchElementException( "missing currentPassword field" ) );
+
 
         // check the current password
-        if ( cpb.isCurrentPasswordRequired() && loginBean.getUserCurrentPassword() != null )
+        if ( changePasswordBean.isCurrentPasswordRequired() && loginBean.getUserCurrentPassword() != null )
         {
             if ( currentPassword == null )
             {
@@ -284,13 +296,13 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
             if ( !passed )
             {
-                pwmRequest.getPwmDomain().getIntruderManager().convenience().markUserIdentity(
+                pwmRequest.getPwmDomain().getIntruderService().client().markUserIdentity(
                         userInfo.getUserIdentity(), pwmRequest.getLabel() );
                 LOGGER.debug( pwmRequest, () -> "failed password validation check: currentPassword value is incorrect" );
                 setLastError( pwmRequest, new ErrorInformation( PwmError.ERROR_BAD_CURRENT_PASSWORD ) );
                 return ProcessStatus.Continue;
             }
-            cpb.setCurrentPasswordPassed( true );
+            changePasswordBean.setCurrentPasswordPassed( true );
         }
 
         final List<FormConfiguration> formItem = getProfile( pwmRequest ).readSettingAsForm( PwmSetting.PASSWORD_REQUIRE_FORM );
@@ -304,12 +316,12 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             ChangePasswordServletUtil.validateParamsAgainstLDAP( formValues, pwmRequest,
                     pwmRequest.getPwmSession().getSessionManager().getActor( ) );
 
-            cpb.setFormPassed( true );
+            changePasswordBean.setFormPassed( true );
         }
         catch ( final PwmOperationalException e )
         {
-            pwmRequest.getPwmDomain().getIntruderManager().convenience().markAddressAndSession( pwmRequest );
-            pwmRequest.getPwmDomain().getIntruderManager().convenience().markUserIdentity( userInfo.getUserIdentity(), pwmRequest.getLabel() );
+            pwmRequest.getPwmDomain().getIntruderService().client().markAddressAndSession( pwmRequest );
+            pwmRequest.getPwmDomain().getIntruderService().client().markUserIdentity( userInfo.getUserIdentity(), pwmRequest.getLabel() );
             LOGGER.debug( pwmRequest, e.getErrorInformation() );
             setLastError( pwmRequest, e.getErrorInformation() );
             return ProcessStatus.Continue;
@@ -321,7 +333,8 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     @ActionHandler( action = "checkProgress" )
     ProcessStatus processCheckProgressAction( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
     {
-        final ChangePasswordBean changePasswordBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+        final ChangePasswordBean changePasswordBean = getBean( pwmRequest );
+
         final PasswordChangeProgressChecker.ProgressTracker progressTracker = changePasswordBean.getChangeProgressTracker();
         final PasswordChangeProgressChecker.PasswordChangeProgress passwordChangeProgress;
         if ( progressTracker == null )
@@ -349,8 +362,9 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     @ActionHandler( action = "complete" )
     public ProcessStatus processCompleteAction( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
     {
-        final ChangePasswordBean cpb = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
-        final PasswordChangeProgressChecker.ProgressTracker progressTracker = cpb.getChangeProgressTracker();
+        final ChangePasswordBean changePasswordBean = getBean( pwmRequest );
+
+        final PasswordChangeProgressChecker.ProgressTracker progressTracker = changePasswordBean.getChangeProgressTracker();
         boolean isComplete = true;
         if ( progressTracker != null )
         {
@@ -380,7 +394,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                     LOGGER.error( pwmRequest, () -> "unable to update average password sync time statistic: " + e.getMessage() );
                 }
             }
-            cpb.setChangeProgressTracker( null );
+            changePasswordBean.setChangeProgressTracker( null );
             final Locale locale = pwmRequest.getLocale();
             final String completeMessage = getProfile( pwmRequest ).readSettingAsLocalizedString( PwmSetting.PASSWORD_COMPLETE_MESSAGE, locale );
 
@@ -405,7 +419,8 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "checkPassword" )
-    private ProcessStatus processCheckPasswordAction( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException, ChaiUnavailableException
+    private ProcessStatus processCheckPasswordAction( final PwmRequest pwmRequest )
+            throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
         final RestCheckPasswordServer.JsonInput jsonInput = JsonUtil.deserialize(
                 pwmRequest.readRequestBodyAsString(),
@@ -414,8 +429,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
         final UserInfo userInfo = pwmRequest.getPwmSession().getUserInfo();
         final PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
-                pwmRequest.getPwmDomain(),
-                pwmRequest.getLocale(),
+                pwmRequest.getPwmRequestContext(),
                 pwmRequest.getPwmSession().getSessionManager().getActor(),
                 userInfo,
                 pwmRequest.getPwmSession().getLoginInfoBean(),
@@ -453,7 +467,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     )
             throws IOException, PwmUnrecoverableException, ServletException
     {
-        final ChangePasswordBean changePasswordBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+        final ChangePasswordBean changePasswordBean = getBean( pwmRequest );
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ChangePasswordProfile changePasswordProfile = getProfile( pwmRequest );
@@ -509,8 +523,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     private void forwardToWaitPage( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, ServletException, IOException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        final ChangePasswordBean changePasswordBean = pwmDomain.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+        final ChangePasswordBean changePasswordBean = getBean( pwmRequest );
         final Instant maxCompleteTime = changePasswordBean.getChangePasswordMaxCompletion();
         pwmRequest.setAttribute(
                 PwmRequestAttribute.ChangePassword_MaxWaitSeconds,

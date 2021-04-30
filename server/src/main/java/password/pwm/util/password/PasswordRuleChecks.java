@@ -102,6 +102,7 @@ public class PasswordRuleChecks
 
 
     public static List<ErrorInformation> extendedPolicyRuleChecker(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final PwmPasswordPolicy policy,
             final String password,
@@ -124,11 +125,11 @@ public class PasswordRuleChecks
 
         final List<ErrorInformation> errorList = new ArrayList<>();
         final MacroRequest macroRequest = userInfo == null || userInfo.getUserIdentity() == null
-                ? MacroRequest.forNonUserSpecific( pwmDomain.getPwmApplication(), SessionLabel.SYSTEM_LABEL )
+                ? MacroRequest.forNonUserSpecific( pwmDomain.getPwmApplication(), sessionLabel )
                 : MacroRequest.forUser(
                 pwmDomain.getPwmApplication(),
                 PwmConstants.DEFAULT_LOCALE,
-                SessionLabel.SYSTEM_LABEL,
+                sessionLabel,
                 userInfo.getUserIdentity()
         );
 

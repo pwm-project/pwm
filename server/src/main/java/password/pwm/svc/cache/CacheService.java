@@ -26,6 +26,7 @@ import password.pwm.bean.DomainID;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JsonUtil;
@@ -42,53 +43,52 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 
-public class CacheService implements PwmService
+public class CacheService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( CacheService.class );
 
     private MemoryCacheStore memoryCacheStore;
 
-    private STATUS status = STATUS.CLOSED;
-
     private ConditionalTaskExecutor traceDebugOutputter;
 
     @Override
-    public STATUS status( )
+    protected Set<PwmApplication.Condition> openConditions()
     {
-        return status;
+        return Collections.emptySet();
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
         final boolean enabled = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.CACHE_ENABLE ) );
         if ( !enabled )
         {
             LOGGER.debug( () -> "skipping cache service init due to app property setting" );
-            status = STATUS.CLOSED;
-            return;
+            return STATUS.CLOSED;
         }
 
         final int maxMemItems = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.CACHE_MEMORY_MAX_ITEMS ) );
         memoryCacheStore = new MemoryCacheStore( maxMemItems );
-        this.traceDebugOutputter = new ConditionalTaskExecutor(
+        this.traceDebugOutputter = ConditionalTaskExecutor.forPeriodicTask(
                 this::outputTraceInfo,
-                new ConditionalTaskExecutor.TimeDurationPredicate( 1, TimeDuration.Unit.MINUTES )
+                TimeDuration.MINUTE
         );
-        status = STATUS.OPEN;
+
+        return STATUS.OPEN;
     }
 
     @Override
     public void close( )
     {
-        status = STATUS.CLOSED;
+        setStatus( STATUS.CLOSED );
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
         return Collections.emptyList();
     }
@@ -96,7 +96,7 @@ public class CacheService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        if ( status == STATUS.CLOSED )
+        if ( status() == STATUS.CLOSED )
         {
             return ServiceInfoBean.builder().build();
         }
@@ -121,7 +121,7 @@ public class CacheService implements PwmService
     public void put( final CacheKey cacheKey, final CachePolicy cachePolicy, final Serializable payload )
             throws PwmUnrecoverableException
     {
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             return;
         }
@@ -141,7 +141,7 @@ public class CacheService implements PwmService
         Objects.requireNonNull( cacheKey );
         Objects.requireNonNull( classOfT );
 
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             return null;
         }
@@ -165,7 +165,7 @@ public class CacheService implements PwmService
         Objects.requireNonNull( classOfT );
         Objects.requireNonNull( cacheLoader );
 
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             return cacheLoader.read();
         }

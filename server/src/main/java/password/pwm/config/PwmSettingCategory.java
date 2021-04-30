@@ -78,9 +78,9 @@ public enum PwmSettingCategory
     NODES( SYSTEM ),
 
     DOMAIN( SETTINGS ),
-    GENERAL( DOMAIN ),
-    LOCALIZATION( DOMAIN ),
-    TELEMETRY( DOMAIN ),
+    URL_SETTINGS( SETTINGS ),
+    LOCALIZATION( SETTINGS ),
+    TELEMETRY( SETTINGS ),
 
     AUDITING( SETTINGS ),
     AUDIT_CONFIG( AUDITING ),
@@ -91,6 +91,7 @@ public enum PwmSettingCategory
     CAPTCHA( SETTINGS ),
 
     INTRUDER( SETTINGS ),
+    INTRUDER_SYSTEM_SETTINGS( INTRUDER ),
     INTRUDER_SETTINGS( INTRUDER ),
     INTRUDER_TIMEOUTS( INTRUDER ),
 
@@ -201,7 +202,8 @@ public enum PwmSettingCategory
     DELETE_ACCOUNT_SETTINGS( DELETE_ACCOUNT ),
     DELETE_ACCOUNT_PROFILE( DELETE_ACCOUNT ),
 
-    INTERNAL( SETTINGS ),;
+    INTERNAL_DOMAIN( SETTINGS ),
+    INTERNAL_SYSTEM( SETTINGS ),;
 
     private static final Comparator<PwmSettingCategory> MENU_LOCATION_COMPARATOR = Comparator.comparing(
             ( pwmSettingCategory ) -> pwmSettingCategory.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ) );

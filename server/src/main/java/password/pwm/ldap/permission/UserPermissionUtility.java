@@ -246,11 +246,11 @@ public class UserPermissionUtility
 
         try
         {
-            final List<String> rootContexts = ldapProfile.getRootContexts( pwmDomain );
+            final List<String> rootContexts = ldapProfile.getRootContexts( sessionLabel, pwmDomain );
 
             for ( final String rootContext : rootContexts )
             {
-                if ( testBaseDnMatch( pwmDomain, rootContext, userIdentity ) )
+                if ( testBaseDnMatch( sessionLabel, pwmDomain, rootContext, userIdentity ) )
                 {
                     return true;
                 }
@@ -269,6 +269,7 @@ public class UserPermissionUtility
     }
 
     static boolean testBaseDnMatch(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final String canonicalBaseDN,
             final UserIdentity userIdentity
@@ -280,7 +281,7 @@ public class UserPermissionUtility
             return false;
         }
 
-        final String userDN = userIdentity.canonicalized( pwmDomain.getPwmApplication() ).getUserDN();
+        final String userDN = userIdentity.canonicalized( sessionLabel, pwmDomain.getPwmApplication() ).getUserDN();
         return userDN.endsWith( canonicalBaseDN );
     }
 

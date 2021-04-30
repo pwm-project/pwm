@@ -33,6 +33,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
@@ -40,6 +41,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
@@ -71,7 +73,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-public class LdapConnectionService implements PwmService
+public class LdapConnectionService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapConnectionService.class );
 
@@ -86,8 +88,6 @@ public class LdapConnectionService implements PwmService
     private ExecutorService executorService;
     private ChaiProviderFactory chaiProviderFactory;
     private AtomicLoopIntIncrementer slotIncrementer;
-
-    private volatile STATUS status = STATUS.CLOSED;
 
     private boolean useThreadLocal;
 
@@ -107,7 +107,6 @@ public class LdapConnectionService implements PwmService
         return pwmApplication.domains().values().stream()
                 .map( PwmDomain::getConfig )
                 .map( s -> s.getLdapProfiles().size() )
-                .map( Integer::valueOf )
                 .reduce( 0, Integer::sum );
     }
 
@@ -136,13 +135,13 @@ public class LdapConnectionService implements PwmService
     }
 
     @Override
-    public STATUS status( )
+    protected Set<PwmApplication.Condition> openConditions()
     {
-        return status;
+        return Collections.emptySet();
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
         this.pwmDomain = pwmApplication.domains().get( domainID );
@@ -170,13 +169,13 @@ public class LdapConnectionService implements PwmService
             proxyChaiProviders.put( ldapProfile.getIdentifier(), new ConcurrentHashMap<>() );
         }
 
-        status = STATUS.OPEN;
+        return STATUS.OPEN;
     }
 
     @Override
     public void close( )
     {
-        status = STATUS.CLOSED;
+        setStatus( STATUS.CLOSED );
         logDebugInfo();
         LOGGER.trace( () -> "closing ldap proxy connections" );
 
@@ -197,9 +196,9 @@ public class LdapConnectionService implements PwmService
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
@@ -215,17 +214,17 @@ public class LdapConnectionService implements PwmService
     }
 
 
-    public ChaiProvider getProxyChaiProvider( final String identifier )
+    public ChaiProvider getProxyChaiProvider( final SessionLabel sessionLabel, final String identifier )
             throws PwmUnrecoverableException
     {
         final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( identifier );
-        return getProxyChaiProvider( ldapProfile );
+        return getProxyChaiProvider( sessionLabel, ldapProfile );
     }
 
-    public ChaiProvider getProxyChaiProvider( final LdapProfile ldapProfile )
+    public ChaiProvider getProxyChaiProvider( final SessionLabel sessionLabel, final LdapProfile ldapProfile )
             throws PwmUnrecoverableException
     {
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             throw new IllegalStateException( "unable to obtain proxy chai provider from closed LdapConnectionService" );
         }
@@ -238,13 +237,13 @@ public class LdapConnectionService implements PwmService
 
         if ( useThreadLocal )
         {
-            return getThreadLocalChaiProvider( effectiveProfile );
+            return getThreadLocalChaiProvider( sessionLabel, effectiveProfile );
         }
 
-        return getSharedLocalChaiProvider( effectiveProfile );
+        return getSharedLocalChaiProvider( sessionLabel, effectiveProfile );
     }
 
-    private ChaiProvider getSharedLocalChaiProvider( final LdapProfile ldapProfile )
+    private ChaiProvider getSharedLocalChaiProvider( final SessionLabel sessionLabel, final LdapProfile ldapProfile )
             throws PwmUnrecoverableException
     {
         final int slot = slotIncrementer.next();
@@ -252,7 +251,7 @@ public class LdapConnectionService implements PwmService
 
         if ( proxyChaiProvider == null )
         {
-            final ChaiProvider newProvider = newProxyChaiProvider( ldapProfile );
+            final ChaiProvider newProvider = newProxyChaiProvider( sessionLabel, ldapProfile );
             proxyChaiProviders.get( ldapProfile.getIdentifier() ).put( slot, newProvider );
             return newProvider;
         }
@@ -260,7 +259,7 @@ public class LdapConnectionService implements PwmService
         return proxyChaiProvider;
     }
 
-    private ChaiProvider getThreadLocalChaiProvider( final LdapProfile ldapProfile )
+    private ChaiProvider getThreadLocalChaiProvider( final SessionLabel sessionLabel, final LdapProfile ldapProfile )
             throws PwmUnrecoverableException
     {
         reentrantLock.lock();
@@ -278,7 +277,7 @@ public class LdapConnectionService implements PwmService
 
             if ( !threadLocalContainer.getProviderMap().containsKey( profileID ) )
             {
-                final ChaiProvider chaiProvider = newProxyChaiProvider( ldapProfile );
+                final ChaiProvider chaiProvider = newProxyChaiProvider( sessionLabel, ldapProfile );
                 threadLocalContainer.getProviderMap().put( profileID, chaiProvider );
             }
 
@@ -292,7 +291,7 @@ public class LdapConnectionService implements PwmService
         }
     }
 
-    private ChaiProvider newProxyChaiProvider( final LdapProfile ldapProfile )
+    private ChaiProvider newProxyChaiProvider( final SessionLabel sessionLabel, final LdapProfile ldapProfile )
             throws PwmUnrecoverableException
     {
         Objects.requireNonNull( ldapProfile, "ldapProfile must not be null" );
@@ -301,12 +300,12 @@ public class LdapConnectionService implements PwmService
         {
             final ChaiProvider chaiProvider = LdapOperationsHelper.openProxyChaiProvider(
                     pwmDomain,
-                    null,
+                    sessionLabel,
                     ldapProfile,
                     pwmDomain.getConfig(),
                     pwmDomain.getStatisticsManager()
             );
-            LOGGER.trace( () -> "created new system proxy chaiProvider id=" + chaiProvider.toString()
+            LOGGER.trace( sessionLabel, () -> "created new system proxy chaiProvider id=" + chaiProvider.toString()
                     + " for ldap profile '" + ldapProfile.getIdentifier() + "'"
                     + " thread=" + Thread.currentThread().getName() );
             stats.increment( StatKey.createdProxies );
@@ -408,7 +407,7 @@ public class LdapConnectionService implements PwmService
 
     public ChaiProviderFactory getChaiProviderFactory( )
     {
-        if ( status != STATUS.OPEN )
+        if ( status() != STATUS.OPEN )
         {
             throw new IllegalStateException( "unable to obtain chai provider factory from closed LdapConnectionService" );
         }
@@ -426,7 +425,7 @@ public class LdapConnectionService implements PwmService
 
     private void logDebugInfo()
     {
-        LOGGER.trace( () -> "status: " + StringUtil.mapToString( connectionDebugInfo() ) );
+        LOGGER.trace( getSessionLabel(), () -> "status: " + StringUtil.mapToString( connectionDebugInfo() ) );
     }
 
     public List<ConnectionInfo> getConnectionInfos()

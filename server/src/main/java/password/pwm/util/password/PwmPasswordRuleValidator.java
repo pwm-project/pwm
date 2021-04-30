@@ -26,8 +26,8 @@ import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.DomainConfig;
@@ -41,6 +41,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -54,17 +55,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public class PwmPasswordRuleValidator
 {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmPasswordRuleValidator.class );
 
+    private final SessionLabel sessionLabel;
     private final PwmDomain pwmDomain;
     private final PwmPasswordPolicy policy;
     private final Locale locale;
     private final Flag[] flags;
-
 
     public enum Flag
     {
@@ -72,29 +74,40 @@ public class PwmPasswordRuleValidator
         BypassLdapRuleCheck,
     }
 
-    public PwmPasswordRuleValidator(
-            final PwmDomain pwmDomain,
-            final PwmPasswordPolicy policy,
-            final Flag... flags
-    )
-    {
-        this.pwmDomain = pwmDomain;
-        this.policy = policy;
-        this.locale = PwmConstants.DEFAULT_LOCALE;
-        this.flags = flags;
-    }
-
-    public PwmPasswordRuleValidator(
+    private PwmPasswordRuleValidator(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final PwmPasswordPolicy policy,
             final Locale locale,
             final Flag... flags
     )
     {
-        this.pwmDomain = pwmDomain;
+        this.sessionLabel = sessionLabel;
+        this.pwmDomain = Objects.requireNonNull( pwmDomain );
         this.policy = policy;
         this.locale = locale;
         this.flags = flags;
+    }
+
+    public static PwmPasswordRuleValidator create(
+            final SessionLabel sessionLabel,
+            final PwmDomain pwmDomain,
+            final PwmPasswordPolicy policy,
+            final Flag... flags
+    )
+    {
+        return new PwmPasswordRuleValidator( sessionLabel, pwmDomain, policy, PwmConstants.DEFAULT_LOCALE, flags );
+    }
+
+    public static PwmPasswordRuleValidator create(
+            final SessionLabel sessionLabel,
+            final PwmDomain pwmDomain,
+            final PwmPasswordPolicy policy,
+            final Locale locale,
+            final Flag... flags
+    )
+    {
+        return new PwmPasswordRuleValidator( sessionLabel, pwmDomain, policy, locale, flags );
     }
 
     public boolean testPassword(
@@ -125,7 +138,7 @@ public class PwmPasswordRuleValidator
             }
             catch ( final ChaiUnavailableException e )
             {
-                pwmDomain.getStatisticsManager().incrementValue( Statistic.LDAP_UNAVAILABLE_COUNT );
+                StatisticsClient.incrementStat( pwmDomain.getPwmApplication(), Statistic.LDAP_UNAVAILABLE_COUNT );
                 LOGGER.warn( () -> "ChaiUnavailableException was thrown while validating password: " + e.toString() );
                 throw e;
             }
@@ -185,7 +198,7 @@ public class PwmPasswordRuleValidator
     {
         final String passwordString = password == null ? "" : password.getStringValue();
         final String oldPasswordString = oldPassword == null ? null : oldPassword.getStringValue();
-        return PasswordRuleChecks.extendedPolicyRuleChecker( pwmDomain, policy, passwordString, oldPasswordString, userInfo, flags );
+        return PasswordRuleChecks.extendedPolicyRuleChecker( sessionLabel, pwmDomain, policy, passwordString, oldPasswordString, userInfo, flags );
     }
 
     public List<ErrorInformation> internalPwmPolicyValidator(
@@ -195,7 +208,7 @@ public class PwmPasswordRuleValidator
     )
             throws PwmUnrecoverableException
     {
-        return PasswordRuleChecks.extendedPolicyRuleChecker( pwmDomain, policy, password, oldPassword, userInfo, flags );
+        return PasswordRuleChecks.extendedPolicyRuleChecker( sessionLabel, pwmDomain, policy, password, oldPassword, userInfo, flags );
     }
 
 

@@ -29,6 +29,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.UserInfo;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JsonUtil;
@@ -41,19 +42,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class ReportRecordLocalDBStorageService implements PwmService
+public class ReportRecordLocalDBStorageService extends AbstractPwmService implements PwmService
 {
+    private static final LocalDB.DB DB = LocalDB.DB.USER_CACHE;
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( ReportRecordLocalDBStorageService.class );
 
     private CacheStoreWrapper cacheStore;
-    private STATUS status;
-
-    @Override
-    public STATUS status( )
-    {
-        return status;
-    }
 
     UserReportRecord updateUserCache( final UserInfo userInfo )
             throws PwmUnrecoverableException
@@ -66,11 +61,11 @@ public class ReportRecordLocalDBStorageService implements PwmService
         }
         catch ( final LocalDBException e )
         {
-            LOGGER.error( () -> "unable to store user status cache to localdb: " + e.getMessage() );
+            LOGGER.error( getSessionLabel(), () -> "unable to store user status cache to localdb: " + e.getMessage() );
         }
 
         {
-            LOGGER.trace( () -> "updateCache: read user cache for "
+            LOGGER.trace( getSessionLabel(), () -> "updateCache: read user cache for "
                     + userInfo.getUserIdentity() + " user key " + userInfo.getUserIdentity().toDelimitedKey() );
         }
         return null;
@@ -101,7 +96,7 @@ public class ReportRecordLocalDBStorageService implements PwmService
         }
         catch ( final LocalDBException e )
         {
-            LOGGER.error( () -> "unexpected error generating user status iterator: " + e.getMessage() );
+            LOGGER.error( getSessionLabel(), () -> "unexpected error generating user status iterator: " + e.getMessage() );
             return null;
         }
     }
@@ -113,7 +108,7 @@ public class ReportRecordLocalDBStorageService implements PwmService
 
         private UserStatusCacheBeanIterator( ) throws LocalDBException
         {
-            innerIterator = cacheStore.localDB.iterator( CacheStoreWrapper.DB );
+            innerIterator = cacheStore.localDB.iterator( DB );
         }
 
         @Override
@@ -128,7 +123,7 @@ public class ReportRecordLocalDBStorageService implements PwmService
             final String nextKey = innerIterator.next().getKey();
             try
             {
-                return UserIdentity.fromDelimitedKey( nextKey );
+                return UserIdentity.fromDelimitedKey( getSessionLabel(), nextKey );
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -150,21 +145,21 @@ public class ReportRecordLocalDBStorageService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
         this.cacheStore = new CacheStoreWrapper( pwmApplication.getLocalDB() );
-        status = STATUS.OPEN;
+        return STATUS.OPEN;
     }
 
     @Override
     public void close( )
     {
-        status = STATUS.CLOSED;
+        setStatus( STATUS.CLOSED );
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
         return Collections.emptyList();
     }
@@ -180,9 +175,8 @@ public class ReportRecordLocalDBStorageService implements PwmService
         return cacheStore.size();
     }
 
-    private static class CacheStoreWrapper
+    private class CacheStoreWrapper
     {
-        private static final LocalDB.DB DB = LocalDB.DB.USER_CACHE;
 
         private final LocalDB localDB;
 
@@ -212,7 +206,7 @@ public class ReportRecordLocalDBStorageService implements PwmService
                 }
                 catch ( final JsonSyntaxException e )
                 {
-                    LOGGER.error( () -> "error reading record from cache store for key=" + jsonKey + ", error: " + e.getMessage() );
+                    LOGGER.error( getSessionLabel(), () -> "error reading record from cache store for key=" + jsonKey + ", error: " + e.getMessage() );
                     localDB.remove( DB, jsonKey );
                 }
             }

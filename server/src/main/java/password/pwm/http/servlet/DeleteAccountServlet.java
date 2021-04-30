@@ -45,6 +45,7 @@ import password.pwm.http.bean.DeleteAccountBean;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
@@ -178,13 +179,13 @@ public class DeleteAccountServlet extends ControlledPwmServlet
         if ( !deleteAccountBean.isAgreementPassed() )
         {
             deleteAccountBean.setAgreementPassed( true );
-            final AuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createUserAuditRecord(
+            final AuditRecord auditRecord = AuditRecordFactory.make( pwmRequest ).createUserAuditRecord(
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getLabel(),
                     ProfileDefinition.DeleteAccount.toString()
             );
-            pwmRequest.getPwmDomain().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+            AuditServiceClient.submit( pwmRequest,  auditRecord );
         }
 
         return ProcessStatus.Continue;
@@ -194,7 +195,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
     private ProcessStatus handleDeleteRequest(
             final PwmRequest pwmRequest
     )
-            throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
+            throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final DeleteAccountProfile deleteAccountProfile = getProfile( pwmRequest );
@@ -207,7 +208,6 @@ public class DeleteAccountServlet extends ControlledPwmServlet
             if ( actions != null && !actions.isEmpty() )
             {
                 LOGGER.debug( pwmRequest, () -> "executing configured actions to user " + userIdentity );
-
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmDomain, userIdentity )
                         .setExpandPwmMacros( true )
@@ -230,7 +230,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
         sendProfileUpdateEmailNotice( pwmRequest );
 
         // mark the event log
-        pwmDomain.getAuditManager().submit( AuditEvent.DELETE_ACCOUNT, pwmRequest.getPwmSession().getUserInfo(), pwmRequest.getPwmSession() );
+        AuditServiceClient.submitUserEvent( pwmRequest, AuditEvent.DELETE_ACCOUNT, pwmRequest.getPwmSession().getUserInfo() );
 
         final String nextUrl = deleteAccountProfile.readSettingAsString( PwmSetting.DELETE_ACCOUNT_NEXT_URL );
         if ( nextUrl != null && !nextUrl.isEmpty() )
@@ -244,7 +244,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
         // perform ldap entry delete.
         if ( deleteAccountProfile.readSettingAsBoolean( PwmSetting.DELETE_ACCOUNT_DELETE_USER_ENTRY ) )
         {
-            final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( pwmRequest.getUserInfoIfLoggedIn() );
+            final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( pwmRequest.getLabel(), pwmRequest.getUserInfoIfLoggedIn() );
             try
             {
                 chaiUser.getChaiProvider().deleteEntry( chaiUser.getEntryDN() );

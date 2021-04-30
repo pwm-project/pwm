@@ -208,7 +208,7 @@ public class LocalDBLoggerExtendedTest
     {
         final long maxEvents = config.readSettingAsLong( PwmSetting.EVENTS_PWMDB_MAX_EVENTS );
         final long eventCount = localDBLogger.getStoredEventCount();
-        final Percent percent = new Percent( eventCount, maxEvents );
+        final Percent percent = Percent.of( eventCount, maxEvents );
         return numberFormat.format( localDBLogger.getStoredEventCount() ) + "/" + numberFormat.format( maxEvents )
                 + " (" + percent.pretty( 2 ) + ")";
     }

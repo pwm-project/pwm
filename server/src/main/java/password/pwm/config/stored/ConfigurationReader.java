@@ -35,6 +35,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
@@ -243,7 +244,7 @@ public class ConfigurationReader
             }
         }
 
-        if ( pwmApplication != null && pwmApplication.getAuditManager() != null )
+        if ( pwmApplication != null && pwmApplication.getAuditService() != null )
         {
             auditModifiedSettings( pwmApplication, storedConfiguration, sessionLabel );
         }
@@ -285,7 +286,7 @@ public class ConfigurationReader
             final String finalMsg = modifyMessage;
             LOGGER.trace( () -> "sending audit notice: " + finalMsg );
 
-            pwmApplication.getAuditManager().submit( sessionLabel, new AuditRecordFactory( pwmApplication ).createUserAuditRecord(
+            AuditServiceClient.submit( pwmApplication, sessionLabel, AuditRecordFactory.make( sessionLabel, pwmApplication ).createUserAuditRecord(
                     AuditEvent.MODIFY_CONFIGURATION,
                     userIdentity,
                     sessionLabel,

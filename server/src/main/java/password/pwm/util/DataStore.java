@@ -20,6 +20,7 @@
 
 package password.pwm.util;
 
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmDataStoreException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.ClosableIterator;
@@ -59,4 +60,6 @@ public interface DataStore
 
     long size( )
             throws PwmDataStoreException, PwmUnrecoverableException;
+
+    DataStorageMethod getDataStorageMethod();
 }

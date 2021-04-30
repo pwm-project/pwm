@@ -57,6 +57,7 @@ public enum HttpHeader
 
 
     XAmb( "X-" + PwmConstants.PWM_APP_NAME + "-Amb" ),
+    XDomain( "X-" + PwmConstants.PWM_APP_NAME + "-Domain" ),
     XVersion( "X-" + PwmConstants.PWM_APP_NAME + "-Version" ),
     XInstance( "X-" + PwmConstants.PWM_APP_NAME + "-Instance" ),
     XSessionID( "X-" + PwmConstants.PWM_APP_NAME + "-SessionID" ),

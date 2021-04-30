@@ -49,6 +49,7 @@ public class CEFAuditFormatter implements AuditFormatter
 
     static
     {
+        // ordering is important to this map.
         final Map<String, String> map = new LinkedHashMap<>( );
         map.put( "\\", "\\\\" );
         map.put( "=", "\\=" );

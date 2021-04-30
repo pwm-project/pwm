@@ -122,8 +122,8 @@ public class RestUtility
             if ( ldapProfile != null )
             {
                 {
-                    final UserIdentity testUser = ldapProfile.getTestUser( pwmDomain );
-                    if ( testUser != null && testUser.canonicalEquals( userIdentity, restRequest.getPwmApplication() ) )
+                    final UserIdentity testUser = ldapProfile.getTestUser( restRequest.getSessionLabel(), pwmDomain );
+                    if ( testUser != null && testUser.canonicalEquals( restRequest.getSessionLabel(), userIdentity, restRequest.getPwmApplication() ) )
                     {
                         final String msg = "rest services can not be invoked against the configured LDAP profile test user";
                         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_INVOCATION_ERROR, msg );
@@ -132,8 +132,8 @@ public class RestUtility
                 }
 
                 {
-                    final UserIdentity proxyUser = ldapProfile.getProxyUser( pwmDomain );
-                    if ( proxyUser != null && proxyUser.canonicalEquals( userIdentity, restRequest.getPwmApplication() ) )
+                    final UserIdentity proxyUser = ldapProfile.getProxyUser( restRequest.getSessionLabel(), pwmDomain );
+                    if ( proxyUser != null && proxyUser.canonicalEquals( restRequest.getSessionLabel(), userIdentity, restRequest.getPwmApplication() ) )
                     {
                         final String msg = "rest services can not be invoked against the configured LDAP profile proxy user";
                         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_INVOCATION_ERROR, msg );

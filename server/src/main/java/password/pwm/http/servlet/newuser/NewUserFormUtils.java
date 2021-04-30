@@ -30,12 +30,12 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.NewUserBean;
+import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.svc.secure.DomainSecureService;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -43,6 +43,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 class NewUserFormUtils
 {
@@ -62,8 +63,12 @@ class NewUserFormUtils
         final List<FormConfiguration> newUserForm = NewUserServlet.getFormDefinition( pwmRequest );
         final Map<FormConfiguration, String> userFormValues = FormUtility.readFormValuesFromRequest( pwmRequest,
                 newUserForm, userLocale );
-        final PasswordData passwordData1 = pwmRequest.readParameterAsPassword( NewUserServlet.FIELD_PASSWORD1 );
-        final PasswordData passwordData2 = pwmRequest.readParameterAsPassword( NewUserServlet.FIELD_PASSWORD2 );
+        final PasswordData passwordData1 = pwmRequest.readParameterAsPassword( NewUserServlet.FIELD_PASSWORD1 )
+                .orElseThrow( () -> new NoSuchElementException( "missing " +  NewUserServlet.FIELD_PASSWORD1 + " field" ) );
+
+        final PasswordData passwordData2 = pwmRequest.readParameterAsPassword( NewUserServlet.FIELD_PASSWORD2 )
+                .orElseThrow( () -> new NoSuchElementException( "missing " +  NewUserServlet.FIELD_PASSWORD2 + " field" ) );
+
 
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
         return injectRemoteValuesIntoForm( userFormValues, newUserBean.getRemoteInputData(), newUserProfile, passwordData1, passwordData2 );

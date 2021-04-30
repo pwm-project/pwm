@@ -47,43 +47,57 @@ public class AuditRecordFactory
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( AuditRecordFactory.class );
 
+    private final SessionLabel sessionLabel;
     private final DomainID domainID;
     private final PwmApplication pwmApplication;
     private final MacroRequest macroRequest;
 
-    public AuditRecordFactory( final PwmDomain pwmDomain ) throws PwmUnrecoverableException
+    private AuditRecordFactory(
+            final SessionLabel sessionLabel,
+            final DomainID domainID,
+            final PwmApplication pwmApplication,
+            final MacroRequest macroRequest )
     {
-        this.pwmApplication = pwmDomain.getPwmApplication();
-        this.domainID = pwmDomain.getDomainID();
-        this.macroRequest = MacroRequest.forNonUserSpecific( pwmDomain.getPwmApplication(), null );
-    }
-
-    public AuditRecordFactory( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
-    {
+        this.sessionLabel = sessionLabel;
+        this.domainID = domainID;
         this.pwmApplication = pwmApplication;
-        this.domainID = DomainID.systemId();
-        this.macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, null );
-    }
-
-    public AuditRecordFactory( final PwmDomain pwmDomain, final MacroRequest macroRequest )
-    {
-        this.pwmApplication = pwmDomain.getPwmApplication();
-        this.domainID = pwmDomain.getDomainID();
         this.macroRequest = macroRequest;
     }
 
-    public AuditRecordFactory( final PwmDomain pwmDomain, final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    public static AuditRecordFactory make( final SessionLabel sessionLabel, final PwmDomain pwmDomain ) throws PwmUnrecoverableException
     {
-        this.pwmApplication = pwmDomain.getPwmApplication();
-        this.domainID = pwmDomain.getDomainID();
-        this.macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+        return new AuditRecordFactory(
+                sessionLabel,
+                pwmDomain.getDomainID(),
+                pwmDomain.getPwmApplication(),
+                MacroRequest.forNonUserSpecific( pwmDomain.getPwmApplication(), sessionLabel ) );
     }
 
-    public AuditRecordFactory( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    public static AuditRecordFactory make( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        this.pwmApplication = pwmRequest.getPwmApplication();
-        this.domainID = pwmRequest.getDomainID();
-        this.macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+        return new AuditRecordFactory(
+                pwmRequest.getLabel(),
+                pwmRequest.getDomainID(),
+                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmSession().getSessionManager().getMacroMachine( ) );
+    }
+
+    public static AuditRecordFactory make( final SessionLabel sessionLabel, final PwmDomain pwmDomain, final MacroRequest macroRequest )
+    {
+        return new AuditRecordFactory(
+                sessionLabel,
+                pwmDomain.getDomainID(),
+                pwmDomain.getPwmApplication(),
+                macroRequest );
+    }
+
+    public static AuditRecordFactory make( final SessionLabel sessionLabel, final PwmApplication pwmApplication )
+    {
+        return new AuditRecordFactory(
+                sessionLabel,
+                DomainID.systemId(),
+                pwmApplication,
+                MacroRequest.forNonUserSpecific( pwmApplication, sessionLabel ) );
     }
 
     public HelpdeskAuditRecord createHelpdeskAuditRecord(
@@ -285,7 +299,7 @@ public class AuditRecordFactory
             {
                 final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
                         pwmApplication,
-                        SessionLabel.SYSTEM_LABEL,
+                        sessionLabel,
                         userIdentity, PwmConstants.DEFAULT_LOCALE
                 );
                 userID = userInfo.getUsername();

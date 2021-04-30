@@ -20,7 +20,6 @@
 
 package password.pwm.svc.wordlist;
 
-import lombok.Value;
 import org.apache.commons.io.IOUtils;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -28,22 +27,21 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.PwmNumberFormat;
+import password.pwm.util.java.StatisticAverageBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import java.text.DecimalFormat;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BooleanSupplier;
@@ -62,7 +60,7 @@ class WordlistImporter implements Runnable
     private final WordlistBucket wordlistBucket;
     private final WordlistSourceInfo wordlistSourceInfo;
     private final BooleanSupplier cancelFlag;
-    private final ImportStatistics importStatistics = new ImportStatistics();
+    private final StatisticAverageBundle<StatKey> importStatistics = new StatisticAverageBundle<>( StatKey.class );
 
     private long charsInBuffer;
     private ErrorInformation exitError;
@@ -70,6 +68,27 @@ class WordlistImporter implements Runnable
     private long bytesSkipped;
     private final Map<WordType, LongAdder> seenWordTypes = new EnumMap<>( WordType.class );
     private boolean completed;
+
+    enum StatKey
+    {
+        charsPerTransaction( DebugKey.CharsPerTxn ),
+        wordsPerTransaction( DebugKey.WordsPerTxn ),
+        chunksPerWord( DebugKey.ChunksPerWord ),
+        averageWordLength( DebugKey.AvgWordLength ),
+        msPerTransaction( DebugKey.MsPerTxn ),;
+
+        private final DebugKey debugKey;
+
+        StatKey( final DebugKey debugKey )
+        {
+            this.debugKey = debugKey;
+        }
+
+        public DebugKey getDebugKey()
+        {
+            return debugKey;
+        }
+    }
 
     private enum DebugKey
     {
@@ -85,6 +104,7 @@ class WordlistImporter implements Runnable
         DiskFreeSpace,
         ZipFile,
         WordTypes,
+        MsPerTxn,
         WordsPerTxn,
         CharsPerTxn,
         ChunksPerWord,
@@ -141,7 +161,7 @@ class WordlistImporter implements Runnable
 
         if ( cancelFlag.getAsBoolean() )
         {
-            getLogger().debug( () -> "exiting import due to cancel flag" );
+            getLogger().debug( rootWordlist.getSessionLabel(), () -> "exiting import due to cancel flag" );
         }
     }
 
@@ -185,15 +205,17 @@ class WordlistImporter implements Runnable
     {
         rootWordlist.setActivity( Wordlist.Activity.Importing );
 
-        final ConditionalTaskExecutor metaUpdater = new ConditionalTaskExecutor(
+        final ConditionalTaskExecutor metaUpdater = ConditionalTaskExecutor.forPeriodicTask(
                 this::writeCurrentWordlistStatus,
-                new ConditionalTaskExecutor.TimeDurationPredicate( TimeDuration.SECONDS_10 )
-        );
+                TimeDuration.SECONDS_10 );
 
-        final ConditionalTaskExecutor debugOutputter = new ConditionalTaskExecutor(
-                () -> getLogger().debug( this::makeStatString ),
-                new ConditionalTaskExecutor.TimeDurationPredicate( AbstractWordlist.DEBUG_OUTPUT_FREQUENCY )
-        );
+        final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask(
+                () -> getLogger().debug( rootWordlist.getSessionLabel(), this::makeStatString ),
+                AbstractWordlist.DEBUG_OUTPUT_FREQUENCY );
+
+        final ConditionalTaskExecutor pauseTimer = ConditionalTaskExecutor.forPeriodicTask(
+                () -> TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS ).pause(),
+                TimeDuration.SECOND );
 
         try
         {
@@ -203,7 +225,8 @@ class WordlistImporter implements Runnable
 
             startTime = Instant.now();
 
-            getLogger().debug( () -> "beginning import: " + JsonUtil.serialize( rootWordlist.readWordlistStatus() ) );
+            getLogger().debug( rootWordlist.getSessionLabel(), () -> "beginning import: " + JsonUtil.serialize( rootWordlist.readWordlistStatus() ) );
+            Instant lastTxnInstant = Instant.now();
 
             String line;
             do
@@ -223,6 +246,10 @@ class WordlistImporter implements Runnable
                         flushBuffer();
                         metaUpdater.conditionallyExecuteTask();
                         checkWordlistSpaceRemaining();
+
+                        importStatistics.update( StatKey.msPerTransaction, TimeDuration.fromCurrent( lastTxnInstant ).asMillis() );
+                        pauseTimer.conditionallyExecuteTask();
+                        lastTxnInstant = Instant.now();
                     }
                 }
             }
@@ -231,7 +258,7 @@ class WordlistImporter implements Runnable
 
             if ( cancelFlag.getAsBoolean() )
             {
-                getLogger().debug( () -> "pausing import" );
+                getLogger().debug( rootWordlist.getSessionLabel(), () -> "pausing import" );
             }
             else
             {
@@ -269,8 +296,8 @@ class WordlistImporter implements Runnable
             {
                 final String normalizedWord = wordType.convertInputFromWordlist( this.rootWordlist.getConfiguration(), word.get() );
                 final Set<String> words = WordlistUtil.chunkWord( normalizedWord, rootWordlist.getConfiguration().getCheckSize() );
-                importStatistics.getAverageWordLength().update( normalizedWord.length() );
-                importStatistics.getChunksPerWord().update( words.size() );
+                importStatistics.update( StatKey.averageWordLength, normalizedWord.length() );
+                importStatistics.update( StatKey.chunksPerWord, words.size() );
                 incrementCharBufferCounter( words );
                 bufferedWords.addAll( words );
             }
@@ -308,8 +335,8 @@ class WordlistImporter implements Runnable
         final TimeDuration commitTime = TimeDuration.fromCurrent( startTime );
         transactionCalculator.recordLastTransactionDuration( commitTime );
 
-        importStatistics.getWordsPerTransaction().update( bufferedWords.size() );
-        importStatistics.getCharsPerTransaction().update( charsInBuffer );
+        importStatistics.update( StatKey.wordsPerTransaction, bufferedWords.size() );
+        importStatistics.update( StatKey.charsPerTransaction, charsInBuffer );
 
         //clear the buffers.
         bufferedWords.clear();
@@ -323,13 +350,13 @@ class WordlistImporter implements Runnable
         getLogger().info( this::makeStatString );
         final long wordlistSize = wordlistBucket.size();
 
-        getLogger().info( () -> "population complete, added " + wordlistSize
+        getLogger().info( rootWordlist.getSessionLabel(), () -> "population complete, added " + wordlistSize
                 + " total words", () -> TimeDuration.fromCurrent( startTime ) );
 
         completed = true;
         writeCurrentWordlistStatus();
 
-        getLogger().debug( () -> "final post-population status: " + JsonUtil.serialize( rootWordlist.readWordlistStatus() ) );
+        getLogger().debug( rootWordlist.getSessionLabel(), () -> "final post-population status: " + JsonUtil.serialize( rootWordlist.readWordlistStatus() ) );
     }
 
     private PwmLogger getLogger()
@@ -350,33 +377,34 @@ class WordlistImporter implements Runnable
         if ( previousBytesRead > 0 )
         {
             final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask(
-                    () -> getLogger().debug( () -> "continuing skipping forward in wordlist, "
+                    () -> getLogger().debug( rootWordlist.getSessionLabel(), () -> "continuing skipping forward in wordlist, "
                             + StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() )
                             + " of " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
                             + " (" + TimeDuration.compactFromCurrent( startSkipTime ) + ")" ),
                     AbstractWordlist.DEBUG_OUTPUT_FREQUENCY );
 
 
-            getLogger().debug( () -> "will skip forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead ) + " in wordlist that has been previously imported" );
+            getLogger().debug( rootWordlist.getSessionLabel(), () -> "will skip forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
+                    + " in wordlist that has been previously imported" );
             while ( !cancelFlag.getAsBoolean() && bytesSkipped < previousBytesRead )
             {
                 zipFileReader.nextLine();
                 bytesSkipped = zipFileReader.getByteCount();
                 debugOutputter.conditionallyExecuteTask();
             }
-            getLogger().debug( () -> "skipped forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
+            getLogger().debug( rootWordlist.getSessionLabel(), () -> "skipped forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
                     + " in stream (" + TimeDuration.fromCurrent( startSkipTime ).asCompactString() + ")" );
         }
     }
 
     private String makeStatString()
     {
-        return StringUtil.mapToString( makeStatValues(), "=", ", " );
+        return StringUtil.mapToString( makeStatValues() );
     }
 
     private Map<DebugKey, String> makeStatValues()
     {
-        final Map<DebugKey, String> stats = new TreeMap<>();
+        final Map<DebugKey, String> stats = new EnumMap<>( DebugKey.class );
 
         if ( wordlistSourceInfo != null )
         {
@@ -388,12 +416,11 @@ class WordlistImporter implements Runnable
             {
                 if ( zipFileReader.getByteCount() > 1000 && TimeDuration.fromCurrent( startTime ).isLongerThan( TimeDuration.MINUTE ) )
                 {
-                    final long bytesSinceStart = zipFileReader.getByteCount() - bytesSkipped;
                     final long elapsedSeconds = TimeDuration.fromCurrent( startTime ).as( TimeDuration.Unit.SECONDS );
 
                     if ( elapsedSeconds > 0 )
                     {
-                        final long bytesPerSecond = bytesSinceStart / elapsedSeconds;
+                        final long bytesPerSecond = zipFileReader.getEventRate().longValue();
                         stats.put( DebugKey.BytesPerSecond, StringUtil.formatDiskSizeforDebug( bytesPerSecond ) );
 
                         if ( remainingBytes > 0 )
@@ -406,20 +433,17 @@ class WordlistImporter implements Runnable
             }
             catch ( final Exception e )
             {
-                getLogger().error( () -> "error calculating import statistics: " + e.getMessage() );
+                getLogger().error( rootWordlist.getSessionLabel(), () -> "error calculating import statistics: " + e.getMessage() );
 
                 /* ignore - it's a long overflow if the estimate is off */
             }
 
-            final Percent percent = new Percent( zipFileReader.getByteCount(), wordlistSourceInfo.getBytes() );
+            final Percent percent = Percent.of( zipFileReader.getByteCount(), wordlistSourceInfo.getBytes() );
             stats.put( DebugKey.PercentComplete, percent.pretty( 2 ) );
         }
 
         stats.put( DebugKey.LinesRead, PwmNumberFormat.forDefaultLocale().format( zipFileReader.getLineCount() ) );
         stats.put( DebugKey.BytesRead, StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() ) );
-
-        stats.put( DebugKey.WordsPerTxn, PwmNumberFormat.forDefaultLocale().format( (long) importStatistics.getWordsPerTransaction().getAverage() ) );
-        stats.put( DebugKey.CharsPerTxn, PwmNumberFormat.forDefaultLocale().format( (long) importStatistics.getCharsPerTransaction().getAverage() ) );
 
         stats.put( DebugKey.DiskFreeSpace, StringUtil.formatDiskSize( wordlistBucket.spaceRemaining() ) );
 
@@ -432,26 +456,17 @@ class WordlistImporter implements Runnable
         stats.put( DebugKey.ZipFile, zipFileReader.currentZipName() );
         stats.put( DebugKey.WordTypes, JsonUtil.serializeMap( seenWordTypes ) );
 
-        if ( importStatistics.getChunksPerWord().getAverage() > 1 )
-        {
-            final DecimalFormat decimalFormat = new DecimalFormat( "#.##" );
-            stats.put( DebugKey.ChunksPerWord, decimalFormat.format( importStatistics.getChunksPerWord().getAverage() ) );
-        }
-
-        if ( importStatistics.getAverageWordLength().getAverage() > 1 )
-        {
-            final DecimalFormat decimalFormat = new DecimalFormat( "#.##" );
-            stats.put( DebugKey.AvgWordLength, decimalFormat.format( importStatistics.getAverageWordLength().getAverage() ) );
-        }
-
         try
         {
             stats.put( DebugKey.WordsImported, PwmNumberFormat.forDefaultLocale().format( wordlistBucket.size() ) );
         }
         catch ( final PwmUnrecoverableException e )
         {
-            getLogger().debug( () -> "error while calculating wordsImported stat during wordlist import: " + e.getMessage() );
+            getLogger().debug( rootWordlist.getSessionLabel(), () -> "error while calculating wordsImported stat during wordlist import: " + e.getMessage() );
         }
+
+        Arrays.stream( StatKey.values() )
+                .forEach( statKey -> stats.put( statKey.getDebugKey(), importStatistics.getFormattedAverage( statKey ) ) );
 
         return Collections.unmodifiableMap( stats );
     }
@@ -472,15 +487,6 @@ class WordlistImporter implements Runnable
                 .wordTypes( outputWordTypeMap )
                 .bytes( zipFileReader.getByteCount() )
                 .build() );
-    }
-
-    @Value
-    private static class ImportStatistics
-    {
-        private final MovingAverage charsPerTransaction = new MovingAverage( TimeDuration.MINUTE );
-        private final MovingAverage wordsPerTransaction = new MovingAverage( TimeDuration.MINUTE );
-        private final MovingAverage chunksPerWord = new MovingAverage( TimeDuration.MINUTE );
-        private final MovingAverage averageWordLength = new MovingAverage( TimeDuration.MINUTE );
     }
 
     private void checkWordlistSpaceRemaining()

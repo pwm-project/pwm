@@ -64,7 +64,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomPasswordGenerator;
-import password.pwm.ws.server.rest.bean.HealthData;
+import password.pwm.ws.server.rest.bean.PublicHealthData;
 
 import java.io.Serializable;
 import java.net.InetAddress;
@@ -89,15 +89,15 @@ public class LDAPHealthChecker implements HealthSupplier
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPHealthChecker.class );
 
-    @Override
-    public List<Supplier<List<HealthRecord>>> jobs( final PwmApplication pwmApplication )
+    public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplier.HealthSupplierRequest request )
     {
+        final PwmApplication pwmApplication = request.getPwmApplication();
         return pwmApplication.domains().values().stream()
-                .map( domain -> ( Supplier<List<HealthRecord>> ) () -> doHealthCheck( domain ) )
+                .map( domain -> ( Supplier<List<HealthRecord>> ) () -> doHealthCheck( request.getSessionLabel(), domain ) )
                 .collect( Collectors.toList() );
     }
 
-    public List<HealthRecord> doHealthCheck( final PwmDomain pwmDomain )
+    public List<HealthRecord> doHealthCheck( final SessionLabel sessionLabel, final PwmDomain pwmDomain )
     {
         final DomainConfig config = pwmDomain.getConfig();
         final List<HealthRecord> returnRecords = new ArrayList<>();
@@ -107,18 +107,18 @@ public class LDAPHealthChecker implements HealthSupplier
         {
             final String profileID = entry.getKey();
             final List<HealthRecord> profileRecords = new ArrayList<>(
-                    checkBasicLdapConnectivity( pwmDomain, config, entry.getValue(), true )
+                    checkBasicLdapConnectivity( sessionLabel, pwmDomain, config, entry.getValue(), true )
             );
 
             if ( profileRecords.isEmpty() )
             {
-                profileRecords.addAll( checkLdapServerUrls( pwmDomain, config, ldapProfiles.get( profileID ) ) );
+                profileRecords.addAll( checkLdapServerUrls( sessionLabel, pwmDomain, config, ldapProfiles.get( profileID ) ) );
             }
 
             if ( profileRecords.isEmpty() )
             {
                 profileRecords.add( HealthRecord.forMessage( pwmDomain.getDomainID(), HealthMessage.LDAP_OK ) );
-                profileRecords.addAll( doLdapTestUserCheck( config, ldapProfiles.get( profileID ), pwmDomain ) );
+                profileRecords.addAll( doLdapTestUserCheck( sessionLabel, config, ldapProfiles.get( profileID ), pwmDomain ) );
             }
             returnRecords.addAll( profileRecords );
         }
@@ -154,13 +154,13 @@ public class LDAPHealthChecker implements HealthSupplier
             final List<String> urls = config.getLdapProfiles().values().iterator().next().readSettingAsStringArray( PwmSetting.LDAP_SERVER_URLS );
             if ( urls != null && !urls.isEmpty() && StringUtil.notEmpty( urls.iterator().next() ) )
             {
-                returnRecords.addAll( checkVendorSameness( pwmDomain ) );
+                returnRecords.addAll( checkVendorSameness( sessionLabel, pwmDomain ) );
 
-                returnRecords.addAll( checkUserPermissionValues( pwmDomain ) );
+                returnRecords.addAll( checkUserPermissionValues( sessionLabel, pwmDomain ) );
 
-                returnRecords.addAll( checkLdapDNSyntaxValues( pwmDomain ) );
+                returnRecords.addAll( checkLdapDNSyntaxValues( sessionLabel, pwmDomain ) );
 
-                returnRecords.addAll( checkNewUserPasswordTemplateSetting( pwmDomain, config ) );
+                returnRecords.addAll( checkNewUserPasswordTemplateSetting( sessionLabel, pwmDomain, config ) );
 
      //           returnRecords.addAll( checkUserSearching( pwmApplication ) );
             }
@@ -171,6 +171,7 @@ public class LDAPHealthChecker implements HealthSupplier
 
     @SuppressWarnings( "checkstyle:MethodLength" )
     public List<HealthRecord> doLdapTestUserCheck(
+            final SessionLabel sessionLabel,
             final DomainConfig config,
             final LdapProfile ldapProfile,
             final PwmDomain pwmDomain
@@ -189,13 +190,13 @@ public class LDAPHealthChecker implements HealthSupplier
 
         try
         {
-            testUserDN = ldapProfile.readCanonicalDN( pwmDomain, testUserDN );
-            proxyUserDN = ldapProfile.readCanonicalDN( pwmDomain, proxyUserDN );
+            testUserDN = ldapProfile.readCanonicalDN( sessionLabel, pwmDomain, testUserDN );
+            proxyUserDN = ldapProfile.readCanonicalDN( sessionLabel, pwmDomain, proxyUserDN );
         }
         catch ( final PwmUnrecoverableException e )
         {
             final String msgString = e.getMessage();
-            LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "unexpected error while testing test user (during object creation): message="
+            LOGGER.trace( sessionLabel, () -> "unexpected error while testing test user (during object creation): message="
                     + msgString + " debug info: " + JavaHelper.readHostileExceptionMessage( e ) );
             returnRecords.add( HealthRecord.forMessage( pwmDomain.getDomainID(), HealthMessage.LDAP_TestUserUnexpected,
                     PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE ),
@@ -225,7 +226,7 @@ public class LDAPHealthChecker implements HealthSupplier
 
                 chaiProvider = LdapOperationsHelper.createChaiProvider(
                         pwmDomain,
-                        SessionLabel.HEALTH_SESSION_LABEL,
+                        sessionLabel,
                         ldapProfile,
                         config,
                         proxyUserDN,
@@ -249,7 +250,7 @@ public class LDAPHealthChecker implements HealthSupplier
             {
                 final String msgString = e.getMessage();
                 LOGGER.trace(
-                        SessionLabel.HEALTH_SESSION_LABEL,
+                        sessionLabel,
                         () -> "unexpected error while testing test user (during object creation): message="
                                 + msgString + " debug info: " + JavaHelper.readHostileExceptionMessage( e )
                 );
@@ -278,7 +279,7 @@ public class LDAPHealthChecker implements HealthSupplier
             }
 
             LOGGER.trace(
-                    SessionLabel.HEALTH_SESSION_LABEL,
+                    sessionLabel,
                     () -> "beginning process to check ldap test user password read/write operations for profile "
                             + ldapProfile.getIdentifier()
             );
@@ -295,7 +296,7 @@ public class LDAPHealthChecker implements HealthSupplier
                     }
                     catch ( final Exception e )
                     {
-                        LOGGER.debug( SessionLabel.HEALTH_SESSION_LABEL, () -> "error reading user password from directory " + e.getMessage() );
+                        LOGGER.debug( sessionLabel, () -> "error reading user password from directory " + e.getMessage() );
                         returnRecords.add( HealthRecord.forMessage(
                                 pwmDomain.getDomainID(),
                                 HealthMessage.LDAP_TestUserReadPwError,
@@ -312,7 +313,7 @@ public class LDAPHealthChecker implements HealthSupplier
                     final UserIdentity userIdentity = UserIdentity.create( testUserDN, ldapProfile.getIdentifier(), pwmDomain.getDomainID() );
 
                     final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
-                            pwmDomain, null, userIdentity, theUser );
+                            pwmDomain, sessionLabel, userIdentity, theUser );
 
                     boolean doPasswordChange = true;
                     final int minLifetimeSeconds = passwordPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MinimumLifetime );
@@ -320,7 +321,7 @@ public class LDAPHealthChecker implements HealthSupplier
                     {
                         final Instant pwdLastModified = PasswordUtility.determinePwdLastModified(
                                 pwmDomain,
-                                SessionLabel.HEALTH_SESSION_LABEL,
+                                sessionLabel,
                                 userIdentity
                         );
 
@@ -329,7 +330,7 @@ public class LDAPHealthChecker implements HealthSupplier
                         {
                             final UserInfo userInfo = UserInfoFactory.newUserInfo(
                                     pwmDomain.getPwmApplication(),
-                                    SessionLabel.HEALTH_SESSION_LABEL,
+                                    sessionLabel,
                                     locale,
                                     userIdentity,
                                     chaiProvider
@@ -340,14 +341,14 @@ public class LDAPHealthChecker implements HealthSupplier
                         {
                             final boolean withinMinLifetime = PasswordUtility.isPasswordWithinMinimumLifetimeImpl(
                                     theUser,
-                                    SessionLabel.HEALTH_SESSION_LABEL,
+                                    sessionLabel,
                                     passwordPolicy,
                                     pwdLastModified,
                                     passwordStatus
                             );
                             if ( withinMinLifetime )
                             {
-                                LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "skipping test user password set due to password being within minimum lifetime" );
+                                LOGGER.trace( sessionLabel, () -> "skipping test user password set due to password being within minimum lifetime" );
                                 doPasswordChange = false;
                             }
                         }
@@ -358,7 +359,7 @@ public class LDAPHealthChecker implements HealthSupplier
                         try
                         {
                             theUser.setPassword( newPassword.getStringValue() );
-                            LOGGER.debug( SessionLabel.HEALTH_SESSION_LABEL, () -> "set random password on test user " + userIdentity.toDisplayString() );
+                            LOGGER.debug( sessionLabel, () -> "set random password on test user " + userIdentity.toDisplayString() );
                         }
                         catch ( final ChaiException e )
                         {
@@ -377,7 +378,7 @@ public class LDAPHealthChecker implements HealthSupplier
             catch ( final Exception e )
             {
                 final String msg = "error setting test user password: " + JavaHelper.readHostileExceptionMessage( e );
-                LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, () -> msg, e );
+                LOGGER.error( sessionLabel, () -> msg, e );
                 returnRecords.add( HealthRecord.forMessage(
                         pwmDomain.getDomainID(),
                         HealthMessage.LDAP_TestUserUnexpected,
@@ -392,7 +393,7 @@ public class LDAPHealthChecker implements HealthSupplier
                 final UserIdentity userIdentity = UserIdentity.create( theUser.getEntryDN(), ldapProfile.getIdentifier(), pwmDomain.getDomainID() );
                 final UserInfo userInfo = UserInfoFactory.newUserInfo(
                         pwmDomain.getPwmApplication(),
-                        SessionLabel.HEALTH_SESSION_LABEL,
+                        sessionLabel,
                         PwmConstants.DEFAULT_LOCALE,
                         userIdentity,
                         chaiProvider
@@ -445,6 +446,7 @@ public class LDAPHealthChecker implements HealthSupplier
 
 
     public List<HealthRecord> checkLdapServerUrls(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final DomainConfig config,
             final LdapProfile ldapProfile
@@ -460,7 +462,7 @@ public class LDAPHealthChecker implements HealthSupplier
             {
                 chaiProvider = LdapOperationsHelper.createChaiProvider(
                         pwmDomain,
-                        SessionLabel.HEALTH_SESSION_LABEL,
+                        sessionLabel,
                         config,
                         ldapProfile,
                         Collections.singletonList( loopURL ),
@@ -498,6 +500,7 @@ public class LDAPHealthChecker implements HealthSupplier
     }
 
     public List<HealthRecord> checkBasicLdapConnectivity(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final DomainConfig config,
             final LdapProfile ldapProfile,
@@ -532,7 +535,7 @@ public class LDAPHealthChecker implements HealthSupplier
                             ldapProfile.getIdentifier(),
                             "Missing Proxy User Password: " + menuLocationStr ) );
                 }
-                chaiProvider = LdapOperationsHelper.createChaiProvider( pwmDomain, SessionLabel.HEALTH_SESSION_LABEL, ldapProfile, config, proxyDN, proxyPW );
+                chaiProvider = LdapOperationsHelper.createChaiProvider( pwmDomain, sessionLabel, ldapProfile, config, proxyDN, proxyPW );
                 final ChaiUser adminEntry = chaiProvider.getEntryFactory().newChaiUser( proxyDN );
                 adminEntry.exists();
                 directoryVendor = chaiProvider.getDirectoryVendor();
@@ -598,7 +601,7 @@ public class LDAPHealthChecker implements HealthSupplier
 
             if ( directoryVendor != null && directoryVendor == DirectoryVendor.ACTIVE_DIRECTORY )
             {
-                returnRecords.addAll( checkAd( pwmDomain, config, ldapProfile ) );
+                returnRecords.addAll( checkAd( sessionLabel, pwmDomain, ldapProfile ) );
             }
 
             if ( testContextlessRoot )
@@ -654,7 +657,11 @@ public class LDAPHealthChecker implements HealthSupplier
         return returnRecords;
     }
 
-    private static List<HealthRecord> checkAd( final PwmDomain pwmDomain, final DomainConfig config, final LdapProfile ldapProfile )
+    private static List<HealthRecord> checkAd(
+            final SessionLabel sessionLabel,
+            final PwmDomain pwmDomain,
+            final LdapProfile ldapProfile
+    )
     {
         final List<HealthRecord> returnList = new ArrayList<>();
         final List<String> serverURLs = ldapProfile.readSettingAsStringArray( PwmSetting.LDAP_SERVER_URLS );
@@ -694,7 +701,7 @@ public class LDAPHealthChecker implements HealthSupplier
             }
         }
 
-        returnList.addAll( checkAdPasswordPolicyApi( pwmDomain ) );
+        returnList.addAll( checkAdPasswordPolicyApi( sessionLabel, pwmDomain ) );
 
         return returnList;
     }
@@ -711,7 +718,7 @@ public class LDAPHealthChecker implements HealthSupplier
         return false;
     }
 
-    private List<HealthRecord> checkVendorSameness( final PwmDomain pwmDomain )
+    private List<HealthRecord> checkVendorSameness( final SessionLabel sessionLabel, final PwmDomain pwmDomain )
     {
         final Map<HealthService.HealthMonitorFlag, Serializable> healthProperties = pwmDomain.getPwmApplication().getHealthMonitor().getHealthProperties();
         if ( healthProperties.containsKey( HealthService.HealthMonitorFlag.LdapVendorSameCheck ) )
@@ -719,7 +726,7 @@ public class LDAPHealthChecker implements HealthSupplier
             return ( List<HealthRecord> ) healthProperties.get( HealthService.HealthMonitorFlag.LdapVendorSameCheck );
         }
 
-        LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "beginning check for replica vendor sameness" );
+        LOGGER.trace( sessionLabel, () -> "beginning check for replica vendor sameness" );
         boolean errorReachingServer = false;
         final Map<String, DirectoryVendor> replicaVendorMap = new HashMap<>();
 
@@ -742,7 +749,7 @@ public class LDAPHealthChecker implements HealthSupplier
         catch ( final Exception e )
         {
             errorReachingServer = true;
-            LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL, () -> "error during replica vendor sameness check: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "error during replica vendor sameness check: " + e.getMessage() );
         }
 
         final ArrayList<HealthRecord> healthRecords = new ArrayList<>();
@@ -765,7 +772,7 @@ public class LDAPHealthChecker implements HealthSupplier
             // cache the error
             healthProperties.put( HealthService.HealthMonitorFlag.LdapVendorSameCheck, healthRecords );
 
-            LOGGER.warn( SessionLabel.HEALTH_SESSION_LABEL, () -> "multiple ldap vendors found: " + vendorMsg.toString() );
+            LOGGER.warn( sessionLabel, () -> "multiple ldap vendors found: " + vendorMsg.toString() );
         }
         else if ( discoveredVendors.size() == 1 )
         {
@@ -779,7 +786,7 @@ public class LDAPHealthChecker implements HealthSupplier
         return healthRecords;
     }
 
-    private static List<HealthRecord> checkAdPasswordPolicyApi( final PwmDomain pwmDomain )
+    private static List<HealthRecord> checkAdPasswordPolicyApi( final SessionLabel sessionLabel, final PwmDomain pwmDomain )
     {
         final boolean passwordPolicyApiEnabled = pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.AD_ENFORCE_PW_HISTORY_ON_SET );
         if ( !passwordPolicyApiEnabled )
@@ -797,7 +804,7 @@ public class LDAPHealthChecker implements HealthSupplier
             }
         }
 
-        LOGGER.trace( SessionLabel.HEALTH_SESSION_LABEL, () -> "beginning check for ad api password policy (asn "
+        LOGGER.trace( sessionLabel, () -> "beginning check for ad api password policy (asn "
                 + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") support" );
         boolean errorReachingServer = false;
         final ArrayList<HealthRecord> healthRecords = new ArrayList<>();
@@ -839,7 +846,7 @@ public class LDAPHealthChecker implements HealthSupplier
         catch ( final Exception e )
         {
             errorReachingServer = true;
-            LOGGER.error( SessionLabel.HEALTH_SESSION_LABEL,
+            LOGGER.error( sessionLabel,
                     () ->  "error during ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") check: " + e.getMessage() );
         }
 
@@ -852,7 +859,7 @@ public class LDAPHealthChecker implements HealthSupplier
         return healthRecords;
     }
 
-    private static List<HealthRecord> checkUserPermissionValues( final PwmDomain pwmDomain )
+    private static List<HealthRecord> checkUserPermissionValues( final SessionLabel sessionLabel, final PwmDomain pwmDomain )
     {
         final List<HealthRecord> returnList = new ArrayList<>();
         final DomainConfig config = pwmDomain.getConfig();
@@ -867,7 +874,7 @@ public class LDAPHealthChecker implements HealthSupplier
                     {
                         try
                         {
-                            returnList.addAll( checkUserPermission( pwmDomain, userPermission, pwmSetting ) );
+                            returnList.addAll( checkUserPermission( sessionLabel, pwmDomain, userPermission, pwmSetting ) );
                         }
                         catch ( final PwmUnrecoverableException e )
                         {
@@ -880,7 +887,9 @@ public class LDAPHealthChecker implements HealthSupplier
         return returnList;
     }
 
-    private static List<HealthRecord> checkLdapDNSyntaxValues( final PwmDomain pwmDomain )
+    private static List<HealthRecord> checkLdapDNSyntaxValues(
+            final SessionLabel sessionLabel,
+            final PwmDomain pwmDomain )
     {
         final List<HealthRecord> returnList = new ArrayList<>();
         final DomainConfig config = pwmDomain.getConfig();
@@ -901,7 +910,7 @@ public class LDAPHealthChecker implements HealthSupplier
                             final String value = config.getLdapProfiles().get( profile ).readSettingAsString( pwmSetting );
                             if ( value != null && !value.isEmpty() )
                             {
-                                final Optional<String> errorMsg = validateDN( pwmDomain, value, profile );
+                                final Optional<String> errorMsg = validateDN( sessionLabel, pwmDomain, value, profile );
                                 errorMsg.ifPresent( s -> returnList.add( HealthRecord.forMessage(
                                         pwmDomain.getDomainID(),
                                         HealthMessage.Config_DNValueValidity,
@@ -916,7 +925,7 @@ public class LDAPHealthChecker implements HealthSupplier
                             {
                                 for ( final String value : values )
                                 {
-                                    final Optional<String> errorMsg = validateDN( pwmDomain, value, profile );
+                                    final Optional<String> errorMsg = validateDN( sessionLabel, pwmDomain, value, profile );
                                     errorMsg.ifPresent( s -> returnList.add( HealthRecord.forMessage(
                                             pwmDomain.getDomainID(),
                                             HealthMessage.Config_DNValueValidity,
@@ -938,6 +947,7 @@ public class LDAPHealthChecker implements HealthSupplier
     }
 
     private static List<HealthRecord> checkNewUserPasswordTemplateSetting(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final DomainConfig domainConfig
     )
@@ -969,7 +979,7 @@ public class LDAPHealthChecker implements HealthSupplier
                 final LdapProfile ldapProfile = newUserProfile.getLdapProfile( pwmDomain.getConfig() );
                 if ( NewUserProfile.TEST_USER_CONFIG_VALUE.equals( policyUserStr ) )
                 {
-                    final UserIdentity testUser = ldapProfile.getTestUser( pwmDomain );
+                    final UserIdentity testUser = ldapProfile.getTestUser( sessionLabel, pwmDomain );
                     if ( testUser != null )
                     {
                         return Collections.emptyList();
@@ -978,7 +988,7 @@ public class LDAPHealthChecker implements HealthSupplier
 
                 final UserIdentity newUserTemplateIdentity = UserIdentity.create( policyUserStr, ldapProfile.getIdentifier(), pwmDomain.getDomainID() );
 
-                final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( newUserTemplateIdentity );
+                final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( sessionLabel, newUserTemplateIdentity );
 
                 try
                 {
@@ -1009,6 +1019,7 @@ public class LDAPHealthChecker implements HealthSupplier
     }
 
     private static List<HealthRecord> checkUserSearching(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain
     )
     {
@@ -1029,7 +1040,7 @@ public class LDAPHealthChecker implements HealthSupplier
                     .username( healthUsername )
                     .build();
 
-            pwmDomain.getUserSearchEngine().performMultiUserSearch( searchConfiguration, 1, Collections.singletonList( "cn" ), SessionLabel.HEALTH_SESSION_LABEL );
+            pwmDomain.getUserSearchEngine().performMultiUserSearch( searchConfiguration, 1, Collections.singletonList( "cn" ), sessionLabel );
         }
         catch ( final Exception e )
         {
@@ -1057,6 +1068,7 @@ public class LDAPHealthChecker implements HealthSupplier
     }
 
     private static List<HealthRecord> checkUserPermission(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final UserPermission userPermission,
             final PwmSetting pwmSetting
@@ -1104,7 +1116,7 @@ public class LDAPHealthChecker implements HealthSupplier
                     final String userDN = userPermission.getLdapBase();
                     if ( userDN != null && !isExampleDN( userDN ) )
                     {
-                        final Optional<String> errorMsg = validateDN( pwmDomain, userDN, ldapProfileID );
+                        final Optional<String> errorMsg = validateDN( sessionLabel, pwmDomain, userDN, ldapProfileID );
                         errorMsg.ifPresent( s -> returnList.add( HealthRecord.forMessage(
                                 pwmDomain.getDomainID(),
                                 HealthMessage.Config_UserPermissionValidity,
@@ -1118,7 +1130,7 @@ public class LDAPHealthChecker implements HealthSupplier
                     final String groupDN = userPermission.getLdapBase();
                     if ( groupDN != null && !isExampleDN( groupDN ) )
                     {
-                        final Optional<String> errorMsg = validateDN( pwmDomain, groupDN, ldapProfileID );
+                        final Optional<String> errorMsg = validateDN( sessionLabel, pwmDomain, groupDN, ldapProfileID );
                         errorMsg.ifPresent( s -> returnList.add( HealthRecord.forMessage(
                                 pwmDomain.getDomainID(),
                                 HealthMessage.Config_UserPermissionValidity,
@@ -1133,7 +1145,7 @@ public class LDAPHealthChecker implements HealthSupplier
                     final String baseDN = userPermission.getLdapBase();
                     if ( baseDN != null && !isExampleDN( baseDN ) )
                     {
-                        final Optional<String> errorMsg = validateDN( pwmDomain, baseDN, ldapProfileID );
+                        final Optional<String> errorMsg = validateDN( sessionLabel, pwmDomain, baseDN, ldapProfileID );
                         errorMsg.ifPresent( s -> returnList.add( HealthRecord.forMessage(
                                 pwmDomain.getDomainID(),
                                 HealthMessage.Config_UserPermissionValidity,
@@ -1151,6 +1163,7 @@ public class LDAPHealthChecker implements HealthSupplier
     }
 
     private static Optional<String> validateDN(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final String dnValue,
             final String ldapProfileID
@@ -1162,7 +1175,7 @@ public class LDAPHealthChecker implements HealthSupplier
             return Optional.empty();
         }
 
-        final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( ldapProfileID );
+        final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( sessionLabel, ldapProfileID );
         try
         {
             if ( !isExampleDN( dnValue ) )
@@ -1216,7 +1229,8 @@ public class LDAPHealthChecker implements HealthSupplier
         return false;
     }
 
-    public static HealthData healthForNewConfiguration(
+    public static PublicHealthData healthForNewConfiguration(
+            final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final DomainConfig config,
             final Locale locale,
@@ -1235,11 +1249,11 @@ public class LDAPHealthChecker implements HealthSupplier
 
         final LdapProfile ldapProfile = config.getLdapProfiles().get( profileID );
         final List<HealthRecord> profileRecords = new ArrayList<>(
-                ldapHealthChecker.checkBasicLdapConnectivity( tempDomain, config, ldapProfile, testContextless ) );
+                ldapHealthChecker.checkBasicLdapConnectivity( sessionLabel, tempDomain, config, ldapProfile, testContextless ) );
 
         if ( fullTest )
         {
-            profileRecords.addAll( ldapHealthChecker.checkLdapServerUrls( tempDomain, config, ldapProfile ) );
+            profileRecords.addAll( ldapHealthChecker.checkLdapServerUrls( sessionLabel, tempDomain, config, ldapProfile ) );
         }
 
         if ( profileRecords.isEmpty() )
@@ -1249,7 +1263,7 @@ public class LDAPHealthChecker implements HealthSupplier
 
         if ( fullTest )
         {
-            profileRecords.addAll( ldapHealthChecker.doLdapTestUserCheck( config, ldapProfile, tempDomain ) );
+            profileRecords.addAll( ldapHealthChecker.doLdapTestUserCheck( sessionLabel, config, ldapProfile, tempDomain ) );
         }
 
         return HealthRecord.asHealthDataBean( config, locale, profileRecords );

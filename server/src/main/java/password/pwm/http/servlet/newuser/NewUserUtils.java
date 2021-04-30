@@ -62,7 +62,9 @@ import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
@@ -131,7 +133,6 @@ class NewUserUtils
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final long startTime = System.currentTimeMillis();
 
@@ -157,7 +158,7 @@ class NewUserUtils
         }
         else
         {
-            final PwmPasswordPolicy pwmPasswordPolicy = newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmDomain(), pwmRequest.getLocale() );
+            final PwmPasswordPolicy pwmPasswordPolicy = newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() );
             userPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), pwmPasswordPolicy, pwmRequest.getPwmDomain() );
         }
 
@@ -174,7 +175,7 @@ class NewUserUtils
             createObjectClasses.addAll( defaultLDAPProfile.readSettingAsStringArray( PwmSetting.AUTO_ADD_OBJECT_CLASSES ) );
         }
 
-        final ChaiProvider chaiProvider = newUserProfile.getLdapProfile( pwmDomain.getConfig() ).getProxyChaiProvider( pwmDomain );
+        final ChaiProvider chaiProvider = newUserProfile.getLdapProfile( pwmDomain.getConfig() ).getProxyChaiProvider( pwmRequest.getLabel(), pwmDomain );
         try
         {
             // create the ldap entry
@@ -211,7 +212,7 @@ class NewUserUtils
             final PasswordData temporaryPassword;
             {
                 final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = RandomPasswordGenerator.RandomGeneratorConfig.builder()
-                        .passwordPolicy( newUserProfile.getNewUserPasswordPolicy( pwmDomain, pwmRequest.getLocale() ) )
+                        .passwordPolicy( newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() ) )
                         .build();
                 temporaryPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), randomGeneratorConfig, pwmDomain );
             }
@@ -324,7 +325,7 @@ class NewUserUtils
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmDomain, userIdentity )
                         .setExpandPwmMacros( true )
-                        .setMacroMachine( pwmSession.getSessionManager().getMacroMachine( ) )
+                        .setMacroMachine( pwmRequest.getPwmSession().getSessionManager().getMacroMachine( ) )
                         .createActionExecutor();
 
                 actionExecutor.executeActions( actions, pwmRequest.getLabel() );
@@ -336,10 +337,10 @@ class NewUserUtils
 
 
         // add audit record
-        pwmDomain.getAuditManager().submit( AuditEvent.CREATE_USER, pwmSession.getUserInfo(), pwmSession );
+        AuditServiceClient.submitUserEvent( pwmRequest, AuditEvent.CREATE_USER, pwmRequest.getPwmSession().getUserInfo() );
 
         // increment the new user creation statistics
-        pwmDomain.getStatisticsManager().incrementValue( Statistic.NEW_USERS );
+        StatisticsClient.incrementStat( pwmRequest, Statistic.NEW_USERS );
 
         NewUserUtils.LOGGER.debug( pwmRequest, () -> "completed createUser process for " + newUserDN + " (" + TimeDuration.fromCurrent(
                 startTime ).asCompactString() + ")" );
@@ -355,7 +356,7 @@ class NewUserUtils
         {
             final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
             NewUserUtils.LOGGER.warn( pwmRequest, () -> "deleting ldap user account " + userDN );
-            newUserProfile.getLdapProfile( pwmRequest.getPwmDomain().getConfig() ).getProxyChaiProvider( pwmRequest.getPwmDomain() ).deleteEntry( userDN );
+            newUserProfile.getLdapProfile( pwmRequest.getPwmDomain().getConfig() ).getProxyChaiProvider( pwmRequest.getLabel(), pwmRequest.getPwmDomain() ).deleteEntry( userDN );
             NewUserUtils.LOGGER.warn( pwmRequest, () -> "ldap user account " + userDN + " has been deleted" );
         }
         catch ( final ChaiUnavailableException | ChaiOperationException e )

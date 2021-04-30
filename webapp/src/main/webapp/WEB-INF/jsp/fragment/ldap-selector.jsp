@@ -50,7 +50,7 @@
         selectedProfile = pwmRequest.getDomainConfig().getLdapProfiles().containsKey(selectedProfileParam)
                 ? pwmRequest.getDomainConfig().getLdapProfiles().get(selectedProfileParam)
                 : pwmRequest.getDomainConfig().getDefaultLdapProfile();
-        selectableContexts = selectedProfile.getSelectableContexts(pwmRequest.getPwmDomain());
+        selectableContexts = selectedProfile.getSelectableContexts(pwmRequest.getLabel(),pwmRequest.getPwmDomain());
         showContextSelector = selectableContextMode == SelectableContextMode.SHOW_CONTEXTS && selectableContexts.size() > 0;
     } catch (PwmException e) {
         /* noop */

@@ -59,9 +59,9 @@ import password.pwm.util.java.CachingProxyWrapper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.operations.CrService;
-import password.pwm.util.operations.OtpService;
-import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.svc.cr.CrService;
+import password.pwm.svc.otp.OtpService;
+import password.pwm.svc.otp.OTPUserRecord;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.PwmPasswordRuleValidator;
 
@@ -230,7 +230,7 @@ public class UserInfoReader implements UserInfo
             {
                 try
                 {
-                    final PwmPasswordRuleValidator passwordRuleValidator = new PwmPasswordRuleValidator( pwmDomain, passwordPolicy );
+                    final PwmPasswordRuleValidator passwordRuleValidator = PwmPasswordRuleValidator.create( sessionLabel, pwmDomain, passwordPolicy );
                     passwordRuleValidator.testPassword( currentPassword, null, selfCachedReference, chaiUser );
                 }
                 catch ( final PwmDataValidationException | PwmUnrecoverableException e )

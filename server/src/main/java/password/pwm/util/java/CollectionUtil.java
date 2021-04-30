@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -126,5 +127,15 @@ public class CollectionUtil
 
         return iteratorToStream( iterator )
                 .collect( Collectors.toUnmodifiableList() );
+    }
+
+    public static <K, V> Map<K, V> combineMaps( final List<Map<K, V>> maps )
+    {
+        final Map<K, V> returnMap = new LinkedHashMap<>();
+        for ( final Map<K, V> loopMap : maps )
+        {
+            returnMap.putAll( loopMap );
+        }
+        return Collections.unmodifiableMap( returnMap );
     }
 }

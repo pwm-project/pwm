@@ -50,6 +50,7 @@ import password.pwm.i18n.Message;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
@@ -228,7 +229,13 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             final Map<FormConfiguration, String> formValues = UpdateProfileUtil.readFromJsonRequest( pwmRequest, updateProfileProfile, updateProfileBean );
 
             // verify form meets the form requirements
-            UpdateProfileUtil.verifyFormAttributes( pwmRequest.getPwmDomain(), pwmRequest.getUserInfoIfLoggedIn(), pwmRequest.getLocale(), formValues, true );
+            UpdateProfileUtil.verifyFormAttributes(
+                    pwmRequest.getLabel(),
+                    pwmRequest.getPwmDomain(),
+                    pwmRequest.getUserInfoIfLoggedIn(),
+                    pwmRequest.getLocale(),
+                    formValues,
+                    true );
 
             updateProfileBean.getFormData().putAll( FormUtility.asStringMap( formValues ) );
         }
@@ -286,13 +293,13 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         if ( !updateProfileBean.isAgreementPassed() )
         {
             updateProfileBean.setAgreementPassed( true );
-            final AuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createUserAuditRecord(
+            final AuditRecord auditRecord = AuditRecordFactory.make( pwmRequest ).createUserAuditRecord(
                     AuditEvent.AGREEMENT_PASSED,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getLabel(),
                     "UpdateProfile"
             );
-            pwmRequest.getPwmDomain().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+            AuditServiceClient.submit( pwmRequest, auditRecord );
         }
 
         return ProcessStatus.Continue;
@@ -383,7 +390,13 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             // verify form meets the form requirements
             final List<FormConfiguration> formFields = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
             final Map<FormConfiguration, String> formValues = FormUtility.readFormValuesFromMap( updateProfileBean.getFormData(), formFields, pwmRequest.getLocale() );
-            UpdateProfileUtil.verifyFormAttributes( pwmRequest.getPwmDomain(), pwmRequest.getUserInfoIfLoggedIn(), pwmRequest.getLocale(), formValues, true );
+            UpdateProfileUtil.verifyFormAttributes(
+                    pwmRequest.getLabel(),
+                    pwmRequest.getPwmDomain(),
+                    pwmRequest.getUserInfoIfLoggedIn(),
+                    pwmRequest.getLocale(),
+                    formValues,
+                    true );
         }
         catch ( final PwmException e )
         {
@@ -426,7 +439,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             pwmSession.reloadUserInfoBean( pwmRequest );
 
             // mark the event log
-            pwmDomain.getAuditManager().submit( AuditEvent.UPDATE_PROFILE, pwmSession.getUserInfo(), pwmSession );
+            AuditServiceClient.submitUserEvent( pwmRequest, AuditEvent.UPDATE_PROFILE, pwmSession.getUserInfo() );
 
             // clear the bean
             pwmDomain.getSessionStateService().clearBean( pwmRequest, UpdateProfileBean.class );

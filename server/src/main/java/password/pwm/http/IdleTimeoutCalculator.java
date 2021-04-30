@@ -20,14 +20,12 @@
 
 package password.pwm.http;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.HelpdeskProfile;
@@ -157,9 +155,7 @@ public class IdleTimeoutCalculator
         return Collections.unmodifiableSet( results );
     }
 
-    @Getter
-    @AllArgsConstructor
-    @EqualsAndHashCode
+    @Value
     static class MaxIdleTimeoutResult implements Comparable<MaxIdleTimeoutResult>
     {
         private final String reason;

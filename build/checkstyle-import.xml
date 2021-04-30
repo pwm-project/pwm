@@ -120,20 +120,14 @@
     </subpackage>
 
     <!-- nmas -->
-    <subpackage name="util.operations.cr">
+    <subpackage name="svc.cr">
         <allow pkg="com.novell.ldap"/>
         <allow pkg="com.novell.security.nmas"/>
     </subpackage>
 
     <!-- database -->
-    <subpackage name="util.db">
+    <subpackage name="svc.db">
         <allow pkg="java.sql"/>
-    </subpackage>
-
-    <subpackage name="util.java">
-        <allow class="net.iharder.Base64"/>
-        <allow pkg="org.apache.commons.codec"/>
-        <allow pkg="org.apache.commons.lang3"/>
     </subpackage>
 
     <subpackage name="util.localdb">

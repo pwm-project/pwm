@@ -105,7 +105,7 @@ public class RestForgottenPasswordServer extends RestServlet
     public RestResultBean doRestForgottenPasswordService( final RestRequest restRequest )
             throws PwmUnrecoverableException, IOException
     {
-        final PwmRequestContext pwmRequestContext = restRequest.commonValues();
+        final PwmRequestContext pwmRequestContext = restRequest.getPwmRestRequest();
         final JsonInput jsonInput = restRequest.readBodyAsJsonObject( JsonInput.class );
         final BeanCryptoMachine<ForgottenPasswordBean> beanBeanCryptoMachine = new BeanCryptoMachine<>( pwmRequestContext, figureMaxIdleTimeout( pwmRequestContext ) );
         final ForgottenPasswordStateMachine stateMachine;
@@ -116,7 +116,7 @@ public class RestForgottenPasswordServer extends RestServlet
             final Optional<ForgottenPasswordBean> readBean = beanBeanCryptoMachine.decryprt( jsonInput.getState() );
             final ForgottenPasswordBean inputBean = readBean.orElseGet( ForgottenPasswordBean::new );
             stateMachine = new ForgottenPasswordStateMachine(
-                    restRequest.commonValues(),
+                    restRequest.getPwmRestRequest(),
                     inputBean );
 
             newState = !readBean.isPresent();

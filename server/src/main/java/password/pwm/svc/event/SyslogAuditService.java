@@ -50,7 +50,7 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthTopic;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -265,7 +265,7 @@ public class SyslogAuditService
                 syslogInstance.info( auditRecord );
                 LOGGER.trace( () -> "delivered syslog audit event: " + auditRecord );
                 lastError = null;
-                StatisticsManager.incrementStat( pwmApplication, Statistic.SYSLOG_MESSAGES_SENT );
+                StatisticsClient.incrementStat( pwmApplication, Statistic.SYSLOG_MESSAGES_SENT );
                 return WorkQueueProcessor.ProcessResult.SUCCESS;
             }
             catch ( final Exception e )

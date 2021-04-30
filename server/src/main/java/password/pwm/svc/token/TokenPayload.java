@@ -21,8 +21,7 @@
 package password.pwm.svc.token;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.util.java.JavaHelper;
@@ -34,8 +33,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-@Getter
-@EqualsAndHashCode
+@Value
 public class TokenPayload implements Serializable
 {
     @SerializedName( "t" )

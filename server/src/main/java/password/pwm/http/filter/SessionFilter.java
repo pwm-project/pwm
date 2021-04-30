@@ -45,6 +45,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -137,7 +138,7 @@ public class SessionFilter extends AbstractPwmFilter
         pwmRequest.debugHttpRequestToLog( "completed", () -> requestExecuteTime );
         pwmRequest.getPwmDomain().getStatisticsManager().updateAverageValue( AvgStatistic.AVG_REQUEST_PROCESS_TIME, requestExecuteTime.asMillis() );
         pwmRequest.getPwmSession().getSessionStateBean().getRequestCount().incrementAndGet();
-        pwmRequest.getPwmSession().getSessionStateBean().getAvgRequestDuration().update( requestExecuteTime.asMillis() );
+        pwmRequest.getPwmSession().getSessionStateBean().getAvgRequestDuration().update( requestExecuteTime );
     }
 
     private ProcessStatus handleStandardRequestOperations(
@@ -186,10 +187,7 @@ public class SessionFilter extends AbstractPwmFilter
         // update last request time.
         ssBean.setSessionLastAccessedTime( Instant.now() );
 
-        if ( pwmDomain.getStatisticsManager() != null )
-        {
-            pwmDomain.getStatisticsManager().incrementValue( Statistic.HTTP_REQUESTS );
-        }
+        StatisticsClient.incrementStat( pwmDomain.getPwmApplication(), Statistic.HTTP_REQUESTS );
 
         return ProcessStatus.Continue;
     }

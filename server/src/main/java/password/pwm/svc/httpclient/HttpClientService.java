@@ -20,29 +20,35 @@
 
 package password.pwm.svc.httpclient;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.DomainID;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.logging.PwmLogger;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class HttpClientService implements PwmService
+public class HttpClientService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HttpClientService.class );
 
-    private PwmApplication pwmApplication;
+    private Class<PwmHttpClient> httpClientClass;
 
     private final Map<PwmHttpClientConfiguration, ThreadLocal<PwmHttpClient>> clients = new ConcurrentHashMap<>(  );
     private final Map<PwmHttpClient, Object> issuedClients = Collections.synchronizedMap( new WeakHashMap<>(  ) );
@@ -51,26 +57,41 @@ public class HttpClientService implements PwmService
 
     enum StatsKey
     {
+        requests,
+        requestBytes,
+        responseBytes,
         createdClients,
         reusedClients,
     }
 
     public HttpClientService()
-            throws PwmUnrecoverableException
     {
     }
 
     @Override
-    public STATUS status()
+    protected Set<PwmApplication.Condition> openConditions()
     {
-        return STATUS.OPEN;
+        return Collections.emptySet();
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+    protected STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        final String implClassName = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_IMPLEMENTATION );
+        try
+        {
+            this.httpClientClass = ( Class<PwmHttpClient> ) this.getClass().getClassLoader().loadClass( implClassName );
+        }
+        catch ( final ClassNotFoundException e )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation(
+                    PwmError.ERROR_INTERNAL, "unable to load pwmHttpClass implementation: " + e.getMessage() );
+            setStartupError( errorInformation );
+            throw new PwmUnrecoverableException( errorInformation );
+        }
+
+        return STATUS.OPEN;
     }
 
     @Override
@@ -105,21 +126,34 @@ public class HttpClientService implements PwmService
                 clientConfig -> new ThreadLocal<>() );
 
         final PwmHttpClient existingClient = threadLocal.get();
-        if ( existingClient != null && !existingClient.isClosed() )
+        if ( existingClient != null && existingClient.isOpen() )
         {
             stats.increment( StatsKey.reusedClients );
             return existingClient;
         }
 
-        final PwmHttpClient newClient = new PwmHttpClient( pwmApplication, pwmHttpClientConfiguration );
-        issuedClients.put( newClient, null );
-        threadLocal.set( newClient );
-        stats.increment( StatsKey.createdClients );
-        return newClient;
+        try
+        {
+            final PwmHttpClient newClient = httpClientClass.getDeclaredConstructor().newInstance();
+            newClient.init( getPwmApplication(), this, pwmHttpClientConfiguration );
+            issuedClients.put( newClient, null );
+            threadLocal.set( newClient );
+            stats.increment( StatsKey.createdClients );
+            return newClient;
+        }
+        catch ( final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unable to initialize pwmHttpClass implementation: " + e.getMessage() );
+        }
+    }
+
+    protected StatisticCounterBundle<StatsKey> getStats()
+    {
+        return stats;
     }
 
     @Override
-    public List<HealthRecord> healthCheck()
+    public List<HealthRecord> serviceHealthCheck()
     {
         return Collections.emptyList();
     }

@@ -32,7 +32,7 @@ import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.logging.PwmLogger;
 
@@ -84,7 +84,7 @@ public class BasicFilterAuthenticationProvider implements PwmHttpFilterAuthentic
         {
             if ( e.getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
             {
-                StatisticsManager.incrementStat( pwmRequest, Statistic.LDAP_UNAVAILABLE_COUNT );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.LDAP_UNAVAILABLE_COUNT );
             }
             throw new PwmUnrecoverableException( e.getError() );
         }

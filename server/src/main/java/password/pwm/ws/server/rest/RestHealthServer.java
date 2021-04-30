@@ -30,14 +30,14 @@ import password.pwm.health.HealthService;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestWebServer;
-import password.pwm.ws.server.rest.bean.HealthData;
-import password.pwm.ws.server.rest.bean.HealthRecord;
+import password.pwm.ws.server.rest.bean.PublicHealthData;
+import password.pwm.ws.server.rest.bean.PublicHealthRecord;
 
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
@@ -67,7 +67,7 @@ public class RestHealthServer extends RestServlet
         try
         {
             final String resultString = restRequest.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus().toString() + "\n";
-            StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_HEALTH );
+            StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_HEALTH );
             return RestResultBean.withData( resultString );
         }
         catch ( final Exception e )
@@ -82,21 +82,21 @@ public class RestHealthServer extends RestServlet
     private RestResultBean doPwmHealthJsonGet( final RestRequest restRequest )
             throws PwmUnrecoverableException, IOException
     {
-        final HealthData jsonOutput = processGetHealthCheckData( restRequest.getDomain(), restRequest.getLocale() );
-        StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_HEALTH );
+        final PublicHealthData jsonOutput = processGetHealthCheckData( restRequest.getDomain(), restRequest.getLocale() );
+        StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_HEALTH );
         return RestResultBean.withData( jsonOutput );
     }
 
-    public static HealthData processGetHealthCheckData(
+    public static PublicHealthData processGetHealthCheckData(
             final PwmDomain pwmDomain,
             final Locale locale
     )
     {
         final HealthService healthService = pwmDomain.getPwmApplication().getHealthMonitor();
         final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList<>( healthService.getHealthRecords() );
-        final List<HealthRecord> healthRecordBeans = HealthRecord.fromHealthRecords( healthRecords, locale,
+        final List<PublicHealthRecord> healthRecordBeans = PublicHealthRecord.fromHealthRecords( healthRecords, locale,
                 pwmDomain.getConfig() );
-        return HealthData.builder()
+        return PublicHealthData.builder()
                 .timestamp( healthService.getLastHealthCheckTime() )
                 .overall( healthService.getMostSevereHealthStatus().toString() )
                 .records( healthRecordBeans )

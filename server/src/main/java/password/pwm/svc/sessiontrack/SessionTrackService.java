@@ -36,6 +36,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Admin;
 import password.pwm.ldap.UserInfo;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
@@ -57,7 +58,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SessionTrackService implements PwmService
+public class SessionTrackService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SessionTrackService.class );
 
@@ -67,20 +68,17 @@ public class SessionTrackService implements PwmService
             .maximumSize( 10 )
             .build();
 
-    private PwmApplication pwmApplication;
-
-
     @Override
-    public STATUS status( )
+    protected Set<PwmApplication.Condition> openConditions()
     {
-        return STATUS.OPEN;
+        return Collections.emptySet();
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication, final DomainID domainID )
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        return STATUS.OPEN;
     }
 
     @Override
@@ -90,7 +88,7 @@ public class SessionTrackService implements PwmService
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
         return Collections.emptyList();
     }
@@ -299,7 +297,7 @@ public class SessionTrackService implements PwmService
 
     public String generateNewSessionID()
     {
-        final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
+        final PwmRandom pwmRandom = getPwmApplication().getSecureService().pwmRandom();
 
         for ( int safetyCounter = 0; safetyCounter < 1000; safetyCounter++ )
         {

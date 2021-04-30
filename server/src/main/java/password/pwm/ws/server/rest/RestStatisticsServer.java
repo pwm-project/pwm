@@ -38,7 +38,8 @@ import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticType;
 import password.pwm.svc.stats.StatisticsBundle;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -157,10 +158,10 @@ public class RestStatisticsServer extends RestServlet
                     MAX_DAYS
             );
 
-            final StatisticsManager statisticsManager = restRequest.getDomain().getStatisticsManager();
+            final StatisticsService statisticsManager = restRequest.getDomain().getStatisticsManager();
             final JsonOutput jsonOutput = RestStatisticsServer.JsonOutput.builder()
-                    .cumulative( makeStatInfos( statisticsManager, StatisticsManager.KEY_CUMULATIVE ) )
-                    .current( makeStatInfos( statisticsManager, StatisticsManager.KEY_CURRENT ) )
+                    .cumulative( makeStatInfos( statisticsManager, StatisticsService.KEY_CUMULATIVE ) )
+                    .current( makeStatInfos( statisticsManager, StatisticsService.KEY_CURRENT ) )
                     .eventRates( makeEpsStatInfos( statisticsManager ) )
                     .history( makeHistoryStatInfos( statisticsManager, days ) )
                     .labels( makeLabels( locale ) )
@@ -168,7 +169,7 @@ public class RestStatisticsServer extends RestServlet
             return RestResultBean.withData( jsonOutput );
         }
 
-        private static List<StatValue> makeStatInfos( final StatisticsManager statisticsManager, final String key )
+        private static List<StatValue> makeStatInfos( final StatisticsService statisticsManager, final String key )
         {
             final Map<String, StatValue> output = new TreeMap<>();
             for ( final Statistic statistic : Statistic.values() )
@@ -183,7 +184,7 @@ public class RestStatisticsServer extends RestServlet
         }
 
         private static List<HistoryData> makeHistoryStatInfos(
-                final StatisticsManager statisticsManager,
+                final StatisticsService statisticsManager,
                 final int days
         )
         {
@@ -219,7 +220,7 @@ public class RestStatisticsServer extends RestServlet
             return Collections.unmodifiableList( outerOutput );
         }
 
-        private static List<StatValue> makeEpsStatInfos( final StatisticsManager statisticsManager )
+        private static List<StatValue> makeEpsStatInfos( final StatisticsService statisticsManager )
         {
             final Map<String, StatValue> output = new TreeMap<>();
             for ( final EpsStatistic loopEps : EpsStatistic.values() )
@@ -297,7 +298,7 @@ public class RestStatisticsServer extends RestServlet
 
             try
             {
-                final StatisticsManager statisticsManager = restRequest.getDomain().getStatisticsManager();
+                final StatisticsService statisticsManager = restRequest.getDomain().getStatisticsManager();
                 final JsonOutput jsonOutput = new JsonOutput();
                 jsonOutput.EPS = addEpsStats( statisticsManager );
 
@@ -310,7 +311,7 @@ public class RestStatisticsServer extends RestServlet
                     jsonOutput.keyData = doKeyStat( statisticsManager, statKey );
                 }
 
-                StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_STATISTICS );
+                StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_STATISTICS );
 
                 final RestResultBean resultBean = RestResultBean.withData( jsonOutput );
                 return resultBean;
@@ -323,7 +324,7 @@ public class RestStatisticsServer extends RestServlet
             }
         }
 
-        public static Map<String, Object> doNameStat( final StatisticsManager statisticsManager, final String statName, final String days )
+        public static Map<String, Object> doNameStat( final StatisticsService statisticsManager, final String statName, final String days )
         {
             final Statistic statistic = Statistic.valueOf( statName );
             final int historyDays = StringUtil.convertStrToInt( days, 30 );
@@ -332,10 +333,10 @@ public class RestStatisticsServer extends RestServlet
             return results;
         }
 
-        public static Map<String, Object> doKeyStat( final StatisticsManager statisticsManager, final String statKey )
+        public static Map<String, Object> doKeyStat( final StatisticsService statisticsManager, final String statKey )
         {
             final String key = ( statKey == null )
-                    ? StatisticsManager.KEY_CUMULATIVE
+                    ? StatisticsService.KEY_CUMULATIVE
                     : statKey;
 
             final StatisticsBundle statisticsBundle = statisticsManager.getStatBundleForKey( key );
@@ -348,7 +349,7 @@ public class RestStatisticsServer extends RestServlet
             return outputValueMap;
         }
 
-        public static Map<String, String> addEpsStats( final StatisticsManager statisticsManager )
+        public static Map<String, String> addEpsStats( final StatisticsService statisticsManager )
         {
             final Map<String, String> outputMap = new TreeMap<>();
             for ( final EpsStatistic loopEps : EpsStatistic.values() )

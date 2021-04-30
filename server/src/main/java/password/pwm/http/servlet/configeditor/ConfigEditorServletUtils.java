@@ -23,7 +23,6 @@ package password.pwm.http.servlet.configeditor;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -46,32 +45,30 @@ import password.pwm.health.ConfigurationChecker;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.ConfigManagerBean;
-import password.pwm.http.servlet.configguide.ConfigGuideForm;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 import password.pwm.ws.server.RestResultBean;
-import password.pwm.ws.server.rest.bean.HealthData;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.stream.Collectors;
+import java.util.TreeMap;
 
 public class ConfigEditorServletUtils
 {
@@ -83,7 +80,6 @@ public class ConfigEditorServletUtils
     )
             throws PwmUnrecoverableException, IOException
     {
-
         final Map<String, PwmRequest.FileUploadItem> fileUploads;
         try
         {
@@ -115,47 +111,26 @@ public class ConfigEditorServletUtils
         return Optional.empty();
     }
 
-    static void outputChangeLogData(
+    static Map<String, String> outputChangeLogData(
             final PwmRequest pwmRequest,
-            final ConfigManagerBean configManagerBean,
-            final Map<String, Object> outputMap
+            final ConfigManagerBean configManagerBean
     )
     {
         final Locale locale = pwmRequest.getLocale();
 
-        final Set<StoredConfigKey> changeLog = StoredConfigurationUtil.changedValues(
+        final Set<StoredConfigKey> changedKeys = StoredConfigurationUtil.changedValues(
                 pwmRequest.getPwmDomain().getConfig().getStoredConfiguration(),
                 configManagerBean.getStoredConfiguration() );
 
-        final List<StoredConfigKey> keys = CollectionUtil.iteratorToStream(  configManagerBean.getStoredConfiguration().keys() ).collect( Collectors.toList() );
-
         final Map<String, String> changeLogMap = StoredConfigurationUtil.makeDebugMap(
                 configManagerBean.getStoredConfiguration(),
-                keys,
+                changedKeys,
                 locale );
 
-        final StringBuilder output = new StringBuilder();
-        if ( changeLogMap.isEmpty() )
-        {
-            output.append( "No setting changes." );
-        }
-        else
-        {
-            for ( final Map.Entry<String, String> entry : changeLogMap.entrySet() )
-            {
-                output.append( "<div class=\"changeLogKey\">" );
-                output.append( entry.getKey() );
-                output.append( "</div><div class=\"changeLogValue\">" );
-                output.append( StringUtil.escapeHtml( entry.getValue() ) );
-                output.append( "</div>" );
-            }
-        }
-        outputMap.put( "html", output.toString() );
-        outputMap.put( "modified", !changeLog.isEmpty() );
-
+        return changeLogMap;
     }
 
-    static HealthData configurationHealth(
+    static Map<DomainID, List<String>> configurationHealth(
             final PwmRequest pwmRequest,
             final ConfigManagerBean configManagerBean
     )
@@ -169,26 +144,25 @@ public class ConfigEditorServletUtils
             final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmRequest.getPwmApplication()
                     .getPwmEnvironment()
                     .makeRuntimeInstance( new AppConfig( configManagerBean.getStoredConfiguration() ) ) );
-            final PwmDomain tempDomain = tempApplication.domains().get( ConfigGuideForm.DOMAIN_ID );
 
-            final List<HealthRecord> healthRecords = configurationChecker.doHealthCheck(
-                    new AppConfig( configManagerBean.getStoredConfiguration() ),
-                    pwmRequest.getLocale()
-            );
+            final List<HealthRecord> healthRecords = configurationChecker.doHealthCheck( tempApplication, pwmRequest.getLabel() );
+            final Map<DomainID, List<String>> returnData = new TreeMap<>();
+
+            healthRecords.forEach( record ->
+                    returnData.computeIfAbsent(
+                            record.getDomainID(), k -> new ArrayList<>() )
+                            .add( record.getDetail( locale, pwmRequest.getAppConfig() ) ) );
 
             LOGGER.debug( () -> "config health check done in ", () -> TimeDuration.fromCurrent( startTime ) );
 
-            return HealthData.builder()
-                    .overall( "CONFIG" )
-                    .records( password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords( healthRecords, locale, tempDomain.getConfig() ) )
-                    .build();
+            return Collections.unmodifiableMap( returnData );
         }
         catch ( final Exception e )
         {
             LOGGER.error( pwmRequest, () -> "error generating health records: " + e.getMessage() );
         }
 
-        return HealthData.builder().build();
+        return Collections.emptyMap();
     }
 
     static ConfigEditorServlet.ReadSettingResponse handleLocaleBundleReadSetting(
@@ -318,7 +292,9 @@ public class ConfigEditorServletUtils
     {
         try
         {
-            final PasswordData passwordData = pwmRequest.readParameterAsPassword( "password" );
+            final PasswordData passwordData = pwmRequest.readParameterAsPassword( "password" )
+                    .orElseThrow( () -> new NoSuchElementException( "missing 'password' field" ) );
+
             final String alias = pwmRequest.readParameterAsString( "alias" );
             final HttpsServerCertificateManager.KeyStoreFormat keyStoreFormat;
             try

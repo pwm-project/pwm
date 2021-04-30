@@ -21,8 +21,6 @@
 package password.pwm.svc.wordlist;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.CountingInputStream;
-import org.apache.commons.io.output.NullOutputStream;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
@@ -43,6 +41,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.security.DigestInputStream;
 import java.time.Instant;
+import java.util.Optional;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
@@ -149,34 +149,42 @@ class WordlistSource
 
         if ( cancelFlag.getAsBoolean() )
         {
-            return null;
+            throw new CancellationException();
         }
 
         pwmLogger.debug( () -> "begin reading file info for " + this.getWordlistSourceType() + " wordlist" );
 
         final long bytes;
         final String hash;
+        final long lines;
 
         InputStream inputStream = null;
         DigestInputStream checksumInputStream = null;
-        CountingInputStream countingInputStream = null;
+        WordlistZipReader zipInputStream = null;
 
         try
         {
             inputStream = this.streamProvider.getInputStream();
             checksumInputStream = pwmApplication.getSecureService().digestInputStream( WordlistConfiguration.HASH_ALGORITHM, inputStream );
-            countingInputStream = new CountingInputStream( checksumInputStream );
-            final ConditionalTaskExecutor debugOutputter = makeDebugLoggerExecutor( pwmLogger, startTime, countingInputStream );
+            zipInputStream = new WordlistZipReader( checksumInputStream );
+            final ConditionalTaskExecutor debugOutputter = makeDebugLoggerExecutor( pwmLogger, startTime, zipInputStream );
 
-            JavaHelper.copyWhilePredicate(
-                    countingInputStream,
-                    new NullOutputStream(),
-                    WordlistConfiguration.STREAM_BUFFER_SIZE,
-                    o -> !cancelFlag.getAsBoolean(),
-                    debugOutputter );
+            String nextLine;
+            do
+            {
+                nextLine = zipInputStream.nextLine();
+                debugOutputter.conditionallyExecuteTask();
 
-            bytes = countingInputStream.getByteCount();
+                if ( cancelFlag.getAsBoolean() )
+                {
+                    throw new CancellationException();
+                }
+            }
+            while ( nextLine != null );
+
+            bytes = zipInputStream.getByteCount();
             hash = JavaHelper.byteArrayToHexString( checksumInputStream.getMessageDigest().digest() );
+            lines = zipInputStream.getLineCount();
         }
         catch ( final IOException e )
         {
@@ -188,15 +196,16 @@ class WordlistSource
         }
         finally
         {
-            closeStreams( pwmLogger, countingInputStream, checksumInputStream, inputStream );
+            closeStreams( pwmLogger, checksumInputStream, inputStream );
+            IOUtils.closeQuietly( zipInputStream );
         }
 
         if ( cancelFlag.getAsBoolean() )
         {
-            return null;
+            throw new CancellationException();
         }
 
-        final WordlistSourceInfo wordlistSourceInfo = new WordlistSourceInfo( hash, bytes, importUrl );
+        final WordlistSourceInfo wordlistSourceInfo = new WordlistSourceInfo( hash, bytes, importUrl, lines );
 
         pwmLogger.debug( () -> "completed read of data for " + this.getWordlistSourceType() + " wordlist"
                 + " " + StringUtil.formatDiskSizeforDebug( bytes )
@@ -209,15 +218,34 @@ class WordlistSource
     private ConditionalTaskExecutor makeDebugLoggerExecutor(
             final PwmLogger pwmLogger,
             final Instant startTime,
-            final CountingInputStream countingInputStream
-            )
+            final WordlistZipReader wordlistZipReader
+    )
     {
-        return new ConditionalTaskExecutor(
-                () -> pwmLogger.debug( () -> "continuing reading file info for " + getWordlistSourceType() + " wordlist"
-                                + " " + StringUtil.formatDiskSizeforDebug( countingInputStream.getByteCount() ),
-                        () -> TimeDuration.fromCurrent( startTime ) ),
-                new ConditionalTaskExecutor.TimeDurationPredicate( AbstractWordlist.DEBUG_OUTPUT_FREQUENCY )
-        );
+        final Runnable logOutputter = new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                pwmLogger.debug( () -> "continuing reading file info for " + getWordlistSourceType() + " wordlist"
+                                + " " + StringUtil.formatDiskSize( wordlistZipReader.getByteCount() ) + " bytes read"
+                                + bytesPerSecondStr().orElse( "" ),
+                        () -> TimeDuration.fromCurrent( startTime ) );
+            }
+
+            private Optional<String> bytesPerSecondStr()
+            {
+                final long bytesPerSecond = wordlistZipReader.getEventRate().intValue();
+                if ( bytesPerSecond > 0 )
+                {
+                    return Optional.of( ", (" + StringUtil.formatDiskSize( bytesPerSecond ) + "/second)" );
+                }
+                return Optional.empty();
+            }
+        };
+
+        return ConditionalTaskExecutor.forPeriodicTask(
+                logOutputter,
+                AbstractWordlist.DEBUG_OUTPUT_FREQUENCY );
     }
 
     private void closeStreams( final PwmLogger pwmLogger, final InputStream... inputStreams )

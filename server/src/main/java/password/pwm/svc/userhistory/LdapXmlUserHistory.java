@@ -65,7 +65,6 @@ import java.util.List;
  */
 public class LdapXmlUserHistory implements UserHistoryStore
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapXmlUserHistory.class );
 
     private static final String XML_ATTR_TIMESTAMP = "timestamp";
@@ -90,7 +89,7 @@ public class LdapXmlUserHistory implements UserHistoryStore
     {
         try
         {
-            updateUserHistoryImpl( auditRecord );
+            updateUserHistoryImpl( sessionLabel, auditRecord );
         }
         catch ( final ChaiUnavailableException e )
         {
@@ -98,7 +97,7 @@ public class LdapXmlUserHistory implements UserHistoryStore
         }
     }
 
-    private void updateUserHistoryImpl( final UserAuditRecord auditRecord )
+    private void updateUserHistoryImpl( final SessionLabel sessionLabel, final UserAuditRecord auditRecord )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         // user info
@@ -112,7 +111,7 @@ public class LdapXmlUserHistory implements UserHistoryStore
         {
             userIdentity = UserIdentity.create( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile(), auditRecord.getDomain() );
         }
-        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userIdentity );
+        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
 
         // settings
         final String corRecordIdentifier = COR_RECORD_ID;
@@ -186,9 +185,9 @@ public class LdapXmlUserHistory implements UserHistoryStore
     {
         try
         {
-            final ChaiUser theUser = pwmDomain.getProxiedChaiUser( userInfo.getUserIdentity() );
+            final ChaiUser theUser = pwmDomain.getProxiedChaiUser( sessionLabel, userInfo.getUserIdentity() );
             final StoredHistory storedHistory = readUserHistory( pwmDomain, sessionLabel, userInfo.getUserIdentity(), theUser );
-            return storedHistory.asAuditRecords( new AuditRecordFactory( pwmDomain ), userInfo );
+            return storedHistory.asAuditRecords( AuditRecordFactory.make( sessionLabel, pwmDomain ), userInfo );
         }
         catch ( final ChaiUnavailableException e )
         {
