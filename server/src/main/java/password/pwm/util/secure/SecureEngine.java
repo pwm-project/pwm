@@ -20,6 +20,7 @@
 
 package password.pwm.util.secure;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -502,6 +503,7 @@ public class SecureEngine
         }
     }
 
+    @SuppressFBWarnings( "DMI_RANDOM_USED_ONLY_ONCE" )
     public static void benchmark( final Writer outputData ) throws PwmUnrecoverableException, IOException
     {
         final int testIterations = 10 * 1000;
