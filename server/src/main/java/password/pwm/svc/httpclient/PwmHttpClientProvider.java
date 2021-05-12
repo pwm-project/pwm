@@ -18,24 +18,14 @@
  * limitations under the License.
  */
 
-package password.pwm.http.servlet.resource;
+package password.pwm.svc.httpclient;
 
-import lombok.Value;
+import password.pwm.PwmApplication;
+import password.pwm.error.PwmUnrecoverableException;
 
-import java.io.Serializable;
-import java.time.Instant;
-import java.util.Objects;
-
-@Value
-final class CacheKey implements Serializable
+public interface PwmHttpClientProvider extends PwmHttpClient
 {
-    private final String fileName;
-    private final boolean acceptsGzip;
-    private final Instant fileModificationTimestamp;
+    void init( PwmApplication pwmApplication, HttpClientService httpClientService, PwmHttpClientConfiguration pwmHttpClientConfiguration )
+            throws PwmUnrecoverableException;
 
-    static CacheKey createCacheKey( final FileResource file, final boolean acceptsGzip )
-    {
-        Objects.requireNonNull( file );
-        return new CacheKey( file.getName(), acceptsGzip, file.lastModified() );
-    }
 }

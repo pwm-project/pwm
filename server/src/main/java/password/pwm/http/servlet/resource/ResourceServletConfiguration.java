@@ -40,6 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -195,7 +196,7 @@ class ResourceServletConfiguration
             if ( !entry.isDirectory() )
             {
                 final String name = entry.getName();
-                final long lastModified = entry.getTime();
+                final Instant lastModified = Instant.ofEpochMilli( entry.getTime() );
                 final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 IOUtils.copy( stream, byteArrayOutputStream );
                 final ImmutableByteArray contents = ImmutableByteArray.of( byteArrayOutputStream.toByteArray() );

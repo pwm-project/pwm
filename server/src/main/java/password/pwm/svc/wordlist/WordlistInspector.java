@@ -80,7 +80,7 @@ class WordlistInspector implements Runnable
         cancelCheck();
 
         rootWordlist.setActivity( Wordlist.Activity.ReadingWordlistFile );
-        final boolean autoImportUrlConfigured = StringUtil.notEmpty( rootWordlist.getConfiguration().getAutoImportUrl() );
+        final boolean autoImportUrlConfigured = rootWordlist.getConfiguration().isAutoImportUrlConfigured();
         WordlistStatus existingStatus = rootWordlist.readWordlistStatus();
 
         if ( checkIfClearIsNeeded( existingStatus, autoImportUrlConfigured ) )

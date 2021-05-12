@@ -54,8 +54,8 @@ public class MovingAverage implements Serializable
     private final Lock lock = new ReentrantLock();
     private final long windowMillis;
 
-    private long lastMillis;
-    private double average;
+    private volatile long lastMillis;
+    private volatile double average;
 
 
     /**

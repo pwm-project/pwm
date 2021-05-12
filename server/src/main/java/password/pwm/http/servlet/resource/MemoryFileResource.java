@@ -24,14 +24,15 @@ import password.pwm.http.bean.ImmutableByteArray;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 
 class MemoryFileResource implements FileResource
 {
     private final String name;
     private final ImmutableByteArray contents;
-    private final long lastModified;
+    private final Instant lastModified;
 
-    MemoryFileResource( final String name, final ImmutableByteArray contents, final long lastModified )
+    MemoryFileResource( final String name, final ImmutableByteArray contents, final Instant lastModified )
     {
         this.name = name;
         this.contents = contents;
@@ -51,15 +52,9 @@ class MemoryFileResource implements FileResource
     }
 
     @Override
-    public long lastModified( )
+    public Instant lastModified( )
     {
         return lastModified;
-    }
-
-    @Override
-    public boolean exists( )
-    {
-        return true;
     }
 
     @Override

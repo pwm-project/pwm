@@ -34,6 +34,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.IOException;
@@ -138,7 +139,8 @@ public class PwmLogger
             try
             {
                 final CharSequence cleanedString = PwmLogger.removeUserDataFromString( pwmRequest.getPwmSession().getLoginInfoBean(), message.get() );
-                cleanedMessage = () -> cleanedString;
+                final CharSequence printableString = StringUtil.cleanNonPrintableCharacters( cleanedString );
+                cleanedMessage = () -> printableString;
             }
             catch ( final PwmUnrecoverableException e1 )
             {

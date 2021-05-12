@@ -48,10 +48,10 @@ public class HttpClientService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HttpClientService.class );
 
-    private Class<PwmHttpClient> httpClientClass;
+    private Class<PwmHttpClientProvider> httpClientClass;
 
-    private final Map<PwmHttpClientConfiguration, ThreadLocal<PwmHttpClient>> clients = new ConcurrentHashMap<>(  );
-    private final Map<PwmHttpClient, Object> issuedClients = Collections.synchronizedMap( new WeakHashMap<>(  ) );
+    private final Map<PwmHttpClientConfiguration, ThreadLocal<PwmHttpClientProvider>> clients = new ConcurrentHashMap<>(  );
+    private final Map<PwmHttpClientProvider, Object> issuedClients = Collections.synchronizedMap( new WeakHashMap<>(  ) );
 
     private final StatisticCounterBundle<StatsKey> stats = new StatisticCounterBundle<>( StatsKey.class );
 
@@ -81,7 +81,7 @@ public class HttpClientService extends AbstractPwmService implements PwmService
         final String implClassName = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_IMPLEMENTATION );
         try
         {
-            this.httpClientClass = ( Class<PwmHttpClient> ) this.getClass().getClassLoader().loadClass( implClassName );
+            this.httpClientClass = ( Class<PwmHttpClientProvider> ) this.getClass().getClassLoader().loadClass( implClassName );
         }
         catch ( final ClassNotFoundException e )
         {
@@ -121,7 +121,7 @@ public class HttpClientService extends AbstractPwmService implements PwmService
     {
         Objects.requireNonNull( pwmHttpClientConfiguration );
 
-        final ThreadLocal<PwmHttpClient> threadLocal = clients.computeIfAbsent(
+        final ThreadLocal<PwmHttpClientProvider> threadLocal = clients.computeIfAbsent(
                 pwmHttpClientConfiguration,
                 clientConfig -> new ThreadLocal<>() );
 
@@ -134,7 +134,7 @@ public class HttpClientService extends AbstractPwmService implements PwmService
 
         try
         {
-            final PwmHttpClient newClient = httpClientClass.getDeclaredConstructor().newInstance();
+            final PwmHttpClientProvider newClient = httpClientClass.getDeclaredConstructor().newInstance();
             newClient.init( getPwmApplication(), this, pwmHttpClientConfiguration );
             issuedClients.put( newClient, null );
             threadLocal.set( newClient );

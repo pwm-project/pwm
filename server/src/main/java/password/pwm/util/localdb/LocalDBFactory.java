@@ -31,6 +31,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -62,7 +63,7 @@ public class LocalDBFactory
                     ? pwmEnvironment.getConfig()
                     : appConfig;
 
-            final long startTime = System.currentTimeMillis();
+            final Instant startTime = Instant.now();
 
             final String className;
             final Map<String, String> initParameters;
@@ -88,7 +89,6 @@ public class LocalDBFactory
             final LocalDB localDB = new LocalDBAdaptor( dbProvider );
 
             initInstance( dbProvider, dbDirectory, initParameters, className, parameters );
-            final TimeDuration openTime = TimeDuration.of( System.currentTimeMillis() - startTime, TimeDuration.Unit.MILLISECONDS );
 
             if ( !readonly )
             {
@@ -121,7 +121,7 @@ public class LocalDBFactory
                     debugText.append( ", " ).append( StringUtil.formatDiskSize( freeSpace ) ).append( " free" );
                 }
             }
-            LOGGER.info( () -> debugText, () -> openTime );
+            LOGGER.info( () -> debugText, () -> TimeDuration.fromCurrent( startTime ) );
 
             return localDB;
         }

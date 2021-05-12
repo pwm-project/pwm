@@ -150,6 +150,8 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
 
     boolean containsWord( final Set<WordType> wordTypes, final String word ) throws PwmUnrecoverableException
     {
+        final Instant startTime = Instant.now();
+
         final Optional<String> testWord = WordlistUtil.normalizeWordLength( word, wordlistConfiguration );
 
         if ( testWord.isEmpty() )
@@ -171,6 +173,18 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
                     result = checkHashWords( wordType, testWord.get() );
                 }
             }
+        }
+
+        getStatistics().getAverageStats().update( WordlistStatistics.AverageStat.avgWordCheckLength, word.length() );
+        getStatistics().getAverageStats().update( WordlistStatistics.AverageStat.wordCheckTimeMS, TimeDuration.fromCurrent( startTime ) );
+        getStatistics().getCounterStats().increment( WordlistStatistics.CounterStat.wordChecks );
+        if ( result )
+        {
+            getStatistics().getCounterStats().increment( WordlistStatistics.CounterStat.wordHits );
+        }
+        else
+        {
+            getStatistics().getCounterStats().increment( WordlistStatistics.CounterStat.wordMisses );
         }
 
         return result;
@@ -223,26 +237,24 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
     private boolean realBucketCheck( final String word, final WordType wordType )
             throws PwmUnrecoverableException
     {
-        getStatistics().getCounterStats().increment( WordlistStatistics.CounterStat.wordChecks );
-
         final Instant startTime = Instant.now();
-        final boolean isContainsWord = wordlistBucket.containsWord( word );
-
-        final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-        getStatistics().getAverageStats().update( WordlistStatistics.AverageStat.wordCheckTimeMS,  timeDuration.asMillis() );
+        final boolean results = wordlistBucket.containsWord( word );
 
         statsOutput.conditionallyExecuteTask();
 
-        if ( isContainsWord )
+        getStatistics().getAverageStats().update( WordlistStatistics.AverageStat.chunkCheckTimeMS, TimeDuration.fromCurrent( startTime ) );
+        getStatistics().getCounterStats().increment( WordlistStatistics.CounterStat.chunkChecks );
+        if ( results )
         {
             getStatistics().getWordTypeHits().get( wordType ).increment();
+            getStatistics().getCounterStats().increment( WordlistStatistics.CounterStat.chunkHits );
         }
         else
         {
-            getStatistics().getCounterStats().increment( WordlistStatistics.CounterStat.misses );
+            getStatistics().getCounterStats().increment( WordlistStatistics.CounterStat.chunkMisses );
         }
 
-        return isContainsWord;
+        return results;
     }
 
     String randomSeed() throws PwmUnrecoverableException

@@ -64,7 +64,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-public class JavaPwmHttpClient implements PwmHttpClient
+public class JavaPwmHttpClient implements PwmHttpClientProvider
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( JavaPwmHttpClient.class );
 

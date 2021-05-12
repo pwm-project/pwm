@@ -22,6 +22,7 @@ package password.pwm.http.servlet.resource;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -53,15 +54,9 @@ class ZipFileResource implements FileResource
     }
 
     @Override
-    public long lastModified( )
+    public Instant lastModified( )
     {
-        return zipEntry.getTime();
-    }
-
-    @Override
-    public boolean exists( )
-    {
-        return zipEntry != null && zipFile != null;
+        return Instant.ofEpochMilli( zipEntry.getTime() );
     }
 
     @Override

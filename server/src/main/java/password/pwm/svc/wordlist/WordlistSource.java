@@ -27,8 +27,12 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.http.HttpHeader;
+import password.pwm.http.HttpMethod;
 import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
+import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -41,13 +45,22 @@ import java.io.InputStream;
 import java.net.URL;
 import java.security.DigestInputStream;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
 class WordlistSource
 {
+    private static final Set<HttpHeader> HTTP_INTERESTED_HEADERS = Set.of(
+            HttpHeader.ETag,
+            HttpHeader.ContentLength,
+            HttpHeader.Last_Modified );
+
     private static final AtomicInteger CLOSE_COUNTER = new AtomicInteger();
 
     private final WordlistSourceType wordlistSourceType;
@@ -138,6 +151,39 @@ class WordlistSource
         return new WordlistZipReader( this.streamProvider.getInputStream() );
     }
 
+    Map<HttpHeader, String> readRemoteHeaders(
+            final PwmApplication pwmApplication,
+            final PwmLogger pwmLogger
+    )
+            throws PwmUnrecoverableException
+    {
+        final Instant startTime = Instant.now();
+
+        final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient();
+        final PwmHttpClientRequest request = PwmHttpClientRequest.builder()
+                .method( HttpMethod.HEAD )
+                .url( importUrl )
+                .build();
+        final PwmHttpClientResponse response = pwmHttpClient.makeRequest( request, null );
+        final Map<HttpHeader, String> returnResponses = new EnumMap<>( HttpHeader.class );
+        for ( final Map.Entry<String, String> entry : response.getHeaders().entrySet() )
+        {
+            final String headerStrName = entry.getKey();
+            HttpHeader.forHttpHeader( headerStrName ).ifPresent( header ->
+            {
+                if ( HTTP_INTERESTED_HEADERS.contains( header ) )
+                {
+                    returnResponses.put( header, entry.getValue() );
+                }
+            } );
+        }
+
+        final Map<HttpHeader, String> finalReturnResponses =  Collections.unmodifiableMap( returnResponses );
+        pwmLogger.debug( () -> "read remote header info for " + this.getWordlistSourceType() + " wordlist: "
+                + JsonUtil.serializeMap( finalReturnResponses ), () -> TimeDuration.fromCurrent( startTime ) );
+        return finalReturnResponses;
+    }
+
     WordlistSourceInfo readRemoteWordlistInfo(
             final PwmApplication pwmApplication,
             final BooleanSupplier cancelFlag,
@@ -169,11 +215,17 @@ class WordlistSource
             zipInputStream = new WordlistZipReader( checksumInputStream );
             final ConditionalTaskExecutor debugOutputter = makeDebugLoggerExecutor( pwmLogger, startTime, zipInputStream );
 
+            int counter = 0;
             String nextLine;
             do
             {
+                counter++;
                 nextLine = zipInputStream.nextLine();
-                debugOutputter.conditionallyExecuteTask();
+
+                if ( counter % 10000 == 0 )
+                {
+                    debugOutputter.conditionallyExecuteTask();
+                }
 
                 if ( cancelFlag.getAsBoolean() )
                 {
@@ -181,10 +233,6 @@ class WordlistSource
                 }
             }
             while ( nextLine != null );
-
-            bytes = zipInputStream.getByteCount();
-            hash = JavaHelper.byteArrayToHexString( checksumInputStream.getMessageDigest().digest() );
-            lines = zipInputStream.getLineCount();
         }
         catch ( final IOException e )
         {
@@ -199,6 +247,10 @@ class WordlistSource
             closeStreams( pwmLogger, checksumInputStream, inputStream );
             IOUtils.closeQuietly( zipInputStream );
         }
+
+        bytes = zipInputStream.getByteCount();
+        hash = JavaHelper.byteArrayToHexString( checksumInputStream.getMessageDigest().digest() );
+        lines = zipInputStream.getLineCount();
 
         if ( cancelFlag.getAsBoolean() )
         {
@@ -264,6 +316,7 @@ class WordlistSource
             pwmLogger.trace( () -> "completed close of remote wordlist read process [" + counter + "]",
                     () -> TimeDuration.fromCurrent( startClose ) );
         } );
+
         closerThread.setDaemon( true );
         closerThread.setName( Thread.currentThread().getName() + "-import-close-io" );
         closerThread.start();

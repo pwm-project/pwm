@@ -20,7 +20,6 @@
 
 package password.pwm.svc.httpclient;
 
-import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.secure.CertificateReadingTrustManager;
@@ -33,12 +32,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public interface PwmHttpClient
+public interface PwmHttpClient extends AutoCloseable
 {
-
-    void init( PwmApplication pwmApplication, HttpClientService httpClientService, PwmHttpClientConfiguration pwmHttpClientConfiguration )
-            throws PwmUnrecoverableException;
-
     void close()
             throws Exception;
 

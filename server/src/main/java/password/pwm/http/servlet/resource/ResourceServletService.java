@@ -36,8 +36,9 @@ import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.Percent;
+import password.pwm.util.java.StatisticAverageBundle;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.ChecksumOutputStream;
@@ -64,10 +65,25 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
 
     private ResourceServletConfiguration resourceServletConfiguration;
     private Cache<CacheKey, CacheEntry> cache;
-    private final MovingAverage cacheHitRatio = new MovingAverage( 60 * 60 * 1000 );
     private String resourceNonce = "";
 
     private PwmDomain pwmDomain;
+
+    private final StatisticAverageBundle<AverageStat> averageStats = new StatisticAverageBundle<>( AverageStat.class );
+    private final StatisticCounterBundle<CountingStat> countingStats = new StatisticCounterBundle<>( CountingStat.class );
+
+    enum AverageStat
+    {
+        cacheHitRatio,
+        avgResponseTimeMS,
+    }
+
+    enum CountingStat
+    {
+        requestsServed,
+        requestsNotFound,
+        bytesServed,
+    }
 
     public String getResourceNonce( )
     {
@@ -79,9 +95,14 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
         return cache;
     }
 
-    public MovingAverage getCacheHitRatio( )
+    StatisticAverageBundle<AverageStat> getAverageStats()
     {
-        return cacheHitRatio;
+        return averageStats;
+    }
+
+    StatisticCounterBundle<CountingStat> getCountingStats()
+    {
+        return countingStats;
     }
 
     public long bytesInCache( )
@@ -106,7 +127,7 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
 
     public Percent cacheHitRatio( )
     {
-        final BigDecimal numerator = BigDecimal.valueOf( getCacheHitRatio().getAverage() );
+        final BigDecimal numerator = BigDecimal.valueOf( averageStats.getAverage( AverageStat.cacheHitRatio ) );
         final BigDecimal denominator = BigDecimal.ONE;
         return Percent.of( numerator, denominator );
     }
@@ -168,7 +189,12 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        return null;
+        final Map<String, String> debugInfo = new HashMap<>();
+        debugInfo.putAll( averageStats.debugStats() );
+        debugInfo.putAll( countingStats.debugStats() );
+        return ServiceInfoBean.builder()
+                .debugProperties( debugInfo )
+                .build();
     }
 
     ResourceServletConfiguration getResourceServletConfiguration( )
@@ -223,12 +249,12 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
         for ( final String testUrl : testUrls )
         {
             final String themePathUrl = ResourceFileServlet.RESOURCE_PATH + testUrl.replace( ResourceFileServlet.TOKEN_THEME, themeName );
-            final FileResource resolvedFile = ResourceFileRequest.resolveRequestedResource(
+            final Optional<FileResource> resolvedFile = ResourceFileRequest.resolveRequestedResource(
                     pwmRequest.getDomainConfig(),
                     servletContext,
                     themePathUrl,
                     getResourceServletConfiguration() );
-            if ( resolvedFile != null && resolvedFile.exists() )
+            if ( resolvedFile.isPresent() )
             {
                 LOGGER.debug( pwmRequest, () -> "check for theme validity of '" + themeName + "' returned true" );
                 return true;

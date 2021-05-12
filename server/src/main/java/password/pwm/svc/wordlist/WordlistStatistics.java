@@ -40,12 +40,18 @@ class WordlistStatistics
     enum CounterStat
     {
         wordChecks,
-        misses,
+        wordHits,
+        wordMisses,
+        chunkChecks,
+        chunkHits,
+        chunkMisses,
     }
 
     enum AverageStat
     {
+        avgWordCheckLength,
         wordCheckTimeMS,
+        chunkCheckTimeMS,
         chunksPerWordCheck,
     }
 

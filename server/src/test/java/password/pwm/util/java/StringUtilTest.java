@@ -171,7 +171,15 @@ public class StringUtilTest
         final String linebreaks = StringUtil.insertRepeatedLineBreaks( original, 80 );
         final String stripped = StringUtil.stripAllWhitespace( linebreaks );
         Assert.assertEquals( original, stripped );
+    }
 
+    @Test
+    @SuppressWarnings( "AvoidEscapedUnicodeCharacters" )
+    public void stripNonPrintableCharactersTet()
+    {
+        final String input = "0�\u0000\u0000\u0000\u0007\u0002\u0001\u0001\u0002\u0002�\u007F";
+        final String expected = "0�?????????�?";
+        Assert.assertEquals( expected, StringUtil.cleanNonPrintableCharacters( input ) );
     }
 
     @Test

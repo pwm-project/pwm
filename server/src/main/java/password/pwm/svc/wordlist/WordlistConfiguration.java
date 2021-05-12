@@ -178,6 +178,11 @@ public class WordlistConfiguration implements Serializable
         }
     } );
 
+    public boolean isAutoImportUrlConfigured()
+    {
+        return StringUtil.notEmpty( getAutoImportUrl() );
+    }
+
     String configHash( )
     {
         return configHash.get();

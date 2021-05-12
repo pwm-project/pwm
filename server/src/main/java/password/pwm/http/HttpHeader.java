@@ -43,6 +43,7 @@ public enum HttpHeader
     ETag( "ETag" ),
     Expires( "Expires" ),
     If_None_Match( "If-None-Match" ),
+    Last_Modified( "Last-Modified" ),
     Location( "Location" ),
     Origin( "Origin" ),
     Referer( "Referer" ),
@@ -89,6 +90,6 @@ public enum HttpHeader
 
     public static Optional<HttpHeader> forHttpHeader( final String header )
     {
-        return JavaHelper.readEnumFromPredicate( HttpHeader.class, loopHeader -> header.equals( loopHeader.getHttpName() ) );
+        return JavaHelper.readEnumFromPredicate( HttpHeader.class, loopHeader -> header.equalsIgnoreCase( loopHeader.getHttpName() ) );
     }
 }

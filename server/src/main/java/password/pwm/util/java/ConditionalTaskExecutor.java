@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
 
@@ -43,7 +44,7 @@ public class ConditionalTaskExecutor
 
     private final Runnable task;
     private final BooleanSupplier predicate;
-    private final ReentrantLock lock = new ReentrantLock();
+    private final Lock lock = new ReentrantLock();
 
     /**
      * Execute the task if the conditional has been met.  Exceptions when running the task will be logged but not returned.

@@ -34,6 +34,7 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -100,7 +101,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClient
+public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClientProvider
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ApachePwmHttpClient.class );
 
@@ -383,15 +384,18 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClient
 
         final Optional<HttpContentType> optionalHttpContentType = contentTypeForEntity( httpResponse.getEntity() );
 
-        if ( optionalHttpContentType.isPresent() && optionalHttpContentType.get().getDataType() ==  HttpEntityDataType.ByteArray )
+        if ( httpResponse.getEntity() != null )
         {
-            httpClientResponseBuilder.binaryBody( readBinaryEntityBody( httpResponse.getEntity() ) );
-            httpClientResponseBuilder.dataType( HttpEntityDataType.ByteArray );
-        }
-        else
-        {
-            httpClientResponseBuilder.body( EntityUtils.toString( httpResponse.getEntity() ) );
-            httpClientResponseBuilder.dataType( HttpEntityDataType.String );
+            if ( optionalHttpContentType.isPresent() && optionalHttpContentType.get().getDataType() == HttpEntityDataType.ByteArray )
+            {
+                httpClientResponseBuilder.binaryBody( readBinaryEntityBody( httpResponse.getEntity() ) );
+                httpClientResponseBuilder.dataType( HttpEntityDataType.ByteArray );
+            }
+            else
+            {
+                httpClientResponseBuilder.body( EntityUtils.toString( httpResponse.getEntity() ) );
+                httpClientResponseBuilder.dataType( HttpEntityDataType.String );
+            }
         }
 
         final Map<String, String> responseHeaders = new LinkedHashMap<>();
@@ -464,6 +468,10 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClient
                 httpRequest = new HttpDelete( clientRequest.getUrl() );
                 break;
 
+            case HEAD:
+                httpRequest = new HttpHead( clientRequest.getUrl() );
+                break;
+
             default:
                 throw new IllegalStateException( "http method not yet implemented" );
         }
@@ -476,7 +484,6 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClient
                 httpRequest.addHeader( key, value );
             }
         }
-
 
         httpClientService.getStats().increment( HttpClientService.StatsKey.requests );
         httpClientService.getStats().increment( HttpClientService.StatsKey.requestBytes, clientRequest.size() );

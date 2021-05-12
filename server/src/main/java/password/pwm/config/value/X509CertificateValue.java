@@ -97,10 +97,9 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
         {
             throw new NullPointerException( "certificates cannot be null" );
         }
-        this.b64certificates = Collections.unmodifiableList(
-                b64certificates.stream()
+        this.b64certificates = b64certificates.stream()
                 .map( StringUtil::stripAllWhitespace )
-                .collect( Collectors.toList() ) );
+                .collect( Collectors.toUnmodifiableList() );
         this.certs = new LazySupplier<>( () -> X509Utils.certificatesFromBase64s( b64certificates ) );
     }
 

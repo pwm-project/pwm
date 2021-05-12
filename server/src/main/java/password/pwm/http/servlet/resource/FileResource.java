@@ -22,6 +22,7 @@ package password.pwm.http.servlet.resource;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 
 interface FileResource
 {
@@ -29,9 +30,7 @@ interface FileResource
 
     long length( );
 
-    long lastModified( );
-
-    boolean exists( );
+    Instant lastModified( );
 
     String getName( );
 }

@@ -55,7 +55,7 @@ public class PwmHttpClientResponse implements Serializable, PwmHttpClientMessage
     public long size()
     {
         long size = 0;
-        size += statusPhrase.length();
+        size += statusPhrase == null ? 0 : statusPhrase.length();
         size += body == null ? 0 : body.length();
         size += binaryBody == null ? 0 : binaryBody.size();
         if ( headers != null )

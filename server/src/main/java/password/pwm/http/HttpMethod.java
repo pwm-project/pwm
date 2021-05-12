@@ -28,7 +28,8 @@ public enum HttpMethod
     GET( true, false ),
     DELETE( false, true ),
     PUT( false, true ),
-    PATCH( false, true ),;
+    PATCH( false, true ),
+    HEAD( true, false );
 
     private final boolean idempotent;
     private final boolean hasBody;

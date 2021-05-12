@@ -300,17 +300,22 @@ public abstract class StringUtil
         return new String( base32.encode( input ), PwmConstants.DEFAULT_CHARSET );
     }
 
-    public static byte[] base64Decode( final String input, final StringUtil.Base64Options... options )
+    public static byte[] base64Decode( final CharSequence input, final StringUtil.Base64Options... options )
             throws IOException
     {
+        if ( StringUtil.isEmpty( input ) )
+        {
+            return new byte[0];
+        }
+
         final byte[] decodedBytes;
         if ( JavaHelper.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
         {
-            decodedBytes = java.util.Base64.getUrlDecoder().decode( input );
+            decodedBytes = java.util.Base64.getUrlDecoder().decode( input.toString() );
         }
         else
         {
-            decodedBytes = java.util.Base64.getMimeDecoder().decode( input );
+            decodedBytes = java.util.Base64.getMimeDecoder().decode( input.toString() );
         }
 
         if ( JavaHelper.enumArrayContainsValue( options, Base64Options.GZIP ) )
@@ -572,63 +577,28 @@ public abstract class StringUtil
         }
     }
 
-    public static String stripAllWhitespace( final String input )
+    public static String stripAllWhitespace( final CharSequence input )
     {
         return stripAllChars( input, Character::isWhitespace );
     }
 
-    public static String stripAllChars( final String input, final Predicate<Character> characterPredicate )
+    public static CharSequence cleanNonPrintableCharacters( final CharSequence input )
     {
-        if ( isEmpty( input ) )
-        {
-            return "";
-        }
+        final Predicate<Character> nonPrintableCharPredicate = character ->
+                ( Character.isISOControl( character ) && !Character.isWhitespace( character ) )
+                        || !Character.isDefined( character );
 
-        if ( characterPredicate == null )
-        {
-            return input;
-        }
-
-        // count of valid output chars
-        int copiedChars = 0;
-
-        // loop through input chars and stop if stripped char is found
-        while ( copiedChars < input.length() )
-        {
-            if ( !characterPredicate.test( input.charAt( copiedChars ) ) )
-            {
-                copiedChars++;
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        // return input string if we made it through input without detecting stripped char
-        if ( copiedChars >= input.length() )
-        {
-            return input;
-        }
-
-        // creating sb with input gives good length value and handles copy of chars so far...
-        final StringBuilder sb = new StringBuilder( input );
-
-        // loop through remaining chars and copy one by one
-        for ( int loopIndex = copiedChars; loopIndex < input.length(); loopIndex++ )
-        {
-            final char loopChar = input.charAt( loopIndex );
-            if ( !characterPredicate.test( loopChar ) )
-            {
-                sb.setCharAt( copiedChars, loopChar );
-                copiedChars++;
-            }
-        }
-
-        return sb.substring( 0, copiedChars );
+        return replaceAllChars( input,
+                character -> nonPrintableCharPredicate.test( character ) ? Optional.of( "?" ) : Optional.empty() );
     }
 
-    public static String replaceAllChars( final String input, final Function<Character, Optional<String>> replacementFunction )
+    public static String stripAllChars( final CharSequence input, final Predicate<Character> characterPredicate )
+    {
+        return replaceAllChars( input,
+                character -> ( characterPredicate.test( character ) ) ? Optional.of( "" ) : Optional.empty() );
+    }
+
+    public static String replaceAllChars( final CharSequence input, final Function<Character, Optional<String>> replacementFunction )
     {
         if ( isEmpty( input ) )
         {
@@ -637,39 +607,43 @@ public abstract class StringUtil
 
         if ( replacementFunction == null )
         {
-            return input;
+            return input.toString();
         }
+
+        final int inputLength = input.length();
 
         // count of valid output chars
-        int copiedChars = 0;
-
-        // loop through input chars and stop if replacement char is needed
-        while ( copiedChars < input.length() )
+        int index = 0;
         {
-            final Character indexChar = input.charAt( copiedChars );
-            final Optional<String> replacementStr = replacementFunction.apply( indexChar );
-            if ( replacementStr.isEmpty() )
+            // loop through input chars and stop if replacement char is needed ( but no actual coppying yet )
+            while ( index < inputLength )
             {
-                copiedChars++;
+                final Character indexChar = input.charAt( index );
+                final Optional<String> replacementStr = replacementFunction.apply( indexChar );
+                if ( replacementStr.isEmpty() )
+                {
+                    index++;
+                }
+                else
+                {
+                    break;
+                }
             }
-            else
+
+            // return input string if we made it through input without detecting replacement char
+            if ( index >= inputLength )
             {
-                break;
+                return input.toString();
             }
         }
 
-        // return input string if we made it through input without detecting replacement char
-        if ( copiedChars >= input.length() )
-        {
-            return input;
-        }
-
-        final StringBuilder sb = new StringBuilder( input.substring( 0, copiedChars ) );
+        // create the destination builder
+        final StringBuilder sb = new StringBuilder( input.subSequence( 0, index ) );
 
         // loop through remaining chars and copy one by one
-        for ( int loopIndex = copiedChars; loopIndex < input.length(); loopIndex++ )
+        while ( index < inputLength )
         {
-            final char loopChar = input.charAt( loopIndex );
+            final char loopChar = input.charAt( index );
             final Optional<String> replacementStr = replacementFunction.apply( loopChar );
             if ( replacementStr.isPresent() )
             {
@@ -679,6 +653,7 @@ public abstract class StringUtil
             {
                 sb.append( loopChar );
             }
+            index++;
         }
 
         return sb.toString();
@@ -781,7 +756,7 @@ public abstract class StringUtil
             Map.entry( ']', "%5D" )
     );
 
-    public static String urlPathEncode( final String input )
+    public static CharSequence urlPathEncode( final CharSequence input )
     {
         return replaceAllChars( input,
                 character -> Optional.ofNullable( URL_PATH_ENCODING_REPLACEMENTS.getOrDefault( character, null ) ) );

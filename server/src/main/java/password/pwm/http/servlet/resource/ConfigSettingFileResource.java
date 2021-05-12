@@ -23,11 +23,11 @@ package password.pwm.http.servlet.resource;
 import password.pwm.PwmConstants;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
-import password.pwm.util.java.StringUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 
 public class ConfigSettingFileResource implements FileResource
 {
@@ -39,7 +39,6 @@ public class ConfigSettingFileResource implements FileResource
         this.bodyText = domainConfig.readSettingAsString( pwmSetting );
         this.requestURI = requestURI;
     }
-
 
     @Override
     public InputStream getInputStream()
@@ -55,15 +54,9 @@ public class ConfigSettingFileResource implements FileResource
     }
 
     @Override
-    public long lastModified()
+    public Instant lastModified()
     {
-        return 0;
-    }
-
-    @Override
-    public boolean exists()
-    {
-        return StringUtil.notEmpty( bodyText );
+        return Instant.EPOCH;
     }
 
     @Override

@@ -74,11 +74,12 @@ public class FileValue extends AbstractValue implements StoredValue
         private static final long serialVersionUID = 1L;
 
         private final String b64EncodedContents;
-        private final transient Supplier<ImmutableByteArray> byteContents = new LazySupplier<>( this::convertToBytes );
+        private final transient Supplier<ImmutableByteArray> byteContents;
 
         private FileContent( final String b64EncodedContents )
         {
             this.b64EncodedContents = b64EncodedContents;
+            this.byteContents = new LazySupplier<>( () -> b64decode( b64EncodedContents ) );
         }
 
         public static FileContent fromEncodedString( final String input )
@@ -91,9 +92,7 @@ public class FileValue extends AbstractValue implements StoredValue
         public static FileContent fromBytes( final ImmutableByteArray contents )
                 throws PwmUnrecoverableException
         {
-            final String input = StringUtil.base64Encode( contents.copyOf(), StringUtil.Base64Options.GZIP );
-            final String encodedLineBreaks = StringUtil.insertRepeatedLineBreaks( input, PwmConstants.XML_OUTPUT_LINE_WRAP_LENGTH );
-            return new FileContent( encodedLineBreaks );
+            return new FileContent( b64encode( contents ) );
         }
 
         String toEncodedString( )
@@ -118,19 +117,7 @@ public class FileValue extends AbstractValue implements StoredValue
             return byteContents.get();
         }
 
-        private ImmutableByteArray convertToBytes( )
-        {
-            try
-            {
-                final String whitespaceStripped = StringUtil.stripAllWhitespace( b64EncodedContents );
-                final byte[] output = StringUtil.base64Decode( whitespaceStripped, StringUtil.Base64Options.GZIP );
-                return ImmutableByteArray.of( output );
-            }
-            catch ( final Exception e )
-            {
-                throw new IllegalStateException( e );
-            }
-        }
+        
     }
 
     public static FileValue newFileValue( final String filename, final String fileMimeType, final ImmutableByteArray contents )
