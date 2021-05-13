@@ -51,7 +51,7 @@ Official project page is at [https://github.com/pwm-project/pwm/](https://github
 # Build Information
 
 Build pre-requisites:
-* Java 1.8 JDK or newer
+* Java 1.11 JDK or newer
 * Maven 3.2 or newer
 
 Build execution:
@@ -66,6 +66,8 @@ Alternatively, an executable JAR file is created in `onejar\target`.  This JAR f
 
 The executable will show additional options that may be required.
 
+# Docker
+
 A docker image is created in `docker/target` as jib-image.tar.  You can import this docker image using a command similar to:
 
 `docker load --input=jib-image.tar`
@@ -74,17 +76,9 @@ Create docker container and run using:
 
 `docker run -d --name <container name> -p 8443:8443 pwm/pwm-webapp`
 
-This will expose the https port to 8443.  If you want the configuration to persist to you can also exposed configuration volume of `/config` using the docker `-v` option during the container
+This will expose the https port to 8443.  If you want the configuration to persist to you can also expose
+the configuration volume of `/config` using the docker `-v` option during the container
 creation and map it to a directory on the docker host or use a docker volume container.  
-The PWM docker container will place all of it's configuration and runtime data in the `/config` volume.
+The PWM docker container will place all of it's configuration and runtime data in the `/config` volume.  If you do not use 
+a separate configuration volume, the config will be deleted when you delete the container.
 
-# PWM Source Code License Update 2019
-
-* Previous License: GPL v2.0
-* New License: Apache 2.0
-* Update Date: June 17, 2019
-
-This project is licensed using Apache 2.0 License (https://www.apache.org/licenses/LICENSE-2.0).  Previous versions 
-of this source code were licensed under GPL v2.0 License (https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
-New submissions to this code base are made under the Apache 2.0 License.  The GPL branch of the source code contains the 
-previously licensed GPL v2.0 code.

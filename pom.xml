@@ -43,7 +43,7 @@
         <skipTests>false</skipTests>
 
         <!-- git.commit.time is populated via git-commit-id-plugin and results in a (hopefully) reproducible maven build -->
-        <project.build.outreportservreportservputTimestamp>${git.commit.time}</project.build.outreportservreportservputTimestamp>
+        <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
     </properties>
 
     <modules>
@@ -361,8 +361,11 @@
                         </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <!-- put your configurations here -->
+                </configuration>
             </plugin>
-            <plugin>
+            <plugin> <!-- checks owsp vulnerability database -->
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
                 <version>6.1.2</version>
@@ -396,7 +399,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>

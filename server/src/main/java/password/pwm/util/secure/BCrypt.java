@@ -30,6 +30,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 
 @SuppressWarnings( "all" )
+@SuppressFBWarnings( "DMI_RANDOM_USED_ONLY_ONCE" )
 public class BCrypt
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( BCrypt.class );
