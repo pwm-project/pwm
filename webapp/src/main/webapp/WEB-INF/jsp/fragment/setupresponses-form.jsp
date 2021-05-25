@@ -83,6 +83,7 @@
         <option value="<%=StringUtil.escapeHtml(questionText)%>"><%=StringUtil.escapeHtml(questionText)%>
         </option>
         <% } %>
+        <optgroup label=""></optgroup>
     </select>
 </h2>
 <p>
