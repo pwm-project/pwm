@@ -23,6 +23,7 @@ package password.pwm.svc.wordlist;
 import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -43,7 +44,6 @@ import password.pwm.util.logging.PwmLogger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.security.DigestInputStream;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -88,7 +88,10 @@ class WordlistSource
         InputStream getInputStream() throws IOException, PwmUnrecoverableException;
     }
 
-    static WordlistSource forAutoImport( final PwmApplication pwmApplication, final WordlistConfiguration wordlistConfiguration )
+    static WordlistSource forAutoImport(
+            final PwmApplication pwmApplication,
+            final WordlistConfiguration wordlistConfiguration
+    )
     {
         final String importUrl = wordlistConfiguration.getAutoImportUrl();
         return new WordlistSource( WordlistSourceType.AutoImport, importUrl, () ->
@@ -153,6 +156,7 @@ class WordlistSource
 
     Map<HttpHeader, String> readRemoteHeaders(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
             final PwmLogger pwmLogger
     )
             throws PwmUnrecoverableException
@@ -179,50 +183,48 @@ class WordlistSource
         }
 
         final Map<HttpHeader, String> finalReturnResponses =  Collections.unmodifiableMap( returnResponses );
-        pwmLogger.debug( () -> "read remote header info for " + this.getWordlistSourceType() + " wordlist: "
+        pwmLogger.debug( sessionLabel, () -> "read remote header info for " + this.getWordlistSourceType() + " wordlist: "
                 + JsonUtil.serializeMap( finalReturnResponses ), () -> TimeDuration.fromCurrent( startTime ) );
         return finalReturnResponses;
     }
 
     WordlistSourceInfo readRemoteWordlistInfo(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
             final BooleanSupplier cancelFlag,
             final PwmLogger pwmLogger
     )
             throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
+        final int processId = CLOSE_COUNTER.getAndIncrement();
 
         if ( cancelFlag.getAsBoolean() )
         {
             throw new CancellationException();
         }
 
-        pwmLogger.debug( () -> "begin reading file info for " + this.getWordlistSourceType() + " wordlist" );
+        pwmLogger.debug( sessionLabel, () -> processIdLabel( processId ) + "begin reading file info for " + this.getWordlistSourceType() + " wordlist" );
 
         final long bytes;
         final String hash;
         final long lines;
 
         InputStream inputStream = null;
-        DigestInputStream checksumInputStream = null;
         WordlistZipReader zipInputStream = null;
 
         try
         {
             inputStream = this.streamProvider.getInputStream();
-            checksumInputStream = pwmApplication.getSecureService().digestInputStream( WordlistConfiguration.HASH_ALGORITHM, inputStream );
-            zipInputStream = new WordlistZipReader( checksumInputStream );
-            final ConditionalTaskExecutor debugOutputter = makeDebugLoggerExecutor( pwmLogger, startTime, zipInputStream );
+            zipInputStream = new WordlistZipReader( inputStream );
+            final ConditionalTaskExecutor debugOutputter = makeDebugLoggerExecutor( pwmLogger, processId, sessionLabel, startTime, zipInputStream );
 
-            int counter = 0;
             String nextLine;
             do
             {
-                counter++;
                 nextLine = zipInputStream.nextLine();
 
-                if ( counter % 10000 == 0 )
+                if ( zipInputStream.getLineCount() % 10_000 == 0 )
                 {
                     debugOutputter.conditionallyExecuteTask();
                 }
@@ -244,12 +246,12 @@ class WordlistSource
         }
         finally
         {
-            closeStreams( pwmLogger, checksumInputStream, inputStream );
+            closeStreams( pwmLogger, processId, sessionLabel, inputStream );
             IOUtils.closeQuietly( zipInputStream );
         }
 
         bytes = zipInputStream.getByteCount();
-        hash = JavaHelper.byteArrayToHexString( checksumInputStream.getMessageDigest().digest() );
+        hash = JavaHelper.byteArrayToHexString( zipInputStream.getHash() );
         lines = zipInputStream.getLineCount();
 
         if ( cancelFlag.getAsBoolean() )
@@ -259,8 +261,8 @@ class WordlistSource
 
         final WordlistSourceInfo wordlistSourceInfo = new WordlistSourceInfo( hash, bytes, importUrl, lines );
 
-        pwmLogger.debug( () -> "completed read of data for " + this.getWordlistSourceType() + " wordlist"
-                + " " + StringUtil.formatDiskSizeforDebug( bytes )
+        pwmLogger.debug( sessionLabel, () -> processIdLabel( processId ) + "completed read of data for " + this.getWordlistSourceType()
+                + " wordlist " + StringUtil.formatDiskSizeforDebug( bytes )
                 + ", " + JsonUtil.serialize( wordlistSourceInfo )
                 + " (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
 
@@ -269,6 +271,8 @@ class WordlistSource
 
     private ConditionalTaskExecutor makeDebugLoggerExecutor(
             final PwmLogger pwmLogger,
+            final int processId,
+            final SessionLabel sessionLabel,
             final Instant startTime,
             final WordlistZipReader wordlistZipReader
     )
@@ -278,8 +282,9 @@ class WordlistSource
             @Override
             public void run()
             {
-                pwmLogger.debug( () -> "continuing reading file info for " + getWordlistSourceType() + " wordlist"
-                                + " " + StringUtil.formatDiskSize( wordlistZipReader.getByteCount() ) + " bytes read"
+                pwmLogger.debug( sessionLabel, () -> processIdLabel( processId ) + "continuing reading file info for "
+                                + getWordlistSourceType() + " wordlist"
+                                + " " + StringUtil.formatDiskSize( wordlistZipReader.getByteCount() ) + " read"
                                 + bytesPerSecondStr().orElse( "" ),
                         () -> TimeDuration.fromCurrent( startTime ) );
             }
@@ -300,25 +305,24 @@ class WordlistSource
                 AbstractWordlist.DEBUG_OUTPUT_FREQUENCY );
     }
 
-    private void closeStreams( final PwmLogger pwmLogger, final InputStream... inputStreams )
+    private void closeStreams(
+            final PwmLogger pwmLogger,
+            final int processId,
+            final SessionLabel sessionLabel,
+            final InputStream... inputStreams )
     {
-        // use a thread to close the io tasks as the close will block until the tcp socket is closed
-        final Thread closerThread = new Thread( () ->
+        final Instant startClose = Instant.now();
+        pwmLogger.trace( sessionLabel, () -> processIdLabel( processId ) + "beginning close of remote wordlist read process" );
+        for ( final InputStream inputStream : inputStreams )
         {
-            final int counter = CLOSE_COUNTER.incrementAndGet();
+            IOUtils.closeQuietly( inputStream );
+        }
+        pwmLogger.trace( sessionLabel, () -> processIdLabel( processId ) + "completed close of remote wordlist read process",
+                () -> TimeDuration.fromCurrent( startClose ) );
+    }
 
-            final Instant startClose = Instant.now();
-            pwmLogger.trace( () -> "beginning close of remote wordlist read process [" + counter + "]" );
-            for ( final InputStream inputStream : inputStreams )
-            {
-                IOUtils.closeQuietly( inputStream );
-            }
-            pwmLogger.trace( () -> "completed close of remote wordlist read process [" + counter + "]",
-                    () -> TimeDuration.fromCurrent( startClose ) );
-        } );
-
-        closerThread.setDaemon( true );
-        closerThread.setName( Thread.currentThread().getName() + "-import-close-io" );
-        closerThread.start();
+    private String processIdLabel( final int processId )
+    {
+        return "<" + processId + "> ";
     }
 }

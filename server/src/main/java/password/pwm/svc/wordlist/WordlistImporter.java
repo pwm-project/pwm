@@ -40,9 +40,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BooleanSupplier;
 
@@ -106,6 +106,7 @@ class WordlistImporter implements Runnable
         WordTypes,
         MsPerTxn,
         WordsPerTxn,
+        ChunksSaved,
         CharsPerTxn,
         ChunksPerWord,
         AvgWordLength,
@@ -145,6 +146,10 @@ class WordlistImporter implements Runnable
         {
             doImport();
         }
+        catch ( final CancellationException e )
+        {
+            getLogger().debug( rootWordlist.getSessionLabel(), () -> "stopped import due to cancel flag" );
+        }
         catch ( final PwmUnrecoverableException e )
         {
             errorMsg = "error during import: " + e.getErrorInformation().getDetailedErrorMsg();
@@ -158,20 +163,20 @@ class WordlistImporter implements Runnable
                     }
             );
         }
+    }
 
+    private void cancelCheck()
+    {
         if ( cancelFlag.getAsBoolean() )
         {
-            getLogger().debug( rootWordlist.getSessionLabel(), () -> "exiting import due to cancel flag" );
+            throw new CancellationException();
         }
     }
 
     private void initImportProcess( )
             throws PwmUnrecoverableException
     {
-        if ( cancelFlag.getAsBoolean() )
-        {
-            return;
-        }
+        cancelCheck();
 
         if ( wordlistSourceInfo == null || !wordlistSourceInfo.equals( rootWordlist.readWordlistStatus().getRemoteInfo() ) )
         {
@@ -228,6 +233,8 @@ class WordlistImporter implements Runnable
             getLogger().debug( rootWordlist.getSessionLabel(), () -> "beginning import: " + JsonUtil.serialize( rootWordlist.readWordlistStatus() ) );
             Instant lastTxnInstant = Instant.now();
 
+            final long importMaxChars = rootWordlist.getConfiguration().getImportMaxChars();
+
             String line;
             do
             {
@@ -240,7 +247,7 @@ class WordlistImporter implements Runnable
 
                     if (
                             bufferedWords.size() > transactionCalculator.getTransactionSize()
-                                    || charsInBuffer > rootWordlist.getConfiguration().getImportMaxChars()
+                                    || charsInBuffer > importMaxChars
                     )
                     {
                         flushBuffer();
@@ -251,19 +258,14 @@ class WordlistImporter implements Runnable
                         pauseTimer.conditionallyExecuteTask();
                         lastTxnInstant = Instant.now();
                     }
+
+                    cancelCheck();
                 }
             }
-            while ( !cancelFlag.getAsBoolean() && line != null );
+            while ( line != null );
 
-
-            if ( cancelFlag.getAsBoolean() )
-            {
-                getLogger().debug( rootWordlist.getSessionLabel(), () -> "pausing import" );
-            }
-            else
-            {
-                populationComplete();
-            }
+            cancelCheck();
+            populationComplete();
         }
         finally
         {
@@ -278,12 +280,9 @@ class WordlistImporter implements Runnable
             return;
         }
 
-        for ( final String commentPrefix : rootWordlist.getConfiguration().getCommentPrefixes() )
+        if ( checkIfCommentLine( input ) )
         {
-            if ( input.startsWith( commentPrefix ) )
-            {
-                return;
-            }
+            return;
         }
 
         final WordType wordType = WordType.determineWordType( input );
@@ -291,16 +290,15 @@ class WordlistImporter implements Runnable
 
         if ( wordType == WordType.RAW )
         {
-            final Optional<String> word = WordlistUtil.normalizeWordLength( input, rootWordlist.getConfiguration() );
-            if ( word.isPresent() )
+            WordlistUtil.normalizeWordLength( input, rootWordlist.getConfiguration() ).ifPresent( word ->
             {
-                final String normalizedWord = wordType.convertInputFromWordlist( this.rootWordlist.getConfiguration(), word.get() );
+                final String normalizedWord = wordType.convertInputFromWordlist( this.rootWordlist.getConfiguration(), word );
                 final Set<String> words = WordlistUtil.chunkWord( normalizedWord, rootWordlist.getConfiguration().getCheckSize() );
                 importStatistics.update( StatKey.averageWordLength, normalizedWord.length() );
                 importStatistics.update( StatKey.chunksPerWord, words.size() );
                 incrementCharBufferCounter( words );
                 bufferedWords.addAll( words );
-            }
+            } );
         }
         else
         {
@@ -318,6 +316,19 @@ class WordlistImporter implements Runnable
         }
     }
 
+    private boolean checkIfCommentLine( final String input )
+    {
+        for ( final String commentPrefix : rootWordlist.getConfiguration().getCommentPrefixes() )
+        {
+            if ( input.startsWith( commentPrefix ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void flushBuffer( )
             throws PwmUnrecoverableException
     {
@@ -326,10 +337,7 @@ class WordlistImporter implements Runnable
         //add the elements
         wordlistBucket.addWords( bufferedWords, rootWordlist );
 
-        if ( cancelFlag.getAsBoolean() )
-        {
-            return;
-        }
+        cancelCheck();
 
         //mark how long the buffer close took
         final TimeDuration commitTime = TimeDuration.fromCurrent( startTime );
@@ -386,11 +394,13 @@ class WordlistImporter implements Runnable
 
             getLogger().debug( rootWordlist.getSessionLabel(), () -> "will skip forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
                     + " in wordlist that has been previously imported" );
-            while ( !cancelFlag.getAsBoolean() && bytesSkipped < previousBytesRead )
+
+            while ( bytesSkipped < previousBytesRead )
             {
                 zipFileReader.nextLine();
                 bytesSkipped = zipFileReader.getByteCount();
                 debugOutputter.conditionallyExecuteTask();
+                cancelCheck();
             }
             getLogger().debug( rootWordlist.getSessionLabel(), () -> "skipped forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
                     + " in stream (" + TimeDuration.fromCurrent( startSkipTime ).asCompactString() + ")" );
@@ -410,7 +420,6 @@ class WordlistImporter implements Runnable
         {
             final long totalBytes = wordlistSourceInfo.getBytes();
             final long remainingBytes = totalBytes - zipFileReader.getByteCount();
-            stats.put( DebugKey.BytesRemaining, StringUtil.formatDiskSizeforDebug( remainingBytes ) );
 
             try
             {
@@ -433,28 +442,27 @@ class WordlistImporter implements Runnable
             }
             catch ( final Exception e )
             {
-                getLogger().error( rootWordlist.getSessionLabel(), () -> "error calculating import statistics: " + e.getMessage() );
-
-                /* ignore - it's a long overflow if the estimate is off */
+                /* ignore - it's a long overflow or div by zero if the estimate is off */
+                getLogger().debug( rootWordlist.getSessionLabel(), () -> "error calculating import statistics: " + e.getMessage() );
             }
 
-            final Percent percent = Percent.of( zipFileReader.getByteCount(), wordlistSourceInfo.getBytes() );
-            stats.put( DebugKey.PercentComplete, percent.pretty( 2 ) );
+            stats.put( DebugKey.PercentComplete, Percent.of( zipFileReader.getByteCount(), wordlistSourceInfo.getBytes() ).pretty() );
+            stats.put( DebugKey.BytesRemaining, StringUtil.formatDiskSizeforDebug( remainingBytes ) );
         }
 
         stats.put( DebugKey.LinesRead, PwmNumberFormat.forDefaultLocale().format( zipFileReader.getLineCount() ) );
+        stats.put( DebugKey.ChunksSaved, PwmNumberFormat.forDefaultLocale().format( rootWordlist.size() ) );
         stats.put( DebugKey.BytesRead, StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() ) );
-
         stats.put( DebugKey.DiskFreeSpace, StringUtil.formatDiskSize( wordlistBucket.spaceRemaining() ) );
+        stats.put( DebugKey.ImportTime, TimeDuration.fromCurrent( startTime ).asCompactString() );
+        stats.put( DebugKey.ZipFile, zipFileReader.currentZipName() );
+        stats.put( DebugKey.WordTypes, JsonUtil.serializeMap( seenWordTypes ) );
 
         if ( bytesSkipped > 0 )
         {
             stats.put( DebugKey.BytesSkipped, StringUtil.formatDiskSizeforDebug( bytesSkipped ) );
         }
 
-        stats.put( DebugKey.ImportTime, TimeDuration.fromCurrent( startTime ).asCompactString() );
-        stats.put( DebugKey.ZipFile, zipFileReader.currentZipName() );
-        stats.put( DebugKey.WordTypes, JsonUtil.serializeMap( seenWordTypes ) );
 
         try
         {

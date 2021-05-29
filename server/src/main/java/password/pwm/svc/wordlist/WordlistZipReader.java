@@ -34,8 +34,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
-import java.util.concurrent.atomic.LongAdder;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -47,9 +48,11 @@ class WordlistZipReader implements AutoCloseable, Closeable
     private static final PwmLogger LOGGER = PwmLogger.forClass( WordlistZipReader.class );
 
     private final ZipInputStream zipStream;
-    private final LongAdder byteCounter = new LongAdder();
     private final EventRateMeter eventRateMeter;
-    private final LongAdder lineCounter = new LongAdder();
+    private final MessageDigest messageDigest;
+
+    private long byteCounter = 0;
+    private long lineCounter = 0;
 
     private BufferedReader reader;
     private ZipEntry zipEntry;
@@ -57,6 +60,15 @@ class WordlistZipReader implements AutoCloseable, Closeable
     WordlistZipReader( final InputStream inputStream ) throws PwmUnrecoverableException
     {
         Objects.requireNonNull( inputStream );
+
+        try
+        {
+            messageDigest = MessageDigest.getInstance( WordlistConfiguration.HASH_ALGORITHM.getAlgName() );
+        }
+        catch ( final NoSuchAlgorithmException e )
+        {
+            throw new IllegalStateException();
+        }
 
         eventRateMeter = new EventRateMeter( TimeDuration.MINUTE );
         final CopyingInputStream copyingInputStream = new CopyingInputStream( inputStream, this::updateReadBytes );
@@ -77,7 +89,8 @@ class WordlistZipReader implements AutoCloseable, Closeable
 
         final int count = b.length;
         eventRateMeter.markEvents( count );
-        byteCounter.add( count );
+        byteCounter += count;
+        messageDigest.digest( b );
     }
 
     private void nextZipEntry( )
@@ -156,7 +169,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
 
         if ( line != null )
         {
-            lineCounter.increment();
+            lineCounter++;
         }
 
         return line;
@@ -169,11 +182,16 @@ class WordlistZipReader implements AutoCloseable, Closeable
 
     long getLineCount()
     {
-        return lineCounter.sum();
+        return lineCounter;
     }
 
     long getByteCount()
     {
-        return byteCounter.sum();
+        return byteCounter;
+    }
+
+    byte[] getHash()
+    {
+        return messageDigest.digest();
     }
 }
