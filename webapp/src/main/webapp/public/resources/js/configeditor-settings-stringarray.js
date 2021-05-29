@@ -177,7 +177,8 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
                 var actionName = syntax === 'PROFILE' ? 'copyProfile' : 'copyDomain';
                 PWM_MAIN.showWaitDialog({
                     loadFunction: function () {
-                        PWM_MAIN.ajaxRequest("editor?processAction=" + actionName, resultFunction, {content: options});
+                        var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction',actionName);
+                        PWM_MAIN.ajaxRequest(url, resultFunction, {content: options});
                     }
                 });
             };

@@ -60,6 +60,7 @@ import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.intruder.IntruderRecordType;
+import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.DataStore;
@@ -611,7 +612,7 @@ public class TokenService extends AbstractPwmService implements PwmService
             if ( sessionUserIdentity != null && tokenEntryType == TokenEntryType.unauthenticated )
             {
                 SessionAuthenticator.simulateBadPassword( pwmRequestContext, sessionUserIdentity );
-                pwmDomain.getIntruderService().client().markUserIdentity( sessionUserIdentity, sessionLabel );
+                IntruderServiceClient.markUserIdentity( pwmRequestContext.getPwmDomain(), pwmRequestContext.getSessionLabel(), sessionUserIdentity );
             }
             StatisticsClient.incrementStat( pwmDomain, Statistic.RECOVERY_FAILURES );
             stats.increment( StatsKey.tokenValidationsFailed );

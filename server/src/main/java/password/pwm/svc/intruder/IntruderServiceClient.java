@@ -29,50 +29,23 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.svc.PwmService;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class IntruderServiceClient
 {
-    private final PwmDomain pwmDomain;
-    private final IntruderDomainService intruderService;
-
-    protected IntruderServiceClient( final PwmDomain pwmDomain, final IntruderDomainService intruderService )
+    private IntruderServiceClient()
     {
-        this.pwmDomain = Objects.requireNonNull( pwmDomain );
-        this.intruderService = Objects.requireNonNull( intruderService );
     }
 
-    public static void checkUserIdentity( final PwmDomain pwmDomain, final UserIdentity userIdentity ) throws PwmUnrecoverableException
-    {
-        if ( pwmDomain != null )
-        {
-            final IntruderDomainService intruderService = pwmDomain.getIntruderService();
-            if ( intruderService != null && intruderService.status() == PwmService.STATUS.OPEN )
-            {
-                intruderService.client().checkUserIdentity( userIdentity );
-            }
-        }
-    }
-
-    public void markAddressAndSession( final PwmRequest pwmRequest )
+    public static void checkAddressAndSession( final PwmDomain pwmDomain, final PwmSession pwmSession )
             throws PwmUnrecoverableException
     {
-        if ( pwmRequest != null )
-        {
-            final String subject = pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress();
-            pwmRequest.getPwmSession().getSessionStateBean().incrementIntruderAttempts();
-            intruderService.mark( IntruderRecordType.ADDRESS, subject, pwmRequest.getLabel() );
-        }
-    }
+        final IntruderDomainService intruderService = pwmDomain.getIntruderService();
 
-    public void checkAddressAndSession( final PwmSession pwmSession )
-            throws PwmUnrecoverableException
-    {
         if ( pwmSession != null )
         {
             final String subject = pwmSession.getSessionStateBean().getSrcAddress();
@@ -85,9 +58,24 @@ public class IntruderServiceClient
         }
     }
 
-    public void clearAddressAndSession( final PwmSession pwmSession )
+    public static void markAddressAndSession( final PwmDomain pwmDomain, final PwmSession pwmSession )
             throws PwmUnrecoverableException
     {
+        final IntruderDomainService intruderService = pwmDomain.getIntruderService();
+
+        if ( pwmSession != null )
+        {
+            final String subject = pwmSession.getSessionStateBean().getSrcAddress();
+            pwmSession.getSessionStateBean().incrementIntruderAttempts();
+            intruderService.mark( IntruderRecordType.ADDRESS, subject, pwmSession.getLabel() );
+        }
+    }
+
+    public static void clearAddressAndSession( final PwmDomain pwmDomain, final PwmSession pwmSession )
+            throws PwmUnrecoverableException
+    {
+        final IntruderDomainService intruderService = pwmDomain.getIntruderService();
+
         if ( pwmSession != null )
         {
             final String subject = pwmSession.getSessionStateBean().getSrcAddress();
@@ -97,29 +85,11 @@ public class IntruderServiceClient
         }
     }
 
-    public void markUserIdentity( final UserIdentity userIdentity, final SessionLabel sessionLabel )
+    public static void checkUserIdentity( final PwmDomain pwmDomain, final UserIdentity userIdentity )
             throws PwmUnrecoverableException
     {
-        if ( userIdentity != null )
-        {
-            final String subject = userIdentity.toDelimitedKey();
-            intruderService.mark( IntruderRecordType.USER_ID, subject, sessionLabel );
-        }
-    }
+        final IntruderDomainService intruderService = pwmDomain.getIntruderService();
 
-    public void markUserIdentity( final UserIdentity userIdentity, final PwmRequest pwmRequest )
-            throws PwmUnrecoverableException
-    {
-        if ( userIdentity != null )
-        {
-            final String subject = userIdentity.toDelimitedKey();
-            intruderService.mark( IntruderRecordType.USER_ID, subject, pwmRequest.getLabel() );
-        }
-    }
-
-    public void checkUserIdentity( final UserIdentity userIdentity )
-            throws PwmUnrecoverableException
-    {
         if ( userIdentity != null )
         {
             final String subject = userIdentity.toDelimitedKey();
@@ -127,9 +97,29 @@ public class IntruderServiceClient
         }
     }
 
-    public void clearUserIdentity( final UserIdentity userIdentity )
+    public static void markUserIdentity( final PwmRequest pwmRequest, final UserIdentity userIdentity )
             throws PwmUnrecoverableException
     {
+        markUserIdentity( pwmRequest.getPwmDomain(), pwmRequest.getLabel(), userIdentity );
+    }
+
+    public static void markUserIdentity( final PwmDomain pwmDomain, final SessionLabel sessionLabel, final UserIdentity userIdentity )
+            throws PwmUnrecoverableException
+    {
+        final IntruderDomainService intruderService = pwmDomain.getIntruderService();
+
+        if ( userIdentity != null )
+        {
+            final String subject = userIdentity.toDelimitedKey();
+            intruderService.mark( IntruderRecordType.USER_ID, subject, sessionLabel );
+        }
+    }
+
+    public static void clearUserIdentity( final PwmRequest pwmRequest, final UserIdentity userIdentity )
+            throws PwmUnrecoverableException
+    {
+        final IntruderDomainService intruderService = pwmRequest.getPwmDomain().getIntruderService();
+
         if ( userIdentity != null )
         {
             final String subject = userIdentity.toDelimitedKey();
@@ -137,9 +127,17 @@ public class IntruderServiceClient
         }
     }
 
-    public void markAttributes( final Map<FormConfiguration, String> formValues, final SessionLabel sessionLabel )
+    public static void markAttributes( final PwmRequest pwmRequest, final Map<FormConfiguration, String> formValues )
             throws PwmUnrecoverableException
     {
+        markAttributes( pwmRequest.getPwmDomain(), formValues, pwmRequest.getLabel() );
+    }
+
+    public static void markAttributes( final PwmDomain pwmDomain, final Map<FormConfiguration, String> formValues, final SessionLabel sessionLabel )
+            throws PwmUnrecoverableException
+    {
+        final IntruderDomainService intruderService = pwmDomain.getIntruderService();
+
         final List<String> subjects = attributeFormToList( formValues );
         for ( final String subject : subjects )
         {
@@ -147,9 +145,11 @@ public class IntruderServiceClient
         }
     }
 
-    public void clearAttributes( final Map<FormConfiguration, String> formValues )
+    public static void clearAttributes( final PwmDomain pwmDomain, final Map<FormConfiguration, String> formValues )
             throws PwmUnrecoverableException
     {
+        final IntruderDomainService intruderService = pwmDomain.getIntruderService();
+
         final List<String> subjects = attributeFormToList( formValues );
         for ( final String subject : subjects )
         {
@@ -157,9 +157,11 @@ public class IntruderServiceClient
         }
     }
 
-    public void checkAttributes( final Map<FormConfiguration, String> formValues )
+    public static void checkAttributes( final PwmDomain pwmDomain, final Map<FormConfiguration, String> formValues )
             throws PwmUnrecoverableException
     {
+        final IntruderDomainService intruderService = pwmDomain.getIntruderService();
+
         final List<String> subjects = attributeFormToList( formValues );
         for ( final String subject : subjects )
         {
@@ -167,7 +169,7 @@ public class IntruderServiceClient
         }
     }
 
-    private List<String> attributeFormToList( final Map<FormConfiguration, String> formValues )
+    private static List<String> attributeFormToList( final Map<FormConfiguration, String> formValues )
     {
         final List<String> returnList = new ArrayList<>();
         if ( formValues != null )
@@ -182,7 +184,6 @@ public class IntruderServiceClient
                 }
             }
         }
-        return returnList;
+        return Collections.unmodifiableList( returnList );
     }
-
 }

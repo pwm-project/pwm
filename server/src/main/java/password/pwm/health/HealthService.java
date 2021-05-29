@@ -34,6 +34,8 @@ import password.pwm.util.debug.DebugItemGenerator;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StatisticAverageBundle;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
@@ -49,6 +51,7 @@ import java.nio.file.Files;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +84,20 @@ public class HealthService extends AbstractPwmService implements PwmService
     private final Map<HealthMonitorFlag, Serializable> healthProperties = new ConcurrentHashMap<>();
     private final AtomicInteger healthCheckCount = new AtomicInteger( 0 );
 
+    private final StatisticCounterBundle<CounterStatKey> counterStats = new StatisticCounterBundle<>( CounterStatKey.class );
+    private final StatisticAverageBundle<AverageStatKey> averageStats = new StatisticAverageBundle<>( AverageStatKey.class );
+
     private volatile HealthData healthData = emptyHealthData();
+
+    enum CounterStatKey
+    {
+        checks,
+    }
+
+    enum AverageStatKey
+    {
+        checkProcessTime,
+    }
 
     enum HealthMonitorFlag
     {
@@ -151,7 +167,10 @@ public class HealthService extends AbstractPwmService implements PwmService
             LOGGER.trace( () ->  "begin force immediate check" );
             final Future future = getPwmApplication().getPwmScheduler().scheduleJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
             settings.getMaximumForceCheckWait().pause( future::isDone );
-            LOGGER.trace( () ->  "exit force immediate check, done=" + future.isDone(), () -> TimeDuration.fromCurrent( startTime ) );
+            final TimeDuration checkDuration = TimeDuration.fromCurrent( startTime );
+            averageStats.update( AverageStatKey.checkProcessTime, checkDuration );
+            counterStats.increment( CounterStatKey.checks );
+            LOGGER.trace( () ->  "exit force immediate check, done=" + future.isDone(), () -> checkDuration );
         }
 
         getPwmApplication().getPwmScheduler().scheduleJob( new UpdateJob(), executorService, settings.getNominalCheckInterval() );
@@ -267,7 +286,12 @@ public class HealthService extends AbstractPwmService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        return ServiceInfoBean.builder().build();
+        final Map<String, String> debugData = new HashMap<>();
+        debugData.putAll( averageStats.debugStats() );
+        debugData.putAll( counterStats.debugStats() );
+        return ServiceInfoBean.builder()
+                .debugProperties( Collections.unmodifiableMap( debugData ) )
+                .build();
     }
 
     Map<HealthMonitorFlag, Serializable> getHealthProperties( )

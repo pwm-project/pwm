@@ -66,7 +66,7 @@ public class CopyingInputStream extends InputStream
         {
             consumer.accept( b );
         }
-        if ( bytesRead >= 1 )
+        else if ( bytesRead >= 1 )
         {
             final byte[] tempBytes = new byte[bytesRead];
             System.arraycopy( b, off, tempBytes, 0, bytesRead );
@@ -105,7 +105,7 @@ public class CopyingInputStream extends InputStream
         {
             consumer.accept( b );
         }
-        if ( bytesRead >= 1 )
+        else if ( bytesRead >= 1 )
         {
             final byte[] tempBytes = new byte[len];
             System.arraycopy( b, off, tempBytes, 0, bytesRead );

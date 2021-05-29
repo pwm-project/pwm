@@ -948,9 +948,11 @@ PWM_CFGEDIT.selectTemplate = function(newTemplate) {
 PWM_CFGEDIT.loadMainPageBody = function() {
 
     var drawSettingsFunction = function () {
+        var dispatched = false;
         var lastSelected = PWM_MAIN.Preferences.readSessionStorage('configEditor-lastSelected', null);
         if (lastSelected) {
                 PWM_CFGEDIT.dispatchNavigationItem(lastSelected);
+                dispatched = true;
         }
 
         if (!dispatched)

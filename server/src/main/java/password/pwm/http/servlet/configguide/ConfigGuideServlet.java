@@ -361,15 +361,14 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
         final Instant startTime = Instant.now();
         final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
-        final String profile = inputMap.get( "profile" );
-        final String dn = inputMap.getOrDefault( "dn", "" );
+        final String dn = inputMap.getOrDefault( LdapBrowser.PARAM_DN, "" );
 
         final LdapBrowser ldapBrowser = new LdapBrowser(
                 pwmRequest.getLabel(),
                 pwmRequest.getPwmDomain().getLdapConnectionService().getChaiProviderFactory(),
                 storedConfiguration
         );
-        final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse( domainID, profile, dn );
+        final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse( domainID, ConfigGuideForm.LDAP_PROFILE_NAME, dn );
         ldapBrowser.close();
 
         LOGGER.trace( pwmRequest, () -> "performed ldapBrowse operation in "

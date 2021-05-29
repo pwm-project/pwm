@@ -56,6 +56,9 @@ import java.util.TreeMap;
 
 public class LdapBrowser
 {
+    public static final String PARAM_DN = "dn";
+    public static final String PARAM_PROFILE = "profile";
+
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapBrowser.class );
     private final StoredConfiguration storedConfiguration;
 
@@ -63,13 +66,17 @@ public class LdapBrowser
     private final ChaiProviderFactory chaiProviderFactory;
     private final Map<String, ChaiProvider> providerCache = new HashMap<>();
 
+    private enum DnType
+    {
+        navigable,
+        selectable,
+    }
 
     public LdapBrowser(
             final SessionLabel sessionLabel,
             final ChaiProviderFactory chaiProviderFactory,
             final StoredConfiguration storedConfiguration
     )
-            throws PwmUnrecoverableException
     {
         this.sessionLabel = sessionLabel;
         this.chaiProviderFactory = chaiProviderFactory;
@@ -115,33 +122,12 @@ public class LdapBrowser
     {
         final LdapBrowseResult.LdapBrowseResultBuilder result = LdapBrowseResult.builder();
 
-        {
-            final Map<String, Boolean> childDNs = new TreeMap<>( getChildEntries( domainID, profileID, dn ) );
+        updateBrowseResultChildren( domainID, profileID, dn, result );
 
-            final List<DNInformation> navigableDNs = new ArrayList<>();
-            final List<DNInformation> selectableDNs = new ArrayList<>();
-            for ( final Map.Entry<String, Boolean> entry : childDNs.entrySet() )
-            {
-                final String childDN = entry.getKey();
-                final DNInformation dnInformation = new DNInformation( childDN, entryNameFromDN( childDN ) );
-
-                if ( entry.getValue() )
-                {
-                    navigableDNs.add( dnInformation );
-                }
-                else
-                {
-                    selectableDNs.add( dnInformation );
-                }
-            }
-            result.navigableDNlist( navigableDNs );
-            result.selectableDNlist( selectableDNs );
-            result.maxResults( childDNs.size() >= getMaxSizeLimit() );
-
-        }
         result.dn( dn );
         result.profileID( profileID );
         final DomainConfig domainConfig = new AppConfig( storedConfiguration ).getDomainConfigs().get( domainID );
+
         if ( domainConfig.getLdapProfiles().size() > 1 )
         {
             result.profileList( new ArrayList<>( domainConfig.getLdapProfiles().keySet() ) );
@@ -168,6 +154,37 @@ public class LdapBrowser
         return result.build();
     }
 
+    private void updateBrowseResultChildren(
+            final DomainID domainID,
+            final String profileID,
+            final String dn,
+            final LdapBrowseResult.LdapBrowseResultBuilder result
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, ChaiOperationException
+    {
+        final Map<String, DnType> childDNs = new TreeMap<>( getChildEntries( domainID, profileID, dn ) );
+
+        final List<DNInformation> navigableDNs = new ArrayList<>();
+        final List<DNInformation> selectableDNs = new ArrayList<>();
+        for ( final Map.Entry<String, DnType> entry : childDNs.entrySet() )
+        {
+            final String childDN = entry.getKey();
+            final DNInformation dnInformation = new DNInformation( entryNameFromDN( childDN ), childDN );
+
+            if ( entry.getValue() == DnType.navigable )
+            {
+                navigableDNs.add( dnInformation );
+            }
+            else
+            {
+                selectableDNs.add( dnInformation );
+            }
+        }
+        result.navigableDNlist( navigableDNs );
+        result.selectableDNlist( selectableDNs );
+        result.maxResults( childDNs.size() >= getMaxSizeLimit() );
+    }
+
     private ChaiProvider getChaiProvider( final DomainID domainID, final String profile ) throws PwmUnrecoverableException
     {
         if ( !providerCache.containsKey( profile ) )
@@ -186,7 +203,7 @@ public class LdapBrowser
         return Integer.parseInt( appConfig.readAppProperty( AppProperty.LDAP_BROWSER_MAX_ENTRIES ) );
     }
 
-    private Map<String, Boolean> getChildEntries(
+    private Map<String, DnType> getChildEntries(
             final DomainID domainID,
             final String profile,
             final String dn
@@ -194,14 +211,14 @@ public class LdapBrowser
             throws ChaiUnavailableException, PwmUnrecoverableException, ChaiOperationException
     {
 
-        final HashMap<String, Boolean> returnMap = new HashMap<>();
+        final HashMap<String, DnType> returnMap = new HashMap<>();
         final ChaiProvider chaiProvider = getChaiProvider( domainID, profile );
         if ( StringUtil.isEmpty( dn ) && chaiProvider.getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY )
         {
             final Set<String> adRootDNList = adRootDNList( domainID, profile );
             for ( final String rootDN : adRootDNList )
             {
-                returnMap.put( rootDN, true );
+                returnMap.put( rootDN, DnType.navigable );
             }
         }
         else
@@ -215,7 +232,6 @@ public class LdapBrowser
                 searchHelper.setAttributes( "subordinateCount" );
                 searchHelper.setSearchScope( SearchScope.ONE );
                 results = chaiProvider.searchMultiValues( dn, searchHelper );
-
             }
 
             for ( final Map.Entry<String, Map<String, List<String>>> entry : results.entrySet() )
@@ -246,10 +262,10 @@ public class LdapBrowser
                         LOGGER.debug( sessionLabel, () -> "error during subordinate entry count of " + dn + ", error: " + e.getMessage() );
                     }
                 }
-                returnMap.put( resultDN, hasSubs );
+                returnMap.put( resultDN, hasSubs ? DnType.navigable : DnType.selectable );
             }
         }
-        return returnMap;
+        return Collections.unmodifiableMap( returnMap );
     }
 
     private Set<String> adRootDNList( final DomainID domainID, final String profile ) throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException

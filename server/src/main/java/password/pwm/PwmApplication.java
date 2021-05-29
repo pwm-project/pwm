@@ -306,6 +306,9 @@ public class PwmApplication
     {
         final Instant startTime = Instant.now();
 
+        getPwmScheduler().immediateExecuteRunnableInNewThread( UserAgentUtils::initializeCache, "initialize useragent cache" );
+        getPwmScheduler().immediateExecuteRunnableInNewThread( PwmSettingMetaDataReader::initCache, "initialize PwmSetting cache" );
+        
         if ( Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
         {
             outputConfigurationToLog( this );
@@ -355,8 +358,14 @@ public class PwmApplication
             }
         }
 
-        getPwmScheduler().immediateExecuteRunnableInNewThread( UserAgentUtils::initializeCache, "initialize useragent cache" );
-        getPwmScheduler().immediateExecuteRunnableInNewThread( PwmSettingMetaDataReader::initCache, "initialize PwmSetting cache" );
+        if ( Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
+        {
+            getPwmScheduler().immediateExecuteRunnableInNewThread( () ->
+            {
+                outputConfigurationToLog( this );
+                outputNonDefaultPropertiesToLog( this );
+            }, "output configuration to log" );
+        }
 
         MBeanUtility.registerMBean( this );
         LOGGER.trace( () -> "completed post init tasks", () -> TimeDuration.fromCurrent( startTime ) );
@@ -607,11 +616,14 @@ public class PwmApplication
                 PwmConstants.DEFAULT_LOCALE );
 
         LOGGER.trace( () -> "--begin current configuration output--" );
-        debugStrings.entrySet().stream()
+        final long itemCount = debugStrings.entrySet().stream()
                 .map( valueFormatter )
                 .map( s -> ( Supplier<CharSequence> ) () -> s )
-                .forEach( LOGGER::trace );
-        LOGGER.trace( () -> "--end current configuration output--", () -> TimeDuration.fromCurrent( startTime ) );
+                .peek( LOGGER::trace )
+                .count();
+
+        LOGGER.trace( () -> "--end current configuration output of " + itemCount + " items --",
+                () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     private static void outputNonDefaultPropertiesToLog( final PwmApplication pwmApplication )

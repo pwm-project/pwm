@@ -20,8 +20,8 @@
 
 package password.pwm.http.servlet;
 
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.SessionLabel;
@@ -43,6 +43,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.CaptchaUtility;
@@ -163,7 +164,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
                     forgottenUsernameForm, ssBean.getLocale() );
 
             // check for intruder search
-            pwmDomain.getIntruderService().client().checkAttributes( formValues );
+            IntruderServiceClient.checkAttributes( pwmDomain, formValues );
 
             // see if the values meet the configured form requirements.
             FormUtility.validateFormValues( pwmRequest.getDomainConfig(), formValues, ssBean.getLocale() );
@@ -196,7 +197,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
 
             if ( userIdentity == null )
             {
-                pwmDomain.getIntruderService().client().markAddressAndSession( pwmRequest );
+                IntruderServiceClient.markAddressAndSession( pwmDomain, pwmSession );
                 StatisticsClient.incrementStat( pwmRequest, Statistic.FORGOTTEN_USERNAME_FAILURES );
                 setLastError( pwmRequest, PwmError.ERROR_CANT_MATCH_USER.toInfo() );
                 forwardToFormJsp( pwmRequest );
@@ -204,7 +205,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
             }
 
             // make sure the user isn't locked.
-            pwmDomain.getIntruderService().client().checkUserIdentity( userIdentity );
+            IntruderServiceClient.checkUserIdentity( pwmDomain, userIdentity );
 
             final UserInfo forgottenUserInfo = UserInfoFactory.newUserInfoUsingProxy(
                     pwmRequest.getPwmApplication(),
@@ -215,8 +216,8 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
             // send username
             sendUsername( pwmDomain, pwmRequest, forgottenUserInfo );
 
-            pwmDomain.getIntruderService().client().clearAddressAndSession( pwmSession );
-            pwmDomain.getIntruderService().client().clearAttributes( formValues );
+            IntruderServiceClient.clearAddressAndSession( pwmDomain, pwmSession );
+            IntruderServiceClient.clearAttributes( pwmDomain, formValues );
 
             StatisticsClient.incrementStat( pwmRequest, Statistic.FORGOTTEN_USERNAME_SUCCESSES );
 
@@ -233,8 +234,8 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
                     e.getErrorInformation().getFieldValues() )
                     : e.getErrorInformation();
             setLastError( pwmRequest, errorInfo );
-            pwmDomain.getIntruderService().client().markAddressAndSession( pwmRequest );
-            pwmDomain.getIntruderService().client().markAttributes( formValues, pwmRequest.getLabel() );
+            IntruderServiceClient.markAddressAndSession( pwmDomain, pwmSession );
+            IntruderServiceClient.markAttributes( pwmDomain, formValues, pwmRequest.getLabel() );
         }
 
         StatisticsClient.incrementStat( pwmRequest, Statistic.FORGOTTEN_USERNAME_FAILURES );

@@ -43,6 +43,7 @@ import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmSessionFactory;
 import password.pwm.http.PwmURL;
+import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsService;
@@ -621,7 +622,7 @@ public class RequestInitializationFilter implements Filter
         checkTrial( pwmRequest );
 
         // check intruder
-        pwmRequest.getPwmDomain().getIntruderService().client().checkAddressAndSession( pwmRequest.getPwmSession() );
+        IntruderServiceClient.checkAddressAndSession( pwmRequest.getPwmDomain(), pwmRequest.getPwmSession() );
     }
 
     private static void checkIfSourceAddressChanged( final PwmRequest pwmRequest )

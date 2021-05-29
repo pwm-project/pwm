@@ -130,16 +130,12 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
 
         getLogger().trace( getSessionLabel(), () -> "opening with configuration: " + JsonUtil.serialize( wordlistConfiguration ) );
 
-        warmup();
-
         return STATUS.OPEN;
     }
 
     protected abstract WordlistType getWordlistType();
 
     protected abstract PwmLogger getLogger();
-
-    protected abstract void warmup();
 
     private void startTestInstance( final WordlistType wordlistType )
     {
@@ -301,6 +297,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
 
         setStatus( STATUS.CLOSED );
         inhibitBackgroundImportFlag.set( true );
+
         if ( executorService != null )
         {
             executorService.shutdown();
@@ -369,6 +366,11 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
 
     void writeWordlistStatus( final WordlistStatus wordlistStatus )
     {
+        if ( status() == STATUS.CLOSED )
+        {
+            return;
+        }
+
         wordTypesCache = null;
         wordlistBucket.writeWordlistStatus( wordlistStatus );
     }
@@ -559,6 +561,6 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
     private BooleanSupplier makeProcessCancelSupplier( )
     {
         return () -> inhibitBackgroundImportFlag.get()
-                || !STATUS.OPEN.equals( status() );
+                || STATUS.OPEN != status();
     }
 }

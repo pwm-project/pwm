@@ -51,6 +51,7 @@ import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.intruder.IntruderDomainService;
 import password.pwm.svc.intruder.IntruderRecordType;
+import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
@@ -212,7 +213,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
         log( PwmLogLevel.DEBUG, () -> "preparing to authenticate user using authenticationType=" + this.requestedAuthType + " using strategy " + this.strategy );
 
         final IntruderDomainService intruderManager = pwmDomain.getIntruderService();
-        intruderManager.client().checkUserIdentity( userIdentity );
+        IntruderServiceClient.checkUserIdentity( pwmDomain, userIdentity );
         intruderManager.check( IntruderRecordType.ADDRESS, sessionLabel.getSourceAddress() );
 
         // verify user is not account disabled

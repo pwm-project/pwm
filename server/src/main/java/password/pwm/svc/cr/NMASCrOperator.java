@@ -595,7 +595,7 @@ public class NMASCrOperator implements CrOperator
                 try
                 {
                     cycle();
-                    pwmDomain.getIntruderService().client().checkUserIdentity( userIdentity );
+                    IntruderServiceClient.checkUserIdentity( pwmDomain, userIdentity );
                     if ( challengeSet == null )
                     {
                         final String errorMsg = "unable to load next challenge set";

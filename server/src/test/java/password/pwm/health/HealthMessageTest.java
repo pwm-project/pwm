@@ -56,7 +56,11 @@ public class HealthMessageTest
         {
             for ( final HealthMessage healthMessage : HealthMessage.values() )
             {
-                healthMessage.getDescription( locale, domainConfig, new String[]{"field1", "field2"} );
+                healthMessage.getDescription( locale, domainConfig, new String[]
+                        {
+                                "field1",
+                                "field2",
+                        } );
             }
         }
     }

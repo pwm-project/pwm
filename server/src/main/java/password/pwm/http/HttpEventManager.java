@@ -33,6 +33,8 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.servlet.ServletRequestEvent;
+import javax.servlet.ServletRequestListener;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionActivationListener;
 import javax.servlet.http.HttpSessionEvent;
@@ -51,7 +53,8 @@ import java.util.logging.Logger;
 public class HttpEventManager implements
         ServletContextListener,
         HttpSessionListener,
-        HttpSessionActivationListener
+        HttpSessionActivationListener,
+        ServletRequestListener
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HttpEventManager.class );
 
@@ -181,6 +184,18 @@ public class HttpEventManager implements
         final TimeDuration avgReqDuration =  sessionStateBean.getAvgRequestDuration().getAverageAsDuration();
         debugItems.put( "avgRequestDuration", avgReqDuration.asCompactString() );
         return StringHelper.stringMapToString( debugItems, "," );
+    }
+
+    @Override
+    public void requestDestroyed( final ServletRequestEvent sre )
+    {
+        ServletRequestListener.super.requestDestroyed( sre );
+    }
+
+    @Override
+    public void requestInitialized( final ServletRequestEvent sre )
+    {
+        ServletRequestListener.super.requestInitialized( sre );
     }
 }
 

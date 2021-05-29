@@ -37,19 +37,18 @@ public class Percent
 
     private Percent( final BigDecimal numerator, final BigDecimal denominator )
     {
-        if ( numerator == null )
+        if ( numerator == null || denominator == null )
         {
-            throw new NullPointerException( "numerator cannot be null" );
+            percentage = BigDecimal.ZERO;
         }
-        if ( denominator == null )
+        else if ( denominator.compareTo( BigDecimal.ZERO ) <= 0 )
         {
-            throw new NullPointerException( "denominator cannot be null" );
+            percentage = BigDecimal.ZERO;
         }
-        if ( denominator.compareTo( BigDecimal.ZERO ) <= 0 )
+        else
         {
-            throw new NullPointerException( "denominator must be greater than zero" );
+            percentage = numerator.divide( denominator, MathContext.DECIMAL32 ).multiply( BIG_DECIMAL_ONE_HUNDRED );
         }
-        percentage = numerator.divide( denominator, MathContext.DECIMAL32 ).multiply( BIG_DECIMAL_ONE_HUNDRED );
     }
 
     public static Percent of( final BigDecimal numerator, final long denominator )

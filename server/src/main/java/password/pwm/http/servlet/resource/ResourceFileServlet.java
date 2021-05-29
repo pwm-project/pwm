@@ -84,51 +84,15 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
         try
         {
             pwmRequest = PwmRequest.forRequest( req, resp );
+            processAction( pwmRequest );
+            return;
         }
         catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( () -> "unable to satisfy request using standard mechanism, reverting to raw resource server" );
         }
 
-        if ( pwmRequest != null )
-        {
-            try
-            {
-                processAction( pwmRequest );
-            }
-            catch ( final PwmUnrecoverableException e )
-            {
-                LOGGER.error( pwmRequest, () -> "error during resource servlet request processing: " + e.getMessage() );
-            }
-        }
-        else
-        {
-            try
-            {
-                rawRequestProcessor( req, resp );
-            }
-            catch ( final PwmUnrecoverableException e )
-            {
-                LOGGER.error( () -> "error serving raw resource request: " + e.getMessage() );
-            }
-        }
-    }
-
-    private void rawRequestProcessor( final HttpServletRequest req, final HttpServletResponse resp )
-            throws IOException, PwmUnrecoverableException
-    {
-
-        final ResourceFileRequest resourceFileRequest = new ResourceFileRequest( null, ResourceServletConfiguration.defaultConfiguration(), req );
-
-        final Optional<FileResource> file = resourceFileRequest.getRequestedFileResource();
-
-        if ( file.isEmpty() )
-        {
-            resp.sendError( HttpServletResponse.SC_NOT_FOUND );
-            return;
-        }
-
-        handleUncachedResponse( resp, file.get(), false );
+        resp.sendError( 500, "unable to initialize request for resource url" );
     }
 
     protected void processAction( final PwmRequest pwmRequest )

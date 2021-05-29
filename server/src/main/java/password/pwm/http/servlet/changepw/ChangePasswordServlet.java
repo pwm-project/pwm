@@ -51,6 +51,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditServiceClient;
+import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
@@ -296,8 +297,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
             if ( !passed )
             {
-                pwmRequest.getPwmDomain().getIntruderService().client().markUserIdentity(
-                        userInfo.getUserIdentity(), pwmRequest.getLabel() );
+                IntruderServiceClient.markUserIdentity( pwmRequest, userInfo.getUserIdentity() );
                 LOGGER.debug( pwmRequest, () -> "failed password validation check: currentPassword value is incorrect" );
                 setLastError( pwmRequest, new ErrorInformation( PwmError.ERROR_BAD_CURRENT_PASSWORD ) );
                 return ProcessStatus.Continue;
@@ -320,8 +320,8 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            pwmRequest.getPwmDomain().getIntruderService().client().markAddressAndSession( pwmRequest );
-            pwmRequest.getPwmDomain().getIntruderService().client().markUserIdentity( userInfo.getUserIdentity(), pwmRequest.getLabel() );
+            IntruderServiceClient.markAddressAndSession( pwmRequest.getPwmDomain(), pwmRequest.getPwmSession() );
+            IntruderServiceClient.markUserIdentity( pwmRequest, userInfo.getUserIdentity() );
             LOGGER.debug( pwmRequest, e.getErrorInformation() );
             setLastError( pwmRequest, e.getErrorInformation() );
             return ProcessStatus.Continue;

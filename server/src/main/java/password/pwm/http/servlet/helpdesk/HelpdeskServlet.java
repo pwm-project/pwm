@@ -72,7 +72,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.event.HelpdeskAuditRecord;
-import password.pwm.svc.intruder.IntruderDomainService;
+import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.otp.OTPUserRecord;
 import password.pwm.svc.otp.OtpService;
 import password.pwm.svc.secure.DomainSecureService;
@@ -609,11 +609,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
 
         //clear pwm intruder setting.
-        {
-            final IntruderDomainService intruderManager = pwmRequest.getPwmDomain().getIntruderService();
-            intruderManager.client().clearUserIdentity( userIdentity );
-        }
-
+        IntruderServiceClient.clearUserIdentity( pwmRequest, userIdentity );
 
         try
         {
@@ -951,7 +947,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
 
         //clear pwm intruder setting.
-        pwmRequest.getPwmDomain().getIntruderService().client().clearUserIdentity( userIdentity );
+        IntruderServiceClient.clearUserIdentity( pwmRequest, userIdentity );
 
         try
         {

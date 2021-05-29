@@ -878,8 +878,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
-        final String profile = inputMap.get( "profile" );
-        final String dn = inputMap.getOrDefault( "dn", "" );
+        final String profile = inputMap.get( LdapBrowser.PARAM_PROFILE );
+        final String dn = inputMap.getOrDefault( LdapBrowser.PARAM_DN, "" );
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForDomainSetting(  );
 
         final LdapBrowser ldapBrowser = new LdapBrowser(

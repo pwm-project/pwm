@@ -400,13 +400,6 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
         }
     }
 
-
-
-    public IntruderServiceClient client( )
-    {
-        return new IntruderServiceClient( pwmDomain, this );
-    }
-
     private static void sendIntruderNoticeEmail(
             final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,

@@ -20,6 +20,7 @@
 
 package password.pwm.http.servlet.resource;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import lombok.Value;
 import org.webjars.WebJarAssetLocator;
 import password.pwm.config.DomainConfig;
@@ -58,16 +59,16 @@ class ResourceFileRequest
     /** Contains a list of all resources (files) found inside the resources folder of all JARs in the WAR's classpath. **/
     private static final Collection<String> WEB_JAR_ASSET_LIST = Collections.unmodifiableCollection( new ArrayList<>( new WebJarAssetLocator().listAssets() ) );
 
-    private final HttpServletRequest httpServletRequest;
     private final DomainConfig domainConfig;
+    private final HttpServletRequest httpServletRequest;
     private final ResourceServletConfiguration resourceServletConfiguration;
 
     private final Optional<FileResource> fileResource;
 
     ResourceFileRequest(
-            final DomainConfig domainConfig,
-            final ResourceServletConfiguration resourceServletConfiguration,
-            final HttpServletRequest httpServletRequest
+            @NonNull final DomainConfig domainConfig,
+            @NonNull final ResourceServletConfiguration resourceServletConfiguration,
+            @NonNull final HttpServletRequest httpServletRequest
     )
             throws PwmUnrecoverableException
     {
@@ -145,7 +146,9 @@ class ResourceFileRequest
             final String contentType = getRawMimeType();
             if ( contentType.startsWith( "text" ) || contentType.contains( "javascript" ) )
             {
-                final PwmHttpRequestWrapper pwmHttpRequestWrapper = new PwmHttpRequestWrapper( httpServletRequest, domainConfig.getAppConfig() );
+                final PwmHttpRequestWrapper pwmHttpRequestWrapper = new PwmHttpRequestWrapper(
+                        httpServletRequest,
+                        domainConfig.getAppConfig() );
                 final String acceptEncoding = pwmHttpRequestWrapper.readHeaderValueAsString( HttpHeader.AcceptEncoding );
                 return acceptEncoding != null && accepts( acceptEncoding, "gzip" );
             }

@@ -21,7 +21,6 @@
 package password.pwm.svc.event;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmApplicationMode;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmUnrecoverableException;
@@ -42,12 +41,6 @@ public class AuditServiceClient
     {
         Objects.requireNonNull( pwmApplication );
         Objects.requireNonNull( auditRecord );
-
-        if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING || pwmApplication.getApplicationMode() != PwmApplicationMode.CONFIGURATION )
-        {
-            LOGGER.trace( sessionLabel, () -> "discarding event, application not running: " + JsonUtil.serialize( auditRecord ) );
-            return;
-        }
 
         final AuditService auditService = pwmApplication.getAuditService();
         try

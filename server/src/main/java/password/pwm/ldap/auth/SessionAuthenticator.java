@@ -48,6 +48,7 @@ import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.intruder.IntruderDomainService;
 import password.pwm.svc.intruder.IntruderRecordType;
+import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
@@ -343,7 +344,7 @@ public class SessionAuthenticator
         final IntruderDomainService intruderManager = pwmDomain.getIntruderService();
         if ( intruderManager != null )
         {
-            intruderManager.client().markAddressAndSession( pwmRequest );
+            IntruderServiceClient.markAddressAndSession( pwmRequest.getPwmDomain(), pwmRequest.getPwmSession() );
 
             if ( username != null )
             {
@@ -352,7 +353,7 @@ public class SessionAuthenticator
 
             if ( userIdentity != null )
             {
-                intruderManager.client().markUserIdentity( userIdentity, sessionLabel );
+                IntruderServiceClient.markUserIdentity( pwmRequest, userIdentity );
             }
         }
     }
@@ -415,8 +416,8 @@ public class SessionAuthenticator
 
         //notify the intruder manager with a successful login
         intruderManager.clear( IntruderRecordType.USERNAME, pwmSession.getUserInfo().getUsername() );
-        intruderManager.client().clearUserIdentity( userIdentity );
-        intruderManager.client().clearAddressAndSession( pwmSession );
+        IntruderServiceClient.clearUserIdentity( pwmRequest, userIdentity );
+        IntruderServiceClient.clearAddressAndSession( pwmDomain, pwmSession );
 
         if ( pwmSession.getUserInfo().getPasswordStatus().isWarnPeriod() )
         {

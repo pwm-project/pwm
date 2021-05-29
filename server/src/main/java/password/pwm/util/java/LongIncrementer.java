@@ -18,34 +18,27 @@
  * limitations under the License.
  */
 
-package password.pwm.svc.wordlist;
+package password.pwm.util.java;
 
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.logging.PwmLogger;
-
-public class SeedlistService extends AbstractWordlist implements Wordlist
+/**
+ * Simple long incrementer.  Not thread safe.
+ */
+public class LongIncrementer
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( SeedlistService.class );
+    private long value;
 
-    public SeedlistService()
+    public LongIncrementer( final long value )
     {
+        this.value = value;
     }
 
-    @Override
-    protected WordlistType getWordlistType()
+    public long next()
     {
-        return WordlistType.SEEDLIST;
+        return value++;
     }
 
-    @Override
-    protected PwmLogger getLogger()
+    public long get()
     {
-        return LOGGER;
-    }
-
-    @Override
-    public String randomSeed() throws PwmUnrecoverableException
-    {
-        return super.randomSeed();
+        return value;
     }
 }

@@ -146,13 +146,6 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
             localDB.put( LocalDB.DB.OTP_SECRET, userGUID, value );
             LOGGER.info( pwmRequest, () -> "saved OTP secret for user in LocalDB" );
         }
-        catch ( final LocalDBException ex )
-        {
-            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, "unexpected LocalDB error saving otp to localDB: " + ex.getMessage() );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( ex );
-            throw pwmOE;
-        }
         catch ( final PwmOperationalException ex )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp to localDB: " + ex.getMessage() );
