@@ -72,7 +72,7 @@ public class XodusLocalDB implements LocalDBProvider
 
     private static final String FILE_SUB_PATH = "xodus";
     private static final String README_FILENAME = "README.TXT";
-    private static final int DEFAULT_MEMORY_USAGE = 500 * 1024 * 1024;
+    private static final int DEFAULT_MEMORY_USAGE = 50 * 1024 * 1024;
 
     private Environment environment;
     private File fileLocation;
