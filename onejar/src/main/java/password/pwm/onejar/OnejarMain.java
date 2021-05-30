@@ -117,6 +117,7 @@ public class OnejarMain
             catch ( final OnejarException | ServletException | IOException e )
             {
                 out( "error starting tomcat: " + e.getMessage() );
+                e.printStackTrace();
             }
         }
 

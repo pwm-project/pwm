@@ -43,14 +43,18 @@ public class AuditServiceClient
         Objects.requireNonNull( auditRecord );
 
         final AuditService auditService = pwmApplication.getAuditService();
-        try
+
+        if ( auditService != null )
         {
-            auditService.submit( sessionLabel, auditRecord );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            LOGGER.error( sessionLabel, () -> "unexpected error submitting audit event: '"
-                    + JsonUtil.serialize( auditRecord ) + "' , error: " + e.getMessage(), e );
+            try
+            {
+                auditService.submit( sessionLabel, auditRecord );
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                LOGGER.error( sessionLabel, () -> "unexpected error submitting audit event: '"
+                        + JsonUtil.serialize( auditRecord ) + "' , error: " + e.getMessage(), e );
+            }
         }
     }
 
