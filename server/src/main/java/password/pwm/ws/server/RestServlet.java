@@ -79,8 +79,6 @@ public abstract class RestServlet extends HttpServlet
     {
         final Instant startTime = Instant.now();
 
-        RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE ), true );
-
         final PwmApplication pwmApplication;
         try
         {
@@ -88,15 +86,8 @@ public abstract class RestServlet extends HttpServlet
         }
         catch ( final PwmUnrecoverableException e )
         {
-            outputRestResultBean( restResultBean, req, resp );
+            outputRestResultBean( RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE ), true ), req, resp );
             return;
-        }
-
-        final Locale locale;
-        {
-            final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
-            locale = LocaleHelper.localeResolver( req.getLocale(), knownLocales );
-            resp.setHeader( HttpHeader.ContentLanguage.getHttpName(), LocaleHelper.getBrowserLocaleString( locale ) );
         }
 
         final PwmDomain pwmDomain;
@@ -107,10 +98,11 @@ public abstract class RestServlet extends HttpServlet
         }
         catch ( final PwmUnrecoverableException e )
         {
-            outputRestResultBean( restResultBean, req, resp );
+            outputRestResultBean( RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE ), true ), req, resp );
             return;
         }
 
+        final Locale locale = readLocale( pwmApplication, req, resp );
 
         final SessionLabel sessionLabel;
         try
@@ -124,7 +116,7 @@ public abstract class RestServlet extends HttpServlet
         }
         catch ( final PwmUnrecoverableException e )
         {
-            restResultBean = RestResultBean.fromError(
+            final RestResultBean restResultBean  = RestResultBean.fromError(
                     e.getErrorInformation(),
                     pwmDomain,
                     locale,
@@ -135,6 +127,88 @@ public abstract class RestServlet extends HttpServlet
             return;
         }
 
+        logHttpRequest( pwmApplication, req, sessionLabel );
+
+        if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING )
+        {
+            outputRestResultBean( RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE ), true ), req, resp );
+            return;
+        }
+
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.ENABLE_EXTERNAL_WEBSERVICES ) )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "webservices are not enabled" );
+            final RestResultBean restResultBean = RestResultBean.fromError(
+                    errorInformation,
+                    pwmDomain,
+                    locale,
+                    pwmDomain.getConfig(),
+                    pwmDomain.determineIfDetailErrorMsgShown() );
+            outputRestResultBean( restResultBean, req, resp );
+            return;
+        }
+
+        final RestResultBean restResultBean = executeRequest( req, resp, locale, pwmApplication, pwmDomain, sessionLabel );
+
+        outputRestResultBean( restResultBean, req, resp );
+        final boolean success = restResultBean != null && !restResultBean.isError();
+        LOGGER.trace( sessionLabel, () -> "completed rest invocation, success=" + success, () -> TimeDuration.fromCurrent( startTime ) );
+    }
+
+   private RestResultBean executeRequest(
+           final HttpServletRequest req,
+           final HttpServletResponse resp,
+           final Locale locale,
+           final PwmApplication pwmApplication,
+           final PwmDomain pwmDomain,
+           final SessionLabel sessionLabel
+   )
+   {
+       try
+       {
+           final RestAuthentication restAuthentication = new RestAuthenticationProcessor( pwmDomain, sessionLabel, req ).readRestAuthentication();
+           LOGGER.debug( sessionLabel, () -> "rest request authentication status: " + JsonUtil.serialize( restAuthentication ) );
+
+           final RestRequest restRequest = RestRequest.forRequest( pwmDomain, restAuthentication, sessionLabel, req );
+
+           RequestInitializationFilter.addStaticResponseHeaders( pwmApplication, req, resp );
+
+           preCheck( restRequest );
+
+           preCheckRequest( restRequest );
+
+           return invokeWebService( restRequest );
+       }
+       catch ( final PwmUnrecoverableException e )
+       {
+           return RestResultBean.fromError(
+                   e.getErrorInformation(),
+                   pwmDomain,
+                   locale,
+                   pwmDomain.getConfig(),
+                   pwmDomain.determineIfDetailErrorMsgShown()
+           );
+       }
+       catch ( final Throwable e )
+       {
+           final String errorMsg = "internal error during rest service invocation: " + e.getMessage();
+           final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
+           LOGGER.error( sessionLabel, errorInformation, e );
+           return RestResultBean.fromError(
+                   errorInformation,
+                   pwmDomain,
+                   locale,
+                   pwmDomain.getConfig(),
+                   pwmDomain.determineIfDetailErrorMsgShown() );
+       }
+   }
+
+    private static void logHttpRequest(
+            final PwmApplication pwmApplication,
+            final HttpServletRequest req,
+            final SessionLabel sessionLabel
+    )
+    {
         try
         {
             if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
@@ -148,67 +222,18 @@ public abstract class RestServlet extends HttpServlet
         {
             LOGGER.error( () -> "error while trying to log HTTP request data " + e.getMessage(), e );
         }
+    }
 
-        if ( pwmApplication.getApplicationMode() != PwmApplicationMode.RUNNING )
-        {
-            outputRestResultBean( restResultBean, req, resp );
-            return;
-        }
-
-        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.ENABLE_EXTERNAL_WEBSERVICES ) )
-        {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "webservices are not enabled" );
-            restResultBean = RestResultBean.fromError(
-                    errorInformation,
-                    pwmDomain,
-                    locale,
-                    pwmDomain.getConfig(),
-                    pwmDomain.determineIfDetailErrorMsgShown() );
-            outputRestResultBean( restResultBean, req, resp );
-            return;
-        }
-
-        try
-        {
-            final RestAuthentication restAuthentication = new RestAuthenticationProcessor( pwmDomain, sessionLabel, req ).readRestAuthentication();
-            LOGGER.debug( sessionLabel, () -> "rest request authentication status: " + JsonUtil.serialize( restAuthentication ) );
-
-            final RestRequest restRequest = RestRequest.forRequest( pwmDomain, restAuthentication, sessionLabel, req );
-
-            RequestInitializationFilter.addStaticResponseHeaders( pwmApplication, req, resp );
-
-            preCheck( restRequest );
-
-            preCheckRequest( restRequest );
-
-            restResultBean = invokeWebService( restRequest );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            restResultBean = RestResultBean.fromError(
-                    e.getErrorInformation(),
-                    pwmDomain,
-                    locale,
-                    pwmDomain.getConfig(),
-                    pwmDomain.determineIfDetailErrorMsgShown()
-            );
-        }
-        catch ( final Throwable e )
-        {
-            final String errorMsg = "internal error during rest service invocation: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-            restResultBean = RestResultBean.fromError(
-                    errorInformation,
-                    pwmDomain,
-                    locale,
-                    pwmDomain.getConfig(),
-                    pwmDomain.determineIfDetailErrorMsgShown() );
-            LOGGER.error( sessionLabel, errorInformation, e );
-        }
-
-        outputRestResultBean( restResultBean, req, resp );
-        final boolean success = restResultBean != null && !restResultBean.isError();
-        LOGGER.trace( sessionLabel, () -> "completed rest invocation, success=" + success, () -> TimeDuration.fromCurrent( startTime ) );
+    private static Locale readLocale(
+            final PwmApplication pwmApplication,
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+    {
+        final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
+        final Locale locale = LocaleHelper.localeResolver( req.getLocale(), knownLocales );
+        resp.setHeader( HttpHeader.ContentLanguage.getHttpName(), LocaleHelper.getBrowserLocaleString( locale ) );
+        return locale;
     }
 
     private RestResultBean invokeWebService( final RestRequest restRequest ) throws IOException, PwmUnrecoverableException

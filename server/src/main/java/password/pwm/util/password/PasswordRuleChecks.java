@@ -509,7 +509,7 @@ public class PasswordRuleChecks
                 if ( complexityLevel == ADPolicyComplexity.AD2003 || complexityLevel == ADPolicyComplexity.AD2008 )
                 {
                     final int maxGroupViolations = ruleHelper.readIntValue( PwmPasswordRule.ADComplexityMaxViolations );
-                    errorList.addAll( PwmPasswordRuleUtil.checkPasswordForADComplexity(
+                    errorList.addAll( PwmPasswordAdRuleUtil.checkPasswordForADComplexity(
                             complexityLevel,
                             ruleCheckData.getUserInfo(),
                             password,

@@ -752,68 +752,21 @@ class PeopleSearchDataReader
 
         final Instant startTime = Instant.now();
 
-        final SearchRequestBean.SearchMode searchMode = searchRequest.getMode() == null
-                ? SearchRequestBean.SearchMode.simple
-                : searchRequest.getMode();
-
         final SearchConfiguration searchConfiguration;
         {
-            final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
-            builder.contexts( this.peopleSearchConfiguration.getLdapBase() );
-            builder.enableContextValidation( false );
-            builder.enableValueEscaping( false );
-            builder.enableSplitWhitespace( true );
 
-            if ( !useProxy() )
+
+            final Optional<SearchConfiguration> optionalSearchConfiguration = makeSearchConfiguration( searchRequest );
+            if ( optionalSearchConfiguration.isPresent() )
             {
-                builder.ldapProfile( pwmRequest.getPwmSession().getUserInfo().getUserIdentity().getLdapProfileID() );
-                builder.chaiProvider( pwmRequest.getPwmSession().getSessionManager().getChaiProvider() );
+                searchConfiguration = optionalSearchConfiguration.get();
             }
-
-            switch ( searchMode )
+            else
             {
-                case simple:
-                {
-                    if ( StringUtil.isEmpty( searchRequest.getUsername() ) )
-                    {
-                        return SearchResultBean.builder().searchResults( Collections.emptyList() ).build();
-                    }
-
-                    builder.filter( makeSimpleSearchFilter() );
-                    builder.username( searchRequest.getUsername() );
-                }
-                break;
-
-                case advanced:
-                {
-                    if ( CollectionUtil.isEmpty( searchRequest.nonEmptySearchValues() ) )
-                    {
-                        return SearchResultBean.builder().searchResults( Collections.emptyList() ).build();
-                    }
-
-                    final Map<FormConfiguration, String> formValues = new LinkedHashMap<>();
-                    final Map<String, String> requestSearchValues = SearchRequestBean.searchValueToMap( searchRequest.getSearchValues() );
-                    for ( final FormConfiguration formConfiguration : peopleSearchConfiguration.getSearchForm() )
-                    {
-                        final String attribute = formConfiguration.getName();
-                        final String value = requestSearchValues.get( attribute );
-                        if ( StringUtil.notEmpty( value ) )
-                        {
-                            formValues.put( formConfiguration, value );
-                        }
-                    }
-
-                    builder.filter( makeAdvancedFilter( requestSearchValues ) );
-                    builder.formValues( formValues );
-                }
-                break;
-
-                default:
-                    JavaHelper.unhandledSwitchStatement( searchMode );
+                return SearchResultBean.builder().searchResults( Collections.emptyList() ).build();
             }
-
-            searchConfiguration = builder.build();
         }
+
 
         final UserSearchEngine userSearchEngine = pwmRequest.getPwmDomain().getUserSearchEngine();
 
@@ -830,7 +783,7 @@ class PeopleSearchDataReader
         catch ( final PwmOperationalException e )
         {
             final ErrorInformation errorInformation = e.getErrorInformation();
-            LOGGER.error( pwmRequest.getLabel(), () -> errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest.getLabel(), errorInformation::toDebugStr );
             throw new PwmUnrecoverableException( errorInformation );
         }
 
@@ -870,6 +823,72 @@ class PeopleSearchDataReader
                 .searchResults( resultOutput )
                 .aboutResultMessage( aboutMessage )
                 .build();
+    }
+
+    private Optional<SearchConfiguration> makeSearchConfiguration(
+            final SearchRequestBean searchRequest
+    )
+            throws PwmUnrecoverableException
+    {
+        final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
+        builder.contexts( this.peopleSearchConfiguration.getLdapBase() );
+        builder.enableContextValidation( false );
+        builder.enableValueEscaping( false );
+        builder.enableSplitWhitespace( true );
+
+        if ( !useProxy() )
+        {
+            builder.ldapProfile( pwmRequest.getPwmSession().getUserInfo().getUserIdentity().getLdapProfileID() );
+            builder.chaiProvider( pwmRequest.getPwmSession().getSessionManager().getChaiProvider() );
+        }
+
+        final SearchRequestBean.SearchMode searchMode = searchRequest.getMode() == null
+                ? SearchRequestBean.SearchMode.simple
+                : searchRequest.getMode();
+
+        switch ( searchMode )
+        {
+            case simple:
+            {
+                if ( StringUtil.isEmpty( searchRequest.getUsername() ) )
+                {
+                    return Optional.empty();
+                }
+
+                builder.filter( makeSimpleSearchFilter() );
+                builder.username( searchRequest.getUsername() );
+            }
+            break;
+
+            case advanced:
+            {
+                if ( CollectionUtil.isEmpty( searchRequest.nonEmptySearchValues() ) )
+                {
+                    return Optional.empty();
+                }
+
+                final Map<FormConfiguration, String> formValues = new LinkedHashMap<>();
+                final Map<String, String> requestSearchValues = SearchRequestBean.searchValueToMap( searchRequest.getSearchValues() );
+                for ( final FormConfiguration formConfiguration : peopleSearchConfiguration.getSearchForm() )
+                {
+                    final String attribute = formConfiguration.getName();
+                    final String value = requestSearchValues.get( attribute );
+                    if ( StringUtil.notEmpty( value ) )
+                    {
+                        formValues.put( formConfiguration, value );
+                    }
+                }
+
+                builder.filter( makeAdvancedFilter( requestSearchValues ) );
+                builder.formValues( formValues );
+            }
+            break;
+
+            default:
+                JavaHelper.unhandledSwitchStatement( searchMode );
+        }
+
+        return Optional.of( builder.build() );
     }
 
     private String readUserAttribute(

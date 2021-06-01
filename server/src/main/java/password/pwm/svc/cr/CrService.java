@@ -58,6 +58,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -277,78 +278,11 @@ public class CrService extends AbstractPwmService implements PwmService
         //strip null keys from responseMap;
         responseMap.keySet().removeIf( Objects::isNull );
 
-        {
-            // check for missing question texts
-            for ( final Challenge challenge : responseMap.keySet() )
-            {
-                if ( !challenge.isAdminDefined() )
-                {
-                    final String text = challenge.getChallengeText();
-                    if ( text == null || text.length() < 1 )
-                    {
-                        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_CHALLENGE_TEXT );
-                        throw new PwmDataValidationException( errorInformation );
-                    }
-                }
-            }
-        }
+        checkResponsesForMissingQuestionsText( responseMap );
 
-        {
-            // check responses against wordlist
-            final WordlistService wordlistManager = pwmDomain.getPwmApplication().getWordlistService();
-            if ( wordlistManager.status() == PwmService.STATUS.OPEN )
-            {
-                for ( final Map.Entry<Challenge, String> entry : responseMap.entrySet() )
-                {
-                    final Challenge loopChallenge = entry.getKey();
-                    if ( loopChallenge.isEnforceWordlist() )
-                    {
-                        final String answer = entry.getValue();
-                        if ( wordlistManager.containsWord( answer ) )
-                        {
-                            final ErrorInformation errorInfo = new ErrorInformation(
-                                    PwmError.ERROR_RESPONSE_WORDLIST,
-                                    null,
-                                    new String[]
-                                            {
-                                                    loopChallenge.getChallengeText(),
-                                                    }
-                            );
-                            throw new PwmDataValidationException( errorInfo );
-                        }
-                    }
-                }
-            }
-        }
+        checkResponsesAgainstWordlist( responseMap );
 
-        {
-            // check for duplicate questions.  need to check the actual req params because the following dupes wont populate duplicates
-            final Set<String> userQuestionTexts = new HashSet<>();
-            for ( final Challenge challenge : responseMap.keySet() )
-            {
-                final String text = challenge.getChallengeText();
-                if ( text != null )
-                {
-                    if ( userQuestionTexts.contains( text.toLowerCase() ) )
-                    {
-                        final String errorMsg = "duplicate challenge text: " + text;
-                        final ErrorInformation errorInformation = new ErrorInformation(
-                                PwmError.ERROR_CHALLENGE_DUPLICATE,
-                                errorMsg,
-                                new String[]
-                                        {
-                                                text,
-                                                }
-                        );
-                        throw new PwmDataValidationException( errorInformation );
-                    }
-                    else
-                    {
-                        userQuestionTexts.add( text.toLowerCase() );
-                    }
-                }
-            }
-        }
+        checkForDuplicateQuestions( responseMap );
 
         int randomCount = 0;
         for ( final Challenge loopChallenge : responseMap.keySet() )
@@ -382,6 +316,85 @@ public class CrService extends AbstractPwmService implements PwmService
             final String errorMsg = "empty response set";
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, errorMsg );
             throw new PwmDataValidationException( errorInfo );
+        }
+    }
+
+    private void checkResponsesForMissingQuestionsText( final Map<Challenge, String> responseMap )
+            throws PwmDataValidationException
+    {
+        for ( final Challenge challenge : responseMap.keySet() )
+        {
+            if ( !challenge.isAdminDefined() )
+            {
+                if ( StringUtil.isEmpty( challenge.getChallengeText() ) )
+                {
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_CHALLENGE_TEXT );
+                    throw new PwmDataValidationException( errorInformation );
+                }
+            }
+        }
+
+    }
+
+    private void checkResponsesAgainstWordlist( final Map<Challenge, String> responseMap )
+            throws PwmDataValidationException, PwmUnrecoverableException
+    {
+        final WordlistService wordlistManager = pwmDomain.getPwmApplication().getWordlistService();
+        if ( wordlistManager == null || wordlistManager.status() != PwmService.STATUS.OPEN )
+        {
+            return;
+        }
+
+        for ( final Map.Entry<Challenge, String> entry : responseMap.entrySet() )
+        {
+            final Challenge loopChallenge = entry.getKey();
+            if ( loopChallenge.isEnforceWordlist() )
+            {
+                final String answer = entry.getValue();
+                if ( wordlistManager.containsWord( answer ) )
+                {
+                    final ErrorInformation errorInfo = new ErrorInformation(
+                            PwmError.ERROR_RESPONSE_WORDLIST,
+                            null,
+                            new String[]
+                                    {
+                                            loopChallenge.getChallengeText(),
+                                    }
+                    );
+                    throw new PwmDataValidationException( errorInfo );
+                }
+            }
+        }
+    }
+
+    private void checkForDuplicateQuestions( final Map<Challenge, String> responseMap )
+            throws PwmDataValidationException
+    {
+        // check for duplicate questions.  need to check the actual req params because the following dupes wont populate duplicates
+        final Set<String> userQuestionTexts = new HashSet<>();
+        for ( final Challenge challenge : responseMap.keySet() )
+        {
+            final String text = challenge.getChallengeText();
+            if ( text != null )
+            {
+                if ( userQuestionTexts.contains( text.toLowerCase() ) )
+                {
+                    final String errorMsg = "duplicate challenge text: " + text;
+                    final ErrorInformation errorInformation = new ErrorInformation(
+                            PwmError.ERROR_CHALLENGE_DUPLICATE,
+                            errorMsg,
+                            new String[]
+                                    {
+                                            text,
+                                    }
+                    );
+                    throw new PwmDataValidationException( errorInformation );
+                }
+                else
+                {
+                    userQuestionTexts.add( text.toLowerCase() );
+                }
+            }
         }
     }
 

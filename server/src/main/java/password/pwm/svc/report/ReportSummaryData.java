@@ -45,6 +45,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 @Value
@@ -123,103 +124,226 @@ public class ReportSummaryData
     {
         totalUsers.increment();
 
-        if ( userReportRecord.isHasResponses() )
-        {
-            hasResponses.increment();
-        }
+        Updaters.UPDATERS.forEach( updater -> updater.accept( userReportRecord, this ) );
+    }
 
-        if ( userReportRecord.isHasHelpdeskResponses() )
-        {
-            hasHelpdeskResponses.increment();
-        }
+    private static class Updaters
+    {
+        private static final List<BiConsumer<UserReportRecord, ReportSummaryData>> UPDATERS = List.of(
+                new UpdateHasResponses(),
+                new UpdateHasHelpdeskResponses(),
+                new HasResponseSetTime(),
+                new UpdatePasswordExpirationTime(),
+                new UpdateAccountExpirationTime(),
+                new UpdateLastLoginTime(),
+                new UpdatePwChangeTime(),
+                new UpdatePwExpiredNotification(),
+                new UpdatePasswordStatus(),
+                new UpdateResponseStorageMethod(),
+                new UpdateLdapProfile(),
+                new UpdateResponseFormatType(),
+                new UpdateHasOtpSecret(),
+                new UpdateOtpSecretSetTime()
+        );
 
-        if ( userReportRecord.getResponseSetTime() != null )
+        private static class UpdateHasResponses implements BiConsumer<UserReportRecord, ReportSummaryData>
         {
-            hasResponseSetTime.increment();
-            incrementIfWithinTimeWindow( userReportRecord, responseSetDays );
-        }
-
-        if ( userReportRecord.getPasswordExpirationTime() != null )
-        {
-            hasPasswordExpirationTime.increment();
-            incrementIfWithinTimeWindow( userReportRecord, pwExpireDays );
-        }
-
-        if ( userReportRecord.getAccountExpirationTime() != null )
-        {
-            hasAccountExpirationTime.increment();
-            incrementIfWithinTimeWindow( userReportRecord, accountExpireDays );
-        }
-
-        if ( userReportRecord.getLastLoginTime() != null )
-        {
-            hasLoginTime.increment();
-            incrementIfWithinTimeWindow( userReportRecord, loginDays );
-        }
-
-        if ( userReportRecord.getPasswordChangeTime() != null )
-        {
-            hasChangePwTime.increment();
-            incrementIfWithinTimeWindow( userReportRecord, changePwDays );
-        }
-
-        if ( userReportRecord.getPasswordExpirationNoticeSendTime() != null )
-        {
-            hasReceivedPwExpireNotification.increment();
-            incrementIfWithinTimeWindow( userReportRecord, pwExpireNotificationDays );
-        }
-
-        if ( userReportRecord.getPasswordStatus() != null )
-        {
-            if ( userReportRecord.getPasswordStatus().isExpired() )
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
             {
-                pwExpired.increment();
-            }
-            if ( userReportRecord.getPasswordStatus().isPreExpired() )
-            {
-                pwPreExpired.increment();
-            }
-            if ( userReportRecord.getPasswordStatus().isWarnPeriod() )
-            {
-                pwWarnPeriod.increment();
+                if ( userReportRecord.isHasResponses() )
+                {
+                    reportSummaryData.hasResponses.increment();
+                }
+
             }
         }
 
-        if ( userReportRecord.getResponseStorageMethod() != null )
+        private static class UpdateHasHelpdeskResponses implements BiConsumer<UserReportRecord, ReportSummaryData>
         {
-            final DataStorageMethod method = userReportRecord.getResponseStorageMethod();
-            responseStorage
-                    .computeIfAbsent( method, dataStorageMethod -> new LongAdder() )
-                    .increment();
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.isHasHelpdeskResponses() )
+                {
+                    reportSummaryData.hasHelpdeskResponses.increment();
+                }
+
+            }
         }
 
-        if ( userReportRecord.getLdapProfile() != null )
+        private static class HasResponseSetTime implements BiConsumer<UserReportRecord, ReportSummaryData>
         {
-            final DomainID domainID = userReportRecord.getDomainID();
-            final String userProfile = userReportRecord.getLdapProfile();
-            ldapProfile
-                    .computeIfAbsent( domainID, type -> new ConcurrentHashMap<>() )
-                    .computeIfAbsent( userProfile, type -> new LongAdder() )
-                    .increment();
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getResponseSetTime() != null )
+                {
+                    reportSummaryData.hasResponseSetTime.increment();
+                    reportSummaryData.incrementIfWithinTimeWindow( userReportRecord, reportSummaryData.responseSetDays );
+                }
+            }
         }
 
-        if ( userReportRecord.getResponseFormatType() != null )
+        private static class UpdatePasswordExpirationTime implements BiConsumer<UserReportRecord, ReportSummaryData>
         {
-            final Answer.FormatType type = userReportRecord.getResponseFormatType();
-            responseFormatType
-                    .computeIfAbsent( type, formatType -> new LongAdder() )
-                    .increment();
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getPasswordExpirationTime() != null )
+                {
+                    reportSummaryData.hasPasswordExpirationTime.increment();
+                    reportSummaryData.incrementIfWithinTimeWindow( userReportRecord, reportSummaryData.pwExpireDays );
+                }
+            }
         }
 
-        if ( userReportRecord.isHasOtpSecret() )
+        private static class UpdateAccountExpirationTime implements BiConsumer<UserReportRecord, ReportSummaryData>
         {
-            hasOtpSecret.increment();
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getAccountExpirationTime() != null )
+                {
+                    reportSummaryData.hasAccountExpirationTime.increment();
+                    reportSummaryData.incrementIfWithinTimeWindow( userReportRecord, reportSummaryData.accountExpireDays );
+                }
+            }
         }
 
-        if ( userReportRecord.getOtpSecretSetTime() != null )
+        private static class UpdateLastLoginTime implements BiConsumer<UserReportRecord, ReportSummaryData>
         {
-            hasOtpSecretSetTime.increment();
-            incrementIfWithinTimeWindow( userReportRecord, otpSetDays );
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getLastLoginTime() != null )
+                {
+                    reportSummaryData.hasLoginTime.increment();
+                    reportSummaryData.incrementIfWithinTimeWindow( userReportRecord, reportSummaryData.loginDays );
+                }
+            }
+        }
+
+        private static class UpdatePwChangeTime implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getPasswordChangeTime() != null )
+                {
+                    reportSummaryData.hasChangePwTime.increment();
+                    reportSummaryData.incrementIfWithinTimeWindow( userReportRecord, reportSummaryData.changePwDays );
+                }
+            }
+        }
+
+        private static class UpdatePwExpiredNotification implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getPasswordExpirationNoticeSendTime() != null )
+                {
+                    reportSummaryData.hasReceivedPwExpireNotification.increment();
+                    reportSummaryData.incrementIfWithinTimeWindow( userReportRecord, reportSummaryData.pwExpireNotificationDays );
+                }
+            }
+        }
+
+        private static class UpdatePasswordStatus implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getPasswordStatus() != null )
+                {
+                    if ( userReportRecord.getPasswordStatus().isExpired() )
+                    {
+                        reportSummaryData.pwExpired.increment();
+                    }
+                    if ( userReportRecord.getPasswordStatus().isPreExpired() )
+                    {
+                        reportSummaryData.pwPreExpired.increment();
+                    }
+                    if ( userReportRecord.getPasswordStatus().isWarnPeriod() )
+                    {
+                        reportSummaryData.pwWarnPeriod.increment();
+                    }
+                }
+            }
+        }
+
+        private static class UpdateResponseStorageMethod implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getResponseStorageMethod() != null )
+                {
+                    final DataStorageMethod method = userReportRecord.getResponseStorageMethod();
+                    reportSummaryData.responseStorage
+                            .computeIfAbsent( method, dataStorageMethod -> new LongAdder() )
+                            .increment();
+                }
+
+            }
+        }
+
+        private static class UpdateLdapProfile implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getLdapProfile() != null )
+                {
+                    final DomainID domainID = userReportRecord.getDomainID();
+                    final String userProfile = userReportRecord.getLdapProfile();
+                    reportSummaryData.ldapProfile
+                            .computeIfAbsent( domainID, type -> new ConcurrentHashMap<>() )
+                            .computeIfAbsent( userProfile, type -> new LongAdder() )
+                            .increment();
+                }
+            }
+        }
+
+        private static class UpdateResponseFormatType implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getResponseFormatType() != null )
+                {
+                    final Answer.FormatType type = userReportRecord.getResponseFormatType();
+                    reportSummaryData.responseFormatType
+                            .computeIfAbsent( type, formatType -> new LongAdder() )
+                            .increment();
+                }
+            }
+        }
+
+        private static class UpdateHasOtpSecret implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.isHasOtpSecret() )
+                {
+                    reportSummaryData.hasOtpSecret.increment();
+                }
+            }
+        }
+
+        private static class UpdateOtpSecretSetTime implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getOtpSecretSetTime() != null )
+                {
+                    reportSummaryData.hasOtpSecretSetTime.increment();
+                    reportSummaryData.incrementIfWithinTimeWindow( userReportRecord, reportSummaryData.otpSetDays );
+                }
+            }
         }
     }
 
@@ -250,7 +374,6 @@ public class ReportSummaryData
             }
         }
     }
-
 
     public List<PresentationRow> asPresentableCollection( final AppConfig config, final Locale locale )
     {

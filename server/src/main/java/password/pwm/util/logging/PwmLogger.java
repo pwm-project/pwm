@@ -307,6 +307,16 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.TRACE, sessionLabel, message, null );
     }
 
+    public void traceDevDebug( final SessionLabel sessionLabel, final Supplier<CharSequence> message )
+    {
+        if ( pwmApplication == null || !pwmApplication.getConfig().isDevDebugMode() )
+        {
+            return;
+        }
+
+        doLogEvent( PwmLogLevel.TRACE, sessionLabel, message, null );
+    }
+
     public void trace( final SessionLabel sessionLabel, final Supplier<CharSequence> message, final Supplier<TimeDuration> timeDuration )
     {
         doLogEvent( PwmLogLevel.TRACE, sessionLabel, message, null, timeDuration );

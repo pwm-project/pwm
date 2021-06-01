@@ -90,7 +90,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
         final int count = b.length;
         eventRateMeter.markEvents( count );
         byteCounter += count;
-        messageDigest.digest( b );
+        messageDigest.update( b );
     }
 
     private void nextZipEntry( )

@@ -81,16 +81,6 @@ public class UserMacros
         )
                 throws MacroParseException
         {
-            final UserInfo userInfo;
-            {
-                final Optional<UserInfo> optionalUserInfo = loadUserInfo( macroRequest );
-                if ( optionalUserInfo.isEmpty() )
-                {
-                    return "";
-                }
-                userInfo = optionalUserInfo.get();
-            }
-
             final List<String> parameters = splitMacroParameters( matchValue, ignoreWords() );
 
             final String ldapAttr;
@@ -103,7 +93,96 @@ public class UserMacros
                 throw new MacroParseException( "required attribute name parameter is missing" );
             }
 
-            final int length;
+            final int length = readLengthParam( parameters, macroRequest );
+
+            final String paddingChar;
+            if ( parameters.size() > 2 && !parameters.get( 2 ).isEmpty() )
+            {
+                paddingChar = parameters.get( 2 );
+            }
+            else
+            {
+                paddingChar = "";
+            }
+
+            if ( parameters.size() > 3 )
+            {
+                throw new MacroParseException( "too many parameters" );
+            }
+
+           final String ldapValue = readLdapValue( macroRequest, ldapAttr, matchValue );
+
+            final StringBuilder returnValue = new StringBuilder();
+            returnValue.append( ldapValue == null
+                    ? ""
+                    : ldapValue );
+
+            if ( length > 0 && length < returnValue.length() )
+            {
+                returnValue.delete( length, returnValue.length() );
+            }
+
+            if ( length > 0 && paddingChar.length() > 0 )
+            {
+                while ( returnValue.length() < length )
+                {
+                    returnValue.append( paddingChar );
+                }
+            }
+
+            return returnValue.toString();
+        }
+
+        private String readLdapValue(
+                final MacroRequest macroRequest,
+                final String ldapAttr,
+                final String matchValue
+
+        )
+        {
+            final UserInfo userInfo;
+            {
+                final Optional<UserInfo> optionalUserInfo = loadUserInfo( macroRequest );
+                if ( optionalUserInfo.isEmpty() )
+                {
+                    return "";
+                }
+                userInfo = optionalUserInfo.get();
+            }
+
+            final String ldapValue;
+            if ( "dn".equalsIgnoreCase( ldapAttr ) )
+            {
+                ldapValue = userInfo.getUserIdentity().getUserDN();
+            }
+            else
+            {
+                try
+                {
+                    ldapValue = userInfo.readStringAttribute( ldapAttr );
+                }
+                catch ( final PwmUnrecoverableException e )
+                {
+                    LOGGER.trace( macroRequest.getSessionLabel(), () -> "could not replace value for '" + matchValue + "', ldap error: " + e.getMessage() );
+                    return "";
+                }
+
+                if ( ldapValue == null || ldapValue.length() < 1 )
+                {
+                    LOGGER.trace( macroRequest.getSessionLabel(), () -> "could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'" );
+                    return "";
+                }
+            }
+            return ldapValue;
+        }
+
+        private static int readLengthParam(
+                final List<String> parameters,
+                final MacroRequest macroRequest
+        )
+                throws MacroParseException
+        {
+            int length = 0;
             if ( parameters.size() > 1 && !parameters.get( 1 ).isEmpty() )
             {
                 try
@@ -130,69 +209,8 @@ public class UserMacros
                     throw new MacroParseException( "length parameter must be greater than zero" );
                 }
             }
-            else
-            {
-                length = 0;
-            }
 
-            final String paddingChar;
-            if ( parameters.size() > 2 && !parameters.get( 2 ).isEmpty() )
-            {
-                paddingChar = parameters.get( 2 );
-            }
-            else
-            {
-                paddingChar = "";
-            }
-
-            if ( parameters.size() > 3 )
-            {
-                throw new MacroParseException( "too many parameters" );
-            }
-
-            final String ldapValue;
-            if ( "dn".equalsIgnoreCase( ldapAttr ) )
-            {
-                ldapValue = userInfo.getUserIdentity().getUserDN();
-            }
-            else
-            {
-                try
-                {
-                    ldapValue = userInfo.readStringAttribute( ldapAttr );
-                }
-                catch ( final PwmUnrecoverableException e )
-                {
-                    LOGGER.trace( macroRequest.getSessionLabel(), () -> "could not replace value for '" + matchValue + "', ldap error: " + e.getMessage() );
-                    return "";
-                }
-
-                if ( ldapValue == null || ldapValue.length() < 1 )
-                {
-                    LOGGER.trace( macroRequest.getSessionLabel(), () -> "could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'" );
-                    return "";
-                }
-            }
-
-            final StringBuilder returnValue = new StringBuilder();
-            returnValue.append( ldapValue == null
-                    ? ""
-                    : ldapValue );
-
-            if ( length > 0 && length < returnValue.length() )
-            {
-                returnValue.delete( length, returnValue.length() );
-            }
-
-            if ( length > 0 && paddingChar.length() > 0 )
-            {
-                while ( returnValue.length() < length )
-                {
-                    returnValue.append( paddingChar );
-                }
-            }
-
-            return returnValue.toString();
+            return length;
         }
 
         abstract Optional<UserInfo> loadUserInfo( MacroRequest macroRequest );

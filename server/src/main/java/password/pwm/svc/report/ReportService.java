@@ -423,6 +423,8 @@ public class ReportService extends AbstractPwmService implements PwmService
 
     private class ProcessWorkQueueTask implements Runnable
     {
+        private final Lock updateTimeLock = new ReentrantLock();
+
         @Override
         public void run( )
         {
@@ -484,7 +486,6 @@ public class ReportService extends AbstractPwmService implements PwmService
 
             final boolean pauseBetweenIterations = settings.getReportJobIntensity() == ReportSettings.JobIntensity.LOW;
 
-            final Lock updateTimeLock = new ReentrantLock();
 
             try
             {
@@ -501,69 +502,14 @@ public class ReportService extends AbstractPwmService implements PwmService
                     }
                     threadService.blockingSubmit( ( ) ->
                     {
-                        if ( getPwmApplication().getConfig().isDevDebugMode() )
-                        {
-                            LOGGER.trace( getSessionLabel(), () -> "start " + Instant.now().toString()
-                                    + " size=" + threadService.getQueue().size() );
-                        }
-                        try
-                        {
-                            final Instant startUpdateTime = Instant.now();
-                            updateCachedRecordFromLdap( userIdentity );
-                            reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
-                                    .count( reportStatusInfo.getCount() + 1 )
-                                    .build() );
-                            final TimeDuration totalUpdateTime = TimeDuration.fromCurrent( startUpdateTime );
-                            avgTracker.addSample( totalUpdateTime.asMillis() );
+                        LOGGER.traceDevDebug( getSessionLabel(), () -> "start " + Instant.now().toString()
+                                + " size=" + threadService.getQueue().size() );
 
-                            updateTimeLock.lock();
-                            try
-                            {
-                                final TimeDuration scaledTime = TimeDuration.of( totalUpdateTime.asMillis() / threadCount, TimeDuration.Unit.MILLISECONDS );
-                                reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
-                                        .jobDuration( reportStatusInfo.getJobDuration().add( scaledTime ) )
-                                        .build() );
-                            }
-                            finally
-                            {
-                                updateTimeLock.unlock();
-                            }
+                        processRecord( userIdentity, pauseBetweenIterations, threadCount );
 
-                            if ( pauseBetweenIterations )
-                            {
-                                TimeDuration.of( avgTracker.avgAsLong(), TimeDuration.Unit.MILLISECONDS ).pause();
-                            }
-                        }
-                        catch ( final PwmUnrecoverableException e )
-                        {
-                            LOGGER.debug( () -> "unexpected error reading report data: " + e.getMessage() );
-                        }
-                        catch ( final Exception e )
-                        {
-                            String errorMsg = "error while updating report cache for " + userIdentity.toString() + ", cause: ";
-                            errorMsg += e instanceof PwmException
-                                    ? ( ( PwmException ) e ).getErrorInformation().toDebugStr()
-                                    : e.getMessage();
-                            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REPORTING_ERROR, errorMsg );
-                            if ( e instanceof PwmException )
-                            {
-                                LOGGER.error( getSessionLabel(), errorInformation::toDebugStr );
-                            }
-                            else
-                            {
-                                LOGGER.error( getSessionLabel(), () ->
-                                        errorInformation.toDebugStr(), e );
-                            }
-                            reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
-                                    .lastError( errorInformation )
-                                    .errors( reportStatusInfo.getErrors() + 1 )
-                                    .build() );
-                        }
-                        if ( getPwmApplication().getConfig().isDevDebugMode() )
-                        {
-                            LOGGER.trace( getSessionLabel(), () -> "finish " + Instant.now().toString()
-                                    + " size=" + threadService.getQueue().size() );
-                        }
+                        LOGGER.traceDevDebug( getSessionLabel(), () -> "finish " + Instant.now().toString()
+                                + " size=" + threadService.getQueue().size() );
+
                     } );
                 }
                 if ( getPwmApplication().getConfig().isDevDebugMode() )
@@ -616,6 +562,66 @@ public class ReportService extends AbstractPwmService implements PwmService
             processRateMeter.markEvents( 1 );
 
             LOGGER.trace( getSessionLabel(), () -> "stored cache for " + userIdentity, () -> TimeDuration.fromCurrent( startTime ) );
+        }
+
+        private void processRecord(
+                final UserIdentity userIdentity,
+                final boolean pauseBetweenIterations,
+                final int threadCount
+        )
+        {
+            try
+            {
+                final Instant startUpdateTime = Instant.now();
+                updateCachedRecordFromLdap( userIdentity );
+                reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
+                        .count( reportStatusInfo.getCount() + 1 )
+                        .build() );
+                final TimeDuration totalUpdateTime = TimeDuration.fromCurrent( startUpdateTime );
+                avgTracker.addSample( totalUpdateTime.asMillis() );
+
+                updateTimeLock.lock();
+                try
+                {
+                    final TimeDuration scaledTime = TimeDuration.of( totalUpdateTime.asMillis() / threadCount, TimeDuration.Unit.MILLISECONDS );
+                    reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
+                            .jobDuration( reportStatusInfo.getJobDuration().add( scaledTime ) )
+                            .build() );
+                }
+                finally
+                {
+                    updateTimeLock.unlock();
+                }
+
+                if ( pauseBetweenIterations )
+                {
+                    TimeDuration.of( avgTracker.avgAsLong(), TimeDuration.Unit.MILLISECONDS ).pause();
+                }
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                LOGGER.debug( () -> "unexpected error reading report data: " + e.getMessage() );
+            }
+            catch ( final Exception e )
+            {
+                String errorMsg = "error while updating report cache for " + userIdentity.toString() + ", cause: ";
+                errorMsg += e instanceof PwmException
+                        ? ( ( PwmException ) e ).getErrorInformation().toDebugStr()
+                        : e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REPORTING_ERROR, errorMsg );
+                if ( e instanceof PwmException )
+                {
+                    LOGGER.error( getSessionLabel(), errorInformation::toDebugStr );
+                }
+                else
+                {
+                    LOGGER.error( getSessionLabel(), errorInformation::toDebugStr, e );
+                }
+                reportStatus.updateAndGet( reportStatusInfo -> reportStatusInfo.toBuilder()
+                        .lastError( errorInformation )
+                        .errors( reportStatusInfo.getErrors() + 1 )
+                        .build() );
+            }
         }
     }
 
