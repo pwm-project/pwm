@@ -98,6 +98,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
 
         if ( this.wordlistConfiguration.isTestMode() )
         {
+            setStatus( STATUS.OPEN );
             startTestInstance( type );
             return STATUS.OPEN;
         }
