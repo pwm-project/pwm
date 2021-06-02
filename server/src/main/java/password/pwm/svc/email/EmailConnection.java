@@ -23,8 +23,8 @@ package password.pwm.svc.email;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.mail.MessagingException;
-import javax.mail.Transport;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Transport;
 import java.time.Instant;
 
 class EmailConnection

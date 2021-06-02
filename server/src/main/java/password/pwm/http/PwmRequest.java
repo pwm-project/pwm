@@ -532,6 +532,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return null;
     }
 
+    @Override
     public String toString( )
     {
         return this.getClass().getSimpleName() + " "
@@ -597,9 +598,9 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return false;
     }
 
-    public CommonValues commonValues()
+    public PwmRequestContext getPwmRequestContext()
     {
-        return new CommonValues( pwmApplication, this.getLabel(), this.getLocale(), pwmRequestID );
+        return new PwmRequestContext( pwmApplication, this.getLabel(), this.getLocale(), pwmRequestID );
     }
 
     public String getPwmRequestID()
@@ -610,5 +611,10 @@ public class PwmRequest extends PwmHttpRequestWrapper
     public Instant getRequestStartTime()
     {
         return requestStartTime;
+    }
+
+    public String getDomainID()
+    {
+        return PwmConstants.DOMAIN_ID_DEFAULT;
     }
 }

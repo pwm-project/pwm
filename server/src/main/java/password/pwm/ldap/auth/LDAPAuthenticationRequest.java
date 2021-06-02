@@ -61,7 +61,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
 
 import java.time.Instant;
@@ -361,15 +361,15 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                 ? "none"
                 : authenticationResult.getUserProvider().getChaiConfiguration().getSetting( ChaiSetting.BIND_DN ) ) );
 
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, PwmConstants.DEFAULT_LOCALE, sessionLabel, userIdentity );
-        final AuditRecord auditRecord = new AuditRecordFactory( pwmApplication, macroMachine ).createUserAuditRecord(
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, PwmConstants.DEFAULT_LOCALE, sessionLabel, userIdentity );
+        final AuditRecord auditRecord = new AuditRecordFactory( pwmApplication, macroRequest ).createUserAuditRecord(
                 AuditEvent.AUTHENTICATE,
                 this.userIdentity,
                 makeAuditLogMessage( authenticationResult.getAuthenticationType() ),
                 sessionLabel.getSourceAddress(),
                 sessionLabel.getSourceHostname()
         );
-        pwmApplication.getAuditManager().submit( auditRecord );
+        pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
         pwmApplication.getSessionTrackService().addRecentLogin( userIdentity );
 
 

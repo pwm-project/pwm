@@ -37,7 +37,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo">
+<body>
 <% long maxWaitSeconds = (Long)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ChangePassword_MaxWaitSeconds); %>
 <% long checkIntervalSeconds = (Long)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ChangePassword_CheckIntervalSeconds); %>
 <meta http-equiv="refresh" content="<%=maxWaitSeconds%>;url='ChangePassword?processAction=complete&pwmFormID=<pwm:FormID/>">

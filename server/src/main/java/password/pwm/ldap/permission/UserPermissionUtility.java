@@ -30,7 +30,7 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.CommonValues;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.java.StringUtil;
@@ -50,15 +50,15 @@ public class UserPermissionUtility
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserPermissionUtility.class );
 
     public static boolean testUserPermission(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final UserIdentity userIdentity,
             final UserPermission userPermissions
     )
             throws PwmUnrecoverableException
     {
         return testUserPermission(
-                commonValues.getPwmApplication(),
-                commonValues.getSessionLabel(),
+                pwmRequestContext.getPwmApplication(),
+                pwmRequestContext.getSessionLabel(),
                 userIdentity,
                 Collections.singletonList( userPermissions ) );
     }

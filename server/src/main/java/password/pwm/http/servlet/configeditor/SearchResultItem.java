@@ -21,50 +21,37 @@
 package password.pwm.http.servlet.configeditor;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Value;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfiguration;
 
 import java.io.Serializable;
+import java.util.Locale;
 
+@Value
 class SearchResultItem implements Serializable
 {
-    private String category;
-    private String value;
-    private String navigation;
+    private final String category;
+    private final String value;
+    private final String navigation;
 
     @SerializedName( "default" )
-    private boolean defaultValue;
-    private String profile;
+    private final boolean defaultValue;
+    private final String profile;
 
-    SearchResultItem( final String category, final String value, final String navigation, final boolean defaultValue, final String profile )
+    static SearchResultItem fromKey(
+            final StoredConfigItemKey key,
+            final StoredConfiguration storedConfiguration,
+            final Locale locale )
     {
-        this.category = category;
-        this.value = value;
-        this.navigation = navigation;
-        this.defaultValue = defaultValue;
-        this.profile = profile;
-    }
-
-    public String getCategory( )
-    {
-        return category;
-    }
-
-    public String getValue( )
-    {
-        return value;
-    }
-
-    public String getNavigation( )
-    {
-        return navigation;
-    }
-
-    public boolean isDefaultValue( )
-    {
-        return defaultValue;
-    }
-
-    public String getProfile( )
-    {
-        return profile;
+        final PwmSetting setting = key.toPwmSetting();
+        return new SearchResultItem(
+                setting.getCategory().toString(),
+                storedConfiguration.readSetting( setting, key.getProfileID() ).toDebugString( locale ),
+                setting.getCategory().toMenuLocationDebug( key.getProfileID(), locale ),
+                storedConfiguration.isDefaultValue( setting, key.getProfileID() ),
+                key.getProfileID()
+        );
     }
 }

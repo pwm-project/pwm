@@ -48,6 +48,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -150,18 +151,15 @@ public class HealthMonitor implements PwmService
 
     public static HealthStatus getMostSevereHealthStatus( final Collection<HealthRecord> healthRecords )
     {
-        HealthStatus returnStatus = HealthStatus.GOOD;
+        final EnumSet<HealthStatus> tempSet = EnumSet.noneOf( HealthStatus.class );
         if ( healthRecords != null )
         {
             for ( final HealthRecord record : healthRecords )
             {
-                if ( record.getStatus().getSeverityLevel() > returnStatus.getSeverityLevel() )
-                {
-                    returnStatus = record.getStatus();
-                }
+                tempSet.add( record.getStatus() );
             }
         }
-        return returnStatus;
+        return HealthStatus.mostSevere( tempSet ).orElse( HealthStatus.GOOD );
     }
 
     @Override
@@ -310,7 +308,7 @@ public class HealthMonitor implements PwmService
             {
                 final Instant startTime = Instant.now();
                 doHealthChecks();
-                LOGGER.trace( () -> "completed health check dredge ", () -> TimeDuration.fromCurrent( startTime ) );
+                LOGGER.trace( () -> "completed health check dredge", () -> TimeDuration.fromCurrent( startTime ) );
             }
             catch ( final Throwable e )
             {

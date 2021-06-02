@@ -50,7 +50,8 @@ public class DatabaseStatusChecker implements HealthChecker
     {
         if ( !config.hasDbConfigured() )
         {
-            return Collections.singletonList( new HealthRecord( HealthStatus.INFO, HealthTopic.Database, "Database not configured" ) );
+            return Collections.singletonList( HealthRecord.forMessage( HealthMessage.Database_Error,
+                            "Database not configured" ) );
         }
 
         PwmApplication runtimeInstance = null;

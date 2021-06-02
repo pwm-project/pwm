@@ -51,7 +51,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.IOException;
@@ -168,7 +168,7 @@ public class TelemetryService implements PwmService
 
         try
         {
-            final String macrodSettings = MacroMachine.forNonUserSpecific( pwmApplication, null ).expandMacros( settings.getSenderSettings() );
+            final String macrodSettings = MacroRequest.forNonUserSpecific( pwmApplication, null ).expandMacros( settings.getSenderSettings() );
             telemetrySender.init( pwmApplication, macrodSettings );
         }
         catch ( final Exception e )

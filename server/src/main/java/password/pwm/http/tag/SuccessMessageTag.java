@@ -23,7 +23,7 @@ package password.pwm.http.tag;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.i18n.Message;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -55,8 +55,8 @@ public class SuccessMessageTag extends PwmAbstractTag
             {
                 if ( pwmRequest.isAuthenticated() )
                 {
-                    final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
-                    outputMsg = macroMachine.expandMacros( successMsg );
+                    final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+                    outputMsg = macroRequest.expandMacros( successMsg );
                 }
                 else
                 {

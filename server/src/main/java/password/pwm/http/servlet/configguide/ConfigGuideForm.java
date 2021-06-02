@@ -51,8 +51,9 @@ import java.util.Map;
 
 public class ConfigGuideForm
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigGuideForm.class );
+
+    static final String LDAP_PROFILE_NAME = "default";
 
     public static Map<ConfigGuideFormField, String> defaultForm( )
     {
@@ -65,11 +66,6 @@ public class ConfigGuideForm
         defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_PORT, "636" );
         defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_SECURE, "true" );
         defaultLdapForm.remove( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA );
-
-        defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_HOST, "172.17.2.91" );
-        defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_CONTEXT, "ou=users,o=data" );
-        defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_PROXY_DN, "cn=pwm-proxy,ou=sa,o=system" );
-        defaultLdapForm.put( ConfigGuideFormField.PARAM_LDAP_PROXY_PW, "gcms1234" );
 
         return Collections.unmodifiableMap( defaultLdapForm );
     }
@@ -91,8 +87,6 @@ public class ConfigGuideForm
             modifier.writeSetting( pwmSetting, null, new StringValue( template.toString() ), null );
         }
     }
-
-    private static final String LDAP_PROFILE_NAME = "default";
 
     public static StoredConfiguration generateStoredConfig(
             final ConfigGuideBean configGuideBean
@@ -238,7 +232,7 @@ public class ConfigGuideForm
     {
         final String ldapServerIP = ldapForm.get( ConfigGuideFormField.PARAM_LDAP_HOST );
         final String ldapServerPort = ldapForm.get( ConfigGuideFormField.PARAM_LDAP_PORT );
-        final boolean ldapServerSecure = "true".equalsIgnoreCase( ldapForm.get( ConfigGuideFormField.PARAM_LDAP_SECURE ) );
+        final boolean ldapServerSecure = readCheckedFormField( ldapForm.get( ConfigGuideFormField.PARAM_LDAP_SECURE ) );
 
         return "ldap" + ( ldapServerSecure ? "s" : "" ) + "://" + ldapServerIP + ":" + ldapServerPort;
     }
@@ -257,5 +251,10 @@ public class ConfigGuideForm
             LOGGER.error( () -> "error calculating ldap hostname example: " + e.getMessage() );
         }
         return "ldap.example.com";
+    }
+
+    public static boolean readCheckedFormField( final String value )
+    {
+        return "on".equalsIgnoreCase( value ) || "true".equalsIgnoreCase( value );
     }
 }

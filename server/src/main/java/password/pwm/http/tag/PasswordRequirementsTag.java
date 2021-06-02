@@ -36,7 +36,7 @@ import password.pwm.i18n.Message;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordRuleReaderHelper;
 
 import javax.servlet.http.HttpServletRequest;
@@ -65,11 +65,11 @@ public class PasswordRequirementsTag extends TagSupport
             final PwmPasswordPolicy passwordPolicy,
             final Configuration config,
             final Locale locale,
-            final MacroMachine macroMachine
+            final MacroRequest macroRequest
     )
     {
         final List<String> ruleTexts = new ArrayList<>(  );
-        final PolicyValues policyValues = new PolicyValues( passwordPolicy, passwordPolicy.getRuleHelper(), locale, config, macroMachine );
+        final PolicyValues policyValues = new PolicyValues( passwordPolicy, passwordPolicy.getRuleHelper(), locale, config, macroRequest );
         for ( final RuleTextGenerator ruleTextGenerator : RULE_TEXT_GENERATORS )
         {
             ruleTexts.addAll( ruleTextGenerator.generate( policyValues ) );
@@ -114,7 +114,7 @@ public class PasswordRequirementsTag extends TagSupport
         private PasswordRuleReaderHelper ruleHelper;
         private Locale locale;
         private Configuration config;
-        private MacroMachine macroMachine;
+        private MacroRequest macroRequest;
     }
 
     private static class CaseSensitiveRuleTextGenerator implements RuleTextGenerator
@@ -387,7 +387,7 @@ public class PasswordRequirementsTag extends TagSupport
                 {
                     fieldValue.append( " " );
 
-                    final String expandedValue = policyValues.getMacroMachine().expandMacros( loopValue );
+                    final String expandedValue = policyValues.getMacroRequest().expandMacros( loopValue );
                     fieldValue.append( StringUtil.escapeHtml( expandedValue ) );
                 }
                 return Collections.singletonList( getLocalString( Message.Requirement_DisAllowedValues, fieldValue.toString(), policyValues ) );
@@ -594,11 +594,11 @@ public class PasswordRequirementsTag extends TagSupport
             }
             else
             {
-                final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( );
+                final MacroRequest macroRequest = pwmSession.getSessionManager().getMacroMachine( );
 
                 final String pre = prepend != null && prepend.length() > 0 ? prepend : "";
                 final String sep = separator != null && separator.length() > 0 ? separator : "<br/>";
-                final List<String> requirementsList = getPasswordRequirementsStrings( passwordPolicy, config, locale, macroMachine );
+                final List<String> requirementsList = getPasswordRequirementsStrings( passwordPolicy, config, locale, macroRequest );
 
                 final StringBuilder requirementsText = new StringBuilder();
                 for ( final String requirementStatement : requirementsList )

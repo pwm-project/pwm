@@ -31,7 +31,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="WEB-INF/jsp/fragment/header.jsp" %>
-<body class="nihilo">
+<body>
 <%
     final String redirectURL = request.getContextPath() + JspUtility.getPwmRequest(pageContext).getPwmApplication().getConfig().readSettingAsString(PwmSetting.URL_INTRO);
     response.sendRedirect(redirectURL);

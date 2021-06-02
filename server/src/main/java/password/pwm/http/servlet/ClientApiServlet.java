@@ -43,6 +43,7 @@ import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
+import password.pwm.svc.sessiontrack.UserAgentUtils;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
@@ -50,7 +51,7 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 import password.pwm.ws.server.RestResultBean;
@@ -72,6 +73,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -322,6 +324,12 @@ public class ClientApiServlet extends ControlledPwmServlet
         settingMap.put( "setting-showStrengthMeter", config.readSettingAsBoolean( PwmSetting.PASSWORD_SHOW_STRENGTH_METER ) );
 
         {
+            final Optional<UserAgentUtils.BrowserType> optionalBrowserType = UserAgentUtils.getBrowserType( pwmRequest );
+            final String browserTypeString = optionalBrowserType.isPresent() ? optionalBrowserType.get().toString() : "other";
+            settingMap.put( "browserType", browserTypeString );
+        }
+
+        {
             long idleSeconds = config.readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
             if ( pageUrl == null || pageUrl.isEmpty() )
             {
@@ -364,8 +372,8 @@ public class ClientApiServlet extends ControlledPwmServlet
                 );
                 if ( !StringUtil.isEmpty( configuredGuideText ) )
                 {
-                    final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine();
-                    final String expandedText = macroMachine.expandMacros( configuredGuideText );
+                    final MacroRequest macroRequest = pwmSession.getSessionManager().getMacroMachine();
+                    final String expandedText = macroRequest.expandMacros( configuredGuideText );
                     settingMap.put( "passwordGuideText", expandedText );
                 }
 
@@ -443,11 +451,11 @@ public class ClientApiServlet extends ControlledPwmServlet
         final ResourceBundle bundle = ResourceBundle.getBundle( displayClass.getName() );
         try
         {
-            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine( );
+            final MacroRequest macroRequest = pwmSession.getSessionManager().getMacroMachine( );
             for ( final String key : new TreeSet<>( Collections.list( bundle.getKeys() ) ) )
             {
                 String displayValue = LocaleHelper.getLocalizedMessage( userLocale, key, config, displayClass );
-                displayValue = macroMachine.expandMacros( displayValue );
+                displayValue = macroRequest.expandMacros( displayValue );
                 displayStrings.put( key, displayValue );
             }
         }

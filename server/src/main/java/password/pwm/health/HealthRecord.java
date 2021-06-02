@@ -21,14 +21,18 @@
 package password.pwm.health;
 
 import lombok.EqualsAndHashCode;
+import org.jetbrains.annotations.NotNull;
 import password.pwm.config.Configuration;
 import password.pwm.ws.server.rest.bean.HealthData;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @EqualsAndHashCode
 public class HealthRecord implements Serializable, Comparable<HealthRecord>
@@ -38,77 +42,35 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
     // new fields
     private final HealthTopic topic;
     private final HealthMessage message;
-    private final String[] fields;
+    private final List<String> fields;
 
-    // old fields
-    private final String oldTopic;
-    private final String oldDetail;
+    private static final Comparator<HealthRecord> COMPARATOR = Comparator.comparing(
+            HealthRecord::getStatus,
+            Comparator.nullsLast( Comparator.naturalOrder() ) )
+            .thenComparing(
+                    healthRecord -> healthRecord.getTopic( null, null ),
+                    Comparator.nullsLast( Comparator.naturalOrder() ) )
+            .thenComparing(
+                    healthRecord -> healthRecord.getDetail( null, null ),
+                    Comparator.nullsLast( Comparator.naturalOrder() ) );
 
-    public HealthRecord(
-            final HealthStatus status,
-            final String topic,
-            final String detail
-    )
-    {
-        if ( status == null )
-        {
-            throw new NullPointerException( "status cannot be null" );
-        }
-        this.status = status;
-
-        this.oldTopic = topic;
-        this.oldDetail = detail;
-
-        this.topic = null;
-        this.message = null;
-        this.fields = null;
-    }
-
-    public HealthRecord(
-            final HealthStatus status,
-            final HealthTopic topic,
-            final String detail
-    )
-    {
-        if ( status == null )
-        {
-            throw new NullPointerException( "status cannot be null" );
-        }
-        this.status = status;
-
-        this.oldTopic = null;
-        this.oldDetail = detail;
-
-        this.topic = topic;
-        this.message = null;
-        this.fields = null;
-    }
 
     private HealthRecord(
             final HealthStatus status,
             final HealthTopic topicEnum,
             final HealthMessage message,
-            final String[] fields
+            final String... fields
     )
     {
-
-        if ( status == null )
-        {
-            throw new NullPointerException( "status cannot be null" );
-        }
-        this.status = status;
-
-        this.topic = topicEnum;
-        this.message = message;
-        this.fields = fields;
-
-        this.oldTopic = null;
-        this.oldDetail = null;
+        this.status = Objects.requireNonNull( status,  "status cannot be null" );
+        this.topic = Objects.requireNonNull( topicEnum,  "topic cannot be null" );
+        this.message = Objects.requireNonNull( message,  "message cannot be null" );
+        this.fields = fields == null ? Collections.emptyList() : List.copyOf( Arrays.asList( fields ) );
     }
 
     public static HealthRecord forMessage( final HealthMessage message )
     {
-        return new HealthRecord( message.getStatus(), message.getTopic(), message, null );
+        return new HealthRecord( message.getStatus(), message.getTopic(), message );
     }
 
     public static HealthRecord forMessage( final HealthMessage message, final String... fields )
@@ -116,6 +78,10 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
         return new HealthRecord( message.getStatus(), message.getTopic(), message, fields );
     }
 
+    public static HealthRecord forMessage( final HealthMessage message, final HealthTopic healthTopic, final String... fields )
+    {
+        return new HealthRecord( message.getStatus(), healthTopic, message, fields );
+    }
 
     public HealthStatus getStatus( )
     {
@@ -124,20 +90,20 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
 
     public String getTopic( final Locale locale, final Configuration config )
     {
-        if ( oldTopic != null )
+        if ( topic != null )
         {
-            return oldTopic;
+            return this.topic.getDescription( locale, config );
         }
-        return this.topic.getDescription( locale, config );
+        return "";
     }
 
     public String getDetail( final Locale locale, final Configuration config )
     {
-        if ( oldDetail != null )
+        if ( message != null )
         {
-            return oldDetail;
+            return this.message.getDescription( locale, config, fields.toArray( new String[0] ) );
         }
-        return this.message.getDescription( locale, config, fields );
+        return "";
     }
 
     public String toDebugString( final Locale locale, final Configuration config )
@@ -147,29 +113,10 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
     }
 
     @Override
-    public int compareTo( final HealthRecord otherHealthRecord )
+    public int compareTo( @NotNull final HealthRecord otherHealthRecord )
     {
-        final int statusCompare = status.compareTo( otherHealthRecord.status );
-        if ( statusCompare != 0 )
-        {
-            return statusCompare;
-        }
-
-        final int topicCompare = this.getTopic( null, null ).compareTo( otherHealthRecord.getTopic( null, null ) );
-        if ( topicCompare != 0 )
-        {
-            return topicCompare;
-        }
-
-        final int detailCompare = this.getDetail( null, null ).compareTo( otherHealthRecord.getDetail( null, null ) );
-        if ( detailCompare != 0 )
-        {
-            return detailCompare;
-        }
-
-        return 0;
+        return COMPARATOR.compare( this, otherHealthRecord );
     }
-
 
     public List<HealthRecord> singletonList( )
     {

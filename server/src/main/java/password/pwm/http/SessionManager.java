@@ -46,7 +46,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.util.List;
 
@@ -244,13 +244,13 @@ public class SessionManager
         return status == Permission.PermissionStatus.GRANTED;
     }
 
-    public MacroMachine getMacroMachine( )
+    public MacroRequest getMacroMachine( )
             throws PwmUnrecoverableException
     {
         final UserInfo userInfoBean = pwmSession.isAuthenticated()
                 ? pwmSession.getUserInfo()
                 : null;
-        return MacroMachine.forUser( pwmApplication, pwmSession.getLabel(), userInfoBean, pwmSession.getLoginInfoBean() );
+        return MacroRequest.forUser( pwmApplication, pwmSession.getLabel(), userInfoBean, pwmSession.getLoginInfoBean() );
     }
 
     public Profile getProfile( final PwmApplication pwmApplication, final ProfileDefinition profileDefinition ) throws PwmUnrecoverableException

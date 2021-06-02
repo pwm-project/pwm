@@ -20,6 +20,7 @@
 
 package password.pwm.svc.event;
 
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
 
@@ -27,7 +28,7 @@ import java.util.List;
 
 public interface UserHistoryStore
 {
-    void updateUserHistory( UserAuditRecord auditRecord ) throws PwmUnrecoverableException;
+    void updateUserHistory( SessionLabel sessionLabel, UserAuditRecord auditRecord ) throws PwmUnrecoverableException;
 
-    List<UserAuditRecord> readUserHistory( UserInfo userInfo ) throws PwmUnrecoverableException;
+    List<UserAuditRecord> readUserHistory( SessionLabel sessionLabel, UserInfo userInfo ) throws PwmUnrecoverableException;
 }

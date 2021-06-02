@@ -18,16 +18,17 @@
  * limitations under the License.
  */
 
-package password.pwm.http.servlet.configeditor;
+package password.pwm.http.servlet.configeditor.data;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.config.PwmSettingCategory;
-import password.pwm.util.macro.MacroMachine;
 
 import java.io.Serializable;
 import java.util.Locale;
 
-@Data
+@Value
+@Builder
 public class CategoryInfo implements Serializable
 {
     private int level;
@@ -42,21 +43,17 @@ public class CategoryInfo implements Serializable
 
     public static CategoryInfo forCategory(
             final PwmSettingCategory category,
-            final MacroMachine macroMachine,
             final Locale locale )
     {
-        final CategoryInfo categoryInfo = new CategoryInfo();
-        categoryInfo.key = category.getKey();
-        categoryInfo.level = category.getLevel();
-        categoryInfo.description = macroMachine.expandMacros( category.getDescription( locale ) );
-        categoryInfo.label = category.getLabel( locale );
-        categoryInfo.hidden = category.isHidden();
-        if ( category.getParent() != null )
-        {
-            categoryInfo.parent = category.getParent().getKey();
-        }
-        categoryInfo.profiles = category.hasProfiles();
-        categoryInfo.menuLocation = category.toMenuLocationDebug( "PROFILE", locale );
-        return categoryInfo;
+        return CategoryInfo.builder()
+                .key( category.getKey() )
+                .level( category.getLevel() )
+                .description( category.getDescription( locale ) )
+                .label( category.getLabel( locale ) )
+                .hidden( category.isHidden() )
+                .parent( category.getParent() != null ? category.getParent().getKey() : null )
+                .profiles( category.hasProfiles() )
+                .menuLocation( category.toMenuLocationDebug( "PROFILE", locale ) )
+                .build();
     }
 }

@@ -50,7 +50,7 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmRandom;
 
 import javax.servlet.Filter;
@@ -359,7 +359,7 @@ public class RequestInitializationFilter implements Filter
             {
                 final String nonce = pwmRequest.getCspNonce();
                 final String replacedPolicy = contentPolicy.replace( "%NONCE%", nonce );
-                final String expandedPolicy = MacroMachine.forNonUserSpecific( pwmRequest.getPwmApplication(), null ).expandMacros( replacedPolicy );
+                final String expandedPolicy = MacroRequest.forNonUserSpecific( pwmRequest.getPwmApplication(), null ).expandMacros( replacedPolicy );
                 resp.setHeader( HttpHeader.ContentSecurityPolicy, expandedPolicy );
             }
         }
@@ -411,7 +411,7 @@ public class RequestInitializationFilter implements Filter
 
         if ( serverHeader != null && !serverHeader.isEmpty() )
         {
-            final String value = MacroMachine.forNonUserSpecific( pwmApplication, null ).expandMacros( serverHeader );
+            final String value = MacroRequest.forNonUserSpecific( pwmApplication, null ).expandMacros( serverHeader );
             resp.setHeader( HttpHeader.Server.getHttpName(), value );
         }
 

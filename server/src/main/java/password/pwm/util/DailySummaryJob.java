@@ -34,7 +34,7 @@ import password.pwm.svc.report.ReportSummaryData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -102,7 +102,7 @@ public class DailySummaryJob implements Runnable
             makeEmailBody( pwmApplication, dailyStatistics, locale, textBody, htmlBody );
             final EmailItemBean emailItem = new EmailItemBean( toAddress, fromAddress, subject, textBody.toString(), htmlBody.toString() );
             LOGGER.debug( () -> "sending daily summary email to " + toAddress );
-            pwmApplication.getEmailQueue().submitEmail( emailItem, null, MacroMachine.forNonUserSpecific( pwmApplication, null ) );
+            pwmApplication.getEmailQueue().submitEmail( emailItem, null, MacroRequest.forNonUserSpecific( pwmApplication, null ) );
         }
     }
 

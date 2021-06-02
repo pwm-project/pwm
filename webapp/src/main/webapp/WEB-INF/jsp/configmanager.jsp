@@ -41,7 +41,7 @@
 <% final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo">
+<body>
 <link href="<pwm:context/><pwm:url url='/public/resources/configmanagerStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">

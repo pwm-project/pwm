@@ -72,7 +72,8 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
+import password.pwm.util.macro.MacroReplacer;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomPasswordGenerator;
@@ -307,7 +308,7 @@ class NewUserUtils
         remoteWriteFormData( pwmRequest, newUserForm );
 
         // authenticate the user to pwm
-        final UserIdentity userIdentity = new UserIdentity( newUserDN, newUserProfile.getLdapProfile().getIdentifier() );
+        final UserIdentity userIdentity = UserIdentity.createUserIdentity( newUserDN, newUserProfile.getLdapProfile().getIdentifier() );
         final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmApplication, pwmRequest, PwmAuthenticationSource.NEW_USER_REGISTRATION );
         sessionAuthenticator.authenticateUser( userIdentity, userPassword );
 
@@ -370,12 +371,12 @@ class NewUserUtils
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
-        final MacroMachine macroMachine = createMacroMachineForNewUser( pwmRequest.getPwmApplication(), newUserProfile, pwmRequest.getLabel(), formValues, null );
+        final MacroRequest macroRequest = createMacroMachineForNewUser( pwmRequest.getPwmApplication(), newUserProfile, pwmRequest.getLabel(), formValues, null );
         final List<String> configuredNames = newUserProfile.readSettingAsStringArray( PwmSetting.NEWUSER_USERNAME_DEFINITION );
         final List<String> failedValues = new ArrayList<>();
 
         final String configuredContext = newUserProfile.readSettingAsString( PwmSetting.NEWUSER_CONTEXT );
-        final String expandedContext = macroMachine.expandMacros( configuredContext );
+        final String expandedContext = macroRequest.expandMacros( configuredContext );
 
 
         if ( configuredNames == null || configuredNames.isEmpty() || configuredNames.iterator().next().isEmpty() )
@@ -408,7 +409,7 @@ class NewUserUtils
             {
                 {
                     final String configuredName = configuredNames.get( attemptCount );
-                    expandedName = macroMachine.expandMacros( configuredName );
+                    expandedName = macroRequest.expandMacros( configuredName );
                 }
 
                 if ( !testIfEntryNameExists( pwmRequest, expandedName ) )
@@ -510,7 +511,7 @@ class NewUserUtils
             .build();
     }
 
-    static MacroMachine createMacroMachineForNewUser(
+    static MacroRequest createMacroMachineForNewUser(
             final PwmApplication pwmApplication,
             final NewUserProfile newUserProfile,
             final SessionLabel sessionLabel,
@@ -524,11 +525,11 @@ class NewUserUtils
 
         final UserInfoBean stubUserBean = createUserInfoBeanForNewUser( pwmApplication, newUserProfile, newUserForm );
 
-        final MacroMachine.StringReplacer stringReplacer = tokenDestinationItem == null
+        final MacroReplacer macroReplacer = tokenDestinationItem == null
                 ? null
                 : TokenUtil.makeTokenDestStringReplacer( tokenDestinationItem );
 
-        return MacroMachine.forUser( pwmApplication, sessionLabel, stubUserBean, stubLoginBean, stringReplacer );
+        return MacroRequest.forUser( pwmApplication, sessionLabel, stubUserBean, stubLoginBean, macroReplacer );
     }
 
     static Map<String, String> figureDisplayableProfiles( final PwmRequest pwmRequest )
@@ -759,7 +760,7 @@ class NewUserUtils
                     }
 
                     final Map<String, String> tokenPayloadMap = NewUserFormUtils.toTokenPayload( pwmRequest, newUserBean );
-                    final MacroMachine macroMachine = createMacroMachineForNewUser(
+                    final MacroRequest macroRequest = createMacroMachineForNewUser(
                             pwmRequest.getPwmApplication(),
                             newUserProfile,
                             pwmRequest.getLabel(),
@@ -770,7 +771,7 @@ class NewUserUtils
 
 
                     TokenUtil.initializeAndSendToken(
-                            pwmRequest.commonValues(),
+                            pwmRequest.getPwmRequestContext(),
                             TokenUtil.TokenInitAndSendRequest.builder()
                                     .userInfo(  null )
                                     .tokenDestinationItem( tokenDestinationItem )
@@ -778,7 +779,7 @@ class NewUserUtils
                                     .tokenType( TokenType.NEWUSER )
                                     .smsToSend( PwmSetting.SMS_NEWUSER_TOKEN_TEXT )
                                     .inputTokenData( tokenPayloadMap )
-                                    .macroMachine( macroMachine )
+                                    .macroRequest( macroRequest )
                                     .tokenLifetime( tokenLifetime )
                                     .build()
                     );

@@ -35,6 +35,7 @@ import java.io.Serializable;
 import java.io.StringWriter;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Value
@@ -51,6 +52,18 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
     private final Throwable throwable;
     private final String username;
     private final String sourceAddress;
+
+    private static final Comparator<PwmLogEvent> COMPARATOR = Comparator.comparing(
+            PwmLogEvent::getTimestamp,
+            Comparator.nullsLast( Comparator.naturalOrder() ) )
+            .thenComparing(
+                    PwmLogEvent::getSessionID,
+                    Comparator.nullsLast( Comparator.naturalOrder() ) )
+            .thenComparing(
+                    PwmLogEvent::getRequestID,
+                    Comparator.nullsLast( Comparator.naturalOrder() ) )
+            .thenComparing( PwmLogEvent::getLevel,
+                    Comparator.nullsLast( Comparator.naturalOrder() ) );
 
 
     public static PwmLogEvent fromEncodedString( final String encodedString )
@@ -144,7 +157,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
     @Override
     public int compareTo( final PwmLogEvent o )
     {
-        return this.getTimestamp().compareTo( o.getTimestamp() );
+        return COMPARATOR.compare( this, o );
     }
 
     String toEncodedString( )

@@ -57,7 +57,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
 
 import javax.servlet.ServletException;
@@ -109,11 +109,11 @@ class ActivateUserUtils
                 final List<ActionConfiguration> configValues = activateUserProfile.readSettingAsAction( PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES );
                 if ( !JavaHelper.isEmpty( configValues ) )
                 {
-                    final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, userIdentity );
+                    final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, userIdentity );
 
                     final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
                             .setExpandPwmMacros( true )
-                            .setMacroMachine( macroMachine )
+                            .setMacroMachine( macroRequest )
                             .createActionExecutor();
 
                     actionExecutor.executeActions( configValues, pwmRequest.getLabel() );
@@ -323,8 +323,8 @@ class ActivateUserUtils
                 pwmRequest.getLocale()
         );
 
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest, ActivateUserServlet.userInfo( pwmRequest ).getUserIdentity() );
-        final String expandedText = macroMachine.expandMacros( agreementText );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, ActivateUserServlet.userInfo( pwmRequest ).getUserIdentity() );
+        final String expandedText = macroRequest.expandMacros( agreementText );
         pwmRequest.setAttribute( PwmRequestAttribute.AgreementText, expandedText );
         pwmRequest.forwardToJsp( JspUrl.ACTIVATE_USER_AGREEMENT );
     }
@@ -342,7 +342,7 @@ class ActivateUserUtils
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final ActivateUserBean activateUserBean = pwmApplication.getSessionStateService().getBean( pwmRequest, ActivateUserBean.class );
 
-        final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser( pwmRequest.commonValues(), userIdentity, ProfileDefinition.ActivateUser );
+        final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser( pwmRequest.getPwmRequestContext(), userIdentity, ProfileDefinition.ActivateUser );
 
         if ( !profileID.isPresent() || !pwmApplication.getConfig().getUserActivationProfiles().containsKey( profileID.get() ) )
         {

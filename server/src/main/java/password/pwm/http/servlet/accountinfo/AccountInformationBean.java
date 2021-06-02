@@ -40,7 +40,7 @@ import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -106,8 +106,8 @@ public class AccountInformationBean implements Serializable
             throws PwmUnrecoverableException
     {
         final PwmPasswordPolicy pwmPasswordPolicy = pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy();
-        final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
-        final List<String> rules = PasswordRequirementsTag.getPasswordRequirementsStrings( pwmPasswordPolicy, pwmRequest.getConfig(), pwmRequest.getLocale(), macroMachine );
+        final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+        final List<String> rules = PasswordRequirementsTag.getPasswordRequirementsStrings( pwmPasswordPolicy, pwmRequest.getConfig(), pwmRequest.getLocale(), macroRequest );
         return Collections.unmodifiableList( rules );
     }
 
@@ -128,7 +128,7 @@ public class AccountInformationBean implements Serializable
         final List<UserAuditRecord> auditRecords = new ArrayList<>();
         try
         {
-            auditRecords.addAll( pwmApplication.getAuditManager().readUserHistory( userInfo ) );
+            auditRecords.addAll( pwmApplication.getAuditManager().readUserHistory( sessionLabel, userInfo ) );
         }
         catch ( final PwmUnrecoverableException e )
         {

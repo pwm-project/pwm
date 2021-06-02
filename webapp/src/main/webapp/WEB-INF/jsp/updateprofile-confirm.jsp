@@ -34,7 +34,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo">
+<body>
 <% final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);%>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">

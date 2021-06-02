@@ -76,11 +76,21 @@ public class PwmSettingCategoryTest
         {
             if ( category.hasProfiles() )
             {
-                final boolean hasChildren = !category.getChildCategories().isEmpty();
+                final boolean hasChildren = !category.getChildren().isEmpty();
                 final boolean hasSettings = !category.getSettings().isEmpty();
                 Assert.assertTrue( hasChildren || hasSettings );
                 Assert.assertFalse( category.getKey() + " has both child categories and settings", hasChildren && hasSettings );
             }
+        }
+    }
+
+    @Test
+    public void testScope()
+    {
+        for ( final PwmSettingCategory category : PwmSettingCategory.values() )
+        {
+                final PwmSettingScope scope = category.getScope();
+                Assert.assertNotNull( scope );
         }
     }
 }

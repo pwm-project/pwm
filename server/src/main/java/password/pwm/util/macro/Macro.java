@@ -20,19 +20,17 @@
 
 package password.pwm.util.macro;
 
-import password.pwm.PwmApplication;
-import password.pwm.bean.LoginInfoBean;
-import password.pwm.ldap.UserInfo;
-
+import java.util.Set;
 import java.util.regex.Pattern;
 
-public interface MacroImplementation
+public interface Macro
 {
     enum Scope
     {
         Static,
         System,
         User,
+        TargetUser,
     }
 
     enum Sequence
@@ -41,30 +39,20 @@ public interface MacroImplementation
         post,
     }
 
-    Pattern getRegExPattern( );
-
-    String replaceValue( String matchValue, MacroRequestInfo macroRequestInfo )
-            throws MacroParseException;
-
-    interface MacroRequestInfo
-    {
-        PwmApplication getPwmApplication( );
-
-        UserInfo getUserInfo( );
-
-        LoginInfoBean getLoginInfoBean( );
-    }
-
-    MacroDefinitionFlag[] flags( );
-
-    default Sequence getSequence( )
-    {
-        return Sequence.normal;
-    }
-
     enum MacroDefinitionFlag
     {
         SensitiveValue,
         OnlyDebugLogging,
     }
+
+    Pattern getRegExPattern( );
+
+    String replaceValue( String matchValue, MacroRequest macroRequestInfo )
+            throws MacroParseException;
+
+    Set<MacroDefinitionFlag> flags();
+
+    Scope getScope();
+
+    Sequence getSequence( );
 }

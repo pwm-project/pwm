@@ -35,7 +35,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo">
+<body>
 <div id="wrapper">
     <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
@@ -81,10 +81,10 @@
                                 <input class="configNumericInput" type="number" min="0" max="65535" id="<%=ConfigGuideFormField.PARAM_LDAP_PORT%>" name="<%=ConfigGuideFormField.PARAM_LDAP_PORT%>" value="<%=configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_PORT)%>"/>
                             </td>
                             <td>
-                                <% final boolean secureChecked = "true".equalsIgnoreCase(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_SECURE));%>
+                                <% final boolean secureChecked = ConfigGuideForm.readCheckedFormField(configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_LDAP_SECURE));%>
                                 <label class="checkboxWrapper">
-                                    <input type="checkbox" id="widget_<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>" name="nope" <%=secureChecked ? "checked" : ""%>/> Secure
-                                    <input type="hidden" id="<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>" name="<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>" value="uninitialized"/>
+                                    <input type="checkbox" id="<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>" name="<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>"
+                                            <%=secureChecked ? "checked" : ""%>/> Secure
                                 </label>
                             </td>
                         </tr>
@@ -108,8 +108,6 @@
 <pwm:script>
     <script type="text/javascript">
         function handleFormActivity() {
-            PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>').value =
-                    PWM_MAIN.getObject('widget_<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>').checked ? "true" : "false";
             PWM_GUIDE.updateForm();
             clearHealthDiv();
         }
@@ -127,12 +125,12 @@
                 handleFormActivity();
             });
 
-            PWM_MAIN.addEventHandler('widget_<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>','change',function() {
-                if (!PWM_MAIN.getObject('widget_<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>').checked) {
+            PWM_MAIN.addEventHandler('<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>','change',function() {
+                if (!PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>').checked) {
                     PWM_MAIN.showConfirmDialog({
                         text: PWM_CONFIG.showString('Confirm_SSLDisable'),
                         cancelAction: function () {
-                            PWM_MAIN.getObject('widget_<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>').checked=true;
+                            PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_SECURE%>').checked=true;
                             PWM_MAIN.closeWaitDialog();
                             handleFormActivity();
                         }

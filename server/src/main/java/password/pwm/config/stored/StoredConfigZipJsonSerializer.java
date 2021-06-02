@@ -143,7 +143,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
         {
             if ( SETTINGS_FILENAME.equals( zipEntry.getName() ) )
             {
-                final String stringData = JavaHelper.copy( zipInputStream );
+                final String stringData = JavaHelper.copyToString( zipInputStream );
                 final List<SerializedValue> readComponents = JsonUtil.deserialize( stringData, new TypeToken<List<SerializedValue>>()
                 {
                 } );
@@ -151,7 +151,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
             }
             else if ( META_VALUES_FILENAME.equals( zipEntry.getName() ) )
             {
-                final String stringData = JavaHelper.copy( zipInputStream );
+                final String stringData = JavaHelper.copyToString( zipInputStream );
                 final List<SerializedValue> readMetaValues = JsonUtil.deserialize( stringData, new TypeToken<List<SerializedMetaValue>>()
                 {
                 } );
@@ -159,7 +159,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
             }
             else if ( META_FILENAME.equals( zipEntry.getName() ) )
             {
-                final String stringData = JavaHelper.copy( zipInputStream );
+                final String stringData = JavaHelper.copyToString( zipInputStream );
                 metaData = JsonUtil.deserialize( stringData, MetaData.class );
             }
             else if ( zipEntry.getName().endsWith( XREF_SUFFIX ) )

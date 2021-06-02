@@ -223,7 +223,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
                     pwmSession.getUserInfo(),
                     pwmSession
             );
-            pwmApplication.getAuditManager().submit( auditRecord );
+            pwmApplication.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
 
             pwmRequest.sendRedirect( PwmServletDefinition.SetupResponses );
         }

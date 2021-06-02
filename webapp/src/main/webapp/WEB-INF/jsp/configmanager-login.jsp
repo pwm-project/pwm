@@ -44,7 +44,7 @@
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS);%>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo">
+<body>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
 <div id="wrapper" class="login-wrapper">
     <jsp:include page="fragment/header-body.jsp">

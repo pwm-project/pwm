@@ -47,7 +47,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.otp.DbOtpOperator;
 import password.pwm.util.operations.otp.LdapOtpOperator;
 import password.pwm.util.operations.otp.LocalDbOtpOperator;
@@ -70,6 +70,7 @@ import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * @author Menno Pieters, Jason D. Rivard
@@ -165,12 +166,12 @@ public class OtpService implements PwmService
     private List<String> createRawRecoveryCodes( final int numRecoveryCodes, final SessionLabel sessionLabel )
             throws PwmUnrecoverableException
     {
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, sessionLabel );
+        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, sessionLabel );
         final String configuredTokenMacro = settings.getRecoveryTokenMacro();
         final List<String> recoveryCodes = new ArrayList<>();
         while ( recoveryCodes.size() < numRecoveryCodes )
         {
-            final String code = macroMachine.expandMacros( configuredTokenMacro );
+            final String code = macroRequest.expandMacros( configuredTokenMacro );
             recoveryCodes.add( code );
         }
         return recoveryCodes;
@@ -356,13 +357,12 @@ public class OtpService implements PwmService
 
         {
             final OTPUserRecord finalOtpConfig = otpConfig;
-            LOGGER.trace( sessionLabel, () -> "readOTPUserConfiguration completed in "
-                    + TimeDuration.fromCurrent( methodStartTime ).asCompactString()
-                    + ( finalOtpConfig == null
-                    ? ", no otp record found"
-                    : ", recordType=" + finalOtpConfig.getType() + ", identifier=" + finalOtpConfig.getIdentifier() + ", timestamp="
-                    + JavaHelper.toIsoDate( finalOtpConfig.getTimestamp() ) )
-            );
+            final Supplier<CharSequence> msg = () -> finalOtpConfig == null
+                    ? "no otp record found for user " + userIdentity.toDisplayString()
+                    : "loaded otp record for user " + userIdentity.toDisplayString()
+                    + " [recordType=" + finalOtpConfig.getType() + ", identifier=" + finalOtpConfig.getIdentifier() + ", timestamp="
+                    + JavaHelper.toIsoDate( finalOtpConfig.getTimestamp() ) + "]";
+            LOGGER.trace( sessionLabel, msg, () -> TimeDuration.fromCurrent(  methodStartTime ) );
         }
         return otpConfig;
     }
@@ -464,7 +464,7 @@ public class OtpService implements PwmService
                 }
                 else
                 {
-                    LOGGER.warn( pwmRequest, () -> String.format( "Storage location %s not implemented", otpSecretStorageLocation.toString() ) );
+                    LOGGER.warn( pwmRequest, () -> String.format( "storage location %s not implemented", otpSecretStorageLocation.toString() ) );
                 }
             }
         }

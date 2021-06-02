@@ -44,7 +44,7 @@
         /* noop */
     }
 %>
-<body class="nihilo">
+<body>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_LocaleSelect"/>

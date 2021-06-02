@@ -75,7 +75,7 @@ public class PwmSettingTemplateSet implements Serializable
 
     /**
      * Get all possible templateSets, useful for testing.
-     * @return
+     * @return A list of all possible template sets.
      */
     public static List<PwmSettingTemplateSet> allValues()
     {

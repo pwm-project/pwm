@@ -35,6 +35,7 @@ public enum PwmRequestAttribute
     ModuleBean,
     ModuleBean_String,
     CspNonce,
+    BrowserInfo,
 
     FormConfiguration,
     FormInitialValues,

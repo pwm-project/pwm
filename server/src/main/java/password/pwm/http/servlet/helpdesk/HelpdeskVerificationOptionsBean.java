@@ -71,7 +71,7 @@ public class HelpdeskVerificationOptionsBean implements Serializable
     )
             throws PwmUnrecoverableException
     {
-        final ChaiUser theUser = HelpdeskServlet.getChaiUser( pwmRequest, helpdeskProfile, targetUser );
+        final ChaiUser theUser = HelpdeskServletUtil.getChaiUser( pwmRequest, helpdeskProfile, targetUser );
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
                 pwmRequest.getLabel(),

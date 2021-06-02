@@ -28,7 +28,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.mail.Transport;
+import jakarta.mail.Transport;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;

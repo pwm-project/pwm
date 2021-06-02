@@ -42,7 +42,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
 {
     private final Map<String, List<String>> values;
 
-    LocalizedStringArrayValue( final Map<String, List<String>> values )
+    public LocalizedStringArrayValue( final Map<String, List<String>> values )
     {
         this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
     }

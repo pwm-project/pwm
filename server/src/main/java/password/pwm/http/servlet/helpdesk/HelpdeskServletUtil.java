@@ -46,9 +46,10 @@ import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.util.Collection;
 import java.util.List;
@@ -188,7 +189,7 @@ public class HelpdeskServletUtil
                 .build();
 
         final boolean match = UserPermissionUtility.testUserPermission(
-                pwmRequest.commonValues(),
+                pwmRequest.getPwmRequestContext(),
                 userIdentity,
                 userPermission
         );
@@ -240,7 +241,7 @@ public class HelpdeskServletUtil
                 pwmRequest.getLabel().getSourceAddress(),
                 pwmRequest.getLabel().getSourceHostname()
         );
-        pwmRequest.getPwmApplication().getAuditManager().submit( auditRecord );
+        pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
 
         StatisticsManager.incrementStat( pwmRequest, Statistic.HELPDESK_USER_LOOKUP );
         return helpdeskDetailInfoBean;
@@ -266,10 +267,11 @@ public class HelpdeskServletUtil
     )
     {
         final Collection<IdentityVerificationMethod> requiredMethods = helpdeskProfile.readRequiredVerificationMethods();
-        if ( requiredMethods == null || requiredMethods.isEmpty() )
+        if ( JavaHelper.isEmpty( requiredMethods ) )
         {
             return true;
         }
+
         for ( final IdentityVerificationMethod method : requiredMethods )
         {
             if ( verificationStateBean.hasRecord( userIdentity, method ) )
@@ -277,6 +279,7 @@ public class HelpdeskServletUtil
                 return true;
             }
         }
+
         return false;
     }
 
@@ -287,7 +290,7 @@ public class HelpdeskServletUtil
             final ChaiUser chaiUser
 
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration config = pwmRequest.getConfig();
@@ -308,18 +311,66 @@ public class HelpdeskServletUtil
                 chaiUser.getChaiProvider()
         );
 
-        final MacroMachine macroMachine = MacroMachine.forUser(
-                pwmApplication,
-                pwmRequest.getLabel(),
-                userInfo,
-                null
-        );
+        final MacroRequest macroRequest = getTargetUserMacroRequest( pwmRequest, helpdeskProfile, userIdentity );
 
         pwmApplication.getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 userInfo,
-                macroMachine
+                macroRequest
         );
     }
 
+    static ChaiUser getChaiUser(
+            final PwmRequest pwmRequest,
+            final HelpdeskProfile helpdeskProfile,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        final boolean useProxy = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY );
+        return useProxy
+                ? pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity )
+                : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
+    }
+
+    static UserInfo getTargetUserInfo(
+            final PwmRequest pwmRequest,
+            final HelpdeskProfile helpdeskProfile,
+            final UserIdentity targetUserIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        return UserInfoFactory.newUserInfo(
+                pwmRequest.getPwmApplication(),
+                pwmRequest.getLabel(),
+                pwmRequest.getLocale(),
+                targetUserIdentity,
+                getChaiUser( pwmRequest, helpdeskProfile, targetUserIdentity ).getChaiProvider()
+        );
+    }
+
+    static MacroRequest getTargetUserMacroRequest(
+            final PwmRequest pwmRequest,
+            final HelpdeskProfile helpdeskProfile,
+            final UserIdentity targetUserIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        final MacroRequest macroRequest = MacroRequest.forUser(
+                pwmRequest.getPwmApplication(),
+                pwmRequest.getLabel(),
+                getTargetUserInfo( pwmRequest, helpdeskProfile, targetUserIdentity ),
+                pwmRequest.getPwmSession().getLoginInfoBean()
+        );
+
+        /*
+        if ( targetUserIdentity != null )
+        {
+            final UserInfo targetUserInfo = getTargetUserInfo( pwmRequest, helpdeskProfile, targetUserIdentity );
+            return macroRequest.toBuilder().targetUserInfo( targetUserInfo ).build();
+        }
+         */
+
+        return macroRequest;
+    }
 }

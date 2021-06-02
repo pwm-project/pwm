@@ -30,7 +30,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -88,8 +88,8 @@ public class ErrorMessageTag extends PwmAbstractTag
 
                 outputMsg = outputMsg.replace( "\n", "<br/>" );
 
-                final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
-                outputMsg = macroMachine.expandMacros( outputMsg );
+                final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+                outputMsg = macroRequest.expandMacros( outputMsg );
 
                 pageContext.getOut().write( outputMsg );
             }

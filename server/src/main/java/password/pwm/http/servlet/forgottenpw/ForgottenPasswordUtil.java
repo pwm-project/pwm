@@ -53,7 +53,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.CommonValues;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.auth.HttpAuthRecord;
 import password.pwm.http.bean.ForgottenPasswordBean;
@@ -70,7 +70,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomPasswordGenerator;
 
@@ -91,7 +91,7 @@ public class ForgottenPasswordUtil
     private static final PwmLogger LOGGER = PwmLogger.forClass( ForgottenPasswordUtil.class );
 
     static Set<IdentityVerificationMethod> figureRemainingAvailableOptionalAuthMethods(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final ForgottenPasswordBean forgottenPasswordBean
     )
     {
@@ -104,7 +104,7 @@ public class ForgottenPasswordUtil
         {
             try
             {
-                verifyRequirementsForAuthMethod( commonValues, forgottenPasswordBean, recoveryVerificationMethods );
+                verifyRequirementsForAuthMethod( pwmRequestContext, forgottenPasswordBean, recoveryVerificationMethods );
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -132,7 +132,7 @@ public class ForgottenPasswordUtil
     }
 
     static UserInfo readUserInfo(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final ForgottenPasswordBean forgottenPasswordBean
     )
             throws PwmUnrecoverableException
@@ -145,15 +145,15 @@ public class ForgottenPasswordUtil
         final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
 
         return UserInfoFactory.newUserInfoUsingProxy(
-                commonValues.getPwmApplication(),
-                commonValues.getSessionLabel(),
+                pwmRequestContext.getPwmApplication(),
+                pwmRequestContext.getSessionLabel(),
                 userIdentity,
-                commonValues.getLocale()
+                pwmRequestContext.getLocale()
         );
     }
 
     static ResponseSet readResponseSet(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final ForgottenPasswordBean forgottenPasswordBean
     )
             throws PwmUnrecoverableException
@@ -164,7 +164,7 @@ public class ForgottenPasswordUtil
             return null;
         }
 
-        final PwmApplication pwmApplication = commonValues.getPwmApplication();
+        final PwmApplication pwmApplication = pwmRequestContext.getPwmApplication();
         final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
         final ResponseSet responseSet;
 
@@ -172,7 +172,7 @@ public class ForgottenPasswordUtil
         {
             final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
             responseSet = pwmApplication.getCrService().readUserResponseSet(
-                    commonValues.getSessionLabel(),
+                    pwmRequestContext.getSessionLabel(),
                     userIdentity,
                     theUser
             );
@@ -186,27 +186,27 @@ public class ForgottenPasswordUtil
     }
 
     static void sendUnlockNoticeEmail(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final ForgottenPasswordBean forgottenPasswordBean
     )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = commonValues.getPwmApplication();
-        final Configuration config = commonValues.getConfig();
-        final Locale locale = commonValues.getLocale();
+        final PwmApplication pwmApplication = pwmRequestContext.getPwmApplication();
+        final Configuration config = pwmRequestContext.getConfig();
+        final Locale locale = pwmRequestContext.getLocale();
         final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_UNLOCK, locale );
 
         if ( configuredEmailSetting == null )
         {
-            LOGGER.debug( commonValues.getSessionLabel(), () -> "skipping send unlock notice email for '" + userIdentity + "' no email configured" );
+            LOGGER.debug( pwmRequestContext.getSessionLabel(), () -> "skipping send unlock notice email for '" + userIdentity + "' no email configured" );
             return;
         }
 
-        final UserInfo userInfo = readUserInfo( commonValues, forgottenPasswordBean );
-        final MacroMachine macroMachine = MacroMachine.forUser(
+        final UserInfo userInfo = readUserInfo( pwmRequestContext, forgottenPasswordBean );
+        final MacroRequest macroRequest = MacroRequest.forUser(
                 pwmApplication,
-                commonValues.getSessionLabel(),
+                pwmRequestContext.getSessionLabel(),
                 userInfo,
                 null
         );
@@ -214,7 +214,7 @@ public class ForgottenPasswordUtil
         pwmApplication.getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 userInfo,
-                macroMachine
+                macroRequest
         );
     }
 
@@ -252,20 +252,20 @@ public class ForgottenPasswordUtil
     }
 
     static List<TokenDestinationItem> figureAvailableTokenDestinations(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final ForgottenPasswordBean forgottenPasswordBean
     )
             throws PwmUnrecoverableException
     {
         final String profileID = forgottenPasswordBean.getForgottenPasswordProfileID();
-        final ForgottenPasswordProfile forgottenPasswordProfile = commonValues.getConfig().getForgottenPasswordProfiles().get( profileID );
+        final ForgottenPasswordProfile forgottenPasswordProfile = pwmRequestContext.getConfig().getForgottenPasswordProfiles().get( profileID );
         final MessageSendMethod tokenSendMethod = forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_TOKEN_SEND_METHOD, MessageSendMethod.class );
-        final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( commonValues, forgottenPasswordBean );
+        final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean );
 
         final List<TokenDestinationItem> items = TokenUtil.figureAvailableTokenDestinations(
-                commonValues.getPwmApplication(),
-                commonValues.getSessionLabel(),
-                commonValues.getLocale(),
+                pwmRequestContext.getPwmApplication(),
+                pwmRequestContext.getSessionLabel(),
+                pwmRequestContext.getLocale(),
                 userInfo,
                 tokenSendMethod
         );
@@ -274,7 +274,7 @@ public class ForgottenPasswordUtil
     }
 
     static void verifyRequirementsForAuthMethod(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final ForgottenPasswordBean forgottenPasswordBean,
             final IdentityVerificationMethod recoveryVerificationMethods
     )
@@ -284,7 +284,7 @@ public class ForgottenPasswordUtil
         {
             case TOKEN:
             {
-                ForgottenPasswordUtil.figureAvailableTokenDestinations( commonValues, forgottenPasswordBean );
+                ForgottenPasswordUtil.figureAvailableTokenDestinations( pwmRequestContext, forgottenPasswordBean );
             }
             break;
 
@@ -302,7 +302,7 @@ public class ForgottenPasswordUtil
 
             case OTP:
             {
-                final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( commonValues, forgottenPasswordBean );
+                final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean );
                 if ( userInfo.getOtpUserRecord() == null )
                 {
                     final String errorMsg = "could not find a one time password configuration for " + userInfo.getUserIdentity();
@@ -314,8 +314,8 @@ public class ForgottenPasswordUtil
 
             case CHALLENGE_RESPONSES:
             {
-                final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( commonValues, forgottenPasswordBean );
-                final ResponseSet responseSet = ForgottenPasswordUtil.readResponseSet( commonValues, forgottenPasswordBean );
+                final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean );
+                final ResponseSet responseSet = ForgottenPasswordUtil.readResponseSet( pwmRequestContext, forgottenPasswordBean );
                 if ( responseSet == null )
                 {
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_RESPONSES_NORESPONSES );
@@ -395,7 +395,7 @@ public class ForgottenPasswordUtil
 
 
     static void initializeAndSendToken(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final UserInfo userInfo,
             final TokenDestinationItem tokenDestinationItem
 
@@ -403,7 +403,7 @@ public class ForgottenPasswordUtil
             throws PwmUnrecoverableException
     {
         TokenUtil.initializeAndSendToken(
-                commonValues,
+                pwmRequestContext,
                 TokenUtil.TokenInitAndSendRequest.builder()
                         .userInfo( userInfo )
                         .tokenDestinationItem( tokenDestinationItem )
@@ -413,7 +413,7 @@ public class ForgottenPasswordUtil
                         .build()
         );
 
-        commonValues.getPwmApplication().getStatisticsManager().incrementValue( Statistic.RECOVERY_TOKENS_SENT );
+        pwmRequestContext.getPwmApplication().getStatisticsManager().incrementValue( Statistic.RECOVERY_TOKENS_SENT );
     }
 
 
@@ -497,7 +497,7 @@ public class ForgottenPasswordUtil
                         userIdentity,
                         pwmRequest.getLabel()
                 );
-                pwmApplication.getAuditManager().submit( auditRecord );
+                pwmApplication.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
             }
 
             final MessageSendMethod messageSendMethod = forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_SENDNEWPW_METHOD, MessageSendMethod.class );
@@ -539,7 +539,7 @@ public class ForgottenPasswordUtil
         }
     }
 
-    static void initBogusForgottenPasswordBean( final CommonValues commonValues, final ForgottenPasswordBean forgottenPasswordBean )
+    static void initBogusForgottenPasswordBean( final PwmRequestContext pwmRequestContext, final ForgottenPasswordBean forgottenPasswordBean )
             throws PwmUnrecoverableException
     {
         forgottenPasswordBean.setUserIdentity( null );
@@ -547,8 +547,8 @@ public class ForgottenPasswordUtil
 
         final List<Challenge> challengeList = new ArrayList<>( );
         {
-            final String firstProfile = commonValues.getConfig().getChallengeProfileIDs().iterator().next();
-            final ChallengeSet challengeSet = commonValues.getConfig().getChallengeProfile( firstProfile, PwmConstants.DEFAULT_LOCALE ).getChallengeSet();
+            final String firstProfile = pwmRequestContext.getConfig().getChallengeProfileIDs().iterator().next();
+            final ChallengeSet challengeSet = pwmRequestContext.getConfig().getChallengeProfile( firstProfile, PwmConstants.DEFAULT_LOCALE ).getChallengeSet();
             challengeList.addAll( challengeSet.getRequiredChallenges() );
             for ( int i = 0; i < challengeSet.getMinRandomRequired(); i++ )
             {
@@ -575,7 +575,7 @@ public class ForgottenPasswordUtil
         forgottenPasswordBean.setAttributeForm( formData );
         forgottenPasswordBean.setBogusUser( true );
         {
-            final String profileID = commonValues.getConfig().getForgottenPasswordProfiles().keySet().iterator().next();
+            final String profileID = pwmRequestContext.getConfig().getForgottenPasswordProfiles().keySet().iterator().next();
             forgottenPasswordBean.setForgottenPasswordProfileID( profileID  );
         }
 
@@ -662,24 +662,24 @@ public class ForgottenPasswordUtil
 
 
     static void initForgottenPasswordBean(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final UserIdentity userIdentity,
             final ForgottenPasswordBean forgottenPasswordBean
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
 
-        final PwmApplication pwmApplication = commonValues.getPwmApplication();
-        final Locale locale = commonValues.getLocale();
-        final SessionLabel sessionLabel = commonValues.getSessionLabel();
+        final PwmApplication pwmApplication = pwmRequestContext.getPwmApplication();
+        final Locale locale = pwmRequestContext.getLocale();
+        final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
 
         forgottenPasswordBean.setUserIdentity( userIdentity );
 
-        final UserInfo userInfo = readUserInfo( commonValues, forgottenPasswordBean );
+        final UserInfo userInfo = readUserInfo( pwmRequestContext, forgottenPasswordBean );
 
         final ForgottenPasswordProfile forgottenPasswordProfile = forgottenPasswordProfile(
                 pwmApplication,
-                commonValues.getSessionLabel(),
+                pwmRequestContext.getSessionLabel(),
                 userIdentity
         );
         final String forgottenProfileID = forgottenPasswordProfile.getIdentifier();
@@ -745,7 +745,7 @@ public class ForgottenPasswordUtil
             }
         }
 
-        final List<FormConfiguration> attributeForm = figureAttributeForm( forgottenPasswordProfile, forgottenPasswordBean, commonValues, userIdentity );
+        final List<FormConfiguration> attributeForm = figureAttributeForm( forgottenPasswordProfile, forgottenPasswordBean, pwmRequestContext, userIdentity );
 
         forgottenPasswordBean.setUserLocale( locale );
         forgottenPasswordBean.setPresentableChallengeSet( challengeSet == null ? null : challengeSet.asChallengeSetBean() );
@@ -756,14 +756,14 @@ public class ForgottenPasswordUtil
 
         for ( final IdentityVerificationMethod recoveryVerificationMethods : recoveryFlags.getRequiredAuthMethods() )
         {
-            verifyRequirementsForAuthMethod( commonValues, forgottenPasswordBean, recoveryVerificationMethods );
+            verifyRequirementsForAuthMethod( pwmRequestContext, forgottenPasswordBean, recoveryVerificationMethods );
         }
     }
 
     static List<FormConfiguration> figureAttributeForm(
             final ForgottenPasswordProfile forgottenPasswordProfile,
             final ForgottenPasswordBean forgottenPasswordBean,
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final UserIdentity userIdentity
     )
             throws PwmOperationalException, PwmUnrecoverableException
@@ -774,7 +774,7 @@ public class ForgottenPasswordUtil
             return requiredAttributesForm;
         }
 
-        final UserInfo userInfo = readUserInfo( commonValues, forgottenPasswordBean );
+        final UserInfo userInfo = readUserInfo( pwmRequestContext, forgottenPasswordBean );
         final List<FormConfiguration> returnList = new ArrayList<>();
         for ( final FormConfiguration formItem : requiredAttributesForm )
         {
@@ -793,7 +793,7 @@ public class ForgottenPasswordUtil
                     }
                     else
                     {
-                        LOGGER.trace( commonValues.getSessionLabel(), () -> "excluding optional required attribute(" + formItem.getName() + "), user has no value" );
+                        LOGGER.trace( pwmRequestContext.getSessionLabel(), () -> "excluding optional required attribute(" + formItem.getName() + "), user has no value" );
                     }
                 }
                 catch ( final PwmUnrecoverableException e )
@@ -833,7 +833,7 @@ public class ForgottenPasswordUtil
     }
 
     static boolean hasOtherMethodChoices(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final ForgottenPasswordBean forgottenPasswordBean,
             final IdentityVerificationMethod thisMethod
     )
@@ -856,7 +856,7 @@ public class ForgottenPasswordUtil
 
         {
             final Set<IdentityVerificationMethod> remainingAvailableOptionalMethods = ForgottenPasswordUtil.figureRemainingAvailableOptionalAuthMethods(
-                    commonValues,
+                    pwmRequestContext,
                     forgottenPasswordBean
             );
             final Set<IdentityVerificationMethod> otherOptionalMethodChoices = JavaHelper.copiedEnumSet( remainingAvailableOptionalMethods, IdentityVerificationMethod.class );

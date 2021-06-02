@@ -247,10 +247,11 @@ table {
     width: 580px;
     overflow-y: auto;
     position: fixed;
-    margin-left: 120px;
+    margin-left: 30px;
     margin-right: 110px;
     z-index: 10;
     background: white;
+    top: 65px;
 }
 
 #configurationNotesTextarea {
@@ -264,7 +265,7 @@ table {
     background-color: white;
     border: 1px solid #dae1e1;
     border-radius: 3px;
-    bottom: 20px;
+    bottom: 75px;
     left: 8px;
     position: absolute;
     top: 55px;
@@ -280,7 +281,7 @@ table {
 }
 
 #navTreeExpanderButtons {
-    bottom: -20px;
+    bottom: -75px;
     cursor: pointer;
     position: absolute;
     text-align: center;
@@ -298,13 +299,25 @@ table {
     width: 606px;
 }
 
+#infoPanel {
+    border: 0 none;
+    bottom: 0;
+    left: 890px;
+    overflow: auto;
+    padding-right: 6px;
+    position: absolute;
+    top: 55px;
+    width: 10;
+    max-width: 400px;
+}
+
 #settingSearchPanel {
     animation: fadein 0.4s;
     background: none repeat scroll 0 0;
     left: 8px;
     position: absolute;
     top: 10px;
-    width: 850px;
+    width: 100%;
     z-index: 2;
 }
 
@@ -438,6 +451,11 @@ input:invalid{
     margin-left: 10px;
     cursor: pointer; 
     text-decoration: underline;
+}
+
+.configLightText {
+    font-size: smaller;
+    color: grey;
 }
 
 .panel-searchResultCategory {
@@ -614,4 +632,65 @@ select {
 
 .overflow-y {
     overflow-y: auto;
+}
+
+
+/* TOGGLE STYLING */
+.toggle {
+    margin: 0 0 2px;
+    box-sizing: border-box;
+    font-size: 0;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+.toggle input {
+    width: 0;
+    height: 0;
+    position: absolute;
+    left: -9999px;
+}
+.toggle input + label {
+    color: #656565;
+    margin: 0;
+    padding: 4px;
+    box-sizing: border-box;
+    position: relative;
+    display: inline-block;
+    border: solid 1px #ddd;
+    background-color: #fff;
+    font-size: 1rem;
+    line-height: 140%;
+    text-align: center;
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+    transition: border-color 0.15s ease-out, color 0.25s ease-out, background-color 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+.toggle input + label:first-of-type {
+    border-radius: 6px 0 0 6px;
+    border-right: none;
+}
+.toggle input + label:last-of-type {
+    border-radius: 0 6px 6px 0;
+    border-left: none;
+}
+.toggle input:checked + label {
+    background-color: #d3d3d3;
+    border-color: #d3d3d3;
+    z-index: 1;
+}
+.toggleWrapper {
+    text-align: center;
+    display: inline-block
+}
+
+
+@media (max-width: 800px) {
+    .toggle input + label {
+        padding: 0.75rem 0.25rem;
+        flex: 0 0 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 }

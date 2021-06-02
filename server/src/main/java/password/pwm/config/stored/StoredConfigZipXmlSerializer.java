@@ -20,18 +20,16 @@
 
 package password.pwm.config.stored;
 
-import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSettingSyntax;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.FileValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,17 +61,14 @@ public class StoredConfigZipXmlSerializer implements StoredConfigSerializer
         {
             if ( SETTINGS_FILENAME.equals( zipEntry.getName() ) )
             {
-                final byte[] xmlBytes = IOUtils.toByteArray( zipInputStream );
-                final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream( xmlBytes );
-                storedConfiguration = new StoredConfigXmlSerializer().readInput( byteArrayInputStream );
+                final ImmutableByteArray byteArray = JavaHelper.copyToBytes( zipInputStream );
+                storedConfiguration = new StoredConfigXmlSerializer().readInput( byteArray.newByteArrayInputStream() );
             }
             else if ( zipEntry.getName().endsWith( XREF_SUFFIX ) )
             {
                 final String hash = zipEntry.getName().substring( 0, zipEntry.getName().length() - XREF_SUFFIX.length() );
-                final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                JavaHelper.copy( zipInputStream, byteArrayOutputStream );
-                final byte[] contents = byteArrayOutputStream.toByteArray();
-                exrefMap.put( hash, ImmutableByteArray.of( contents ) );
+                final ImmutableByteArray contents = JavaHelper.copyToBytes( zipInputStream );
+                exrefMap.put( hash, contents );
             }
             zipInputStream.closeEntry();
 

@@ -94,7 +94,10 @@ public class ConfigurationChecker implements HealthChecker
                 }
                 catch ( final PwmUnrecoverableException e )
                 {
-                    records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Configuration, e.getMessage() ) );
+                    records.add( HealthRecord.forMessage(
+                            HealthMessage.NewUser_PwTemplateBad,
+                             PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( newUserProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE ),
+                             e.getMessage() ) );
                 }
             }
         }

@@ -102,8 +102,8 @@ public class StoredConfigItemKeyTest
         }
 
         Collections.shuffle( list );
-        Collections.sort( list );
-        System.out.println( list.size() );
+        list.sort( StoredConfigItemKey.comparator() );
+        //System.out.println( list.size() );
         //list.forEach( System.out::println );
     }
 }

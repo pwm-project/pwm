@@ -31,9 +31,10 @@
 <%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.*" %>
-<%@ page import="password.pwm.util.macro.MacroMachine" %>
+<%@ page import="password.pwm.util.macro.MacroRequest" %>
 <%@ page import="com.novell.ldapchai.util.StringHelper" %>
 <%@ page import="password.pwm.AppProperty" %>
+<%@ page import="password.pwm.config.PwmSettingStats" %>
 
 <!DOCTYPE html>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_HEADER_WARNINGS); %>
@@ -48,12 +49,12 @@
 <%
     final PwmRequest pwmRequest = JspUtility.getPwmRequest(pageContext);
     final boolean advancedMode = false;
-    final List<PwmSettingCategory> sortedCategories = PwmSettingCategory.valuesForReferenceDoc(userLocale);
-    final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmRequest.getPwmApplication(), pwmRequest.getLabel());
+    final List<PwmSettingCategory> sortedCategories = PwmSettingCategory.valuesForReferenceDoc();
+    final MacroRequest macroRequest = MacroRequest.forNonUserSpecific(pwmRequest.getPwmApplication(), pwmRequest.getLabel());
 %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body class="nihilo">
+<body>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Setting Reference"/>
@@ -216,7 +217,7 @@
                 </tr>
                 <tr>
                     <td colspan="2">
-                        <%= macroMachine.expandMacros(setting.getDescription(userLocale)) %>
+                        <%= macroRequest.expandMacros(setting.getDescription(userLocale)) %>
                     </td>
                 </tr>
                 <% } %>
@@ -227,14 +228,14 @@
         <% } %>
         <% if (advancedMode) { %>
         <h2><a id="settingStatistics">Setting Statistics</a></h2>
-        <% final Map<PwmSetting.SettingStat,Object> settingStats = PwmSetting.getStats(); %>
+        <% final Map<PwmSettingStats.SettingStat,Object> settingStats = PwmSettingStats.getStats(); %>
         <table>
             <tr>
                 <td>
                     Total Settings
                 </td>
                 <td>
-                    <%= settingStats.get(PwmSetting.SettingStat.Total) %>
+                    <%= settingStats.get( PwmSettingStats.SettingStat.Total) %>
                 </td>
             </tr>
             <tr>
@@ -242,10 +243,11 @@
                     Settings that are part of a Profile
                 </td>
                 <td>
-                    <%= settingStats.get(PwmSetting.SettingStat.hasProfile) %>
+                    <%= settingStats.get( PwmSettingStats.SettingStat.hasProfile) %>
                 </td>
             </tr>
-            <% final Map<PwmSettingSyntax,Integer> syntaxCounts = (Map<PwmSettingSyntax,Integer>)settingStats.get(PwmSetting.SettingStat.syntaxCounts); %>
+            <% final Map<PwmSettingSyntax,Integer> syntaxCounts = (Map<PwmSettingSyntax,Integer>)settingStats.get(
+                    PwmSettingStats.SettingStat.syntaxCounts); %>
             <% for (final Map.Entry<PwmSettingSyntax,Integer> entry : syntaxCounts.entrySet()) { %>
             <tr>
                 <td>

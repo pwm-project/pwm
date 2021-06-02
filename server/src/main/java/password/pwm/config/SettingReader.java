@@ -35,17 +35,20 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class SettingReader
 {
     private final StoredConfiguration storedConfiguration;
     private final String profileID;
+    private final String domainID;
 
-    public SettingReader( final StoredConfiguration storedConfiguration, final String profileID )
+    public SettingReader( final StoredConfiguration storedConfiguration, final String profileID, final String domainID )
     {
-        this.storedConfiguration = storedConfiguration;
+        this.storedConfiguration = Objects.requireNonNull( storedConfiguration );
         this.profileID = profileID;
+        this.domainID = domainID;
     }
 
     public List<UserPermission> readSettingAsUserPermission( final PwmSetting setting )

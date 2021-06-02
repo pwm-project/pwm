@@ -85,7 +85,7 @@
     <allow pkg="javax.servlet"/>
     <allow pkg="javax.net"/>
     <allow pkg="javax.crypto"/>
-    <allow pkg="javax.mail"/>
+    <allow pkg="jakarta.mail"/>
     <allow pkg="com.sun.mail"/>
     <allow pkg="org.xeustechnologies"/>
     <allow pkg="net.glxn"/>

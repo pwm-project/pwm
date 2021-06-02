@@ -18,13 +18,24 @@
  * limitations under the License.
  */
 
-package password.pwm.http.servlet.configeditor;
+package password.pwm.http.servlet.configeditor.data;
+
+import lombok.Builder;
+import lombok.Value;
+import password.pwm.config.PwmSettingTemplateSet;
 
 import java.io.Serializable;
+import java.util.Map;
 
-public class LocaleInfo implements Serializable
+@Value
+@Builder
+public class SettingData implements Serializable
 {
-    public String description;
-    public String key;
-    public boolean adminOnly;
+    private final Map<String, SettingInfo> settings;
+    private final Map<String, CategoryInfo> categories;
+    private final Map<String, LocaleInfo> locales;
+    private final Object ldapProfileIds;
+    private final PwmSettingTemplateSet currentTemplate;
+    private final VarData var;
+
 }

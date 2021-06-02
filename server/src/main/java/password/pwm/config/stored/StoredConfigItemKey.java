@@ -20,6 +20,7 @@
 
 package password.pwm.config.stored;
 
+import org.jetbrains.annotations.NotNull;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
@@ -64,7 +65,7 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
 
     private static final long serialVersionUID = 1L;
 
-
+    private static final Comparator<StoredConfigItemKey> COMPARATOR = makeComparator();
 
     private StoredConfigItemKey( final RecordType recordType, final String recordID, final String profileID )
     {
@@ -80,6 +81,7 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
     {
         return recordType;
     }
+
 
     public String getRecordID()
     {
@@ -245,15 +247,15 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
     }
 
     @Override
-    public String toString()
+    public int compareTo( @NotNull final StoredConfigItemKey o )
     {
-        return getLabel( PwmConstants.DEFAULT_LOCALE );
+        return COMPARATOR.compare( this, o );
     }
 
     @Override
-    public int compareTo( final StoredConfigItemKey o )
+    public String toString()
     {
-        return comparator( PwmConstants.DEFAULT_LOCALE ).compare( this, o );
+        return getLabel( PwmConstants.DEFAULT_LOCALE );
     }
 
     public PwmSettingSyntax getSyntax()
@@ -290,10 +292,15 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
             return Collections.emptySet();
         }
 
-        return Collections.unmodifiableSet( input.stream().filter( ( k ) -> k.isRecordType( recordType ) ).collect( Collectors.toSet() ) );
+        return input.stream().filter( ( k ) -> k.isRecordType( recordType ) ).collect( Collectors.toUnmodifiableSet() );
     }
 
-    private static Comparator<StoredConfigItemKey> comparator( final Locale locale )
+    public static Comparator<? super StoredConfigItemKey> comparator()
+    {
+        return COMPARATOR;
+    }
+
+    private static Comparator<StoredConfigItemKey> makeComparator()
     {
         final Comparator<StoredConfigItemKey> typeComparator = Comparator.comparing(
                 StoredConfigItemKey::getRecordType,
@@ -304,7 +311,7 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
             if ( Objects.equals( o1.getRecordType(), o2.getRecordType() )
                     && o1.isRecordType( RecordType.SETTING ) )
             {
-                final Comparator<PwmSetting> pwmSettingComparator = PwmSetting.menuLocationComparator( locale );
+                final Comparator<PwmSetting> pwmSettingComparator = PwmSetting.menuLocationComparator( );
                 return pwmSettingComparator.compare( o1.toPwmSetting(), o2.toPwmSetting() );
             }
             else
@@ -316,7 +323,9 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
         final Comparator<StoredConfigItemKey> profileComparator = Comparator.comparing( StoredConfigItemKey::getProfileID,
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
 
-        return typeComparator.thenComparing( recordComparator ).thenComparing( profileComparator );
+        return typeComparator
+                .thenComparing( recordComparator )
+                .thenComparing( profileComparator );
     }
 
 

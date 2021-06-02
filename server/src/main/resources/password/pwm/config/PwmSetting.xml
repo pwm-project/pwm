@@ -1073,6 +1073,7 @@
         <default>
             <value><![CDATA[Your username is @User:ID@]]></value>
         </default>
+        <flag>MacroSupport</flag>
     </setting>
     <setting hidden="false" key="sms.updateProfile.token.message" level="1" required="true">
         <default>
@@ -4105,7 +4106,7 @@
     <setting hidden="false" key="pwm.seedlist.location" level="2">
         <default/>
     </setting>
-    <!-- DEPRECATED SETTINGS -->
+    <!-- BEGIN DEPRECATED SETTINGS -->
     <setting hidden="true" key="password.policy.ADComplexity" level="99" required="false">
         <flag>Deprecated</flag>
         <default>
@@ -4145,233 +4146,233 @@
             <value>false</value>
         </default>
     </setting>
-    <!-- DEPRECATED SETTINGS -->
-    <category hidden="false" key="TEMPLATES">
+    <!-- END DEPRECATED SETTINGS -->
+    <category hidden="false" scope="DOMAIN" key="TEMPLATES">
     </category>
-    <category hidden="false" key="NOTES">
+    <category hidden="false" scope="DOMAIN" key="NOTES">
     </category>
-    <category hidden="false" key="SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="SETTINGS">
     </category>
-    <category hidden="false" key="PROFILES">
+    <category hidden="false" scope="DOMAIN" key="PROFILES">
     </category>
-    <category hidden="false" key="MODULES">
+    <category hidden="false" scope="DOMAIN" key="MODULES">
     </category>
-    <category hidden="false" key="HTTPS_SERVER">
+    <category hidden="false" scope="DOMAIN" key="HTTPS_SERVER">
     </category>
-    <category hidden="false" key="LDAP">
+    <category hidden="false" scope="DOMAIN" key="LDAP">
     </category>
-    <category hidden="false" key="LDAP_PROFILE" profiles="true">
+    <category hidden="false" scope="DOMAIN" key="LDAP_PROFILE">
         <profile setting="ldap.profile.list"/>
     </category>
-    <category hidden="false" key="LDAP_BASE">
+    <category hidden="false" scope="DOMAIN" key="LDAP_BASE">
     </category>
-    <category hidden="false" key="LDAP_ATTRIBUTES">
+    <category hidden="false" scope="DOMAIN" key="LDAP_ATTRIBUTES">
     </category>
-    <category hidden="false" key="LDAP_LOGIN">
+    <category hidden="false" scope="DOMAIN" key="LDAP_LOGIN">
     </category>
-    <category hidden="false" key="LDAP_GLOBAL">
+    <category hidden="false" scope="DOMAIN" key="LDAP_GLOBAL">
     </category>
-    <category hidden="false" key="LDAP_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="LDAP_SETTINGS">
     </category>
-    <category hidden="false" key="APPLICATION">
+    <category hidden="false" scope="DOMAIN" key="APPLICATION">
     </category>
-    <category hidden="false" key="GENERAL">
+    <category hidden="false" scope="DOMAIN" key="GENERAL">
     </category>
-    <category hidden="false" key="LOCALIZATION">
+    <category hidden="false" scope="DOMAIN" key="LOCALIZATION">
     </category>
-    <category hidden="false" key="TELEMETRY">
+    <category hidden="false" scope="DOMAIN" key="TELEMETRY">
     </category>
-    <category hidden="false" key="CLUSTERING">
+    <category hidden="false" scope="DOMAIN" key="CLUSTERING">
     </category>
-    <category hidden="false" key="USER_INTERFACE">
+    <category hidden="false" scope="DOMAIN" key="USER_INTERFACE">
     </category>
-    <category hidden="false" key="UI_FEATURES">
+    <category hidden="false" scope="DOMAIN" key="UI_FEATURES">
     </category>
-    <category hidden="false" key="UI_WEB">
+    <category hidden="false" scope="DOMAIN" key="UI_WEB">
     </category>
-    <category hidden="false" key="PASSWORD_POLICY">
+    <category hidden="false" scope="DOMAIN" key="PASSWORD_POLICY">
         <profile setting="password.profile.list"/>
     </category>
-    <category hidden="false" key="PASSWORD_GLOBAL">
+    <category hidden="false" scope="DOMAIN" key="PASSWORD_GLOBAL">
     </category>
-    <category hidden="false" key="CHALLENGE">0
+    <category hidden="false" scope="DOMAIN" key="CHALLENGE">0
     </category>
-    <category hidden="false" key="CHALLENGE_POLICY">
+    <category hidden="false" scope="DOMAIN" key="CHALLENGE_POLICY">
         <profile setting="challenge.profile.list"/>
     </category>
-    <category hidden="false" key="EMAIL_SERVERS">
+    <category hidden="false" scope="DOMAIN" key="EMAIL_SERVERS">
         <profile setting="email.profile.list"/>
     </category>
-    <category hidden="false" key="EMAIL">
+    <category hidden="false" scope="DOMAIN" key="EMAIL">
     </category>
-    <category hidden="false" key="EMAIL_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="EMAIL_SETTINGS">
     </category>
-    <category hidden="false" key="EMAIL_TEMPLATES">
+    <category hidden="false" scope="DOMAIN" key="EMAIL_TEMPLATES">
     </category>
-    <category hidden="false" key="SMS">
+    <category hidden="false" scope="DOMAIN" key="SMS">
     </category>
-    <category hidden="false" key="SMS_GATEWAY">
+    <category hidden="false" scope="DOMAIN" key="SMS_GATEWAY">
     </category>
-    <category hidden="false" key="SMS_MESSAGES">
+    <category hidden="false" scope="DOMAIN" key="SMS_MESSAGES">
     </category>
-    <category hidden="false" key="SECURITY">
+    <category hidden="false" scope="DOMAIN" key="SECURITY">
     </category>
-    <category hidden="false" key="WORDLISTS">
+    <category hidden="false" scope="SYSTEM" key="WORDLISTS">
     </category>
-    <category hidden="false" key="APP_SECURITY">
+    <category hidden="false" scope="DOMAIN" key="APP_SECURITY">
     </category>
-    <category hidden="false" key="WEB_SECURITY">
+    <category hidden="false" scope="DOMAIN" key="WEB_SECURITY">
     </category>
-    <category hidden="false" key="CAPTCHA">
+    <category hidden="false" scope="DOMAIN" key="CAPTCHA">
     </category>
-    <category hidden="false" key="INTRUDER">
+    <category hidden="false" scope="DOMAIN" key="INTRUDER">
     </category>
-    <category hidden="false" key="INTRUDER_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="INTRUDER_SETTINGS">
     </category>
-    <category hidden="false" key="INTRUDER_TIMEOUTS">
+    <category hidden="false" scope="DOMAIN" key="INTRUDER_TIMEOUTS">
     </category>
-    <category hidden="false" key="TOKEN">
+    <category hidden="false" scope="DOMAIN" key="TOKEN">
     </category>
-    <category hidden="false" key="OTP_SETUP">
+    <category hidden="false" scope="DOMAIN" key="OTP_SETUP">
     </category>
-    <category hidden="false" key="OTP_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="OTP_SETTINGS">
     </category>
-    <category hidden="false" key="OTP_PROFILE" profiles="true">
+    <category hidden="false" scope="DOMAIN" key="OTP_PROFILE">
         <profile setting="otp.profile.list"/>
     </category>
-    <category hidden="false" key="LOGGING">
+    <category hidden="false" scope="DOMAIN"  key="LOGGING">
     </category>
-    <category hidden="false" key="AUDITING">
+    <category hidden="false" scope="DOMAIN" key="AUDITING">
     </category>
-    <category hidden="false" key="AUDIT_CONFIG">
+    <category hidden="false" scope="DOMAIN" key="AUDIT_CONFIG">
     </category>
-    <category hidden="false" key="USER_HISTORY">
+    <category hidden="false" scope="DOMAIN" key="USER_HISTORY">
     </category>
-    <category hidden="false" key="AUDIT_FORWARD">
+    <category hidden="false" scope="DOMAIN" key="AUDIT_FORWARD">
     </category>
-    <category hidden="false" key="EDIRECTORY">
+    <category hidden="false" scope="DOMAIN" key="EDIRECTORY">
     </category>
-    <category hidden="false" key="EDIR_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="EDIR_SETTINGS">
     </category>
-    <category hidden="false" key="EDIR_CR_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="EDIR_CR_SETTINGS">
     </category>
-    <category hidden="false" key="ACTIVE_DIRECTORY">
+    <category hidden="false" scope="DOMAIN" key="ACTIVE_DIRECTORY">
     </category>
-    <category hidden="false" key="ORACLE_DS">
+    <category hidden="false" scope="DOMAIN" key="ORACLE_DS">
     </category>
-    <category hidden="false" key="DATABASE">
+    <category hidden="false" scope="DOMAIN" key="DATABASE">
     </category>
-    <category hidden="false" key="DATABASE_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="DATABASE_SETTINGS">
     </category>
-    <category hidden="false" key="DATABASE_ADV">
+    <category hidden="false" scope="DOMAIN" key="DATABASE_ADV">
     </category>
-    <category hidden="false" key="REPORTING">
+    <category hidden="false" scope="DOMAIN" key="REPORTING">
     </category>
-    <category hidden="false" key="PW_EXP_NOTIFY">
+    <category hidden="false" scope="DOMAIN" key="PW_EXP_NOTIFY">
     </category>
-    <category hidden="false" key="WEB_SERVICES" level="2">
+    <category hidden="false" scope="DOMAIN" key="WEB_SERVICES" level="2">
     </category>
-    <category hidden="false" key="REST_SERVER" level="2">
+    <category hidden="false" scope="DOMAIN" key="REST_SERVER" level="2">
     </category>
-    <category hidden="false" key="REST_CLIENT" level="2">
+    <category hidden="false" scope="DOMAIN" key="REST_CLIENT" level="2">
     </category>
-    <category hidden="false" key="SSO" level="2">
+    <category hidden="false" scope="DOMAIN" key="SSO" level="2">
     </category>
-    <category hidden="false" key="OAUTH" level="2">
+    <category hidden="false" scope="DOMAIN" key="OAUTH" level="2">
     </category>
-    <category hidden="false" key="HTTP_SSO" level="2">
+    <category hidden="false" scope="DOMAIN" key="HTTP_SSO" level="2">
     </category>
-    <category hidden="false" key="CAS_SSO" level="2">
+    <category hidden="false" scope="DOMAIN" key="CAS_SSO" level="2">
     </category>
-    <category hidden="false" key="BASIC_SSO">
+    <category hidden="false" scope="DOMAIN" key="BASIC_SSO">
     </category>
-    <category hidden="false" key="CHANGE_PASSWORD">
+    <category hidden="false" scope="DOMAIN" key="CHANGE_PASSWORD">
     </category>
-    <category hidden="false" key="CHANGE_PASSWORD_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="CHANGE_PASSWORD_SETTINGS">
     </category>
-    <category hidden="false" key="CHANGE_PASSWORD_PROFILE">
+    <category hidden="false" scope="DOMAIN" key="CHANGE_PASSWORD_PROFILE">
         <profile setting="accountInfo.profile.list"/>
     </category>
-    <category hidden="false" key="ACCOUNT_INFO">
+    <category hidden="false" scope="DOMAIN" key="ACCOUNT_INFO">
     </category>
-    <category hidden="false" key="ACCOUNT_INFO_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="ACCOUNT_INFO_SETTINGS">
     </category>
-    <category hidden="false" key="ACCOUNT_INFO_PROFILE">
+    <category hidden="false" scope="DOMAIN" key="ACCOUNT_INFO_PROFILE">
         <profile setting="accountInfo.profile.list"/>
     </category>
-    <category hidden="false" key="RECOVERY">
+    <category hidden="false" scope="DOMAIN" key="RECOVERY">
     </category>
-    <category hidden="false" key="RECOVERY_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="RECOVERY_SETTINGS">
     </category>
-    <category hidden="false" key="RECOVERY_OPTIONS">
+    <category hidden="false" scope="DOMAIN" key="RECOVERY_OPTIONS">
     </category>
-    <category hidden="false" key="RECOVERY_PROFILE" profiles="true">
+    <category hidden="false" scope="DOMAIN" key="RECOVERY_PROFILE">
         <profile setting="recovery.profile.list"/>
     </category>
-    <category hidden="false" key="RECOVERY_DEF">
+    <category hidden="false" scope="DOMAIN" key="RECOVERY_DEF">
     </category>
-    <category hidden="false" key="RECOVERY_OAUTH">
+    <category hidden="false" scope="DOMAIN" key="RECOVERY_OAUTH">
     </category>
-    <category hidden="false" key="ADMINISTRATION">
+    <category hidden="false" scope="DOMAIN" key="ADMINISTRATION">
     </category>
-    <category hidden="false" key="FORGOTTEN_USERNAME">
+    <category hidden="false" scope="DOMAIN" key="FORGOTTEN_USERNAME">
     </category>
-    <category hidden="false" key="NEWUSER">
+    <category hidden="false" scope="DOMAIN" key="NEWUSER">
     </category>
-    <category hidden="false" key="NEWUSER_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="NEWUSER_SETTINGS">
     </category>
-    <category hidden="false" key="NEWUSER_PROFILE" profiles="true">
+    <category hidden="false" scope="DOMAIN" key="NEWUSER_PROFILE" profiles="true">
         <profile setting="newUser.profile.list"/>
     </category>
-    <category hidden="false" key="GUEST">
+    <category hidden="false" scope="DOMAIN" key="GUEST">
     </category>
-    <category hidden="false" key="ACTIVATION">
+    <category hidden="false" scope="DOMAIN" key="ACTIVATION">
     </category>
-    <category hidden="false" key="ACTIVATION_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="ACTIVATION_SETTINGS">
     </category>
-    <category hidden="false" key="ACTIVATION_PROFILE">
+    <category hidden="false" scope="DOMAIN" key="ACTIVATION_PROFILE">
         <profile setting="activateUser.profile.list"/>
     </category>
-    <category hidden="false" key="UPDATE">
+    <category hidden="false" scope="DOMAIN" key="UPDATE">
     </category>
-    <category hidden="false" key="UPDATE_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="UPDATE_SETTINGS">
     </category>
-    <category hidden="false" key="UPDATE_PROFILE">
+    <category hidden="false" scope="DOMAIN" key="UPDATE_PROFILE">
         <profile setting="updateAttributes.profile.list"/>
     </category>
-    <category hidden="false" key="SHORTCUT">
+    <category hidden="false" scope="DOMAIN" key="SHORTCUT">
     </category>
-    <category hidden="false" key="PEOPLE_SEARCH">
+    <category hidden="false" scope="DOMAIN" key="PEOPLE_SEARCH">
     </category>
-    <category hidden="false" key="PEOPLE_SEARCH_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="PEOPLE_SEARCH_SETTINGS">
     </category>
-    <category hidden="false" key="PEOPLE_SEARCH_PROFILE">
+    <category hidden="false" scope="DOMAIN" key="PEOPLE_SEARCH_PROFILE">
         <profile setting="peopleSearch.profile.list"/>
     </category>
-    <category hidden="false" key="HELPDESK">
+    <category hidden="false" scope="DOMAIN" key="HELPDESK">
     </category>
-    <category hidden="false" key="HELPDESK_PROFILE">
+    <category hidden="false" scope="DOMAIN" key="HELPDESK_PROFILE">
         <profile setting="helpdesk.profile.list"/>
     </category>
-    <category hidden="false" key="HELPDESK_OPTIONS">
+    <category hidden="false" scope="DOMAIN" key="HELPDESK_OPTIONS">
     </category>
-    <category hidden="false" key="HELPDESK_BASE">
+    <category hidden="false" scope="DOMAIN" key="HELPDESK_BASE">
     </category>
-    <category hidden="false" key="HELPDESK_VERIFICATION">
+    <category hidden="false" scope="DOMAIN" key="HELPDESK_VERIFICATION">
     </category>
-    <category hidden="false" key="HELPDESK_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="HELPDESK_SETTINGS">
     </category>
-    <category hidden="false" key="MODULES_PUBLIC">
+    <category hidden="false" scope="DOMAIN" key="MODULES_PUBLIC">
     </category>
-    <category hidden="false" key="MODULES_PRIVATE">
+    <category hidden="false" scope="DOMAIN" key="MODULES_PRIVATE">
     </category>
-    <category hidden="false" key="DELETE_ACCOUNT">
+    <category hidden="false" scope="DOMAIN" key="DELETE_ACCOUNT">
     </category>
-    <category hidden="false" key="DELETE_ACCOUNT_SETTINGS">
+    <category hidden="false" scope="DOMAIN" key="DELETE_ACCOUNT_SETTINGS">
     </category>
-    <category hidden="false" key="DELETE_ACCOUNT_PROFILE">
+    <category hidden="false" scope="DOMAIN" key="DELETE_ACCOUNT_PROFILE">
         <profile setting="deleteAccount.profile.list"/>
     </category>
-    <category hidden="true" key="INTERNAL">
+    <category hidden="true" scope="DOMAIN" key="INTERNAL">
     </category>
 </settings>

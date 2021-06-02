@@ -28,7 +28,6 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfiguration;
@@ -36,6 +35,7 @@ import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.FileValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -46,8 +46,6 @@ import password.pwm.health.DatabaseStatusChecker;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
-import password.pwm.health.HealthTopic;
 import password.pwm.health.LDAPHealthChecker;
 import password.pwm.http.ContextManager;
 import password.pwm.http.HttpMethod;
@@ -59,6 +57,8 @@ import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.configeditor.ConfigEditorServletUtils;
+import password.pwm.http.servlet.configeditor.data.SettingData;
+import password.pwm.http.servlet.configeditor.data.SettingDataMaker;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaOperationResult;
@@ -247,11 +247,16 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 try
                 {
                     ConfigGuideUtils.checkLdapServer( configGuideBean );
-                    records.add( password.pwm.health.HealthRecord.forMessage( HealthMessage.LDAP_OK ) );
+                    records.add( HealthRecord.forMessage( HealthMessage.LDAP_OK ) );
                 }
                 catch ( final Exception e )
                 {
-                    records.add( new HealthRecord( HealthStatus.WARN, HealthTopic.LDAP, "Can not connect to remote server: " + e.getMessage() ) );
+                    final String ldapUrl = ldapProfile.readSettingAsStringArray( PwmSetting.LDAP_SERVER_URLS )
+                            .stream().findFirst().orElse( "" );
+                    records.add( HealthRecord.forMessage(
+                            HealthMessage.LDAP_No_Connection,
+                            ldapUrl,
+                            e.getMessage() ) );
                 }
             }
             break;
@@ -272,7 +277,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( tempApplication, tempConfiguration, ldapProfile, true ) );
                 if ( records.isEmpty() )
                 {
-                    records.add( new HealthRecord( HealthStatus.GOOD, HealthTopic.LDAP, "LDAP Contextless Login Root validated" ) );
+                    records.add( HealthRecord.forMessage( HealthMessage.Config_SettingOk,
+                            PwmSetting.LDAP_CONTEXTLESS_ROOT.getLabel( pwmRequest.getLocale() ) ) );
                 }
             }
             break;
@@ -293,7 +299,10 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 }
                 else
                 {
-                    records.add( new HealthRecord( HealthStatus.CAUTION, HealthTopic.LDAP, "No test user specified" ) );
+                    records.add(
+                            HealthRecord.forMessage(
+                                    HealthMessage.Config_AddTestUser,
+                                    PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ConfigGuideForm.LDAP_PROFILE_NAME, pwmRequest.getLocale() ) ) );
                 }
             }
             break;
@@ -610,8 +619,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
         final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
 
-        final ConfigEditorServletUtils.SettingData settingData = ConfigEditorServletUtils.generateSettingData(
-                pwmRequest.getPwmApplication(),
+        final SettingData settingData = SettingDataMaker.generateSettingData(
                 storedConfiguration,
                 pwmRequest.getLabel(),
                 pwmRequest.getLocale()

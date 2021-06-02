@@ -178,7 +178,7 @@ public class PwmLogger
         final CharSequence effectiveMessage = formatEffectiveMessage( message, timeDuration );
         final PwmLogEvent logEvent = PwmLogEvent.createPwmLogEvent( Instant.now(), topic, effectiveMessage.toString(), sessionLabel,
                 e, effectiveLevel );
-        doLogEvent( logEvent );
+        doLogEvent( sessionLabel, logEvent );
     }
 
     private CharSequence formatEffectiveMessage( final Supplier<CharSequence> message, final Supplier<TimeDuration> timeDuration )
@@ -195,7 +195,7 @@ public class PwmLogger
         return output;
     }
 
-    private void doLogEvent( final PwmLogEvent logEvent )
+    private void doLogEvent( final SessionLabel sessionLabel, final PwmLogEvent logEvent )
     {
         pushMessageToLog4j( logEvent );
 
@@ -226,7 +226,7 @@ public class PwmLogger
                             AuditEvent.FATAL_EVENT,
                             messageInfoStr
                     );
-                    pwmApplication.getAuditManager().submit( auditRecord );
+                    pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
                 }
             }
         }

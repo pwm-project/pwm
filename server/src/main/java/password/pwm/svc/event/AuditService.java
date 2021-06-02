@@ -36,9 +36,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
-import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.UserInfo;
@@ -52,7 +51,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -231,7 +230,10 @@ public class AuditService implements PwmService
 
         if ( lastError != null )
         {
-            healthRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Audit, lastError.toDebugStr() ) );
+            healthRecords.add( HealthRecord.forMessage(
+                    HealthMessage.ServiceClosed,
+                    this.getClass().getSimpleName(),
+                    lastError.toDebugStr() ) );
         }
 
         return Collections.unmodifiableList( healthRecords );
@@ -245,13 +247,16 @@ public class AuditService implements PwmService
     public List<UserAuditRecord> readUserHistory( final PwmSession pwmSession )
             throws PwmUnrecoverableException
     {
-        return readUserHistory( pwmSession.getUserInfo() );
+        return readUserHistory( pwmSession.getLabel(), pwmSession.getUserInfo() );
     }
 
-    public List<UserAuditRecord> readUserHistory( final UserInfo userInfoBean )
+    public List<UserAuditRecord> readUserHistory( final SessionLabel sessionLabel, final UserInfo userInfoBean )
             throws PwmUnrecoverableException
     {
-        return userHistoryStore.readUserHistory( userInfoBean );
+        final Instant startTime = Instant.now();
+        final List<UserAuditRecord> results = userHistoryStore.readUserHistory( sessionLabel, userInfoBean );
+        LOGGER.trace( sessionLabel, () -> "read " + results.size() + " user history records", () -> TimeDuration.fromCurrent( startTime ) );
+        return results;
     }
 
     private void sendAsEmail( final AuditRecord record )
@@ -298,9 +303,9 @@ public class AuditService implements PwmService
     )
             throws PwmUnrecoverableException
     {
-        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific( pwmApplication, SessionLabel.AUDITING_SESSION_LABEL );
+        final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, SessionLabel.AUDITING_SESSION_LABEL );
 
-        String subject = macroMachine.expandMacros( pwmApplication.getConfig().readAppProperty( AppProperty.AUDIT_EVENTS_EMAILSUBJECT ) );
+        String subject = macroRequest.expandMacros( pwmApplication.getConfig().readAppProperty( AppProperty.AUDIT_EVENTS_EMAILSUBJECT ) );
         subject = subject.replace( "%EVENT%", record.getEventCode().getLocalizedString( pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE ) );
 
         final String body;
@@ -316,7 +321,7 @@ public class AuditService implements PwmService
                 .subject( subject )
                 .bodyPlain( body )
                 .build();
-        pwmApplication.getEmailQueue().submitEmail( emailItem, null, macroMachine );
+        pwmApplication.getEmailQueue().submitEmail( emailItem, null, macroRequest );
     }
 
     public Instant eldestVaultRecord( )
@@ -341,10 +346,10 @@ public class AuditService implements PwmService
     {
         final AuditRecordFactory auditRecordFactory = new AuditRecordFactory( pwmApplication, pwmSession.getSessionManager().getMacroMachine( ) );
         final UserAuditRecord auditRecord = auditRecordFactory.createUserAuditRecord( auditEvent, userInfo, pwmSession );
-        submit( auditRecord );
+        submit( pwmSession.getLabel(), auditRecord );
     }
 
-    public void submit( final AuditRecord auditRecord )
+    public void submit( final SessionLabel sessionLabel, final AuditRecord auditRecord )
             throws PwmUnrecoverableException
     {
 
@@ -352,13 +357,13 @@ public class AuditService implements PwmService
 
         if ( status != STATUS.OPEN )
         {
-            LOGGER.debug( () -> "discarding audit event (AuditManager is not open); event=" + jsonRecord );
+            LOGGER.debug( sessionLabel, () -> "discarding audit event (AuditManager is not open); event=" + jsonRecord );
             return;
         }
 
         if ( auditRecord.getEventCode() == null )
         {
-            LOGGER.error( () -> "discarding audit event, missing event type; event=" + jsonRecord );
+            LOGGER.error( sessionLabel, () -> "discarding audit event, missing event type; event=" + jsonRecord );
             return;
         }
 
@@ -369,7 +374,7 @@ public class AuditService implements PwmService
         }
 
         // add to debug log
-        LOGGER.info( () -> "audit event: " + jsonRecord );
+        LOGGER.info( sessionLabel, () -> "audit event: " + jsonRecord );
 
         // add to audit db
         if ( auditVault != null )
@@ -380,7 +385,7 @@ public class AuditService implements PwmService
             }
             catch ( final PwmOperationalException e )
             {
-                LOGGER.warn( () -> "discarding audit event due to storage error: " + e.getMessage() );
+                LOGGER.warn( sessionLabel, () -> "discarding audit event due to storage error: " + e.getMessage() );
             }
         }
 
@@ -395,11 +400,11 @@ public class AuditService implements PwmService
                 final String perpetratorDN = ( ( UserAuditRecord ) auditRecord ).getPerpetratorDN();
                 if ( !StringUtil.isEmpty( perpetratorDN ) )
                 {
-                    userHistoryStore.updateUserHistory( ( UserAuditRecord ) auditRecord );
+                    userHistoryStore.updateUserHistory( sessionLabel, ( UserAuditRecord ) auditRecord );
                 }
                 else
                 {
-                    LOGGER.trace( () -> "skipping update of user history, audit record does not have a perpetratorDN: " + JsonUtil.serialize( auditRecord ) );
+                    LOGGER.trace( sessionLabel, () -> "skipping update of user history, audit record does not have a perpetratorDN: " + JsonUtil.serialize( auditRecord ) );
                 }
             }
         }

@@ -169,7 +169,7 @@ public class UserSearchEngine implements PwmService
                     {
                         final String canonicalDN;
                         canonicalDN = theUser.readCanonicalDN();
-                        return new UserIdentity( canonicalDN, inputIdentity.getLdapProfileID() );
+                        return UserIdentity.createUserIdentity( canonicalDN, inputIdentity.getLdapProfileID() );
                     }
                 }
                 catch ( final ChaiOperationException e )

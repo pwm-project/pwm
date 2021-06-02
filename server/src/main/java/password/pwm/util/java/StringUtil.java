@@ -29,7 +29,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -43,7 +45,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -570,22 +574,110 @@ public abstract class StringUtil
         return stripAllChars( input, Character::isWhitespace );
     }
 
-    public static String stripAllChars( final String input, final Predicate<Character> stripPredicate )
+    public static String stripAllChars( final String input, final Predicate<Character> characterPredicate )
     {
-        final StringBuilder sb = new StringBuilder( input );
-        int index = 0;
-        while ( index < sb.length() )
+        if ( isEmpty( input ) )
         {
-            final char loopChar = sb.charAt( index );
-            if ( stripPredicate.test( loopChar ) )
+            return "";
+        }
+
+        if ( characterPredicate == null )
+        {
+            return input;
+        }
+
+        // count of valid output chars
+        int copiedChars = 0;
+
+        // loop through input chars and stop if stripped char is found
+        while ( copiedChars < input.length() )
+        {
+            if ( !characterPredicate.test( input.charAt( copiedChars ) ) )
             {
-                sb.deleteCharAt( index );
+                copiedChars++;
             }
             else
             {
-                index++;
+                break;
             }
         }
+
+        // return input string if we made it through input without detecting stripped char
+        if ( copiedChars >= input.length() )
+        {
+            return input;
+        }
+
+        // creating sb with input gives good length value and handles copy of chars so far...
+        final StringBuilder sb = new StringBuilder( input );
+
+        // loop through remaining chars and copy one by one
+        for ( int loopIndex = copiedChars; loopIndex < input.length(); loopIndex++ )
+        {
+            final char loopChar = input.charAt( loopIndex );
+            if ( !characterPredicate.test( loopChar ) )
+            {
+                sb.setCharAt( copiedChars, loopChar );
+                copiedChars++;
+            }
+        }
+
+        return sb.substring( 0, copiedChars );
+    }
+
+    public static String replaceAllChars( final String input, final Function<Character, Optional<String>> replacementFunction )
+    {
+        if ( isEmpty( input ) )
+        {
+            return "";
+        }
+
+        if ( replacementFunction == null )
+        {
+            return input;
+        }
+
+        // count of valid output chars
+        int copiedChars = 0;
+
+        // loop through input chars and stop if replacement char is needed
+        while ( copiedChars < input.length() )
+        {
+            final Character indexChar = input.charAt( copiedChars );
+            final Optional<String> replacementStr = replacementFunction.apply( indexChar );
+            if ( replacementStr.isEmpty() )
+            {
+                copiedChars++;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        // return input string if we made it through input without detecting replacement char
+        if ( copiedChars >= input.length() )
+        {
+            return input;
+        }
+
+        final StringBuilder sb = new StringBuilder( input.substring( 0, copiedChars ) );
+
+        // loop through remaining chars and copy one by one
+        for ( int loopIndex = copiedChars; loopIndex < input.length(); loopIndex++ )
+        {
+            final char loopChar = input.charAt( loopIndex );
+            final Optional<String> replacementStr = replacementFunction.apply( loopChar );
+            if ( replacementStr.isPresent() )
+            {
+                sb.append( replacementStr.get() );
+            }
+            else
+            {
+                sb.append( loopChar );
+            }
+        }
+
         return sb.toString();
     }
 
@@ -664,5 +756,10 @@ public abstract class StringUtil
         {
             throw PwmUnrecoverableException.newException( PwmError.CONFIG_FORMAT_ERROR, "unbalanced parentheses in ldap filter" );
         }
+    }
+
+    public static InputStream stringToInputStream( final String input )
+    {
+        return new ByteArrayInputStream( input.getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }
 }

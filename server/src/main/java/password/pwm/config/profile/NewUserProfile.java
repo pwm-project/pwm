@@ -131,7 +131,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
                 {
                     final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider( ldapProfile.getIdentifier() );
                     final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( lookupDN );
-                    final UserIdentity userIdentity = new UserIdentity( lookupDN, ldapProfile.getIdentifier() );
+                    final UserIdentity userIdentity = UserIdentity.createUserIdentity( lookupDN, ldapProfile.getIdentifier() );
                     thePolicy = PasswordUtility.readPasswordPolicyForUser( pwmApplication, null, userIdentity, chaiUser, userLocale );
                 }
                 catch ( final ChaiUnavailableException e )

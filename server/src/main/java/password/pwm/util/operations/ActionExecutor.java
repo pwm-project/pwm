@@ -42,7 +42,7 @@ import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -127,10 +127,10 @@ public class ActionExecutor
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "executor specified macro expansion but did not supply macro machine" ) );
             }
-            final MacroMachine macroMachine = settings.getMacroMachine();
+            final MacroRequest macroRequest = settings.getMacroMachine();
 
-            attributeName = macroMachine.expandMacros( attributeName );
-            attributeValue = macroMachine.expandMacros( attributeValue );
+            attributeName = macroRequest.expandMacros( attributeName );
+            attributeValue = macroRequest.expandMacros( attributeValue );
         }
 
         try
@@ -171,10 +171,10 @@ public class ActionExecutor
                 {
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "executor specified macro expansion but did not supply macro machine" ) );
                 }
-                final MacroMachine macroMachine = settings.getMacroMachine();
+                final MacroRequest macroRequest = settings.getMacroMachine();
 
-                url = macroMachine.expandMacros( url );
-                body = body == null ? "" : macroMachine.expandMacros( body );
+                url = macroRequest.expandMacros( url );
+                body = body == null ? "" : macroRequest.expandMacros( body );
 
                 if ( webAction.getHeaders() != null )
                 {
@@ -184,7 +184,7 @@ public class ActionExecutor
                         final String headerValue = entry.getValue();
                         if ( headerValue != null )
                         {
-                            headers.put( headerName, macroMachine.expandMacros( headerValue ) );
+                            headers.put( headerName, macroRequest.expandMacros( headerValue ) );
                         }
                     }
                 }
@@ -261,7 +261,7 @@ public class ActionExecutor
             final String attrName,
             final String attrValue,
             final ActionConfiguration.LdapMethod ldapMethod,
-            final MacroMachine macroMachine
+            final MacroRequest macroRequest
     )
             throws PwmOperationalException, ChaiUnavailableException
     {
@@ -269,8 +269,8 @@ public class ActionExecutor
                 ? ActionConfiguration.LdapMethod.replace
                 : ldapMethod;
 
-        final String effectiveAttrValue = ( macroMachine != null )
-                ? macroMachine.expandMacros( attrValue )
+        final String effectiveAttrValue = ( macroRequest != null )
+                ? macroRequest.expandMacros( attrValue )
                 : attrValue;
 
 
@@ -344,7 +344,7 @@ public class ActionExecutor
         private final ChaiUser chaiUser;
 
         private boolean expandPwmMacros = true;
-        private MacroMachine macroMachine;
+        private MacroRequest macroRequest;
 
         public ActionExecutorSettings( final PwmApplication pwmApplication, final ChaiUser chaiUser )
         {
@@ -370,9 +370,9 @@ public class ActionExecutor
             return chaiUser;
         }
 
-        private MacroMachine getMacroMachine( )
+        private MacroRequest getMacroMachine( )
         {
-            return macroMachine;
+            return macroRequest;
         }
 
         private UserIdentity getUserIdentity( )
@@ -387,9 +387,9 @@ public class ActionExecutor
         }
 
 
-        public ActionExecutorSettings setMacroMachine( final MacroMachine macroMachine )
+        public ActionExecutorSettings setMacroMachine( final MacroRequest macroRequest )
         {
-            this.macroMachine = macroMachine;
+            this.macroRequest = macroRequest;
             return this;
         }
 

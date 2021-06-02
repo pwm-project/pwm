@@ -25,6 +25,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jetbrains.annotations.NotNull;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
@@ -39,6 +40,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.StringTokenizer;
 
@@ -55,27 +57,40 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
 
     private final String userDN;
     private final String ldapProfile;
+    private final String domain;
 
-    public UserIdentity( final String userDN, final String ldapProfile )
+    public enum Flag
+    {
+        PreCanonicalized,
+    }
+
+    private UserIdentity( final String userDN, final String ldapProfile, final String domain )
     {
         this.userDN = JavaHelper.requireNonEmpty( userDN, "UserIdentity: userDN value cannot be empty" );
         this.ldapProfile = JavaHelper.requireNonEmpty( ldapProfile, "UserIdentity: ldapProfile value cannot be empty" );
+        this.domain = JavaHelper.requireNonEmpty( domain, "UserIdentity: domain value cannot be empty" );
     }
 
-    public UserIdentity( final String userDN, final String ldapProfile, final boolean canonical )
+    public UserIdentity( final String userDN, final String ldapProfile, final String domain, final boolean canonical )
     {
-        if ( userDN == null || userDN.length() < 1 )
-        {
-            throw new IllegalArgumentException( "UserIdentity: userDN value cannot be empty" );
-        }
-        this.userDN = userDN;
-        this.ldapProfile = ldapProfile == null ? "" : ldapProfile;
+        this( userDN, ldapProfile, domain );
         this.canonical = canonical;
+    }
+
+    public static UserIdentity createUserIdentity( final String userDN, final String ldapProfile, final Flag... flags )
+    {
+        final boolean canonical = JavaHelper.enumArrayContainsValue( flags, Flag.PreCanonicalized );
+        return new UserIdentity( userDN, ldapProfile, PwmConstants.DOMAIN_ID_DEFAULT, canonical );
     }
 
     public String getUserDN( )
     {
         return userDN;
+    }
+
+    public String getDomain()
+    {
+        return domain;
     }
 
     public String getLdapProfileID( )
@@ -183,7 +198,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         }
         final String profileID = st.nextToken();
         final String userDN = st.nextToken();
-        return new UserIdentity( userDN, profileID );
+        return createUserIdentity( userDN, profileID );
     }
 
     public static UserIdentity fromKey( final String key, final PwmApplication pwmApplication )
@@ -223,39 +238,43 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         {
             return false;
         }
-
         final UserIdentity that = ( UserIdentity ) o;
-
-        if ( !ldapProfile.equals( that.ldapProfile ) )
-        {
-            return false;
-        }
-        if ( !userDN.equals( that.userDN ) )
-        {
-            return false;
-        }
-
-        return true;
+        return Objects.equals( domain, that.domain )
+                && Objects.equals( ldapProfile, that.ldapProfile )
+                && Objects.equals( userDN, that.userDN );
     }
 
     @Override
-    public int hashCode( )
+    public int hashCode()
     {
-        int result = userDN.hashCode();
-        result = 31 * result + ldapProfile.hashCode();
-        return result;
+        return Objects.hash( domain, ldapProfile, userDN );
     }
 
     @Override
     public int compareTo( @NotNull final UserIdentity otherIdentity )
     {
-        return compareString().compareToIgnoreCase( otherIdentity.compareString() );
+        return comparator().compare( this, otherIdentity );
     }
 
-    private String compareString()
+    private static Comparator<UserIdentity> comparator( )
     {
-        return ( ldapProfile == null ? "_" : ldapProfile ) + "_" + userDN;
+        final Comparator<UserIdentity> domainComparator = Comparator.comparing(
+                UserIdentity::getDomain,
+                Comparator.nullsLast( Comparator.naturalOrder() ) );
+
+        final Comparator<UserIdentity> profileComparator = Comparator.comparing(
+                UserIdentity::getLdapProfileID,
+                Comparator.nullsLast( Comparator.naturalOrder() ) );
+
+        final Comparator<UserIdentity> userComparator = Comparator.comparing(
+                UserIdentity::getDomain,
+                Comparator.nullsLast( Comparator.naturalOrder() ) );
+
+        return domainComparator
+                .thenComparing( profileComparator )
+                .thenComparing( userComparator );
     }
+
 
     public UserIdentity canonicalized( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
@@ -275,7 +294,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
-        final UserIdentity canonicalziedIdentity = new UserIdentity( userDN, this.getLdapProfileID() );
+        final UserIdentity canonicalziedIdentity = createUserIdentity( userDN, this.getLdapProfileID() );
         canonicalziedIdentity.canonical = true;
         return canonicalziedIdentity;
     }

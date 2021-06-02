@@ -25,7 +25,7 @@
 
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
-<%@ page import="password.pwm.util.macro.MacroMachine" %>
+<%@ page import="password.pwm.util.macro.MacroRequest" %>
 
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
@@ -35,7 +35,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo">
+<body>
 <div id="wrapper">
     <%@ include file="fragment/configguide-header.jsp"%>
     <div id="centerbody">
@@ -51,7 +51,7 @@
         </p>
         <br/><br/>
         <% String welcomeText = JavaHelper.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_WELCOME_TXT); %>
-        <% String macroText = MacroMachine.forStatic().expandMacros(welcomeText); %>
+        <% String macroText = MacroRequest.forStatic().expandMacros(welcomeText); %>
         <% if (!StringUtil.isEmpty(macroText)) { %>
         <div id="agreementText" class="eulaText"><%=macroText%></div>
         <br/><br/>

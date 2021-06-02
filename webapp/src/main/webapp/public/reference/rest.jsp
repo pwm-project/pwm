@@ -37,7 +37,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body class="nihilo">
+<body>
 <style nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" type="text/css">
     .exampleTD {
         overflow: auto;

@@ -42,7 +42,7 @@ import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -332,7 +332,7 @@ public class PwNotifyEngine
                 userIdentity
         );
         final Locale ldapLocale = LocaleHelper.parseLocaleString( userInfoBean.getLanguage() );
-        final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, ldapLocale, SESSION_LABEL, userIdentity );
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, ldapLocale, SESSION_LABEL, userIdentity );
         final EmailItemBean emailItemBean = pwmApplication.getConfig().readSettingAsEmail(
                 PwmSetting.EMAIL_PW_EXPIRATION_NOTICE,
                 ldapLocale
@@ -340,7 +340,7 @@ public class PwNotifyEngine
 
         noticeCount.incrementAndGet();
         StatisticsManager.incrementStat( pwmApplication, Statistic.PWNOTIFY_EMAILS_SENT );
-        pwmApplication.getEmailQueue().submitEmail( emailItemBean, userInfoBean, macroMachine );
+        pwmApplication.getEmailQueue().submitEmail( emailItemBean, userInfoBean, macroRequest );
     }
 
     private void log( final String output )

@@ -220,13 +220,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
     public StoredValue readSetting( final PwmSetting setting, final String profileID )
     {
         final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( setting, profileID );
-        final StoredValue storedValue = storedValues.get( key );
-        if ( storedValue == null )
-        {
-            return setting.getDefaultValue( getTemplateSet() );
-        }
-
-        return storedValue;
+        return StoredConfigurationUtil.getValueOrDefault( this, key );
     }
 
     @Override

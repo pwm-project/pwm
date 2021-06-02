@@ -63,7 +63,7 @@ class ExternalRestMacro extends AbstractMacro
     @Override
     public String replaceValue(
             final String matchValue,
-            final MacroRequestInfo macroRequestInfo
+            final MacroRequest macroRequestInfo
     )
     {
         final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
@@ -76,12 +76,12 @@ class ExternalRestMacro extends AbstractMacro
         {
             if ( userInfoBean != null )
             {
-                final MacroMachine macroMachine = MacroMachine.forUser( pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity() );
+                final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity() );
                 final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(
                         userInfoBean,
                         pwmApplication.getConfig(),
                         PwmConstants.DEFAULT_LOCALE,
-                        macroMachine
+                        macroRequest
                 );
                 sendData.put( "userInfo", publicUserInfoBean );
             }
@@ -111,5 +111,11 @@ class ExternalRestMacro extends AbstractMacro
             LOGGER.error( () -> errorMsg );
             throw new IllegalStateException( errorMsg );
         }
+    }
+
+    @Override
+    public Scope getScope()
+    {
+        return Scope.User;
     }
 }

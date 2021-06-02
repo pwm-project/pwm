@@ -183,8 +183,8 @@ ActionHandler.addRow = function(keyName) {
         instructions: 'Please enter a descriptive name for the action.',
         placeholder:'Name',
         completeFunction:function(newName){
-            let value = PWM_VAR['clientSettingCache'][keyName];
-            let currentSize = PWM_MAIN.JSLibrary.itemCount(value);
+            var value = PWM_VAR['clientSettingCache'][keyName];
+            var currentSize = PWM_MAIN.JSLibrary.itemCount(value);
             value[currentSize] = ActionHandler.defaultValue;
             value[currentSize].name = newName;
             ActionHandler.write(keyName,function(){

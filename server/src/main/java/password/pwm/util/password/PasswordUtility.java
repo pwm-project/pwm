@@ -86,7 +86,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
 
 import java.io.Serializable;
@@ -122,12 +122,12 @@ public class PasswordUtility
         final String smsNumber = userInfo.getUserSmsNumber();
         String returnToAddress = emailAddress;
 
-        final MacroMachine macroMachine;
+        final MacroRequest macroRequest;
         {
             final LoginInfoBean loginInfoBean = new LoginInfoBean();
             loginInfoBean.setUserCurrentPassword( newPassword );
             loginInfoBean.setUserIdentity( userInfo.getUserIdentity() );
-            macroMachine = MacroMachine.forUser( pwmApplication, null, userInfo, loginInfoBean );
+            macroRequest = MacroRequest.forUser( pwmApplication, null, userInfo, loginInfoBean );
         }
 
 
@@ -136,13 +136,13 @@ public class PasswordUtility
         {
             case SMSONLY:
                 // Only try SMS
-                error = sendNewPasswordSms( userInfo, pwmApplication, macroMachine, newPassword, smsNumber, userLocale );
+                error = sendNewPasswordSms( userInfo, pwmApplication, macroRequest, newPassword, smsNumber, userLocale );
                 returnToAddress = smsNumber;
                 break;
             case EMAILONLY:
             default:
                 // Only try email
-                error = sendNewPasswordEmail( userInfo, pwmApplication, macroMachine, newPassword, emailAddress, userLocale );
+                error = sendNewPasswordEmail( userInfo, pwmApplication, macroRequest, newPassword, emailAddress, userLocale );
                 break;
         }
         if ( error != null )
@@ -155,7 +155,7 @@ public class PasswordUtility
     private static ErrorInformation sendNewPasswordSms(
             final UserInfo userInfo,
             final PwmApplication pwmApplication,
-            final MacroMachine macroMachine,
+            final MacroRequest macroRequest,
             final PasswordData newPassword,
             final String toNumber,
             final Locale userLocale
@@ -173,7 +173,7 @@ public class PasswordUtility
 
         message = message.replace( "%TOKEN%", newPassword.getStringValue() );
 
-        pwmApplication.sendSmsUsingQueue( toNumber, message, null, macroMachine );
+        pwmApplication.sendSmsUsingQueue( toNumber, message, null, macroRequest );
         LOGGER.debug( () -> String.format( "password SMS added to send queue for %s", toNumber ) );
         return null;
     }
@@ -181,7 +181,7 @@ public class PasswordUtility
     private static ErrorInformation sendNewPasswordEmail(
             final UserInfo userInfo,
             final PwmApplication pwmApplication,
-            final MacroMachine macroMachine,
+            final MacroRequest macroRequest,
             final PasswordData newPassword,
             final String toAddress,
             final Locale userLocale
@@ -204,7 +204,7 @@ public class PasswordUtility
         pwmApplication.getEmailQueue().submitEmail(
                 emailItemBean,
                 userInfo,
-                macroMachine );
+                macroRequest );
 
 
         LOGGER.debug( () -> "new password email to " + userInfo.getUserIdentity() + " added to send queue for " + toAddress );
@@ -353,7 +353,7 @@ public class PasswordUtility
                 final LoginInfoBean clonedLoginInfoBean = JsonUtil.cloneUsingJson( pwmSession.getLoginInfoBean(), LoginInfoBean.class );
                 clonedLoginInfoBean.setUserCurrentPassword( newPassword );
 
-                final MacroMachine macroMachine = MacroMachine.forUser(
+                final MacroRequest macroRequest = MacroRequest.forUser(
                         pwmApplication,
                         pwmRequest.getLabel(),
                         pwmSession.getUserInfo(),
@@ -361,7 +361,7 @@ public class PasswordUtility
                 );
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userInfo.getUserIdentity() )
-                        .setMacroMachine( macroMachine )
+                        .setMacroMachine( macroRequest )
                         .setExpandPwmMacros( true )
                         .createActionExecutor();
                 actionExecutor.executeActions( actionConfigurations, pwmRequest.getLabel() );
@@ -426,7 +426,7 @@ public class PasswordUtility
         {
             final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
             bindDN = chaiProvider.getChaiConfiguration().getSetting( ChaiSetting.BIND_DN );
-            bindIsSelf = userIdentity.canonicalEquals( new UserIdentity( bindDN, userIdentity.getLdapProfileID() ), pwmApplication );
+            bindIsSelf = userIdentity.canonicalEquals( UserIdentity.createUserIdentity( bindDN, userIdentity.getLdapProfileID() ), pwmApplication );
 
             LOGGER.trace( sessionLabel, () -> "preparing to setActorPassword for '" + theUser.getEntryDN() + "', using bind DN: " + bindDN );
 
@@ -540,7 +540,7 @@ public class PasswordUtility
                     pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress(),
                     pwmRequest.getPwmSession().getSessionStateBean().getSrcHostname()
             );
-            pwmApplication.getAuditManager().submit( auditRecord );
+            pwmApplication.getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
         }
 
         // update statistics
@@ -558,7 +558,7 @@ public class PasswordUtility
                 final LoginInfoBean loginInfoBean = new LoginInfoBean();
                 loginInfoBean.setUserCurrentPassword( newPassword );
 
-                final MacroMachine macroMachine = MacroMachine.forUser(
+                final MacroRequest macroRequest = MacroRequest.forUser(
                         pwmApplication,
                         sessionLabel,
                         userInfo,
@@ -566,7 +566,7 @@ public class PasswordUtility
                 );
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
-                        .setMacroMachine( macroMachine )
+                        .setMacroMachine( macroRequest )
                         .setExpandPwmMacros( true )
                         .createActionExecutor();
 
@@ -592,7 +592,7 @@ public class PasswordUtility
                     pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress(),
                     pwmRequest.getPwmSession().getSessionStateBean().getSrcHostname()
             );
-            pwmApplication.getAuditManager().submit( auditRecord );
+            pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
         }
 
         // send email notification
@@ -711,7 +711,7 @@ public class PasswordUtility
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final UserIdentity userIdentity = pwmRequest.getUserInfoIfLoggedIn();
         final AbstractProfile activateUserProfile = ProfileUtility.profileForUser(
-                pwmRequest.commonValues(),
+                pwmRequest.getPwmRequestContext(),
                 userIdentity,
                 profileDefinition,
                 AbstractProfile.class );
@@ -1247,16 +1247,16 @@ public class PasswordUtility
             return;
         }
 
-        final MacroMachine macroMachine = userInfo == null
+        final MacroRequest macroRequest = userInfo == null
                 ? null
-                : MacroMachine.forUser(
+                : MacroRequest.forUser(
                 pwmApplication,
                 pwmRequest.getLabel(),
                 userInfo,
                 null
         );
 
-        pwmApplication.getEmailQueue().submitEmail( configuredEmailSetting, userInfo, macroMachine );
+        pwmApplication.getEmailQueue().submitEmail( configuredEmailSetting, userInfo, macroRequest );
     }
 
     public static Instant determinePwdLastModified(

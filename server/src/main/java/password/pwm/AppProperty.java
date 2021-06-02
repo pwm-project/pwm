@@ -200,6 +200,7 @@ public enum AppProperty
     HEALTH_SUPPORT_BUNDLE_FILE_WRITE_COUNT          ( "health.supportBundle.file.writeRetentionCount" ),
     HEALTH_DISK_MIN_FREE_WARNING                    ( "health.disk.minFreeWarning" ),
     HEALTH_CERTIFICATE_WARN_SECONDS                 ( "health.certificate.warnSeconds" ),
+    HEALTH_DB_CAUTION_DURATION_MS                   ( "health.database.cautionDurationMS" ),
     HEALTH_LDAP_CAUTION_DURATION_MS                 ( "health.ldap.cautionDurationMS" ),
     HEALTH_LDAP_PROXY_WARN_PW_EXPIRE_SECONDS        ( "health.ldap.proxy.pwExpireWarnSeconds" ),
     HEALTH_LDAP_USER_SEARCH_TERM                    ( "health.ldap.userSearch.searchTerm" ),

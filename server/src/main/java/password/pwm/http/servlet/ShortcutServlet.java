@@ -197,7 +197,7 @@ public class ShortcutServlet extends AbstractPwmServlet
                         .build();
 
                 final boolean queryMatch = UserPermissionUtility.testUserPermission(
-                        pwmRequest.commonValues(),
+                        pwmRequest.getPwmRequestContext(),
                         pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
                         userPermission
                 );

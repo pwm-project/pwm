@@ -49,7 +49,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
@@ -267,8 +267,8 @@ public class PhotoDataReader
 
         if ( !StringUtil.isEmpty( configuredUrl ) )
         {
-            final MacroMachine macroMachine = MacroMachine.forUser( pwmRequest.commonValues(), userIdentity );
-            return Optional.of( macroMachine.expandMacros( configuredUrl ) );
+            final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest.getPwmRequestContext(), userIdentity );
+            return Optional.of( macroRequest.expandMacros( configuredUrl ) );
 
         }
 

@@ -62,7 +62,7 @@ import password.pwm.util.java.Percent;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
@@ -282,14 +282,14 @@ public class NewUserServlet extends ControlledPwmServlet
         {
             if ( !newUserBean.isAgreementPassed() )
             {
-                final MacroMachine macroMachine = NewUserUtils.createMacroMachineForNewUser(
+                final MacroRequest macroRequest = NewUserUtils.createMacroMachineForNewUser(
                         pwmApplication,
                         newUserProfile,
                         pwmRequest.getLabel(),
                         newUserBean.getNewUserForm(),
                         null
                 );
-                final String expandedText = macroMachine.expandMacros( newUserAgreementText );
+                final String expandedText = macroRequest.expandMacros( newUserAgreementText );
                 pwmRequest.setAttribute( PwmRequestAttribute.AgreementText, expandedText );
                 pwmRequest.forwardToJsp( JspUrl.NEW_USER_AGREEMENT );
                 return;
@@ -485,7 +485,7 @@ public class NewUserServlet extends ControlledPwmServlet
         try
         {
             tokenPayload = TokenUtil.checkEnteredCode(
-                    pwmRequest.commonValues(),
+                    pwmRequest.getPwmRequestContext(),
                     userEnteredCode,
                     tokenDestinationItem,
                     null,
@@ -781,8 +781,8 @@ public class NewUserServlet extends ControlledPwmServlet
         final String configuredRedirectUrl = newUserProfile.readSettingAsString( PwmSetting.NEWUSER_REDIRECT_URL );
         if ( !StringUtil.isEmpty( configuredRedirectUrl ) && StringUtil.isEmpty( pwmRequest.getPwmSession().getSessionStateBean().getForwardURL() ) )
         {
-            final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
-            final String macroedUrl = macroMachine.expandMacros( configuredRedirectUrl );
+            final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+            final String macroedUrl = macroRequest.expandMacros( configuredRedirectUrl );
             pwmRequest.sendRedirect( macroedUrl );
             return ProcessStatus.Halt;
         }

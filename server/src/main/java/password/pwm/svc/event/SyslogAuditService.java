@@ -45,8 +45,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
@@ -242,7 +242,10 @@ public class SyslogAuditService
             final ErrorInformation errorInformation = lastError;
             if ( TimeDuration.fromCurrent( errorInformation.getDate() ).isShorterThan( WARNING_WINDOW_MS ) )
             {
-                healthRecords.add( new HealthRecord( HealthStatus.WARN, HealthTopic.Audit,
+                healthRecords.add( HealthRecord.forMessage(
+                        HealthMessage.ServiceError,
+                        HealthTopic.Audit,
+                        this.getClass().getSimpleName(),
                         errorInformation.toUserStr( PwmConstants.DEFAULT_LOCALE, configuration ) ) );
             }
         }

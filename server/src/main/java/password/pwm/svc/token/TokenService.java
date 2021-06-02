@@ -46,7 +46,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.http.CommonValues;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.PwmService;
@@ -67,7 +67,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroMachine;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.secure.PwmRandom;
 
@@ -254,7 +254,7 @@ public class TokenService implements PwmService
                 sessionLabel,
                 JsonUtil.serialize( tokenPayload )
         );
-        pwmApplication.getAuditManager().submit( auditRecord );
+        pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
         return tokenKey;
     }
 
@@ -292,7 +292,7 @@ public class TokenService implements PwmService
                 sessionLabel,
                 JsonUtil.serialize( tokenPayload )
         );
-        pwmApplication.getAuditManager().submit( auditRecord );
+        pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
 
         StatisticsManager.incrementStat( pwmApplication, Statistic.TOKENS_PASSSED );
     }
@@ -555,7 +555,7 @@ public class TokenService implements PwmService
     }
 
     public TokenPayload processUserEnteredCode(
-            final CommonValues commonValues,
+            final PwmRequestContext pwmRequestContext,
             final UserIdentity sessionUserIdentity,
             final TokenType tokenType,
             final String userEnteredCode,
@@ -563,7 +563,7 @@ public class TokenService implements PwmService
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final SessionLabel sessionLabel = commonValues.getSessionLabel();
+        final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
         try
         {
             final TokenPayload tokenPayload = processUserEnteredCodeImpl(
@@ -595,7 +595,7 @@ public class TokenService implements PwmService
 
             if ( sessionUserIdentity != null && tokenEntryType == TokenEntryType.unauthenticated )
             {
-                SessionAuthenticator.simulateBadPassword( commonValues, sessionUserIdentity );
+                SessionAuthenticator.simulateBadPassword( pwmRequestContext, sessionUserIdentity );
                 pwmApplication.getIntruderManager().convenience().markUserIdentity( sessionUserIdentity, sessionLabel );
             }
             pwmApplication.getStatisticsManager().incrementValue( Statistic.RECOVERY_FAILURES );
@@ -704,7 +704,7 @@ public class TokenService implements PwmService
     {
         private PwmApplication pwmApplication;
         private UserInfo userInfo;
-        private MacroMachine macroMachine;
+        private MacroRequest macroRequest;
         private EmailItemBean configuredEmailSetting;
         private TokenDestinationItem tokenDestinationItem;
         private String smsMessage;
@@ -766,7 +766,7 @@ public class TokenService implements PwmService
             pwmApplication.getEmailQueue().submitEmailImmediate(
                     tokenizedEmail,
                     tokenSendInfo.getUserInfo(),
-                    tokenSendInfo.getMacroMachine() );
+                    tokenSendInfo.getMacroRequest() );
 
             LOGGER.debug( () -> "token email added to send queue for " + toAddress );
             return true;
@@ -789,7 +789,7 @@ public class TokenService implements PwmService
             final PwmApplication pwmApplication = tokenSendInfo.getPwmApplication();
             pwmApplication.getIntruderManager().mark( RecordType.TOKEN_DEST, smsNumber, tokenSendInfo.getSessionLabel() );
 
-            pwmApplication.sendSmsUsingQueue( smsNumber, modifiedMessage, tokenSendInfo.getSessionLabel(), tokenSendInfo.getMacroMachine() );
+            pwmApplication.sendSmsUsingQueue( smsNumber, modifiedMessage, tokenSendInfo.getSessionLabel(), tokenSendInfo.getMacroRequest() );
             LOGGER.debug( () -> "token SMS added to send queue for " + smsNumber );
             return true;
         }

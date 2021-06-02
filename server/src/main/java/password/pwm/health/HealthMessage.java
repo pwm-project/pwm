@@ -33,7 +33,9 @@ public enum HealthMessage
     LDAP_Ad_History_Asn_Missing( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_AD_Unsecure( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_AD_StaticIP( HealthStatus.WARN, HealthTopic.LDAP ),
+    LDAP_AdminUserOk( HealthStatus.GOOD, HealthTopic.LDAP ),
     LDAP_ProxyTestSameUser( HealthStatus.WARN, HealthTopic.Configuration ),
+    LDAP_ProxyUserOk( HealthStatus.GOOD, HealthTopic.LDAP ),
     LDAP_ProxyUserPwExpired( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_TestUserUnavailable( HealthStatus.CAUTION, HealthTopic.LDAP ),
     LDAP_TestUserUnexpected( HealthStatus.WARN, HealthTopic.LDAP ),
@@ -41,6 +43,7 @@ public enum HealthMessage
     LDAP_TestUserWritePwError( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_TestUserReadPwError( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_TestUserOK( HealthStatus.GOOD, HealthTopic.LDAP ),
+    Email_OK( HealthStatus.GOOD, HealthTopic.Email ),
     Email_SendFailure( HealthStatus.WARN, HealthTopic.Email ),
     Email_ConnectFailure( HealthStatus.WARN, HealthTopic.Email ),
     PwNotify_Failure( HealthStatus.WARN, HealthTopic.Application ),
@@ -70,6 +73,7 @@ public enum HealthMessage
     Config_DNValueValidity( HealthStatus.CONFIG, HealthTopic.Configuration ),
     Config_ProfileValueValidity( HealthStatus.CONFIG, HealthTopic.Configuration ),
     Config_SettingIssue( HealthStatus.CAUTION, HealthTopic.Configuration ),
+    Config_SettingOk( HealthStatus.GOOD, HealthTopic.Configuration ),
     Config_NoRecoveryEnabled( HealthStatus.CAUTION, HealthTopic.Configuration ),
     Config_Certificate( HealthStatus.WARN, HealthTopic.Configuration ),
     Config_InvalidSendMethod( HealthStatus.CAUTION, HealthTopic.Configuration ),
@@ -78,9 +82,11 @@ public enum HealthMessage
     Config_NoLdapProfiles( HealthStatus.CONFIG, HealthTopic.Configuration ),
     Config_ValueConflict( HealthStatus.CONFIG, HealthTopic.Configuration ),
 
+    Database_OK( HealthStatus.GOOD, HealthTopic.Database ),
+    Database_Error( HealthStatus.WARN, HealthTopic.Database ),
+    Database_RecentlyUnreachable( HealthStatus.CAUTION, HealthTopic.Database ),
     LDAP_VendorsNotSame( HealthStatus.CONFIG, HealthTopic.LDAP ),
     LDAP_OK( HealthStatus.GOOD, HealthTopic.LDAP ),
-    EMail_OK( HealthStatus.GOOD, HealthTopic.Email ),
     LDAP_RecentlyUnreachable( HealthStatus.CAUTION, HealthTopic.LDAP ),
     LDAP_SearchFailure( HealthStatus.WARN, HealthTopic.LDAP ),
     CryptoTokenWithNewUserVerification( HealthStatus.CAUTION, HealthTopic.Configuration ),
@@ -93,13 +99,14 @@ public enum HealthMessage
     LocalDB_NEW( HealthStatus.WARN, HealthTopic.LocalDB ),
     LocalDB_CLOSED( HealthStatus.WARN, HealthTopic.LocalDB ),
     LocalDB_LowDiskSpace( HealthStatus.WARN, HealthTopic.LocalDB ),
-    LocalDBLogger_NOTOPEN( HealthStatus.CAUTION, HealthTopic.LocalDB ),
+    LocalDBLogger_Closed( HealthStatus.CAUTION, HealthTopic.LocalDB ),
     LocalDBLogger_HighRecordCount( HealthStatus.CAUTION, HealthTopic.LocalDB ),
     LocalDBLogger_OldRecordPresent( HealthStatus.CAUTION, HealthTopic.LocalDB ),
     NewUser_PwTemplateBad( HealthStatus.CAUTION, HealthTopic.Configuration ),
     ServiceClosed( HealthStatus.CAUTION, HealthTopic.Application ),
     ServiceClosed_LocalDBUnavail( HealthStatus.CAUTION, HealthTopic.Application ),
     ServiceClosed_AppReadOnly( HealthStatus.CAUTION, HealthTopic.Application ),
+    ServiceError( HealthStatus.WARN, HealthTopic.Application ),
     SMS_SendFailure( HealthStatus.WARN, HealthTopic.SMS ),
     Wordlist_AutoImportFailure( HealthStatus.WARN, HealthTopic.Configuration ),
     Wordlist_ImportInProgress( HealthStatus.CAUTION, HealthTopic.Application ),;
@@ -131,7 +138,10 @@ public enum HealthMessage
         return HealthMessage.class.getSimpleName() + "_" + this.toString();
     }
 
-    public String getDescription( final Locale locale, final password.pwm.config.Configuration config, final String[] fields )
+    public String getDescription(
+            final Locale locale,
+            final password.pwm.config.Configuration config,
+            final String[] fields )
     {
         return LocaleHelper.getLocalizedMessage( locale, this.getKey(), config, Health.class, fields );
     }
