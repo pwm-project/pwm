@@ -150,7 +150,7 @@ export default class HelpDeskService implements IHelpDeskService {
                 'Must not include part of your name or user name.',
                 'Must not include a common word or commonly used sequence of characters.'
             ],
-            'passwordPolicyDN': 'cn=SSPR,cn=Password Policies,cn=Security',
+            'passwordPolicyDN': 'cn=Policy,cn=Password Policies,cn=Security',
             'passwordPolicyID': 'n/a',
             'statusData': [
                 {

@@ -1628,7 +1628,7 @@ cLi2mbers
                             <td>After the form data is signed, it can be submitted as part of a request to <pwm:macro value="@PwmAppName@"/> using the
                                 <code>signedForm</code> parameter and the value is the encoded <code>data</code> value returned in the result.
                                 Values expire after a period of time.
-                                <br/><br/><b>Example:</b><br/> <code><pwm:context/>/sspr/public/newuser?signedForm=xxx</code>
+                                <br/><br/><b>Example:</b><br/> <code><pwm:context/>/public/newuser?signedForm=xxx</code>
 
                             </td>
                         </tr>

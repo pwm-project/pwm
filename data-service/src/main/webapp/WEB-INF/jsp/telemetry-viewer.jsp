@@ -67,10 +67,10 @@
             <td><b>Version</b></td>
             <td><b>Count</b></td>
         </tr>
-        <% for (final String version : summaryBean.getSsprVersionCount().keySet()) { %>
+        <% for (final String version : summaryBean.getAppVersionCount().keySet()) { %>
         <tr>
             <td><%=version%></td>
-            <td><%=summaryBean.getSsprVersionCount().get(version)%></td>
+            <td><%=summaryBean.getAppVersionCount().get(version)%></td>
         </tr>
         <% } %>
     </table>

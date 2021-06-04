@@ -21,7 +21,6 @@
 package password.pwm.receiver;
 
 import lombok.Builder;
-import lombok.Getter;
 import lombok.Value;
 import password.pwm.PwmAboutProperty;
 import password.pwm.bean.TelemetryPublishBean;
@@ -34,7 +33,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-@Getter
+@Value
 @Builder
 public class SummaryBean
 {
@@ -47,7 +46,7 @@ public class SummaryBean
     private Map<String, Integer> osCount;
     private Map<String, Integer> dbCount;
     private Map<String, Integer> javaCount;
-    private Map<String, Integer> ssprVersionCount;
+    private Map<String, Integer> appVersionCount;
 
     static SummaryBean fromStorage( final Storage storage, final TimeDuration maxAge )
     {
@@ -63,7 +62,7 @@ public class SummaryBean
         final Map<String, Integer> osCount = new TreeMap<>();
         final Map<String, Integer> dbCount = new TreeMap<>();
         final Map<String, Integer> javaCount = new TreeMap<>();
-        final Map<String, Integer> ssprVersionCount = new TreeMap<>();
+        final Map<String, Integer> appVersionCount = new TreeMap<>();
 
         for ( Iterator<TelemetryPublishBean> iterator = storage.iterator(); iterator.hasNext(); )
         {
@@ -106,7 +105,7 @@ public class SummaryBean
 
                 incrementCounterMap( javaCount, siteSummary.getJavaVm() );
 
-                incrementCounterMap( ssprVersionCount, siteSummary.getVersion() );
+                incrementCounterMap( appVersionCount, siteSummary.getVersion() );
 
                 for ( final String settingKey : bean.getConfiguredSettings() )
                 {
@@ -139,7 +138,7 @@ public class SummaryBean
                 .osCount( osCount )
                 .dbCount( dbCount )
                 .javaCount( javaCount )
-                .ssprVersionCount( ssprVersionCount )
+                .appVersionCount( appVersionCount )
                 .build();
 
     }

@@ -60,7 +60,7 @@ public class CookieManagementFilter implements Filter
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.trace( () -> "unable to load application configuration while checking samesite cookie attribute config", e );
+            LOGGER.trace( () -> "unable to load application configuration while checking samesite cookie attribute config" );
         }
     }
 
@@ -96,7 +96,7 @@ public class CookieManagementFilter implements Filter
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.trace( () -> "unable to load session while checking samesite cookie attribute config", e );
+                LOGGER.trace( () -> "unable to load session while checking samesite cookie attribute config" );
             }
 
             if ( pwmSession != null )
