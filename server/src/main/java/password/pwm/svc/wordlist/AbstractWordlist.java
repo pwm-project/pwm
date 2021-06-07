@@ -54,7 +54,6 @@ import java.util.function.BooleanSupplier;
 abstract class AbstractWordlist implements Wordlist, PwmService
 {
     static final TimeDuration DEBUG_OUTPUT_FREQUENCY = TimeDuration.MINUTE;
-    private static final TimeDuration BUCKET_CHECK_LOG_WARNING_TIMEOUT = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
 
     private WordlistConfiguration wordlistConfiguration;
     private WordlistBucket wordlistBucket;
@@ -201,7 +200,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
         getStatistics().getWordCheckTimeMS().update( timeDuration.asMillis() );
 
-        if ( timeDuration.isLongerThan( BUCKET_CHECK_LOG_WARNING_TIMEOUT ) )
+        if ( timeDuration.isLongerThan( this.wordlistConfiguration.getBucketCheckTimeWarningMs() ) )
         {
             getLogger().debug( () -> "wordlist search time for wordlist permutations was greater then 100ms: " + timeDuration.asCompactString() );
         }

@@ -68,6 +68,8 @@ public class WordlistConfiguration implements Serializable
 
     private final TimeDuration autoImportRecheckDuration;
     private final TimeDuration importDurationGoal;
+    private final TimeDuration bucketCheckTimeWarningMs;
+
     private final int importMinTransactions;
     private final int importMaxTransactions;
     private final long importMaxChars;
@@ -127,6 +129,9 @@ public class WordlistConfiguration implements Serializable
                         TimeDuration.Unit.SECONDS ) )
                 .importDurationGoal( TimeDuration.of(
                         Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_DURATION_GOAL_MS ) ),
+                        TimeDuration.Unit.MILLISECONDS ) )
+                .bucketCheckTimeWarningMs( TimeDuration.of(
+                        Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_BUCKET_CHECK_TIME_WARNING_MS ) ),
                         TimeDuration.Unit.MILLISECONDS ) )
                 .importMinTransactions( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_TRANSACTIONS ) ) )
                 .importMaxTransactions( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_TRANSACTIONS ) ) )

@@ -46,9 +46,24 @@ public class PwmHttpClientResponse implements Serializable, PwmHttpClientMessage
     private final String body;
     private final ImmutableByteArray binaryBody;
 
-    public String toDebugString( final PwmHttpClient pwmHttpClient )
+    public String toDebugString( final ApachePwmHttpClient pwmHttpClient )
     {
         final String topLine = "HTTP response status " + statusCode + " " + statusPhrase;
         return pwmHttpClient.entityToDebugString( topLine, this );
+    }
+
+    public long size()
+    {
+        long size = 0;
+        size += statusPhrase == null ? 0 : statusPhrase.length();
+        size += body == null ? 0 : body.length();
+        size += binaryBody == null ? 0 : binaryBody.size();
+        if ( headers != null )
+        {
+            size += headers.entrySet().stream()
+                    .map( e -> e.getValue().length() + e.getKey().length() )
+                    .reduce( 0, Integer::sum );
+        }
+        return size;
     }
 }
