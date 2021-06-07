@@ -16,7 +16,7 @@
     <name>PWM Password Self Service: Executable Server JAR</name>
 
     <properties>
-        <tomcat.version>9.0.44</tomcat.version>
+        <tomcat.version>9.0.46</tomcat.version>
     </properties>
 
     <build>

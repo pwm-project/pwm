@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class CookieManagementFilter implements Filter
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.trace( () -> "unable to load application configuration while checking samesite cookie attribute config", e );
+            LOGGER.trace( () -> "unable to load application configuration while checking samesite cookie attribute config" );
         }
     }
 
@@ -76,6 +76,12 @@ public class CookieManagementFilter implements Filter
         markSessionForRecycle( ( HttpServletRequest ) servletRequest );
     }
 
+    /**
+     * Ensures that every session that modifies its samesite cookies also triggers a session ID
+     * recycle, once per session.
+     *
+     * @param httpServletRequest The request to be marked
+     */
     private void markSessionForRecycle( final HttpServletRequest httpServletRequest )
     {
         /*
@@ -94,7 +100,7 @@ public class CookieManagementFilter implements Filter
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.trace( () -> "unable to load session while checking samesite cookie attribute config", e );
+                LOGGER.trace( () -> "unable to load session while checking samesite cookie attribute config" );
             }
 
             if ( pwmSession != null )
