@@ -79,6 +79,12 @@ public class CookieManagementFilter implements Filter
         markSessionForRecycle( ( HttpServletRequest ) servletRequest );
     }
 
+    /**
+     * Ensures that every session that modifies its samesite cookies also triggers a session ID
+     * recycle, once per session.
+     *
+     * @param httpServletRequest The request to be marked
+     */
     private void markSessionForRecycle( final HttpServletRequest httpServletRequest )
     {
         if ( StringUtil.isEmpty( value ) )

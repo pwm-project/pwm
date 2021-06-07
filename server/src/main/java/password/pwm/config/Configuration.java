@@ -448,6 +448,11 @@ public class Configuration
         return configurationSuppliers.appPropertyOverrides.get().getOrDefault( property.getKey(), property.getDefaultValue() );
     }
 
+    public boolean readBooleanAppProperty( final AppProperty property )
+    {
+        return Boolean.parseBoolean( readAppProperty( property ) );
+    }
+
     private StoredValue readStoredValue( final PwmSetting setting )
     {
         if ( setting.getCategory().hasProfiles() )

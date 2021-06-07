@@ -301,10 +301,15 @@ public class RequestInitializationFilter implements Filter
 
     private void checkIfSessionRecycleNeeded( final PwmRequest pwmRequest )
     {
-        if ( pwmRequest.getPwmSession().getSessionStateBean().isSessionIdRecycleNeeded() )
+        if ( pwmRequest.getPwmSession().getSessionStateBean().isSessionIdRecycleNeeded()
+                && !pwmRequest.getURL().isResourceURL() )
         {
-            pwmRequest.getHttpServletRequest().changeSessionId();
-            pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded( false );
+            if ( pwmRequest.getConfig().readBooleanAppProperty( AppProperty.HTTP_SESSION_RECYCLE_AT_AUTH ) )
+            {
+                pwmRequest.getHttpServletRequest().changeSessionId();
+                pwmRequest.getPwmSession().getSessionStateBean().setSessionIdRecycleNeeded( false );
+                LOGGER.trace( pwmRequest, () -> "changeSessionId() requested from servlet container" );
+            }
         }
     }
 
