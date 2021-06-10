@@ -1,0 +1,137 @@
+/*!
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2021 The PWM Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+#header {
+    width: 100%;
+    height: 70px;
+    margin: 0;
+    background-image: url('header-gradient.gif')
+}
+
+#button-openHeader {
+    color: red;
+}
+
+#header-company-logo {
+    position: relative;
+    float: left;
+    background-image: url(logo.png);
+    top: 10px;
+    left: 10px;
+    width: 50px;
+    height: 50px;
+    z-index: 1;
+}
+
+
+#HomeButton span.btn-icon, #LogoutButton span.btn-icon, #header-username-caret span.m-icon {
+    font: 20px FontAwesome;
+    margin-right: 0px;
+    color: red;
+}
+
+.tile {
+    width: 165px;
+    height: 165px;
+}
+
+.tile:hover {border: 1px solid red;}
+.tile-image {color: red;}
+
+#centerbody {
+    background-color: #eeeeee;
+    padding: 10px 10px 40px 10px;
+    border-left: solid 2px #ff0000;
+    border-right: solid 2px #ff0000;
+    border-radius: 0;
+    min-height: 65vh;
+    margin-left: 100px;
+    margin-top: 0;
+    animation: fadein 2s;
+    -moz-animation: fadein 2s;
+    -webkit-animation: fadein 2s;
+}
+
+#centerbody.wide {
+    width: 90%;
+    margin-left: auto;
+}
+
+
+#header-center {
+    margin-left: 100px;
+}
+
+a:hover {
+    color: #880000;
+}
+
+#footer {
+    padding-top: 40px;
+    margin-left: 30px;
+    text-align: left;
+}
+
+.message-info {
+    background-color: #ffffff;
+    color: black;
+}
+
+.message-error {
+    background-color: #ff0000;
+    color: white
+}
+
+.message-success {
+    background-color: #0000ff;
+    color: white;
+}
+
+.btn {
+    border-style:none;
+    padding: 3px 11px;
+    margin: 9px 7px;
+    text-decoration: none;
+    color: white;
+    background-color: #880000;
+    cursor: pointer;
+}.btn:disabled {
+     color: #656565;
+}
+
+@keyframes fadein { from { opacity:0; } to { opacity:1; } }
+@-moz-keyframes fadein { from { opacity:0 } to { opacity:1 } }
+@-webkit-keyframes fadein { from { opacity:0 } to { opacity:1 } }
+
+
+
+
+
+#header-menu-icon {
+  display: inline-block;
+}
+
+.tab-container > .label:hover {
+    color: #ff0000;
+    border-top-color: #ff0000;
+    border-left-color: #ff0000;
+    border-right-color: #ff0000;
+}

@@ -1,0 +1,12 @@
+# NPM
+/node_modules
+.node
+
+# Generated Javascript files
+/src/**/*.js
+
+# Build output
+/dist
+
+# Generated log files
+*.log

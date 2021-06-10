@@ -1,0 +1,86 @@
+/*!
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2021 The PWM Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+#header {
+    width: 100%;
+    height: 70px;
+    margin: 0;
+    background-image: url('header-gradient.gif')
+}
+
+#header-company-logo {
+    position: relative;
+    float: left;
+    background-image: url('logo.png');
+    top: 10px;
+    left: 10px;
+    width: 50px;
+    height: 50px;
+    z-index: 1;
+}
+
+.header-button:hover {background: #4f5be8;}
+
+
+#header-username-caret span.m-icon {
+    content: "\f08b";
+}
+
+.tile {
+    width: 165px;
+    height: 165px;
+}
+
+.tile:hover {border: 1px solid #4f5be8;}
+
+#centerbody {
+    background-color: #eeeeee;
+    padding: 10px 10px 40px 15px;
+    border: solid 3px #000088;
+    border-radius: 5px;
+}
+
+.message {
+    background-color: #eeeeee;
+}
+
+.message-info {
+    background-color: #b6ccdb;
+}
+
+.message-error {
+    background-color: #ffcccc;
+}
+
+.message-success {
+    background-color: #70c1f9;
+}
+
+.menubutton {
+    white-space: normal;
+}
+
+.tab-container > .label:hover {
+    color: #000088;
+    border-top-color: #000088;
+    border-left-color: #000088;
+    border-right-color: #000088;
+}

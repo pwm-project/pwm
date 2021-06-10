@@ -1,7 +1,4 @@
 # PWM Project gitignore files
-#
-# Maven Output
-/target
 
 # Eclipse Project Files
 /.project
@@ -9,25 +6,42 @@
 /.classpath
 
 # IntelliJ Project Files
-.idea/
-/*.iml
+**/.idea/
+**/*.iml
+*/.idea/
+*/*.iml
 
 # OS folder info
 .directory
 .DS_Store
 .DS_Store?
 
+# Maven Output
+*/target
 
-# Older PWM versions defaulted the applicationPath dir to WEB-INF.  This section ignores them if the applicationPath is set to WEB-INF.
-/src/main/webapp/WEB-INF/logs
-/src/main/webapp/WEB-INF/PwmConfiguration.xml
-/src/main/webapp/WEB-INF/backup
-/src/main/webapp/WEB-INF/LocalDB
-/bin/
-/src/main/webapp/WEB-INF/applicationPath.lock
-/src/main/webapp/public/resources/themes/mdefault
-/src/main/webapp/public/resources/themes/netiq32
-/src/main/webapp/public/resources/themes/idm
-/src/main/webapp/public/resources/themes/mdefault
-/src/main/webapp/public/resources/themes/netiq
-src/main/resources/password/pwm/git.properties
+
+/target
+/webapp/src/main/webapp/public/resources/themes/netiq
+/webapp/src/main/webapp/public/resources/themes/netiq32
+/webapp/src/main/webapp/public/resources/themes/idm
+/webapp/src/main/webapp/public/resources/themes/mdefault
+/webapp/src/main/webapp/public/resources/themes/mdefault44
+
+# VS Code Project Files
+.vscode/*
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+**/.settings/
+*/.settings/
+**/*.classpath
+*/*.classpath
+**/*.factorypath
+*/*.factorypath
+**/*.project
+*/*.project
+
+

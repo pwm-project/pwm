@@ -1,0 +1,70 @@
+
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2021 The PWM Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div class="org-chart-section managers"
+     ng-class="{ 'overflow': $ctrl.showingOverflow() }"
+     ng-if="$ctrl.hasManagementChain()">
+    <h3 translate="Title_Management">Management</h3>
+    <div>
+        <div class="manager"
+             ng-repeat="manager in $ctrl.getManagementChain() track by $id(manager.displayNames)">
+            <div class="org-chart-connector"></div>
+            <person-card person="manager"
+                         show-image="$ctrl.showImages || ($ctrl.showingOverflow() && $last)"
+                         size="{{ $ctrl.getManagerCardSize() }}"
+                         show-direct-report-count="false"
+                         ng-click="$ctrl.selectPerson(manager.userKey)">
+            </person-card>
+        </div>
+    </div>
+</div>
+
+<div class="org-chart-section self">
+    <person-card person="$ctrl.person"
+                 direct-reports="$ctrl.directReports"
+                 ng-click="$ctrl.onClickPerson()"
+                 class="self"
+                 size="large"
+                 show-direct-report-count="$ctrl.showDirectReports"
+                 show-image="$ctrl.showImages"></person-card>
+    <div class="assistant" ng-if="$ctrl.assistant">
+        <div class="org-chart-connector dashed"></div>
+        <person-card person="$ctrl.assistant"
+                     size="small"
+                     show-direct-report-count="false"
+                     show-image="$ctrl.showImages"
+                     ng-click="$ctrl.selectPerson($ctrl.assistant.userKey)"></person-card>
+    </div>
+</div>
+
+<div class="org-chart-section direct-reports" ng-if="$ctrl.hasDirectReports()">
+    <h3 translate="Title_DirectReports">Direct Reports</h3>
+    <div class="org-chart-connector"></div>
+
+    <div class="ias-grid">
+        <person-card person="directReport"
+                     show-direct-report-count="$ctrl.showDirectReports"
+                     show-image="$ctrl.showImages"
+                     ng-repeat="directReport in $ctrl.directReports | orderBy:'displayNames[0]'"
+                     ng-click="$ctrl.selectPerson(directReport.userKey)">
+        </person-card>
+    </div>
+</div>

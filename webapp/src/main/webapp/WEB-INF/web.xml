@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2021 The PWM Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         id="PWM" version="3.0">
+    <display-name>PWM Password Management</display-name>
+    <!-- <distributable/> Clustering/Session replication is not supported -->
+    <description>Password Management Servlet</description>
+    <context-param>
+        <description>
+            Explicit location of application path working directory or the literal value "unspecified".  See the environment documentation at /public/reference/environment.jsp for more information.
+        </description>
+        <param-name>applicationPath</param-name>
+        <param-value>unspecified</param-value>
+    </context-param>
+    <!-- uncomment and set parameters for CAS integration
+    <context-param>
+        <param-name>configurationStrategy</param-name>
+        <param-value>${java.cas.client.config.strategy}</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>configFileLocation</param-name>
+        <param-value>${java.cas.client.config.location}</param-value>
+    </context-param>
+    End CAS Config -->
+    
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+    <!-- uncomment and set parameters for CAS integration
+    <filter>
+        <filter-name>CAS Validation Filter</filter-name>
+        <filter-class>org.jasig.cas.client.validation.Cas20ProxyReceivingTicketValidationFilter</filter-class>
+        <!- cas-config-web.xml start ->
+        <init-param>
+            <param-name>casServerUrlPrefix</param-name>
+            <param-value>${cas.server}</param-value>
+        </init-param>
+        <init-param>
+            <param-name>serverName</param-name>
+            <param-value>${pwm.server}</param-value>
+        </init-param>
+        <init-param>
+            <param-name>proxyCallbackUrl</param-name>
+            <param-value>${pwm.server}pwm/proxyCallback</param-value>
+        </init-param>
+        <init-param>
+            <param-name>proxyReceptorUrl</param-name>
+            <param-value>/proxyCallback</param-value>
+        </init-param>
+        <!- cas-config-web.xml end ->
+    </filter>
+    <filter>
+        <filter-name>CAS Authentication Filter</filter-name>
+        <filter-class>org.jasig.cas.client.authentication.AuthenticationFilter</filter-class>
+        <!- cas-config-web.xml start ->
+        <init-param>
+            <param-name>casServerLoginUrl</param-name>
+            <param-value>${cas.server}login</param-value>
+        </init-param>
+        <init-param>
+            <param-name>serverName</param-name>
+            <param-value>${pwm.server}</param-value>
+        </init-param>
+        <init-param>
+            <param-name>gateway</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        <!- cas-config-web.xml end ->
+    </filter>
+    <filter>
+        <filter-name>CAS Single Sign Out Filter</filter-name>
+        <filter-class>org.jasig.cas.client.session.SingleSignOutFilter</filter-class>
+        <init-param>
+            <param-name>casServerUrlPrefix</param-name>
+            <param-value>${cas.server}</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>CAS Single Sign Out Filter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <listener>
+        <listener-class>org.jasig.cas.client.session.SingleSignOutHttpSessionListener</listener-class>
+    </listener>
+    <filter-mapping>
+        <filter-name>CAS Validation Filter</filter-name>
+        <url-pattern>/private/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>CAS Authentication Filter</filter-name>
+        <url-pattern>/private/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>CAS Validation Filter</filter-name>
+        <url-pattern>/proxyCallback</url-pattern>
+    </filter-mapping>
+    End CAS Config -->
+    <filter>
+        <filter-name>CookieUpdateFilter</filter-name>
+        <filter-class>password.pwm.http.filter.CookieManagementFilter</filter-class>
+    </filter>
+    <filter>
+        <filter-name>GZIPFilter</filter-name>
+        <filter-class>password.pwm.http.filter.GZIPFilter</filter-class>
+    </filter>
+    <filter>
+        <filter-name>RequestInitializationFilter</filter-name>
+        <filter-class>password.pwm.http.filter.RequestInitializationFilter</filter-class>
+    </filter>
+    <filter>
+        <filter-name>ObsoleteUrlFilter</filter-name>
+        <filter-class>password.pwm.http.filter.ObsoleteUrlFilter</filter-class>
+    </filter>
+    <filter>
+        <filter-name>ApplicationModeFilter</filter-name>
+        <filter-class>password.pwm.http.filter.ApplicationModeFilter</filter-class>
+    </filter>
+    <filter>
+        <filter-name>SessionFilter</filter-name>
+        <filter-class>password.pwm.http.filter.SessionFilter</filter-class>
+    </filter>
+    <filter>
+        <filter-name>AuthenticationFilter</filter-name>
+        <filter-class>password.pwm.http.filter.AuthenticationFilter</filter-class>
+    </filter>
+    <filter>
+        <filter-name>AdminAuthorizationFilter</filter-name>
+        <filter-class>password.pwm.http.filter.AuthorizationFilter</filter-class>
+    </filter>
+    <filter>
+        <filter-name>ConfigAuthorizationFilter</filter-name>
+        <filter-class>password.pwm.http.filter.ConfigAccessFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>CookieUpdateFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>GZIPFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>RequestInitializationFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ObsoleteUrlFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ApplicationModeFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>SessionFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthenticationFilter</filter-name>
+        <url-pattern>/private/*</url-pattern>
+        <url-pattern>/public/changepassword</url-pattern>
+        <url-pattern>/public/ChangePassword</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AdminAuthorizationFilter</filter-name>
+        <url-pattern>/private/admin/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>ConfigAuthorizationFilter</filter-name>
+        <url-pattern>/private/config</url-pattern>
+        <url-pattern>/private/config/*</url-pattern>
+    </filter-mapping>
+    <listener>
+        <listener-class>password.pwm.http.HttpEventManager</listener-class>
+    </listener>
+    <error-page>
+        <location>/WEB-INF/jsp/error-http.jsp</location>
+    </error-page>
+    <error-page>
+        <exception-type>java.lang.Throwable</exception-type>
+        <location>/WEB-INF/jsp/error.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>500</error-code>
+        <location>/WEB-INF/jsp/error.jsp</location>
+    </error-page>
+    <session-config>
+        <!-- Please use the application configuration to control the idle session timeout.  This value will not be used.  -->
+        <session-timeout>5</session-timeout>
+        <cookie-config>
+            <http-only>true</http-only>
+        </cookie-config>
+    </session-config>
+    <jsp-config>
+        <taglib>
+            <taglib-uri>pwm</taglib-uri>
+            <taglib-location>/WEB-INF/pwm-taglib.tld</taglib-location>
+        </taglib>
+        <jsp-property-group>
+            <url-pattern>*.jsp</url-pattern>
+            <trim-directive-whitespaces>true</trim-directive-whitespaces>
+        </jsp-property-group>
+        <jsp-property-group>
+            <url-pattern>*.jsp</url-pattern>
+            <page-encoding>UTF-8</page-encoding>
+        </jsp-property-group>
+    </jsp-config>
+</web-app>
