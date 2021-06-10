@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2021 The PWM Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+
+<!DOCTYPE taglib
+        PUBLIC "-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.2//EN"
+        "http://java.sun.com/dtd/web-jsptaglibrary_1_2.dtd">
+<taglib>
+    <tlib-version>1.2</tlib-version>
+    <jsp-version>1.2</jsp-version>
+    <short-name>pwm-taglib</short-name>
+    <tag>
+        <name>ErrorMessage</name>
+        <tag-class>password.pwm.http.tag.ErrorMessageTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Displays the current error message (if any)</description>
+    </tag>
+    <tag>
+        <name>SuccessMessage</name>
+        <tag-class>password.pwm.http.tag.SuccessMessageTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Displays the current success message (if any)</description>
+    </tag>
+    <tag>
+        <name>UserInfo</name>
+        <tag-class>password.pwm.http.tag.UserInfoTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Retreives attributes from the logged-in user's ldap
+            entry
+        </description>
+        <attribute>
+            <name>attribute</name>
+            <required>true</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
+        <name>DisplayPasswordRequirements</name>
+        <tag-class>
+            password.pwm.http.tag.PasswordRequirementsTag
+        </tag-class>
+        <body-content>empty</body-content>
+        <description>Displays (in english) selected currently configured
+            password requirements
+        </description>
+        <attribute>
+            <name>separator</name>
+            <required>false</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>prepend</name>
+            <required>false</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>form</name>
+            <required>false</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
+        <name>display</name>
+        <tag-class>password.pwm.http.tag.DisplayTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Display localized message</description>
+        <attribute>
+            <name>key</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>bundle</name>
+            <required>false</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>value1</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>value2</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>value3</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>displayIfMissing</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
+        <name>value</name>
+        <tag-class>password.pwm.http.tag.value.PwmValueTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Output a named value</description>
+        <attribute>
+            <name>name</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>password.pwm.http.tag.value.PwmValue</type>
+        </attribute>
+    </tag>
+    <tag>
+        <name>macro</name>
+        <tag-class>password.pwm.http.tag.PwmMacroTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Output a PWM Macro</description>
+        <attribute>
+            <name>value</name>
+            <required>true</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
+        <name>url</name>
+        <tag-class>password.pwm.http.tag.url.PwmUrlTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Rewrite/Encode outbound URLs</description>
+        <attribute>
+            <name>url</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>addContext</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
+        <name>FormID</name>
+        <tag-class>password.pwm.http.tag.PwmFormIDTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Displays the proper pwmFormID value for the session</description>
+    </tag>
+    <tag>
+        <name>autofocus</name>
+        <tag-class>password.pwm.http.tag.PwmAutofocusTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Output ' autofocus="autofocus"' html attribute once per response.</description>
+    </tag>
+    <tag>
+        <name>context</name>
+        <tag-class>password.pwm.http.tag.PwmContextTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Displays the context url path</description>
+    </tag>
+    <tag>
+        <name>if</name>
+        <tag-class>password.pwm.http.tag.conditional.PwmIfTag</tag-class>
+        <body-content>JSP</body-content>
+        <description>If test is true, output body.</description>
+        <attribute>
+            <name>test</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>password.pwm.http.tag.conditional.PwmIfTest</type>
+        </attribute>
+        <attribute>
+            <name>permission</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>password.pwm.Permission</type>
+        </attribute>
+        <attribute>
+            <name>setting</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>password.pwm.config.PwmSetting</type>
+        </attribute>
+        <attribute>
+            <name>negate</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>boolean</type>
+        </attribute>
+        <attribute>
+            <name>requestFlag</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>password.pwm.http.PwmRequestFlag</type>
+        </attribute>
+    </tag>
+    <tag>
+        <name>script</name>
+        <tag-class>password.pwm.http.tag.PwmScriptTag</tag-class>
+        <body-content>JSP</body-content>
+        <description>Embedded Script Wrapper</description>
+    </tag>
+    <tag>
+        <name>script-ref</name>
+        <tag-class>password.pwm.http.tag.PwmScriptRefTag</tag-class>
+        <body-content>empty</body-content>
+        <description>External Script Reference</description>
+        <attribute>
+            <name>url</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
+        <name>current-url</name>
+        <tag-class>password.pwm.http.tag.CurrentUrlTag</tag-class>
+        <body-content>empty</body-content>
+        <description>output the current page url</description>
+    </tag>
+    <tag>
+        <name>throwableHandler</name>
+        <tag-class>password.pwm.http.tag.JspThrowableHandlerTag</tag-class>
+        <body-content>empty</body-content>
+        <description>process jsp level exceptions</description>
+    </tag>
+</taglib>
+
+

@@ -1,0 +1,4 @@
+-server
+-Xmx1g
+-Xms1g
+-Xlog:gc:file=/config/logs/gc.log:time,uptime,level,tags:filecount=10,filesize=10M

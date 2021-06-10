@@ -1,0 +1,130 @@
+/*!
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2021 The PWM Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+html, body {
+    background-color: #000000;
+    font: 100% verdana,helvetica,arial,sans-serif;
+    font-size: 11px;
+    color: #aaaaaa;
+    height: 100%;
+    margin: 0
+}
+
+#header {
+    font-family: verdana,helvetica,arial,sans-serif;
+    background: #000000;
+    color: #aaaaaa;
+    height: 110px;
+    -moz-box-shadow: 0px 5px 5px #444444;
+    -webkit-box-shadow: 0px 5px 5px #444444;
+    box-shadow: 0px 5px 5px #444444;
+    /* Voor IE 8 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=5, Direction=180, Color='#444444')";
+    /* Voor IE 5.5 - 7 */
+    filter: progid:DXImageTransform.Microsoft.Shadow(Strength=5, Direction=180, Color='#444444');
+}
+
+#header-company-logo {
+    position: relative;
+    float: left;
+    /*background-image: url(logo.png);*/
+    top: 10px;
+    left: 10px;
+    width: 50px;
+    height: 50px;
+    z-index: 1;
+}
+
+#header-page, #header-title {
+    font-family: verdana,helvetica,arial,sans-serif;
+    color: #aaaaaa;
+}
+
+#header-username-group, #header-username {
+    text-align: right;
+}
+
+#header-username-caret span.m-icon {
+    content: "\f08b";
+}
+
+.tile {
+    width: 165px;
+    height: 165px;
+}
+
+#centerbody {
+    background-color: #222222;
+    padding: 10px 10px 40px 10px;
+    border: none;
+    opacity: 1;
+    -moz-box-shadow: 0px 5px 10px #444444;
+    -webkit-box-shadow: 0px 5px 10px #444444;
+    box-shadow: 0px 5px 10px #444444;
+    /* Voor IE 8 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=10, Direction=180, Color='#444444')";
+    /* Voor IE 5.5 - 7 */
+    filter: progid:DXImageTransform.Microsoft.Shadow(Strength=10, Direction=180, Color='#444444');
+}
+
+a {
+    color: #888888;
+}
+
+a:hover {
+    color: #dddd88;
+    text-decoration: underline;
+}
+
+a:visited {
+    color: #888888;
+}
+
+p, h1, h2, h3, h4 {
+    color: #aaaaaa;
+}
+
+table td.title {
+    background-color: #333333;
+}
+
+table td {
+    border: 1px solid #333333;
+}
+
+#footer {
+    color: #bbbbbb;
+}
+
+input, button {
+    background-color: #444444;
+    color: #eeeeee;
+}
+.header-warning-button:hover {
+    background-color: #3e374c;
+}
+
+#header-menu-wrapper {
+    color: #aaaaaa;
+    text-align: right;
+}
+
+

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2021 The PWM Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<style>
+</style>
+<table style="table-layout: fixed">
+    <col style="width:9%">
+    <col style="width:91%">
+    <thead>
+    <tr>
+        <td class="title" colspan="2">Macro Tester</td>
+    </tr>
+    </thead>
+    <tbody>
+    <tr >
+        <td>
+            Input
+        </td>
+        <td>
+            <input value="Hello @LDAP:givenName@ @LDAP:sn@, Today is @CurrentTime:EEEE:IST@." maxlength="5000" class="configStringInput" style="width:82%;" id="input-testMacroInput" type="text"/>
+        </td>
+    </tr>
+    <tr>
+        <td>Output</td><td><div style="max-width:100%; height:20px; padding-top: 5px; padding-bottom: 5px" class="setting_table_value" id="panel-testMacroOutput"></div></td>
+    </tr>
+    </tbody>
+</table>
+<div class="footnote">User-specific macros are resolved using sample data.</div>
+<br/>
+<div style="overflow-x: auto; max-height: 450px">
+<table>
+    <thead>
+    <tr>
+        <td class="title" colspan="2">Macros</td>
+    </tr>
+    </thead>
+    <tr>
+        <td class="key">
+            @LDAP:<span class="documentationParameter">name</span>@</i>
+        </td>
+        <td>
+            Lookup the LDAP value of the user's LDAP attribute <span class="documentationParameter">name</span>.
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @LDAP:<span class="documentationParameter">name</span>:<span class="documentationParameter">length</span>@
+        </td>
+        <td>
+            Lookup the LDAP value of the user's LDAP attribute <span class="documentationParameter">name</span>.  
+            If the value is longer than <span class="documentationParameter">length</span>, then truncate the value to the specified length. 
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @LDAP:<span class="documentationParameter">name</span>:<span class="documentationParameter">length</span>:<span class="documentationParameter">padding</span>@
+        </td>
+        <td>
+            Lookup the LDAP value of the user's LDAP attribute <span class="documentationParameter">name</span>.
+            If the value is longer than <span class="documentationParameter">length</span>, then truncate the value to the specified length.
+            If the value is shorter than <span class="documentationParameter">length</span>, then pad the value with the value of <span class="documentationParameter">length</span>.
+            
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @LDAP:DN@
+        </td>
+        <td>
+            Replace with LDAP value of user's LDAP Distinguished Name
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @User:PwExpireTime@
+        </td>
+        <td>
+            Time user's password will expire in default ISO format.
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @User:PwExpireTime:<span class="documentationParameter">pattern</span>@
+        </td>
+        <td>
+            Time user's password will expire where <i><span class="documentationParameter">pattern</span></i> is a <a onclick="PWM_CFGEDIT.showDateTimeFormatHelp()" href="#">SimpleDateFormat</a> pattern
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @User:PwExpireTime:<span class="documentationParameter">pattern:<span class="documentationParameter">tz</span>@
+        </td>
+        <td>
+            Time user's password will expire where <i><span class="documentationParameter">pattern</span></i> is a <a onclick="PWM_CFGEDIT.showDateTimeFormatHelp()" href="#">SimpleDateFormat</a> pattern, and the timezone is a tz specified
+            as a valid <a href="#" onclick="PWM_CFGEDIT.showTimezoneList()">TimeZone ID</a>.
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @User:DaysUntilPwExpire@
+        </td>
+        <td>
+            Number of days until the user's password will expire
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @User:ID@
+        </td>
+        <td>
+            User's UserID (if authenticated)
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @User:Email@
+        </td>
+        <td>
+            User's Email Address
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @User:Password@
+        </td>
+        <td>
+            User's current password (if authenticated).  Use caution, this will allow password to appear in logs and whichever function the macro is used in.
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @InstanceID@
+        </td>
+        <td>
+            Instance ID of the application
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @CurrentTime@
+        </td>
+        <td>
+            Current time in default format.
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @CurrentTime:<span class="documentationParameter">pattern</span>@
+        </td>
+        <td>
+            Current time where <span class="documentationParameter">pattern</span> is a <a onclick="PWM_CFGEDIT.showDateTimeFormatHelp()" href="#">SimpleDateFormat</a> pattern
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @CurrentTime:<span class="documentationParameter">pattern</span>:<span class="documentationParameter">tz</span>@
+        </td>
+        <td>
+            Current time where <span class="documentationParameter">pattern</span> is a <a onclick="PWM_CFGEDIT.showDateTimeFormatHelp()" href="#">SimpleDateFormat</a> pattern, and the timezone is a tz specified 
+            as a valid <a href="#" onclick="PWM_CFGEDIT.showTimezoneList()">TimeZone ID</a>.
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @Site:URL@
+        </td>
+        <td>
+            URL of the site (<span style="font-style: italic;">http://www.example.com/password</span>)
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            @Site:Host@
+        </td>
+        <td>
+            Hostname of the site (<span style="font-style: italic;">www.example.com</span>)
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            <span style="white-space: pre">@RandomChar@</span>
+        </td>
+        <td>
+            A single random character of visible upper &amp; lower ASCII characters and digits.
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            <span style="white-space: pre">@RandomChar:<span class="documentationParameter">length</span>@</span>
+        </td>
+        <td>
+            Random characters, where <span class="documentationParameter">length</span> is the number of random characters to generate.
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            <span style="white-space: pre">@RandomChar:<span class="documentationParameter">length</span>:<span class="documentationParameter">characters</span>@</span>
+        </td>
+        <td>
+            Random characters, where <span class="documentationParameter">length</span> is the number of random characters to generate and <span class="documentationParameter">characters</span> is the list of characters to be used as random characters.
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            <span style="white-space: pre">@Encode:<span class="documentationParameter">type</span>:[[<span class="documentationParameter">value</span>]]@</span>
+        </td>
+        <td>
+            Encode a value using the specified type of encoding, where <span class="documentationParameter">type</span> is the type of encoding and where <span class="documentationParameter">value</span> is
+            the value to encode.  The value may include other macros.  Types permitted are <span class="documentationParameter">urlPath</span>,
+            <span class="documentationParameter">urlParameter</span> and <span class="documentationParameter">base64</span>.
+        </td>
+    </tr>
+    <tr>
+        <td class="key">
+            <span style="white-space: pre">@Hash:<span class="documentationParameter">type</span>:[[<span class="documentationParameter">value</span>]]@</span>
+        </td>
+        <td>
+            Hash a value using the specified hash type, where <span class="documentationParameter">type</span> is the type of hash and where <span class="documentationParameter">value</span> is
+            the value to hash.  The value may include other macros.  Hash types permitted are <span class="documentationParameter">md5</span>,
+            <span class="documentationParameter">sha1</span>, <span class="documentationParameter">sha256</span>, and <span class="documentationParameter">sha512</span>.
+        </td>
+    </tr>
+</table>
+    <div class="footnote">Parameters that need to include a literal <span class="documentationParameter">@</span> or <span class="documentationParameter">:</span> character must escape these characters with a preceding <span class="documentationParameter">/</span> such as <span class="documentationParameter">/@</span> or <span class="documentationParameter">/:</span></div>
+<br/>
+<table>
+    <tr>
+        <td class="title" colspan="2">Macro Examples</td>
+    </tr>
+    <tr>
+        <td><span class="documentationParameter">@LDAP:givenName@</span></td>
+        <td>Jason</td>
+    </tr>
+    <tr>
+        <td><span class="documentationParameter">@LDAP:givenName:3@</span></td>
+        <td>Jas</td>
+    </tr>
+    <tr>
+        <td><span class="documentationParameter">@LDAP:givenName:8:-@</span></td>
+        <td>Jason---</td>
+    </tr>
+    <tr>
+        <td><span class="documentationParameter">&lt;a href="@Site:URL@"&gt;Click Here!&lt;a&gt;</span></td>
+        <td>&lt;a href="http://www.example.com/password"&gt;Click Here!&lt;a&gt;</td>
+    </tr>
+    <tr>
+        <td><span class="documentationParameter">@RandomChar:8:0123456789ABCDEF@</span></td>
+        <td>4B420A120F</td>
+    </tr>
+    <tr>
+        <td><span class="documentationParameter">@LDAP:givenName:1@@LDAP:sn:7@@RandomChar:2:0123456789@</span></td>
+        <td>JSmith84</td>
+    </tr>
+    <tr>
+        <td><span class="documentationParameter">@LDAP:givenName:1@@LDAP:sn:7:0@@RandomChar:2:0123456789@</span></td>
+        <td>JSmith0084</td>
+    </tr>
+    <tr>
+        <td><span class="documentationParameter">The time is @CurrentTime:EEE, MMM d, yyyy@.</span></td>
+        <td>The time is Sat, Jan 1, 2000.</td>
+    </tr>
+</table>
+</div>
+

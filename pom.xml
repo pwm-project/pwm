@@ -3,79 +3,75 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.pwm-project</groupId>
-    <artifactId>pwm</artifactId>
-    <version>1.8.0-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <artifactId>pwm-parent</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>PWM Password Self Service</name>
 
     <licenses>
         <license>
-            <name>The GNU General Public License (GPL) Version 2</name>
-            <url>http://www.gnu.org/licenses/gpl-2.0.html</url>
+            <name>Apache License Version 2.0, January 2004</name>
+            <url>http://www.apache.org/licenses/</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
 
     <organization>
-        <name>Pwm Project</name>
+        <name>PWM Project</name>
         <url>http://www.pwm-project.org</url>
     </organization>
 
     <properties>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <skipTests>true</skipTests>
-        <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
-        <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <build.number>${git.commit.id.abbrev}</build.number>  <!-- default in case not set on command line -->
+        <warArtifactID>pwm-${project.version}.war</warArtifactID>
+        <dockerImageTag>pwm/pwm-webapp</dockerImageTag>
+
+        <build.number>0</build.number>  <!-- default in case not set on command line -->
         <build.revision>0</build.revision>  <!-- default in case not set on command line -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <pwm.minimum.maven.version>3.5</pwm.minimum.maven.version>
+        <timestamp.iso>${maven.build.timestamp}</timestamp.iso>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+
+        <!-- profile managed values -->
+        <spotbugs.skip>false</spotbugs.skip>
+        <checkstyle.skip>false</checkstyle.skip>
+        <skipTests>false</skipTests>
+
+        <!-- git.commit.time is populated via git-commit-id-plugin and results in a (hopefully) reproducible maven build -->
+        <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
     </properties>
+
+    <modules>
+        <module>server</module>
+        <module>client</module>
+        <module>webapp</module>
+        <module>onejar</module>
+        <module>data-service</module>
+        <module>rest-test-service</module>
+        <module>docker</module>
+    </modules>
 
     <profiles>
         <profile>
-            <id>doclint-java8-disable</id>
-            <activation>
-                <jdk>[1.8,)</jdk>
-            </activation>
+            <id>skip-checkstyle</id>
             <properties>
-                <javadoc.opts>-Xdoclint:none</javadoc.opts>
+                <checkstyle.skip>true</checkstyle.skip>
             </properties>
         </profile>
         <profile>
-            <!-- Builds a zip file containing the built war file, along with the supplemental directory -->
-            <id>release-bundle</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <version>2.6</version>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>src/assembly/pwm.xml</descriptor>
-                            </descriptors>
-                            <finalName>${project.build.finalName}</finalName>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>make-assembly</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
+            <id>skip-spotbugs</id>
+            <properties>
+                <spotbugs.skip>true</spotbugs.skip>
+            </properties>
         </profile>
         <profile>
-            <!-- Disables source and javadoc jar file creation.  Handy when wanting to run quick development builds -->
-            <id>developer</id>
+            <id>enable-javadoc</id>
             <properties>
-                <maven.javadoc.skip>true</maven.javadoc.skip>
-                <source.skip>true</source.skip>
-                <jspc.skip>true</jspc.skip>
+                <maven.javadoc.skip>false</maven.javadoc.skip>
             </properties>
         </profile>
     </profiles>
@@ -313,437 +309,363 @@
         </executions>
       </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.3</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19</version>
-                <configuration>
-                    <skipTests>${skipTests}</skipTests>
-                </configuration>
-            </plugin>
-            <plugin>
-                <!-- This allows us to run: "mvn tomcat7:run", then we can open a browser to: http://localhost:8080/pwm -->
-                <groupId>org.apache.tomcat.maven</groupId>
-                <artifactId>tomcat7-maven-plugin</artifactId>
-                <version>2.2</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.4</version>
+                <groupId>org.commonjava.maven.plugins</groupId>
+                <artifactId>directory-maven-plugin</artifactId>
+                <version>0.3.1</version>
                 <executions>
                     <execution>
-                        <id>attach-sources</id>
+                        <id>project-root-directory</id>
                         <goals>
-                            <goal>jar-no-fork</goal>
+                            <goal>directory-of</goal>
                         </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <property>project.root.basedir</property>
+                            <project>
+                                <groupId>org.pwm-project</groupId>
+                                <artifactId>pwm-parent</artifactId>
+                            </project>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>4.0.4</version>
                 <executions>
                     <execution>
-                        <id>attach-javadocs</id>
+                        <id>get-the-git-infos</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <dateFormat>yyyy-MM-dd'T'HH:mm:ss'Z'</dateFormat>
+                    <dateFormatTimeZone>Zulu</dateFormatTimeZone>
+                    <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <generateGitPropertiesFilename>${project.build.outputDirectory}/classes/git.json</generateGitPropertiesFilename>
+                    <format>json</format>
+                    <excludeProperties>
+                        <!-- git.build.time is current timestamp so prevents reproducible build -->
+                        <excludeProperty>git.build.time</excludeProperty>
+                    </excludeProperties>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
                         <goals>
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <additionalparam>${javadoc.opts}</additionalparam>
+                            <archive>
+                                <manifestEntries>
+                                    <Implementation-Archive-Name>pwm.javadoc</Implementation-Archive-Name>
+                                    <Implementation-Title>${project.name}</Implementation-Title>
+                                    <Implementation-Version>${project.version}</Implementation-Version>
+                                    <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+                                    <Implementation-URL>${project.organization.url}</Implementation-URL>
+                                    <Implementation-Build-Java-Vendor>${java.vendor}</Implementation-Build-Java-Vendor>
+                                    <Implementation-Build-Java-Version>${java.version}</Implementation-Build-Java-Version>
+                                    <SCM-Git-Branch>${git.branch}</SCM-Git-Branch>
+                                    <SCM-Git-Commit-ID>${git.commit.id}</SCM-Git-Commit-ID>
+                                    <SCM-Git-Commit-ID-Abbrev>${git.commit.id.abbrev}</SCM-Git-Commit-ID-Abbrev>
+                                    <SCM-Git-Commit-ID-Description>${git.commit.id.describe}</SCM-Git-Commit-ID-Description>
+                                    <SCM-Git-Commit-Timestamp>${git.commit.time}</SCM-Git-Commit-Timestamp>
+                                    <SCM-Git-Commit-Dirty>${git.dirty}</SCM-Git-Commit-Dirty>                                </manifestEntries>
+                            </archive>
+                            <source>8</source>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.6</version>
-                <configuration>
-                    <archiveClasses>true</archiveClasses>
-                    <!--
-                    <packagingExcludes>WEB-INF/classes</packagingExcludes>
-                    -->
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.7</version>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
-                        <id>copy-resources</id>
-                        <phase>validate</phase>
                         <goals>
-                            <goal>copy-resources</goal>
+                            <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.outputDirectory}/src</outputDirectory>
-                            <resources>
-                                <resource><directory>src/main/java</directory></resource>
-                                <resource><directory>src/main/resources</directory></resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>replace-build-properties</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
-                            <overwrite>true</overwrite>
-                            <resources>
-                                <resource>
-                                    <filtering>true</filtering>
-                                    <directory>src/main/resources</directory>
-                                    <includes>
-                                        <include>password/pwm/BuildInformation.properties</include>
-                                    </includes>
-                                </resource>
-                            </resources>
+                            <includePom>true</includePom>
+                            <attach>true</attach>
+                            <archive>
+                                <manifestEntries>
+                                    <Implementation-Archive-Name>pwm.source</Implementation-Archive-Name>
+                                    <Implementation-Title>${project.name}</Implementation-Title>
+                                    <Implementation-Version>${project.version}</Implementation-Version>
+                                    <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+                                    <Implementation-URL>${project.organization.url}</Implementation-URL>
+                                    <Implementation-Build-Java-Vendor>${java.vendor}</Implementation-Build-Java-Vendor>
+                                    <Implementation-Build-Java-Version>${java.version}</Implementation-Build-Java-Version>
+                                    <Implementation-Build>${build.number}</Implementation-Build>
+                                    <Implementation-Revision>${build.revision}</Implementation-Revision>
+                                    <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
+                                    <SCM-Git-Branch>${git.branch}</SCM-Git-Branch>
+                                    <SCM-Git-Commit-ID>${git.commit.id}</SCM-Git-Commit-ID>
+                                    <SCM-Git-Commit-ID-Abbrev>${git.commit.id.abbrev}</SCM-Git-Commit-ID-Abbrev>
+                                    <SCM-Git-Commit-ID-Description>${git.commit.id.describe}</SCM-Git-Commit-ID-Description>
+                                    <SCM-Git-Commit-Timestamp>${git.commit.time}</SCM-Git-Commit-Timestamp>
+                                    <SCM-Git-Commit-Dirty>${git.dirty}</SCM-Git-Commit-Dirty>
+                                </manifestEntries>
+                            </archive>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.jasig.mojo.jspc</groupId>
-                <artifactId>jspc-maven-plugin</artifactId>
-                <version>2.0.0</version>
-				<dependencies>
-				    <dependency>
-                        <groupId>org.jasig.mojo.jspc</groupId>
-                        <artifactId>jspc-compiler-tomcat7</artifactId>
-                        <version>2.0.0</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.0.0-M3</version>
+                <executions>
+                    <execution>
+                        <id>enforce-maven</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <banDuplicatePomDependencyVersions/>
+                                <requireJavaVersion>
+                                    <version>[11,)</version>
+                                </requireJavaVersion>
+                                <requireMavenVersion>
+                                    <version>${pwm.minimum.maven.version}</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <showWarnings>true</showWarnings>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.1.2</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>8.43</version>
                     </dependency>
-				</dependencies>
-                <configuration>
-                    <includeInProject>false</includeInProject>
-                </configuration>
+                </dependencies>
                 <executions>
                     <execution>
+                        <id>checkstyle-base</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <propertyExpansion>basedir=${project.root.basedir}</propertyExpansion>
+                            <configLocation>build/checkstyle.xml</configLocation>
+                            <encoding>UTF-8</encoding>
+                            <consoleOutput>true</consoleOutput>
+                            <includeTestResources>true</includeTestResources>
+                            <failsOnError>true</failsOnError>
+                            <includes>**/*.java,**/*.jsp,**/*.properties,**/*.xml,**/*.css,**/*.svg</includes>
+                            <sourceDirectories>
+                                <directory>src/main</directory>
+                                <directory>src/test</directory>
+                            </sourceDirectories>
+                            <cacheFile>${project.build.directory}/checkstyle/base/checkstyle-cachefile</cacheFile>
+                            <outputFile>${project.build.directory}/checkstyle/base/checkstyle-result.xml</outputFile>
+                            <rulesFiles>${project.build.directory}/checkstyle/base/checkstyle-rules.xml</rulesFiles>
+                        </configuration>
                         <goals>
-                            <goal>compile</goal>
+                            <goal>check</goal>
                         </goals>
-                        <phase>compile</phase>
+                    </execution>
+                    <execution>
+                        <id>checkstyle-header</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <propertyExpansion>basedir=${project.root.basedir}</propertyExpansion>
+                            <configLocation>${project.root.basedir}/build/checkstyle-header.xml</configLocation>
+                            <encoding>UTF-8</encoding>
+                            <consoleOutput>true</consoleOutput>
+                            <includeTestResources>true</includeTestResources>
+                            <failsOnError>true</failsOnError>
+                            <includes>**/**</includes>
+                            <sourceDirectories>
+                                <directory>src</directory>
+                                <directory>src/test</directory>
+                            </sourceDirectories>
+                            <cacheFile>${project.build.directory}/checkstyle/header/checkstyle-cachefile</cacheFile>
+                            <outputFile>${project.build.directory}/checkstyle/header/checkstyle-result.xml</outputFile>
+                            <rulesFiles>${project.build.directory}/checkstyle/header/checkstyle-rules.xml</rulesFiles>
+                        </configuration>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>checkstyle-jsp</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <propertyExpansion>basedir=${project.root.basedir}</propertyExpansion>
+                            <configLocation>${project.root.basedir}/build/checkstyle-jsp.xml</configLocation>
+                            <encoding>UTF-8</encoding>
+                            <consoleOutput>true</consoleOutput>
+                            <includeTestResources>true</includeTestResources>
+                            <failsOnError>true</failsOnError>
+                            <includes>**/*.jsp</includes>
+                            <sourceDirectories>
+                                <directory>src</directory>
+                                <directory>src/test</directory>
+                                <directory>src/main/webapp</directory>
+                            </sourceDirectories>
+                            <cacheFile>${project.build.directory}/checkstyle/jsp/checkstyle-cachefile</cacheFile>
+                            <outputFile>${project.build.directory}/checkstyle/jsp/checkstyle-result.xml</outputFile>
+                            <rulesFiles>${project.build.directory}/checkstyle/jsp/checkstyle-rules.xml</rulesFiles>
+                        </configuration>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>3.0.0</version>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>4.2.3</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs</artifactId>
+                        <version>4.2.3</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <skip>${spotbugs.skip}</skip>
+                    <fork>false</fork>
+                    <excludeFilterFile>${project.root.basedir}/build/spotbugs-exclude.xml</excludeFilterFile>
+                    <includeTests>false</includeTests>
+                    <effort>max</effort>
+                    <timeout>1200000</timeout>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>remove-compiled-jsps</id>
-                        <phase>prepare-package</phase>
+                        <phase>verify</phase>
                         <goals>
-                            <goal>clean</goal>
+                            <goal>check</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>net.nicoulaj.maven.plugins</groupId>
+                <artifactId>checksum-maven-plugin</artifactId>
+                <version>1.10</version>
+                <executions>
+                    <execution>
+                        <id>output-checksums</id>
+                        <goals>
+                            <goal>artifacts</goal>
+                        </goals>
+                        <phase>package</phase>
                         <configuration>
-                            <excludeDefaultDirectories>true</excludeDefaultDirectories>
-                            <filesets>
-                                <fileset>
-                                    <directory>target/classes/jsp</directory>
-                                </fileset>
-                              </filesets>
+                            <algorithms>
+                                <algorithm>SHA-1</algorithm>
+                                <algorithm>SHA-256</algorithm>
+                            </algorithms>
+                            <failOnError>false</failOnError>
                         </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!-- put your configurations here -->
+                </configuration>
+            </plugin>
+            <plugin> <!-- checks owsp vulnerability database -->
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>6.2.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
 
+    <!-- common dependencies -->
     <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.20</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-annotations</artifactId>
+            <version>4.2.3</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.10</version>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>1.10.19</version>
+            <version>3.10.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <!-- use 3.3.0 for Java 8 projects -->
-            <version>2.3.0</version>
+            <version>3.19.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
-            <version>1.58</version>
+            <version>2.27.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.32</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>1.32</version>
             <scope>test</scope>
         </dependency>
 
-        <!-- container dependencies -->
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet.jsp</groupId>
-            <artifactId>jsp-api</artifactId>
-            <version>2.2</version>
-            <scope>provided</scope>
-        </dependency>
-        <!-- / container dependencies -->
-
-        <!-- NMAS jars (not available from a maven repo) -->
-        <dependency>
-            <groupId>com.novell.security.nmas</groupId>
-            <artifactId>ChallengeResponseLCM</artifactId>
-            <version>2013.04.18</version>
-        </dependency>
-        <dependency>
-            <groupId>com.novell.security.nmas</groupId>
-            <artifactId>nmasclient</artifactId>
-            <version>2013.04.26</version>
-        </dependency>
-        <dependency>
-            <groupId>com.novell.security.nmas</groupId>
-            <artifactId>NMASToolkit</artifactId>
-            <version>2013.04.26</version>
-        </dependency>
-        <dependency>
-            <groupId>com.novell.security.nmas</groupId>
-            <artifactId>jsso</artifactId>
-            <version>2003.05.06</version>
-        </dependency>
-        <dependency>
-            <groupId>com.novell.security.nmas</groupId>
-            <artifactId>ldap</artifactId>
-            <version>2013.04.26</version>
-        </dependency>
-        <!-- / Novell jars (not available from a maven repo) -->
-
-        <dependency>
-            <groupId>com.github.ldapchai</groupId>
-            <version>0.6.7</version>
-            <artifactId>ldapchai</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-csv</artifactId>
-            <version>1.2</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-fileupload</groupId>
-            <artifactId>commons-fileupload</artifactId>
-            <version>1.3.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.4</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>javax.mail</artifactId>
-            <version>1.5.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
-            <artifactId>concurrentlinkedhashmap-lru</artifactId>
-            <version>1.4.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.graylog2</groupId>
-            <artifactId>syslog4j</artifactId>
-            <version>0.9.48</version>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.axis</groupId>
-            <artifactId>axis</artifactId>
-            <version>1.4</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sleepycat</groupId>
-            <artifactId>je</artifactId>
-            <version>6.4.9</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.containers</groupId>
-            <artifactId>jersey-container-servlet</artifactId>
-            <version>2.22.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.media</groupId>
-            <artifactId>jersey-media-json-jackson</artifactId>
-            <version>2.22.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jasig.cas.client</groupId>
-            <artifactId>cas-client-core</artifactId>
-            <version>3.4.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mapdb</groupId>
-            <artifactId>mapdb</artifactId>
-            <version>3.0.0-M2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>1.3.176</version>
-        </dependency>
-        <dependency>
-            <groupId>net.glxn</groupId>
-            <artifactId>qrgen</artifactId>
-            <version>1.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.54</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.54</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.xml</groupId>
-            <artifactId>jaxrpc</artifactId>
-            <version>1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>jaxen</groupId>
-            <artifactId>jaxen</artifactId>
-            <version>1.1.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jdom</groupId>
-            <artifactId>jdom2</artifactId>
-            <version>2.0.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derby</artifactId>
-            <version>10.12.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.xeustechnologies</groupId>
-            <artifactId>jcl-core</artifactId>
-            <version>2.7</version>
-        </dependency>
-        <dependency>
-            <groupId>net.iharder</groupId>
-            <artifactId>base64</artifactId>
-            <version>2.3.9</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.6.2</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.bitwalker</groupId>
-            <artifactId>UserAgentUtils</artifactId>
-            <version>1.18</version>
-        </dependency>
-
-
-
-        <!-- client webjar dependencies -->
-        <!-- changes in client dependencies require updating AppProperty.properties:http.resources.webjarMappings -->
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>dojo</artifactId>
-            <version>1.10.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>dijit</artifactId>
-            <version>1.10.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>dojox</artifactId>
-            <version>1.10.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>dgrid</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>dstore</artifactId>
-            <version>1.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>font-awesome</artifactId>
-            <version>4.5.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>famfamfam-flags</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        <dependency>
-        	<groupId>pl.project13.maven</groupId>
-        	<artifactId>git-commit-id-plugin</artifactId>
-        	<version>2.2.1</version>
-        	<type>maven-plugin</type>
-        </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>central</id>
-            <url>https://repo1.maven.org/maven2</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <!-- Include our own local maven repository, for artifacts that aren't available elsewhere -->
-        <repository>
-            <id>project.local</id>
-            <name>project</name>
-            <url>file:///${project.basedir}/local-maven-repo</url>
-        </repository>
-        <repository>
-            <id>oracleReleases</id>
-            <name>Oracle Released Java Packages</name>
-            <url>http://download.oracle.com/maven</url>
-            <layout>default</layout>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>central</id>
-            <url>https://repo1.maven.org/maven2</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
 </project>

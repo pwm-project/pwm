@@ -5,17 +5,12 @@ PWM is an open source password self service application for LDAP directories. PW
 Official project page is at [https://github.com/pwm-project/pwm/](https://github.com/pwm-project/pwm/).
 
 # Links
-Current (v1.8)
 * [PWM-General Google Group](https://groups.google.com/group/pwm-general) - please ask for assistance here first.
-* [Current Builds](http://www.pwm-project.org/artifacts/pwm/) - Current downloads built from recent github project commits
-* [PWM Documentation Wiki](https://github.com/pwm-project/pwm/wiki) - Current home for PWM documentation
-* [PWM Reference](http://www.pwm-project.org/pwm/public/reference/) - Reference documentation built into PWM.
+* [PWM Documentation Wiki](https://github.com/pwm-project/pwm/wiki) - Home for PWM documentation
+* [Current Builds](https://www.pwm-project.org/artifacts/pwm/) - Current downloads built from recent github project commits
+* [PWM Reference](https://www.pwm-project.org/pwm/public/reference/) - Reference documentation built into PWM.
 
-Old (v1.7)
-* [Old Release Downloads](https://drive.google.com/folderview?id=0B3oHdiTrftrGV3ZrMi1LUzVCY1U&usp=sharing#list) - the release versions are quite dated, consider using a current build.
-* [Old PWM Admin Guide](https://docs.google.com/document/d/1BBHPcOUxZytrqncYFInTaY2PXgW5p1EmzwV8zcpspRg/pub) - guide for 1.7.  For current documentation, please help us migrate to the [PWM Wiki](https://github.com/pwm-project/pwm/wiki) 
-
-Features
+# Features
 * Web based configuration manager with over 400 configurable settings
 * Configurable display values for every user-facing text string
 * Localized for Chinese (中文), Czech (ceština), Dutch (Nederlands), English, Finnish (suomi), French (français), German (Deutsch), Hebrew (עברית), Italian (italiano), Japanese (日本語), Korean (한국어), Polish (polski), Portuguese (português), Slovak (Slovenčina), Spanish (español), Thai (ไทย) and Turkish (Türkçe)
@@ -27,7 +22,7 @@ Features
 * Helpdesk password reset and intruder lockout clearing
 * New User Registration / Account Creation
 * Guest User Registration / Updating
-* PeopleSearch? (white pages)
+* PeopleSearch (white pages)
 * Account Activation  / First time password assignment
 * Administration modules including intruder-lockout manager, and online log viewer, daily stats viewer and user information debugging
 * Easy to customize JSP HTML pages
@@ -51,4 +46,39 @@ Features
   * Microsoft Active Directory
   * OpenLDAP
 
-[NetIQ SSPR](https://www.netiq.com/products/self-service-password-reset/) is a commercial, supported self service password reset product based on PWM.
+[NetIQ Self Service Password Reset](https://www.microfocus.com/en-us/products/netiq-self-service-password-reset/overview) is a commercial, supported self service password reset product based on PWM.
+
+# Build Information
+
+Build pre-requisites:
+* Java 1.11 JDK or newer
+* Maven 3.2 or newer
+
+Build execution:
+* Set `JAVA_HOME` environment variable to JDK home  
+* Run `mvn clean package` in base directory
+
+A WAR file suitable for deployment on Apache Tomcat is created in `webapp/target` directory.  Rename to `pwm.war` and copy into `tomcat/webapp` directory.
+
+Alternatively, an executable JAR file is created in `onejar\target`.  This JAR file is self-contained single executable with embedded Apache Tomcat runtime. To execute use a command similar to:   
+
+`java -jar pwm-onejar.jar`
+
+The executable will show additional options that may be required.
+
+# Docker
+
+A docker image is created in `docker/target` as jib-image.tar.  You can import this docker image using a command similar to:
+
+`docker load --input=jib-image.tar`
+
+Create docker container and run using:
+
+`docker run -d --name <container name> -p 8443:8443 pwm/pwm-webapp`
+
+This will expose the https port to 8443.  If you want the configuration to persist to you can also expose
+the configuration volume of `/config` using the docker `-v` option during the container
+creation and map it to a directory on the docker host or use a docker volume container.  
+The PWM docker container will place all of it's configuration and runtime data in the `/config` volume.  If you do not use 
+a separate configuration volume, the config will be deleted when you delete the container.
+

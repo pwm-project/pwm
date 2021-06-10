@@ -1,0 +1,696 @@
+/*!
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2021 The PWM Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+body {
+    background-color: white;
+}
+
+html {
+    overflow-y: auto !important;
+}
+
+.border {
+    border: 1px solid #D4D4D4 !important;
+}
+
+.setting_outline {
+    background-color: #eaeaea;
+    border-radius: 3px 3px 5px 5px;
+    /* box-shadow: 2px 2px 1px 1px #dcdcdc; */
+    margin-bottom: 10px;
+    animation: fadein 0.4s;
+}
+
+.setting_title {
+    color: black;
+    background-color: #d3d3d3;
+    opacity: 0.75;
+    padding-left: 10px;
+    padding-top: 4px;
+    padding-bottom: 3px;
+    font-weight: bold;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+.setting_title.modified {
+    /*
+    background-color: #aa1e08;
+    color: #ffffff;
+    text-shadow: none;
+    */
+}
+
+.setting_title .text {
+    opacity: 1;
+    cursor: pointer;
+}
+
+.setting_item {
+    padding-left: 5px;
+    padding-top: 5px
+}
+
+.setting_body {
+    padding: 5px;
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.setting_body.modified {
+    /*
+    background-color: #efefef;;
+    */
+}
+
+.icon_button {
+    float: right;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.pwm-icon-question-circle {
+    border-bottom-right-radius: 3px;
+    box-shadow: 2px 2px 2px 2px #bfbfbf;
+}
+
+.pwm-icon-reply {
+    color: #920000;
+    visibility: hidden;
+    border-bottom-right-radius: 3px;
+    box-shadow: 2px 2px 2px 2px #bfbfbf;
+}
+
+.helpDiv {
+    padding: 10px;
+    border: 3px solid #d3d3d3;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    margin-bottom: 10px;
+    box-shadow: inset 0 0 2px #000000
+}
+
+.centerbody-config {
+    bottom: 0;
+    left: 0;
+    margin-left: 0;
+    margin-right: auto;
+    min-width: 870px;
+    position: absolute;
+    right: 0;
+    top: 20px;
+    width: 870px;
+}
+
+.categoryDescription {
+    background-color: #F5F5F5;
+    border-radius: 5px;
+    padding: 10px 15px 10px 15px;
+    margin: 10px;
+}
+
+#header-center-wide {
+    width: 100%;
+    position:relative;
+    padding:4px;
+}
+
+.configeditor-header #header-title {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.configguide-header #header-title {
+    margin-top: 20px;
+    font-size: 20px;
+}
+
+.headerIcon {
+    margin-top: 2px;
+    margin-left: 5px;
+    margin-right: 5px;
+    cursor: pointer;
+    float: right;
+}
+.headerIcon.modified {
+    color: orange;
+}
+
+.changeLogViewBox {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 450px;
+    overflow-y: scroll;
+    background-color: #e9e9e9;
+    border: 1px solid #B2B1B9;
+    padding: 2px;
+    border-radius: 0;
+    color: black;
+}
+
+.changeLogKey {
+    background-color: #777;
+    color: white;
+    font-weight: bold;
+}
+
+.changeLogValue {
+    font-family: "Courier New", Courier, monospace;
+    padding-bottom: 10px;
+}
+
+.menubutton.selected {
+    box-shadow: none;
+    font-weight: bold;
+    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #B2B1B9), color-stop(1, #E8E1F6) );
+    background:linear-gradient(to bottom, #B2B1B9 5%, #E8E1F6 100% );
+}
+
+.menubutton.important {
+    color: red;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-weight: bold;
+}
+
+.text {
+    text-decoration: none;
+}
+
+.menubutton {
+    cursor: pointer;
+    font-weight: normal;
+    display: block;
+    text-align: center;
+    border-radius: 3px;
+    border: 10px;
+    text-decoration: none;
+    color: black;
+    white-space: normal;
+    background: #E8E1F6;
+    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #E8E1F6), color-stop(1, #B2B1B9) );
+    background:linear-gradient(to bottom, #E8E1F6 5%, #B2B1B9 100% );
+}.menubutton:hover {
+     background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #B2B1B9), color-stop(1, #E8E1F6) );
+     background:linear-gradient(to bottom, #B2B1B9 5%, #E8E1F6 100% );
+ }
+
+.tree-noicon {
+    width:0;
+    margin:0;
+    display:none;
+}
+
+table {
+    max-width: 100%;
+    font-size: 12px;
+    border-color: #D4D4D4;
+}
+
+.modifiedNoticeIcon {
+    color:#d20734;
+    margin-right: 5px;
+    margin-left: 5px;
+}
+
+.setting_table_value {
+    max-width: 435px;
+    overflow: auto;
+}
+
+.delete-row-icon {
+    color: #880000;
+}
+
+#searchResults {
+    padding:5px;
+    border: 1px solid;
+    max-height: 250px;
+    width: 580px;
+    overflow-y: auto;
+    position: fixed;
+    margin-left: 30px;
+    margin-right: 110px;
+    z-index: 10;
+    background: white;
+    top: 65px;
+}
+
+#configurationNotesTextarea {
+    width:98%;
+    height:400px;
+    resize:none;
+    overflow: auto;
+}
+
+#navigationTreeWrapper {
+    background-color: white;
+    border: 1px solid #dae1e1;
+    border-radius: 3px;
+    bottom: 75px;
+    left: 8px;
+    position: absolute;
+    top: 55px;
+    width: 242px;
+}
+
+#navigationTree {
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+#navTreeExpanderButtons {
+    bottom: -75px;
+    cursor: pointer;
+    position: absolute;
+    text-align: center;
+    width: 100%;
+}
+
+#settingsPanel {
+    border: 0 none;
+    bottom: 0;
+    left: 258px;
+    overflow: auto;
+    padding-right: 6px;
+    position: absolute;
+    top: 55px;
+    width: 606px;
+}
+
+#infoPanel {
+    border: 0 none;
+    bottom: 0;
+    left: 890px;
+    overflow: auto;
+    padding-right: 6px;
+    position: absolute;
+    top: 55px;
+    width: 10;
+    max-width: 400px;
+}
+
+#settingSearchPanel {
+    animation: fadein 0.4s;
+    background: none repeat scroll 0 0;
+    left: 8px;
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    z-index: 2;
+}
+
+.setting_item_value_wrapper {
+    border: 2px solid #D4D4D4;
+    margin-bottom: 4px;
+}
+
+.checkboxWrapper {
+    padding: 2px 5px;
+    border: 1px solid #bfbfbf;
+    border-radius: 3px;
+    background-color: white;
+    display: inline-block;
+}
+
+.configStringInput {
+    width: 500px;
+    padding:2px 5px;
+    margin: 0;
+    border: 1px solid #bfbfbf;
+    font-size: 9pt;
+    background: white;
+    display: inline-block;
+    color: black;
+}
+
+.configNumericInput {
+    width: 85px;
+    padding:2px 5px;
+    margin: 0;
+    border: 1px solid #bfbfbf;
+    font-size: 9pt;
+    background: white;
+    display: inline-block;
+    color: black;
+}
+
+input:invalid{
+    color:red;
+}
+
+.invalid-value {
+    color: red;
+    font-weight: bold;
+}
+.pane-help {
+    border-bottom: 1px #d3d3d3 solid;
+    padding: 5px;
+    max-height: 250px;
+    margin: 2px 2px 15px;
+    overflow-x: auto;
+    animation: fadein 0.4s;
+}
+
+/* This allows us to show text with carriage returns in it, without having to use <br> tags.  We may want to put this on .pane-help eventually */
+#pane-help-sms\.responseOkRegex {
+    white-space: pre-wrap;       /* Since CSS 2.1 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+.pane-settingValue {
+    /*
+    max-height: 300px;
+    overflow-x: auto;
+    */
+}
+
+.documentationParameter {
+    font-family: "Courier New", Courier, monospace;
+    font-style: italic;
+}
+
+#wrapper {
+    border: 1px;
+    height: 100%
+}
+
+.configeditor-header {
+    height: 25px !important;
+    position: fixed !important;
+}
+
+.settingSearchPanelTable {
+    width:600px;
+    margin-left: auto;
+    margin-right: auto
+}
+
+.settingSearchPanelTable_Col1 {
+    width:10px;
+}
+
+.settingSearchPanelTable_Col2 {
+    width:580px;
+}
+
+.settingSearchPanelTable_Col3 {
+    min-width:10px;
+    max-width:10px;
+    display: inline-block
+}
+
+#homeSettingSearch {
+    width: 570px;
+    margin-left:auto;
+    margin-right: auto
+}
+
+#working_icon {
+    color:orange;
+    float:none;
+}
+
+.modifiedSettingsWrapper {
+    border:0; margin-top:1px
+}
+
+/* using a transparent png so that we can still see grid lines, which are (unfortunately) behind the dijitRowNode that we are hovering over */
+/* .nihilo .dijitTreeNodeHover {
+    background-image: url(images/treeHover.png);
+    background-repeat: repeat;
+    background-color: none !important;
+} */
+
+.panel-searchResultItem {
+    text-indent: 1.5em; 
+    margin-left: 10px;
+    cursor: pointer; 
+    text-decoration: underline;
+}
+
+.configLightText {
+    font-size: smaller;
+    color: grey;
+}
+
+.panel-searchResultCategory {
+    font-weight: bold;
+}
+
+.configNumericLimits {
+    font-size: smaller;
+    color: grey;
+    margin-left: 10px;
+}
+
+.noWrapTextBox {
+    margin-left: 5px;
+    max-width: 160px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.noWrapTextBox.border {
+    border: 1px solid #bfbfbf;
+    margin: 0;
+}
+
+.configStringPanel {
+    width:480px;
+    max-width:480px;
+    overflow:hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    max-height:50px;
+}
+
+.permissionProfileValueInput {
+    max-width: 100px;
+    width: 100px;
+    padding: 5px;
+    margin-left: 10px;
+}
+
+.permissionValuePanel {
+    width: 340px;
+    padding: 5px;
+}
+
+.editorIdleStatus {
+    /*
+    margin-left: auto;
+    margin-right: auto;
+    */
+    color: #c3c3c3;
+    text-align: center;
+    font-size: 10px;
+    font-family: "Courier New", Courier, monospace;
+    margin-top: 5px;
+    margin-left: 5px;
+    margin-right: 5px;
+    float: right;
+}
+
+.dialogSection {
+    background-color: #eaeaea;
+    padding:5px;
+    border-radius: 3px;
+    margin-left: 5px;
+}
+
+input[type=range] {
+    padding:0;
+}
+input[type=range]::-ms-tooltip {
+    display: none;
+}
+input[type=range]::-ms-track {
+    width: 300px;
+    height: 5px;
+    background: transparent;
+    border-color: transparent;
+    border-width: 6px 0;
+    color: transparent;
+}
+input[type=range]::-ms-fill-lower {
+    background: #777;
+    border-radius: 10px;
+}
+input[type=range]::-ms-fill-upper {
+    background: #ddd;
+    border-radius: 10px;
+}
+input[type=range]::-ms-thumb {
+    border: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #656565;
+}
+input[type=range]:focus::-ms-fill-lower {
+    background: #888;
+}
+input[type=range]:focus::-ms-fill-upper {
+    background: #ccc;
+}
+
+
+button {
+    text-decoration: none;
+    color: #3e374c;
+    background: white;
+    cursor: pointer;
+    border: 1px solid #9e9e9e;
+    border-radius: 2px;
+}.button:disabled {
+     color: #9e9e9e;
+}
+
+select {
+    color: black;
+}
+
+#button-openMenu {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 100;
+    cursor: pointer;
+    color: #ffcd59;
+}
+
+#button-closeMenu {
+    position: absolute;
+    top: 3px;
+    right: 4px;
+    cursor: pointer
+}
+
+.navigableDN {
+    cursor: pointer;
+}
+
+.selectableDN {
+    cursor: pointer;
+}
+
+.setting-challenge-question-summary {
+    cursor: pointer;
+    table-layout: fixed;
+    transition: box-shadow 0.3s;
+}
+
+.setting-challenge-question-summary:hover {
+    border: 1px solid #E8E1F6;
+    box-shadow: 0 0 0 0 white, 0 0 0 0 white, 9px 0 12px -4px #B2B1B9, -9px 0 12px -4px #B2B1B9;
+}
+
+
+.buttonbar.configguide {
+   text-align: center;
+}
+
+.dijitTreeRowSelected {
+    background-color: #eaeaea;
+}
+
+
+.overflow-panel-medium {
+    max-height: 350px;
+    overflow-y: auto
+}
+
+.panel-large {
+    max-height: 500px;
+}
+
+.overflow-y {
+    overflow-y: auto;
+}
+
+
+/* TOGGLE STYLING */
+.toggle {
+    margin: 0 0 2px;
+    box-sizing: border-box;
+    font-size: 0;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+.toggle input {
+    width: 0;
+    height: 0;
+    position: absolute;
+    left: -9999px;
+}
+.toggle input + label {
+    color: #656565;
+    margin: 0;
+    padding: 4px;
+    box-sizing: border-box;
+    position: relative;
+    display: inline-block;
+    border: solid 1px #ddd;
+    background-color: #fff;
+    font-size: 1rem;
+    line-height: 140%;
+    text-align: center;
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+    transition: border-color 0.15s ease-out, color 0.25s ease-out, background-color 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+.toggle input + label:first-of-type {
+    border-radius: 6px 0 0 6px;
+    border-right: none;
+}
+.toggle input + label:last-of-type {
+    border-radius: 0 6px 6px 0;
+    border-left: none;
+}
+.toggle input:checked + label {
+    background-color: #d3d3d3;
+    border-color: #d3d3d3;
+    z-index: 1;
+}
+.toggleWrapper {
+    text-align: center;
+    display: inline-block
+}
+
+
+@media (max-width: 800px) {
+    .toggle input + label {
+        padding: 0.75rem 0.25rem;
+        flex: 0 0 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}

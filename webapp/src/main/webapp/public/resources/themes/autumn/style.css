@@ -1,0 +1,180 @@
+/*!
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2021 The PWM Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+html {
+    background-image: url('autumn-bg.jpg');
+    background-size: cover;
+    background-color: White;
+}
+
+p {
+    color: black;
+}
+
+#header-warning {
+    background-color: white;
+    color: #0a0a0a;
+    text-align: center;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    text-decoration: none;
+    opacity: 0.9;
+    animation: fadein 0.5s;
+}
+
+#header-page {
+    color: black;
+}
+
+#header-title {
+    color: black;
+}
+
+#header {
+    width: 100%;
+    height: 70px;
+    margin: 0;
+    background-image: none;
+    background-color: white;
+    color: black;
+    filter:alpha(opacity=50);
+    opacity: 0.5;
+}
+
+#header-company-logo {
+    position: relative;
+    float: left;
+    top: 10px;
+    left: 10px;
+    width: 50px;
+    height: 50px;
+    z-index: 1;
+}
+
+#centerbody {
+    background-color: white;
+    color: black;
+    padding: 5px 5px 40px 5px;
+    border: 0;
+}
+
+#centerbody.tile-centerbody {
+    border-radius: 5px;
+    width:auto; !important;
+    margin:auto;
+}
+
+.header-button {
+    margin: 0px;
+    margin-top: 6px;
+    margin-left: 6px;
+    border: 1px solid transparent;
+}
+.header-button:hover {  border: 1px solid #f39c12; }
+
+#header-username-group, #header-username {
+    text-align: right;
+}
+
+#header-username-caret span.m-icon {
+    content: "\f08b";
+}
+
+.tile {
+    width: 165px;
+    height: 165px;
+    margin: 10px;
+    opacity: 0.7;
+    transition: opacity 1s, box-shadow 2s;
+}
+
+.tile:hover {
+    opacity: 1;
+    box-shadow: 0 0 0 0 white, 0 0 0 0 white, 9px 0 12px -4px #B2B1B9, -9px 0 12px -4px #B2B1B9;
+}
+
+#footer {
+    background-color: white;
+    color: #0a0a0a;
+    opacity: 0.5;
+}
+
+a {
+    color: #330033;
+    text-decoration: underline;
+    font-weight: bold
+}
+
+
+.message {
+    background-color: inherit;
+}
+
+.message-info {
+    background-color: #ffcccc;
+}
+
+.message-error {
+    background-color: #00cccc;
+}
+
+.message-success {
+    background-color: #ff9933;
+}
+
+table {
+    border-collapse: collapse;
+    border: 1px solid #ffcccc;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto
+}
+
+table td {
+    border: 1px solid #ffcccc;
+    padding: 5px;
+}
+
+table td.title {
+    text-align: center;
+    font-weight: bold;
+    font-size: 150%;
+    padding-right: 10px;
+    background-color: white;
+}
+
+table td.key {
+    text-align: right;
+    font-weight: bold;
+    padding-right: 10px;
+    width: 200px;
+}
+
+#header-menu-wrapper {
+    text-align: right;
+}
+
+.tab-container > .label:hover {
+    color: #ffcccc;
+    border-top-color: #ffcccc;
+    border-left-color: #ffcccc;
+    border-right-color: #ffcccc;
+}
