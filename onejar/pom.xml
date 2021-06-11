@@ -49,11 +49,12 @@
                     <archive>
                         <manifestEntries>
                             <Main-Class>password.pwm.onejar.OnejarMain</Main-Class>
+                            <Implementation-Archive-Name>pwm.onejar</Implementation-Archive-Name>
                             <Implementation-Title>${project.name}</Implementation-Title>
                             <Implementation-Version>${project.version}</Implementation-Version>
                             <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
                             <Implementation-URL>${project.organization.url}</Implementation-URL>
-                            <Implementation-Build>${build.number}</Implementation-Build>
+                            <Implementation-Build-Java-Spec-Version>${java.specification.version}</Implementation-Build-Java-Spec-Version>
                             <Implementation-Revision>${build.revision}</Implementation-Revision>
                             <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
                             <SCM-Git-Branch>${git.branch}</SCM-Git-Branch>
