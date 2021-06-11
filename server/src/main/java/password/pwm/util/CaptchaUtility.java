@@ -70,8 +70,8 @@ public class CaptchaUtility
 
     public enum CaptchaMode
     {
-        V3,
-        V3_INVISIBLE,
+        V2,
+        V2_INVISIBLE,
     }
 
     public static CaptchaMode readCaptchaMode( final PwmRequest pwmRequest )

@@ -38,7 +38,7 @@
     <span><pwm:display key="Display_JavascriptRequired"/></span>
     <a href="<pwm:context/>"><pwm:display key="Title_MainPage"/></a>
 </noscript>
-<% if ( captchaMode == CaptchaUtility.CaptchaMode.V3 ) { %>
+<% if ( captchaMode == CaptchaUtility.CaptchaMode.V2 ) { %>
 <%-- begin reCaptcha section (http://code.google.com/apis/recaptcha/docs/display.html) --%>
 <pwm:script>
     <script type="text/javascript">
@@ -60,8 +60,8 @@
 </pwm:script>
 <script nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" src="<%=(String)JspUtility.getAttribute(pageContext,PwmRequestAttribute.CaptchaClientUrl)%>?onload=onloadCallback&render=explicit" defer async></script>
 <% } %>
-<% if ( captchaMode == CaptchaUtility.CaptchaMode.V3_INVISIBLE ) { %>
-<!-- captcha v3-invisible 1.0 -->
+<% if ( captchaMode == CaptchaUtility.CaptchaMode.V2_INVISIBLE ) { %>
+<!-- captcha v2-invisible 1.0 -->
 <input type="hidden" name="<%=CaptchaUtility.PARAM_RECAPTCHA_FORM_NAME%>" id="<%=CaptchaUtility.PARAM_RECAPTCHA_FORM_NAME%>"/>
 <pwm:script>
     <script type="text/javascript">

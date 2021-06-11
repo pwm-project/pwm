@@ -171,7 +171,7 @@
     <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 </pwm:if>
 <% if (CaptchaUtility.captchaEnabledForRequest(JspUtility.getPwmRequest(pageContext))) { %>
-<% if (CaptchaUtility.readCaptchaMode( JspUtility.getPwmRequest( pageContext ) ) == CaptchaUtility.CaptchaMode.V3 ) { %>
+<% if (CaptchaUtility.readCaptchaMode( JspUtility.getPwmRequest( pageContext ) ) == CaptchaUtility.CaptchaMode.V2 ) { %>
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){

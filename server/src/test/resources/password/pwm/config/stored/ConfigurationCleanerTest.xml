@@ -1331,7 +1331,7 @@
         </setting>
         <setting key="captcha.recaptcha.mode" syntax="SELECT" syntaxVersion="0" modifyTime="2018-11-09T09:07:51Z" modifyUser="ldap1|cn=testuser,ou=example,o=org">
             <label>reCAPTCHA Mode</label>
-            <value><![CDATA[V3_INVISIBLE]]></value>
+            <value><![CDATA[V2_INVISIBLE]]></value>
         </setting>
         <setting key="security.cspHeader" syntax="STRING" syntaxVersion="0" modifyTime="2018-11-28T22:49:47Z" modifyUser="ldap1|cn=testuser,ou=example,o=org">
             <label>HTTP Content Security Policy Header</label>
