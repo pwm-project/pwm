@@ -101,6 +101,11 @@ public class AppConfig implements SettingReader
         return configurationSuppliers.appPropertyOverrides.get().getOrDefault( property.getKey(), property.getDefaultValue() );
     }
 
+    public boolean readBooleanAppProperty( final AppProperty appProperty )
+    {
+        return Boolean.parseBoolean( readAppProperty( appProperty ) );
+    }
+
     public Map<AppProperty, String> readAllNonDefaultAppProperties( )
     {
         final LinkedHashMap<AppProperty, String> nonDefaultProperties = new LinkedHashMap<>();
