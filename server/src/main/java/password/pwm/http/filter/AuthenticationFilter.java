@@ -51,6 +51,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -143,14 +144,12 @@ public class AuthenticationFilter extends AbstractPwmFilter
         // read the basic auth info out of the header (if it exists);
         if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.BASIC_AUTH_ENABLED ) )
         {
-            final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmDomain, pwmRequest );
+            final Optional<BasicAuthInfo> basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmDomain, pwmRequest );
 
             final BasicAuthInfo originalBasicAuthInfo = pwmSession.getLoginInfoBean().getBasicAuth();
 
             //check to make sure basic auth info is same as currently known user in session.
-            if ( basicAuthInfo != null
-                    && originalBasicAuthInfo != null
-                    && !originalBasicAuthInfo.equals( basicAuthInfo ) )
+            if ( basicAuthInfo.isPresent() && Objects.equals( basicAuthInfo.get(), originalBasicAuthInfo ) )
             {
                 // if we read here then user is using basic auth, and header has changed since last request
                 // this means something is screwy, so log out the session
@@ -159,7 +158,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
                 final UserInfo userInfo = pwmSession.getUserInfo();
                 final ErrorInformation errorInformation = new ErrorInformation(
                         PwmError.ERROR_BAD_SESSION,
-                        "basic auth header user '" + basicAuthInfo.getUsername()
+                        "basic auth header user '" + basicAuthInfo.get().getUsername()
                                 + "' does not match currently logged in user '" + userInfo.getUserIdentity()
                                 + "', session will be logged out"
                 );

@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class NodeService extends AbstractPwmService implements PwmService
 {
@@ -187,8 +188,8 @@ public class NodeService extends AbstractPwmService implements PwmService
             throws PwmUnrecoverableException
     {
         {
-            final UserIdentity userIdentity = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( getSessionLabel(), pwmDomain );
-            if ( userIdentity == null )
+            final Optional<UserIdentity> userIdentity = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( getSessionLabel(), pwmDomain );
+            if ( userIdentity.isEmpty() )
             {
                 final String msg = "LDAP storage type selected, but LDAP test user not defined.";
                 LOGGER.debug( () -> msg );

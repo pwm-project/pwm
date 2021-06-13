@@ -137,7 +137,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
         StoredConfigData getStoredConfigData()
         {
             final String createTime = readCreateTime();
-            final Instant modifyTime = readModifyTime();
+            final Optional<Instant> modifyTime = readModifyTime();
 
             // define the parallelized the readers
             final List<Supplier<List<StoredConfigData.ValueAndMetaCarrier>>> suppliers = new ArrayList<>();
@@ -152,7 +152,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             final Instant startStoredConfigDataBuild = Instant.now();
             final StoredConfigData storedConfigData = StoredConfigData.builder()
                     .createTime( createTime )
-                    .modifyTime( modifyTime )
+                    .modifyTime( modifyTime.orElse( Instant.now() ) )
                     .metaDatas( StoredConfigData.carrierAsMetaDataMap( values ) )
                     .storedValues( StoredConfigData.carrierAsStoredValueMap( values ) )
                     .build();
@@ -285,7 +285,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                     .orElseThrow( () -> new IllegalStateException( "missing createTime timestamp" ) );
         }
 
-        Instant readModifyTime()
+        Optional<Instant> readModifyTime()
         {
             final XmlElement rootElement = document.getRootElement();
             final Optional<String> modifyTimeString = rootElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_TIME );
@@ -293,7 +293,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             {
                 try
                 {
-                    return JavaHelper.parseIsoToInstant( modifyTimeString.get() );
+                    return Optional.of( JavaHelper.parseIsoToInstant( modifyTimeString.get() ) );
                 }
                 catch ( final Exception e )
                 {
@@ -301,7 +301,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                 }
             }
 
-            return null;
+            return Optional.empty();
         }
 
         private List<StoredConfigData.ValueAndMetaCarrier> readLocaleBundles()

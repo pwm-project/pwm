@@ -167,7 +167,7 @@ public final class ValueTypeConverter
     {
         if ( value == null )
         {
-            return null;
+            return Collections.emptyList();
         }
 
         if ( value instanceof CustomLinkValue )

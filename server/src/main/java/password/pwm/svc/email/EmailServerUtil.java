@@ -214,12 +214,12 @@ public class EmailServerUtil
         return properties;
     }
 
-    private static InternetAddress makeInternetAddress( final String input )
+    private static Optional<InternetAddress> makeInternetAddress( final String input )
             throws AddressException
     {
         if ( input == null )
         {
-            return null;
+            return Optional.empty();
         }
 
         if ( input.matches( "^.*<.*>$" ) )
@@ -228,7 +228,7 @@ public class EmailServerUtil
             final String[] splitString = input.split( "<|>" );
             if ( splitString.length < 2 )
             {
-                return new InternetAddress( input );
+                return Optional.of( new InternetAddress( input ) );
             }
 
             final InternetAddress address = new InternetAddress();
@@ -241,9 +241,9 @@ public class EmailServerUtil
             {
                 LOGGER.error( () -> "unsupported encoding error while parsing internet address '" + input + "', error: " + e.getMessage() );
             }
-            return address;
+            return Optional.of( address );
         }
-        return new InternetAddress( input );
+        return Optional.of( new InternetAddress( input ) );
     }
 
     static EmailItemBean applyMacrosToEmail( final EmailItemBean emailItem, final MacroRequest macroRequest )
@@ -327,7 +327,13 @@ public class EmailServerUtil
             for ( final InternetAddress recipient : recipients )
             {
                 final MimeMessage message = new MimeMessage( emailServer.getSession() );
-                message.setFrom( makeInternetAddress( emailItemBean.getFrom() ) );
+
+                final Optional<InternetAddress> fromAddress = makeInternetAddress( emailItemBean.getFrom() );
+                if ( fromAddress.isPresent() )
+                {
+                    message.setFrom( fromAddress.get() );
+                }
+
                 message.setRecipient( Message.RecipientType.TO, recipient );
                 {
                     if ( subjectEncodingCharset != null && !subjectEncodingCharset.isEmpty() )

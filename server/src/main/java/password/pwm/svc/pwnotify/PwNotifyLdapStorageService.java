@@ -143,7 +143,9 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
     public PwNotifyStoredJobState readStoredJobState()
             throws PwmUnrecoverableException
     {
-        final UserIdentity proxyUser = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( pwNotifyService.getSessionLabel(), pwmDomain );
+        final UserIdentity proxyUser = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( pwNotifyService.getSessionLabel(), pwmDomain )
+                .orElseThrow();
+
         final ConfigObjectRecord configObjectRecord = getUserCOR( proxyUser, CoreType.ProxyUser );
         final String payload = configObjectRecord.getPayload();
 
@@ -158,7 +160,9 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
     public void writeStoredJobState( final PwNotifyStoredJobState pwNotifyStoredJobState )
             throws PwmUnrecoverableException
     {
-        final UserIdentity proxyUser = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( pwNotifyService.getSessionLabel(), pwmDomain );
+        final UserIdentity proxyUser = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( pwNotifyService.getSessionLabel(), pwmDomain )
+                .orElseThrow();
+
         final ConfigObjectRecord configObjectRecord = getUserCOR( proxyUser, CoreType.ProxyUser );
         final String payload = JsonUtil.serialize( pwNotifyStoredJobState );
 

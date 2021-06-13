@@ -51,6 +51,7 @@ import password.pwm.ws.server.RestWebServer;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Optional;
 
 @WebServlet(
         urlPatterns = {
@@ -185,8 +186,8 @@ public class RestSetPasswordServer extends RestServlet
             final PasswordData oldPassword;
             if ( targetUserIdentity.isSelf() )
             {
-                final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( restRequest.getDomain(), restRequest.getHttpServletRequest() );
-                oldPassword = basicAuthInfo == null ? null : basicAuthInfo.getPassword();
+                final Optional<BasicAuthInfo> basicAuthInfo = BasicAuthInfo.parseAuthHeader( restRequest.getDomain(), restRequest.getHttpServletRequest() );
+                oldPassword = basicAuthInfo.map( BasicAuthInfo::getPassword ).orElse( null );
             }
             else
             {

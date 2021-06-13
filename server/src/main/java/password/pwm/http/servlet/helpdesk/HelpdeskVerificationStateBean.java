@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 class HelpdeskVerificationStateBean implements Serializable
@@ -79,30 +80,27 @@ class HelpdeskVerificationStateBean implements Serializable
     {
         purgeOldRecords();
 
-        final HelpdeskValidationRecord record = getRecord( identity, method );
-        if ( record != null )
-        {
-            records.remove( record );
-        }
+        final Optional<HelpdeskValidationRecord> optionalRecord = getRecord( identity, method );
+        optionalRecord.ifPresent( records::remove );
         records.add( new HelpdeskValidationRecord( Instant.now(), identity, method ) );
     }
 
     public boolean hasRecord( final UserIdentity identity, final IdentityVerificationMethod method )
     {
         purgeOldRecords();
-        return getRecord( identity, method ) != null;
+        return getRecord( identity, method ).isPresent();
     }
 
-    private HelpdeskValidationRecord getRecord( final UserIdentity identity, final IdentityVerificationMethod method )
+    private Optional<HelpdeskValidationRecord> getRecord( final UserIdentity identity, final IdentityVerificationMethod method )
     {
         for ( final HelpdeskValidationRecord record : records )
         {
             if ( record.getIdentity().equals( identity ) && ( method == null || record.getMethod() == method ) )
             {
-                return record;
+                return Optional.of( record );
             }
         }
-        return null;
+        return Optional.empty();
     }
 
 

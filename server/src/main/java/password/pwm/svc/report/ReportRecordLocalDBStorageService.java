@@ -50,14 +50,14 @@ public class ReportRecordLocalDBStorageService extends AbstractPwmService implem
 
     private CacheStoreWrapper cacheStore;
 
-    UserReportRecord updateUserCache( final UserInfo userInfo )
+    Optional<UserReportRecord> updateUserCache( final UserInfo userInfo )
             throws PwmUnrecoverableException
     {
         try
         {
             final UserReportRecord userReportRecord = UserReportRecord.fromUserInfo( userInfo );
             store( userReportRecord );
-            return userReportRecord;
+            return Optional.of( userReportRecord );
         }
         catch ( final LocalDBException e )
         {
@@ -68,7 +68,7 @@ public class ReportRecordLocalDBStorageService extends AbstractPwmService implem
             LOGGER.trace( getSessionLabel(), () -> "updateCache: read user cache for "
                     + userInfo.getUserIdentity() + " user key " + userInfo.getUserIdentity().toDelimitedKey() );
         }
-        return null;
+        return Optional.empty();
     }
 
     Optional<UserReportRecord> readStorageKey( final UserIdentity storageKey ) throws LocalDBException

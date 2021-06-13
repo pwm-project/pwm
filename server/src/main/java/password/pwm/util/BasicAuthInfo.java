@@ -22,8 +22,8 @@ package password.pwm.util;
 
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmRequest;
@@ -33,6 +33,7 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * Simple data object containing username/password info derived from a "Basic" Authorization HTTP Header.
@@ -54,7 +55,7 @@ public class BasicAuthInfo implements Serializable
      * @param pwmRequest http servlet request
      * @return a BasicAuthInfo object containing username/password, or null if the "Authorization" header doesn't exist or is malformed
      */
-    public static BasicAuthInfo parseAuthHeader(
+    public static Optional<BasicAuthInfo> parseAuthHeader(
             final PwmDomain pwmDomain,
             final PwmRequest pwmRequest
     )
@@ -62,7 +63,7 @@ public class BasicAuthInfo implements Serializable
         return parseAuthHeader( pwmDomain, pwmRequest.getHttpServletRequest() );
     }
 
-    public static BasicAuthInfo parseAuthHeader(
+    public static Optional<BasicAuthInfo> parseAuthHeader(
             final PwmDomain pwmDomain,
             final HttpServletRequest httpServletRequest
     )
@@ -86,7 +87,7 @@ public class BasicAuthInfo implements Serializable
 
                     // The decoded string should now look something like:
                     //   "cn=user,o=company:chpass" or "user:chpass"
-                    return parseHeaderString( decoded );
+                    return Optional.of( parseHeaderString( decoded ) );
                 }
                 catch ( final IOException e )
                 {
@@ -95,7 +96,7 @@ public class BasicAuthInfo implements Serializable
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public static BasicAuthInfo parseHeaderString( final String input )

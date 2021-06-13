@@ -979,8 +979,7 @@ public class LDAPHealthChecker implements HealthSupplier
                 final LdapProfile ldapProfile = newUserProfile.getLdapProfile( pwmDomain.getConfig() );
                 if ( NewUserProfile.TEST_USER_CONFIG_VALUE.equals( policyUserStr ) )
                 {
-                    final UserIdentity testUser = ldapProfile.getTestUser( sessionLabel, pwmDomain );
-                    if ( testUser != null )
+                    if ( ldapProfile.getTestUser( sessionLabel, pwmDomain ).isEmpty() )
                     {
                         return Collections.emptyList();
                     }

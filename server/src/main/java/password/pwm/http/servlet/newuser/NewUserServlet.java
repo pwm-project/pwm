@@ -484,8 +484,7 @@ public class NewUserServlet extends ControlledPwmServlet
         final TokenDestinationItem tokenDestinationItem = NewUserUtils.tokenDestinationItemForCurrentValidation(
                 pwmRequest,
                 newUserBean,
-                newUserProfile
-        );
+                newUserProfile ).orElseThrow();
 
         ErrorInformation errorInformation = null;
         TokenPayload tokenPayload = null;
@@ -841,7 +840,7 @@ public class NewUserServlet extends ControlledPwmServlet
         final TokenDestinationItem tokenDestinationItem = NewUserUtils.tokenDestinationItemForCurrentValidation(
                 pwmRequest,
                 newUserBean,
-                newUserProfile );
+                newUserProfile ).orElseThrow();
         pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenDestinationItem );
         pwmRequest.forwardToJsp( JspUrl.NEW_USER_ENTER_CODE );
     }

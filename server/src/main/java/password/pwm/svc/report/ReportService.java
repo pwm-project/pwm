@@ -555,13 +555,16 @@ public class ReportService extends AbstractPwmService implements PwmService
                     getSessionLabel(),
                     userIdentity
             );
-            final UserReportRecord newUserReportRecord = userCacheService.updateUserCache( userInfo );
 
-            userCacheService.store( newUserReportRecord );
-            summaryData.update( newUserReportRecord );
-            processRateMeter.markEvents( 1 );
+            final Optional<UserReportRecord> newUserReportRecord = userCacheService.updateUserCache( userInfo );
+            if ( newUserReportRecord.isPresent() )
+            {
+                userCacheService.store( newUserReportRecord.get() );
+                summaryData.update( newUserReportRecord.get() );
+                processRateMeter.markEvents( 1 );
 
-            LOGGER.trace( getSessionLabel(), () -> "stored cache for " + userIdentity, () -> TimeDuration.fromCurrent( startTime ) );
+                LOGGER.trace( getSessionLabel(), () -> "stored cache for " + userIdentity, () -> TimeDuration.fromCurrent( startTime ) );
+            }
         }
 
         private void processRecord(

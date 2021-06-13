@@ -36,6 +36,8 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.logging.PwmLogger;
 
+import java.util.Optional;
+
 public class BasicFilterAuthenticationProvider implements PwmHttpFilterAuthenticationProvider
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( BasicFilterAuthenticationProvider.class );
@@ -56,8 +58,8 @@ public class BasicFilterAuthenticationProvider implements PwmHttpFilterAuthentic
             return;
         }
 
-        final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmRequest.getPwmDomain(), pwmRequest );
-        if ( basicAuthInfo == null )
+        final Optional<BasicAuthInfo> basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmRequest.getPwmDomain(), pwmRequest );
+        if ( basicAuthInfo.isEmpty() )
         {
             return;
         }
@@ -68,17 +70,16 @@ public class BasicFilterAuthenticationProvider implements PwmHttpFilterAuthentic
             final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
             //user isn't already authenticated and has an auth header, so try to auth them.
-            LOGGER.debug( pwmRequest, () -> "attempting to authenticate user using basic auth header (username=" + basicAuthInfo.getUsername() + ")" );
+            LOGGER.debug( pwmRequest, () -> "attempting to authenticate user using basic auth header (username=" + basicAuthInfo.get().getUsername() + ")" );
             final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
                     pwmDomain,
                     pwmRequest,
                     PwmAuthenticationSource.BASIC_AUTH
             );
             final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
-            final UserIdentity userIdentity = userSearchEngine.resolveUsername( basicAuthInfo.getUsername(), null, null, pwmRequest.getLabel() );
-            sessionAuthenticator.authenticateUser( userIdentity, basicAuthInfo.getPassword() );
-            pwmSession.getLoginInfoBean().setBasicAuth( basicAuthInfo );
-
+            final UserIdentity userIdentity = userSearchEngine.resolveUsername( basicAuthInfo.get().getUsername(), null, null, pwmRequest.getLabel() );
+            sessionAuthenticator.authenticateUser( userIdentity, basicAuthInfo.get().getPassword() );
+            pwmSession.getLoginInfoBean().setBasicAuth( basicAuthInfo.get() );
         }
         catch ( final PwmException e )
         {

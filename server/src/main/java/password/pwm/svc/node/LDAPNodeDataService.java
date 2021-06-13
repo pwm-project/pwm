@@ -177,15 +177,15 @@ class LDAPNodeDataService implements NodeDataServiceProvider
             this.nodeService = nodeService;
             this.pwmDomain = pwmDomain;
 
-            userIdentity = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( nodeService.getSessionLabel(), pwmDomain );
+            final String ldapProfileID = pwmDomain.getConfig().getDefaultLdapProfile().getIdentifier();
 
-            if ( userIdentity == null )
+            userIdentity = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( nodeService.getSessionLabel(), pwmDomain )
+                    .orElseThrow( () ->
             {
-                final String ldapProfileID = pwmDomain.getConfig().getDefaultLdapProfile().getIdentifier();
                 final String errorMsg = "a test user is not configured for ldap profile '" + ldapProfileID + "'";
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
-                throw new PwmUnrecoverableException( errorInformation );
-            }
+                return new PwmUnrecoverableException( errorInformation );
+            } );
 
             chaiUser = pwmDomain.getProxiedChaiUser( nodeService.getSessionLabel(), userIdentity );
 

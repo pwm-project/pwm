@@ -753,7 +753,8 @@ class NewUserUtils
 
                 if ( !newUserBean.isTokenSent() )
                 {
-                    final TokenDestinationItem tokenDestinationItem = tokenDestinationItemForCurrentValidation( pwmRequest, newUserBean, newUserProfile );
+                    final TokenDestinationItem tokenDestinationItem = tokenDestinationItemForCurrentValidation( pwmRequest, newUserBean, newUserProfile )
+                            .orElseThrow();
 
                     final Optional<TokenStorageMethod> configuredMethod = pwmRequest.getDomainConfig().getTokenStorageMethod();
                     if ( configuredMethod.isPresent() && configuredMethod.get() == TokenStorageMethod.STORE_LDAP )
@@ -798,7 +799,7 @@ class NewUserUtils
         return ProcessStatus.Continue;
     }
 
-    static TokenDestinationItem tokenDestinationItemForCurrentValidation(
+    static Optional<TokenDestinationItem> tokenDestinationItemForCurrentValidation(
             final PwmRequest pwmRequest,
             final NewUserBean newUserBean,
             final NewUserProfile newUserProfile
@@ -807,7 +808,7 @@ class NewUserUtils
     {
         if ( !newUserBean.isFormPassed() )
         {
-            return null;
+            return Optional.empty();
         }
 
         final List<FormConfiguration> formFields = newUserProfile.readSettingAsForm( PwmSetting.NEWUSER_FORM );
@@ -820,12 +821,12 @@ class NewUserUtils
 
         final String value = newUserBean.getNewUserForm().getFormData().get( newUserBean.getCurrentTokenField() );
         final TokenDestinationItem.Type type = tokenTypeMap.get( newUserBean.getCurrentTokenField() );
-        return TokenDestinationItem.builder()
+        return Optional.of( TokenDestinationItem.builder()
                 .display( value )
                 .id( "1" )
                 .value( value )
                 .type( type )
-                .build();
+                .build() );
     }
 
     static TimeDuration figureTokenLifetime(

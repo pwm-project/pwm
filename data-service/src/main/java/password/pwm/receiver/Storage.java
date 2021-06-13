@@ -134,7 +134,7 @@ public class Storage
         return environment.computeInTransaction( transaction -> store.count( transaction ) );
     }
 
-    private class InnerIterator implements AutoCloseable, Iterator
+    private class InnerIterator implements AutoCloseable, Iterator<TelemetryPublishBean>
     {
         private final Transaction transaction;
         private final Cursor cursor;

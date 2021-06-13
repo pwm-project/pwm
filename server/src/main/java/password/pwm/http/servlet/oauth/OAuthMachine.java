@@ -130,11 +130,8 @@ public class OAuthMachine
 
         if ( userIdentity != null )
         {
-            final String parametersValue = figureUsernameGrantParam( pwmRequest, userIdentity );
-            if ( StringUtil.notEmpty( parametersValue ) )
-            {
-                urlParams.put( "parameters", parametersValue );
-            }
+            final Optional<String> parametersValue = figureUsernameGrantParam( pwmRequest, userIdentity );
+            parametersValue.ifPresent( s -> urlParams.put( "parameters", s ) );
         }
 
         final String redirectUrl = PwmURL.appendAndEncodeUrlParameters( settings.getLoginURL(), urlParams );
@@ -436,7 +433,7 @@ public class OAuthMachine
         return pwmRequest.getPwmDomain().getSecureService().encryptToString( jsonValue );
     }
 
-    private String figureUsernameGrantParam(
+    private Optional<String> figureUsernameGrantParam(
             final PwmRequest pwmRequest,
             final UserIdentity userIdentity
     )
@@ -444,13 +441,13 @@ public class OAuthMachine
     {
         if ( userIdentity == null )
         {
-            return null;
+            return Optional.empty();
         }
 
         final String macroText = settings.getUsernameSendValue();
         if ( StringUtil.isEmpty( macroText ) )
         {
-            return null;
+            return Optional.empty();
         }
 
         final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, userIdentity );
@@ -478,8 +475,12 @@ public class OAuthMachine
         final String resultBody = restResults.getBody();
         final Map<String, String> resultBodyMap = JsonUtil.deserializeStringMap( resultBody );
         final String data = resultBodyMap.get( "data" );
-        LOGGER.debug( sessionLabel, () -> "oauth /sign endpoint returned signed username data: " + data );
-        return data;
+        if ( StringUtil.isEmpty( data ) )
+        {
+            LOGGER.debug( sessionLabel, () -> "oauth /sign endpoint returned signed username data: " + data );
+            return Optional.of( data );
+        }
+        return Optional.empty();
     }
 
     public String readAttributeFromBodyMap(

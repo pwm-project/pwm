@@ -29,6 +29,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +80,7 @@ public class LocalDBService implements PwmService
     @Override
     public List<HealthRecord> healthCheck( )
     {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

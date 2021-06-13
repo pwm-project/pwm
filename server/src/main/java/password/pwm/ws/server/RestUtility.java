@@ -34,6 +34,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class RestUtility
 {
@@ -122,8 +123,8 @@ public class RestUtility
             if ( ldapProfile != null )
             {
                 {
-                    final UserIdentity testUser = ldapProfile.getTestUser( restRequest.getSessionLabel(), pwmDomain );
-                    if ( testUser != null && testUser.canonicalEquals( restRequest.getSessionLabel(), userIdentity, restRequest.getPwmApplication() ) )
+                    final Optional<UserIdentity> optionalTestUser = ldapProfile.getTestUser( restRequest.getSessionLabel(), pwmDomain );
+                    if ( optionalTestUser.isPresent() && optionalTestUser.get().canonicalEquals( restRequest.getSessionLabel(), userIdentity, restRequest.getPwmApplication() ) )
                     {
                         final String msg = "rest services can not be invoked against the configured LDAP profile test user";
                         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REST_INVOCATION_ERROR, msg );

@@ -48,6 +48,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public class LdapProfile extends AbstractProfile implements Profile
 {
@@ -194,17 +195,23 @@ public class LdapProfile extends AbstractProfile implements Profile
         return canonicalValue;
     }
 
-    public UserIdentity getTestUser( final SessionLabel sessionLabel, final PwmDomain pwmDomain ) throws PwmUnrecoverableException
+    public Optional<UserIdentity> getTestUser( final SessionLabel sessionLabel, final PwmDomain pwmDomain )
+            throws PwmUnrecoverableException
     {
         return readUserIdentity( sessionLabel, pwmDomain, PwmSetting.LDAP_TEST_USER_DN );
     }
 
-    public UserIdentity getProxyUser( final SessionLabel sessionLabel, final PwmDomain pwmDomain ) throws PwmUnrecoverableException
+    public UserIdentity getProxyUser( final SessionLabel sessionLabel, final PwmDomain pwmDomain )
+            throws PwmUnrecoverableException
     {
-        return readUserIdentity( sessionLabel, pwmDomain, PwmSetting.LDAP_PROXY_USER_DN );
+        return readUserIdentity( sessionLabel, pwmDomain, PwmSetting.LDAP_PROXY_USER_DN )
+                .orElseThrow( () ->
+                        new PwmUnrecoverableException( new ErrorInformation(
+                                PwmError.CONFIG_FORMAT_ERROR,
+                                "ldap proxy user is not defined" ) ) );
     }
 
-    private UserIdentity readUserIdentity(
+    private Optional<UserIdentity> readUserIdentity(
             final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final PwmSetting pwmSetting
@@ -215,10 +222,10 @@ public class LdapProfile extends AbstractProfile implements Profile
 
         if ( StringUtil.notEmpty( testUserDN ) )
         {
-            return UserIdentity.create( testUserDN, this.getIdentifier(), pwmDomain.getDomainID() ).canonicalized( sessionLabel, pwmDomain.getPwmApplication() );
+            return Optional.of( UserIdentity.create( testUserDN, this.getIdentifier(), pwmDomain.getDomainID() ).canonicalized( sessionLabel, pwmDomain.getPwmApplication() ) );
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public static class LdapProfileFactory implements ProfileFactory
