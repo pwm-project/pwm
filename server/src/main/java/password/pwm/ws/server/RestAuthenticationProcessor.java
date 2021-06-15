@@ -74,14 +74,15 @@ public class RestAuthenticationProcessor
             final Optional<String> namedSecretName = readNamedSecretName();
             if ( namedSecretName.isPresent() )
             {
-                LOGGER.trace( sessionLabel, () -> "authenticating with named secret '" + namedSecretName + "'" );
+                final String name = namedSecretName.get();
+                LOGGER.trace( sessionLabel, () -> "authenticating with named secret '" + name + "'" );
                 final Set<WebServiceUsage> usages = CollectionUtil.copiedEnumSet( CollectionUtil.readEnumSetFromStringCollection(
                         WebServiceUsage.class,
-                        pwmDomain.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET ).get( namedSecretName ).getUsage()
+                        pwmDomain.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET ).get( name ).getUsage()
                 ), WebServiceUsage.class );
                 return new RestAuthentication(
                         RestAuthenticationType.NAMED_SECRET,
-                        namedSecretName.get(),
+                        name,
                         null,
                         Collections.unmodifiableSet( usages ),
                         true,

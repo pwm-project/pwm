@@ -81,7 +81,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
                             final List<X509Certificate> certs = X509Utils.readRemoteCertificates(
                                     syslogConfig.getHost(),
                                     syslogConfig.getPort(),
-                                    new AppConfig( modifier.newStoredConfiguration() ) );
+                                    AppConfig.defaultConfig() );
                             if ( certs != null )
                             {
                                 resultCertificates.addAll( certs );

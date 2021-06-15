@@ -24,7 +24,6 @@ import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.config.AppConfig;
-import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingMetaDataReader;
 import password.pwm.config.PwmSettingScope;
@@ -410,16 +409,7 @@ public class PwmApplication
     public PwmDomain getAdminDomain()
             throws PwmUnrecoverableException
     {
-        final Optional<DomainConfig> adminDomainConfig = getConfig().getDomainConfigs().values().stream()
-                .filter( DomainConfig::isAdministrativeDomain )
-                .findFirst();
-
-        if ( adminDomainConfig.isPresent() )
-        {
-            return domains().get( adminDomainConfig.get().getDomainID() );
-        }
-
-        throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "administrative domain is not defined" );
+        return domains().get( getConfig().getAdminDomainID() );
     }
 
     public void shutdown( )

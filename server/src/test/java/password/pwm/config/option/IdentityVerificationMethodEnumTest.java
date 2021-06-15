@@ -29,9 +29,9 @@ import password.pwm.error.PwmUnrecoverableException;
 public class IdentityVerificationMethodEnumTest
 {
     @Test
-    public void testLabels() throws PwmUnrecoverableException
+    public void testLabels()
     {
-        final AppConfig appConfig = new AppConfig( StoredConfigurationFactory.newConfig() );
+        final AppConfig appConfig = AppConfig.defaultConfig();
         for ( final IdentityVerificationMethod method : IdentityVerificationMethod.values() )
         {
             method.getLabel( appConfig, PwmConstants.DEFAULT_LOCALE );

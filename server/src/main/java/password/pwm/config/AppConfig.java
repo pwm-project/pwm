@@ -29,8 +29,10 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.EmailServerProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.data.UserPermission;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
@@ -64,7 +66,24 @@ public class AppConfig implements SettingReader
     private final Map<DomainID, DomainConfig> domainConfigMap;
     private final Set<String> domainIDList;
 
-    private PwmSecurityKey tempInstanceKey = null;
+    private static final Supplier<AppConfig> DEFAULT_CONFIG = new LazySupplier<>( () -> makeDefaultConfig() );
+
+    private static AppConfig makeDefaultConfig()
+    {
+        try
+        {
+            return new AppConfig( StoredConfigurationFactory.newConfig() );
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            throw new IllegalStateException( e );
+        }
+    }
+
+    public static AppConfig defaultConfig()
+    {
+        return DEFAULT_CONFIG.get();
+    }
 
     public AppConfig( final StoredConfiguration storedConfiguration )
     {
@@ -89,6 +108,23 @@ public class AppConfig implements SettingReader
     public Map<DomainID, DomainConfig> getDomainConfigs()
     {
         return domainConfigMap;
+    }
+
+
+    public DomainID getAdminDomainID()
+            throws PwmUnrecoverableException
+    {
+        return getDomainConfigs().values().stream()
+                .filter( DomainConfig::isAdministrativeDomain )
+                .findFirst()
+                .map( DomainConfig::getDomainID )
+                .orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "administrative domain is not defined" ) );
+    }
+
+    public DomainConfig getAdminDomain()
+            throws PwmUnrecoverableException
+    {
+        return getDomainConfigs().get( getAdminDomainID() );
     }
 
     public String readSettingAsString( final PwmSetting pwmSetting )

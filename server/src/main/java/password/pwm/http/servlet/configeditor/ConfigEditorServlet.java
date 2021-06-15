@@ -878,14 +878,25 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
-        final String profile = inputMap.get( LdapBrowser.PARAM_PROFILE );
-        final String dn = inputMap.getOrDefault( LdapBrowser.PARAM_DN, "" );
+
+        final StoredConfiguration storedConfiguration = configManagerBean.getStoredConfiguration();
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForDomainSetting(  );
+
+        final String profile;
+        {
+            final String selectedProfile = inputMap.get( LdapBrowser.PARAM_PROFILE );
+            final AppConfig appConfig = new AppConfig( storedConfiguration );
+            final DomainConfig domainConfig = appConfig.getDomainConfigs().getOrDefault( domainID, AppConfig.defaultConfig().getAdminDomain() );
+            profile = domainConfig.getLdapProfiles().containsKey( selectedProfile )
+                    ? selectedProfile
+                    : domainConfig.getLdapProfiles().keySet().iterator().next();
+        }
+        final String dn = inputMap.getOrDefault( LdapBrowser.PARAM_DN, "" );
 
         final LdapBrowser ldapBrowser = new LdapBrowser(
                 pwmRequest.getLabel(),
                 pwmRequest.getPwmDomain().getLdapConnectionService().getChaiProviderFactory(),
-                configManagerBean.getStoredConfiguration()
+                storedConfiguration
         );
 
         LdapBrowser.LdapBrowseResult result;
