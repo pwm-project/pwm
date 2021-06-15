@@ -49,14 +49,14 @@ class LdapGroupTypeHelper implements PermissionTypeHelper
             throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
-        final String groupDN = userPermission.getLdapQuery();
+        final String groupDN = userPermission.getLdapBase();
 
         if ( userIdentity == null )
         {
             return false;
         }
 
-        LOGGER.trace( sessionLabel, () -> "begin check for ldapGroup match for " + userIdentity + " using queryMatch: " + groupDN );
+        LOGGER.trace( sessionLabel, () -> "begin check for ldapGroup match for " + userIdentity + " using groupMatch: " + groupDN );
 
         boolean result = false;
         if ( StringUtil.isEmpty( groupDN ) )

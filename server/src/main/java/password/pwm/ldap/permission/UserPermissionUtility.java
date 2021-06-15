@@ -178,9 +178,10 @@ public class UserPermissionUtility
         }
 
         final List<UserIdentity> strippedResults = stripUserMatchesOutsideUserContexts( sessionLabel, pwmApplication, resultSet );
-        final List<UserIdentity> sortedResults = new ArrayList<>( strippedResults );
-        Collections.sort( sortedResults );
-        return Collections.unmodifiableList( sortedResults );
+        return strippedResults.stream()
+                .distinct()
+                .sorted()
+                .collect( Collectors.toUnmodifiableList() );
     }
 
     static String profileIdForPermission( final UserPermission userPermission )

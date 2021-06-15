@@ -106,7 +106,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
 
         validateUserPermissionLdapValues( tempApplication, permissions );
 
-        final int maxSearchSeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.CONFIG_EDITOR_USER_PERMISSION_TIMEOUT_SECONDS ) );
+        final long maxSearchSeconds = config.getLdapProfiles().getOrDefault( profile, config.getDefaultLdapProfile() ).readSettingAsLong( PwmSetting.LDAP_SEARCH_TIMEOUT );
         final TimeDuration maxSearchTime = TimeDuration.of( maxSearchSeconds, TimeDuration.Unit.SECONDS );
         return UserPermissionUtility.discoverMatchingUsers( tempApplication, permissions, SessionLabel.SYSTEM_LABEL, maxResultSize, maxSearchTime );
     }
