@@ -302,7 +302,9 @@ public class RequestInitializationFilter implements Filter
     private void checkIfSessionRecycleNeeded( final PwmRequest pwmRequest )
     {
         if ( pwmRequest.getPwmSession().getSessionStateBean().isSessionIdRecycleNeeded()
-                && !pwmRequest.getURL().isResourceURL() )
+                && !pwmRequest.getURL().isResourceURL()
+                && !pwmRequest.getURL().isClientApiServlet()
+        )
         {
             if ( pwmRequest.getConfig().readBooleanAppProperty( AppProperty.HTTP_SESSION_RECYCLE_AT_AUTH ) )
             {
