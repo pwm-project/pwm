@@ -23,7 +23,6 @@ package password.pwm.ldap.permission;
 import com.novell.ldapchai.util.StringHelper;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.LdapProfile;
@@ -34,7 +33,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
-import password.pwm.util.java.QueueBackedIterator;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -42,11 +40,9 @@ import password.pwm.util.logging.PwmLogger;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class UserPermissionUtility
@@ -61,14 +57,14 @@ public class UserPermissionUtility
             throws PwmUnrecoverableException
     {
         return testUserPermission(
-                pwmRequestContext.getPwmDomain(),
+                pwmRequestContext.getPwmApplication(),
                 pwmRequestContext.getSessionLabel(),
                 userIdentity,
                 Collections.singletonList( userPermissions ) );
     }
 
     public static boolean testUserPermission(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final List<UserPermission> userPermissions
@@ -85,7 +81,7 @@ public class UserPermissionUtility
 
         for ( final UserPermission userPermission : sortedList )
         {
-            if ( testUserPermission( pwmDomain, sessionLabel, userIdentity, userPermission ) )
+            if ( testUserPermission( pwmApplication, sessionLabel, userIdentity, userPermission ) )
             {
                 return true;
             }
@@ -105,7 +101,7 @@ public class UserPermissionUtility
     }
 
     private static boolean testUserPermission(
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final UserPermission userPermission
@@ -124,7 +120,7 @@ public class UserPermissionUtility
 
         final PermissionTypeHelper permissionTypeHelper = userPermission.getType().getPermissionTypeTester();
         final Instant startTime = Instant.now();
-        final boolean match = permissionTypeHelper.testMatch( pwmDomain, sessionLabel, userIdentity, userPermission );
+        final boolean match = permissionTypeHelper.testMatch( pwmApplication, sessionLabel, userIdentity, userPermission );
         LOGGER.debug( sessionLabel, () -> "user " + userIdentity.toDisplayString() + " is "
                         + ( match ? "" : "not " )
                         + "a match for permission '" + userPermission + "'",
@@ -132,8 +128,8 @@ public class UserPermissionUtility
         return match;
     }
 
-    public static Iterator<UserIdentity> discoverMatchingUsers(
-            final PwmDomain pwmDomain,
+    public static List<UserIdentity> discoverMatchingUsers(
+            final PwmApplication pwmApplication,
             final List<UserPermission> userPermissions,
             final SessionLabel sessionLabel,
             final int maxResultSize,
@@ -143,13 +139,13 @@ public class UserPermissionUtility
     {
         if ( userPermissions == null )
         {
-            return Collections.emptyIterator();
+            return Collections.emptyList();
         }
 
         final List<UserPermission> sortedPermissions = new ArrayList<>( userPermissions );
         Collections.sort( sortedPermissions );
 
-        final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
+        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
         final List<UserIdentity> resultSet = new ArrayList<>();
 
         for ( final UserPermission userPermission : sortedPermissions )
@@ -181,20 +177,23 @@ public class UserPermissionUtility
             }
         }
 
-        final List<UserIdentity> strippedResults = stripUserMatchesOutsideUserContexts( sessionLabel, pwmDomain.getPwmApplication(), resultSet );
-        return new QueueBackedIterator<>( strippedResults );
+        final List<UserIdentity> strippedResults = stripUserMatchesOutsideUserContexts( sessionLabel, pwmApplication, resultSet );
+        return strippedResults.stream()
+                .distinct()
+                .sorted()
+                .collect( Collectors.toUnmodifiableList() );
     }
 
-    static Optional<String> profileIdForPermission( final UserPermission userPermission )
+    static String profileIdForPermission( final UserPermission userPermission )
     {
         if ( userPermission.getLdapProfileID() != null
                 && !userPermission.getLdapProfileID().isEmpty()
                 && !userPermission.getLdapProfileID().equals( PwmConstants.PROFILE_ID_ALL ) )
         {
-            return Optional.of( userPermission.getLdapProfileID() );
+            return userPermission.getLdapProfileID();
         }
 
-        return Optional.empty();
+        return null;
     }
 
     public static void validatePermissionSyntax( final UserPermission userPermission )
@@ -241,16 +240,14 @@ public class UserPermissionUtility
     )
     {
         final String ldapProfileID = userIdentity.getLdapProfileID();
-        final PwmDomain pwmDomain = pwmApplication.domains().get( userIdentity.getDomainID() );
-        final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( ldapProfileID );
-
+        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get( ldapProfileID );
         try
         {
-            final List<String> rootContexts = ldapProfile.getRootContexts( sessionLabel, pwmDomain );
+            final List<String> rootContexts = ldapProfile.getRootContexts( pwmApplication );
 
             for ( final String rootContext : rootContexts )
             {
-                if ( testBaseDnMatch( sessionLabel, pwmDomain, rootContext, userIdentity ) )
+                if ( testBaseDnMatch( pwmApplication, rootContext, userIdentity ) )
                 {
                     return true;
                 }
@@ -269,8 +266,7 @@ public class UserPermissionUtility
     }
 
     static boolean testBaseDnMatch(
-            final SessionLabel sessionLabel,
-            final PwmDomain pwmDomain,
+            final PwmApplication pwmApplication,
             final String canonicalBaseDN,
             final UserIdentity userIdentity
     )
@@ -281,7 +277,7 @@ public class UserPermissionUtility
             return false;
         }
 
-        final String userDN = userIdentity.canonicalized( sessionLabel, pwmDomain.getPwmApplication() ).getUserDN();
+        final String userDN = userIdentity.canonicalized( pwmApplication ).getUserDN();
         return userDN.endsWith( canonicalBaseDN );
     }
 
