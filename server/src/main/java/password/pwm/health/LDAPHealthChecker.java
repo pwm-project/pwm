@@ -984,28 +984,29 @@ public class LDAPHealthChecker implements HealthSupplier
                         return Collections.emptyList();
                     }
                 }
-
-                final UserIdentity newUserTemplateIdentity = UserIdentity.create( policyUserStr, ldapProfile.getIdentifier(), pwmDomain.getDomainID() );
-
-                final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( sessionLabel, newUserTemplateIdentity );
-
-                try
+                else
                 {
-                    if ( !chaiUser.exists() )
+                    final UserIdentity newUserTemplateIdentity = UserIdentity.create( policyUserStr, ldapProfile.getIdentifier(), pwmDomain.getDomainID() );
+                    final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( sessionLabel, newUserTemplateIdentity );
+
+                    try
                     {
-                        return Collections.singletonList(
-                                HealthRecord.forMessage(
-                                        pwmDomain.getDomainID(),
-                                        HealthMessage.NewUser_PwTemplateBad,
-                                        PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( newUserProfile.getIdentifier(), locale ),
-                                        "userDN value is not valid"
-                                )
-                        );
+                        if ( !chaiUser.exists() )
+                        {
+                            return Collections.singletonList(
+                                    HealthRecord.forMessage(
+                                            pwmDomain.getDomainID(),
+                                            HealthMessage.NewUser_PwTemplateBad,
+                                            PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( newUserProfile.getIdentifier(), locale ),
+                                            "userDN value is not valid"
+                                    )
+                            );
+                        }
                     }
-                }
-                catch ( final ChaiUnavailableException e )
-                {
-                    throw PwmUnrecoverableException.fromChaiException( e );
+                    catch ( final ChaiUnavailableException e )
+                    {
+                        throw PwmUnrecoverableException.fromChaiException( e );
+                    }
                 }
             }
             catch ( final PwmUnrecoverableException e )

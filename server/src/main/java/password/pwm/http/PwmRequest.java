@@ -160,6 +160,15 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     private SessionLabel makeSessionLabel( )
     {
+        if ( getHttpServletRequest().getSession( false ) == null )
+        {
+            // in case session does not exist, invoked for some non-servlet requests such as logging
+            return SessionLabel.builder()
+                    .domain( domainID.stringValue() )
+                    .build();
+        }
+
+        // nominal case
         return getPwmSession().getLabel().toBuilder()
                 .requestID( pwmRequestID.toString() )
                 .build();

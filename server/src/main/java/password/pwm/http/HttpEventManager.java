@@ -179,8 +179,11 @@ public class HttpEventManager implements
         debugItems.put( "requests", sessionStateBean.getRequestCount().toString() );
         final Instant startTime = sessionStateBean.getSessionCreationTime();
         final Instant lastAccessedTime = sessionStateBean.getSessionLastAccessedTime();
-        final TimeDuration timeDuration = TimeDuration.between( startTime, lastAccessedTime );
-        debugItems.put( "firstToLastRequestInterval", timeDuration.asCompactString() );
+        if ( startTime != null && lastAccessedTime != null )
+        {
+            final TimeDuration timeDuration = TimeDuration.between( startTime, lastAccessedTime );
+            debugItems.put( "firstToLastRequestInterval", timeDuration.asCompactString() );
+        }
         final TimeDuration avgReqDuration =  sessionStateBean.getAvgRequestDuration().getAverageAsDuration();
         debugItems.put( "avgRequestDuration", avgReqDuration.asCompactString() );
         return StringHelper.stringMapToString( debugItems, "," );

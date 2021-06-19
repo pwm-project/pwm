@@ -43,6 +43,7 @@ import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmSessionFactory;
 import password.pwm.http.PwmURL;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
@@ -70,12 +71,14 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class RequestInitializationFilter implements Filter
 {
@@ -118,13 +121,23 @@ public class RequestInitializationFilter implements Filter
 
         final PwmURL pwmURL = PwmURL.create( req, localPwmApplication.getConfig() );
 
-        if ( pwmURL.isResourceURL() )
+        if ( pwmURL.isRestService() )
         {
             filterChain.doFilter( req, resp );
             return;
         }
 
-        if ( pwmURL.isRestService() )
+        try
+        {
+            // for servlet requests make sure the session is initialized
+            req.getSession( true );
+        }
+        catch ( final Exception e )
+        {
+            LOGGER.trace( () -> "error reading session for servlet request: " + e.getMessage() );
+        }
+
+        if ( pwmURL.isResourceURL() )
         {
             filterChain.doFilter( req, resp );
             return;
@@ -311,11 +324,14 @@ public class RequestInitializationFilter implements Filter
         }
     }
 
+    private static final List<PwmServletDefinition> NON_API_SERVLETS = Arrays.stream( PwmServletDefinition.values() )
+            .filter( definition -> definition != PwmServletDefinition.ClientApi )
+            .collect( Collectors.toList() );
+
     private void checkIfSessionRecycleNeeded( final PwmRequest pwmRequest )
     {
         if ( pwmRequest.getPwmSession().getSessionStateBean().isSessionIdRecycleNeeded()
-                && !pwmRequest.getURL().isResourceURL()
-                && !pwmRequest.getURL().isClientApiServlet()
+                && pwmRequest.getURL().matches( NON_API_SERVLETS )
         )
         {
             if ( pwmRequest.getAppConfig().readBooleanAppProperty( AppProperty.HTTP_SESSION_RECYCLE_AT_AUTH ) )
