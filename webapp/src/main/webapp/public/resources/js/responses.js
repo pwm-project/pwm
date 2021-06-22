@@ -100,7 +100,7 @@ PWM_RESPONSES.makeSelectOptionsDistinct=function() {
         var selectedIndex = selectedElement.selectedIndex;
         var selectedValue = selectedElement.options[selectedIndex].value;
         var responseID = selectedElement.getAttribute('data-response-id');
-        selectedElement.innerHTML = '';
+        selectedElement.innerHTML = '<optgroup></optgroup>';
         if (selectedValue === 'UNSELECTED') {
             var unselectedOption = document.createElement('option');
             unselectedOption.value = 'UNSELECTED';
