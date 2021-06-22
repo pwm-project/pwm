@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,6 @@ public enum AppProperty
     CONFIG_JBCRYPT_PWLIB_ENABLE                     ( "config.enableJbCryptPwLibrary" ),
     CONFIG_EDITOR_BLOCK_OLD_IE                      ( "configEditor.blockOldIE" ),
     CONFIG_EDITOR_USER_PERMISSION_MATCH_LIMIT       ( "configEditor.userPermission.matchResultsLimit" ),
-    CONFIG_EDITOR_USER_PERMISSION_TIMEOUT_SECONDS   ( "configEditor.userPermission.matchTimeoutSeconds" ),
     CONFIG_EDITOR_IDLE_TIMEOUT                      ( "configEditor.idleTimeoutSeconds" ),
     CONFIG_GUIDE_IDLE_TIMEOUT                       ( "configGuide.idleTimeoutSeconds" ),
     CONFIG_MANAGER_ZIPDEBUG_MAXLOGBYTES             ( "configManager.zipDebug.maxLogBytes" ),
@@ -131,6 +130,7 @@ public enum AppProperty
     HTTP_CLIENT_CONNECT_TIMEOUT_MS                  ( "http.client.connectTimeoutMs" ),
     HTTP_CLIENT_REQUEST_TIMEOUT_MS                  ( "http.client.requestTimeoutMs" ),
     HTTP_CLIENT_RESPONSE_MAX_SIZE                   ( "http.client.response.maxSize" ),
+    HTTP_CLIENT_IMPLEMENTATION                      ( "http.client.implementation" ),
     HTTP_CLIENT_ENABLE_HOSTNAME_VERIFICATION        ( "http.client.enableHostnameVerification" ),
     HTTP_CLIENT_PROMISCUOUS_WORDLIST_ENABLE         ( "http.client.promiscuous.wordlist.enable" ),
     HTTP_ENABLE_GZIP                                ( "http.gzip.enable" ),
@@ -381,6 +381,7 @@ public enum AppProperty
     WORDLIST_IMPORT_LINE_COMMENTS                   ( "wordlist.import.lineComments" ),
     WORDLIST_INSPECTOR_FREQUENCY_SECONDS            ( "wordlist.inspector.frequencySeconds" ),
     WORDLIST_TEST_MODE                              ( "wordlist.testMode" ),
+    WORDLIST_BUCKET_CHECK_TIME_WARNING_MS           ( "wordlist.bucket.checkTimeWarningMs" ),
     WS_REST_CLIENT_PWRULE_HALTONERROR               ( "ws.restClient.pwRule.haltOnError" ),
     WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS     ( "ws.restServer.signing.form.timeoutSeconds" ),
     WS_REST_SERVER_STATISTICS_DEFAULT_HISTORY       ( "ws.restServer.statistics.defaultHistoryDays" ),

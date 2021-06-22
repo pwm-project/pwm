@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -67,10 +67,10 @@
             <td><b>Version</b></td>
             <td><b>Count</b></td>
         </tr>
-        <% for (final String version : summaryBean.getSsprVersionCount().keySet()) { %>
+        <% for (final String version : summaryBean.getAppVersionCount().keySet()) { %>
         <tr>
             <td><%=version%></td>
-            <td><%=summaryBean.getSsprVersionCount().get(version)%></td>
+            <td><%=summaryBean.getAppVersionCount().get(version)%></td>
         </tr>
         <% } %>
     </table>
