@@ -33,7 +33,6 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 
-import java.io.IOException;
 import java.util.Optional;
 
 public class RestUtility
@@ -44,7 +43,7 @@ public class RestUtility
     }
 
     public static <T> T deserializeJsonBody( final RestRequest restRequest, final Class<T> classOfT, final Flag... flags )
-            throws IOException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         try
         {
@@ -156,7 +155,7 @@ public class RestUtility
         optional
     }
 
-    public static String readValueFromJsonAndParam(
+    public static Optional<String> readValueFromJsonAndParam(
             final String jsonValue,
             final String paramValue,
             final String paramName,
@@ -168,7 +167,7 @@ public class RestUtility
         {
             if ( JavaHelper.enumArrayContainsValue( flags, ReadValueFlag.optional ) )
             {
-                return null;
+                return Optional.empty();
             }
             final String msg = paramName + " parameter is not specified";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, msg, new String[]
@@ -185,9 +184,9 @@ public class RestUtility
         }
         else if ( StringUtil.notEmpty( jsonValue ) )
         {
-            return jsonValue;
+            return Optional.of( jsonValue );
         }
 
-        return paramValue;
+        return Optional.of( paramValue );
     }
 }

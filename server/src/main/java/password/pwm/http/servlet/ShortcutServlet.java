@@ -53,6 +53,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @WebServlet(
@@ -79,17 +80,10 @@ public class ShortcutServlet extends AbstractPwmServlet
     }
 
     @Override
-    protected ShortcutAction readProcessAction( final PwmRequest request )
+    protected Optional<ShortcutAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        try
-        {
-            return ShortcutAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
-        }
-        catch ( final IllegalArgumentException e )
-        {
-            return null;
-        }
+        return JavaHelper.readEnumFromString( ShortcutAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
     @Override
@@ -116,18 +110,18 @@ public class ShortcutServlet extends AbstractPwmServlet
             LOGGER.trace( pwmRequest, () -> "using cashed shortcut values" );
         }
 
-        final ShortcutAction action = readProcessAction( pwmRequest );
-        if ( action != null )
+        final Optional<ShortcutAction> action = readProcessAction( pwmRequest );
+        if ( action.isPresent() )
         {
             pwmRequest.validatePwmFormID();
-            switch ( action )
+            switch ( action.get() )
             {
                 case selectShortcut:
                     handleUserSelection( pwmRequest, shortcutsBean );
                     return;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( action );
+                    JavaHelper.unhandledSwitchStatement( action.get() );
             }
         }
 

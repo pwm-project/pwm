@@ -70,6 +70,7 @@ import password.pwm.util.password.RandomPasswordGenerator;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -143,11 +144,12 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             }
             else
             {
-                userPassword = setTempUserPassword();
-                if ( userPassword != null )
+                final Optional<PasswordData> readPassword = setTempUserPassword();
+                if ( readPassword.isPresent() )
                 {
                     strategy = AuthenticationStrategy.WRITE_THEN_BIND;
                 }
+                userPassword = setTempUserPassword().orElse( null );
             }
         }
 
@@ -437,20 +439,20 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             {
                 final String errorMsg = "intruder lockout detected for user " + userIdentity + " marking session as locked out: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTRUDER_LDAP, errorMsg );
-                log( PwmLogLevel.WARN, () -> errorInformation.toDebugStr() );
+                log( PwmLogLevel.WARN, errorInformation::toDebugStr );
                 throw new PwmUnrecoverableException( errorInformation );
             }
-            final PwmError pwmError = PwmError.forChaiError( e.getErrorCode() );
+            final Optional<PwmError> pwmError = PwmError.forChaiError( e.getErrorCode() );
             final ErrorInformation errorInformation;
-            if ( pwmError != null && PwmError.ERROR_INTERNAL != pwmError )
+            if ( pwmError.isPresent() && PwmError.ERROR_INTERNAL != pwmError.get() )
             {
-                errorInformation = new ErrorInformation( pwmError, e.getMessage() );
+                errorInformation = new ErrorInformation( pwmError.get(), e.getMessage() );
             }
             else
             {
                 errorInformation = new ErrorInformation( PwmError.ERROR_WRONGPASSWORD, "ldap error during password check: " + e.getMessage() );
             }
-            log( PwmLogLevel.DEBUG, () -> errorInformation.toDebugStr() );
+            log( PwmLogLevel.DEBUG, errorInformation::toDebugStr );
             throw new PwmOperationalException( errorInformation );
         }
         finally
@@ -477,7 +479,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
         return LdapOperationsHelper.readLdapPassword( pwmDomain, sessionLabel, userIdentity );
     }
 
-    private PasswordData setTempUserPassword(
+    private Optional<PasswordData> setTempUserPassword(
     )
             throws ChaiUnavailableException, ImpossiblePasswordPolicyException, PwmUnrecoverableException
     {
@@ -525,9 +527,10 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_BAD_SESSION_PASSWORD, errorStr ) );
             }
 
-            return currentPass;
+            return Optional.of( currentPass );
         }
-        return null;
+
+        return Optional.empty();
     }
 
     private String oraclePreTemporaryPwHandler(

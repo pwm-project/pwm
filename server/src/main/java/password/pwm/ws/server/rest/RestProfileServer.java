@@ -39,9 +39,9 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.servlet.updateprofile.UpdateProfileUtil;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.FormMap;
@@ -61,7 +61,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 @WebServlet(
@@ -178,19 +177,14 @@ public class RestProfileServer extends RestServlet
     private static UpdateProfileProfile getProfile( final RestRequest restRequest, final TargetUserIdentity targetUserIdentity )
         throws PwmUnrecoverableException
     {
-        final Optional<String> updateProfileID = ProfileUtility.discoverProfileIDForUser(
+        final String updateProfileID = ProfileUtility.discoverProfileIDForUser(
             restRequest.getDomain(),
             restRequest.getSessionLabel(),
             targetUserIdentity.getUserIdentity(),
             ProfileDefinition.UpdateAttributes
-        );
+        ).orElseThrow( () -> new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED ) );
 
-        if ( !updateProfileID.isPresent() )
-        {
-            throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
-        }
-
-        return restRequest.getDomain().getConfig().getUpdateAttributesProfile().get( updateProfileID.get() );
+        return restRequest.getDomain().getConfig().getUpdateAttributesProfile().get( updateProfileID );
     }
 
     private static RestResultBean doPostProfileDataImpl(
@@ -203,7 +197,7 @@ public class RestProfileServer extends RestServlet
                 jsonInput.getUsername(),
                 restRequest.readParameterAsString( FIELD_USERNAME ),
                 FIELD_USERNAME, RestUtility.ReadValueFlag.optional
-        );
+        ).orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_FIELD_REQUIRED, FIELD_USERNAME ) );
 
         final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 

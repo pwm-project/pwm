@@ -43,18 +43,18 @@ public interface PwmHttpClient extends AutoCloseable
             PwmHttpClientRequest clientRequest,
             SessionLabel sessionLabel
     )
-                    throws PwmUnrecoverableException;
+            throws PwmUnrecoverableException;
 
     InputStream streamForUrl( String inputUrl )
-                            throws IOException, PwmUnrecoverableException;
+            throws IOException, PwmUnrecoverableException;
 
     List<X509Certificate> readServerCertificates()
-                                    throws PwmUnrecoverableException;
+            throws PwmUnrecoverableException;
 
     static List<X509Certificate> readServerCertificates( final TrustManager[] trustManagers )
             throws PwmUnrecoverableException
     {
-        final List<X509Certificate> returnList = new ArrayList<>(  );
+        final List<X509Certificate> returnList = new ArrayList<>();
         if ( trustManagers != null )
         {
             for ( final TrustManager trustManager : trustManagers )

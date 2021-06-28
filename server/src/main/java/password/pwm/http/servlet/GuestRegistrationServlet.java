@@ -41,6 +41,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
@@ -56,7 +57,6 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.FormMap;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -77,6 +77,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -92,7 +93,7 @@ import java.util.Set;
                 PwmConstants.URL_PREFIX_PRIVATE + "/GuestRegistration",
         }
 )
-public class GuestRegistrationServlet extends AbstractPwmServlet
+public class GuestRegistrationServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( GuestRegistrationServlet.class );
 
@@ -120,81 +121,67 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
     }
 
     @Override
-    protected GuestRegistrationAction readProcessAction( final PwmRequest request )
-            throws PwmUnrecoverableException
+    public Class<? extends ProcessAction> getProcessActionsClass()
     {
-        try
-        {
-            return GuestRegistrationAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
-        }
-        catch ( final IllegalArgumentException e )
-        {
-            return null;
-        }
+        return GuestRegistrationAction.class;
     }
-
 
     @Override
-    protected void processAction( final PwmRequest pwmRequest )
-            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
+    protected PwmServletDefinition getServletDefinition()
     {
-        //Fetch the session state bean.
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        final GuestRegistrationBean guestRegistrationBean = pwmDomain.getSessionStateService().getBean( pwmRequest, GuestRegistrationBean.class );
-
-        final DomainConfig config = pwmDomain.getConfig();
-
-        if ( !config.readSettingAsBoolean( PwmSetting.GUEST_ENABLE ) )
-        {
-            pwmRequest.respondWithError( PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo() );
-            return;
-        }
-
-        if ( !pwmSession.getSessionManager().checkPermission( pwmDomain, Permission.GUEST_REGISTRATION ) )
-        {
-            pwmRequest.respondWithError( PwmError.ERROR_UNAUTHORIZED.toInfo() );
-            return;
-        }
-
-        checkConfiguration( config );
-
-        final GuestRegistrationAction action = readProcessAction( pwmRequest );
-        if ( action != null )
-        {
-            pwmRequest.validatePwmFormID();
-            switch ( action )
-            {
-                case create:
-                    handleCreateRequest( pwmRequest, guestRegistrationBean );
-                    return;
-
-                case search:
-                    handleSearchRequest( pwmRequest, guestRegistrationBean );
-                    return;
-
-                case update:
-                    handleUpdateRequest( pwmRequest, guestRegistrationBean );
-                    return;
-
-                case selectPage:
-                    handleSelectPageRequest( pwmRequest, guestRegistrationBean );
-                    return;
-
-                default:
-                    JavaHelper.unhandledSwitchStatement( action );
-            }
-        }
-
-        this.forwardToJSP( pwmRequest, guestRegistrationBean );
+        return PwmServletDefinition.GuestRegistration;
     }
 
-    protected void handleSelectPageRequest(
-            final PwmRequest pwmRequest,
-            final GuestRegistrationBean guestRegistrationBean
+    @Override
+    public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
+    {
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.GUEST_ENABLE ) )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation(
+                    PwmError.ERROR_SERVICE_NOT_AVAILABLE,
+                    "Setting "
+                            + PwmSetting.GUEST_ENABLE.toMenuLocationDebug( null, null ) + " is not enabled." )
+            );
+        }
+
+        if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmDomain, Permission.GUEST_REGISTRATION ) )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNAUTHORIZED ) );
+        }
+
+        checkConfiguration( pwmDomain.getConfig() );
+
+        return ProcessStatus.Continue;
+    }
+
+    @Override
+    protected Optional<? extends ProcessAction> readProcessAction( final PwmRequest request )
+            throws PwmUnrecoverableException
+    {
+        return super.readProcessAction( request );
+    }
+
+    @Override
+    protected void nextStep( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+    {
+        this.forwardToJSP( pwmRequest );
+    }
+
+    private GuestRegistrationBean getBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    {
+        return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, GuestRegistrationBean.class );
+    }
+
+    @ActionHandler( action = "selectPage" )
+    protected ProcessStatus handleSelectPageRequest(
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException
     {
+        final GuestRegistrationBean guestRegistrationBean = getBean( pwmRequest );
         final String requestedPage = pwmRequest.readParameterAsString( "page" );
         try
         {
@@ -204,18 +191,17 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         {
             LOGGER.error( pwmRequest, () -> "unknown page select request: " + requestedPage );
         }
-        this.forwardToJSP( pwmRequest, guestRegistrationBean );
+        return ProcessStatus.Continue;
     }
 
-
-    protected void handleUpdateRequest(
-            final PwmRequest pwmRequest,
-            final GuestRegistrationBean guestRegistrationBean
+    @ActionHandler( action = "update" )
+    protected ProcessStatus handleUpdateRequest(
+            final PwmRequest pwmRequest
 
     )
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {
-        //Fetch the session state bean.
+        final GuestRegistrationBean guestRegistrationBean = getBean( pwmRequest );
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
@@ -270,7 +256,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
             //everything good so forward to confirmation page.
             pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_UpdateGuest );
-            return;
+            return ProcessStatus.Halt;
         }
         catch ( final PwmOperationalException e )
         {
@@ -283,7 +269,8 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             LOGGER.error( pwmRequest, info );
             setLastError( pwmRequest, info );
         }
-        this.forwardToUpdateJSP( pwmRequest, guestRegistrationBean );
+        this.forwardToUpdateJSP( pwmRequest );
+        return ProcessStatus.Halt;
     }
 
     private void sendUpdateGuestEmailConfirmation(
@@ -305,9 +292,9 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         pwmRequest.getPwmApplication().getEmailQueue().submitEmail( configuredEmailSetting, guestUserInfo, null );
     }
 
-    protected void handleSearchRequest(
-            final PwmRequest pwmRequest,
-            final GuestRegistrationBean guestRegistrationBean
+    @ActionHandler( action = "search" )
+    protected ProcessStatus handleSearchRequest(
+            final PwmRequest pwmRequest
     )
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {
@@ -365,7 +352,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
                             final ErrorInformation info = new ErrorInformation( PwmError.ERROR_ORIG_ADMIN_ONLY );
                             setLastError( pwmRequest, info );
                             LOGGER.error( pwmRequest, info );
-                            this.forwardToJSP( pwmRequest, guestRegistrationBean );
+                            this.forwardToJSP( pwmRequest );
                         }
                     }
                 }
@@ -391,8 +378,8 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
                 guBean.setUpdateUserIdentity( theGuest );
 
-                this.forwardToUpdateJSP( pwmRequest, guestRegistrationBean );
-                return;
+                this.forwardToUpdateJSP( pwmRequest );
+                return ProcessStatus.Halt;
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -403,16 +390,16 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         {
             final ErrorInformation error = e.getErrorInformation();
             setLastError( pwmRequest, error );
-            this.forwardToJSP( pwmRequest, guestRegistrationBean );
-            return;
+            this.forwardToJSP( pwmRequest );
+            return ProcessStatus.Halt;
         }
-        this.forwardToJSP( pwmRequest, guestRegistrationBean );
+        this.forwardToJSP( pwmRequest );
+        return ProcessStatus.Halt;
     }
 
-
-    private void handleCreateRequest(
-            final PwmRequest pwmRequest,
-            final GuestRegistrationBean guestRegistrationBean
+    @ActionHandler( action = "create" )
+    private ProcessStatus handleCreateRequest(
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
@@ -519,14 +506,15 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             final ErrorInformation info = new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE, "error creating user: " + e.getMessage() );
             setLastError( pwmRequest, info );
             LOGGER.error( pwmRequest, info );
-            this.forwardToJSP( pwmRequest, guestRegistrationBean );
+            this.forwardToJSP( pwmRequest );
         }
         catch ( final PwmOperationalException e )
         {
             LOGGER.error( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
             setLastError( pwmRequest, e.getErrorInformation() );
-            this.forwardToJSP( pwmRequest, guestRegistrationBean );
+            this.forwardToJSP( pwmRequest );
         }
+        return ProcessStatus.Halt;
     }
 
     private static Instant readExpirationFromRequest(
@@ -624,11 +612,11 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
     }
 
     private void forwardToJSP(
-            final PwmRequest pwmRequest,
-            final GuestRegistrationBean guestRegistrationBean
+            final PwmRequest pwmRequest
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
+        final GuestRegistrationBean guestRegistrationBean = getBean( pwmRequest );
         calculateFutureDateFlags( pwmRequest, guestRegistrationBean );
         if ( Page.search == guestRegistrationBean.getCurrentPage() )
         {
@@ -643,11 +631,11 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
     }
 
     private void forwardToUpdateJSP(
-            final PwmRequest pwmRequest,
-            final GuestRegistrationBean guestRegistrationBean
+            final PwmRequest pwmRequest
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
+        final GuestRegistrationBean guestRegistrationBean = getBean( pwmRequest );
         calculateFutureDateFlags( pwmRequest, guestRegistrationBean );
         final List<FormConfiguration> guestUpdateForm = pwmRequest.getDomainConfig().readSettingAsForm( PwmSetting.GUEST_UPDATE_FORM );
         final Map<FormConfiguration, String> formValueMap = new LinkedHashMap<>();

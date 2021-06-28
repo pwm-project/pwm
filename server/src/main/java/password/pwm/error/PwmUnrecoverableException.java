@@ -61,7 +61,8 @@ public class PwmUnrecoverableException extends PwmException
         }
         else
         {
-            errorInformation = new ErrorInformation( PwmError.forChaiError( e.getErrorCode() ), e.getMessage() );
+            errorInformation = new ErrorInformation( PwmError.forChaiError( e.getErrorCode() )
+                    .orElse( PwmError.ERROR_INTERNAL ), e.getMessage() );
         }
         return new PwmUnrecoverableException( errorInformation );
     }

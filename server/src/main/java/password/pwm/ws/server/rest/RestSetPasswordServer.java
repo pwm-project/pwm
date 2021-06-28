@@ -111,19 +111,19 @@ public class RestSetPasswordServer extends RestServlet
                             restRequest.readParameterAsString( FIELD_USERNAME ),
                             FIELD_USERNAME,
                             RestUtility.ReadValueFlag.optional
-                    ),
+                    ).orElse( null ),
                     RestUtility.readValueFromJsonAndParam(
                             jsonBody == null ? null : jsonBody.getPassword(),
                             restRequest.readParameterAsString( FIELD_PASSWORD ),
                             FIELD_PASSWORD,
                             RestUtility.ReadValueFlag.optional
-                    ),
+                    ).orElse( null ),
                     Boolean.parseBoolean( RestUtility.readValueFromJsonAndParam(
                             jsonBody == null ? "" : String.valueOf( jsonBody.isRandom() ),
                             restRequest.readParameterAsString( FIELD_RANDOM ),
                             FIELD_RANDOM,
                             RestUtility.ReadValueFlag.optional
-                    ) )
+                    ).orElse( null ) )
             );
         }
 

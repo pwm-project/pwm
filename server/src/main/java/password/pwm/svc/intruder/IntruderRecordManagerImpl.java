@@ -35,6 +35,8 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 
+import java.util.Optional;
+
 class IntruderRecordManagerImpl implements IntruderRecordManager
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( IntruderRecordManagerImpl.class );
@@ -69,16 +71,18 @@ class IntruderRecordManagerImpl implements IntruderRecordManager
             throw new IllegalArgumentException( "subject is required value" );
         }
 
-        final IntruderRecord record = readIntruderRecord( subject );
-        if ( record == null )
+        final Optional<IntruderRecord> record = readIntruderRecord( subject );
+        if ( record.isEmpty() )
         {
             return false;
         }
-        if ( TimeDuration.fromCurrent( record.getTimeStamp() ).isLongerThan( settings.getCheckDuration() ) )
+
+        if ( TimeDuration.fromCurrent( record.get().getTimeStamp() ).isLongerThan( settings.getCheckDuration() ) )
         {
             return false;
         }
-        if ( record.getAttemptCount() >= settings.getCheckCount() )
+
+        if ( record.get().getAttemptCount() >= settings.getCheckCount() )
         {
             return true;
         }
@@ -93,12 +97,7 @@ class IntruderRecordManagerImpl implements IntruderRecordManager
             throw new IllegalArgumentException( "subject is required value" );
         }
 
-        IntruderRecord record = readIntruderRecord( subject );
-
-        if ( record == null )
-        {
-            record = new IntruderRecord( domainID, recordType, subject );
-        }
+        IntruderRecord record = readIntruderRecord( subject ).orElse( new IntruderRecord( domainID, recordType, subject ) );
 
         final TimeDuration age = TimeDuration.fromCurrent( record.getTimeStamp() );
         if ( age.isLongerThan( settings.getCheckDuration() ) )
@@ -116,52 +115,52 @@ class IntruderRecordManagerImpl implements IntruderRecordManager
     @Override
     public void clearSubject( final String subject )
     {
-        final IntruderRecord record = readIntruderRecord( subject );
-        if ( record == null )
+        final Optional<IntruderRecord> record = readIntruderRecord( subject );
+        if ( record.isEmpty() )
         {
             return;
         }
 
-        if ( record.getAttemptCount() == 0 )
+        if ( record.get().getAttemptCount() == 0 )
         {
             return;
         }
 
-        record.clearAttemptCount();
-        writeIntruderRecord( record );
+        record.get().clearAttemptCount();
+        writeIntruderRecord( record.get() );
     }
 
     @Override
     public boolean isAlerted( final String subject )
     {
-        final IntruderRecord record = readIntruderRecord( subject );
-        return record != null && record.isAlerted();
+        final Optional<IntruderRecord> record = readIntruderRecord( subject );
+        return record.isPresent() && record.get().isAlerted();
     }
 
     @Override
     public void markAlerted( final String subject )
     {
-        final IntruderRecord record = readIntruderRecord( subject );
-        if ( record == null || record.isAlerted() )
+        final Optional<IntruderRecord> record = readIntruderRecord( subject );
+        if ( record.isEmpty() || record.get().isAlerted() )
         {
             return;
         }
-        record.setAlerted( true );
-        writeIntruderRecord( record );
+        record.get().setAlerted( true );
+        writeIntruderRecord( record.get() );
     }
 
     @Override
-    public IntruderRecord readIntruderRecord( final String subject )
+    public Optional<IntruderRecord> readIntruderRecord( final String subject )
     {
         try
         {
-            return recordStore.read( makeKey( subject ) ).orElse( null );
+            return Optional.ofNullable( recordStore.read( makeKey( subject ) ).orElse( null ) );
         }
         catch ( final PwmException e )
         {
             LOGGER.error( () -> "unable to read read intruder record from storage: " + e.getMessage() );
         }
-        return null;
+        return Optional.empty();
     }
 
     private void writeIntruderRecord( final IntruderRecord intruderRecord )

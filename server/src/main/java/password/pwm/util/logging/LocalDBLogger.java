@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -167,12 +168,12 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
     }
 
 
-    public Instant getTailDate( )
+    public Optional<Instant> getTailDate( )
     {
         final PwmLogEvent loopEvent;
         if ( localDBListQueue.isEmpty() )
         {
-            return null;
+            return Optional.empty();
         }
         try
         {
@@ -182,7 +183,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
                 final Instant tailDate = loopEvent.getTimestamp();
                 if ( tailDate != null )
                 {
-                    return tailDate;
+                    return Optional.of( tailDate );
                 }
             }
         }
@@ -191,7 +192,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
             LOGGER.error( () -> "unexpected error attempting to determine tail event timestamp: " + e.getMessage() );
         }
 
-        return null;
+        return Optional.empty();
     }
 
     private void scheduleNextFlush()
@@ -216,7 +217,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
     {
         final Map<String, String> debugData = new TreeMap<>();
         {
-            final Instant tailAge = getTailDate();
+            final Instant tailAge = getTailDate().orElse( null );
             debugData.put( "EventsTailAge", tailAge == null ? "n/a" : TimeDuration.fromCurrent( tailAge ).asCompactString() );
         }
 
@@ -280,14 +281,14 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
         }
 
         // purge the tail if it is missing or has invalid timestamp
-        final Instant tailTimestamp = getTailDate();
-        if ( tailTimestamp == null )
+        final Optional<Instant> tailTimestamp = getTailDate();
+        if ( tailTimestamp.isEmpty() )
         {
             return 1;
         }
 
         // purge excess events by age;
-        final TimeDuration tailAge = TimeDuration.fromCurrent( tailTimestamp );
+        final TimeDuration tailAge = TimeDuration.fromCurrent( tailTimestamp.get() );
         if ( tailAge.isLongerThan( settings.getMaxAge() ) )
         {
             final long maxRemovalPercentageOfSize = getStoredEventCount() / maxTrailSize;
@@ -574,10 +575,10 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
             );
         }
 
-        final Instant tailDate = getTailDate();
-        if ( tailDate != null )
+        final Optional<Instant> tailDate = getTailDate();
+        if ( tailDate.isPresent() )
         {
-            final TimeDuration timeDuration = TimeDuration.fromCurrent( tailDate );
+            final TimeDuration timeDuration = TimeDuration.fromCurrent( tailDate.get() );
             final TimeDuration maxTimeDuration = settings.getMaxAge().add( TimeDuration.HOUR );
             if ( timeDuration.isLongerThan( maxTimeDuration ) )
             {

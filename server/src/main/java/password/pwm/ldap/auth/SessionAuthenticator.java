@@ -144,7 +144,7 @@ public class SessionAuthenticator
                 } );
                 for ( final Integer errorCode : configuredNumbers )
                 {
-                    final PwmError pwmError = PwmError.forErrorNumber( errorCode );
+                    final PwmError pwmError = PwmError.forErrorNumber( errorCode ).orElse( PwmError.ERROR_INTERNAL );
                     returnSet.add( pwmError );
                 }
             }

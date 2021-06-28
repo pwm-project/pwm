@@ -146,7 +146,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
                 }
                 catch ( final ChaiUnavailableException e )
                 {
-                    throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
+                    throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ).orElse( PwmError.ERROR_INTERNAL ) );
                 }
             }
         }

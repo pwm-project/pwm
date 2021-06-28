@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public abstract class AbstractPwmServlet extends HttpServlet implements PwmServlet
@@ -110,13 +111,13 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             }
 
             // check for incorrect method type.
-            final ProcessAction processAction = readProcessAction( pwmRequest );
-            if ( processAction != null )
+            final Optional<? extends ProcessAction> processAction = readProcessAction( pwmRequest );
+            if ( processAction.isPresent() )
             {
-                if ( !processAction.permittedMethods().contains( method ) )
+                if ( !processAction.get().permittedMethods().contains( method ) )
                 {
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE,
-                            "incorrect request method " + method.toString() + " on request to " + pwmRequest.getURLwithQueryString() );
+                            "incorrect request method " + method + " on request to " + pwmRequest.getURLwithQueryString() );
                     LOGGER.error( pwmRequest, errorInformation::toDebugStr );
                     pwmRequest.respondWithError( errorInformation, false );
                     return;
@@ -289,7 +290,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
     protected abstract void processAction( PwmRequest request )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException;
 
-    protected abstract ProcessAction readProcessAction( PwmRequest request )
+    protected abstract Optional<? extends ProcessAction> readProcessAction( PwmRequest request )
             throws PwmUnrecoverableException;
 
     public interface ProcessAction

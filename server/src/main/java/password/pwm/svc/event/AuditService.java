@@ -61,6 +61,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public class AuditService extends AbstractPwmService implements PwmService
 {
@@ -217,14 +218,14 @@ public class AuditService extends AbstractPwmService implements PwmService
         statisticCounterBundle.increment( DebugKey.emailsSent );
     }
 
-    public Instant eldestVaultRecord( )
+    public Optional<Instant> eldestVaultRecord( )
     {
         if ( status() != STATUS.OPEN || auditVault == null )
         {
-            return null;
+            return Optional.empty();
         }
 
-        return auditVault.oldestRecord();
+        return Optional.of( auditVault.oldestRecord() );
     }
 
     public String sizeToDebugString( )

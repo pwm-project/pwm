@@ -25,8 +25,8 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.config.AppConfig;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
@@ -76,6 +76,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
@@ -117,17 +118,10 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     }
 
     @Override
-    protected ConfigManagerAction readProcessAction( final PwmRequest request )
+    protected Optional<ConfigManagerAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        try
-        {
-            return ConfigManagerAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
-        }
-        catch ( final IllegalArgumentException e )
-        {
-            return null;
-        }
+        return JavaHelper.readEnumFromString( ConfigManagerAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
     public static void verifyConfigAccess( final PwmRequest pwmRequest )
@@ -148,10 +142,10 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     {
         verifyConfigAccess( pwmRequest );
 
-        final ConfigManagerAction processAction = readProcessAction( pwmRequest );
-        if ( processAction != null )
+        final Optional<ConfigManagerAction> processAction = readProcessAction( pwmRequest );
+        if ( processAction.isPresent() )
         {
-            switch ( processAction )
+            switch ( processAction.get() )
             {
                 case lockConfiguration:
                     restLockConfiguration( pwmRequest );
@@ -186,7 +180,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                     return;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( processAction );
+                    JavaHelper.unhandledSwitchStatement( processAction.get() );
             }
             return;
         }

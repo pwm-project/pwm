@@ -101,8 +101,10 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
         {
             if ( !userSearchJobParameters.isIgnoreOperationalErrors() )
             {
-                throw new PwmOperationalException( PwmError.forChaiError( e.getErrorCode() ), "ldap error during searchID="
-                        + userSearchJobParameters.getSearchID() + ", context=" + userSearchJobParameters.getContext() + ", error=" + e.getMessage() );
+                final PwmError pwmError = PwmError.forChaiError( e.getErrorCode() ).orElse( PwmError.ERROR_INTERNAL );
+                final String msg = "ldap error during searchID="
+                        + userSearchJobParameters.getSearchID() + ", context=" + userSearchJobParameters.getContext() + ", error=" + e.getMessage();
+                throw new PwmOperationalException( pwmError, msg );
             }
         }
 

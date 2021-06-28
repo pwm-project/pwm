@@ -27,6 +27,7 @@ import password.pwm.util.java.JavaHelper;
 
 import java.util.Collections;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -384,41 +385,15 @@ public enum PwmError
         return LocaleHelper.getLocalizedMessage( locale, this.getResourceKey(), config, password.pwm.i18n.Error.class, fieldValue );
     }
 
-    public static PwmError forChaiError( final ChaiError errorCode )
+    public static Optional<PwmError> forChaiError( final ChaiError errorCode )
     {
-        if ( errorCode == null )
-        {
-            return null;
-        }
-
-        for ( final PwmError pwmError : values() )
-        {
-            if ( pwmError.chaiErrorCode != null )
-            {
-                for ( final ChaiError loopCode : pwmError.chaiErrorCode )
-                {
-                    if ( loopCode == errorCode )
-                    {
-                        return pwmError;
-                    }
-                }
-            }
-        }
-
-        return null;
+        return JavaHelper.readEnumFromPredicate( PwmError.class,
+                pwmError -> pwmError.chaiErrorCode.contains( errorCode ) );
     }
 
-    public static PwmError forErrorNumber( final int code )
+    public static Optional<PwmError> forErrorNumber( final int code )
     {
-        for ( final PwmError pwmError : values() )
-        {
-            if ( pwmError.getErrorCode() == code )
-            {
-                return pwmError;
-            }
-        }
-
-        return null;
+        return JavaHelper.readEnumFromPredicate( PwmError.class, pwmError -> pwmError.getErrorCode() == code );
     }
 
     public boolean isTrivial()

@@ -218,7 +218,7 @@ public class SecureEngine
                 if ( workingValue.length <= checksumSize )
                 {
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_CRYPT_ERROR,
-                            "incoming " + blockAlgorithm.toString() + " data is missing checksum" ) );
+                            "incoming " + blockAlgorithm + " data is missing checksum" ) );
                 }
                 final byte[] inputChecksum = Arrays.copyOfRange( workingValue, 0, checksumSize );
                 final byte[] inputPayload = Arrays.copyOfRange( workingValue, checksumSize, workingValue.length );
@@ -226,7 +226,7 @@ public class SecureEngine
                 if ( !Arrays.equals( inputChecksum, computedChecksum ) )
                 {
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_CRYPT_ERROR,
-                            "incoming " + blockAlgorithm.toString() + " data has incorrect checksum" ) );
+                            "incoming " + blockAlgorithm + " data has incorrect checksum" ) );
                 }
                 workingValue = inputPayload;
             }

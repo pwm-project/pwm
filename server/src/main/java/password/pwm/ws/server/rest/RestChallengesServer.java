@@ -242,7 +242,7 @@ public class RestChallengesServer extends RestServlet
 
     @RestMethodHandler( method = HttpMethod.POST, consumes = HttpContentType.json, produces = HttpContentType.json )
     public RestResultBean doSetChallengeDataJson( final RestRequest restRequest )
-            throws IOException, PwmUnrecoverableException
+            throws  PwmUnrecoverableException
     {
         final JsonChallengesData jsonInput = RestUtility.deserializeJsonBody( restRequest, JsonChallengesData.class );
 
@@ -251,7 +251,7 @@ public class RestChallengesServer extends RestServlet
                 restRequest.readParameterAsString( FIELD_USERNAME, PwmHttpRequestWrapper.Flag.BypassValidation ),
                 FIELD_USERNAME,
                 RestUtility.ReadValueFlag.optional
-        );
+        ).orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_FIELD_REQUIRED, FIELD_USERNAME ) );
 
         final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 

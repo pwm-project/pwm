@@ -65,6 +65,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 
@@ -363,9 +364,9 @@ public class AppDashboardData implements Serializable
                 pwmDomain.getAuditService().sizeToDebugString()
         ) );
         {
-            final Instant eldestAuditRecord = pwmDomain.getAuditService().eldestVaultRecord();
-            final String display = eldestAuditRecord != null
-                    ? TimeDuration.fromCurrent( eldestAuditRecord ).asLongString()
+            final Optional<Instant> eldestAuditRecord = pwmDomain.getAuditService().eldestVaultRecord();
+            final String display = eldestAuditRecord.isPresent()
+                    ? TimeDuration.fromCurrent( eldestAuditRecord.get() ).asLongString()
                     : notApplicable;
             localDbInfo.add( new DisplayElement(
                     "oldestLocalAuditRecords",
@@ -383,8 +384,8 @@ public class AppDashboardData implements Serializable
         {
             final LocalDBLogger localDBLogger = pwmDomain.getPwmApplication().getLocalDBLogger();
             final String display = localDBLogger != null
-                    && localDBLogger.getTailDate() != null
-                    ? TimeDuration.fromCurrent( localDBLogger.getTailDate() ).asLongString()
+                    && localDBLogger.getTailDate().isPresent()
+                    ? TimeDuration.fromCurrent( localDBLogger.getTailDate().get() ).asLongString()
                     : notApplicable;
             localDbInfo.add( new DisplayElement(
                     "oldestLogEvents",

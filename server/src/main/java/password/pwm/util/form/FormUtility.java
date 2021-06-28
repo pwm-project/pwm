@@ -371,7 +371,7 @@ public class FormUtility
                     }
                     catch ( final ChaiOperationException | ChaiUnavailableException e )
                     {
-                        final PwmError error = PwmError.forChaiError( e.getErrorCode() );
+                        final PwmError error = PwmError.forChaiError( e.getErrorCode() ).orElse( PwmError.ERROR_INTERNAL );
                         throw new PwmUnrecoverableException( error.toInfo() );
                     }
 
@@ -563,15 +563,15 @@ public class FormUtility
             PwmError error = null;
             if ( e instanceof ChaiException )
             {
-                error = PwmError.forChaiError( ( ( ChaiException ) e ).getErrorCode() );
+                error = PwmError.forChaiError( ( ( ChaiException ) e ).getErrorCode() ).orElse( PwmError.ERROR_INTERNAL );
             }
-            if ( error == null || error == PwmError.ERROR_INTERNAL )
+            if ( error == PwmError.ERROR_INTERNAL )
             {
                 error = PwmError.ERROR_LDAP_DATA_ERROR;
             }
 
             final ErrorInformation errorInformation = new ErrorInformation( error, "error reading current profile values: " + e.getMessage() );
-            LOGGER.error( sessionLabel, () -> errorInformation.getDetailedErrorMsg() );
+            LOGGER.error( sessionLabel, errorInformation::getDetailedErrorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
 

@@ -636,14 +636,14 @@ public class HelpdeskServlet extends ControlledPwmServlet
         catch ( final ChaiPasswordPolicyException e )
         {
             final ChaiError passwordError = e.getErrorCode();
-            final PwmError pwmError = PwmError.forChaiError( passwordError );
-            pwmRequest.respondWithError( new ErrorInformation( pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError ) );
-            LOGGER.trace( pwmRequest, () -> "ChaiPasswordPolicyException was thrown while resetting password: " + e.toString() );
+            final PwmError pwmError = PwmError.forChaiError( passwordError ).orElse( PwmError.PASSWORD_UNKNOWN_VALIDATION );
+            pwmRequest.respondWithError( new ErrorInformation( pwmError ) );
+            LOGGER.trace( pwmRequest, () -> "ChaiPasswordPolicyException was thrown while resetting password: " + e.getMessage() );
             return ProcessStatus.Halt;
         }
         catch ( final ChaiOperationException e )
         {
-            final PwmError returnMsg = PwmError.forChaiError( e.getErrorCode() ) == null ? PwmError.ERROR_INTERNAL : PwmError.forChaiError( e.getErrorCode() );
+            final PwmError returnMsg = PwmError.forChaiError( e.getErrorCode() ).orElse( PwmError.ERROR_INTERNAL );
             final ErrorInformation error = new ErrorInformation( returnMsg, e.getMessage() );
             pwmRequest.respondWithError( error );
             LOGGER.warn( pwmRequest, () -> "error resetting password for user '" + userIdentity.toDisplayString() + "'' " + error.toDebugStr() + ", " + e.getMessage() );

@@ -186,10 +186,10 @@ public class LdapOperationsHelper
             }
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append( "error connecting as proxy user: " );
-            final PwmError pwmError = PwmError.forChaiError( e.getErrorCode() );
-            if ( pwmError != null && pwmError != PwmError.ERROR_INTERNAL )
+            final Optional<PwmError> pwmError = PwmError.forChaiError( e.getErrorCode() );
+            if ( pwmError.isPresent() && pwmError.get() != PwmError.ERROR_INTERNAL )
             {
-                errorMsg.append( new ErrorInformation( pwmError, e.getMessage() ).toDebugStr() );
+                errorMsg.append( new ErrorInformation( pwmError.get(), e.getMessage() ).toDebugStr() );
             }
             else
             {

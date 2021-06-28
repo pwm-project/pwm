@@ -70,6 +70,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public class IntruderDomainService extends AbstractPwmService implements PwmService
 {
@@ -331,7 +332,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
                             sessionLabel
                     );
                     AuditServiceClient.submit( pwmDomain.getPwmApplication(), sessionLabel, auditRecord );
-                    sendAlert( manager.readIntruderRecord( subject ), sessionLabel );
+                    manager.readIntruderRecord( subject ).ifPresent( record -> sendAlert( record, sessionLabel ) );
                 }
                 else
                 {
@@ -352,7 +353,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
             throw e;
         }
 
-        delayPenalty( manager.readIntruderRecord( subject ), sessionLabel );
+        manager.readIntruderRecord( subject ).ifPresent( record -> delayPenalty( record, sessionLabel ) );
     }
 
     private void delayPenalty( final IntruderRecord intruderRecord, final SessionLabel sessionLabel )
@@ -451,12 +452,12 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
             return 0;
         }
 
-        final IntruderRecord intruderRecord = recordManagers.get( IntruderRecordType.ADDRESS ).readIntruderRecord( srcAddress );
-        if ( intruderRecord == null )
+        final Optional<IntruderRecord> intruderRecord = recordManagers.get( IntruderRecordType.ADDRESS ).readIntruderRecord( srcAddress );
+        if ( intruderRecord.isEmpty() )
         {
             return 0;
         }
 
-        return intruderRecord.getAttemptCount();
+        return intruderRecord.get().getAttemptCount();
     }
 }

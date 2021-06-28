@@ -79,7 +79,7 @@ public class PwmScriptTag extends BodyTagSupport
     {
         if ( input == null )
         {
-            return null;
+            return "";
         }
 
         final Matcher matcher = SCRIPT_TAG_PATTERN.matcher( input );

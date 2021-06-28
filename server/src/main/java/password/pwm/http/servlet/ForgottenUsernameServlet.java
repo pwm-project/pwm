@@ -61,6 +61,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 @WebServlet(
         name = "ForgottenUsernameServlet",
@@ -86,17 +87,10 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
     }
 
     @Override
-    protected ForgottenUsernameAction readProcessAction( final PwmRequest request )
+    protected Optional<ForgottenUsernameAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        try
-        {
-            return ForgottenUsernameAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
-        }
-        catch ( final IllegalArgumentException e )
-        {
-            return null;
-        }
+        return JavaHelper.readEnumFromString( ForgottenUsernameAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
     @Override
@@ -111,19 +105,19 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
             return;
         }
 
-        final ForgottenUsernameAction action = readProcessAction( pwmRequest );
+        final Optional<ForgottenUsernameAction> action = readProcessAction( pwmRequest );
 
-        if ( action != null )
+        if ( action.isPresent() )
         {
             pwmRequest.validatePwmFormID();
-            switch ( action )
+            switch ( action.get() )
             {
                 case search:
                     handleSearchRequest( pwmRequest );
                     return;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( action );
+                    JavaHelper.unhandledSwitchStatement( action.get() );
             }
         }
 

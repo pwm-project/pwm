@@ -39,34 +39,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public abstract class ControlledPwmServlet extends AbstractPwmServlet implements PwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( AbstractPwmServlet.class );
 
-    private final Map<String, Method> actionMethodCache = createMethodCache();
-
-    @Override
-    public String servletUriRemainder( final PwmRequest pwmRequest, final String command ) throws PwmUnrecoverableException
-    {
-        String uri = pwmRequest.getURLwithoutQueryString();
-        if ( uri.startsWith( pwmRequest.getBasePath() ) )
-        {
-            uri = uri.substring( pwmRequest.getBasePath().length() );
-        }
-        for ( final String servletUri : getServletDefinition().urlPatterns() )
-        {
-            if ( uri.startsWith( servletUri ) )
-            {
-                uri = uri.substring( servletUri.length() );
-            }
-        }
-        return uri;
-    }
+    private final Map<? extends ProcessAction, Method> actionMethodCache = createMethodCache();
 
     @Override
     protected PwmServletDefinition getServletDefinition( )
@@ -85,21 +66,11 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
     public abstract Class<? extends ProcessAction> getProcessActionsClass( );
 
     @Override
-    protected ProcessAction readProcessAction( final PwmRequest request )
+    protected Optional<? extends ProcessAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        try
-        {
-            final String inputParameter = request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST );
-            final Class processStatusClass = getProcessActionsClass();
-            final Enum answer = JavaHelper.readEnumFromString( processStatusClass, null, inputParameter );
-            return ( ProcessAction ) answer;
-        }
-        catch ( final Exception e )
-        {
-            LOGGER.error( () -> "error", e );
-        }
-        return null;
+        final Class processStatusClass = getProcessActionsClass();
+        return JavaHelper.readEnumFromString( processStatusClass,  request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
     private ProcessStatus dispatchMethod(
@@ -108,14 +79,14 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             throws PwmUnrecoverableException
     {
 
-        final ProcessAction action = readProcessAction( pwmRequest );
-        if ( action == null )
+        final Optional<? extends ProcessAction> action = readProcessAction( pwmRequest );
+        if ( action.isEmpty() )
         {
             return ProcessStatus.Continue;
         }
         try
         {
-            final Method interestedMethod = actionMethodCache.get( action.toString() );
+            final Method interestedMethod = actionMethodCache.get( action.get() );
             if ( interestedMethod != null )
             {
                 interestedMethod.setAccessible( true );
@@ -157,8 +128,8 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
     {
         preProcessCheck( pwmRequest );
 
-        final ProcessAction action = readProcessAction( pwmRequest );
-        if ( action != null )
+        final Optional<? extends ProcessAction> action = readProcessAction( pwmRequest );
+        if ( action.isPresent() )
         {
             final ProcessStatus status = dispatchMethod( pwmRequest );
             if ( status == ProcessStatus.Halt )
@@ -215,20 +186,22 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         String action( );
             }
 
-    private Map<String, Method> createMethodCache()
+    private Map<? extends ProcessAction, Method> createMethodCache()
     {
-        final Map<String, Method> map = new HashMap<>();
+        final Map<ProcessAction, Method> map = new HashMap<>();
         final Collection<Method> methods = JavaHelper.getAllMethodsForClass( this.getClass() );
         for ( final Method method : methods )
         {
             if ( method.getAnnotation( ActionHandler.class ) != null )
             {
                 final String actionName = method.getAnnotation( ActionHandler.class ).action();
-                map.put( actionName, method );
+                final Class processActionClass = getProcessActionsClass();
+                final Optional<? extends ProcessAction> processAction = JavaHelper.readEnumFromString( processActionClass, actionName );
+                processAction.ifPresent( action -> map.put( action, method ) );
 
             }
         }
-        return Collections.unmodifiableMap( map );
+        return Map.copyOf( map );
     }
 }
 

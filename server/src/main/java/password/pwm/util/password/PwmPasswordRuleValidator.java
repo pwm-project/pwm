@@ -145,8 +145,8 @@ public class PwmPasswordRuleValidator
             catch ( final ChaiPasswordPolicyException e )
             {
                 final ChaiError passwordError = e.getErrorCode();
-                final PwmError pwmError = PwmError.forChaiError( passwordError );
-                final ErrorInformation info = new ErrorInformation( pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError );
+                final PwmError pwmError = PwmError.forChaiError( passwordError ).orElse( PwmError.PASSWORD_UNKNOWN_VALIDATION );
+                final ErrorInformation info = new ErrorInformation( pwmError );
                 LOGGER.trace( () -> "ChaiPasswordPolicyException was thrown while validating password: " + e.toString() );
                 errorResults.add( info );
             }

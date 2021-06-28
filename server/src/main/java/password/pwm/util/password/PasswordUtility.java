@@ -458,14 +458,14 @@ public class PasswordUtility
         catch ( final ChaiPasswordPolicyException e )
         {
             final String errorMsg = "error setting password for user '" + userIdentity.toDisplayString() + "'' " + e.toString();
-            final PwmError pwmError = PwmError.forChaiError( e.getErrorCode() );
-            final ErrorInformation error = new ErrorInformation( pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError, errorMsg );
+            final Optional<PwmError> pwmError = PwmError.forChaiError( e.getErrorCode() );
+            final ErrorInformation error = new ErrorInformation( pwmError.orElse( PwmError.PASSWORD_UNKNOWN_VALIDATION ), errorMsg );
             throw new PwmOperationalException( error );
         }
         catch ( final ChaiOperationException e )
         {
             final String errorMsg = "error setting password for user '" + userIdentity.toDisplayString() + "'' " + e.getMessage();
-            final PwmError pwmError = PwmError.forChaiError( e.getErrorCode() ) == null ? PwmError.ERROR_INTERNAL : PwmError.forChaiError( e.getErrorCode() );
+            final PwmError pwmError = PwmError.forChaiError( e.getErrorCode() ).orElse( PwmError.ERROR_INTERNAL );
             final ErrorInformation error = new ErrorInformation( pwmError, errorMsg );
             throw new PwmOperationalException( error );
         }
@@ -1016,7 +1016,7 @@ public class PasswordUtility
             }
             catch ( final ChaiUnavailableException e )
             {
-                throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
+                throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ).orElse( PwmError.ERROR_INTERNAL ) );
             }
             if ( chaiPolicy != null )
             {

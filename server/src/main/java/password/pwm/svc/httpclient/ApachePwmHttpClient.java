@@ -68,7 +68,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpEntityDataType;
-import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.ImmutableByteArray;
@@ -76,7 +75,6 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
@@ -239,103 +237,6 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClientProvider
         return clientBuilder.build();
     }
 
-    String entityToDebugString(
-            final String topLine,
-            final PwmHttpClientMessage pwmHttpClientMessage
-    )
-    {
-        final HttpEntityDataType dataType = pwmHttpClientMessage.getDataType();
-        final ImmutableByteArray binaryBody = pwmHttpClientMessage.getBinaryBody();
-        final String body = pwmHttpClientMessage.getBody();
-        final Map<String, String> headers = pwmHttpClientMessage.getHeaders();
-
-        final boolean isBinary = dataType == HttpEntityDataType.ByteArray;
-        final boolean emptyBody = isBinary
-                ? binaryBody == null || binaryBody.isEmpty()
-                : StringUtil.isEmpty( body );
-
-
-        final StringBuilder msg = new StringBuilder();
-        msg.append( topLine );
-        msg.append( " id=" ).append( pwmHttpClientMessage.getRequestID() ).append( ") " );
-
-        if ( emptyBody )
-        {
-            msg.append( " (no body)" );
-        }
-
-        if ( headers != null )
-        {
-            for ( final Map.Entry<String, String> headerEntry : headers.entrySet() )
-            {
-                msg.append( "\n" );
-                final Optional<HttpHeader> httpHeader = HttpHeader.forHttpHeader( headerEntry.getKey() );
-                if ( httpHeader.isPresent() )
-                {
-                    final boolean sensitive = httpHeader.get().isSensitive();
-                    msg.append( "  header: " ).append( httpHeader.get().getHttpName() ).append( "=" );
-
-                    if ( sensitive )
-                    {
-                        msg.append( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
-                    }
-                    else
-                    {
-                        msg.append( headerEntry.getValue() );
-                    }
-                }
-                else
-                {
-                    // We encountered a header name that doesn't have a corresponding enum in HttpHeader,
-                    // so we can't check the sensitive flag.
-                    msg.append( "  header: " ).append( headerEntry.getKey() ).append( "=" ).append( headerEntry.getValue() );
-                }
-            }
-        }
-
-        if ( !emptyBody )
-        {
-            msg.append( "\n  body: " );
-
-            final boolean alwaysOutput = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_ALWAYS_LOG_ENTITIES ) );
-
-
-            if ( isBinary )
-            {
-                if ( binaryBody != null && !binaryBody.isEmpty() )
-                {
-                    msg.append( "[binary, " ).append( binaryBody.size() ).append( " bytes]" );
-                }
-                else
-                {
-                    msg.append( "[no data]" );
-                }
-            }
-            else
-            {
-                if ( StringUtil.isEmpty( body ) )
-                {
-                    msg.append( "[no data]" );
-                }
-                else
-                {
-                    msg.append( "[" ).append( body.length() ).append( " chars] " );
-
-                    if ( alwaysOutput || !pwmHttpClientConfiguration.isMaskBodyDebugOutput() )
-                    {
-                        msg.append( body );
-                    }
-                    else
-                    {
-                        msg.append( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
-                    }
-                }
-            }
-        }
-
-        return msg.toString();
-    }
-
     @Override
     public PwmHttpClientResponse makeRequest(
             final PwmHttpClientRequest clientRequest,
@@ -374,7 +275,7 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClientProvider
             }
 
             LOGGER.trace( sessionLabel, () -> "client #" + clientID + " preparing to send "
-                    + clientRequest.toDebugString( this, sslDebugText ) );
+                    + clientRequest.toDebugString( this, pwmApplication, pwmHttpClientConfiguration, sslDebugText ) );
         }
 
         final HttpResponse httpResponse = executeRequest( clientRequest );
@@ -415,7 +316,7 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClientProvider
         httpClientService.getStats().increment( HttpClientService.StatsKey.responseBytes, httpClientResponse.size() );
         LOGGER.trace( sessionLabel, () -> "client #" + clientID + " received response (id=" + clientRequest.getRequestID() + ") in "
                 + duration.asCompactString() + ": "
-                + httpClientResponse.toDebugString( this ) );
+                + httpClientResponse.toDebugString( pwmApplication, pwmHttpClientConfiguration ) );
         return httpClientResponse;
     }
 

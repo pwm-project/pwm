@@ -22,10 +22,12 @@ package password.pwm.config.value;
 
 import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.ChallengeItemConfiguration;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
@@ -36,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 public class ChallengeValue extends AbstractValue implements StoredValue
@@ -82,9 +85,9 @@ public class ChallengeValue extends AbstractValue implements StoredValue
                     final PwmSecurityKey input
             )
             {
-                final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 final Map<String, List<ChallengeItemConfiguration>> values = new TreeMap<>();
-                final boolean oldStyle = "LOCALIZED_STRING_ARRAY".equals( settingElement.getAttributeValue( "syntax" ).orElse( "" ) );
+                final boolean oldStyle = "LOCALIZED_STRING_ARRAY".equals( settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX ).orElse( "" ) );
                 for ( final XmlElement loopValueElement : valueElements )
                 {
                     final String localeString = loopValueElement.getAttributeValue( "locale" ).orElse( "" );
@@ -93,7 +96,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
                         final ChallengeItemConfiguration challengeItemBean;
                         if ( oldStyle )
                         {
-                            challengeItemBean = parseOldVersionString( value );
+                            challengeItemBean = parseOldVersionString( value ).orElse( null );
                         }
                         else
                         {
@@ -187,13 +190,13 @@ public class ChallengeValue extends AbstractValue implements StoredValue
         return Collections.emptyList();
     }
 
-    private static ChallengeItemConfiguration parseOldVersionString(
+    private static Optional<ChallengeItemConfiguration> parseOldVersionString(
             final String inputString
     )
     {
-        if ( inputString == null || inputString.length() < 1 )
+        if ( StringUtil.isEmpty( inputString ) )
         {
-            return null;
+            return Optional.empty();
         }
 
         int minLength = 2;
@@ -235,12 +238,12 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             adminDefined = false;
         }
 
-        return ChallengeItemConfiguration.builder()
+        return Optional.of( ChallengeItemConfiguration.builder()
                 .text( challengeText )
                 .minLength( minLength )
                 .maxLength( maxLength )
                 .adminDefined( adminDefined )
-                .build();
+                .build() );
     }
 
     @Override

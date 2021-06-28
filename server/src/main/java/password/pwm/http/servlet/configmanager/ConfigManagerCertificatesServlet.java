@@ -38,6 +38,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
 import password.pwm.ws.server.RestResultBean;
@@ -54,6 +55,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @WebServlet(
@@ -85,17 +87,10 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
     }
 
     @Override
-    protected ConfigManagerCertificateAction readProcessAction( final PwmRequest request )
+    protected Optional<ConfigManagerCertificateAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        try
-        {
-            return ConfigManagerCertificateAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
-        }
-        catch ( final IllegalArgumentException e )
-        {
-            return null;
-        }
+        return JavaHelper.readEnumFromString( ConfigManagerCertificateAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
     @Override
@@ -104,10 +99,10 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
     {
         ConfigManagerServlet.verifyConfigAccess( pwmRequest );
 
-        final ConfigManagerCertificateAction action = readProcessAction( pwmRequest );
+        final Optional<ConfigManagerCertificateAction> action = readProcessAction( pwmRequest );
         final ArrayList<CertificateDebugDataItem> certificateDebugDataItems = new ArrayList<>( makeCertificateDebugData( pwmRequest.getDomainConfig() ) );
 
-        if ( action == ConfigManagerCertificateAction.certificateData )
+        if ( action.isPresent() && action.get() == ConfigManagerCertificateAction.certificateData )
         {
             final RestResultBean restResultBean = RestResultBean.withData( certificateDebugDataItems );
             pwmRequest.outputJsonResult( restResultBean );

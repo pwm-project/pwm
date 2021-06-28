@@ -25,6 +25,7 @@
 
 <%@ page import="password.pwm.i18n.Admin" %>
 <%@ page import="password.pwm.util.logging.LocalDBLogger" %>
+<%@ page import="java.time.Instant" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -110,7 +111,7 @@
                     <p>
                         This page shows the debug log
                         history. This records shown here are stored in the LocalDB.  The LocalDB contains <%=JspUtility.friendlyWrite( pageContext, localDBLogger.getStoredEventCount() )%> events. The oldest event stored in the LocalDB is from
-                        <span class="timestamp"><%= JspUtility.friendlyWrite( pageContext, JspUtility.getPwmRequest( pageContext ).getPwmApplication().getLocalDBLogger().getTailDate() ) %></span>.
+                        <span class="timestamp"><%= JspUtility.friendlyWrite( pageContext, JspUtility.getPwmRequest( pageContext ).getPwmApplication().getLocalDBLogger().getTailDate().orElse( Instant.EPOCH ) ) %></span>.
                     </p>
                     <p>
                         The LocalDB is configured to capture events of level

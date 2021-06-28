@@ -265,7 +265,7 @@ public class ForgottenPasswordStateMachine
 
                     if ( !passwordCheckInfo.isPassed() )
                     {
-                        final PwmError pwmError = PwmError.forErrorNumber( passwordCheckInfo.getErrorCode() );
+                        final PwmError pwmError = PwmError.forErrorNumber( passwordCheckInfo.getErrorCode() ).orElse( PwmError.ERROR_INTERNAL );
                         throw PwmUnrecoverableException.newException( pwmError, passwordCheckInfo.getMessage() );
                     }
                 }
@@ -375,7 +375,10 @@ public class ForgottenPasswordStateMachine
 
                 final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(
                         forgottenPasswordStateMachine.getRequestContext(),
-                        forgottenPasswordStateMachine.getForgottenPasswordBean() );
+                        forgottenPasswordStateMachine.getForgottenPasswordBean() )
+                        .orElseThrow( () -> PwmUnrecoverableException.newException(
+                                PwmError.ERROR_INTERNAL, "unable to load userInfo while processing TokenChoiceStageHandler.applyForm" ) );
+
                 ForgottenPasswordUtil.initializeAndSendToken( forgottenPasswordStateMachine.getRequestContext(), userInfo, selectedItem.get() );
                 forgottenPasswordStateMachine.getForgottenPasswordBean().getProgress().setTokenSent( true );
             }
@@ -467,7 +470,9 @@ public class ForgottenPasswordStateMachine
                 final PwmRequestContext pwmRequestContext = forgottenPasswordStateMachine.getRequestContext();
                 final String userEnteredCode = formValues.get( PwmConstants.PARAM_OTP_TOKEN );
 
-                final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordStateMachine.getForgottenPasswordBean() );
+                final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordStateMachine.getForgottenPasswordBean() )
+                        .orElseThrow( () -> PwmUnrecoverableException.newException(
+                                PwmError.ERROR_INTERNAL, "unable to load userInfo while processing OTPVerificationHandler.applyForm" ) );
                 final OTPUserRecord otpUserRecord = userInfo.getOtpUserRecord();
 
                 ErrorInformation errorInformation = null;
@@ -521,7 +526,9 @@ public class ForgottenPasswordStateMachine
 
                 final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo(
                         forgottenPasswordStateMachine.getRequestContext(),
-                        forgottenPasswordStateMachine.getForgottenPasswordBean() );
+                        forgottenPasswordStateMachine.getForgottenPasswordBean() )
+                        .orElseThrow( () -> PwmUnrecoverableException.newException(
+                                PwmError.ERROR_INTERNAL, "unable to load userInfo while processing OTPVerificationHandler.generateForm" ) );
 
                 final OTPUserRecord otpUserRecord = userInfo == null ? null : userInfo.getOtpUserRecord();
 
@@ -541,8 +548,8 @@ public class ForgottenPasswordStateMachine
                             Display.Display_RecoverOTPIdentified,
                             pwmRequestContext.getDomainConfig(),
                             new String[]
-                            {
-                                    identifier,
+                                    {
+                                            identifier,
                                     }
                     );
                 }
@@ -634,7 +641,7 @@ public class ForgottenPasswordStateMachine
                         new String[]
                                 {
                                         tokenDisplay,
-                                        }
+                                }
                 );
 
                 final PresentableFormRow formRow = PresentableFormRow.builder()
@@ -753,7 +760,7 @@ public class ForgottenPasswordStateMachine
                             "incorrect value for attribute '" + formConfiguration.getName() + "'", new String[]
                             {
                                     formConfiguration.getLabel( locale ),
-                                    }
+                            }
                     );
 
                     throw new PwmUnrecoverableException( errorInformation );
@@ -797,7 +804,7 @@ public class ForgottenPasswordStateMachine
                                         "incorrect value for '" + attrName + "'", new String[]
                                         {
                                                 formConfiguration.getLabel( locale ),
-                                                }
+                                        }
                                 ) );
                             }
                         }
@@ -808,7 +815,7 @@ public class ForgottenPasswordStateMachine
                                     PwmError.ERROR_INCORRECT_RESPONSE, "ldap error testing value for '" + attrName + "'", new String[]
                                     {
                                             formConfiguration.getLabel( locale ),
-                                            }
+                                    }
                             ) );
                         }
                         catch ( final ChaiUnavailableException e )

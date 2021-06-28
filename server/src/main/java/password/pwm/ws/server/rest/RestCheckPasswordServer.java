@@ -139,18 +139,18 @@ public class RestCheckPasswordServer extends RestServlet
                             jsonBody == null ? null : jsonBody.getPassword1(),
                             restRequest.readParameterAsString( FIELD_PASSWORD_1 ),
                             FIELD_PASSWORD_1
-                    ),
+                    ).orElse( null ),
                     RestUtility.readValueFromJsonAndParam(
                             jsonBody == null ? null : jsonBody.getPassword2(),
                             restRequest.readParameterAsString( FIELD_PASSWORD_2 ),
                             FIELD_PASSWORD_2
-                    ),
+                    ).orElse( null ),
                     RestUtility.readValueFromJsonAndParam(
                             jsonBody == null ? null : jsonBody.getUsername(),
                             restRequest.readParameterAsString( FIELD_USERNAME ),
                             FIELD_USERNAME,
                             RestUtility.ReadValueFlag.optional
-                    )
+                    ).orElse( null )
             );
         }
 

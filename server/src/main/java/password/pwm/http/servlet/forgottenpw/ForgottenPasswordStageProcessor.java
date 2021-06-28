@@ -327,11 +327,9 @@ class ForgottenPasswordStageProcessor
                 StatisticsClient.incrementStat( pwmRequestContext.getPwmApplication(), Statistic.RECOVERY_SUCCESSES );
             }
 
-            final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean );
-            if ( userInfo == null )
-            {
-                throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unable to load userInfo while processing forgotten password controller" );
-            }
+            final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean )
+                    .orElseThrow( () -> PwmUnrecoverableException.newException(
+                            PwmError.ERROR_INTERNAL, "unable to load userInfo while processing forgotten password controller 6" ) );
 
             // check if user's pw is within min lifetime window
             final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordUtil.forgottenPasswordProfile( pwmDomain, forgottenPasswordBean );
@@ -367,7 +365,9 @@ class ForgottenPasswordStageProcessor
             final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
             final DomainConfig config = pwmDomain.getConfig();
 
-            final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean );
+            final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean )
+                    .orElseThrow( () -> PwmUnrecoverableException.newException(
+                            PwmError.ERROR_INTERNAL, "unable to load userInfo while processing forgotten password controller 7" ) );
 
             final ForgottenPasswordProfile forgottenPasswordProfile = ForgottenPasswordUtil.forgottenPasswordProfile( pwmDomain, forgottenPasswordBean );
 

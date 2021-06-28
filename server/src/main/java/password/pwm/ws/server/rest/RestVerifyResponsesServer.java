@@ -25,9 +25,10 @@ import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.cr.bean.ChallengeBean;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import lombok.Data;
+import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.option.WebServiceUsage;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
@@ -62,7 +63,9 @@ public class RestVerifyResponsesServer extends RestServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestVerifyResponsesServer.class );
 
-    @Data
+    private static final String FIELD_USERNAME = "username";
+
+    @Value
     public static class JsonPutChallengesInput implements Serializable
     {
         public List<ChallengeBean> challenges;
@@ -107,8 +110,9 @@ public class RestVerifyResponsesServer extends RestServlet
 
         final String username = RestUtility.readValueFromJsonAndParam(
                 jsonInput.getUsername(),
-                restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation ),
-                "username" );
+                restRequest.readParameterAsString( FIELD_USERNAME, PwmHttpRequestWrapper.Flag.BypassValidation ),
+                FIELD_USERNAME
+        ).orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_FIELD_REQUIRED, FIELD_USERNAME ) );
 
         final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 

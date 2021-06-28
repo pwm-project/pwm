@@ -64,10 +64,10 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
 
 
     @Override
-    protected ProcessAction readProcessAction( final PwmRequest request )
+    protected Optional<? extends ProcessAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        return null;
+        return Optional.empty();
     }
 
     @Override

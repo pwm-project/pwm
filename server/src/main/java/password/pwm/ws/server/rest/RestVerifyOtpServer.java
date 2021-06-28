@@ -83,12 +83,12 @@ public class RestVerifyOtpServer extends RestServlet
                             jsonBody == null ? null : jsonBody.getToken(),
                             restRequest.readParameterAsString( "token" ),
                             "token"
-                    ),
+                    ).orElse( null ),
                     RestUtility.readValueFromJsonAndParam(
                             jsonBody == null ? null : jsonBody.getUsername(),
                             restRequest.readParameterAsString( "username" ),
                             "username"
-                    )
+                    ).orElse( null )
             );
         }
 

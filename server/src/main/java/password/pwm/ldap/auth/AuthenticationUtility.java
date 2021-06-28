@@ -44,7 +44,7 @@ public abstract class AuthenticationUtility
         }
         catch ( final ChaiOperationException | ChaiUnavailableException e )
         {
-            throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
+            throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ).orElse( PwmError.ERROR_INTERNAL ) );
         }
     }
 

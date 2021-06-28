@@ -562,15 +562,15 @@ public class LDAPHealthChecker implements HealthSupplier
             catch ( final ChaiException e )
             {
                 final ChaiError chaiError = ChaiErrors.getErrorForMessage( e.getMessage() );
-                final PwmError pwmError = PwmError.forChaiError( chaiError );
+                final PwmError pwmError = PwmError.forChaiError( chaiError ).orElse( PwmError.ERROR_INTERNAL );
                 final StringBuilder errorString = new StringBuilder();
                 final String profileName = ldapProfile.getIdentifier();
                 errorString.append( "error connecting to ldap directory (" ).append( profileName ).append( "), error: " ).append( e.getMessage() );
                 if ( chaiError != null && chaiError != ChaiError.UNKNOWN )
                 {
                     errorString.append( " (" );
-                    errorString.append( chaiError.toString() );
-                    if ( pwmError != null && pwmError != PwmError.ERROR_INTERNAL )
+                    errorString.append( chaiError );
+                    if ( pwmError != PwmError.ERROR_INTERNAL )
                     {
                         errorString.append( " - " );
                         errorString.append( pwmError.getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, pwmDomain.getConfig() ) );

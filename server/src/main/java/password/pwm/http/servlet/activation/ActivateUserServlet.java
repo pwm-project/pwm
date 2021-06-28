@@ -146,10 +146,10 @@ public class ActivateUserServlet extends ControlledPwmServlet
             throw new PwmUnrecoverableException( errorInformation );
         }
 
-        final ProcessAction action = this.readProcessAction( pwmRequest );
+        final Optional<? extends ProcessAction> action = this.readProcessAction( pwmRequest );
 
         // convert a url command like /public/newuser/12321321 to redirect with a process action.
-        if ( action == null )
+        if ( action.isEmpty() )
         {
             if ( pwmRequest.convertURLtokenCommand( PwmServletDefinition.ActivateUser, ActivateUserAction.enterCode ) )
             {

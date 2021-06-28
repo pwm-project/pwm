@@ -29,23 +29,12 @@ import java.net.URI;
 @Value
 public class ShortcutItem implements Serializable
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( ShortcutItem.class );
 
     private final String label;
     private final URI shortcutURI;
     private final String ldapQuery;
     private final String description;
-
-    public String toString( )
-    {
-        return "ShortcutItem{"
-                + "label='" + label + '\''
-                + ", shortcutURI=" + shortcutURI
-                + ", ldapQuery='" + ldapQuery + '\''
-                + ", description='" + description + '\''
-                + '}';
-    }
 
     public static ShortcutItem parsePwmConfigInput( final String input )
     {

@@ -105,17 +105,17 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
     {
         checkPersistentLoginCookie( pwmRequest );
 
-        final ConfigManagerLoginAction processAction = readProcessAction( pwmRequest );
-        if ( processAction != null )
+        final Optional<ConfigManagerLoginAction> processAction = readProcessAction( pwmRequest );
+        if ( processAction.isPresent() )
         {
-            switch ( processAction )
+            switch ( processAction.get() )
             {
                 case login:
                     processLoginRequest( pwmRequest );
                     break;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( processAction );
+                    JavaHelper.unhandledSwitchStatement( processAction.get() );
 
             }
             return;
@@ -163,17 +163,10 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
 
     @Override
-    protected ConfigManagerLoginAction readProcessAction( final PwmRequest request )
+    protected Optional<ConfigManagerLoginAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        try
-        {
-            return ConfigManagerLoginAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
-        }
-        catch ( final IllegalArgumentException e )
-        {
-            return null;
-        }
+        return JavaHelper.readEnumFromString( ConfigManagerLoginAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
 

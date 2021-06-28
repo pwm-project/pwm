@@ -50,6 +50,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
@@ -194,13 +195,13 @@ public class LocalDBLoggerExtendedTest
 
     private void outputDebugInfo()
     {
-        final Map<String, String> debugParams = Map.of(
+        final Map<String, String> debugParams = new HashMap<>( Map.of(
                 "size", StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( localDB.getFileLocation() ) ),
                 "eventsInDb", figureEventsInDbStat(),
                 "free", StringUtil.formatDiskSize( FileSystemUtility.diskSpaceRemaining( localDB.getFileLocation() ) ),
                 "eps", eventRateMeter.readEventRate().setScale( 0, RoundingMode.UP ).toString(),
-                "remain", settings.testDuration.subtract( TimeDuration.fromCurrent( startTime ) ).asCompactString(),
-                "tail", TimeDuration.fromCurrent( localDBLogger.getTailDate() ).asCompactString() );
+                "remain", settings.testDuration.subtract( TimeDuration.fromCurrent( startTime ) ).asCompactString() ) );
+        localDBLogger.getTailDate().ifPresent( tailDate -> debugParams.put( "tail", TimeDuration.compactFromCurrent( tailDate ) ) );
         out( "added " + StringUtil.mapToString( debugParams ) );
     }
 

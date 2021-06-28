@@ -81,6 +81,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -171,17 +172,17 @@ public class NewUserServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        final ProcessAction action = this.readProcessAction( pwmRequest );
+        final Optional<? extends ProcessAction> action = this.readProcessAction( pwmRequest );
 
         // convert a url command like /public/newuser/12321321 to redirect with a process action.
-        if ( action == null )
+        if ( action.isEmpty() )
         {
             if ( pwmRequest.convertURLtokenCommand( PwmServletDefinition.NewUser, NewUserAction.enterCode ) )
             {
                 return ProcessStatus.Halt;
             }
         }
-        else if ( action != NewUserAction.complete && action != NewUserAction.checkProgress )
+        else if ( action.get() != NewUserAction.complete && action.get() != NewUserAction.checkProgress )
         {
             if ( pwmRequest.isAuthenticated() )
             {

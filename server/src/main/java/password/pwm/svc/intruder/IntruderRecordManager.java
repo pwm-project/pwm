@@ -23,6 +23,8 @@ package password.pwm.svc.intruder;
 import password.pwm.error.PwmException;
 import password.pwm.util.java.ClosableIterator;
 
+import java.util.Optional;
+
 public interface IntruderRecordManager
 {
     boolean checkSubject( String subject );
@@ -35,7 +37,7 @@ public interface IntruderRecordManager
 
     void markAlerted( String subject );
 
-    IntruderRecord readIntruderRecord( String subject );
+    Optional<IntruderRecord> readIntruderRecord( String subject );
 
     ClosableIterator<IntruderRecord> iterator( ) throws PwmException;
 }

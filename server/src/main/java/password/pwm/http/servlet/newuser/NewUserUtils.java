@@ -113,7 +113,8 @@ class NewUserUtils
     {
         if ( !passwordCheckInfo.isPassed() )
         {
-            final ErrorInformation errorInformation = PwmError.forErrorNumber( passwordCheckInfo.getErrorCode() ).toInfo();
+            final ErrorInformation errorInformation = PwmError.forErrorNumber( passwordCheckInfo.getErrorCode() )
+                    .orElse( PwmError.ERROR_INTERNAL ).toInfo();
             throw new PwmOperationalException( errorInformation );
         }
         if ( passwordCheckInfo.getMatch() != PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH )
