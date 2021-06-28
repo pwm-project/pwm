@@ -48,9 +48,4 @@ public class SeedlistService extends AbstractWordlist implements Wordlist
     {
         return super.randomSeed();
     }
-
-    @Override
-    protected void warmup()
-    {
-    }
 }

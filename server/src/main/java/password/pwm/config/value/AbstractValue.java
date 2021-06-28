@@ -20,6 +20,7 @@
 
 package password.pwm.config.value;
 
+import password.pwm.PwmConstants;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
