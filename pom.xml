@@ -102,7 +102,7 @@
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
-                <version>4.0.4</version>
+                <version>4.0.5</version>
                 <executions>
                     <execution>
                         <id>get-the-git-infos</id>
@@ -129,7 +129,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -366,12 +366,15 @@
             <plugin> <!-- checks owsp vulnerability database -->
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>6.2.0</version>
+                <version>6.2.2</version>
                 <executions>
                     <execution>
                         <goals>
                             <goal>check</goal>
                         </goals>
+                        <configuration>
+                            <yarnAuditAnalyzerEnabled>false</yarnAuditAnalyzerEnabled>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -389,7 +392,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.2.3</version>
+            <version>4.3.0</version>
             <scope>provided</scope>
         </dependency>
 
