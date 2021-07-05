@@ -21,6 +21,7 @@
 package password.pwm.svc.event;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 import password.pwm.PwmApplication;
@@ -30,8 +31,16 @@ import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
 
+import java.util.Locale;
+
 public class CEFAuditFormatterTest
 {
+    @BeforeClass
+    public static void setUp() throws Exception
+    {
+        Locale.setDefault( PwmConstants.DEFAULT_LOCALE );
+    }
+
     @Test
     public void testCEFFormatting() throws PwmUnrecoverableException
     {
