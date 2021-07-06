@@ -35,6 +35,8 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.javadoc.skip>true</maven.javadoc.skip>
+        <jarsigner.skip>true</jarsigner.skip>
+
 
         <!-- profile managed values -->
         <spotbugs.skip>false</spotbugs.skip>
@@ -72,6 +74,12 @@
             <id>enable-javadoc</id>
             <properties>
                 <maven.javadoc.skip>false</maven.javadoc.skip>
+            </properties>
+        </profile>
+        <profile>
+            <id>enable-jarsigner</id>
+            <properties>
+                <jarsigner.skip>false</jarsigner.skip>
             </properties>
         </profile>
     </profiles>
@@ -377,6 +385,33 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jarsigner-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>sign</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skip>${jarsigner.skip}</skip>
+                    <keystore>${jarsigner.keystore}</keystore>
+                    <alias>${jarsigner.alias}</alias>
+                    <storepass>${jarsigner.storepass}</storepass>
+                    <keypass>${jarsigner.keypass}</keypass>
+                    <verbose>false</verbose>
+                    <removeExistingSignatures>true</removeExistingSignatures>
+                    <includes>
+                        <include>*.jar</include>
+                        <include>*.war</include>
+                    </includes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
