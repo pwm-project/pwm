@@ -216,6 +216,15 @@ public class Storage
 
     static void mkdirs( final File file ) throws IOException
     {
+        if ( file.exists() )
+        {
+            if ( file.isDirectory() )
+            {
+                return;
+            }
+            throw new IOException( "path already exists as file: " + file.getAbsolutePath() );
+        }
+
         if ( !file.mkdirs() )
         {
             throw new IOException( "unable to create path " + file.getAbsolutePath() );
