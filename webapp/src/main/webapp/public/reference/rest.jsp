@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -1628,7 +1628,7 @@ cLi2mbers
                             <td>After the form data is signed, it can be submitted as part of a request to <pwm:macro value="@PwmAppName@"/> using the
                                 <code>signedForm</code> parameter and the value is the encoded <code>data</code> value returned in the result.
                                 Values expire after a period of time.
-                                <br/><br/><b>Example:</b><br/> <code><pwm:context/>/sspr/public/newuser?signedForm=xxx</code>
+                                <br/><br/><b>Example:</b><br/> <code><pwm:context/>/public/newuser?signedForm=xxx</code>
 
                             </td>
                         </tr>

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 package password.pwm.svc.event;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 import password.pwm.PwmApplication;
@@ -30,8 +31,16 @@ import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
 
+import java.util.Locale;
+
 public class CEFAuditFormatterTest
 {
+    @BeforeClass
+    public static void setUp() throws Exception
+    {
+        Locale.setDefault( PwmConstants.DEFAULT_LOCALE );
+    }
+
     @Test
     public void testCEFFormatting() throws PwmUnrecoverableException
     {

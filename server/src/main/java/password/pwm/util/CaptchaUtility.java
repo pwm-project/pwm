@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,13 +70,45 @@ public class CaptchaUtility
 
     public enum CaptchaMode
     {
-        V3,
-        V3_INVISIBLE,
+        V2( null ),
+        V2_INVISIBLE( null ),
+
+        // v3 versions deprecated since implementation is actually V2 only.
+        V3( V2 ),
+        V3_INVISIBLE( V2_INVISIBLE ),;
+
+        private final CaptchaMode replacement;
+
+        CaptchaMode( final CaptchaMode replacement )
+        {
+            this.replacement = replacement;
+        }
+
+        public CaptchaMode getReplacement()
+        {
+            return replacement;
+        }
+
+        boolean isDeprecated()
+        {
+            return replacement != null;
+        }
     }
 
     public static CaptchaMode readCaptchaMode( final PwmRequest pwmRequest )
     {
-        return pwmRequest.getConfig().readSettingAsEnum( PwmSetting.CAPTCHA_RECAPTCHA_MODE, CaptchaMode.class );
+        final CaptchaMode captchaMode = pwmRequest.getConfig().readSettingAsEnum( PwmSetting.CAPTCHA_RECAPTCHA_MODE, CaptchaMode.class );
+        if ( captchaMode == null )
+        {
+            return CaptchaMode.V2;
+        }
+
+        if ( captchaMode.isDeprecated() )
+        {
+            return captchaMode.getReplacement();
+        }
+
+        return captchaMode;
     }
 
     /**
@@ -146,26 +178,37 @@ public class CaptchaUtility
 
             final JsonElement responseJson = new JsonParser().parse( clientResponse.getBody() );
             final JsonObject topObject = responseJson.getAsJsonObject();
-            if ( topObject != null && topObject.has( "success" ) )
+            if ( topObject != null )
             {
-                final boolean success = topObject.get( "success" ).getAsBoolean();
-                if ( success )
+                if ( topObject.has( "score" ) )
                 {
-                    writeCaptchaSkipCookie( pwmRequest );
-                    LOGGER.trace( pwmRequest, () -> "captcha verification passed" );
-                    StatisticsManager.incrementStat( pwmRequest, Statistic.CAPTCHA_SUCCESSES );
-                    return true;
+                    final String errorMsg = "captcha response contains 'score' attribute, indicating captcha setting key is not expected Version 2 key type";
+                    LOGGER.error( () -> errorMsg );
+                    final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CAPTCHA_API_ERROR, errorMsg );
+                    throw new PwmUnrecoverableException( errorInfo );
                 }
 
-                if ( topObject.has( "error-codes" ) )
+                if ( topObject.has( "success" ) )
                 {
-                    final List<String> errorCodes = new ArrayList<>();
-                    for ( final JsonElement element : topObject.get( "error-codes" ).getAsJsonArray() )
+                    final boolean success = topObject.get( "success" ).getAsBoolean();
+                    if ( success )
                     {
-                        final String errorCode = element.getAsString();
-                        errorCodes.add( errorCode );
+                        writeCaptchaSkipCookie( pwmRequest );
+                        LOGGER.trace( pwmRequest, () -> "captcha verification passed" );
+                        StatisticsManager.incrementStat( pwmRequest, Statistic.CAPTCHA_SUCCESSES );
+                        return true;
                     }
-                    LOGGER.debug( pwmRequest, () -> "recaptcha error codes: " + JsonUtil.serializeCollection( errorCodes ) );
+
+                    if ( topObject.has( "error-codes" ) )
+                    {
+                        final List<String> errorCodes = new ArrayList<>();
+                        for ( final JsonElement element : topObject.get( "error-codes" ).getAsJsonArray() )
+                        {
+                            final String errorCode = element.getAsString();
+                            errorCodes.add( errorCode );
+                        }
+                        LOGGER.debug( pwmRequest, () -> "recaptcha error codes: " + JsonUtil.serializeCollection( errorCodes ) );
+                    }
                 }
             }
         }

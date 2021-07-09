@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,6 @@ import java.util.function.BooleanSupplier;
 abstract class AbstractWordlist implements Wordlist, PwmService
 {
     static final TimeDuration DEBUG_OUTPUT_FREQUENCY = TimeDuration.MINUTE;
-    private static final TimeDuration BUCKET_CHECK_LOG_WARNING_TIMEOUT = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
 
     private WordlistConfiguration wordlistConfiguration;
     private WordlistBucket wordlistBucket;
@@ -201,7 +200,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
         getStatistics().getWordCheckTimeMS().update( timeDuration.asMillis() );
 
-        if ( timeDuration.isLongerThan( BUCKET_CHECK_LOG_WARNING_TIMEOUT ) )
+        if ( timeDuration.isLongerThan( this.wordlistConfiguration.getBucketCheckTimeWarningMs() ) )
         {
             getLogger().debug( () -> "wordlist search time for wordlist permutations was greater then 100ms: " + timeDuration.asCompactString() );
         }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,36 +20,35 @@
 
 package password.pwm.svc.httpclient;
 
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.secure.PwmTrustManager;
 import password.pwm.util.secure.CertificateReadingTrustManager;
 import password.pwm.util.secure.PromiscuousTrustManager;
 import password.pwm.util.secure.PwmHashAlgorithm;
+import password.pwm.util.secure.PwmTrustManager;
 import password.pwm.util.secure.X509Utils;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.TrustManager;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
 
+@Value
 class HttpTrustManagerHelper
 {
-    private final Configuration configuration;
+    private final Configuration appConfig;
     private final PwmHttpClientConfiguration pwmHttpClientConfiguration;
     private final PwmHttpClientConfiguration.TrustManagerType trustManagerType;
 
     HttpTrustManagerHelper(
-            final Configuration configuration,
+            final Configuration appConfig,
             final PwmHttpClientConfiguration pwmHttpClientConfiguration
     )
     {
-        this.configuration = configuration;
+        this.appConfig = appConfig;
         this.pwmHttpClientConfiguration = pwmHttpClientConfiguration;
         this.trustManagerType = pwmHttpClientConfiguration.getTrustManagerType();
     }
@@ -59,21 +58,21 @@ class HttpTrustManagerHelper
         return trustManagerType;
     }
 
-
-    HostnameVerifier hostnameVerifier()
+    boolean hostnameVerificationEnabled()
     {
         final PwmHttpClientConfiguration.TrustManagerType trustManagerType = getTrustManagerType();
         if ( trustManagerType == PwmHttpClientConfiguration.TrustManagerType.promiscuous )
         {
-            return NoopHostnameVerifier.INSTANCE;
+            return false;
         }
 
-        if ( !Boolean.parseBoolean( configuration.readAppProperty( AppProperty.HTTP_CLIENT_ENABLE_HOSTNAME_VERIFICATION ) ) )
+        final Configuration appConfig = getAppConfig();
+        if ( !Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.HTTP_CLIENT_ENABLE_HOSTNAME_VERIFICATION ) ) )
         {
-            return NoopHostnameVerifier.INSTANCE;
+            return false;
         }
 
-        return new DefaultHostnameVerifier();
+        return true;
     }
 
     TrustManager[] makeTrustManager(
@@ -93,20 +92,20 @@ class HttpTrustManagerHelper
             case promiscuousCertReader:
                 return new TrustManager[]
                         {
-                                CertificateReadingTrustManager.newCertReaderTrustManager( configuration ),
+                                CertificateReadingTrustManager.newCertReaderTrustManager( appConfig ),
                         };
 
             case configuredCertificates:
             {
                 return new TrustManager[]
                         {
-                                PwmTrustManager.createPwmTrustManager( configuration, pwmHttpClientConfiguration.getCertificates() ),
+                                PwmTrustManager.createPwmTrustManager( appConfig, pwmHttpClientConfiguration.getCertificates() ),
                         };
             }
 
             case defaultJava:
             {
-                return X509Utils.getDefaultJavaTrustManager( configuration );
+                return X509Utils.getDefaultJavaTrustManager( appConfig );
             }
 
             default:

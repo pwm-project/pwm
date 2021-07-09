@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 package password.pwm.util.secure;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -502,6 +503,7 @@ public class SecureEngine
         }
     }
 
+    @SuppressFBWarnings( "DMI_RANDOM_USED_ONLY_ONCE" )
     public static void benchmark( final Writer outputData ) throws PwmUnrecoverableException, IOException
     {
         final int testIterations = 10 * 1000;

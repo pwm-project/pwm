@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,7 +150,7 @@ export default class HelpDeskService implements IHelpDeskService {
                 'Must not include part of your name or user name.',
                 'Must not include a common word or commonly used sequence of characters.'
             ],
-            'passwordPolicyDN': 'cn=SSPR,cn=Password Policies,cn=Security',
+            'passwordPolicyDN': 'cn=Policy,cn=Password Policies,cn=Security',
             'passwordPolicyID': 'n/a',
             'statusData': [
                 {
