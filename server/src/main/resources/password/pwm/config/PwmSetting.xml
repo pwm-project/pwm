@@ -575,6 +575,17 @@
             <value><![CDATA[]]></value>
         </default>
     </setting>
+    <setting hidden="false" key="ldap.allowAuth.requireNewPassword" level="2" required="true">
+        <default template="AD">
+            <value>true</value>
+        </default>
+        <default template="ORACLE_DS">
+            <value>true</value>
+        </default>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting hidden="false" key="passwordLastUpdateAttribute" level="2">
         <ldapPermission actor="proxy" access="write"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
@@ -3454,11 +3465,6 @@
             <value>true</value>
         </default>
     </setting>
-    <setting hidden="false" key="ldap.ad.allowAuth.requireNewPassword" level="1" required="true">
-        <default>
-            <value>true</value>
-        </default>
-    </setting>
     <setting hidden="false" key="ldap.ad.allowAuth.expired" level="1" required="true">
         <default>
             <value>false</value>
@@ -3470,11 +3476,6 @@
         </default>
     </setting>
     <setting hidden="false" key="ldap.oracleDS.enable.manipAllowChangeTime" level="1" required="true">
-        <default>
-            <value>true</value>
-        </default>
-    </setting>
-    <setting hidden="false" key="ldap.oracleDS.allowAuth.requireNewPassword" level="1" required="true">
         <default>
             <value>true</value>
         </default>
@@ -4107,6 +4108,18 @@
         <default/>
     </setting>
     <!-- BEGIN DEPRECATED SETTINGS -->
+    <setting hidden="true" key="ldap.oracleDS.allowAuth.requireNewPassword" level="1" required="true">
+        <flag>Deprecated</flag>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting hidden="true" key="ldap.ad.allowAuth.requireNewPassword" level="1" required="true">
+        <flag>Deprecated</flag>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting hidden="true" key="password.policy.ADComplexity" level="99" required="false">
         <flag>Deprecated</flag>
         <default>
