@@ -41,6 +41,9 @@ import java.util.Iterator;
 
 public class Storage
 {
+    private static final Logger LOGGER = Logger.createLogger( Storage.class );
+    private static final String STORE_NAME = "store1";
+
     private final Environment environment;
     private Store store;
 
@@ -64,8 +67,12 @@ public class Storage
         final EnvironmentConfig environmentConfig = new EnvironmentConfig();
         environment = Environments.newInstance( storagePath.getAbsolutePath(), environmentConfig );
 
+        LOGGER.info( "environment open" );
+
         environment.executeInTransaction( txn -> store
-                = environment.openStore( "store1", StoreConfig.WITHOUT_DUPLICATES, txn ) );
+                = environment.openStore( STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn ) );
+
+        LOGGER.info( "store open with " + count() + " records" );
     }
 
     public void store( final TelemetryPublishBean bean )
@@ -96,13 +103,13 @@ public class Storage
         return new InnerIterator();
     }
 
-    private boolean put( final TelemetryPublishBean value )
+    private void put( final TelemetryPublishBean value )
     {
-        return environment.computeInTransaction( transaction ->
+        environment.executeInTransaction( transaction ->
         {
             final ByteIterable k = StringBinding.stringToEntry( value.getInstanceHash() );
             final ByteIterable v = StringBinding.stringToEntry( JsonUtil.serialize( value ) );
-            return store.put( transaction, k, v );
+            store.put( transaction, k, v );
         } );
     }
 
@@ -134,7 +141,7 @@ public class Storage
         return environment.computeInTransaction( transaction -> store.count( transaction ) );
     }
 
-    private class InnerIterator implements AutoCloseable, Iterator
+    private class InnerIterator implements AutoCloseable, Iterator<TelemetryPublishBean>
     {
         private final Transaction transaction;
         private final Cursor cursor;
