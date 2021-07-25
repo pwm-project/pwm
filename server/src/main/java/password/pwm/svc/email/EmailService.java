@@ -367,7 +367,11 @@ public class EmailService extends AbstractPwmService implements PwmService
             return;
         }
 
-        checkIfServiceIsOpen();
+        if ( status() != STATUS.OPEN )
+        {
+            LOGGER.trace( () -> "email service is closed, discarding email job: " + emailItem.toDebugString() );
+            return;
+        }
 
         submitLock.lock();
         try
@@ -422,14 +426,6 @@ public class EmailService extends AbstractPwmService implements PwmService
         statsLogger.conditionallyExecuteTask();
     }
 
-    private void checkIfServiceIsOpen()
-            throws PwmUnrecoverableException
-    {
-        if ( STATUS.OPEN != status() )
-        {
-            throw new PwmUnrecoverableException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "email service is closed and will not accent new jobs" );
-        }
-    }
 
     public static void sendEmailSynchronous(
             final EmailServer emailServer,

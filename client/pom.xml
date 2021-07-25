@@ -13,11 +13,11 @@
     <packaging>jar</packaging>
 
     <properties>
-        <node.version>v14.15.0</node.version>
-        <npm.version>6.14.8</npm.version>
+        <node.version>v14.17.2</node.version>
+        <npm.version>6.14.13</npm.version>
     </properties>
 
-    <name>PWM Password Self Service: Angular Client WebJAR</name>
+    <name>PWM Password Self Service: Angular Client JAR</name>
 
     <profiles>
         <profile>
@@ -121,12 +121,11 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Implementation-Archive-Name>pwm.client</Implementation-Archive-Name>
                             <Implementation-Title>${project.name}</Implementation-Title>
                             <Implementation-Version>${project.version}</Implementation-Version>
                             <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
                             <Implementation-URL>${project.organization.url}</Implementation-URL>
-                            <Implementation-Build-Java-Spec-Version>${java.specification.version}</Implementation-Build-Java-Spec-Version>
+                            <Implementation-Build>${build.number}</Implementation-Build>
                             <Implementation-Revision>${build.revision}</Implementation-Revision>
                             <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
                             <SCM-Git-Branch>${git.branch}</SCM-Git-Branch>
@@ -134,7 +133,8 @@
                             <SCM-Git-Commit-ID-Abbrev>${git.commit.id.abbrev}</SCM-Git-Commit-ID-Abbrev>
                             <SCM-Git-Commit-ID-Description>${git.commit.id.describe}</SCM-Git-Commit-ID-Description>
                             <SCM-Git-Commit-Timestamp>${git.commit.time}</SCM-Git-Commit-Timestamp>
-                            <SCM-Git-Commit-Dirty>${git.dirty}</SCM-Git-Commit-Dirty>                        </manifestEntries>
+                            <SCM-Git-Commit-Dirty>${git.dirty}</SCM-Git-Commit-Dirty>
+                        </manifestEntries>
                     </archive>
                 </configuration>
             </plugin>

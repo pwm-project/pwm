@@ -394,6 +394,8 @@
                 </executions>
                 <configuration>
                     <skip>${owasp.skip}</skip>
+                    <yarnAuditAnalyzerEnabled>false</yarnAuditAnalyzerEnabled>
+                    <nodeAnalyzerEnabled>false</nodeAnalyzerEnabled>
                 </configuration>
             </plugin>
             <plugin>

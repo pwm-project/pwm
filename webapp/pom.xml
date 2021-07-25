@@ -112,7 +112,6 @@
                     <webXml>${webXmlForJspPreCompiledInjection}</webXml>
                     <archive>
                         <manifestEntries>
-                            <Implementation-Archive-Name>${warArtifactID}</Implementation-Archive-Name>
                             <Implementation-Archive-Name>pwm.war</Implementation-Archive-Name>
                             <Implementation-Title>${project.name}</Implementation-Title>
                             <Implementation-Version>${project.version}</Implementation-Version>

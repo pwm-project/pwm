@@ -1542,11 +1542,11 @@
     </setting>
     <setting hidden="false" key="captcha.recaptcha.mode" level="2">
         <default>
-            <value>V3</value>
+            <value>V2</value>
         </default>
         <options>
-            <option value="V3">reCaptcha Version 3</option>
-            <option value="V3_INVISIBLE">reCaptcha Version 3 - Invisible</option>
+            <option value="V2">reCaptcha Version 2</option>
+            <option value="V2_INVISIBLE">reCaptcha Version 2 - Invisible</option>
         </options>
     </setting>
     <setting hidden="false" key="security.formNonce.enable" level="2" required="true">

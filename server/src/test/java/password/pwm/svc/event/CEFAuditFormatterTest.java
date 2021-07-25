@@ -22,6 +22,7 @@ package password.pwm.svc.event;
 
 import org.junit.Assert;
 import org.junit.Rule;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import password.pwm.PwmApplication;
@@ -29,10 +30,18 @@ import password.pwm.PwmConstants;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.localdb.TestHelper;
 
+import java.util.Locale;
+
 public class CEFAuditFormatterTest
 {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @BeforeClass
+    public static void setUp() throws Exception
+    {
+        Locale.setDefault( PwmConstants.DEFAULT_LOCALE );
+    }
 
     @Test
     public void testCEFFormatting()

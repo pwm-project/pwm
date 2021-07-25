@@ -44,9 +44,9 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
-import password.pwm.svc.intruder.IntruderDomainService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.svc.intruder.IntruderDomainService;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -72,13 +72,45 @@ public class CaptchaUtility
 
     public enum CaptchaMode
     {
-        V3,
-        V3_INVISIBLE,
+        V2( null ),
+        V2_INVISIBLE( null ),
+
+        // v3 versions deprecated since implementation is actually V2 only.
+        V3( V2 ),
+        V3_INVISIBLE( V2_INVISIBLE ),;
+
+        private final CaptchaMode replacement;
+
+        CaptchaMode( final CaptchaMode replacement )
+        {
+            this.replacement = replacement;
+        }
+
+        public CaptchaMode getReplacement()
+        {
+            return replacement;
+        }
+
+        boolean isDeprecated()
+        {
+            return replacement != null;
+        }
     }
 
     public static CaptchaMode readCaptchaMode( final PwmRequest pwmRequest )
     {
-        return pwmRequest.getDomainConfig().readSettingAsEnum( PwmSetting.CAPTCHA_RECAPTCHA_MODE, CaptchaMode.class );
+        final CaptchaMode captchaMode = pwmRequest.getDomainConfig().readSettingAsEnum( PwmSetting.CAPTCHA_RECAPTCHA_MODE, CaptchaMode.class );
+        if ( captchaMode == null )
+        {
+            return CaptchaMode.V2;
+        }
+
+        if ( captchaMode.isDeprecated() )
+        {
+            return captchaMode.getReplacement();
+        }
+
+        return captchaMode;
     }
 
     /**
@@ -148,17 +180,27 @@ public class CaptchaUtility
 
             final JsonElement responseJson = JsonParser.parseString( clientResponse.getBody() );
             final JsonObject topObject = responseJson.getAsJsonObject();
-            if ( topObject != null && topObject.has( "success" ) )
+            if ( topObject != null )
             {
-                final boolean success = topObject.get( "success" ).getAsBoolean();
-                if ( success )
+                if ( topObject.has( "score" ) )
                 {
-                    writeCaptchaSkipCookie( pwmRequest );
-                    LOGGER.trace( pwmRequest, () -> "captcha verification passed" );
-                    StatisticsClient.incrementStat( pwmRequest, Statistic.CAPTCHA_SUCCESSES );
-                    return true;
+                    final String errorMsg = "captcha response contains 'score' attribute, indicating captcha setting key is not expected Version 2 key type";
+                    LOGGER.error( () -> errorMsg );
+                    final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CAPTCHA_API_ERROR, errorMsg );
+                    throw new PwmUnrecoverableException( errorInfo );
                 }
 
+                if ( topObject.has( "success" ) )
+                {
+                    final boolean success = topObject.get( "success" ).getAsBoolean();
+                    if ( success )
+                    {
+                        writeCaptchaSkipCookie( pwmRequest );
+                        LOGGER.trace( pwmRequest, () -> "captcha verification passed" );
+                        StatisticsClient.incrementStat( pwmRequest, Statistic.CAPTCHA_SUCCESSES );
+                        return true;
+                    }
+                }
                 if ( topObject.has( "error-codes" ) )
                 {
                     final List<String> errorCodes = new ArrayList<>();
