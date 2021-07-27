@@ -250,28 +250,18 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                         userIdentity.getLdapProfileID() ).getDirectoryVendor();
                 if ( PwmError.PASSWORD_NEW_PASSWORD_REQUIRED == e.getError() )
                 {
-                    if ( vendor == DirectoryVendor.ACTIVE_DIRECTORY )
+
+                    if ( pwmApplication.getConfig().readSettingAsBoolean(
+                                PwmSetting.LDAP_ALLOW_AUTH_REQUIRE_NEW_PWD ) 
+                            && ( vendor == DirectoryVendor.ACTIVE_DIRECTORY
+                                || vendor == DirectoryVendor.ORACLE_DS
+                                || vendor == DirectoryVendor.OPEN_LDAP ) )
                     {
-                        if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD ) )
-                        {
-                            log( PwmLogLevel.DEBUG,
-                                    () -> "auth bind failed, but will allow login due to 'must change password on next login AD error', error: "
-                                            + e.getErrorInformation().toDebugStr() );
-                            allowBindAsUser = false;
-                            permitAuthDespiteError = true;
-                        }
-                    }
-                    else if ( vendor == DirectoryVendor.ORACLE_DS )
-                    {
-                        if ( pwmApplication.getConfig().readSettingAsBoolean(
-                                PwmSetting.ORACLE_DS_ALLOW_AUTH_REQUIRE_NEW_PWD ) )
-                        {
-                            log( PwmLogLevel.DEBUG,
-                                    () -> "auth bind failed, but will allow login due to 'pwdReset' user attribute, error: "
-                                            + e.getErrorInformation().toDebugStr() );
-                            allowBindAsUser = false;
-                            permitAuthDespiteError = true;
-                        }
+                        log( PwmLogLevel.DEBUG,
+                                () -> "auth bind failed, but will allow login due to 'pwdReset=TRUE' or 'pwdLastSet=0', error: "
+                                        + e.getErrorInformation().toDebugStr() );
+                        allowBindAsUser = false;
+                        permitAuthDespiteError = true;
                     }
                 }
                 else if ( PwmError.PASSWORD_EXPIRED == e.getError() )
@@ -279,7 +269,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                     // handle ad case where password is expired
                     if ( vendor == DirectoryVendor.ACTIVE_DIRECTORY )
                     {
-                        if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD ) )
+                        if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.LDAP_ALLOW_AUTH_REQUIRE_NEW_PWD ) )
                         {
                             if ( !pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.AD_ALLOW_AUTH_EXPIRED ) )
                             {
