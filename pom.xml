@@ -82,12 +82,13 @@
             <properties>
                 <jarsigner.skip>false</jarsigner.skip>
             </properties>
-        </profile><profile>
-        <id>skip-owasp</id>
-        <properties>
-            <owasp.skip>true</owasp.skip>
-        </properties>
-    </profile>
+        </profile>
+        <profile>
+            <id>skip-owasp</id>
+            <properties>
+                <owasp.skip>true</owasp.skip>
+            </properties>
+        </profile>
     </profiles>
 
     <build>

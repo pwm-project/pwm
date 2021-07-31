@@ -385,6 +385,8 @@ public enum AppProperty
     WORDLIST_IMPORT_MAX_TRANSACTIONS                ( "wordlist.import.maxTransactions" ),
     WORDLIST_IMPORT_MAX_CHARS_TRANSACTIONS          ( "wordlist.import.maxCharsTransactions" ),
     WORDLIST_IMPORT_LINE_COMMENTS                   ( "wordlist.import.lineComments" ),
+    WORDLIST_IMPORT_PAUSE_DURATION_MS               ( "wordlist.import.pauseDurationMs" ),
+    WORDLIST_IMPORT_PAUSE_FREQUENCY_MS              ( "wordlist.import.pauseFrequencyMs" ),
     WORDLIST_INSPECTOR_FREQUENCY_SECONDS            ( "wordlist.inspector.frequencySeconds" ),
     WORDLIST_TEST_MODE                              ( "wordlist.testMode" ),
     WORDLIST_BUCKET_CHECK_TIME_WARNING_MS           ( "wordlist.bucket.checkTimeWarningMs" ),

@@ -61,6 +61,7 @@ class WordlistImporter implements Runnable
     private final WordlistSourceInfo wordlistSourceInfo;
     private final BooleanSupplier cancelFlag;
     private final StatisticAverageBundle<StatKey> importStatistics = new StatisticAverageBundle<>( StatKey.class );
+    private final ConditionalTaskExecutor pauseTimer;
 
     private long charsInBuffer;
     private ErrorInformation exitError;
@@ -69,7 +70,7 @@ class WordlistImporter implements Runnable
     private final Map<WordType, LongAdder> seenWordTypes = new EnumMap<>( WordType.class );
     private boolean completed;
 
-    enum StatKey
+    private enum StatKey
     {
         charsPerTransaction( DebugKey.CharsPerTxn ),
         wordsPerTransaction( DebugKey.WordsPerTxn ),
@@ -129,13 +130,20 @@ class WordlistImporter implements Runnable
 
         final WordlistConfiguration wordlistConfiguration = rootWordlist.getConfiguration();
 
-        transactionCalculator = new TransactionSizeCalculator(
+        this.transactionCalculator = new TransactionSizeCalculator(
                 TransactionSizeCalculator.Settings.builder()
                         .durationGoal( wordlistConfiguration.getImportDurationGoal() )
                         .minTransactions( wordlistConfiguration.getImportMinTransactions() )
                         .maxTransactions( wordlistConfiguration.getImportMaxTransactions() )
                         .build()
         );
+
+        {
+            final TimeDuration pauseDuration = wordlistConfiguration.getImportPauseDuration();
+            this.pauseTimer = ConditionalTaskExecutor.forPeriodicTask(
+                    pauseDuration::pause,
+                    wordlistConfiguration.getImportPauseFrequency() );
+        }
     }
 
     @Override
@@ -217,10 +225,6 @@ class WordlistImporter implements Runnable
         final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask(
                 () -> getLogger().debug( rootWordlist.getSessionLabel(), this::makeStatString ),
                 AbstractWordlist.DEBUG_OUTPUT_FREQUENCY );
-
-        final ConditionalTaskExecutor pauseTimer = ConditionalTaskExecutor.forPeriodicTask(
-                () -> TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS ).pause(),
-                TimeDuration.SECOND );
 
         try
         {

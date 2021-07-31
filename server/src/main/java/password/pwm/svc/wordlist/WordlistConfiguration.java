@@ -71,6 +71,9 @@ public class WordlistConfiguration implements Serializable
     private final TimeDuration importDurationGoal;
     private final TimeDuration bucketCheckLogWarningTimeout;
 
+    private final TimeDuration importPauseDuration;
+    private final TimeDuration importPauseFrequency;
+
     private final int importMinTransactions;
     private final int importMaxTransactions;
     private final long importMaxChars;
@@ -126,22 +129,16 @@ public class WordlistConfiguration implements Serializable
                 .minWordSize( Integer.parseInt( appConfig.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MIN ) ) )
                 .maxWordSize( Integer.parseInt( appConfig.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MAX ) ) )
                 .warmupLookups( Integer.parseInt( appConfig.readAppProperty( AppProperty.WORDLIST_WARMUP_COUNT ) ) )
-                .bucketCheckLogWarningTimeout( TimeDuration.of(
-                        Long.parseLong( appConfig.readAppProperty( AppProperty.WORDLIST_BUCKET_CHECK_WARNING_TIMEOUT_MS ) ),
-                        TimeDuration.Unit.MILLISECONDS ) )
-                .autoImportRecheckDuration( TimeDuration.of(
-                        Long.parseLong( appConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_AUTO_IMPORT_RECHECK_SECONDS ) ),
-                        TimeDuration.Unit.SECONDS ) )
-                .importDurationGoal( TimeDuration.of(
-                        Long.parseLong( appConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_DURATION_GOAL_MS ) ),
-                        TimeDuration.Unit.MILLISECONDS ) )
+                .bucketCheckLogWarningTimeout( appConfig.readDurationAppProperty( AppProperty.WORDLIST_BUCKET_CHECK_WARNING_TIMEOUT_MS ) )
+                .autoImportRecheckDuration( appConfig.readDurationAppProperty( AppProperty.WORDLIST_IMPORT_AUTO_IMPORT_RECHECK_SECONDS ) )
+                .importDurationGoal( appConfig.readDurationAppProperty( AppProperty.WORDLIST_IMPORT_DURATION_GOAL_MS ) )
                 .importMinTransactions( Integer.parseInt( appConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_TRANSACTIONS ) ) )
                 .importMaxTransactions( Integer.parseInt( appConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_TRANSACTIONS ) ) )
                 .importMaxChars( JavaHelper.silentParseLong( appConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_CHARS_TRANSACTIONS ), 10_1024_1024 ) )
-                .inspectorFrequency( TimeDuration.of(
-                        Long.parseLong( appConfig.readAppProperty( AppProperty.WORDLIST_INSPECTOR_FREQUENCY_SECONDS ) ),
-                        TimeDuration.Unit.SECONDS ) )
+                .inspectorFrequency( appConfig.readDurationAppProperty( AppProperty.WORDLIST_INSPECTOR_FREQUENCY_SECONDS ) )
                 .importMinFreeSpace( JavaHelper.silentParseLong( appConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_FREE_SPACE ), 100_000_000 ) )
+                .importPauseDuration( appConfig.readDurationAppProperty( AppProperty.WORDLIST_IMPORT_PAUSE_DURATION_MS ) )
+                .importPauseFrequency( appConfig.readDurationAppProperty( AppProperty.WORDLIST_IMPORT_PAUSE_FREQUENCY_MS ) )
                 .build();
     }
 

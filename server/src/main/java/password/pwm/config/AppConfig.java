@@ -39,6 +39,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -140,6 +141,26 @@ public class AppConfig implements SettingReader
     public boolean readBooleanAppProperty( final AppProperty appProperty )
     {
         return Boolean.parseBoolean( readAppProperty( appProperty ) );
+    }
+
+    public TimeDuration readDurationAppProperty( final AppProperty appProperty )
+    {
+        final TimeDuration.Unit unit;
+        final String lcasePropName = appProperty.getKey().toLowerCase( PwmConstants.DEFAULT_LOCALE );
+        if ( lcasePropName.endsWith( "ms" ) )
+        {
+            unit = TimeDuration.Unit.MILLISECONDS;
+        }
+        else if ( lcasePropName.endsWith( "seconds" ) )
+        {
+            unit = TimeDuration.Unit.SECONDS;
+        }
+        else
+        {
+            throw new IllegalStateException( "can't read appProperty '" + appProperty.getKey() + "' as duration, unknown time unit" );
+        }
+
+        return TimeDuration.of( Long.parseLong( readAppProperty( appProperty ) ), unit );
     }
 
     public Map<AppProperty, String> readAllNonDefaultAppProperties( )
