@@ -367,7 +367,7 @@ class WordlistImporter implements Runnable
         final long wordlistSize = wordlistBucket.size();
 
         getLogger().info( rootWordlist.getSessionLabel(), () -> "population complete, added " + wordlistSize
-                + " total words", () -> TimeDuration.fromCurrent( startTime ) );
+                + " total words", this::getImportDuration );
 
         completed = true;
         writeCurrentWordlistStatus();
@@ -393,7 +393,7 @@ class WordlistImporter implements Runnable
         if ( previousBytesRead > 0 )
         {
             final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask(
-                    () -> getLogger().debug( rootWordlist.getSessionLabel(), () -> "continuing skipping forward in wordlist, "
+                    () -> getLogger().debug( rootWordlist.getSessionLabel(), () -> "continuing skipping forward in wordlist: "
                             + StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() )
                             + " of " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
                             + " (" + TimeDuration.compactFromCurrent( startSkipTime ) + ")" ),
