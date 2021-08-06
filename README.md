@@ -65,12 +65,15 @@ PWM is distributed in the following artifacts:
 | Docker | Docker image includes Java and Tomcat. |
 
 For all artifacts, each PWM instance will need an _applicationPath_ directory defined on your local server for PWM's configuration,
-log, and runtime files.  Once PWM is configured, the initial web UI will prompt the administrator for LDAP and other configuration settings.  Alternatively, you can place the _PwmConfiguration.xml_ in the _applicationPath_ directory to create a fully configured instance.
+log, and runtime files.  Once PWM is configured, the initial web UI will prompt the administrator for LDAP and other configuration settings.  
+Alternatively, you can place the _PwmConfiguration.xml_ in the _applicationPath_ directory to create a fully configured instance.
+
+PWM is primarily developed tested and built using [AdoptOpenJDK](https://adoptopenjdk.net) Java, but any standard Java distribution should work.
 
 ### WAR
 Requirements:
-* Java 11 JDK
-* Servlet Container 3.0 or better ( tested with Apache Tomcat 9.5.x )
+* Java 11 JDK or better
+* Servlet Container v3.0 or better ( tested with Apache Tomcat v9.5.x )
 
 Steps:
 1) Get Apache tomcat working to the point you can access the tomcat landing page with your browser.  See tomcat documentation/help sites for 
@@ -86,7 +89,7 @@ version.  You will be responsible for getting it to run as a service, and you wo
 configuration.
 
 Requirements:
-* Java 11 JDK
+* Java 11 JDK or better
 
 Help:
 * `java -version` to ensure you have java 11 or better available
@@ -101,7 +104,7 @@ By default the executable will remain attached to the console and listen for HTT
 
 ### Docker
 The PWM docker image includes Java and Tomcat.  It listens using https on port 8443, and has a volume exposed
-as `/config`.  You will need to map the /config volume to either a localhost or some type of persistent docker
+as `/config`.  You will need to map the `/config` volume to either a localhost or some type of persistent docker
 volume for PWM to work properly.
 
 Requirements:
@@ -128,13 +131,13 @@ docker start mypwm
 ## Build
 
 Build pre-requisites:
-* Java 11 JDK or newer
+* Java 11 JDK or better
 * Git
-* Maven not required, it will install locally using the maven wrapper in the source tree
+* The build uses maven, but you do not need to install it; the maven wrapper in the source tree will download a local version.
 
 Build steps:
-1. Set _JAVA_HOME_ environment variable to JDK home:
-1. Clone the git directory 
+1. Set _JAVA_HOME_ environment variable to JDK home.
+1. Clone the git project 
 1. Change to pwm directory
 1. Run the maven build 
    
@@ -147,12 +150,12 @@ cd pwm
 ```  
 Windows example:
 ```
-set JAVA_HOME="c:\JavaJDKDirectory"
+set JAVA_HOME="c:\JavaJDKDirectory" 
 git clone https://github.com/pwm-project/pwm
 cd pwm
-mvnw.bat clean verify
+mvnw.cmd clean verify
 ```
- 
+On Windows we recommend using paths without spaces (including for the JDK directory).
 
 Artifacts created:
 
