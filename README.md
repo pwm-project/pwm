@@ -117,12 +117,12 @@ docker load --input=pwm-docker-image-v2.0.0.tar
 1. Create docker image named _mypwm_, map to the server's 8443 port, and set the config volume to use the server's
 local file system _/home/user/pwm-config_ folder:
 ```
-docker create --name mypwm pwm/pwm-webapp -p '8443:8443' -v '/config:/home/user/pwm-config'
+docker create --name mypwm pwm/pwm-webapp -p '8443:8443' -v '/config:/home/user/pwm-config
 ```
 
 1. Start the _mypwm_ container:
 ```
-docker start mypwm`
+docker start mypwm
 ```
 
 ## Build
@@ -141,16 +141,16 @@ Build steps:
 Linux example: 
 ```
 export JAVA_HOME="/home/vm/JavaJDKDirectory"
-git clone https://github.com/pwm-project/pwm`
+git clone https://github.com/pwm-project/pwm
 cd pwm
-./mvnw clean verify` 
+./mvnw clean verify
 ```  
 Windows example:
 ```
 set JAVA_HOME="c:\JavaJDKDirectory"
-git clone https://github.com/pwm-project/pwm`
+git clone https://github.com/pwm-project/pwm
 cd pwm
-mvnw.bat clean verify` 
+mvnw.bat clean verify
 ```
  
 
