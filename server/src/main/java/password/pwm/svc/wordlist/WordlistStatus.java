@@ -44,6 +44,7 @@ public class WordlistStatus implements Serializable
     private WordlistSourceInfo remoteInfo;
     private long bytes;
     private long valueCount;
+    private long importMs;
     private String configHash;
 
     @Builder.Default

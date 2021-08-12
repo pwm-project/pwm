@@ -67,6 +67,7 @@ class WordlistImporter implements Runnable
     private ErrorInformation exitError;
     private Instant startTime = Instant.now();
     private long bytesSkipped;
+    private TimeDuration previousImportDuration;
     private final Map<WordType, LongAdder> seenWordTypes = new EnumMap<>( WordType.class );
     private boolean completed;
 
@@ -99,7 +100,7 @@ class WordlistImporter implements Runnable
         BytesSkipped,
         BytesPerSecond,
         PercentComplete,
-        ImportTime,
+        ImportDuration,
         EstimatedRemainingTime,
         WordsImported,
         DiskFreeSpace,
@@ -195,7 +196,10 @@ class WordlistImporter implements Runnable
 
         checkWordlistSpaceRemaining();
 
+        previousImportDuration = TimeDuration.of( rootWordlist.readWordlistStatus().getImportMs(), TimeDuration.Unit.MILLISECONDS );
+
         final long previousBytesRead = rootWordlist.readWordlistStatus().getBytes();
+
         for ( final Map.Entry<WordType, Long> entry : rootWordlist.readWordlistStatus().getWordTypes().entrySet() )
         {
             final LongAdder longAdder = new LongAdder();
@@ -363,7 +367,7 @@ class WordlistImporter implements Runnable
         final long wordlistSize = wordlistBucket.size();
 
         getLogger().info( rootWordlist.getSessionLabel(), () -> "population complete, added " + wordlistSize
-                + " total words", () -> TimeDuration.fromCurrent( startTime ) );
+                + " total words", this::getImportDuration );
 
         completed = true;
         writeCurrentWordlistStatus();
@@ -389,7 +393,7 @@ class WordlistImporter implements Runnable
         if ( previousBytesRead > 0 )
         {
             final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask(
-                    () -> getLogger().debug( rootWordlist.getSessionLabel(), () -> "continuing skipping forward in wordlist, "
+                    () -> getLogger().debug( rootWordlist.getSessionLabel(), () -> "continuing skipping forward in wordlist: "
                             + StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() )
                             + " of " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
                             + " (" + TimeDuration.compactFromCurrent( startSkipTime ) + ")" ),
@@ -434,7 +438,7 @@ class WordlistImporter implements Runnable
                     if ( elapsedSeconds > 0 )
                     {
                         final long bytesPerSecond = zipFileReader.getEventRate().longValue();
-                        stats.put( DebugKey.BytesPerSecond, StringUtil.formatDiskSizeforDebug( bytesPerSecond ) );
+                        stats.put( DebugKey.BytesPerSecond, StringUtil.formatDiskSize( bytesPerSecond ) );
 
                         if ( remainingBytes > 0 )
                         {
@@ -458,15 +462,14 @@ class WordlistImporter implements Runnable
         stats.put( DebugKey.ChunksSaved, PwmNumberFormat.forDefaultLocale().format( rootWordlist.size() ) );
         stats.put( DebugKey.BytesRead, StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() ) );
         stats.put( DebugKey.DiskFreeSpace, StringUtil.formatDiskSize( wordlistBucket.spaceRemaining() ) );
-        stats.put( DebugKey.ImportTime, TimeDuration.fromCurrent( startTime ).asCompactString() );
+        stats.put( DebugKey.ImportDuration, getImportDuration().asCompactString() );
         stats.put( DebugKey.ZipFile, zipFileReader.currentZipName() );
         stats.put( DebugKey.WordTypes, JsonUtil.serializeMap( seenWordTypes ) );
 
         if ( bytesSkipped > 0 )
         {
-            stats.put( DebugKey.BytesSkipped, StringUtil.formatDiskSizeforDebug( bytesSkipped ) );
+            stats.put( DebugKey.BytesSkipped, StringUtil.formatDiskSize( bytesSkipped ) );
         }
-
 
         try
         {
@@ -498,6 +501,7 @@ class WordlistImporter implements Runnable
                 .completed( completed )
                 .wordTypes( outputWordTypeMap )
                 .bytes( zipFileReader.getByteCount() )
+                .importMs( getImportDuration().asMillis() )
                 .build() );
     }
 
@@ -516,5 +520,10 @@ class WordlistImporter implements Runnable
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_WORDLIST_IMPORT_ERROR, msg );
             throw new PwmUnrecoverableException( errorInformation );
         }
+    }
+
+    private TimeDuration getImportDuration()
+    {
+        return TimeDuration.fromCurrent( startTime ).add( previousImportDuration );
     }
 }
