@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -41,6 +42,18 @@ public class CollectionUtil
     public static <T> Stream<T> iteratorToStream( final Iterator<T> iterator )
     {
         return StreamSupport.stream( Spliterators.spliteratorUnknownSize( iterator, Spliterator.ORDERED ), false );
+    }
+
+    public static <V> List<V> stripNulls( final List<V> input )
+    {
+        if ( input == null )
+        {
+            return Collections.emptyList();
+        }
+
+        return input.stream()
+                .filter( Objects::nonNull )
+                .collect( Collectors.toUnmodifiableList() );
     }
 
     public static <K, V> Map<K, V> stripNulls( final Map<K, V> input )

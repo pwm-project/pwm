@@ -365,7 +365,11 @@ ChallengeSettingHandler.toggleAdminDefinedRow = function(toggleElement,inputID,k
 };
 
 ChallengeSettingHandler.deleteRow = function(keyName, localeKey, rowName) {
+    var questionText = PWM_VAR['clientSettingCache'][keyName][localeKey][rowName]['text'];
+    var adminDefined = PWM_VAR['clientSettingCache'][keyName][localeKey][rowName]['adminDefined'];
+    var output = (adminDefined ? 'the question "' + questionText + '"': 'the [User Defined] question?');
     PWM_MAIN.showConfirmDialog({
+        text: 'Are you sure you want to remove ' + output,
         okAction:function(){
             PWM_MAIN.showWaitDialog({loadFunction:function(){
                     delete PWM_VAR['clientSettingCache'][keyName][localeKey][rowName];

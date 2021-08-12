@@ -48,6 +48,7 @@ import password.pwm.svc.sessiontrack.UserAgentUtils;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsService;
+import password.pwm.util.i18n.LocaleComparators;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -406,7 +407,7 @@ public class ClientApiServlet extends ControlledPwmServlet
             final Map<String, String> localeFlags = new LinkedHashMap<>();
 
             final List<Locale> knownLocales = new ArrayList<>( pwmRequest.getAppConfig().getKnownLocales() );
-            knownLocales.sort( LocaleHelper.localeComparator( PwmConstants.DEFAULT_LOCALE ) );
+            knownLocales.sort( LocaleComparators.localeComparator( ) );
 
             for ( final Locale locale : knownLocales )
             {
