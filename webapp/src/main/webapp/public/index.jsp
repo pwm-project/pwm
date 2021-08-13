@@ -53,7 +53,7 @@
         <a id="Button_ForgottenPassword" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenPassword.servletUrl()%>'/>">
             <div class="tile">
                 <div class="tile-content">
-                    <div class="tile-image forgotten-image"></div>
+                    <div class="tile-image forgotten-password-image"></div>
                     <div class="tile-title" title="<pwm:display key='Title_ForgottenPassword'/>"><pwm:display key="Title_ForgottenPassword"/></div>
                     <div class="tile-subtitle" title="<pwm:display key='Long_Title_ForgottenPassword'/>"><pwm:display key="Long_Title_ForgottenPassword"/></div>
                 </div>
@@ -64,7 +64,7 @@
         <a id="Button_ForgottenUsername" href="<pwm:url addContext="true" url='<%=PwmServletDefinition.ForgottenUsername.servletUrl()%>'/>">
             <div class="tile">
                 <div class="tile-content">
-                    <div class="tile-image forgotten-image"></div>
+                    <div class="tile-image forgotten-username-image"></div>
                     <div class="tile-title" title="<pwm:display key='Title_ForgottenUsername'/>"><pwm:display key="Title_ForgottenUsername"/></div>
                     <div class="tile-subtitle" title="<pwm:display key='Long_Title_ForgottenUsername'/>"><pwm:display key="Long_Title_ForgottenUsername"/></div>
                 </div>
