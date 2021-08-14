@@ -101,7 +101,6 @@ import java.security.Security;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -620,7 +619,7 @@ public class NMASCrOperator implements CrOperator
         }
 
         @Override
-        public Date getTimestamp( ) throws ChaiUnavailableException, IllegalStateException, ChaiOperationException
+        public Instant getTimestamp( ) throws ChaiUnavailableException, IllegalStateException, ChaiOperationException
         {
             return null;
         }

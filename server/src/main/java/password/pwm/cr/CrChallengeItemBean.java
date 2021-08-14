@@ -40,24 +40,6 @@ public class CrChallengeItemBean implements Serializable, Challenge
     private boolean enforceWordlist;
 
     @Override
-    public boolean isLocked()
-    {
-        return true;
-    }
-
-    @Override
-    public void lock()
-    {
-
-    }
-
-    @Override
-    public void setChallengeText( final String challengeText )
-    {
-        throw new IllegalStateException();
-    }
-
-    @Override
     public ChallengeBean asChallengeBean()
     {
         throw new IllegalStateException();

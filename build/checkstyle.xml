@@ -46,6 +46,12 @@
         <property name="fileExtensions" value="jsp,java"/>
     </module>
 
+    <module name="LineLength">
+        <property name="max" value="180" />
+        <property name="ignorePattern" value="@version|@see|@todo|TODO"/>
+        <property name="fileExtensions" value="java"/>
+    </module>
+
     <!-- Checks for Headers                              -->
     <!-- See http://checkstyle.sf.net/config_header.html -->
     <!--
@@ -78,11 +84,6 @@
             <property name="allowEscapesForControlCharacters" value="true"/>
             <property name="allowByTailComment" value="true"/>
             <property name="allowNonPrintableEscapes" value="true"/>
-        </module>
-
-        <module name="LineLength">
-            <property name="max" value="180" />
-            <property name="ignorePattern" value="@version|@see|@todo|TODO"/>
         </module>
 
         <module name="EmptyBlock">

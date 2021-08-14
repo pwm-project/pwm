@@ -17,7 +17,7 @@
 
     <properties>
         <project.root.basedir>${project.basedir}/..</project.root.basedir>
-        <tomcat.version>9.0.22</tomcat.version>
+        <tomcat.version>9.0.52</tomcat.version>
     </properties>
 
     <build>
@@ -26,7 +26,7 @@
                 <!-- prevent normal jar from being built -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <id>default-jar</id>
