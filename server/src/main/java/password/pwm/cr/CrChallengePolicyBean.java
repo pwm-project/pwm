@@ -96,17 +96,6 @@ public class CrChallengePolicyBean implements Serializable, ChallengeSet
         return mininimumResponses;
     }
 
-    @Override
-    public boolean isLocked()
-    {
-        return true;
-    }
-
-    @Override
-    public void lock()
-    {
-
-    }
 
     @Override
     public String getIdentifier()

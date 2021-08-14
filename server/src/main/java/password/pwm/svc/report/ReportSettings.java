@@ -78,19 +78,23 @@ class ReportSettings implements Serializable
     {
         final ReportSettings.ReportSettingsBuilder builder = ReportSettings.builder();
         builder.maxCacheAge( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.REPORTING_MAX_REPORT_AGE_SECONDS ) ), TimeDuration.Unit.SECONDS ) );
-        builder.searchFilter( config.readSettingAsUserPermission( PwmSetting.REPORTING_USER_MATCH ) );
         builder.maxSearchSize ( ( int ) config.readSettingAsLong( PwmSetting.REPORTING_MAX_QUERY_SIZE ) );
         builder.dailyJobEnabled( config.readSettingAsBoolean( PwmSetting.REPORTING_ENABLE_DAILY_JOB ) );
 
-        if ( builder.searchFilter == null || builder.searchFilter.isEmpty() )
         {
-            builder.searchFilter = null;
+            final List<UserPermission> searchFilter = config.readSettingAsUserPermission( PwmSetting.REPORTING_USER_MATCH );
+            if ( searchFilter != null && !searchFilter.isEmpty() )
+            {
+                builder.searchFilter( searchFilter );
+            }
         }
 
-        builder.jobOffsetSeconds = ( int ) config.readSettingAsLong( PwmSetting.REPORTING_JOB_TIME_OFFSET );
-        if ( builder.jobOffsetSeconds > 60 * 60 * 24 )
         {
-            builder.jobOffsetSeconds = 0;
+            final int jobOffsetSeconds = ( int ) config.readSettingAsLong( PwmSetting.REPORTING_JOB_TIME_OFFSET );
+            if ( jobOffsetSeconds <= 60 * 60 * 24 )
+            {
+                builder.jobOffsetSeconds( jobOffsetSeconds );
+            }
         }
 
         builder.trackDays( parseDayIntervalStr( config ) );

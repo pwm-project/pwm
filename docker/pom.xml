@@ -34,7 +34,7 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>1.2.0</version>
+                <version>3.1.2</version>
                 <executions>
                     <execution>
                         <id>make-docker-image</id>
@@ -44,10 +44,12 @@
                         </goals>
                         <configuration>
                             <skip>${skipDocker}</skip>
-                            <jib.console>plain</jib.console>
                             <from>
                                 <image>adoptopenjdk/openjdk11:jre</image>
                             </from>
+                            <outputPaths>
+                                <tar>target/pwm-docker-image-${project.version}.tar</tar>
+                            </outputPaths>
                             <to>
                                 <image>${dockerImageTag}</image>
                             </to>
@@ -55,14 +57,17 @@
                                 <entrypoint>
                                     <arg>/app/startup.sh</arg>
                                 </entrypoint>
-                                <format>docker</format>
-                                <ports>8443</ports>
+                                <ports>
+                                    <port>8443</port>
+                                </ports>
                                 <volumes>
                                     <volume>/config</volume>
                                 </volumes>
                             </container>
-                            <extraDirectory>
-                                <path>${project.basedir}/src/main/image-files</path>
+                            <extraDirectories>
+                                <paths>
+                                    <path>${project.basedir}/src/main/image-files</path>
+                                </paths>
                                 <permissions>
                                     <permission>
                                         <file>/app/startup.sh</file>
@@ -73,7 +78,7 @@
                                         <mode>755</mode>
                                     </permission>
                                 </permissions>
-                            </extraDirectory>
+                            </extraDirectories>
                         </configuration>
                     </execution>
                 </executions>
