@@ -41,7 +41,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -57,6 +56,7 @@ import java.util.stream.Collectors;
 public class LocaleHelper
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LocaleHelper.class );
+
 
     public enum TextDirection
     {
@@ -438,16 +438,6 @@ public class LocaleHelper
         return locale == null
                 ? ""
                 : locale.toString().replace( "_", "-" );
-    }
-
-    public static Comparator<Locale> localeComparator( final Locale comparisonLocale )
-    {
-        return ( o1, o2 ) ->
-        {
-            final String name1 = o1.getDisplayName( comparisonLocale );
-            final String name2 = o2.getDisplayName( comparisonLocale );
-            return name1.compareToIgnoreCase( name2 );
-        };
     }
 
     public static List<Locale> highLightedLocales()
