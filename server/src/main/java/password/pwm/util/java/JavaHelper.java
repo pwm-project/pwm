@@ -58,6 +58,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -723,5 +724,28 @@ public class JavaHelper
         }
         return returnMap;
     }
-    
+
+    public static <K, V> Map<K, V> stripNulls( final Map<K, V> input )
+    {
+        if ( input == null )
+        {
+            return Collections.emptyMap();
+        }
+
+        return input.entrySet().stream()
+                .filter( e -> e.getKey() != null && e.getValue() != null )
+                .collect( Collectors.toUnmodifiableMap( Map.Entry::getKey, Map.Entry::getValue ) );
+    }
+
+    public static <V> List<V> stripNulls( final List<V> input )
+    {
+        if ( input == null )
+        {
+            return Collections.emptyList();
+        }
+
+        return input.stream()
+                .filter( Objects::nonNull )
+                .collect( Collectors.toUnmodifiableList() );
+    }
 }
