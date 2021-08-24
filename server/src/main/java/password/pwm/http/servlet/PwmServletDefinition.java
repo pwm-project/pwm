@@ -76,9 +76,9 @@ public enum PwmServletDefinition
     Resource( password.pwm.http.servlet.resource.ResourceFileServlet.class, null ),
 
     AccountInformation( AccountInformationServlet.class, null ),
-    PrivateChangePassword( PrivateChangePasswordServlet.class, ChangePasswordBean.class, Flag.RequiresUserPasswordAndBind ),
+    PrivateChangePassword( PrivateChangePasswordServlet.class, ChangePasswordBean.class ),
     SetupResponses( password.pwm.http.servlet.SetupResponsesServlet.class, SetupResponsesBean.class, Flag.RequiresUserPasswordAndBind ),
-    UpdateProfile( UpdateProfileServlet.class, UpdateProfileBean.class, Flag.RequiresUserPasswordAndBind ),
+    UpdateProfile( UpdateProfileServlet.class, UpdateProfileBean.class ),
     SetupOtp( password.pwm.http.servlet.SetupOtpServlet.class, SetupOtpBean.class, Flag.RequiresUserPasswordAndBind ),
     Helpdesk( password.pwm.http.servlet.helpdesk.HelpdeskServlet.class, null ),
     Shortcuts( password.pwm.http.servlet.ShortcutServlet.class, ShortcutsBean.class ),
