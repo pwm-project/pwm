@@ -213,6 +213,11 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
     @Override
     public Serializable toDebugJsonObject( final Locale locale )
     {
+        return ( Serializable ) makeDebugJsonObject( locale );
+    }
+
+    private List<RemoteWebServiceConfiguration> makeDebugJsonObject( final Locale locale )
+    {
         final ArrayList<RemoteWebServiceConfiguration> output = new ArrayList<>();
         for ( final RemoteWebServiceConfiguration remoteWebServiceConfiguration : values )
         {
@@ -231,7 +236,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
     @Override
     public String toDebugString( final Locale locale )
     {
-        return JsonUtil.serialize( this.toDebugJsonObject( locale ) );
+        return JsonUtil.serializeCollection( this.makeDebugJsonObject( locale ) );
     }
 
 }

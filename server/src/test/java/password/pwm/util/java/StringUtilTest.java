@@ -24,6 +24,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import password.pwm.util.secure.PwmRandom;
 
+import java.io.IOException;
+
 public class StringUtilTest
 {
     @Test
@@ -187,5 +189,31 @@ public class StringUtilTest
     {
         final String input = "dsad(dsadaasds)dsdasdad";
         Assert.assertEquals( "dsad%28dsadaasds%29dsdasdad", StringUtil.urlPathEncode( input ) );
+    }
+
+    @Test
+    public void base64EncodeTest() throws IOException
+    {
+        final byte[] input = new byte[500];
+        for ( int i = 0; i < 500; i++ )
+        {
+            input[i] = 65;
+        }
+
+        final String b64value = StringUtil.base32Encode( input );
+        final String expectedValue = "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                        + "IFAUCQKB";
+
+        Assert.assertEquals( expectedValue, b64value );
     }
 }

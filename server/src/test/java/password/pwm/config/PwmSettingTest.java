@@ -60,6 +60,7 @@ public class PwmSettingTest
                 .build();
         for ( final PwmSetting pwmSetting : PwmSetting.values() )
         {
+            System.out.println( pwmSetting.name() + " " + pwmSetting.getKey()  );
             for ( final PwmSettingTemplateSet templateSet : PwmSettingTemplateSet.allValues() )
             {
                 final StoredValue storedValue = pwmSetting.getDefaultValue( templateSet );

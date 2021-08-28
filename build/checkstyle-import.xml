@@ -67,6 +67,7 @@
 
     <!-- gson -->
     <allow pkg="com.google.gson"/>
+    <allow pkg="com.squareup.moshi"/>
 
     <allow pkg="javax.management"/>
 

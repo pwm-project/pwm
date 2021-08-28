@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
@@ -330,7 +331,6 @@ public abstract class StringUtil
 
 
     public static String base64Encode( final byte[] input, final StringUtil.Base64Options... options )
-            throws PwmUnrecoverableException
     {
         final byte[] compressedBytes;
         if ( JavaHelper.enumArrayContainsValue( options, Base64Options.GZIP ) )
@@ -341,7 +341,7 @@ public abstract class StringUtil
             }
             catch ( final IOException e )
             {
-                throw PwmUnrecoverableException.convert( e );
+                throw new PwmInternalException( "unexpected error during base64 decoding: " + e, e );
             }
         }
         else

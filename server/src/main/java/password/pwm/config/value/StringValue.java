@@ -124,13 +124,13 @@ public class StringValue extends AbstractValue implements StoredValue
         {
             final String lCaseValue = value.toLowerCase( PwmConstants.DEFAULT_LOCALE );
             final List<String> reservedWords = DomainID.DOMAIN_RESERVED_WORDS;
-            final boolean contains = reservedWords.stream()
+            final Optional<String> reservedWordMatch = reservedWords.stream()
                     .map( String::toLowerCase )
-                    .anyMatch( lCaseValue::contains );
-            if ( contains )
+                    .filter( lCaseValue::contains )
+                    .findFirst();
+            if ( reservedWordMatch.isPresent() )
             {
-                return Collections.singletonList( "Domain ID is reserved word: '" + value + "'" );
-
+                return Collections.singletonList( "contains reserved word '" + reservedWordMatch.get() + "'" );
             }
         }
 

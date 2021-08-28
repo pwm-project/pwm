@@ -319,7 +319,9 @@ public enum Display implements PwmDisplayBundle
     Value_True,
     Value_NotApplicable,
     Value_Default,
-    Placeholder_Search,;
+    Placeholder_Search,
+
+    Value_Deprecated,;
 
     public static String getLocalizedMessage( final Locale locale, final Display key, final SettingReader config )
     {
