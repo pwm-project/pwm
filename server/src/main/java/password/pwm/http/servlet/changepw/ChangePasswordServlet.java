@@ -557,11 +557,6 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
         getProfile( pwmRequest );
 
-        // if ( pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD )
-        // {
-        //     throw new PwmUnrecoverableException( PwmError.ERROR_PASSWORD_REQUIRED );
-        // }
-
         if ( !pwmRequest.isAuthenticated() )
         {
             pwmRequest.respondWithError( PwmError.ERROR_AUTHENTICATION_REQUIRED.toInfo() );
