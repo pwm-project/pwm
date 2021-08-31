@@ -199,8 +199,21 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
 
         preAuthenticationChecks();
 
+        final boolean alwaysUseProxyIsEnabled = pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN );
+        ChaiProvider returnProvider;
+        
+        try 
+        {
+            returnProvider = alwaysUseProxyIsEnabled ? makeProxyProvider() : null;
+        }
+        catch ( final ChaiUnavailableException ex )
+        {   
+            log( PwmLogLevel.WARN, () -> "Unable to obtain chai provider for proxy user" );
+            returnProvider = null;
+        }
+        
         final AuthenticationResult authenticationResult = new AuthenticationResult(
-                null,
+                returnProvider,
                 AuthenticationType.AUTH_WITHOUT_PASSWORD,
                 null
         );
