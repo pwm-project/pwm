@@ -117,13 +117,13 @@ public class LocaleStats
                         + loopStats.getPerLocalePresentLocalizations().getOrDefault( locale, 0 );
                 perLocalePresentLocalizations.put( locale, combinedPresent );
 
-                final Percent percent = new Percent( combinedPresent, totalKeys );
+                final Percent percent = Percent.of( combinedPresent, totalKeys );
                 perLocalePercentLocalizations.put( locale, percent.pretty( 0 ) );
             }
 
         }
 
-        final Percent totalPercentage = new Percent( presentSlots, totalSlots );
+        final Percent totalPercentage = Percent.of( presentSlots, totalSlots );
 
         return LocaleStats.builder()
                 .localesExamined( LocaleHelper.knownBuiltInLocales() )
@@ -165,11 +165,11 @@ public class LocaleStats
             perLocaleMissingLocalizations.put( locale, missingKeys.size() );
             perLocalePresentLocalizations.put( locale, totalKeysInBundle - missingKeys.size() );
 
-            final Percent percent = new Percent( presentKeys, totalKeysInBundle );
+            final Percent percent = Percent.of( presentKeys, totalKeysInBundle );
             perLocalePercentLocalizations.put( locale, percent.pretty( 0 ) );
         }
 
-        final Percent totalPercentage = new Percent( presentSlots, totalSlots );
+        final Percent totalPercentage = Percent.of( presentSlots, totalSlots );
 
         return LocaleStats.builder()
                 .localesExamined( knownLocales )

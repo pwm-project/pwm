@@ -20,26 +20,68 @@
 
 package password.pwm.svc;
 
+import password.pwm.PwmApplication;
+import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
-public abstract class AbstractPwmService
+public abstract class AbstractPwmService implements PwmService
 {
-    private PwmService.STATUS status = PwmService.STATUS.CLOSED;
+    private PwmApplication pwmApplication;
+    private final AtomicReference<PwmService.STATUS> status = new AtomicReference<>( PwmService.STATUS.CLOSED );
     private ErrorInformation startupError;
+    private DomainID domainID;
+    private SessionLabel sessionLabel;
 
     public final PwmService.STATUS status()
     {
-        return status;
+        return status.get();
+    }
+
+    public final void init( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
+    {
+        this.pwmApplication = Objects.requireNonNull( pwmApplication );
+        this.domainID = Objects.requireNonNull( domainID );
+        this.sessionLabel = SessionLabel.forPwmService( this, domainID );
+
+        if ( pwmApplication.checkConditions( openConditions() ) )
+        {
+            setStatus( this.postAbstractInit( pwmApplication, domainID ) );
+        }
+    }
+
+    protected abstract STATUS postAbstractInit( PwmApplication pwmApplication, DomainID domainID )
+            throws PwmException;
+
+    protected PwmApplication getPwmApplication()
+    {
+        return pwmApplication;
     }
 
     protected void setStatus( final PwmService.STATUS status )
     {
-        this.status = status;
+        this.status.set( status );
+    }
+
+    public DomainID getDomainID()
+    {
+        return domainID;
+    }
+
+    public SessionLabel getSessionLabel()
+    {
+        return sessionLabel;
     }
 
     protected void setStartupError( final ErrorInformation startupError )
@@ -59,13 +101,24 @@ public abstract class AbstractPwmService
         final ErrorInformation startupError = this.startupError;
         if ( startupError != null )
         {
-            returnRecords.add( HealthRecord.forMessage( HealthMessage.ServiceClosed, startupError.toDebugStr() ) );
+            returnRecords.add( HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.ServiceClosed,
+                    startupError.toDebugStr() ) );
         }
 
-        returnRecords.addAll( serviceHealthCheck() );
+        if ( status() == STATUS.OPEN )
+        {
+            returnRecords.addAll( serviceHealthCheck() );
+        }
 
         return returnRecords;
     }
 
     protected abstract List<HealthRecord> serviceHealthCheck();
+
+    protected Set<PwmApplication.Condition> openConditions()
+    {
+        return EnumSet.of( PwmApplication.Condition.RunningMode, PwmApplication.Condition.LocalDBOpen, PwmApplication.Condition.NotInternalInstance );
+    }
 }

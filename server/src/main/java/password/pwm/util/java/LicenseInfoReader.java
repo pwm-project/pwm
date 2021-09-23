@@ -42,7 +42,7 @@ public class LicenseInfoReader
     {
         final List<String> attributionFiles = Collections.singletonList( "/attribution.xml" );
         final List<DependencyInfo> returnList = new ArrayList<>();
-        final XmlFactory factory = new XmlFactory.XmlFactoryW3c();
+        final XmlFactory factory = XmlFactory.getFactory();
 
         for ( final String attributionFile : attributionFiles )
         {
@@ -74,11 +74,11 @@ public class LicenseInfoReader
 
     private static DependencyInfo readDependencyInfo( final XmlElement dependency )
     {
-        final String projectUrl = dependency.getChildText( "projectUrl" );
-        final String name = dependency.getChildText( "name" );
-        final String artifactId = dependency.getChildText( "artifactId" );
-        final String version = dependency.getChildText( "version" );
-        final String type = dependency.getChildText( "type" );
+        final String projectUrl = dependency.getChildText( "projectUrl" ).orElse( null );
+        final String name = dependency.getChildText( "name" ).orElse( null );
+        final String artifactId = dependency.getChildText( "artifactId" ).orElse( null );
+        final String version = dependency.getChildText( "version" ).orElse( null );
+        final String type = dependency.getChildText( "type" ).orElse( null );
 
         final List<LicenseInfo> licenseInfos = dependency.getChild( "licenses" )
                 .map( LicenseInfoReader::readLicenses )
@@ -97,8 +97,8 @@ public class LicenseInfoReader
 
     private static LicenseInfo readLicenseInfo( final XmlElement license )
     {
-        final String licenseUrl = license.getChildText( "url" );
-        final String licenseName = license.getChildText( "name" );
+        final String licenseUrl = license.getChildText( "url" ).orElse( null );
+        final String licenseName = license.getChildText( "name" ).orElse( null );
         return new LicenseInfo( licenseUrl, licenseName );
     }
 

@@ -24,10 +24,11 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -100,28 +101,28 @@ public class ActionValue extends AbstractValue implements StoredValue
                 final List<ActionConfiguration> values = new ArrayList<>();
 
                 final boolean oldType = PwmSettingSyntax.STRING_ARRAY.toString().equals(
-                        settingElement.getAttributeValue( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX ) );
-                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                        settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX ).orElse( "" ) );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final String stringValue = loopValueElement.getText();
-                    if ( !StringUtil.isEmpty( stringValue ) )
+                    final Optional<String> stringValue = loopValueElement.getText();
+                    if ( stringValue.isPresent() )
                     {
                         if ( syntaxVersion < 2 )
                         {
                             if ( oldType )
                             {
-                                if ( loopValueElement.getAttributeValue( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE ) == null )
+                                if ( loopValueElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE ).isEmpty() )
                                 {
                                     final ActionConfiguration.ActionConfigurationOldVersion1 oldVersion1 = ActionConfiguration.ActionConfigurationOldVersion1
-                                            .parseOldConfigString( stringValue );
+                                            .parseOldConfigString( stringValue.get() );
                                     values.add( convertOldVersion1Values( oldVersion1 ) );
                                 }
                             }
                             else
                             {
                                 final ActionConfiguration.ActionConfigurationOldVersion1 parsedAc = JsonUtil
-                                        .deserialize( stringValue, ActionConfiguration.ActionConfigurationOldVersion1.class );
+                                        .deserialize( stringValue.get(), ActionConfiguration.ActionConfigurationOldVersion1.class );
                                 if ( parsedAc != null )
                                 {
                                     final Optional<String> decodedValue = StoredValueEncoder.decode(
@@ -137,12 +138,12 @@ public class ActionValue extends AbstractValue implements StoredValue
                         }
                         else if ( syntaxVersion == 2 )
                         {
-                            final ActionConfiguration value = JsonUtil.deserialize( stringValue, ActionConfiguration.class );
+                            final ActionConfiguration value = JsonUtil.deserialize( stringValue.get(), ActionConfiguration.class );
                             final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
                             for ( final ActionConfiguration.WebAction webAction : value.getWebActions() )
                             {
                                 // add success status if empty list
-                                final List<Integer> successStatus = JavaHelper.isEmpty( webAction.getSuccessStatus() )
+                                final List<Integer> successStatus = CollectionUtil.isEmpty( webAction.getSuccessStatus() )
                                         ? Collections.singletonList( 200 )
                                         : webAction.getSuccessStatus();
 
@@ -193,7 +194,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
             for ( final ActionConfiguration.WebAction webAction : value.getWebActions() )
             {
-                if ( !StringUtil.isEmpty( webAction.getPassword() ) )
+                if ( StringUtil.notEmpty( webAction.getPassword() ) )
                 {
                     try
                     {
@@ -275,7 +276,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
             for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
             {
-                final String debugPwdValue = !StringUtil.isEmpty( webAction.getPassword() )
+                final String debugPwdValue = StringUtil.notEmpty( webAction.getPassword() )
                         ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT
                         : null;
 
@@ -314,11 +315,11 @@ public class ActionValue extends AbstractValue implements StoredValue
                                 ? ""
                                 : PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT
                 );
-                if ( !JavaHelper.isEmpty( webAction.getSuccessStatus() ) )
+                if ( !CollectionUtil.isEmpty( webAction.getSuccessStatus() ) )
                 {
                     sb.append( "\n    successStatus=" ).append( StringUtil.collectionToString( webAction.getSuccessStatus() ) );
                 }
-                if ( !StringUtil.isEmpty( webAction.getBody() ) )
+                if ( StringUtil.notEmpty( webAction.getBody() ) )
                 {
                     sb.append( "\n    body=" ).append( webAction.getBody() );
                 }
@@ -361,7 +362,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
             {
                 final List webActionsList = (List) actionConfigurationMap.get( "webActions" );
-                if ( !JavaHelper.isEmpty( webAction.getCertificates() ) )
+                if ( !CollectionUtil.isEmpty( webAction.getCertificates() ) )
                 {
                     final Map webActionMap = (Map) webActionsList.get( webActionCounter );
                     final List<Map<String, String>> certificateInfos = new ArrayList<>();
@@ -400,12 +401,12 @@ public class ActionValue extends AbstractValue implements StoredValue
 
     private static int figureCurrentStoredSyntax( final XmlElement settingElement )
     {
-        final String storedSyntaxVersionString = settingElement.getAttributeValue( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION );
-        if ( !StringUtil.isEmpty( storedSyntaxVersionString ) )
+        final Optional<String> storedSyntaxVersionString = settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION );
+        if ( storedSyntaxVersionString.isPresent() )
         {
             try
             {
-                return Integer.parseInt( storedSyntaxVersionString );
+                return Integer.parseInt( storedSyntaxVersionString.get() );
             }
             catch ( final NumberFormatException e )
             {

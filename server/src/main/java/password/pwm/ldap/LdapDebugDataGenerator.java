@@ -30,9 +30,9 @@ import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.util.ChaiUtility;
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.PwmException;
@@ -52,21 +52,21 @@ public class LdapDebugDataGenerator
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapDebugDataGenerator.class );
 
     public static List<LdapDebugInfo> makeLdapDebugInfos(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final Locale locale
     )
 
     {
         final List<LdapDebugInfo> returnList = new ArrayList<>();
-        for ( final LdapProfile ldapProfile : configuration.getLdapProfiles().values() )
+        for ( final LdapProfile ldapProfile : domainConfig.getLdapProfiles().values() )
         {
             final List<LdapDebugServerInfo> ldapDebugServerInfos = new ArrayList<>();
 
             try
             {
-                final ChaiConfiguration profileChaiConf = LdapOperationsHelper.createChaiConfiguration( configuration, ldapProfile );
+                final ChaiConfiguration profileChaiConf = LdapOperationsHelper.createChaiConfiguration( domainConfig, ldapProfile );
                 final Collection<ChaiConfiguration> chaiConfigurations = ChaiUtility.splitConfigurationPerReplica( profileChaiConf, null );
 
                 for ( final ChaiConfiguration chaiConfiguration : chaiConfigurations )
@@ -74,10 +74,10 @@ public class LdapDebugDataGenerator
                     try
                     {
                         final ChaiProvider chaiProvider = LdapOperationsHelper.createChaiProvider(
-                                pwmApplication,
+                                pwmDomain,
                                 sessionLabel,
                                 ldapProfile,
-                                configuration,
+                                domainConfig,
                                 ldapProfile.readSettingAsString( PwmSetting.LDAP_PROXY_USER_DN ),
                                 ldapProfile.readSettingAsPassword( PwmSetting.LDAP_PROXY_USER_PASSWORD )
                         );

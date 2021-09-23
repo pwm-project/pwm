@@ -24,8 +24,11 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
+import java.util.function.BooleanSupplier;
 
 /**
  * <p>Executes a predefined task if a conditional has occurred.  Both the task and the conditional must be supplied by the caller.
@@ -39,9 +42,9 @@ public class ConditionalTaskExecutor
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConditionalTaskExecutor.class );
 
-    private Runnable task;
-    private Supplier<Boolean> predicate;
-    private final ReentrantLock lock = new ReentrantLock();
+    private final Runnable task;
+    private final BooleanSupplier predicate;
+    private final Lock lock = new ReentrantLock();
 
     /**
      * Execute the task if the conditional has been met.  Exceptions when running the task will be logged but not returned.
@@ -51,7 +54,7 @@ public class ConditionalTaskExecutor
         lock.lock();
         try
         {
-            if ( predicate.get() )
+            if ( predicate.getAsBoolean() )
             {
                 try
                 {
@@ -70,10 +73,10 @@ public class ConditionalTaskExecutor
         }
     }
 
-    public ConditionalTaskExecutor( final Runnable task, final Supplier<Boolean> predicate )
+    public ConditionalTaskExecutor( final Runnable task, final BooleanSupplier predicate )
     {
-        this.task = task;
-        this.predicate = predicate;
+        this.task = Objects.requireNonNull( task );
+        this.predicate = Objects.requireNonNull( predicate );
     }
 
     public static ConditionalTaskExecutor forPeriodicTask( final Runnable task, final TimeDuration timeDuration )
@@ -81,33 +84,40 @@ public class ConditionalTaskExecutor
         return new ConditionalTaskExecutor( task, new TimeDurationPredicate( timeDuration ) );
     }
 
-    public static class TimeDurationPredicate implements Supplier<Boolean>
+    public static ConditionalTaskExecutor forPeriodicTask(
+            final Runnable task,
+            final TimeDuration timeDuration,
+            final TimeDuration firstExecutionDelay )
+    {
+        return new ConditionalTaskExecutor( task, new TimeDurationPredicate( timeDuration, firstExecutionDelay ) );
+    }
+
+    private static class TimeDurationPredicate implements BooleanSupplier
     {
         private final TimeDuration timeDuration;
-        private volatile Instant nextExecuteTimestamp;
+        private final AtomicReference<Instant> nextExecuteTimestamp = new AtomicReference<>();
 
-        public TimeDurationPredicate( final TimeDuration timeDuration )
+        TimeDurationPredicate( final TimeDuration timeDuration )
         {
             this.timeDuration = timeDuration;
             setNextTimeFromNow( timeDuration );
-
         }
 
-        public TimeDurationPredicate( final long value, final TimeDuration.Unit unit )
+        TimeDurationPredicate( final TimeDuration timeDuration, final TimeDuration firstExecutionDelay )
         {
-            this( TimeDuration.of( value, unit ) );
+            this.timeDuration = timeDuration;
+            setNextTimeFromNow( firstExecutionDelay );
         }
 
-        public TimeDurationPredicate setNextTimeFromNow( final TimeDuration duration )
+        private void setNextTimeFromNow( final TimeDuration duration )
         {
-            nextExecuteTimestamp = Instant.now().plus( duration.asMillis(), ChronoUnit.MILLIS );
-            return this;
+            nextExecuteTimestamp.set( Instant.now().plus( duration.asMillis(), ChronoUnit.MILLIS ) );
         }
 
         @Override
-        public Boolean get()
+        public boolean getAsBoolean()
         {
-            if ( Instant.now().isAfter( nextExecuteTimestamp ) )
+            if ( Instant.now().isAfter( nextExecuteTimestamp.get() ) )
             {
                 setNextTimeFromNow( timeDuration );
                 return true;

@@ -173,7 +173,7 @@ class FtpDataIngestor
 
         ftpClient.connect( settings.getSetting( Settings.Setting.ftpSite ) );
         LOGGER.info( "ftp connect complete" );
-        if ( !StringUtil.isEmpty( settings.getSetting( Settings.Setting.ftpUser ) ) && !StringUtil.isEmpty( settings.getSetting( Settings.Setting.ftpPassword ) ) )
+        if ( StringUtil.notEmpty( settings.getSetting( Settings.Setting.ftpUser ) ) && StringUtil.notEmpty( settings.getSetting( Settings.Setting.ftpPassword ) ) )
         {
             final boolean loggedInSuccess = ftpClient.login( settings.getSetting( Settings.Setting.ftpUser ), settings.getSetting( Settings.Setting.ftpPassword ) );
             LOGGER.info( "ftp login complete, success=" + loggedInSuccess );

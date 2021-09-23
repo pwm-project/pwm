@@ -20,12 +20,14 @@
 
 package password.pwm.util.localdb;
 
+import lombok.Builder;
+import lombok.Value;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.EventRateMeter;
@@ -48,6 +50,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -63,7 +67,7 @@ public class LocalDBLoggerExtendedTest
 
     private LocalDBLogger localDBLogger;
     private LocalDB localDB;
-    private Configuration config;
+    private AppConfig config;
 
     private final AtomicInteger eventsAdded = new AtomicInteger( 0 );
 
@@ -81,7 +85,7 @@ public class LocalDBLoggerExtendedTest
     {
         TestHelper.setupLogging();
         final File localDBPath = testFolder.newFolder( "localdb-logger-test" );
-        config = new Configuration( StoredConfigurationFactory.newConfig() );
+        config = new AppConfig( StoredConfigurationFactory.newConfig() );
 
         localDB = LocalDBFactory.getInstance(
                 localDBPath,
@@ -104,11 +108,12 @@ public class LocalDBLoggerExtendedTest
             localDBLogger = new LocalDBLogger( null, localDB, settings );
         }
 
-        settings = new Settings();
-        settings.threads = 10;
-        settings.testDuration = TimeDuration.of( 1, TimeDuration.Unit.MINUTES );
-        settings.valueLength = 5000;
-        settings.batchSize = 100;
+        settings = Settings.builder()
+                .threads( 10 )
+                .testDuration( TimeDuration.of( 1, TimeDuration.Unit.MINUTES ) )
+                .valueLength( 5000 )
+                .batchSize( 100 )
+                .build();
     }
 
     private void out( final String output )
@@ -190,36 +195,34 @@ public class LocalDBLoggerExtendedTest
 
     private void outputDebugInfo()
     {
-        final StringBuilder sb = new StringBuilder();
-        sb.append( "added " ).append( numberFormat.format( eventsAdded.get() ) );
-        sb.append( ", size: " ).append( StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( localDB.getFileLocation() ) ) );
-        sb.append( ", eventsInDb: " ).append( figureEventsInDbStat() );
-        sb.append( ", free: " ).append( StringUtil.formatDiskSize(
-                FileSystemUtility.diskSpaceRemaining( localDB.getFileLocation() ) ) );
-        sb.append( ", eps: " ).append( eventRateMeter.readEventRate().setScale( 0, RoundingMode.UP ) );
-        sb.append( ", remain: " ).append( settings.testDuration.subtract( TimeDuration.fromCurrent( startTime ) ).asCompactString() );
-        sb.append( ", tail: " ).append( TimeDuration.fromCurrent( localDBLogger.getTailDate() ).asCompactString() );
-        out( sb.toString() );
+        final Map<String, String> debugParams = new HashMap<>( Map.of(
+                "size", StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( localDB.getFileLocation() ) ),
+                "eventsInDb", figureEventsInDbStat(),
+                "free", StringUtil.formatDiskSize( FileSystemUtility.diskSpaceRemaining( localDB.getFileLocation() ) ),
+                "eps", eventRateMeter.readEventRate().setScale( 0, RoundingMode.UP ).toString(),
+                "remain", settings.testDuration.subtract( TimeDuration.fromCurrent( startTime ) ).asCompactString() ) );
+        localDBLogger.getTailDate().ifPresent( tailDate -> debugParams.put( "tail", TimeDuration.compactFromCurrent( tailDate ) ) );
+        out( "added " + StringUtil.mapToString( debugParams ) );
     }
 
     private String figureEventsInDbStat()
     {
         final long maxEvents = config.readSettingAsLong( PwmSetting.EVENTS_PWMDB_MAX_EVENTS );
         final long eventCount = localDBLogger.getStoredEventCount();
-        final Percent percent = new Percent( eventCount, maxEvents );
+        final Percent percent = Percent.of( eventCount, maxEvents );
         return numberFormat.format( localDBLogger.getStoredEventCount() ) + "/" + numberFormat.format( maxEvents )
                 + " (" + percent.pretty( 2 ) + ")";
     }
 
     private Results makeResults()
     {
-        final Results results = new Results();
-        results.dbClass = config.readAppProperty( AppProperty.LOCALDB_IMPLEMENTATION );
-        results.duration = TimeDuration.fromCurrent( startTime ).asCompactString();
-        results.recordsAdded = eventsAdded.get();
-        results.dbSize = StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( localDB.getFileLocation() ) );
-        results.eventsInDb = figureEventsInDbStat();
-        return results;
+        return Results.builder()
+                .dbClass( config.readAppProperty( AppProperty.LOCALDB_IMPLEMENTATION ) )
+                .duration( TimeDuration.fromCurrent( startTime ).asCompactString() )
+                .recordsAdded( eventsAdded.get() )
+                .dbSize( StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( localDB.getFileLocation() ) ) )
+                .eventsInDb( figureEventsInDbStat() )
+                .build();
     }
 
     private class DebugOutputTimerTask extends TimerTask
@@ -231,6 +234,8 @@ public class LocalDBLoggerExtendedTest
         }
     }
 
+    @Value
+    @Builder
     private static class Settings implements Serializable
     {
         private TimeDuration testDuration;
@@ -239,6 +244,8 @@ public class LocalDBLoggerExtendedTest
         private int batchSize;
     }
 
+    @Value
+    @Builder
     private static class Results implements Serializable
     {
         private String dbClass;
@@ -251,7 +258,7 @@ public class LocalDBLoggerExtendedTest
     private static class RandomValueMaker
     {
         private int outputLength;
-        final StringBuffer randomValue = new StringBuffer();
+        final StringBuilder randomValue = new StringBuilder();
         final Random random = new Random();
 
         RandomValueMaker( final int outputLength )

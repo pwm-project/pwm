@@ -24,7 +24,7 @@
 
 
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="password.pwm.util.operations.otp.OTPUserRecord" %>
+<%@ page import="password.pwm.svc.otp.OTPUserRecord" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"

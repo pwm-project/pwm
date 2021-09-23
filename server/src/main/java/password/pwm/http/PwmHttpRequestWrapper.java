@@ -23,12 +23,14 @@ package password.pwm.http;
 import com.google.gson.JsonParseException;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.bean.DomainID;
+import password.pwm.config.AppConfig;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.ServletUtility;
 import password.pwm.util.Validator;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -43,38 +45,35 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PwmHttpRequestWrapper
 {
     private final HttpServletRequest httpServletRequest;
-    private final Configuration configuration;
+    private final AppConfig appConfig;
 
-    private static final Set<String> HTTP_PARAM_DEBUG_STRIP_VALUES =
-            Collections.unmodifiableSet( new HashSet<>( Arrays.asList(
-                    "password",
-                    PwmConstants.PARAM_TOKEN,
-                    PwmConstants.PARAM_RESPONSE_PREFIX ) )
-            );
+    private static final Set<String> HTTP_PARAM_DEBUG_STRIP_VALUES = Set.of(
+            "password",
+            PwmConstants.PARAM_TOKEN,
+            PwmConstants.PARAM_RESPONSE_PREFIX );
 
-    private static final Set<String> HTTP_HEADER_DEBUG_STRIP_VALUES =
-            Collections.unmodifiableSet( new HashSet<>( Collections.singletonList(
-                    HttpHeader.Authorization.getHttpName() ) )
-            );
+    private static final Set<String> HTTP_HEADER_DEBUG_STRIP_VALUES = Set.of(
+                    HttpHeader.Authorization.getHttpName() );
 
     public enum Flag
     {
         BypassValidation
     }
 
-    public PwmHttpRequestWrapper( final HttpServletRequest request, final Configuration configuration )
+    public PwmHttpRequestWrapper( final HttpServletRequest request, final AppConfig appConfig )
     {
         this.httpServletRequest = request;
-        this.configuration = configuration;
+        this.appConfig = appConfig;
     }
 
     public HttpServletRequest getHttpServletRequest( )
@@ -94,15 +93,11 @@ public class PwmHttpRequestWrapper
         return acceptHeader.contains( PwmConstants.AcceptValue.html.getHeaderValue() ) || acceptHeader.contains( "*/*" );
     }
 
-    public String getContextPath( )
-    {
-        return httpServletRequest.getContextPath();
-    }
 
     public String readRequestBodyAsString( )
             throws IOException, PwmUnrecoverableException
     {
-        final int maxChars = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_BODY_MAXREAD_LENGTH ) );
+        final int maxChars = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_BODY_MAXREAD_LENGTH ) );
         return readRequestBodyAsString( maxChars );
     }
 
@@ -119,9 +114,9 @@ public class PwmHttpRequestWrapper
         final String bodyString = readRequestBodyAsString();
         final Map<String, String> inputMap = JsonUtil.deserializeStringMap( bodyString );
 
-        final boolean trim = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.SECURITY_INPUT_TRIM ) );
-        final boolean passwordTrim = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.SECURITY_INPUT_PASSWORD_TRIM ) );
-        final int maxLength = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
+        final boolean trim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_TRIM ) );
+        final boolean passwordTrim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_PASSWORD_TRIM ) );
+        final int maxLength = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
 
         final Map<String, String> outputMap = new LinkedHashMap<>();
         if ( inputMap != null )
@@ -135,11 +130,11 @@ public class PwmHttpRequestWrapper
                     String value;
                     value = bypassInputValidation
                             ? entry.getValue()
-                            : Validator.sanitizeInputValue( configuration, entry.getValue(), maxLength );
+                            : Validator.sanitizeInputValue( appConfig, entry.getValue(), maxLength );
                     value = passwordType && passwordTrim ? value.trim() : value;
                     value = !passwordType && trim ? value.trim() : value;
 
-                    final String sanitizedName = Validator.sanitizeInputValue( configuration, key, maxLength );
+                    final String sanitizedName = Validator.sanitizeInputValue( appConfig, key, maxLength );
                     outputMap.put( sanitizedName, value );
                 }
             }
@@ -155,9 +150,9 @@ public class PwmHttpRequestWrapper
         final String bodyString = readRequestBodyAsString();
         final Map<String, Object> inputMap = JsonUtil.deserializeMap( bodyString );
 
-        final boolean trim = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.SECURITY_INPUT_TRIM ) );
-        final boolean passwordTrim = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.SECURITY_INPUT_PASSWORD_TRIM ) );
-        final int maxLength = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
+        final boolean trim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_TRIM ) );
+        final boolean passwordTrim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_PASSWORD_TRIM ) );
+        final int maxLength = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
 
         final Map<String, Object> outputMap = new LinkedHashMap<>();
         if ( inputMap != null )
@@ -173,7 +168,7 @@ public class PwmHttpRequestWrapper
                     {
                         String stringValue = bypassInputValidation
                                 ? ( String ) entry.getValue()
-                                : Validator.sanitizeInputValue( configuration, ( String ) entry.getValue(), maxLength );
+                                : Validator.sanitizeInputValue( appConfig, ( String ) entry.getValue(), maxLength );
                         stringValue = passwordType && passwordTrim ? stringValue.trim() : stringValue;
                         stringValue = !passwordType && trim ? stringValue.trim() : stringValue;
                         value = stringValue;
@@ -183,7 +178,7 @@ public class PwmHttpRequestWrapper
                         value = entry.getValue();
                     }
 
-                    final String sanitizedName = Validator.sanitizeInputValue( configuration, key, maxLength );
+                    final String sanitizedName = Validator.sanitizeInputValue( appConfig, key, maxLength );
                     outputMap.put( sanitizedName, value );
                 }
             }
@@ -192,24 +187,24 @@ public class PwmHttpRequestWrapper
         return Collections.unmodifiableMap( outputMap );
     }
 
-    public PasswordData readParameterAsPassword( final String name )
+    public Optional<PasswordData> readParameterAsPassword( final String name )
             throws PwmUnrecoverableException
     {
-        final int maxLength = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
-        final boolean trim = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.SECURITY_INPUT_PASSWORD_TRIM ) );
+        final int maxLength = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
+        final boolean trim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_PASSWORD_TRIM ) );
 
         final String rawValue = httpServletRequest.getParameter( name );
         if ( rawValue != null && !rawValue.isEmpty() )
         {
             final String decodedValue = decodeStringToDefaultCharSet( rawValue );
-            final String sanitizedValue = Validator.sanitizeInputValue( configuration, decodedValue, maxLength );
+            final String sanitizedValue = Validator.sanitizeInputValue( appConfig, decodedValue, maxLength );
             if ( sanitizedValue != null )
             {
                 final String trimmedVale = trim ? sanitizedValue.trim() : sanitizedValue;
-                return new PasswordData( trimmedVale );
+                return Optional.of( new PasswordData( trimmedVale ) );
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     public String readParameterAsString( final String name, final int maxLength, final Flag... flags )
@@ -227,7 +222,7 @@ public class PwmHttpRequestWrapper
     public String readParameterAsString( final String name, final String valueIfNotPresent )
             throws PwmUnrecoverableException
     {
-        final int maxLength = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
+        final int maxLength = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
         final String returnValue = readParameterAsString( name, maxLength );
         return returnValue == null || returnValue.isEmpty() ? valueIfNotPresent : returnValue;
     }
@@ -241,7 +236,7 @@ public class PwmHttpRequestWrapper
     public String readParameterAsString( final String name, final Flag... flags )
             throws PwmUnrecoverableException
     {
-        final int maxLength = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
+        final int maxLength = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
         return readParameterAsString( name, maxLength, flags );
     }
 
@@ -282,7 +277,7 @@ public class PwmHttpRequestWrapper
     {
         final boolean bypassInputValidation = flags != null && Arrays.asList( flags ).contains( Flag.BypassValidation );
         final HttpServletRequest req = this.getHttpServletRequest();
-        final boolean trim = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.SECURITY_INPUT_TRIM ) );
+        final boolean trim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_TRIM ) );
         final String[] rawValues = req.getParameterValues( name );
         if ( rawValues == null || rawValues.length == 0 )
         {
@@ -295,7 +290,7 @@ public class PwmHttpRequestWrapper
             final String decodedValue = decodeStringToDefaultCharSet( rawValue );
             final String sanitizedValue = bypassInputValidation
                     ? decodedValue
-                    : Validator.sanitizeInputValue( configuration, decodedValue, maxLength );
+                    : Validator.sanitizeInputValue( appConfig, decodedValue, maxLength );
 
             if ( sanitizedValue.length() > 0 )
             {
@@ -313,33 +308,37 @@ public class PwmHttpRequestWrapper
 
     public String readHeaderValueAsString( final String headerName )
     {
-        final int maxChars = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
+        final int maxChars = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
         final HttpServletRequest req = this.getHttpServletRequest();
         final String rawValue = req.getHeader( headerName );
-        final String sanitizedInputValue = Validator.sanitizeInputValue( configuration, rawValue, maxChars );
-        return Validator.sanitizeHeaderValue( configuration, sanitizedInputValue );
+        final String sanitizedInputValue = Validator.sanitizeInputValue( appConfig, rawValue, maxChars );
+        return Validator.sanitizeHeaderValue( appConfig, sanitizedInputValue );
+    }
+
+    public List<String> readHeaderValuesAsString( final String headerName )
+    {
+        final int maxChars = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
+        final List<String> valueList = new ArrayList<>();
+        for ( final Enumeration<String> headerValueEnum = this.getHttpServletRequest().getHeaders( headerName ); headerValueEnum.hasMoreElements(); )
+        {
+            final String headerValue = headerValueEnum.nextElement();
+            final String sanitizedInputValue = Validator.sanitizeInputValue( appConfig, headerValue, maxChars );
+            final String sanitizedHeaderValue = Validator.sanitizeHeaderValue( appConfig, sanitizedInputValue );
+            if ( sanitizedHeaderValue != null && !sanitizedHeaderValue.isEmpty() )
+            {
+                valueList.add( sanitizedHeaderValue );
+            }
+        }
+        return Collections.unmodifiableList( valueList );
     }
 
     public Map<String, List<String>> readHeaderValuesMap( )
     {
-        final int maxChars = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
-        final HttpServletRequest req = this.getHttpServletRequest();
         final Map<String, List<String>> returnObj = new LinkedHashMap<>();
 
-        for ( final Enumeration<String> headerNameEnum = req.getHeaderNames(); headerNameEnum.hasMoreElements(); )
+        for ( final String headerName : headerNames() )
         {
-            final String headerName = headerNameEnum.nextElement();
-            final List<String> valueList = new ArrayList<>();
-            for ( final Enumeration<String> headerValueEnum = req.getHeaders( headerName ); headerValueEnum.hasMoreElements(); )
-            {
-                final String headerValue = headerValueEnum.nextElement();
-                final String sanitizedInputValue = Validator.sanitizeInputValue( configuration, headerValue, maxChars );
-                final String sanitizedHeaderValue = Validator.sanitizeHeaderValue( configuration, sanitizedInputValue );
-                if ( sanitizedHeaderValue != null && !sanitizedHeaderValue.isEmpty() )
-                {
-                    valueList.add( sanitizedHeaderValue );
-                }
-            }
+            final List<String> valueList = readHeaderValuesAsString( headerName );
             if ( !valueList.isEmpty() )
             {
                 returnObj.put( headerName, Collections.unmodifiableList( valueList ) );
@@ -348,17 +347,24 @@ public class PwmHttpRequestWrapper
         return Collections.unmodifiableMap( returnObj );
     }
 
+    public List<String> headerNames( )
+    {
+        final int maxChars = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
+
+        return CollectionUtil.iteratorToStream( getHttpServletRequest().getHeaderNames().asIterator() )
+                .map( s -> Validator.sanitizeInputValue( appConfig, s, maxChars ) )
+                .collect( Collectors.toUnmodifiableList() );
+
+    }
+
     public List<String> parameterNames( )
     {
-        final int maxChars = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
-        final List<String> returnObj = new ArrayList();
-        for ( final Enumeration nameEnum = getHttpServletRequest().getParameterNames(); nameEnum.hasMoreElements(); )
-        {
-            final String paramName = nameEnum.nextElement().toString();
-            final String returnName = Validator.sanitizeInputValue( configuration, paramName, maxChars );
-            returnObj.add( returnName );
-        }
-        return Collections.unmodifiableList( returnObj );
+        final int maxChars = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
+
+        return CollectionUtil.iteratorToStream( getHttpServletRequest().getParameterNames().asIterator() )
+                .map( s -> Validator.sanitizeInputValue( appConfig, s, maxChars ) )
+                .collect( Collectors.toUnmodifiableList() );
+
     }
 
     public Map<String, String> readParametersAsMap( )
@@ -376,7 +382,7 @@ public class PwmHttpRequestWrapper
     public Map<String, List<String>> readMultiParametersAsMap( )
             throws PwmUnrecoverableException
     {
-        final int maxLength = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
+        final int maxLength = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
         final Map<String, List<String>> returnObj = new HashMap<>();
         for ( final String paramName : parameterNames() )
         {
@@ -386,9 +392,9 @@ public class PwmHttpRequestWrapper
         return Collections.unmodifiableMap( returnObj );
     }
 
-    public String readCookie( final String cookieName )
+    public Optional<String> readCookie( final String cookieName )
     {
-        final int maxChars = Integer.parseInt( configuration.readAppProperty( AppProperty.HTTP_COOKIE_MAX_READ_LENGTH ) );
+        final int maxChars = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_COOKIE_MAX_READ_LENGTH ) );
         final Cookie[] cookies = this.getHttpServletRequest().getCookies();
         if ( cookies != null )
         {
@@ -398,12 +404,12 @@ public class PwmHttpRequestWrapper
                 {
                     final String rawCookieValue = cookie.getValue();
                     final String decodedCookieValue = StringUtil.urlDecode( rawCookieValue );
-                    return Validator.sanitizeInputValue( configuration, decodedCookieValue, maxChars );
+                    return Optional.of( Validator.sanitizeInputValue( appConfig, decodedCookieValue, maxChars ) );
                 }
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     private static String decodeStringToDefaultCharSet( final String input )
@@ -417,9 +423,9 @@ public class PwmHttpRequestWrapper
                 .orElseThrow( () -> new IllegalStateException( "http method not registered" ) );
     }
 
-    public Configuration getConfig( )
+    public AppConfig getAppConfig( )
     {
-        return configuration;
+        return appConfig;
     }
 
     public String getURLwithoutQueryString( )
@@ -432,15 +438,10 @@ public class PwmHttpRequestWrapper
     public String debugHttpHeaders( )
     {
         final String lineSeparator = "\n";
-        final StringBuilder sb = new StringBuilder();
 
-
-        sb.append( "http" ).append( getHttpServletRequest().isSecure() ? "s " : " non-" ).append( "secure request headers: " );
-        sb.append( lineSeparator );
-
-        sb.append( debugOutputMapToString( readHeaderValuesMap(), HTTP_HEADER_DEBUG_STRIP_VALUES ) );
-
-        return sb.toString();
+        return "http" + ( getHttpServletRequest().isSecure() ? "s " : " non-" ) + "secure request headers: "
+                + lineSeparator
+                + debugOutputMapToString( readHeaderValuesMap(), HTTP_HEADER_DEBUG_STRIP_VALUES );
     }
 
     private static String debugOutputMapToString(
@@ -457,14 +458,10 @@ public class PwmHttpRequestWrapper
             for ( final String paramValue : entry.getValue() )
             {
                 sb.append( "  " ).append( paramName ).append( "=" );
-                boolean strip = false;
-                for ( final String stripValue : stripValues )
-                {
-                    if ( paramName.toLowerCase().contains( stripValue.toLowerCase() ) )
-                    {
-                        strip = true;
-                    }
-                }
+
+                final boolean strip = stripValues.stream()
+                        .anyMatch( ( stripValue ) -> paramName.toLowerCase().contains( stripValue.toLowerCase() ) );
+
                 if ( strip )
                 {
                     sb.append( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
@@ -561,6 +558,16 @@ public class PwmHttpRequestWrapper
     public boolean isPrettyPrintJsonParameterTrue()
     {
         return isPrettyPrintJsonParameterTrue( this.getHttpServletRequest() );
+    }
+
+    public static DomainID readDomainIdFromRequest(  final HttpServletRequest httpServletRequest ) throws PwmUnrecoverableException
+    {
+        final String domainIDStr = ( String ) httpServletRequest.getAttribute( PwmConstants.REQUEST_ATTR_DOMAIN );
+        if ( StringUtil.isEmpty( domainIDStr ) )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unable to read domainID in PwmRequest initialization" );
+        }
+        return DomainID.create( domainIDStr );
     }
 }
 

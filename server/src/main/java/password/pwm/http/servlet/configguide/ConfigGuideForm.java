@@ -20,8 +20,10 @@
 
 package password.pwm.http.servlet.configguide;
 
+import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplate;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -39,7 +41,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -54,6 +56,7 @@ public class ConfigGuideForm
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigGuideForm.class );
 
     static final String LDAP_PROFILE_NAME = "default";
+    public static final DomainID DOMAIN_ID = DomainID.DOMAIN_ID_DEFAULT;
 
     public static Map<ConfigGuideFormField, String> defaultForm( )
     {
@@ -81,10 +84,10 @@ public class ConfigGuideForm
             throws PwmUnrecoverableException
     {
         final String formValue = formData.get( formField );
-        if ( !StringUtil.isEmpty( formValue ) )
+        if ( StringUtil.notEmpty( formValue ) )
         {
             final PwmSettingTemplate template = PwmSettingTemplate.templateForString( formValue, type );
-            modifier.writeSetting( pwmSetting, null, new StringValue( template.toString() ), null );
+            modifySetting( modifier, pwmSetting, null, new StringValue( template.toString() ) );
         }
     }
 
@@ -95,65 +98,66 @@ public class ConfigGuideForm
     {
 
         final Map<ConfigGuideFormField, String> formData = configGuideBean.getFormData();
-        final StoredConfigurationModifier storedConfiguration = StoredConfigurationModifier.newModifier( StoredConfigurationFactory.newConfig() );
+        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( StoredConfigurationFactory.newConfig() );
 
         // templates
         updateStoredConfigTemplateValue(
                 formData,
-                storedConfiguration,
+                modifier,
                 PwmSetting.TEMPLATE_LDAP,
                 ConfigGuideFormField.PARAM_TEMPLATE_LDAP,
                 PwmSettingTemplate.Type.LDAP_VENDOR );
 
         updateStoredConfigTemplateValue(
                 formData,
-                storedConfiguration,
+                modifier,
                 PwmSetting.TEMPLATE_STORAGE,
                 ConfigGuideFormField.PARAM_TEMPLATE_STORAGE,
                 PwmSettingTemplate.Type.STORAGE );
 
         updateStoredConfigTemplateValue(
                 formData,
-                storedConfiguration,
+                modifier,
                 PwmSetting.DB_VENDOR_TEMPLATE,
                 ConfigGuideFormField.PARAM_DB_VENDOR,
                 PwmSettingTemplate.Type.DB_VENDOR );
 
         // establish a default ldap profile
-        storedConfiguration.writeSetting( PwmSetting.LDAP_PROFILE_LIST, null, new StringArrayValue(
+
+        modifySetting( modifier, PwmSetting.LDAP_PROFILE_LIST, null, new StringArrayValue(
                 Collections.singletonList( LDAP_PROFILE_NAME )
-        ), null );
+        ) );
 
         {
             final String newLdapURI = figureLdapUrlFromFormConfig( formData );
             final StringArrayValue newValue = new StringArrayValue( Collections.singletonList( newLdapURI ) );
-            storedConfiguration.writeSetting( PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE_NAME, newValue, null );
+            modifySetting( modifier, PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE_NAME, newValue );
         }
 
-        if ( configGuideBean.isUseConfiguredCerts() && !JavaHelper.isEmpty( configGuideBean.getLdapCertificates() ) )
+        if ( configGuideBean.isUseConfiguredCerts() && !CollectionUtil.isEmpty( configGuideBean.getLdapCertificates() ) )
         {
             final StoredValue newStoredValue = X509CertificateValue.fromX509( configGuideBean.getLdapCertificates() );
-            storedConfiguration.writeSetting( PwmSetting.LDAP_SERVER_CERTS, LDAP_PROFILE_NAME, newStoredValue, null );
+            modifySetting( modifier, PwmSetting.LDAP_SERVER_CERTS, LDAP_PROFILE_NAME, newStoredValue );
         }
 
         {
             // proxy/admin account
             final String ldapAdminDN = formData.get( ConfigGuideFormField.PARAM_LDAP_PROXY_DN );
             final String ldapAdminPW = formData.get( ConfigGuideFormField.PARAM_LDAP_PROXY_PW );
-            storedConfiguration.writeSetting( PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE_NAME, new StringValue( ldapAdminDN ), null );
+            modifySetting( modifier, PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE_NAME, new StringValue( ldapAdminDN ) );
             final PasswordValue passwordValue = new PasswordValue( PasswordData.forStringValue( ldapAdminPW ) );
-            storedConfiguration.writeSetting( PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_NAME, passwordValue, null );
+            modifySetting( modifier, PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_NAME, passwordValue );
         }
 
-        storedConfiguration.writeSetting( PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_NAME, new StringArrayValue(
+        modifySetting( modifier, PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_NAME, new StringArrayValue(
                 Collections.singletonList( formData.get( ConfigGuideFormField.PARAM_LDAP_CONTEXT ) )
-        ), null );
+        ) );
 
         {
             final String ldapContext = formData.get( ConfigGuideFormField.PARAM_LDAP_CONTEXT );
-            storedConfiguration.writeSetting( PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_NAME, new StringArrayValue(
+            modifySetting( modifier, PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_NAME, new StringArrayValue(
                     Collections.singletonList( ldapContext )
-            ), null );
+            ) );
         }
 
         {
@@ -161,11 +165,11 @@ public class ConfigGuideForm
             if ( testuserEnabled )
             {
                 final String ldapTestUserDN = formData.get( ConfigGuideFormField.PARAM_LDAP_TEST_USER );
-                storedConfiguration.writeSetting( PwmSetting.LDAP_TEST_USER_DN, LDAP_PROFILE_NAME, new StringValue( ldapTestUserDN ), null );
+                modifySetting( modifier, PwmSetting.LDAP_TEST_USER_DN, LDAP_PROFILE_NAME, new StringValue( ldapTestUserDN ) );
             }
             else
             {
-                storedConfiguration.resetSetting( PwmSetting.LDAP_TEST_USER_DN, LDAP_PROFILE_NAME, null );
+                modifier.resetSetting( StoredConfigKey.forSetting( PwmSetting.LDAP_TEST_USER_DN, LDAP_PROFILE_NAME, DOMAIN_ID ), null );
             }
         }
 
@@ -176,39 +180,39 @@ public class ConfigGuideForm
                     .type( UserPermissionType.ldapUser )
                     .ldapBase( userDN )
                     .build() );
-            storedConfiguration.writeSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, null, new UserPermissionValue( userPermissions ), null );
+            modifySetting( modifier, PwmSetting.QUERY_MATCH_PWM_ADMIN, null, new UserPermissionValue( userPermissions ) );
         }
 
         {
             // database
 
             final String dbClass = formData.get( ConfigGuideFormField.PARAM_DB_CLASSNAME );
-            storedConfiguration.writeSetting( PwmSetting.DATABASE_CLASS, null, new StringValue( dbClass ), null );
+            modifySetting( modifier, PwmSetting.DATABASE_CLASS, null, new StringValue( dbClass ) );
 
             final String dbUrl = formData.get( ConfigGuideFormField.PARAM_DB_CONNECT_URL );
-            storedConfiguration.writeSetting( PwmSetting.DATABASE_URL, null, new StringValue( dbUrl ), null );
+            modifySetting( modifier, PwmSetting.DATABASE_URL, null, new StringValue( dbUrl ) );
 
             final String dbUser = formData.get( ConfigGuideFormField.PARAM_DB_USERNAME );
-            storedConfiguration.writeSetting( PwmSetting.DATABASE_USERNAME, null, new StringValue( dbUser ), null );
+            modifySetting( modifier, PwmSetting.DATABASE_USERNAME, null, new StringValue( dbUser ) );
 
             final String dbPassword = formData.get( ConfigGuideFormField.PARAM_DB_PASSWORD );
             final PasswordValue passwordValue = new PasswordValue( PasswordData.forStringValue( dbPassword ) );
-            storedConfiguration.writeSetting( PwmSetting.DATABASE_PASSWORD, null, passwordValue, null );
+            modifySetting( modifier, PwmSetting.DATABASE_PASSWORD, null, passwordValue );
 
             final FileValue jdbcDriver = configGuideBean.getDatabaseDriver();
             if ( jdbcDriver != null )
             {
-                storedConfiguration.writeSetting( PwmSetting.DATABASE_JDBC_DRIVER, null, jdbcDriver, null );
+                modifySetting( modifier, PwmSetting.DATABASE_JDBC_DRIVER, null, jdbcDriver );
             }
         }
 
         {
             //telemetry
             final boolean telemetryEnabled = Boolean.parseBoolean( formData.get( ConfigGuideFormField.PARAM_TELEMETRY_ENABLE ) );
-            storedConfiguration.writeSetting( PwmSetting.PUBLISH_STATS_ENABLE, null, BooleanValue.of( telemetryEnabled ), null );
+            modifySetting( modifier, PwmSetting.PUBLISH_STATS_ENABLE, null, BooleanValue.of( telemetryEnabled ) );
 
             final String siteDescription = formData.get( ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION );
-            storedConfiguration.writeSetting( PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION, null, new StringValue( siteDescription ), null );
+            modifySetting( modifier, PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION, null, new StringValue( siteDescription ) );
         }
 
         // cr policy
@@ -216,17 +220,25 @@ public class ConfigGuideForm
         {
             final String stringValue = formData.get( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA );
             final StoredValue challengeValue = ChallengeValue.factory().fromJson( stringValue );
-            storedConfiguration.writeSetting( PwmSetting.CHALLENGE_RANDOM_CHALLENGES, "default", challengeValue, null );
+            modifySetting( modifier, PwmSetting.CHALLENGE_RANDOM_CHALLENGES, "default", challengeValue );
         }
 
         // set site url
-        storedConfiguration.writeSetting( PwmSetting.PWM_SITE_URL, null, new StringValue( formData.get( ConfigGuideFormField.PARAM_APP_SITEURL ) ), null );
+        modifySetting( modifier, PwmSetting.PWM_SITE_URL, null, new StringValue( formData.get( ConfigGuideFormField.PARAM_APP_SITEURL ) ) );
 
         // enable debug mode
-        storedConfiguration.writeSetting( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS, null, BooleanValue.of( true ), null );
+        modifySetting( modifier, PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS, null, BooleanValue.of( true ) );
 
-        return storedConfiguration.newStoredConfiguration();
+        return modifier.newStoredConfiguration();
     }
+
+    private static void modifySetting( final StoredConfigurationModifier modifier, final PwmSetting pwmSetting, final String profile, final StoredValue storedValue )
+            throws PwmUnrecoverableException
+    {
+        final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, profile, DOMAIN_ID );
+        modifier.writeSetting( key, storedValue, null );
+    }
+
 
     static String figureLdapUrlFromFormConfig( final Map<ConfigGuideFormField, String> ldapForm )
     {
@@ -241,8 +253,7 @@ public class ConfigGuideForm
     {
         try
         {
-            final StoredConfiguration storedConfiguration = generateStoredConfig( configGuideBean );
-            final String uriString = PwmSetting.LDAP_SERVER_URLS.getExample( storedConfiguration.getTemplateSet() );
+            final String uriString = getSettingExample( configGuideBean, PwmSetting.LDAP_SERVER_URLS );
             final URI uri = new URI( uriString );
             return uri.getHost();
         }
@@ -256,5 +267,12 @@ public class ConfigGuideForm
     public static boolean readCheckedFormField( final String value )
     {
         return "on".equalsIgnoreCase( value ) || "true".equalsIgnoreCase( value );
+    }
+
+    public static String getSettingExample( final ConfigGuideBean configGuideBean, final PwmSetting pwmSetting )
+            throws PwmUnrecoverableException
+    {
+        final StoredConfiguration storedConfiguration = generateStoredConfig( configGuideBean );
+        return pwmSetting.getExample( storedConfiguration.getTemplateSet().get( ConfigGuideForm.DOMAIN_ID ) );
     }
 }

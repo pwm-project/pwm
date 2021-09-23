@@ -85,7 +85,7 @@ public class AccountInformationServlet extends ControlledPwmServlet
     {
         try
         {
-            final AccountInformationProfile accountInformationProfile = pwmRequest.getPwmSession().getSessionManager().getAccountInfoProfile();
+            final AccountInformationProfile accountInformationProfile = pwmRequest.getAccountInfoProfile();
 
             final AccountInformationBean accountInformationBean = AccountInformationBean.makeUserAccountInfoBean(
                     pwmRequest,
@@ -106,7 +106,7 @@ public class AccountInformationServlet extends ControlledPwmServlet
     @ActionHandler( action = "read" )
     public ProcessStatus handleReadRequest( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException
     {
-        final AccountInformationProfile accountInformationProfile = pwmRequest.getPwmSession().getSessionManager().getAccountInfoProfile();
+        final AccountInformationProfile accountInformationProfile = pwmRequest.getAccountInfoProfile();
 
         final AccountInformationBean accountInformationBean = AccountInformationBean.makeUserAccountInfoBean(
                 pwmRequest,
@@ -121,14 +121,14 @@ public class AccountInformationServlet extends ControlledPwmServlet
     @Override
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
-        if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.ACCOUNT_INFORMATION_ENABLED ) )
+        if ( !pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.ACCOUNT_INFORMATION_ENABLED ) )
         {
             pwmRequest.respondWithError( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE ) );
             return ProcessStatus.Halt;
         }
 
         // check to make sure profile is assigned
-        pwmRequest.getPwmSession().getSessionManager().getAccountInfoProfile();
+        pwmRequest.getAccountInfoProfile();
 
         return ProcessStatus.Continue;
     }

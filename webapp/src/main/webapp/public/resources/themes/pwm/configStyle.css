@@ -594,10 +594,14 @@ select {
 
 .navigableDN {
     cursor: pointer;
+    overflow-y: auto;
+    font-family: "Lucida Console", "Courier New", monospace;
 }
 
 .selectableDN {
     cursor: pointer;
+    overflow-y: auto;
+    font-family: "Lucida Console", "Courier New", monospace;
 }
 
 .setting-challenge-question-summary {

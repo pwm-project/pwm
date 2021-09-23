@@ -20,7 +20,7 @@
 
 package password.pwm.svc.token;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
@@ -43,15 +43,15 @@ public class DataStoreTokenMachine implements TokenMachine
 
     private final DataStore dataStore;
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
 
     DataStoreTokenMachine(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final TokenService tokenService,
             final DataStore dataStore
     )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.tokenService = tokenService;
         this.dataStore = dataStore;
     }
@@ -59,7 +59,7 @@ public class DataStoreTokenMachine implements TokenMachine
     @Override
     public TokenKey keyFromKey( final String key ) throws PwmUnrecoverableException
     {
-        return StoredTokenKey.fromKeyValue( pwmApplication, key );
+        return StoredTokenKey.fromKeyValue( pwmDomain, key );
     }
 
     @Override
@@ -143,27 +143,27 @@ public class DataStoreTokenMachine implements TokenMachine
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String storedHash = tokenKey.getStoredHash();
-        final String storedRawValue = dataStore.get( storedHash );
+        final Optional<String> storedRawValue = dataStore.get( storedHash );
 
-        if ( storedRawValue != null && storedRawValue.length() > 0 )
+        if ( storedRawValue.isPresent() )
         {
             final TokenPayload tokenPayload;
             try
             {
-                tokenPayload = tokenService.fromEncryptedString( storedRawValue );
+                tokenPayload = tokenService.fromEncryptedString( storedRawValue.get() );
             }
             catch ( final PwmException e )
             {
                 LOGGER.trace( sessionLabel, () -> "error while trying to decrypted stored token payload for key '" + storedHash
                         + "', will purge record, error: " + e.getMessage() );
-                dataStore.remove( storedHash );
+                removeToken( tokenKey );
                 return Optional.empty();
             }
 
             if ( testIfTokenNeedsPurging( tokenPayload ) )
             {
                 LOGGER.trace( sessionLabel, () -> "stored token key '" + storedHash + "', has an outdated issue/expire date and will be purged" );
-                dataStore.remove( storedHash );
+                removeToken( tokenKey );
             }
             else
             {
@@ -186,6 +186,7 @@ public class DataStoreTokenMachine implements TokenMachine
     public void removeToken( final TokenKey tokenKey )
             throws PwmOperationalException, PwmUnrecoverableException
     {
+        tokenService.getStats().increment( TokenService.StatsKey.tokensRemoved );
         final String storedHash = tokenKey.getStoredHash();
         dataStore.remove( storedHash );
     }

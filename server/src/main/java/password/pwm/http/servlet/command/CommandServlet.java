@@ -144,13 +144,13 @@ public abstract class CommandServlet extends ControlledPwmServlet
             }
 
             // log the user out if our finish action is currently set to log out.
-            final ChangePasswordProfile changePasswordProfile = pwmSession.getSessionManager().getChangePasswordProfile();
+            final ChangePasswordProfile changePasswordProfile = pwmRequest.getChangePasswordProfile();
 
             final boolean forceLogoutOnChange = changePasswordProfile.readSettingAsBoolean( PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE );
             if ( forceLogoutOnChange && pwmSession.getSessionStateBean().isPasswordModified() )
             {
                 LOGGER.trace( pwmRequest, () -> "logging out user; password has been modified" );
-                pwmRequest.sendRedirect( PwmServletDefinition.Logout );
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.Logout );
                 return ProcessStatus.Halt;
             }
         }
@@ -198,7 +198,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
 
         if ( pwmRequest.getPwmSession().getUserInfo().isRequiresUpdateProfile() )
         {
-            pwmRequest.sendRedirect( PwmServletDefinition.UpdateProfile );
+            pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.UpdateProfile );
         }
         else
         {
@@ -248,7 +248,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
 
         if ( pwmRequest.getPwmSession().getUserInfo().isRequiresResponseConfig() )
         {
-            pwmRequest.sendRedirect( PwmServletDefinition.SetupResponses );
+            pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.SetupResponses );
         }
         else
         {
@@ -271,7 +271,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         if ( pwmSession.getUserInfo().isRequiresNewPassword() && !pwmSession.getLoginInfoBean().isLoginFlag( LoginInfoBean.LoginFlag.skipNewPw ) )
         {
-            pwmRequest.sendRedirect( PwmServletDefinition.PrivateChangePassword.servletUrlName() );
+            pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.PrivateChangePassword.servletUrlName() );
         }
         else
         {
@@ -295,7 +295,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
             sessionStateBean.setForwardURL( null );
         }
 
-        pwmRequest.sendRedirect( redirectURL );
+        pwmRequest.getPwmResponse().sendRedirect( redirectURL );
     }
 
     private static boolean checkIfUserAuthenticated(

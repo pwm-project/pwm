@@ -68,12 +68,12 @@ public class MBeanUtility
         }
     }
 
-    public static void unregisterMBean( final PwmApplication pwmApplication )
+    public static void unregisterMBean( final PwmApplication pwmDomain )
     {
         try
         {
             final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            mbs.unregisterMBean( figureMBeanName( pwmApplication ) );
+            mbs.unregisterMBean( figureMBeanName( pwmDomain ) );
         }
         catch ( final Exception e )
         {
@@ -81,13 +81,13 @@ public class MBeanUtility
         }
     }
 
-    private static ObjectName figureMBeanName( final PwmApplication pwmApplication )
+    private static ObjectName figureMBeanName( final PwmApplication pwmDomain )
             throws MalformedObjectNameException
     {
         final String context;
-        if ( pwmApplication.getPwmEnvironment() != null && pwmApplication.getPwmEnvironment().getContextManager() != null )
+        if ( pwmDomain.getPwmEnvironment() != null && pwmDomain.getPwmEnvironment().getContextManager() != null )
         {
-            context = "-" + pwmApplication.getPwmEnvironment().getContextManager().getContextPath();
+            context = "-" + pwmDomain.getPwmEnvironment().getContextManager().getContextPath();
         }
         else
         {

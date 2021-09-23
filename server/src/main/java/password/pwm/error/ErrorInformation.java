@@ -20,8 +20,7 @@
 
 package password.pwm.error;
 
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.config.SettingReader;
 import password.pwm.http.PwmSession;
 
 import java.io.Serializable;
@@ -120,7 +119,7 @@ public class ErrorInformation implements Serializable
         return sb.toString();
     }
 
-    public String toUserStr( final PwmSession pwmSession, final PwmApplication pwmApplication )
+    public String toUserStr( final PwmSession pwmSession, final SettingReader settingReader )
     {
 
         if ( userStrOverride != null )
@@ -128,23 +127,17 @@ public class ErrorInformation implements Serializable
             return userStrOverride;
         }
 
-        Configuration config = null;
         Locale userLocale = null;
-
-        if ( pwmSession != null && pwmApplication.getConfig() != null )
-        {
-            config = pwmApplication.getConfig();
-        }
 
         if ( pwmSession != null )
         {
             userLocale = pwmSession.getSessionStateBean().getLocale();
         }
 
-        return toUserStr( userLocale, config );
+        return toUserStr( userLocale, settingReader );
     }
 
-    public String toUserStr( final Locale userLocale, final Configuration config )
+    public String toUserStr( final Locale userLocale, final SettingReader config )
     {
         if ( userStrOverride != null )
         {

@@ -24,7 +24,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.ConfigObjectRecord;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -44,7 +44,8 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
 {
     private static final String COR_GUID = ".";
 
-    private final PwmApplication pwmApplication;
+    private final PwNotifyService pwNotifyService;
+    private final PwmDomain pwmDomain;
     private final PwNotifySettings settings;
 
     private enum CoreType
@@ -65,13 +66,14 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
         }
     }
 
-    PwNotifyLdapStorageService( final PwmApplication pwmApplication, final PwNotifySettings settings )
+    PwNotifyLdapStorageService( final PwNotifyService pwNotifyService, final PwmDomain pwmDomain, final PwNotifySettings settings )
             throws PwmUnrecoverableException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwNotifyService = pwNotifyService;
+        this.pwmDomain = pwmDomain;
         this.settings = settings;
 
-        final LdapProfile defaultLdapProfile = pwmApplication.getConfig().getDefaultLdapProfile();
+        final LdapProfile defaultLdapProfile = pwmDomain.getConfig().getDefaultLdapProfile();
         final String testUserDN = defaultLdapProfile.readSettingAsString( PwmSetting.LDAP_TEST_USER_DN );
         if ( StringUtil.isEmpty( testUserDN ) )
         {
@@ -81,7 +83,7 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
             throw new PwmUnrecoverableException( PwmError.ERROR_PWNOTIFY_SERVICE_ERROR, msg );
         }
 
-        for ( final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values() )
+        for ( final LdapProfile ldapProfile : pwmDomain.getConfig().getLdapProfiles().values() )
         {
             if ( StringUtil.isEmpty( ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PWNOTIFY ) ) )
             {
@@ -103,7 +105,7 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
     {
         final ConfigObjectRecord configObjectRecord = getUserCOR( userIdentity, CoreType.User );
         final String payload = configObjectRecord.getPayload();
-        if ( !StringUtil.isEmpty( payload ) )
+        if ( StringUtil.notEmpty( payload ) )
         {
             return Optional.ofNullable( JsonUtil.deserialize( payload, PwNotifyUserStatus.class ) );
         }
@@ -141,7 +143,9 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
     public PwNotifyStoredJobState readStoredJobState()
             throws PwmUnrecoverableException
     {
-        final UserIdentity proxyUser = pwmApplication.getConfig().getDefaultLdapProfile().getTestUser( pwmApplication );
+        final UserIdentity proxyUser = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( pwNotifyService.getSessionLabel(), pwmDomain )
+                .orElseThrow();
+
         final ConfigObjectRecord configObjectRecord = getUserCOR( proxyUser, CoreType.ProxyUser );
         final String payload = configObjectRecord.getPayload();
 
@@ -156,7 +160,9 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
     public void writeStoredJobState( final PwNotifyStoredJobState pwNotifyStoredJobState )
             throws PwmUnrecoverableException
     {
-        final UserIdentity proxyUser = pwmApplication.getConfig().getDefaultLdapProfile().getTestUser( pwmApplication );
+        final UserIdentity proxyUser = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( pwNotifyService.getSessionLabel(), pwmDomain )
+                .orElseThrow();
+
         final ConfigObjectRecord configObjectRecord = getUserCOR( proxyUser, CoreType.ProxyUser );
         final String payload = JsonUtil.serialize( pwNotifyStoredJobState );
 
@@ -180,7 +186,7 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
             throws PwmUnrecoverableException
     {
         final String userAttr = getLdapUserAttribute( userIdentity );
-        final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
+        final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( pwNotifyService.getSessionLabel(), userIdentity );
         try
         {
             final List<ConfigObjectRecord> list = ConfigObjectRecord.readRecordFromLDAP(
@@ -206,6 +212,6 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
 
     private String getLdapUserAttribute( final UserIdentity userIdentity )
     {
-        return  userIdentity.getLdapProfile( pwmApplication.getConfig() ).readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PWNOTIFY );
+        return  userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() ).readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PWNOTIFY );
     }
 }

@@ -23,21 +23,21 @@ package password.pwm.health;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSettingSyntax;
-import password.pwm.config.profile.LdapProfile;
-import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
-import password.pwm.config.value.ActionValue;
+import password.pwm.config.value.StoredValue;
+import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.X509Utils;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -45,92 +45,97 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.function.Supplier;
 
-public class CertificateChecker implements HealthChecker
+public class CertificateChecker implements HealthSupplier
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( CertificateChecker.class );
 
     @Override
-    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
+    public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplierRequest request )
     {
-        final List<HealthRecord> records = new ArrayList<>( doHealthCheck( pwmApplication.getConfig() ) );
-        try
-        {
-            records.addAll( doActionHealthCheck( pwmApplication.getConfig() ) );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            LOGGER.error( () -> "error while checking action certificates: " + e.getMessage(), e );
-        }
-        return records;
+        final PwmApplication pwmApplication = request.getPwmApplication();
+        return Collections.singletonList( new CertificateCheckJob( pwmApplication.getConfig() ) );
     }
 
-    private static List<HealthRecord> doHealthCheck( final Configuration configuration )
+    public static class CertificateCheckJob implements Supplier<List<HealthRecord>>
     {
-        final List<HealthRecord> returnList = new ArrayList<>();
-        for ( final PwmSetting setting : PwmSetting.values() )
+        private final AppConfig appConfig;
+
+        public CertificateCheckJob( final AppConfig appConfig )
         {
-            if ( setting.getSyntax() == PwmSettingSyntax.X509CERT && !setting.getCategory().hasProfiles() )
-            {
-                if ( setting != PwmSetting.LDAP_SERVER_CERTS )
-                {
-                    final List<X509Certificate> certs = configuration.readSettingAsCertificate( setting );
-                    returnList.addAll( doHealthCheck( configuration, setting, null, certs ) );
-                }
-            }
+            this.appConfig = appConfig;
         }
-        for ( final LdapProfile ldapProfile : configuration.getLdapProfiles().values() )
+
+        @Override
+        public List<HealthRecord> get()
         {
-            final List<X509Certificate> certificates = configuration.getLdapProfiles().get( ldapProfile.getIdentifier() ).readSettingAsCertificate( PwmSetting.LDAP_SERVER_CERTS );
-            returnList.addAll( doHealthCheck( configuration, PwmSetting.LDAP_SERVER_CERTS, ldapProfile.getIdentifier(), certificates ) );
+            return checkImpl( appConfig );
         }
-        return Collections.unmodifiableList( returnList );
     }
 
-    private static List<HealthRecord> doActionHealthCheck( final Configuration configuration ) throws PwmUnrecoverableException
+    private static List<HealthRecord> checkImpl( final AppConfig appConfig )
     {
+        final TimeDuration warnDuration = TimeDuration.of(
+                Long.parseLong( appConfig.readAppProperty( AppProperty.HEALTH_CERTIFICATE_WARN_SECONDS ) ),
+                TimeDuration.Unit.SECONDS );
 
-        final StoredConfiguration storedConfiguration = configuration.getStoredConfiguration();
-
-        final List<HealthRecord> returnList = new ArrayList<>();
-        final Set<StoredConfigItemKey> modifiedReferences = storedConfiguration.modifiedItems();
-        for ( final StoredConfigItemKey storedConfigItemKey : modifiedReferences )
-        {
-            if ( storedConfigItemKey.getRecordType() == StoredConfigItemKey.RecordType.SETTING )
-            {
-                final Optional<PwmSetting> optionalPwmSetting = PwmSetting.forKey( storedConfigItemKey.getRecordID() );
-                optionalPwmSetting.ifPresent( pwmSetting ->
+        final List<HealthRecord> records = new ArrayList<>();
+        CollectionUtil.iteratorToStream( appConfig.getStoredConfiguration().keys() )
+                .filter( k -> k.isRecordType( StoredConfigKey.RecordType.SETTING ) )
+                .forEach( k ->
                 {
-                    if ( pwmSetting.getSyntax() == PwmSettingSyntax.ACTION )
+                    final PwmSettingSyntax syntax = k.getSyntax();
+                    if ( syntax == PwmSettingSyntax.X509CERT )
                     {
-                        final ActionValue value = ( ActionValue ) storedConfiguration.readSetting( pwmSetting, storedConfigItemKey.getProfileID() );
-                        for ( final ActionConfiguration actionConfiguration : value.toNativeObject() )
-                        {
-                            for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
-                            {
-                                final List<X509Certificate> certificates = webAction.getCertificates();
-                                returnList.addAll( doHealthCheck( configuration, pwmSetting, storedConfigItemKey.getProfileID(), certificates ) );
-                            }
-                        }
+                        records.addAll( checkX509Setting( appConfig.getStoredConfiguration(), k, warnDuration ) );
                     }
-                }
-                );
-            }
-        }
-        return Collections.unmodifiableList( returnList );
+                    else if ( syntax == PwmSettingSyntax.ACTION )
+                    {
+                        records.addAll( checkActionSetting( appConfig.getStoredConfiguration(), k, warnDuration ) );
+                    }
+                } );
+        return Collections.unmodifiableList( records );
     }
 
-    private static List<HealthRecord> doHealthCheck(
-            final Configuration configuration,
-            final PwmSetting setting,
-            final String profileID,
-            final List<X509Certificate> certificates
+    private static List<HealthRecord> checkX509Setting(
+            final StoredConfiguration storedConfiguration,
+            final StoredConfigKey key,
+            final TimeDuration timeDuration
     )
     {
-        final long warnDurationMs = 1000 * Long.parseLong( configuration.readAppProperty( AppProperty.HEALTH_CERTIFICATE_WARN_SECONDS ) );
+        final StoredValue storedValue = storedConfiguration.readStoredValue( key ).orElseThrow();
+        final List<X509Certificate> certs = ValueTypeConverter.valueToX509Certificates( key.toPwmSetting(), storedValue );
+        return doHealthCheck( key, certs, timeDuration );
+    }
 
+    private static List<HealthRecord> checkActionSetting(
+            final StoredConfiguration storedConfiguration,
+            final StoredConfigKey key,
+            final TimeDuration timeDuration
+    )
+    {
+        final StoredValue storedValue = storedConfiguration.readStoredValue( key ).orElseThrow();
+        final List<ActionConfiguration> actionConfigurations = ValueTypeConverter.valueToAction( key.toPwmSetting(), storedValue );
+        final List<HealthRecord> returnList = new ArrayList<>();
+        for ( final ActionConfiguration actionConfiguration : actionConfigurations )
+        {
+            for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
+            {
+                final List<X509Certificate> certificates = webAction.getCertificates();
+                returnList.addAll( doHealthCheck( key, certificates, timeDuration ) );
+            }
+        }
+        return Collections.unmodifiableList( returnList );
+    }
+
+
+    private static List<HealthRecord> doHealthCheck(
+            final StoredConfigKey storedConfigKey,
+            final List<X509Certificate> certificates,
+            final TimeDuration warnDuration
+    )
+    {
         if ( certificates != null )
         {
             final List<HealthRecord> returnList = new ArrayList<>();
@@ -138,17 +143,19 @@ public class CertificateChecker implements HealthChecker
             {
                 try
                 {
-                    checkCertificate( certificate, warnDurationMs );
+                    checkCertificate( certificate, warnDuration );
                     return Collections.emptyList();
                 }
                 catch ( final PwmOperationalException e )
                 {
                     final String errorDetail = e.getErrorInformation().getDetailedErrorMsg();
-                    final HealthRecord record = HealthRecord.forMessage( HealthMessage.Config_Certificate,
-                            setting.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ),
+                    final HealthRecord record = HealthRecord.forMessage(
+                            storedConfigKey.getDomainID(),
+                            HealthMessage.Config_Certificate,
+                            storedConfigKey.toPwmSetting().toMenuLocationDebug( storedConfigKey.getProfileID(), PwmConstants.DEFAULT_LOCALE ),
                             errorDetail
                     );
-                    return Collections.singletonList( record );
+                    returnList.add( record );
                 }
             }
             return Collections.unmodifiableList( returnList );
@@ -156,7 +163,7 @@ public class CertificateChecker implements HealthChecker
         return Collections.emptyList();
     }
 
-    public static void checkCertificate( final X509Certificate certificate, final long warnDurationMs )
+    public static void checkCertificate( final X509Certificate certificate, final TimeDuration warnDuration )
             throws PwmOperationalException
     {
         if ( certificate == null )
@@ -178,27 +185,46 @@ public class CertificateChecker implements HealthChecker
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg.toString(), new String[]
                     {
                             errorMsg.toString(),
-                            }
+                    }
             );
             throw new PwmOperationalException( errorInformation );
         }
 
-        final Instant expireDate = certificate.getNotAfter().toInstant();
-        final TimeDuration durationUntilExpire = TimeDuration.fromCurrent( expireDate );
-        if ( durationUntilExpire.isShorterThan( warnDurationMs ) )
         {
-            final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append( "certificate for subject " );
-            errorMsg.append( certificate.getSubjectDN().getName() );
-            errorMsg.append( " will expire on: " );
-            errorMsg.append( JavaHelper.toIsoDate( expireDate ) );
-            errorMsg.append( " (" ).append( durationUntilExpire.asCompactString() ).append( " from now)" );
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg.toString(), new String[]
-                    {
-                            errorMsg.toString(),
-                            }
-            );
-            throw new PwmOperationalException( errorInformation );
+            final Instant issueDate = certificate.getNotBefore().toInstant();
+            if ( issueDate.isAfter( Instant.now() ) )
+            {
+                final String errorMsg = "certificate " + X509Utils.makeDebugText( certificate )
+                        + " issue date of '" + JavaHelper.toIsoDate( issueDate ) + "' "
+                        + " is prior to current time.";
+
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg, new String[]
+                        {
+                                errorMsg,
+                        }
+                );
+                throw new PwmOperationalException( errorInformation );
+            }
+        }
+
+        {
+            final Instant expireDate = certificate.getNotAfter().toInstant();
+            final TimeDuration durationUntilExpire = TimeDuration.fromCurrent( expireDate );
+            if ( durationUntilExpire.isShorterThan( warnDuration ) )
+            {
+                final StringBuilder errorMsg = new StringBuilder();
+                errorMsg.append( "certificate for subject " );
+                errorMsg.append( certificate.getSubjectDN().getName() );
+                errorMsg.append( " will expire on: " );
+                errorMsg.append( JavaHelper.toIsoDate( expireDate ) );
+                errorMsg.append( " (" ).append( durationUntilExpire.asCompactString() ).append( " from now)" );
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg.toString(), new String[]
+                        {
+                                errorMsg.toString(),
+                        }
+                );
+                throw new PwmOperationalException( errorInformation );
+            }
         }
     }
 }

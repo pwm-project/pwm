@@ -23,11 +23,14 @@ package password.pwm.svc.report;
 import com.novell.ldapchai.cr.Answer;
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.config.Configuration;
+import password.pwm.bean.DomainID;
+import password.pwm.config.AppConfig;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.option.DataStorageMethod;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.TimeDuration;
@@ -42,6 +45,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 @Value
@@ -66,7 +70,7 @@ public class ReportSummaryData
 
     private final Map<DataStorageMethod, LongAdder> responseStorage = new ConcurrentHashMap<>();
     private final Map<Answer.FormatType, LongAdder> responseFormatType = new ConcurrentHashMap<>();
-    private final Map<String, LongAdder> ldapProfile = new ConcurrentHashMap<>();
+    private final Map<DomainID, Map<String, LongAdder>> ldapProfile = new ConcurrentHashMap<>();
     private final Map<Integer, LongAdder> pwExpireDays = new ConcurrentHashMap<>();
     private final Map<Integer, LongAdder> accountExpireDays = new ConcurrentHashMap<>();
     private final Map<Integer, LongAdder> changePwDays = new ConcurrentHashMap<>();
@@ -116,117 +120,242 @@ public class ReportSummaryData
                         e -> e.getValue().sum() ) ) );
     }
 
-    void update( final UserCacheRecord userCacheRecord )
+    void update( final UserReportRecord userReportRecord )
     {
         totalUsers.increment();
 
-        if ( userCacheRecord.isHasResponses() )
-        {
-            hasResponses.increment();
-        }
+        Updaters.UPDATERS.forEach( updater -> updater.accept( userReportRecord, this ) );
+    }
 
-        if ( userCacheRecord.isHasHelpdeskResponses() )
-        {
-            hasHelpdeskResponses.increment();
-        }
+    private static class Updaters
+    {
+        private static final List<BiConsumer<UserReportRecord, ReportSummaryData>> UPDATERS = List.of(
+                new UpdateHasResponses(),
+                new UpdateHasHelpdeskResponses(),
+                new HasResponseSetTime(),
+                new UpdatePasswordExpirationTime(),
+                new UpdateAccountExpirationTime(),
+                new UpdateLastLoginTime(),
+                new UpdatePwChangeTime(),
+                new UpdatePwExpiredNotification(),
+                new UpdatePasswordStatus(),
+                new UpdateResponseStorageMethod(),
+                new UpdateLdapProfile(),
+                new UpdateResponseFormatType(),
+                new UpdateHasOtpSecret(),
+                new UpdateOtpSecretSetTime()
+        );
 
-        if ( userCacheRecord.getResponseSetTime() != null )
+        private static class UpdateHasResponses implements BiConsumer<UserReportRecord, ReportSummaryData>
         {
-            hasResponseSetTime.increment();
-            incrementIfWithinTimeWindow( userCacheRecord, responseSetDays );
-        }
-
-        if ( userCacheRecord.getPasswordExpirationTime() != null )
-        {
-            hasPasswordExpirationTime.increment();
-            incrementIfWithinTimeWindow( userCacheRecord, pwExpireDays );
-        }
-
-        if ( userCacheRecord.getAccountExpirationTime() != null )
-        {
-            hasAccountExpirationTime.increment();
-            incrementIfWithinTimeWindow( userCacheRecord, accountExpireDays );
-        }
-
-        if ( userCacheRecord.getLastLoginTime() != null )
-        {
-            hasLoginTime.increment();
-            incrementIfWithinTimeWindow( userCacheRecord, loginDays );
-        }
-
-        if ( userCacheRecord.getPasswordChangeTime() != null )
-        {
-            hasChangePwTime.increment();
-            incrementIfWithinTimeWindow( userCacheRecord, changePwDays );
-        }
-
-        if ( userCacheRecord.getPasswordExpirationNoticeSendTime() != null )
-        {
-            hasReceivedPwExpireNotification.increment();
-            incrementIfWithinTimeWindow( userCacheRecord, pwExpireNotificationDays );
-        }
-
-        if ( userCacheRecord.getPasswordStatus() != null )
-        {
-            if ( userCacheRecord.getPasswordStatus().isExpired() )
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
             {
-                pwExpired.increment();
-            }
-            if ( userCacheRecord.getPasswordStatus().isPreExpired() )
-            {
-                pwPreExpired.increment();
-            }
-            if ( userCacheRecord.getPasswordStatus().isWarnPeriod() )
-            {
-                pwWarnPeriod.increment();
+                if ( userReportRecord.isHasResponses() )
+                {
+                    reportSummaryData.hasResponses.increment();
+                }
+
             }
         }
 
-        if ( userCacheRecord.getResponseStorageMethod() != null )
+        private static class UpdateHasHelpdeskResponses implements BiConsumer<UserReportRecord, ReportSummaryData>
         {
-            final DataStorageMethod method = userCacheRecord.getResponseStorageMethod();
-            responseStorage
-                    .computeIfAbsent( method, dataStorageMethod -> new LongAdder() )
-                    .increment();
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.isHasHelpdeskResponses() )
+                {
+                    reportSummaryData.hasHelpdeskResponses.increment();
+                }
+
+            }
         }
 
-        if ( userCacheRecord.getLdapProfile() != null )
+        private static class HasResponseSetTime implements BiConsumer<UserReportRecord, ReportSummaryData>
         {
-            final String userProfile = userCacheRecord.getLdapProfile();
-            ldapProfile
-                    .computeIfAbsent( userProfile, type -> new LongAdder() )
-                    .increment();
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getResponseSetTime() != null )
+                {
+                    reportSummaryData.hasResponseSetTime.increment();
+                    reportSummaryData.incrementIfWithinTimeWindow( userReportRecord, reportSummaryData.responseSetDays );
+                }
+            }
         }
 
-        if ( userCacheRecord.getResponseFormatType() != null )
+        private static class UpdatePasswordExpirationTime implements BiConsumer<UserReportRecord, ReportSummaryData>
         {
-            final Answer.FormatType type = userCacheRecord.getResponseFormatType();
-            responseFormatType
-                    .computeIfAbsent( type, formatType -> new LongAdder() )
-                    .increment();
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getPasswordExpirationTime() != null )
+                {
+                    reportSummaryData.hasPasswordExpirationTime.increment();
+                    reportSummaryData.incrementIfWithinTimeWindow( userReportRecord, reportSummaryData.pwExpireDays );
+                }
+            }
         }
 
-        if ( userCacheRecord.isHasOtpSecret() )
+        private static class UpdateAccountExpirationTime implements BiConsumer<UserReportRecord, ReportSummaryData>
         {
-            hasOtpSecret.increment();
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getAccountExpirationTime() != null )
+                {
+                    reportSummaryData.hasAccountExpirationTime.increment();
+                    reportSummaryData.incrementIfWithinTimeWindow( userReportRecord, reportSummaryData.accountExpireDays );
+                }
+            }
         }
 
-        if ( userCacheRecord.getOtpSecretSetTime() != null )
+        private static class UpdateLastLoginTime implements BiConsumer<UserReportRecord, ReportSummaryData>
         {
-            hasOtpSecretSetTime.increment();
-            incrementIfWithinTimeWindow( userCacheRecord, otpSetDays );
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getLastLoginTime() != null )
+                {
+                    reportSummaryData.hasLoginTime.increment();
+                    reportSummaryData.incrementIfWithinTimeWindow( userReportRecord, reportSummaryData.loginDays );
+                }
+            }
+        }
+
+        private static class UpdatePwChangeTime implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getPasswordChangeTime() != null )
+                {
+                    reportSummaryData.hasChangePwTime.increment();
+                    reportSummaryData.incrementIfWithinTimeWindow( userReportRecord, reportSummaryData.changePwDays );
+                }
+            }
+        }
+
+        private static class UpdatePwExpiredNotification implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getPasswordExpirationNoticeSendTime() != null )
+                {
+                    reportSummaryData.hasReceivedPwExpireNotification.increment();
+                    reportSummaryData.incrementIfWithinTimeWindow( userReportRecord, reportSummaryData.pwExpireNotificationDays );
+                }
+            }
+        }
+
+        private static class UpdatePasswordStatus implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getPasswordStatus() != null )
+                {
+                    if ( userReportRecord.getPasswordStatus().isExpired() )
+                    {
+                        reportSummaryData.pwExpired.increment();
+                    }
+                    if ( userReportRecord.getPasswordStatus().isPreExpired() )
+                    {
+                        reportSummaryData.pwPreExpired.increment();
+                    }
+                    if ( userReportRecord.getPasswordStatus().isWarnPeriod() )
+                    {
+                        reportSummaryData.pwWarnPeriod.increment();
+                    }
+                }
+            }
+        }
+
+        private static class UpdateResponseStorageMethod implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getResponseStorageMethod() != null )
+                {
+                    final DataStorageMethod method = userReportRecord.getResponseStorageMethod();
+                    reportSummaryData.responseStorage
+                            .computeIfAbsent( method, dataStorageMethod -> new LongAdder() )
+                            .increment();
+                }
+
+            }
+        }
+
+        private static class UpdateLdapProfile implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getLdapProfile() != null )
+                {
+                    final DomainID domainID = userReportRecord.getDomainID();
+                    final String userProfile = userReportRecord.getLdapProfile();
+                    reportSummaryData.ldapProfile
+                            .computeIfAbsent( domainID, type -> new ConcurrentHashMap<>() )
+                            .computeIfAbsent( userProfile, type -> new LongAdder() )
+                            .increment();
+                }
+            }
+        }
+
+        private static class UpdateResponseFormatType implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getResponseFormatType() != null )
+                {
+                    final Answer.FormatType type = userReportRecord.getResponseFormatType();
+                    reportSummaryData.responseFormatType
+                            .computeIfAbsent( type, formatType -> new LongAdder() )
+                            .increment();
+                }
+            }
+        }
+
+        private static class UpdateHasOtpSecret implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.isHasOtpSecret() )
+                {
+                    reportSummaryData.hasOtpSecret.increment();
+                }
+            }
+        }
+
+        private static class UpdateOtpSecretSetTime implements BiConsumer<UserReportRecord, ReportSummaryData>
+        {
+            @Override
+            public void accept( final UserReportRecord userReportRecord, final ReportSummaryData reportSummaryData )
+            {
+                if ( userReportRecord.getOtpSecretSetTime() != null )
+                {
+                    reportSummaryData.hasOtpSecretSetTime.increment();
+                    reportSummaryData.incrementIfWithinTimeWindow( userReportRecord, reportSummaryData.otpSetDays );
+                }
+            }
         }
     }
 
     private void incrementIfWithinTimeWindow(
-            final UserCacheRecord userCacheRecord,
+            final UserReportRecord userReportRecord,
             final Map<Integer, LongAdder> map
     )
     {
         for ( final Map.Entry<Integer, LongAdder> entry : map.entrySet() )
         {
             final int day = entry.getKey();
-            final Instant eventDate = userCacheRecord.getOtpSecretSetTime();
+            final Instant eventDate = userReportRecord.getOtpSecretSetTime();
             final long timeWindow = MS_DAY * day;
             final LongAdder number = entry.getValue();
 
@@ -246,8 +375,7 @@ public class ReportSummaryData
         }
     }
 
-
-    public List<PresentationRow> asPresentableCollection( final Configuration config, final Locale locale )
+    public List<PresentationRow> asPresentableCollection( final AppConfig config, final Locale locale )
     {
         final ArrayList<PresentationRow> returnCollection = new ArrayList<>();
         final PresentationRowBuilder builder = new PresentationRowBuilder( config, this.totalUsers.sum(), locale );
@@ -258,15 +386,19 @@ public class ReportSummaryData
             return returnCollection;
         }
 
-        if ( config.getLdapProfiles().keySet().size() > 1 )
+
+        for ( final Map.Entry<DomainID, Map<String, LongAdder>> domainIDMapEntry : new TreeMap<>( ldapProfile ).entrySet() )
         {
-            for ( final Map.Entry<String, LongAdder> entry : new TreeMap<>( ldapProfile ).entrySet() )
+            for ( final Map.Entry<String, LongAdder> profileMapEntry : new TreeMap<>( domainIDMapEntry.getValue() ).entrySet() )
             {
-                final String userProfile = entry.getKey();
-                final long count = entry.getValue().sum();
-                final String displayName = config.getLdapProfiles().containsKey( userProfile )
-                        ? config.getLdapProfiles().get( userProfile ).getDisplayName( locale )
-                        : userProfile;
+                final DomainID domainID = domainIDMapEntry.getKey();
+                final DomainConfig domainConfig = config.getDomainConfigs().get( domainID );
+                final String userProfile = profileMapEntry.getKey();
+                final LdapProfile ldapProfile = domainConfig.getLdapProfiles().get( userProfile );
+                final long count = profileMapEntry.getValue().sum();
+
+                final String displayName = ( config.getDomainConfigs().size() > 1 ? "[" + domainConfig.getDisplayName( locale ) + "] " : "" )
+                        + ldapProfile.getDisplayName( locale );
                 returnCollection.add(
                         builder.makeRow( "Field_Report_Sum_LdapProfile", count, displayName ) );
             }
@@ -308,12 +440,12 @@ public class ReportSummaryData
 
         returnCollection.add( builder.makeRow( "Field_Report_Sum_HaveResponses", this.hasResponses.sum() ) );
         returnCollection.add( builder.makeRow( "Field_Report_Sum_HaveHelpdeskResponses", this.hasHelpdeskResponses.sum() ) );
-        for ( final DataStorageMethod storageMethod : JavaHelper.copiedEnumSet( this.getResponseStorage().keySet(), DataStorageMethod.class ) )
+        for ( final DataStorageMethod storageMethod : CollectionUtil.copiedEnumSet( this.getResponseStorage().keySet(), DataStorageMethod.class ) )
         {
             final long count = this.getResponseStorage().get( storageMethod );
             returnCollection.add( builder.makeRow( "Field_Report_Sum_StorageMethod", count, storageMethod.toString() ) );
         }
-        for ( final Answer.FormatType formatType : JavaHelper.copiedEnumSet( this.getResponseFormatType().keySet(), Answer.FormatType.class ) )
+        for ( final Answer.FormatType formatType : CollectionUtil.copiedEnumSet( this.getResponseFormatType().keySet(), Answer.FormatType.class ) )
         {
             final long count = this.getResponseFormatType().get( formatType );
             returnCollection.add( builder.makeRow( "Field_Report_Sum_ResponseFormatType", count, formatType.toString() ) );
@@ -369,7 +501,7 @@ public class ReportSummaryData
     @Value
     public static class PresentationRowBuilder
     {
-        private final Configuration config;
+        private final AppConfig config;
         private final long totalUsers;
         private final Locale locale;
 
@@ -393,11 +525,11 @@ public class ReportSummaryData
             final String display = replacement == null
                     ? LocaleHelper.getLocalizedMessage( locale, labelKey, config, Admin.class )
                     : LocaleHelper.getLocalizedMessage( locale, labelKey, config, Admin.class, new String[]
-                    {
-                            replacement,
+                            {
+                                    replacement,
                             }
-            );
-            final String pct = valueCount > 0 ? new Percent( valueCount, totalUsers ).pretty( 2 ) : "";
+                    );
+            final String pct = valueCount > 0 ? Percent.of( valueCount, totalUsers ).pretty( 2 ) : "";
             final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );
             final String formattedCount = numberFormat.format( valueCount );
             return new PresentationRow( display, formattedCount, pct );

@@ -53,7 +53,7 @@
             <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.HIDE_LOCALE%>" negate="true">
                 <span class="footer-segment">
                     <span id="localeSelectionMenu">
-                        <img src="<pwm:context/><pwm:url url='/public/resources/webjars/famfamfam-flags/dist/png/'/><pwm:value name="<%=PwmValue.localeFlagFile%>"/>.png"
+                        <img src="<pwm:url url='/public/resources/webjars/famfamfam-flags/dist/png/' addContext="true"/><pwm:value name="<%=PwmValue.localeFlagFile%>"/>.png"
                              alt="<pwm:value name="<%=PwmValue.localeFlagFile%>"/>"/>
                         <span class="localeDisplayName"><pwm:value name="<%=PwmValue.localeName%>"/></span>
                     </span>

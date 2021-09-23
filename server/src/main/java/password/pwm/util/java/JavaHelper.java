@@ -21,13 +21,9 @@
 package password.pwm.util.java;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import jetbrains.exodus.core.dataStructures.hash.LinkedHashMap;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
-import password.pwm.http.ContextManager;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.logging.PwmLogger;
 
@@ -45,18 +41,15 @@ import java.lang.management.LockInfo;
 import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -65,8 +58,11 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.LongAccumulator;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class JavaHelper
 {
@@ -125,13 +121,13 @@ public class JavaHelper
             ch = ( byte ) ( ch & 0x0F );
 
             // convert the nibble to a String Character
-            out.append( pseudo[ ( int ) ch ] );
+            out.append( pseudo[( int ) ch] );
 
             // strip off low nibble
             ch = ( byte ) ( b & 0x0F );
 
             // convert the nibble to a String Character
-            out.append( pseudo[ ( int ) ch ] );
+            out.append( pseudo[( int ) ch] );
         }
 
         return out.toString();
@@ -140,45 +136,48 @@ public class JavaHelper
     public static String binaryArrayToHex( final byte[] buf )
     {
         final char[] hexChars = "0123456789ABCDEF".toCharArray();
-        final char[] chars = new char[ 2 * buf.length ];
+        final char[] chars = new char[2 * buf.length];
         for ( int i = 0; i < buf.length; ++i )
         {
-            chars[ 2 * i ] = hexChars[ ( buf[ i ] & 0xF0 ) >>> 4 ];
-            chars[ 2 * i + 1 ] = hexChars[ buf[ i ] & 0x0F ];
+            chars[2 * i] = hexChars[( buf[i] & 0xF0 ) >>> 4];
+            chars[2 * i + 1] = hexChars[buf[i] & 0x0F];
         }
         return new String( chars );
-    }
-
-    public static <E extends Enum<E>> Set<E> readEnumSetFromStringCollection( final Class<E> enumClass, final Collection<String> inputs )
-    {
-        final Set<E> returnList = EnumSet.noneOf( enumClass );
-        for ( final String input : inputs )
-        {
-            final E item = readEnumFromString( enumClass, null, input );
-            if ( item != null )
-            {
-                returnList.add( item );
-            }
-        }
-        return Collections.unmodifiableSet( returnList );
-    }
-
-    public static <E extends Enum<E>> Set<E> enumSetFromArray( final E[] arrayValues )
-    {
-        return arrayValues == null || arrayValues.length == 0
-                ? Collections.emptySet()
-                : Collections.unmodifiableSet( EnumSet.copyOf( Arrays.asList( arrayValues ) ) );
-    }
-
-    public static <E extends Enum<E>> Map<String, String> enumMapToStringMap( final Map<E, String> inputMap )
-    {
-        return Collections.unmodifiableMap( inputMap.entrySet().stream()
-                .collect( Collectors.toMap( entry -> entry.getKey().name(), Map.Entry::getValue, ( a, b ) -> b, LinkedHashMap::new ) ) );
     }
 
     public static <E extends Enum<E>> E readEnumFromString( final Class<E> enumClass, final E defaultValue, final String input )
     {
         return readEnumFromString( enumClass, input ).orElse( defaultValue );
+    }
+
+    public static <E extends Enum<E>> Optional<E> readEnumFromPredicate( final Class<E> enumClass, final Predicate<E> match )
+    {
+        if ( match == null )
+        {
+            return Optional.empty();
+        }
+
+        if ( enumClass == null || !enumClass.isEnum() )
+        {
+            return Optional.empty();
+        }
+
+        return EnumSet.allOf( enumClass ).stream().filter( match ).findFirst();
+    }
+
+    public static <E extends Enum<E>> Set<E> readEnumsFromPredicate( final Class<E> enumClass, final Predicate<E> match )
+    {
+        if ( match == null )
+        {
+            return Collections.emptySet();
+        }
+
+        if ( enumClass == null || !enumClass.isEnum() )
+        {
+            return Collections.emptySet();
+        }
+
+        return EnumSet.allOf( enumClass ).stream().filter( match ).collect( Collectors.toUnmodifiableSet() );
     }
 
     public static <E extends Enum<E>> Optional<E> readEnumFromString( final Class<E> enumClass, final String input )
@@ -276,7 +275,7 @@ public class JavaHelper
             throws IOException
     {
         final int bufferSize = 4 * 1024;
-        final byte[] buffer = new byte[ bufferSize ];
+        final byte[] buffer = new byte[bufferSize];
         return IOUtils.copyLarge( input, output, 0, -1, buffer );
     }
 
@@ -285,13 +284,13 @@ public class JavaHelper
     {
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         JavaHelper.copy( input, byteArrayOutputStream );
-        return new String( byteArrayOutputStream.toByteArray(), PwmConstants.DEFAULT_CHARSET );
+        return byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET );
     }
 
-    public static ImmutableByteArray copyToBytes( final InputStream inputStream )
+    public static ImmutableByteArray copyToBytes( final InputStream inputStream, final int maxLength )
             throws IOException
     {
-        final byte[] bytes = IOUtils.toByteArray( inputStream );
+        final byte[] bytes = IOUtils.toByteArray( inputStream, maxLength );
         return ImmutableByteArray.of( bytes );
     }
 
@@ -321,7 +320,7 @@ public class JavaHelper
     )
             throws IOException
     {
-        final byte[] buffer = new byte[ bufferSize ];
+        final byte[] buffer = new byte[bufferSize];
         int bytesCopied;
         long totalCopied = 0;
         do
@@ -421,12 +420,11 @@ public class JavaHelper
                 + threadInfo.getThreadState() );
         if ( threadInfo.getLockName() != null )
         {
-            sb.append( " on " + threadInfo.getLockName() );
+            sb.append( " on " ).append( threadInfo.getLockName() );
         }
         if ( threadInfo.getLockOwnerName() != null )
         {
-            sb.append( " owned by \"" + threadInfo.getLockOwnerName()
-                    + "\" Id=" + threadInfo.getLockOwnerId() );
+            sb.append( " owned by \"" ).append( threadInfo.getLockOwnerName() ).append( "\" Id=" ).append( threadInfo.getLockOwnerId() );
         }
         if ( threadInfo.isSuspended() )
         {
@@ -451,15 +449,15 @@ public class JavaHelper
                 switch ( ts )
                 {
                     case BLOCKED:
-                        sb.append( "\t-  blocked on " + threadInfo.getLockInfo() );
+                        sb.append( "\t-  blocked on " ).append( threadInfo.getLockInfo() );
                         sb.append( '\n' );
                         break;
                     case WAITING:
-                        sb.append( "\t-  waiting on " + threadInfo.getLockInfo() );
+                        sb.append( "\t-  waiting on " ).append( threadInfo.getLockInfo() );
                         sb.append( '\n' );
                         break;
                     case TIMED_WAITING:
-                        sb.append( "\t-  waiting on " + threadInfo.getLockInfo() );
+                        sb.append( "\t-  waiting on " ).append( threadInfo.getLockInfo() );
                         sb.append( '\n' );
                         break;
                     default:
@@ -470,7 +468,7 @@ public class JavaHelper
             {
                 if ( mi.getLockedStackDepth() == counter )
                 {
-                    sb.append( "\t-  locked " + mi );
+                    sb.append( "\t-  locked " ).append( mi );
                     sb.append( '\n' );
                 }
             }
@@ -484,11 +482,11 @@ public class JavaHelper
         final LockInfo[] locks = threadInfo.getLockedSynchronizers();
         if ( locks.length > 0 )
         {
-            sb.append( "\n\tNumber of locked synchronizers = " + locks.length );
+            sb.append( "\n\tNumber of locked synchronizers = " ).append( locks.length );
             sb.append( '\n' );
             for ( final LockInfo li : locks )
             {
-                sb.append( "\t- " + li );
+                sb.append( "\t- " ).append( li );
                 sb.append( '\n' );
             }
         }
@@ -496,29 +494,9 @@ public class JavaHelper
         return sb.toString();
     }
 
-    public static String readEulaText( final ContextManager contextManager, final String filename )
-            throws IOException
-    {
-        final String path = PwmConstants.URL_PREFIX_PUBLIC + "/resources/text/" + filename;
-        final InputStream inputStream = contextManager.getResourceAsStream( path );
-        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        copyWhilePredicate( inputStream, byteArrayOutputStream, o -> true );
-        return byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET.name() );
-    }
-
-    public static boolean isEmpty( final Collection collection )
-    {
-        return collection == null ? true : collection.isEmpty();
-    }
-
-    public static boolean isEmpty( final Map map )
-    {
-        return map == null || map.isEmpty();
-    }
-
     public static int rangeCheck( final int min, final int max, final int value )
     {
-        return (int) rangeCheck( (long) min, (long) max, (long) value );
+        return ( int ) rangeCheck( ( long ) min, ( long ) max, ( long ) value );
     }
 
     public static long rangeCheck( final long min, final long max, final long value )
@@ -572,6 +550,7 @@ public class JavaHelper
     /**
      * Very naive implementation to get a rough order estimate of object memory size, used for debug
      * purposes only.
+     *
      * @param object object to be analyzed
      * @return size of object (very rough estimate)
      */
@@ -595,51 +574,22 @@ public class JavaHelper
     {
         Objects.requireNonNull( properties );
         final Map<String, String> returnMap = new LinkedHashMap<>( properties.size() );
-        properties.forEach( ( key, value ) -> returnMap.put( ( String ) key, (String) value ) );
+        properties.forEach( ( key, value ) -> returnMap.put( ( String ) key, ( String ) value ) );
         return returnMap;
     }
 
-    public static Optional<String> deriveLocalServerHostname( final Configuration configuration )
+    public static LongAccumulator newAbsLongAccumulator()
     {
-        if ( configuration != null )
+        return new LongAccumulator( ( left, right ) ->
         {
-            final String siteUrl = configuration.readSettingAsString( PwmSetting.PWM_SITE_URL );
-            if ( !StringUtil.isEmpty( siteUrl ) )
-            {
-                try
-                {
-                    final URI parsedUri = URI.create( siteUrl );
-                    {
-                        final String uriHost = parsedUri.getHost();
-                        return Optional.ofNullable( uriHost );
-                    }
-                }
-                catch ( final IllegalArgumentException e )
-                {
-                    LOGGER.trace( () -> " error parsing siteURL hostname: " + e.getMessage() );
-                }
-            }
-        }
-        return Optional.empty();
+            final long newValue = left + right;
+            return newValue < 0 ? 0 : newValue;
+        }, 0L );
     }
 
-    public static class SortedProperties extends Properties
+    public static Properties newSortedProperties()
     {
-        @Override
-        public synchronized Enumeration<Object> keys()
-        {
-            return Collections.enumeration( super.keySet().stream()
-                    .sorted( Comparator.comparing( Object::toString ) )
-                    .collect( Collectors.toList() ) );
-        }
-
-        @Override
-        public synchronized Set<Map.Entry<Object, Object>> entrySet()
-        {
-            return super.entrySet().stream()
-                    .sorted( Comparator.comparing( o -> o.getKey().toString() ) )
-                    .collect( Collectors.toCollection( LinkedHashSet::new ) );
-        }
+        return new org.apache.commons.collections4.properties.SortedProperties();
     }
 
     public static int silentParseInt( final String input, final int defaultValue )
@@ -680,20 +630,9 @@ public class JavaHelper
         return ByteBuffer.allocate( 8 ).putLong( input ).array();
     }
 
-    public static <E extends Enum<E>> EnumSet<E> copiedEnumSet( final Collection<E> source, final Class<E> classOfT )
-    {
-        return JavaHelper.isEmpty( source )
-                ? EnumSet.noneOf( classOfT )
-                : EnumSet.copyOf( source );
-    }
-
     public static String requireNonEmpty( final String input )
     {
-        if ( StringUtil.isEmpty( input ) )
-        {
-            throw new NullPointerException( );
-        }
-        return input;
+        return requireNonEmpty( input, "non-empty string value required" );
     }
 
     public static String requireNonEmpty( final String input, final String message )
@@ -705,23 +644,32 @@ public class JavaHelper
         return input;
     }
 
-    public static <K extends Enum<K>, V> EnumMap<K, V> copiedEnumMap( final Map<K, V> source, final Class<K> classOfT )
+    public static byte[] gunzip( final byte[] bytes )
+            throws IOException
     {
-        if ( source == null )
+        try (  GZIPInputStream inputGzipStream = new GZIPInputStream( new ByteArrayInputStream( bytes ) ) )
         {
-            return new EnumMap<K, V>( classOfT );
+            return inputGzipStream.readAllBytes();
         }
-
-        final EnumMap<K, V> returnMap = new EnumMap<>( classOfT );
-        for ( final Map.Entry<K, V> entry : source.entrySet() )
-        {
-            final K key = entry.getKey();
-            if ( key != null )
-            {
-                returnMap.put( key, entry.getValue() );
-            }
-        }
-        return returnMap;
     }
-    
+
+    public static byte[] gzip( final byte[] bytes )
+            throws IOException
+    {
+        try ( ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             GZIPOutputStream gzipOutputStream = new GZIPOutputStream( byteArrayOutputStream ) )
+        {
+            gzipOutputStream.write( bytes );
+            gzipOutputStream.close();
+            return byteArrayOutputStream.toByteArray();
+        }
+    }
+
+    public static byte[] addByteArrays( final byte[] a, final byte[] b )
+    {
+        final byte[] newByteArray = new byte[ a.length + b.length ];
+        System.arraycopy( a, 0, newByteArray, 0, a.length );
+        System.arraycopy( b, 0, newByteArray, a.length, b.length );
+        return newByteArray;
+    }
 }

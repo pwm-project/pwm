@@ -20,6 +20,7 @@
 
 package password.pwm.util.secure.self;
 
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.StringUtil;
 
 import java.io.ByteArrayInputStream;
@@ -37,7 +38,7 @@ public class StoredCertData implements Serializable
     private String keypairb64;
 
     public StoredCertData( final X509Certificate x509Certificate, final KeyPair keypair )
-        throws IOException
+        throws IOException, PwmUnrecoverableException
     {
         this.x509Certificate = x509Certificate;
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -56,8 +57,8 @@ public class StoredCertData implements Serializable
         throws IOException, ClassNotFoundException
     {
         final byte[] ba = StringUtil.base64Decode( keypairb64 );
-        final ByteArrayInputStream bais = new ByteArrayInputStream( ba );
-        final ObjectInputStream ois = new ObjectInputStream( bais );
+        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream( ba );
+        final ObjectInputStream ois = new ObjectInputStream( byteArrayInputStream );
         return ( KeyPair ) ois.readObject();
     }
 }

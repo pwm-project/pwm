@@ -25,6 +25,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.PwmSetting;
 import password.pwm.http.ContextManager;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.logging.PwmLogger;
@@ -38,25 +39,22 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class SystemMacros
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SystemMacros.class );
 
-    static final List<Macro> SYSTEM_MACROS = Collections.unmodifiableList( Stream.of(
+    static final List<Macro> SYSTEM_MACROS = List.of(
             new CurrentTimeMacro(),
             new Iso8601DateTimeMacro(),
             new InstanceIDMacro(),
-            new DefaultEmailFromAddressMacro(),
+            new DefaultSystemFromAddressMacro(),
             new SiteURLMacro(),
             new SiteHostMacro(),
             new RandomCharMacro(),
             new RandomNumberMacro(),
             new UUIDMacro(),
-            new PwmContextPath()
-    ).collect( Collectors.toList() ) );
+            new PwmContextPath() );
 
     public abstract static class AbstractSystemMacros extends AbstractMacro
     {
@@ -154,7 +152,7 @@ public class SystemMacros
         {
             final List<String> parameters = splitMacroParameters( matchValue, Collections.singletonList( "Iso8601" ) );
 
-            if ( JavaHelper.isEmpty(  parameters ) || parameters.size() != 1 )
+            if ( CollectionUtil.isEmpty(  parameters ) || parameters.size() != 1 )
             {
                 throw new MacroParseException( "exactly one parameter is required" );
             }
@@ -198,9 +196,9 @@ public class SystemMacros
         }
     }
 
-    public static class DefaultEmailFromAddressMacro extends AbstractSystemMacros
+    public static class DefaultSystemFromAddressMacro extends AbstractSystemMacros
     {
-        private static final Pattern PATTERN = Pattern.compile( "@DefaultEmailFromAddress@" );
+        private static final Pattern PATTERN = Pattern.compile( "@SystemEmailFromAddress@" );
 
         @Override
         public Pattern getRegExPattern( )
@@ -214,7 +212,7 @@ public class SystemMacros
                 final MacroRequest request
         )
         {
-            return request.getPwmApplication().getConfig().readSettingAsString( PwmSetting.EMAIL_DEFAULT_FROM_ADDRESS );
+            return "admin@example.org";
         }
     }
 

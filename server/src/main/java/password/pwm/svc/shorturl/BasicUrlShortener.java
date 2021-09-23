@@ -49,7 +49,7 @@ public class BasicUrlShortener implements AbstractUrlShortener
     }
 
     @Override
-    public String shorten( final String input, final PwmApplication context ) throws PwmUnrecoverableException
+    public String shorten( final String input, final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
         /*
          * This function does nothing.

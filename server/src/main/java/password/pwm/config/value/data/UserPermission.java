@@ -71,6 +71,11 @@ public class UserPermission implements Serializable, Comparable<UserPermission>
                 + "]";
     }
 
+    public String toString()
+    {
+        return debugString();
+    }
+
     @Override
     public int compareTo( @NotNull final UserPermission o )
     {

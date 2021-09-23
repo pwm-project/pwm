@@ -23,6 +23,7 @@ package password.pwm.svc.httpclient;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
+import password.pwm.PwmApplication;
 import password.pwm.http.HttpEntityDataType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.bean.ImmutableByteArray;
@@ -55,13 +56,18 @@ public class PwmHttpClientRequest implements Serializable, PwmHttpClientMessage
     @Singular
     private final Map<String, String> headers;
 
-    public String toDebugString( final ApachePwmHttpClient pwmHttpClient, final String additionalText )
+    String toDebugString(
+            final PwmHttpClient pwmHttpClient,
+            final PwmApplication pwmApplication,
+            final PwmHttpClientConfiguration pwmHttpClientConfiguration,
+            final String additionalText
+    )
     {
         final String topLine = "HTTP " + method + " request to " + url
                 + ( StringUtil.isEmpty( additionalText )
                 ? ""
-                : " " + additionalText );
-        return pwmHttpClient.entityToDebugString( topLine, this );
+                : " " + ( additionalText == null ? "" : additionalText ) );
+        return PwmHttpClientMessage.entityToDebugString( topLine, pwmApplication, pwmHttpClientConfiguration, this );
     }
 
     public boolean isHttps()
@@ -71,17 +77,9 @@ public class PwmHttpClientRequest implements Serializable, PwmHttpClientMessage
 
     public long size()
     {
-        long size = 0;
-        size += method.toString().length();
-        size += url.length();
-        size += body == null ? 0 : body.length();
-        size += binaryBody == null ? 0 : binaryBody.size();
-        if ( headers != null )
-        {
-            size += headers.entrySet().stream()
-                    .map( e -> e.getValue().length() + e.getKey().length() )
-                    .reduce( 0, Integer::sum );
-        }
+        long size = PwmHttpClientMessage.sizeImpl( this );
+        size += method == null ? 0 : method.toString().length();
+        size += url == null ? 0 : url.length();
         return size;
     }
 }

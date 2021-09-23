@@ -21,6 +21,7 @@
 package password.pwm.bean;
 
 import lombok.Value;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.X509Utils;
 
@@ -41,6 +42,7 @@ public class PrivateKeyCertificate implements Serializable
     private final String privateKey;
 
     public PrivateKeyCertificate( final List<X509Certificate> certificates, final PrivateKey privateKey )
+            throws PwmUnrecoverableException
     {
         this.b64certificates = X509Utils.certificatesToBase64s( certificates );
         this.privateKey = StringUtil.base64Encode( privateKey.getEncoded() );

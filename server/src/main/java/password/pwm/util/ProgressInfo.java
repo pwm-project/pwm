@@ -50,7 +50,7 @@ public class ProgressInfo implements Serializable
 
     public Percent percentComplete( )
     {
-        return new Percent( nowItems, totalItems );
+        return Percent.of( nowItems, totalItems );
     }
 
     public TimeDuration elapsed( )

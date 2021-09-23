@@ -21,12 +21,15 @@
 package password.pwm.util.localdb;
 
 import password.pwm.PwmApplication;
+import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +37,7 @@ import java.util.Map;
 public class LocalDBService implements PwmService
 {
     private PwmApplication pwmApplication;
+    private DomainID domainID;
 
     @Override
     public STATUS status( )
@@ -49,9 +53,22 @@ public class LocalDBService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public void init( final PwmApplication pwmApplication, final DomainID domainID ) throws PwmException
     {
         this.pwmApplication = pwmApplication;
+        this.domainID = domainID;
+    }
+
+    @Override
+    public DomainID getDomainID()
+    {
+        return domainID;
+    }
+
+    @Override
+    public SessionLabel getSessionLabel()
+    {
+        return SessionLabel.forPwmService( this, getDomainID() );
     }
 
     @Override
@@ -63,7 +80,7 @@ public class LocalDBService implements PwmService
     @Override
     public List<HealthRecord> healthCheck( )
     {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

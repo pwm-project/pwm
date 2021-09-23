@@ -21,8 +21,8 @@
 package password.pwm.http.tag;
 
 import lombok.Value;
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.PwmDomain;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
@@ -45,11 +45,11 @@ import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
+import java.util.Optional;
 
 /**
  * @author Jason D. Rivard
@@ -63,7 +63,7 @@ public class PasswordRequirementsTag extends TagSupport
 
     public static List<String> getPasswordRequirementsStrings(
             final PwmPasswordPolicy passwordPolicy,
-            final Configuration config,
+            final DomainConfig config,
             final Locale locale,
             final MacroRequest macroRequest
     )
@@ -78,7 +78,7 @@ public class PasswordRequirementsTag extends TagSupport
         return Collections.unmodifiableList( ruleTexts );
     }
 
-    private static final List<RuleTextGenerator> RULE_TEXT_GENERATORS = Collections.unmodifiableList( Arrays.asList(
+    private static final List<RuleTextGenerator> RULE_TEXT_GENERATORS = List.of(
             new CaseSensitiveRuleTextGenerator(),
             new MinLengthRuleTextGenerator(),
             new MaxLengthRuleTextGenerator(),
@@ -99,8 +99,7 @@ public class PasswordRequirementsTag extends TagSupport
             new MaximumOldCharsRuleTextGenerator(),
             new MinimumLifetimeRuleTextGenerator(),
             new ADRuleTextGenerator(),
-            new UniqueRequiredRuleTextGenerator()
-    ) );
+            new UniqueRequiredRuleTextGenerator() );
 
     private interface RuleTextGenerator
     {
@@ -113,7 +112,7 @@ public class PasswordRequirementsTag extends TagSupport
         private PwmPasswordPolicy passwordPolicy;
         private PasswordRuleReaderHelper ruleHelper;
         private Locale locale;
-        private Configuration config;
+        private DomainConfig config;
         private MacroRequest macroRequest;
     }
 
@@ -570,8 +569,8 @@ public class PasswordRequirementsTag extends TagSupport
         {
             final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
             final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-            final Configuration config = pwmApplication.getConfig();
+            final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+            final DomainConfig config = pwmDomain.getConfig();
             final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
             pwmSession.getSessionManager().getMacroMachine( );
@@ -580,17 +579,17 @@ public class PasswordRequirementsTag extends TagSupport
             if ( getForm() != null && getForm().equalsIgnoreCase( "newuser" ) )
             {
                 final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
-                passwordPolicy = newUserProfile.getNewUserPasswordPolicy( pwmApplication, locale );
+                passwordPolicy = newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() );
             }
             else
             {
                 passwordPolicy = pwmSession.getUserInfo().getPasswordPolicy();
             }
 
-            final String configuredRuleText = passwordPolicy.getRuleText();
-            if ( configuredRuleText != null && configuredRuleText.length() > 0 )
+            final Optional<String> configuredRuleText = passwordPolicy.getRuleText( pwmRequest.getLocale() );
+            if ( configuredRuleText.isPresent() )
             {
-                pageContext.getOut().write( configuredRuleText );
+                pageContext.getOut().write( configuredRuleText.get() );
             }
             else
             {

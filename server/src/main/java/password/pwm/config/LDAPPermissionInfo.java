@@ -62,12 +62,12 @@ public class LDAPPermissionInfo implements Serializable
         helpdesk,
         guestManager,;
 
-        public String getLabel( final Locale locale, final Configuration config )
+        public String getLabel( final Locale locale, final DomainConfig config )
         {
             return LocaleHelper.getLocalizedMessage( locale, "Actor_Label_" + this.toString(), config, Config.class );
         }
 
-        public String getDescription( final Locale locale, final Configuration config )
+        public String getDescription( final Locale locale, final DomainConfig config )
         {
             final MacroRequest macroRequest = MacroRequest.forStatic();
             return macroRequest.expandMacros( LocaleHelper.getLocalizedMessage( locale, "Actor_Description_" + this.toString(), config, Config.class ) );

@@ -23,7 +23,7 @@ package password.pwm.ldap.search;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.SearchHelper;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -44,15 +44,15 @@ import java.util.concurrent.FutureTask;
 
 class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
 {
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final UserSearchJobParameters userSearchJobParameters;
     private final UserSearchEngine userSearchEngine;
     private final FutureTask<Map<UserIdentity, Map<String, String>>> futureTask;
     private final Instant createTime = Instant.now();
 
-    UserSearchJob( final PwmApplication pwmApplication, final UserSearchEngine userSearchEngine, final UserSearchJobParameters userSearchJobParameters )
+    UserSearchJob( final PwmDomain pwmDomain, final UserSearchEngine userSearchEngine, final UserSearchJobParameters userSearchJobParameters )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
         this.userSearchJobParameters = userSearchJobParameters;
         this.userSearchEngine = userSearchEngine;
         this.futureTask = new FutureTask<>( this );
@@ -101,16 +101,18 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
         {
             if ( !userSearchJobParameters.isIgnoreOperationalErrors() )
             {
-                throw new PwmOperationalException( PwmError.forChaiError( e.getErrorCode() ), "ldap error during searchID="
-                        + userSearchJobParameters.getSearchID() + ", context=" + userSearchJobParameters.getContext() + ", error=" + e.getMessage() );
+                final PwmError pwmError = PwmError.forChaiError( e.getErrorCode() ).orElse( PwmError.ERROR_INTERNAL );
+                final String msg = "ldap error during searchID="
+                        + userSearchJobParameters.getSearchID() + ", context=" + userSearchJobParameters.getContext() + ", error=" + e.getMessage();
+                throw new PwmOperationalException( pwmError, msg );
             }
         }
 
         final TimeDuration searchDuration = TimeDuration.fromCurrent( startTime );
 
-        if ( pwmApplication.getStatisticsManager() != null && pwmApplication.getStatisticsManager().status() == PwmService.STATUS.OPEN )
+        if ( pwmDomain.getStatisticsManager() != null && pwmDomain.getStatisticsManager().status() == PwmService.STATUS.OPEN )
         {
-            pwmApplication.getStatisticsManager().updateAverageValue( AvgStatistic.AVG_LDAP_SEARCH_TIME, searchDuration.asMillis() );
+            pwmDomain.getStatisticsManager().updateAverageValue( AvgStatistic.AVG_LDAP_SEARCH_TIME, searchDuration.asMillis() );
         }
 
         if ( results.isEmpty() )
@@ -128,9 +130,10 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
         {
             final String userDN = entry.getKey();
             final Map<String, String> attributeMap = entry.getValue();
-            final UserIdentity userIdentity = UserIdentity.createUserIdentity(
+            final UserIdentity userIdentity = UserIdentity.create(
                     userDN,
                     userSearchJobParameters.getLdapProfile().getIdentifier(),
+                    pwmDomain.getDomainID(),
                     UserIdentity.Flag.PreCanonicalized );
             returnMap.put( userIdentity, attributeMap );
         }

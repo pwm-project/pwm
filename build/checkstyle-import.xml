@@ -46,7 +46,6 @@
     <allow pkg="org.apache.commons.net.ftp"/>
 
     <!-- xml -->
-    <allow pkg="org.jdom2"/>
     <allow pkg="javax.xml"/>
     <allow pkg="org.w3c"/>
     <allow pkg="org.xml"/>
@@ -59,6 +58,7 @@
 
     <!-- testing -->
     <allow pkg="org.junit"/>
+    <allow pkg="org.hamcrest"/>
     <allow pkg="org.mockito"/>
     <allow pkg="com.github.tomakehurst.wiremock"/>
     <allow pkg="org.reflections"/>
@@ -74,7 +74,6 @@
     <allow pkg="org.apache.http"/>
     <allow pkg="org.apache.commons"/>
     <allow pkg="org.jasig.cas"/>
-    <allow pkg="net.iharder"/>
     <allow pkg="org.jetbrains.annotations"/>
     <allow pkg="com.novell.ldap"/>
     <allow pkg="java.security"/>
@@ -121,20 +120,14 @@
     </subpackage>
 
     <!-- nmas -->
-    <subpackage name="util.operations.cr">
+    <subpackage name="svc.cr">
         <allow pkg="com.novell.ldap"/>
         <allow pkg="com.novell.security.nmas"/>
     </subpackage>
 
     <!-- database -->
-    <subpackage name="util.db">
+    <subpackage name="svc.db">
         <allow pkg="java.sql"/>
-    </subpackage>
-
-    <subpackage name="util.java">
-        <allow class="net.iharder.Base64"/>
-        <allow pkg="org.apache.commons.codec"/>
-        <allow pkg="org.apache.commons.lang3"/>
     </subpackage>
 
     <subpackage name="util.localdb">

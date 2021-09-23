@@ -23,6 +23,7 @@ package password.pwm.http.servlet;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.Set;
 
 @WebServlet(
         name = "FullPageHealthServlet",
@@ -92,7 +94,8 @@ public class FullPageHealthServlet extends ControlledPwmServlet
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        if ( !pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES ) )
+        final Set<WebServiceUsage> enabledUsages = pwmRequest.getDomainConfig().readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class );
+        if ( !enabledUsages.contains( WebServiceUsage.Health ) && !enabledUsages.contains( WebServiceUsage.Statistics ) )
         {
             final Locale locale = pwmRequest.getLocale();
             final String errorMsg = "configuration setting "

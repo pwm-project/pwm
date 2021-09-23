@@ -37,6 +37,11 @@ public enum PwmSettingFlag
     /* No Default - Makes the setting UI act as if there is not a default to reset to */
     NoDefault,
 
+    /* Only shown if multi-domain is enabled */
+    MultiDomain,
+
+    ReloadEditorOnModify,
+
     Select_AllowUserInput,
 
     Permission_HideGroups,
@@ -53,6 +58,8 @@ public enum PwmSettingFlag
     Verification_HideMinimumOptional,
 
     WebService_NoBody,
+
+    Sorted,
 
     Deprecated,
 }

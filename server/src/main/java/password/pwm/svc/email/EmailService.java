@@ -23,11 +23,11 @@ package password.pwm.svc.email;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Transport;
-
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -37,9 +37,10 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.UserInfo;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -57,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
@@ -64,12 +66,10 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author Jason D. Rivard
  */
-public class EmailService implements PwmService
+public class EmailService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( EmailService.class );
 
-    private PwmApplication pwmApplication;
-    private ErrorInformation startupError;
     private WorkQueueProcessor<EmailItemBean> workQueueProcessor;
     private EmailServiceSettings emailServiceSettings;
     private EmailConnectionPool connectionPool = EmailConnectionPool.emptyConnectionPool();
@@ -79,41 +79,42 @@ public class EmailService implements PwmService
     private final ConditionalTaskExecutor statsLogger = ConditionalTaskExecutor.forPeriodicTask( this::logStats, TimeDuration.MINUTE );
     private final ReentrantLock submitLock = new ReentrantLock();
 
-    private PwmService.STATUS status = STATUS.CLOSED;
+    @Override
+    protected Set<PwmApplication.Condition> openConditions()
+    {
+        return Collections.emptySet();
+    }
 
     @Override
-    public void init( final PwmApplication pwmApplication )
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmApplication = pwmApplication;
-        this.emailServiceSettings = EmailServiceSettings.fromConfiguration( pwmApplication.getConfig() );
+        this.emailServiceSettings = EmailServiceSettings.fromConfiguration( this.getPwmApplication().getConfig() );
         LOGGER.trace( () -> "initializing with settings: " + JsonUtil.serialize( emailServiceSettings ) );
 
         final List<EmailServer> servers;
         try
         {
-            servers = new ArrayList<>( EmailServerUtil.makeEmailServersMap( pwmApplication.getConfig() ) );
+            servers = new ArrayList<>( EmailServerUtil.makeEmailServersMap( this.getPwmApplication().getConfig() ) );
         }
         catch ( final PwmUnrecoverableException e )
         {
-            startupError = e.getErrorInformation();
+            setStartupError( e.getErrorInformation() );
             LOGGER.error( () -> "unable to startup email service: " + e.getMessage() );
-            status = STATUS.CLOSED;
-            return;
+            return STATUS.CLOSED;
         }
 
         if ( servers.isEmpty() )
         {
-            status = STATUS.CLOSED;
             LOGGER.debug( () -> "no email servers configured, will remain closed" );
-            return;
+            return STATUS.CLOSED;
         }
 
-        if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
+        if ( this.getPwmApplication().getLocalDB() == null || this.getPwmApplication().getLocalDB().status() != LocalDB.Status.OPEN )
         {
             LOGGER.debug( () -> "localDB is not open, EmailService will remain closed" );
-            status = STATUS.CLOSED;
-            return;
+            return STATUS.CLOSED;
+
         }
 
         LOGGER.debug( () -> "starting with settings: " + JsonUtil.serialize( emailServiceSettings ) );
@@ -124,21 +125,22 @@ public class EmailService implements PwmService
                 .retryInterval( emailServiceSettings.getQueueRetryTimeout() )
                 .preThreads( emailServiceSettings.getMaxThreads() )
                 .build();
-        final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.EMAIL_QUEUE );
+        final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(
+                this.getPwmApplication(), this.getPwmApplication().getLocalDB(), LocalDB.DB.EMAIL_QUEUE );
 
-        workQueueProcessor = new WorkQueueProcessor<>( pwmApplication, localDBStoredQueue, settings, new EmailItemProcessor(), this.getClass() );
+        workQueueProcessor = new WorkQueueProcessor<>( this.getPwmApplication(), localDBStoredQueue, settings, new EmailItemProcessor(), this.getClass() );
 
         connectionPool = new EmailConnectionPool( servers, emailServiceSettings );
 
-        status = STATUS.OPEN;
-
         statsLogger.conditionallyExecuteTask();
+
+        return STATUS.OPEN;
     }
 
     @Override
     public void close( )
     {
-        status = STATUS.CLOSED;
+        setStatus( STATUS.CLOSED );
         if ( workQueueProcessor != null )
         {
             workQueueProcessor.close();
@@ -152,27 +154,31 @@ public class EmailService implements PwmService
     }
 
     @Override
-    public STATUS status( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
-        return status;
-    }
-
-    @Override
-    public List<HealthRecord> healthCheck( )
-    {
-        if ( startupError != null )
+        if ( getStartupError() != null )
         {
-            return Collections.singletonList( HealthRecord.forMessage( HealthMessage.ServiceClosed, this.getClass().getSimpleName(), startupError.toDebugStr() ) );
+            return Collections.singletonList( HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.ServiceClosed,
+                    this.getClass().getSimpleName(),
+                    getStartupError().toDebugStr() ) );
         }
 
-        if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
+        if ( getPwmApplication().getLocalDB() == null || getPwmApplication().getLocalDB().status() != LocalDB.Status.OPEN )
         {
-            return Collections.singletonList( HealthRecord.forMessage( HealthMessage.ServiceClosed_LocalDBUnavail, this.getClass().getSimpleName() ) );
+            return Collections.singletonList( HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.ServiceClosed_LocalDBUnavail,
+                    this.getClass().getSimpleName() ) );
         }
 
-        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
+        if ( getPwmApplication().getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
-            return Collections.singletonList( HealthRecord.forMessage( HealthMessage.ServiceClosed_AppReadOnly, this.getClass().getSimpleName() ) );
+            return Collections.singletonList( HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.ServiceClosed_AppReadOnly,
+                    this.getClass().getSimpleName() ) );
         }
 
         final List<HealthRecord> records = new ArrayList<>( );
@@ -180,7 +186,10 @@ public class EmailService implements PwmService
             final ErrorInformation lastError = lastSendError.get();
             if ( lastError != null )
             {
-                records.add( HealthRecord.forMessage( HealthMessage.Email_SendFailure, lastError.toDebugStr() ) );
+                records.add( HealthRecord.forMessage(
+                        DomainID.systemId(),
+                        HealthMessage.Email_SendFailure,
+                        lastError.toDebugStr() ) );
 
             }
         }
@@ -264,7 +273,7 @@ public class EmailService implements PwmService
                 }
                 {
                     final String name = "averageSendTime[" + emailServer.getId() + "]";
-                    final TimeDuration value =  TimeDuration.of( ( long ) emailServer.getAverageSendTime().getAverage(), TimeDuration.Unit.MILLISECONDS );
+                    final TimeDuration value = emailServer.getAverageSendTime().getAverageAsDuration();
                     stats.put( name, value.asCompactString() );
 
                 }
@@ -358,7 +367,11 @@ public class EmailService implements PwmService
             return;
         }
 
-        checkIfServiceIsOpen();
+        if ( status() != STATUS.OPEN )
+        {
+            LOGGER.trace( () -> "email service is closed, discarding email job: " + emailItem.toDebugString() );
+            return;
+        }
 
         submitLock.lock();
         try
@@ -413,18 +426,10 @@ public class EmailService implements PwmService
         statsLogger.conditionallyExecuteTask();
     }
 
-    private void checkIfServiceIsOpen()
-            throws PwmUnrecoverableException
-    {
-        if ( !STATUS.OPEN.equals( status ) )
-        {
-            throw new PwmUnrecoverableException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "email service is closed and will not accent new jobs" );
-        }
-    }
 
     public static void sendEmailSynchronous(
             final EmailServer emailServer,
-            final Configuration configuration,
+            final AppConfig domainConfig,
             final EmailItemBean emailItem,
             final MacroRequest macroRequest
     )
@@ -442,7 +447,7 @@ public class EmailService implements PwmService
             final Transport transport = EmailServerUtil.makeSmtpTransport( emailServer );
             final List<Message> messages = EmailServerUtil.convertEmailItemToMessages(
                     workingItemBean,
-                    configuration,
+                    domainConfig,
                     emailServer
             );
 
@@ -473,13 +478,13 @@ public class EmailService implements PwmService
             if ( EmailServerUtil.examineSendFailure( e, emailServiceSettings.getRetryableStatusResponses() ) )
             {
                 LOGGER.error( () -> "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", will retry" );
-                StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_FAILURES );
+                StatisticsClient.incrementStat( getPwmApplication(), Statistic.EMAIL_SEND_FAILURES );
                 return WorkQueueProcessor.ProcessResult.RETRY;
             }
             else
             {
                 LOGGER.error( () -> "error sending email (" + e.getMessage() + ") " + emailItemBean.toDebugString() + ", permanent failure, discarding message" );
-                StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_DISCARDS );
+                StatisticsClient.incrementStat( getPwmApplication(), Statistic.EMAIL_SEND_DISCARDS );
                 return WorkQueueProcessor.ProcessResult.FAILED;
             }
         }
@@ -498,7 +503,7 @@ public class EmailService implements PwmService
 
             final List<Message> messages = EmailServerUtil.convertEmailItemToMessages(
                     emailItemBean,
-                    this.pwmApplication.getConfig(),
+                    this.getPwmApplication().getConfig(),
                     emailConnection.getEmailServer()
             );
 
@@ -515,7 +520,7 @@ public class EmailService implements PwmService
             lastSendError.set( null );
 
             LOGGER.debug( () -> "sent email: " + emailItemBean.toDebugString(), () -> sendTime );
-            StatisticsManager.incrementStat( pwmApplication, Statistic.EMAIL_SEND_SUCCESSES );
+            StatisticsClient.incrementStat( getPwmApplication(), Statistic.EMAIL_SEND_SUCCESSES );
         }
         catch ( final MessagingException | PwmException e )
         {

@@ -64,7 +64,7 @@ public class PwmSettingCategoryTest
             if ( category.hasProfiles() )
             {
                 final PwmSetting pwmSetting = category.getProfileSetting().orElseThrow( IllegalStateException::new );
-                Assert.assertEquals( pwmSetting.getSyntax(), PwmSettingSyntax.PROFILE );
+                Assert.assertEquals( PwmSettingSyntax.PROFILE, pwmSetting.getSyntax() );
             }
         }
     }

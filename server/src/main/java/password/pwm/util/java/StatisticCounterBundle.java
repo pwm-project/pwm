@@ -38,6 +38,7 @@ public class StatisticCounterBundle<K extends Enum<K>>
     {
         this.keyType = keyType;
         statMap = new EnumMap<>( keyType );
+        Arrays.stream( keyType.getEnumConstants() ).forEach( k -> statMap.put( k, JavaHelper.newAbsLongAccumulator() ) );
     }
 
     public void increment( final K stat )
@@ -47,7 +48,7 @@ public class StatisticCounterBundle<K extends Enum<K>>
 
     public void increment( final K stat, final long amount )
     {
-        statMap.computeIfAbsent( stat, k -> makeLongAccumulator() ).accumulate( amount );
+        statMap.get( stat ).accumulate( amount );
     }
 
     public long get( final K stat )
@@ -68,10 +69,5 @@ public class StatisticCounterBundle<K extends Enum<K>>
     public String debugString()
     {
         return StringHelper.stringMapToString( debugStats(), null );
-    }
-
-    private static LongAccumulator makeLongAccumulator()
-    {
-        return new LongAccumulator( Long::sum, 0L );
     }
 }

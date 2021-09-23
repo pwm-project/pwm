@@ -20,8 +20,11 @@
 
 package password.pwm.svc.event;
 
+import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
@@ -30,10 +33,12 @@ import password.pwm.http.PwmSession;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.svc.userhistory.LdapXmlUserHistory;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
+import password.pwm.util.secure.PwmRandom;
 
 import java.time.Instant;
 import java.util.Map;
@@ -42,31 +47,57 @@ public class AuditRecordFactory
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( AuditRecordFactory.class );
 
+    private final SessionLabel sessionLabel;
+    private final DomainID domainID;
     private final PwmApplication pwmApplication;
     private final MacroRequest macroRequest;
 
-    public AuditRecordFactory( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    private AuditRecordFactory(
+            final SessionLabel sessionLabel,
+            final DomainID domainID,
+            final PwmApplication pwmApplication,
+            final MacroRequest macroRequest )
     {
-        this.pwmApplication = pwmApplication;
-        this.macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, null );
-    }
-
-    public AuditRecordFactory( final PwmApplication pwmApplication, final MacroRequest macroRequest )
-    {
+        this.sessionLabel = sessionLabel;
+        this.domainID = domainID;
         this.pwmApplication = pwmApplication;
         this.macroRequest = macroRequest;
     }
 
-    public AuditRecordFactory( final PwmApplication pwmApplication, final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    public static AuditRecordFactory make( final SessionLabel sessionLabel, final PwmDomain pwmDomain ) throws PwmUnrecoverableException
     {
-        this.pwmApplication = pwmApplication;
-        this.macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+        return new AuditRecordFactory(
+                sessionLabel,
+                pwmDomain.getDomainID(),
+                pwmDomain.getPwmApplication(),
+                MacroRequest.forNonUserSpecific( pwmDomain.getPwmApplication(), sessionLabel ) );
     }
 
-    public AuditRecordFactory( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    public static AuditRecordFactory make( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        this.pwmApplication = pwmRequest.getPwmApplication();
-        this.macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+        return new AuditRecordFactory(
+                pwmRequest.getLabel(),
+                pwmRequest.getDomainID(),
+                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmSession().getSessionManager().getMacroMachine( ) );
+    }
+
+    public static AuditRecordFactory make( final SessionLabel sessionLabel, final PwmDomain pwmDomain, final MacroRequest macroRequest )
+    {
+        return new AuditRecordFactory(
+                sessionLabel,
+                pwmDomain.getDomainID(),
+                pwmDomain.getPwmApplication(),
+                macroRequest );
+    }
+
+    public static AuditRecordFactory make( final SessionLabel sessionLabel, final PwmApplication pwmApplication )
+    {
+        return new AuditRecordFactory(
+                sessionLabel,
+                DomainID.systemId(),
+                pwmApplication,
+                MacroRequest.forNonUserSpecific( pwmApplication, sessionLabel ) );
     }
 
     public HelpdeskAuditRecord createHelpdeskAuditRecord(
@@ -78,13 +109,12 @@ public class AuditRecordFactory
             final String sourceHost
     )
     {
-
-        final AuditUserDefinition targetAuditUserDefintition = userIdentityToUserDefinition( target );
+        final AuditUserDefinition perAuditUserDefinition = userIdentityToUserDefinition( target );
         return createHelpdeskAuditRecord(
                 eventCode,
                 perpetrator,
                 message,
-                targetAuditUserDefintition,
+                perAuditUserDefinition,
                 sourceAddress,
                 sourceHost
         );
@@ -99,23 +129,32 @@ public class AuditRecordFactory
             final String sourceHost
     )
     {
-        final AuditUserDefinition perpAuditUserDefintition = userIdentityToUserDefinition( perpetrator );
+        final AuditUserDefinition perAuditUserDefinition = userIdentityToUserDefinition( perpetrator );
 
-        final HelpdeskAuditRecord record = new HelpdeskAuditRecord(
-                Instant.now(),
-                eventCode,
-                perpAuditUserDefintition.getUserID(),
-                perpAuditUserDefintition.getUserDN(),
-                perpAuditUserDefintition.getLdapProfile(),
-                message,
-                target.getUserID(),
-                target.getUserDN(),
-                target.getLdapProfile(),
-                sourceAddress,
-                sourceHost
-        );
-        record.narrative = makeNarrativeString( record );
-        return record;
+        final AuditRecordData record = baseRecord().toBuilder()
+                .type( AuditEventType.HELPDESK )
+                .eventCode( eventCode )
+                .perpetratorID( perAuditUserDefinition.getUserID() )
+                .perpetratorDN( perAuditUserDefinition.getUserDN() )
+                .perpetratorLdapProfile( perAuditUserDefinition.getLdapProfile() )
+                .message( message )
+                .targetID( target.getUserID() )
+                .targetDN( target.getUserDN() )
+                .targetLdapProfile( target.getLdapProfile() )
+                .sourceAddress( sourceAddress )
+                .sourceHost( sourceHost )
+                .domain( this.domainID )
+                .build();
+
+        return record.toBuilder().narrative( makeNarrativeString( record ) ).build();
+    }
+
+    private static AuditRecordData baseRecord()
+    {
+        return AuditRecordData.builder()
+                .timestamp( Instant.now() )
+                .guid( PwmRandom.getInstance().randomUUID().toString() )
+                .build();
     }
 
     public UserAuditRecord createUserAuditRecord(
@@ -126,20 +165,21 @@ public class AuditRecordFactory
             final String sourceHost
     )
     {
-        final AuditUserDefinition perpAuditUserDefintition = userIdentityToUserDefinition( perpetrator );
+        final AuditUserDefinition perAuditUserDefinition = userIdentityToUserDefinition( perpetrator );
 
-        final UserAuditRecord record = new UserAuditRecord(
-                Instant.now(),
-                eventCode,
-                perpAuditUserDefintition.getUserID(),
-                perpAuditUserDefintition.getUserDN(),
-                perpAuditUserDefintition.getLdapProfile(),
-                message,
-                sourceAddress,
-                sourceHost
-        );
-        record.narrative = this.makeNarrativeString( record );
-        return record;
+        final AuditRecordData record = baseRecord().toBuilder()
+                .type( AuditEventType.USER )
+                .eventCode( eventCode )
+                .perpetratorID( perAuditUserDefinition.getUserID() )
+                .perpetratorDN( perAuditUserDefinition.getUserDN() )
+                .perpetratorLdapProfile( perAuditUserDefinition.getLdapProfile() )
+                .message( message )
+                .sourceAddress( sourceAddress )
+                .sourceHost( sourceHost )
+                .domain( this.domainID )
+                .build();
+
+        return record.toBuilder().narrative( makeNarrativeString( record ) ).build();
     }
 
     public SystemAuditRecord createSystemAuditRecord(
@@ -147,9 +187,15 @@ public class AuditRecordFactory
             final String message
     )
     {
-        final SystemAuditRecord record = new SystemAuditRecord( eventCode, message, pwmApplication.getInstanceID() );
-        record.narrative = this.makeNarrativeString( record );
-        return record;
+        final AuditRecordData record = baseRecord().toBuilder()
+                .type( AuditEventType.SYSTEM )
+                .eventCode( eventCode )
+                .message( message )
+                .instance( this.pwmApplication.getInstanceID() )
+                .domain( DomainID.systemId() )
+                .build();
+
+        return record.toBuilder().narrative( makeNarrativeString( record ) ).build();
     }
 
     public UserAuditRecord createUserAuditRecord(
@@ -164,6 +210,24 @@ public class AuditRecordFactory
                 sessionLabel,
                 null
         );
+    }
+
+    public UserAuditRecord fromStoredRecord( final LdapXmlUserHistory.StoredEvent storedEvent, final UserInfo userInfoBean )
+    {
+        final AuditUserDefinition perAuditUserDefinition = userIdentityToUserDefinition( userInfoBean.getUserIdentity() );
+
+        return AuditRecordData.builder()
+                .timestamp( Instant.ofEpochMilli( storedEvent.getTimestamp() ) )
+                .eventCode( storedEvent.getAuditEvent() )
+                .type( AuditEventType.USER )
+                .perpetratorID( perAuditUserDefinition.getUserID() )
+                .perpetratorDN( perAuditUserDefinition.getUserDN() )
+                .perpetratorLdapProfile( perAuditUserDefinition.getLdapProfile() )
+                .message( storedEvent.getMessage() )
+                .sourceAddress( storedEvent.getSourceAddress() )
+                .sourceHost( storedEvent.getSourceHost() )
+                .domain( this.domainID )
+                .build();
     }
 
     public UserAuditRecord createUserAuditRecord(
@@ -235,7 +299,7 @@ public class AuditRecordFactory
             {
                 final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
                         pwmApplication,
-                        SessionLabel.SYSTEM_LABEL,
+                        sessionLabel,
                         userIdentity, PwmConstants.DEFAULT_LOCALE
                 );
                 userID = userInfo.getUsername();
@@ -249,32 +313,14 @@ public class AuditRecordFactory
         return new AuditUserDefinition( userID, userDN, ldapProfile );
     }
 
+    @Value
     public static class AuditUserDefinition
     {
         private final String userID;
         private final String userDN;
         private final String ldapProfile;
-
-        public AuditUserDefinition( final String userID, final String userDN, final String ldapProfile )
-        {
-            this.userID = userID;
-            this.userDN = userDN;
-            this.ldapProfile = ldapProfile;
-        }
-
-        public String getUserID( )
-        {
-            return userID;
-        }
-
-        public String getUserDN( )
-        {
-            return userDN;
-        }
-
-        public String getLdapProfile( )
-        {
-            return ldapProfile;
-        }
     }
 }
+
+
+

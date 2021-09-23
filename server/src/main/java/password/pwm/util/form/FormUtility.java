@@ -26,11 +26,11 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.value.data.FormConfiguration;
@@ -226,7 +226,8 @@ public class FormUtility
 
     @SuppressWarnings( "checkstyle:MethodLength" )
     public static void validateFormValueUniqueness(
-            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final PwmDomain pwmDomain,
             final Map<FormConfiguration, String> formValues,
             final Locale locale,
             final Collection<UserIdentity> excludeDN,
@@ -250,7 +251,7 @@ public class FormUtility
                 if ( ( !itemIsHidden && !itemIsReadOnly ) || checkReadOnlyAndHidden )
                 {
                     final String value = formValues.get( formItem );
-                    if ( !StringUtil.isEmpty( value ) )
+                    if ( StringUtil.notEmpty( value ) )
                     {
                         filterClauses.put( formItem.getName(), value );
                         labelMap.put( formItem.getName(), formItem.getLabel( locale ) );
@@ -272,7 +273,7 @@ public class FormUtility
 
             // object classes;
             filter.append( "(|" );
-            for ( final String objectClass : pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES ) )
+            for ( final String objectClass : pwmDomain.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES ) )
             {
                 filter.append( "(objectClass=" ).append( objectClass ).append( ")" );
             }
@@ -291,7 +292,7 @@ public class FormUtility
             filter.append( ")" );
         }
 
-        final CacheService cacheService = pwmApplication.getCacheService();
+        final CacheService cacheService = pwmDomain.getCacheService();
         final CacheKey cacheKey = CacheKey.newKey(
                 Validator.class, null, "attr_unique_check_" + filter.toString()
         );
@@ -320,12 +321,12 @@ public class FormUtility
                 .build();
 
         final int resultSearchSizeLimit = 1 + ( excludeDN == null ? 0 : excludeDN.size() );
-        final long cacheLifetimeMS = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.CACHE_FORM_UNIQUE_VALUE_LIFETIME_MS ) );
+        final long cacheLifetimeMS = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.CACHE_FORM_UNIQUE_VALUE_LIFETIME_MS ) );
         final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpirationMS( cacheLifetimeMS );
 
         try
         {
-            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
             final Map<UserIdentity, Map<String, String>> results = new LinkedHashMap<>( userSearchEngine.performMultiUserSearch(
                     searchConfiguration,
                     resultSearchSizeLimit,
@@ -348,7 +349,7 @@ public class FormUtility
                 {
                     // since only one value searched, it must be that one value
                     final String attributeName = labelMap.values().iterator().next();
-                    LOGGER.trace( () -> "found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity );
+                    LOGGER.trace( sessionLabel, () -> "found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity );
                     final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
                             {
                                     attributeName,
@@ -365,19 +366,19 @@ public class FormUtility
                     final boolean compareResult;
                     try
                     {
-                        final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
+                        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
                         compareResult = theUser.compareStringAttribute( name, value );
                     }
                     catch ( final ChaiOperationException | ChaiUnavailableException e )
                     {
-                        final PwmError error = PwmError.forChaiError( e.getErrorCode() );
+                        final PwmError error = PwmError.forChaiError( e.getErrorCode() ).orElse( PwmError.ERROR_INTERNAL );
                         throw new PwmUnrecoverableException( error.toInfo() );
                     }
 
                     if ( compareResult )
                     {
                         final String label = labelMap.get( name );
-                        LOGGER.trace( () ->  "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
+                        LOGGER.trace( sessionLabel, () ->  "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
                         final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
                                 {
                                         label,
@@ -413,13 +414,13 @@ public class FormUtility
      *
      * @param formValues - a Map containing String keys of parameter names and ParamConfigs as values
      * @param locale used for error messages
-     * @param configuration current application configuration
+     * @param domainConfig current application configuration
      *
      * @throws password.pwm.error.PwmDataValidationException - If there is a problem with any of the fields
      * @throws password.pwm.error.PwmUnrecoverableException  if an unexpected error occurs
      */
     public static void validateFormValues(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final Map<FormConfiguration, String> formValues,
             final Locale locale
     )
@@ -429,11 +430,11 @@ public class FormUtility
         {
             final FormConfiguration formItem = entry.getKey();
             final String value = entry.getValue();
-            formItem.checkValue( configuration, value, locale );
+            formItem.checkValue( domainConfig, value, locale );
         }
     }
 
-    public static String ldapSearchFilterForForm( final PwmApplication pwmApplication, final Collection<FormConfiguration> formElements )
+    public static String ldapSearchFilterForForm( final PwmDomain pwmDomain, final Collection<FormConfiguration> formElements )
             throws PwmUnrecoverableException
     {
         if ( formElements == null || formElements.isEmpty() )
@@ -451,7 +452,7 @@ public class FormUtility
         final StringBuilder sb = new StringBuilder();
         sb.append( "(&" );
 
-        final List<String> objectClasses = pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
+        final List<String> objectClasses = pwmDomain.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
         if ( objectClasses != null && !objectClasses.isEmpty() )
         {
             if ( objectClasses.size() == 1 )
@@ -562,15 +563,15 @@ public class FormUtility
             PwmError error = null;
             if ( e instanceof ChaiException )
             {
-                error = PwmError.forChaiError( ( ( ChaiException ) e ).getErrorCode() );
+                error = PwmError.forChaiError( ( ( ChaiException ) e ).getErrorCode() ).orElse( PwmError.ERROR_INTERNAL );
             }
-            if ( error == null || error == PwmError.ERROR_INTERNAL )
+            if ( error == PwmError.ERROR_INTERNAL )
             {
                 error = PwmError.ERROR_LDAP_DATA_ERROR;
             }
 
             final ErrorInformation errorInformation = new ErrorInformation( error, "error reading current profile values: " + e.getMessage() );
-            LOGGER.error( sessionLabel, () -> errorInformation.getDetailedErrorMsg() );
+            LOGGER.error( sessionLabel, errorInformation::getDetailedErrorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
 
@@ -620,7 +621,7 @@ public class FormUtility
         for ( final Map.Entry<PwmSetting, TokenDestinationItem.Type> entry : settingTypeMap.entrySet() )
         {
             final String attrName = ldapProfile.readSettingAsString( entry.getKey() );
-            if ( !StringUtil.isEmpty( attrName ) )
+            if ( StringUtil.notEmpty( attrName ) )
             {
                 for ( final FormConfiguration formConfiguration : formConfigurations )
                 {

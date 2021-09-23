@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 
 class RealFileResource implements FileResource
 {
@@ -47,15 +48,9 @@ class RealFileResource implements FileResource
     }
 
     @Override
-    public long lastModified( )
+    public Instant lastModified( )
     {
-        return realFile.lastModified();
-    }
-
-    @Override
-    public boolean exists( )
-    {
-        return realFile.exists();
+        return Instant.ofEpochMilli( realFile.lastModified() );
     }
 
     @Override

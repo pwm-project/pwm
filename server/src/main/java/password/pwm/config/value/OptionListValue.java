@@ -79,13 +79,9 @@ public class OptionListValue extends AbstractValue implements StoredValue
                 final Set<String> values = new TreeSet<>();
                 for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final String value = loopValueElement.getText();
-                    if ( value != null && !value.trim().isEmpty() )
-                    {
-                        values.add( value );
-                    }
+                    loopValueElement.getText().ifPresent( value -> values.add( value.trim() ) );
                 }
-                return new OptionListValue( values );
+                return new OptionListValue( Collections.unmodifiableSet( values ) );
             }
         };
     }

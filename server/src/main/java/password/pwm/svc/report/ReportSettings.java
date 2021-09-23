@@ -23,7 +23,9 @@ package password.pwm.svc.report;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.bean.DomainID;
+import password.pwm.config.AppConfig;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
@@ -37,6 +39,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @Value
 @Builder
@@ -50,7 +55,8 @@ class ReportSettings implements Serializable
     private TimeDuration maxCacheAge = TimeDuration.of( 10, TimeDuration.Unit.DAYS );
 
     @Builder.Default
-    private List<UserPermission> searchFilter = Collections.emptyList();
+    // sorted so json output -> hash is consistent.
+    private SortedMap<DomainID, List<UserPermission>> searchFilter = Collections.emptySortedMap();
 
     @Builder.Default
     private int jobOffsetSeconds = 0;
@@ -77,23 +83,20 @@ class ReportSettings implements Serializable
         HIGH,
     }
 
-    static ReportSettings readSettingsFromConfig( final Configuration config )
+    static ReportSettings readSettingsFromConfig( final AppConfig config )
     {
+        final SortedMap<DomainID, List<UserPermission>> searchFilters = Collections.unmodifiableSortedMap( new TreeMap<>( config.getDomainConfigs().values().stream()
+                .collect( Collectors.toMap(
+                        DomainConfig::getDomainID,
+                        domainConfig -> domainConfig.readSettingAsUserPermission( PwmSetting.REPORTING_USER_MATCH ) ) ) ) );
+
         final ReportSettings.ReportSettingsBuilder builder = ReportSettings.builder();
         builder.maxCacheAge( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.REPORTING_MAX_REPORT_AGE_SECONDS ) ), TimeDuration.Unit.SECONDS ) );
-        builder.searchFilter( config.readSettingAsUserPermission( PwmSetting.REPORTING_USER_MATCH ) );
+        builder.searchFilter( searchFilters );
         builder.maxSearchSize ( ( int ) config.readSettingAsLong( PwmSetting.REPORTING_MAX_QUERY_SIZE ) );
         builder.dailyJobEnabled( config.readSettingAsBoolean( PwmSetting.REPORTING_ENABLE_DAILY_JOB ) );
         builder.searchTimeout( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT_MS ) ), TimeDuration.Unit.MILLISECONDS ) );
 
-        {
-            final List<UserPermission> userMatches = config.readSettingAsUserPermission( PwmSetting.REPORTING_USER_MATCH );
-            builder.searchFilter(
-                    userMatches == null || userMatches.isEmpty()
-                            ? null
-                            : userMatches
-            );
-        }
 
         {
             int reportJobOffset = ( int ) config.readSettingAsLong( PwmSetting.REPORTING_JOB_TIME_OFFSET );
@@ -114,12 +117,12 @@ class ReportSettings implements Serializable
         return builder.build();
     }
 
-    private static List<Integer> parseDayIntervalStr( final Configuration configuration )
+    private static List<Integer> parseDayIntervalStr( final AppConfig domainConfig )
     {
         final List<String> configuredValues = new ArrayList<>();
-        if ( configuration != null )
+        if ( domainConfig != null )
         {
-            configuredValues.addAll( configuration.readSettingAsStringArray( PwmSetting.REPORTING_SUMMARY_DAY_VALUES ) );
+            configuredValues.addAll( domainConfig.readSettingAsStringArray( PwmSetting.REPORTING_SUMMARY_DAY_VALUES ) );
         }
         if ( configuredValues.isEmpty() )
         {

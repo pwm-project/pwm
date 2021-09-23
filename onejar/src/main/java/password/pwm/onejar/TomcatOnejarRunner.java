@@ -73,6 +73,7 @@ public class TomcatOnejarRunner
         }
         catch ( final Exception e )
         {
+            e.printStackTrace();
             if ( e instanceof InvocationTargetException )
             {
                 throw new OnejarException( "error generating keystore: " + e.getCause().getMessage() );

@@ -24,6 +24,9 @@ import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
 import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
@@ -35,7 +38,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * An interface for daemon/background services.  Services are initialized, shutdown and accessed via {@link PwmApplication}.  Some services
+ * An interface for daemon/background services.  Services are initialized, shutdown and accessed via {@link PwmDomain}.  Some services
  * will have associated background threads, so implementations will generally be thread safe.
  */
 public interface PwmService
@@ -48,13 +51,17 @@ public interface PwmService
 
     STATUS status( );
 
-    void init( PwmApplication pwmApplication ) throws PwmException;
+    void init( PwmApplication pwmApplication, DomainID domainID ) throws PwmException;
 
     void close( );
 
     List<HealthRecord> healthCheck( );
 
     ServiceInfoBean serviceInfo( );
+
+    DomainID getDomainID();
+
+    SessionLabel getSessionLabel();
 
     interface ServiceInfo
     {

@@ -55,6 +55,30 @@
             <property key="ModificationWarning">Changing this setting will change default values throughout the configuration.  Are you sure you wish to modify this setting?</property>
         </properties>
     </setting>
+    <setting hidden="false" key="domain.list" required="true" level="0">
+        <regex>^([a-z][a-z0-9]{2,10})$</regex>
+        <properties>
+            <property key="Minimum">1</property>
+            <property key="Maximum">100</property>
+        </properties>
+        <flag>Sorted</flag>
+        <flag>ReloadEditorOnModify</flag>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="domain.system.adminDomain" level="0">
+        <flag>MultiDomain</flag>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
+    <setting hidden="false" key="domain.system.domainPaths" level="0">
+        <flag>MultiDomain</flag>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting hidden="false" key="notes.noteText" level="0">
         <flag>NoDefault</flag>
         <default/>
@@ -100,6 +124,14 @@
             <option value="/private/">/private</option>
             <option value="/public/">/public</option>
         </options>
+    </setting>
+    <setting hidden="false" key="domain.hosts" level="1">
+        <flag>MultiDomain</flag>
+        <properties>
+            <property key="Minimum">0</property>
+            <property key="Maximum">100</property>
+        </properties>
+        <default/>
     </setting>
     <setting hidden="false" key="idleTimeoutSeconds" level="1" required="true">
         <properties>
@@ -494,7 +526,7 @@
     <setting hidden="false" key="changePassword.writeAttributes" level="1">
         <default />
     </setting>
-    <setting hidden="true" key="ldap.profile.list" level="1" required="true">
+    <setting hidden="false" key="ldap.profile.list" level="1" required="true">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <default>
             <value>default</value>
@@ -769,6 +801,12 @@
     </setting>
     <setting hidden="false" key="email.smtp.userpassword" level="1">
     </setting>
+    <setting hidden="false" key="email.system.fromAddress" level="1">
+        <flag>emailSyntax</flag>
+        <default>
+            <value>noreply@example.org</value>
+        </default>
+    </setting>
     <setting hidden="false" key="email.default.fromAddress" level="1">
         <flag>emailSyntax</flag>
         <default>
@@ -1034,7 +1072,7 @@
         </options>
     </setting>
     <setting hidden="false" key="sms.defaultCountryCode" level="2">
-        <regex>^[0-9]{0,3}$</regex>
+        <regex>^[0-9\-,]{1,10}$</regex>
         <default>
             <value>1</value>
         </default>
@@ -1504,11 +1542,11 @@
     </setting>
     <setting hidden="false" key="captcha.recaptcha.mode" level="2">
         <default>
-            <value>V3</value>
+            <value>V2</value>
         </default>
         <options>
-            <option value="V3">reCaptcha Version 3</option>
-            <option value="V3_INVISIBLE">reCaptcha Version 3 - Invisible</option>
+            <option value="V2">reCaptcha Version 2</option>
+            <option value="V2_INVISIBLE">reCaptcha Version 2 - Invisible</option>
         </options>
     </setting>
     <setting hidden="false" key="security.formNonce.enable" level="2" required="true">
@@ -3094,13 +3132,6 @@
             <option value="photo">photo</option>
         </options>
     </setting>
-    <setting hidden="true" key="updateAttributes.check.queryMatch" level="3">
-        <flag>Deprecated</flag>
-        <ldapPermission actor="proxy" access="read"/>
-        <default>
-            <value />
-        </default>
-    </setting>
     <setting hidden="false" key="updateAttributes.showConfirmation" level="1" required="true">
         <default>
             <value>true</value>
@@ -3156,7 +3187,7 @@
             <value>false</value>
         </default>
     </setting>
-    <setting hidden="true" key="peopleSearch.profile.list" level="1">
+    <setting hidden="false" key="peopleSearch.profile.list" level="1">
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <default>
             <value>default</value>
@@ -3201,16 +3232,6 @@
         <ldapPermission actor="self_other" access="read"/>
         <default syntaxVersion="2">
             <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
-        </default>
-    </setting>
-    <setting hidden="true" key="peopleSearch.searchAttributes" level="1" required="false">
-        <flag>Deprecated</flag>
-        <ldapPermission actor="self_other" access="read"/>
-        <default>
-            <value>givenName</value>
-            <value>sn</value>
-            <value>title</value>
-            <value>mail</value>
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.search.form" level="1" required="true">
@@ -3301,13 +3322,6 @@
         <properties>
             <property key="Maximum">7</property>
         </properties>
-    </setting>
-    <setting hidden="true" key="peopleSearch.displayName.user" level="1" required="true">
-        <flag>Deprecated</flag>
-        <flag>MacroSupport</flag>
-        <default>
-            <value>@LDAP:givenName@ @LDAP:sn@ - @LDAP:title@</value>
-        </default>
     </setting>
     <setting hidden="false" key="peopleSearch.photo.ldapAttribute" level="2">
         <ldapPermission actor="self_other" access="read"/>
@@ -3694,12 +3708,7 @@
             <value>false</value>
         </default>
     </setting>
-    <setting hidden="true" key="helpdesk.displayName" level="2">
-        <flag>Deprecated</flag>
-        <default>
-            <value>@LDAP:givenName@ @LDAP:sn@ - @User:ID@ - @User:Email@</value>
-        </default>
-    </setting>
+
     <setting hidden="false" key="helpdesk.displayName.cardLabels" level="1">
         <flag>MacroSupport</flag>
         <default>
@@ -3891,12 +3900,7 @@
             <value/>
         </default>
     </setting>
-    <setting hidden="true" key="reporting.ldap.searchFilter" level="1">
-        <flag>Deprecated</flag>
-        <default>
-            <value />
-        </default>
-    </setting>
+
     <setting hidden="false" key="reporting.ldap.userMatch" level="1">
         <default syntaxVersion="2">
             <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
@@ -4107,6 +4111,42 @@
         <default/>
     </setting>
     <!-- BEGIN DEPRECATED SETTINGS -->
+    <setting hidden="true" key="peopleSearch.displayName.user" level="1" required="true">
+        <flag>Deprecated</flag>
+        <flag>MacroSupport</flag>
+        <default>
+            <value>@LDAP:givenName@ @LDAP:sn@ - @LDAP:title@</value>
+        </default>
+    </setting>
+    <setting hidden="true" key="helpdesk.displayName" level="2">
+        <flag>Deprecated</flag>
+        <default>
+            <value>@LDAP:givenName@ @LDAP:sn@ - @User:ID@ - @User:Email@</value>
+        </default>
+    </setting>
+    <setting hidden="true" key="reporting.ldap.searchFilter" level="1">
+        <flag>Deprecated</flag>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting hidden="true" key="updateAttributes.check.queryMatch" level="3">
+        <flag>Deprecated</flag>
+        <ldapPermission actor="proxy" access="read"/>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting hidden="true" key="peopleSearch.searchAttributes" level="1" required="false">
+        <flag>Deprecated</flag>
+        <ldapPermission actor="self_other" access="read"/>
+        <default>
+            <value>givenName</value>
+            <value>sn</value>
+            <value>title</value>
+            <value>mail</value>
+        </default>
+    </setting>
     <setting hidden="true" key="password.policy.ADComplexity" level="99" required="false">
         <flag>Deprecated</flag>
         <default>
@@ -4151,13 +4191,17 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="NOTES">
     </category>
+    <category hidden="false" scope="SYSTEM" key="DOMAINS">
+    </category>
     <category hidden="false" scope="DOMAIN" key="SETTINGS">
     </category>
     <category hidden="false" scope="DOMAIN" key="PROFILES">
     </category>
     <category hidden="false" scope="DOMAIN" key="MODULES">
     </category>
-    <category hidden="false" scope="DOMAIN" key="HTTPS_SERVER">
+    <category hidden="false" scope="SYSTEM" key="HTTP_CLIENT">
+    </category>
+    <category hidden="false" scope="SYSTEM" key="HTTPS_SERVER">
     </category>
     <category hidden="false" scope="DOMAIN" key="LDAP">
     </category>
@@ -4174,15 +4218,19 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="LDAP_SETTINGS">
     </category>
-    <category hidden="false" scope="DOMAIN" key="APPLICATION">
+    <category hidden="false" scope="SYSTEM" key="APPLICATION">
     </category>
-    <category hidden="false" scope="DOMAIN" key="GENERAL">
+    <category hidden="false" scope="DOMAIN" key="DOMAIN">
     </category>
-    <category hidden="false" scope="DOMAIN" key="LOCALIZATION">
+    <category hidden="false" scope="DOMAIN" key="SYSTEM">
     </category>
-    <category hidden="false" scope="DOMAIN" key="TELEMETRY">
+    <category hidden="false" scope="DOMAIN" key="URL_SETTINGS">
     </category>
-    <category hidden="false" scope="DOMAIN" key="CLUSTERING">
+    <category hidden="false" scope="SYSTEM" key="LOCALIZATION">
+    </category>
+    <category hidden="false" scope="SYSTEM" key="TELEMETRY">
+    </category>
+    <category hidden="false" scope="SYSTEM" key="NODES">
     </category>
     <category hidden="false" scope="DOMAIN" key="USER_INTERFACE">
     </category>
@@ -4195,23 +4243,23 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="PASSWORD_GLOBAL">
     </category>
-    <category hidden="false" scope="DOMAIN" key="CHALLENGE">0
+    <category hidden="false" scope="DOMAIN" key="CHALLENGE">
     </category>
     <category hidden="false" scope="DOMAIN" key="CHALLENGE_POLICY">
         <profile setting="challenge.profile.list"/>
     </category>
-    <category hidden="false" scope="DOMAIN" key="EMAIL_SERVERS">
+    <category hidden="false" scope="SYSTEM" key="EMAIL_SERVERS">
         <profile setting="email.profile.list"/>
     </category>
     <category hidden="false" scope="DOMAIN" key="EMAIL">
     </category>
-    <category hidden="false" scope="DOMAIN" key="EMAIL_SETTINGS">
+    <category hidden="false" scope="SYSTEM" key="EMAIL_SETTINGS">
     </category>
     <category hidden="false" scope="DOMAIN" key="EMAIL_TEMPLATES">
     </category>
     <category hidden="false" scope="DOMAIN" key="SMS">
     </category>
-    <category hidden="false" scope="DOMAIN" key="SMS_GATEWAY">
+    <category hidden="false" scope="SYSTEM" key="SMS_GATEWAY">
     </category>
     <category hidden="false" scope="DOMAIN" key="SMS_MESSAGES">
     </category>
@@ -4219,13 +4267,15 @@
     </category>
     <category hidden="false" scope="SYSTEM" key="WORDLISTS">
     </category>
-    <category hidden="false" scope="DOMAIN" key="APP_SECURITY">
+    <category hidden="false" scope="SYSTEM" key="APP_SECURITY">
     </category>
-    <category hidden="false" scope="DOMAIN" key="WEB_SECURITY">
+    <category hidden="false" scope="SYSTEM" key="WEB_SECURITY">
     </category>
     <category hidden="false" scope="DOMAIN" key="CAPTCHA">
     </category>
-    <category hidden="false" scope="DOMAIN" key="INTRUDER">
+    <category hidden="false" scope="SYSTEM" key="INTRUDER">
+    </category>
+    <category hidden="false" scope="SYSTEM" key="INTRUDER_SYSTEM_SETTINGS">
     </category>
     <category hidden="false" scope="DOMAIN" key="INTRUDER_SETTINGS">
     </category>
@@ -4240,15 +4290,15 @@
     <category hidden="false" scope="DOMAIN" key="OTP_PROFILE">
         <profile setting="otp.profile.list"/>
     </category>
-    <category hidden="false" scope="DOMAIN"  key="LOGGING">
+    <category hidden="false" scope="SYSTEM" key="LOGGING">
     </category>
-    <category hidden="false" scope="DOMAIN" key="AUDITING">
+    <category hidden="false" scope="SYSTEM" key="AUDITING">
     </category>
-    <category hidden="false" scope="DOMAIN" key="AUDIT_CONFIG">
+    <category hidden="false" scope="SYSTEM" key="AUDIT_CONFIG">
     </category>
     <category hidden="false" scope="DOMAIN" key="USER_HISTORY">
     </category>
-    <category hidden="false" scope="DOMAIN" key="AUDIT_FORWARD">
+    <category hidden="false" scope="SYSTEM" key="AUDIT_FORWARD">
     </category>
     <category hidden="false" scope="DOMAIN" key="EDIRECTORY">
     </category>
@@ -4260,13 +4310,13 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="ORACLE_DS">
     </category>
-    <category hidden="false" scope="DOMAIN" key="DATABASE">
+    <category hidden="false" scope="SYSTEM" key="DATABASE">
     </category>
-    <category hidden="false" scope="DOMAIN" key="DATABASE_SETTINGS">
+    <category hidden="false" scope="SYSTEM" key="DATABASE_SETTINGS">
     </category>
-    <category hidden="false" scope="DOMAIN" key="DATABASE_ADV">
+    <category hidden="false" scope="SYSTEM" key="DATABASE_ADV">
     </category>
-    <category hidden="false" scope="DOMAIN" key="REPORTING">
+    <category hidden="false" scope="SYSTEM" key="REPORTING">
     </category>
     <category hidden="false" scope="DOMAIN" key="PW_EXP_NOTIFY">
     </category>
@@ -4373,6 +4423,8 @@
     <category hidden="false" scope="DOMAIN" key="DELETE_ACCOUNT_PROFILE">
         <profile setting="deleteAccount.profile.list"/>
     </category>
-    <category hidden="true" scope="DOMAIN" key="INTERNAL">
+    <category hidden="true" scope="DOMAIN" key="INTERNAL_DOMAIN">
+    </category>
+    <category hidden="true" scope="SYSTEM" key="INTERNAL_SYSTEM">
     </category>
 </settings>

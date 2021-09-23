@@ -23,8 +23,8 @@ package password.pwm.svc.wordlist;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.AtomicLoopLongIncrementer;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.LongIncrementer;
 import password.pwm.util.java.StringUtil;
 
 import java.util.Collection;
@@ -52,7 +52,7 @@ public abstract class AbstractWordlistBucket implements WordlistBucket
 
     private Map<String, String> getWriteTxnForValue(
             final Collection<String> words,
-            final AtomicLoopLongIncrementer valueIncrementer
+            final LongIncrementer valueIncrementer
     )
     {
         switch ( type )
@@ -62,7 +62,7 @@ public abstract class AbstractWordlistBucket implements WordlistBucket
                 final Map<String, String> returnSet = new TreeMap<>();
                 for ( final String word : words )
                 {
-                    if ( !StringUtil.isEmpty( word ) )
+                    if ( StringUtil.notEmpty( word ) )
                     {
                         final long nextLong = valueIncrementer.next();
                         final String nextKey = seedlistLongToKey( nextLong );
@@ -77,7 +77,7 @@ public abstract class AbstractWordlistBucket implements WordlistBucket
                 final Map<String, String> returnSet = new TreeMap<>();
                 for ( final String word : words )
                 {
-                    if ( !StringUtil.isEmpty( word ) )
+                    if ( StringUtil.notEmpty( word ) )
                     {
                         valueIncrementer.next();
                         returnSet.put( word, "" );
@@ -98,7 +98,7 @@ public abstract class AbstractWordlistBucket implements WordlistBucket
             throws PwmUnrecoverableException
     {
         final WordlistStatus initialStatus = abstractWordlist.readWordlistStatus();
-        final AtomicLoopLongIncrementer valueIncrementer = AtomicLoopLongIncrementer.builder().initial( initialStatus.getValueCount() ).build();
+        final LongIncrementer valueIncrementer = new LongIncrementer( initialStatus.getValueCount() );
         this.putValues( getWriteTxnForValue( words, valueIncrementer ) );
 
         if ( initialStatus.getValueCount() != valueIncrementer.get() )

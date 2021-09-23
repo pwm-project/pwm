@@ -21,6 +21,7 @@
 package password.pwm.svc.node;
 
 import password.pwm.PwmApplication;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -32,7 +33,6 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -78,7 +78,7 @@ class NodeMachine
     public List<NodeInfo> nodes( ) throws PwmUnrecoverableException
     {
         final Map<String, NodeInfo> returnObj = new TreeMap<>();
-        final String configHash = pwmApplication.getConfig().configurationHash( pwmApplication.getSecureService() );
+        final String configHash = StoredConfigurationUtil.valueHash( pwmApplication.getConfig().getStoredConfiguration() );
         for ( final StoredNodeData storedNodeData : knownNodes.values() )
         {
             final boolean configMatch = configHash.equals( storedNodeData.getConfigHash() );
@@ -105,7 +105,7 @@ class NodeMachine
             returnObj.put( nodeInfo.getInstanceID(), nodeInfo );
         }
 
-        return Collections.unmodifiableList( new ArrayList<>( returnObj.values() ) );
+        return List.copyOf( returnObj.values() );
     }
 
 

@@ -1,20 +1,22 @@
 # PWM
 
-PWM is an open source password self service application for LDAP directories. PWM is an ideal candidate for organizations that wish to “roll their own” password self service solution, but do not wish to start from scratch. [Overview/Screenshots](https://docs.google.com/presentation/d/1LxDXV_iiToJXAzzT9mc1xXO0atVObmRpCame6qXOyxM/pub?slide=id.p8)
+PWM is an open source password self-service application for LDAP directories. PWM is an ideal candidate for organizations that wish to “roll their own” password self service solution, but do not wish to start from scratch. [Overview/Screenshots](https://docs.google.com/presentation/d/1LxDXV_iiToJXAzzT9mc1xXO0atVObmRpCame6qXOyxM/pub?slide=id.p8)
 
 Official project page is at [https://github.com/pwm-project/pwm/](https://github.com/pwm-project/pwm/).
 
 # Links
 * [PWM-General Google Group](https://groups.google.com/group/pwm-general) - please ask for assistance here first.
 * [PWM Documentation Wiki](https://github.com/pwm-project/pwm/wiki) - Home for PWM documentation
-* [Current Builds](https://www.pwm-project.org/artifacts/pwm/) - Current downloads built from recent github project commits
 * [PWM Reference](https://www.pwm-project.org/pwm/public/reference/) - Reference documentation built into PWM.
 
 # Features
-* Web based configuration manager with over 400 configurable settings
-* Configurable display values for every user-facing text string
-* Localized for Chinese (中文), Czech (ceština), Dutch (Nederlands), English, Finnish (suomi), French (français), German (Deutsch), Hebrew (עברית), Italian (italiano), Japanese (日本語), Korean (한국어), Polish (polski), Portuguese (português), Slovak (Slovenčina), Spanish (español), Thai (ไทย) and Turkish (Türkçe)
-* Polished, intuitive end-user interface with as-you-type password rule enforcement
+* Web based configuration manager with over 500 configurable settings
+  * Configurable display values for every user-facing text string
+  * Localized for Chinese (中文), Czech (ceština), Dutch (Nederlands), English, Finnish (suomi), French (français), German (Deutsch), Hebrew (עברית), Italian (italiano), Japanese (日本語), Korean (한국어), Polish (polski), Portuguese (português), Slovak (Slovenčina), Spanish (español), Thai (ไทย) and Turkish (Türkçe)
+* Change Password functionality
+  * Polished, intuitive end-user interface with as-you-type password rule enforcement
+  * Large set of configurable password polices to match any organizational requirements
+  * Read policies from LDAP directories (where supported by LDAP server)
 * Forgotten Password
   * Store Responses in local server, standard RDBMS database, LDAP server or Novell NMAS repositories
   * Use Forgotten Password, Email/SMS Token/PIN, TOTP, Remote REST service, User LDAP attribute values, or any combination
@@ -23,62 +25,143 @@ Official project page is at [https://github.com/pwm-project/pwm/](https://github
 * New User Registration / Account Creation
 * Guest User Registration / Updating
 * PeopleSearch (white pages)
+  * Configurable detail pages
+  * OrgChart view
 * Account Activation  / First time password assignment
+* All configuration contained in a single importable/exportable file
+* Support for multple domains/tenants  
 * Administration modules including intruder-lockout manager, and online log viewer, daily stats viewer and user information debugging
-* Easy to customize JSP HTML pages
 * Theme-able interface with several example CSS themes
 * Support for large dictionary wordlists to enforce strong passwords
 * Shared password history to prevent passwords from being reused organizationally
-* Automatic LDAP server fail-over to multiple ldap servers
-* Support for password replication checking and minimum time delays during password sets
-* Captcha support using reCaptcha
+* Captcha support using Google reCaptcha
 * Integration with CAS
 * Support for minimal, restricted and mobile browsers with no cookies, javascript or css
 * Specialized skins for iPhone/Mobile devices
 * Designed for integration with existing portals and web security gateways
-* Directory Support
+* OAuth Service Provider to allow single-signon from OAuth servers and using OAuth as a forgotten password verification method
+* REST Server APIs for most functionality  
+* Callout to REST servers for custom integrations of several functions    
+* LDAP Features
+  * Support for password replication checking and minimum time delays during password sets
+  * Automatic LDAP server fail-over to multiple ldap servers and retry during LDAP server failures
+* LDAP Directory Support
   * Generic LDAP
   * Directory 389
-  * NetIQ  eDirectory
+  * NetIQ eDirectory
     * Password Policies & Challenge Sets
     * NMAS Operations and Error handling
     * Support for NMAS user challenge/responses
   * Microsoft Active Directory
   * OpenLDAP
 
-[NetIQ Self Service Password Reset](https://www.microfocus.com/en-us/products/netiq-self-service-password-reset/overview) is a commercial, supported self service password reset product based on PWM.
+## Deploy
+PWM is distributed in the following artifacts:
 
-# Build Information
+| Artifact| Description |
+| --- | --- |
+| WAR | Standard Java WAR (Web Archive) application deployment model, you need to have a working java & tomcat configuration on your server. |
+| Executable | Command line executable Java JAR application, includes tomcat. |
+| Docker | Docker image includes Java and Tomcat. |
+
+For all artifacts, each PWM instance will need an _applicationPath_ directory defined on your local server for PWM's configuration,
+log, and runtime files.  Once PWM is configured, the initial web UI will prompt the administrator for LDAP and other configuration settings.  
+Alternatively, you can place the _PwmConfiguration.xml_ in the _applicationPath_ directory to create a fully configured instance.
+
+PWM is primarily developed tested and built using [AdoptOpenJDK](https://adoptopenjdk.net) Java, but any standard Java distribution should work.
+
+### WAR
+Requirements:
+* Java 11 JDK or better
+* Servlet Container v3.0 or better ( tested with Apache Tomcat v9.5.x )
+
+Steps:
+1) Get Apache tomcat working to the point you can access the tomcat landing page with your browser.  See tomcat documentation/help sites for 
+   assistance with installing and configuring tomcat.
+2) Set the _PWM_APPLICATIONPATH_ environment variable in your tomcat instance to a local location of your _applicationPath_ directory. See tomcat and/or your 
+   operating system documentation/help sites for assistance with configuring environment variables as the method for doing this depends on OS and deployment type.
+2) Place the pwm.war file in tomcat 'webapps' directory (rename from pwm-x.x.x.war with version naming)
+3) Access with /pwm url and configure
+
+### Executable
+The 'onejar' artifact released with PWM has an embedded tomcat instance, so you don't need to install tomcat to use this
+version.  You will be responsible for getting it to run as a service, and you won't be able to do any advanced tomcat
+configuration.
+
+Requirements:
+* Java 11 JDK or better
+
+Help:
+* `java -version` to ensure you have java 11 or better available
+* `java -jar pwm-onejar-2.0.0.jar` for command line help
+
+Example for running onejar executable (with /pwm-applicationPath being the location to your _applicationPath_ directory):
+```
+java -jar pwm-onejar-2.0.0.jar -applicationPath /pwm-applicationPath 
+```
+By default the executable will remain attached to the console and listen for HTTPS connections on port 8443.
+
+
+### Docker
+The PWM docker image includes Java and Tomcat.  It listens using https on port 8443, and has a volume exposed
+as `/config`.  You will need to map the `/config` volume to either a localhost or some type of persistent docker
+volume for PWM to work properly.
+
+Requirements:
+* Server running docker
+
+Steps:
+
+1. Load your docker image with image nae of default _pwm/pwm-webapp_:
+```
+docker load --input=pwm-docker-image-v2.0.0.tar
+```
+   
+1. Create docker image named _mypwm_, map to the server's 8443 port, and set the config volume to use the server's
+local file system _/home/user/pwm-config_ folder:
+```
+docker create --name mypwm pwm/pwm-webapp -p '8443:8443' -v '/config:/home/user/pwm-config
+```
+
+1. Start the _mypwm_ container:
+```
+docker start mypwm
+```
+
+## Build
 
 Build pre-requisites:
-* Java 1.11 JDK or newer
-* Maven 3.2 or newer
+* Java 11 JDK or better
+* Git
+* The build uses maven, but you do not need to install it; the maven wrapper in the source tree will download a local version.
 
-Build execution:
-* Set `JAVA_HOME` environment variable to JDK home  
-* Run `mvn clean package` in base directory
+Build steps:
+1. Set _JAVA_HOME_ environment variable to JDK home.
+1. Clone the git project 
+1. Change to pwm directory
+1. Run the maven build 
+   
+Linux example: 
+```
+export JAVA_HOME="/home/vm/JavaJDKDirectory"
+git clone https://github.com/pwm-project/pwm
+cd pwm
+./mvnw clean verify
+```  
+Windows example:
+```
+set JAVA_HOME="c:\JavaJDKDirectory" 
+git clone https://github.com/pwm-project/pwm
+cd pwm
+mvnw.cmd clean verify
+```
+On Windows we recommend using paths without spaces (including for the JDK directory).
 
-A WAR file suitable for deployment on Apache Tomcat is created in `webapp/target` directory.  Rename to `pwm.war` and copy into `tomcat/webapp` directory.
+Artifacts created:
 
-Alternatively, an executable JAR file is created in `onejar\target`.  This JAR file is self-contained single executable with embedded Apache Tomcat runtime. To execute use a command similar to:   
-
-`java -jar pwm-onejar.jar`
-
-The executable will show additional options that may be required.
-
-# Docker
-
-A docker image is created in `docker/target` as jib-image.tar.  You can import this docker image using a command similar to:
-
-`docker load --input=jib-image.tar`
-
-Create docker container and run using:
-
-`docker run -d --name <container name> -p 8443:8443 pwm/pwm-webapp`
-
-This will expose the https port to 8443.  If you want the configuration to persist to you can also expose
-the configuration volume of `/config` using the docker `-v` option during the container
-creation and map it to a directory on the docker host or use a docker volume container.  
-The PWM docker container will place all of it's configuration and runtime data in the `/config` volume.  If you do not use 
-a separate configuration volume, the config will be deleted when you delete the container.
+| Format | Directory |
+| --- | --- |
+| WAR | webapp/target |
+| Executable | onejar/target |
+| Docker | docker/target |
 

@@ -20,8 +20,7 @@
 
 package password.pwm.svc.telemetry;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
@@ -50,11 +49,13 @@ public class FtpTelemetrySender implements TelemetrySender
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( FtpTelemetrySender.class );
 
+    private SessionLabel sessionLabel;
     private Settings settings;
 
     @Override
-    public void init( final PwmApplication pwmApplication, final String initString )
+    public void init( final PwmApplication pwmApplication, final SessionLabel sessionLabel, final String initString )
     {
+        this.sessionLabel = sessionLabel;
         settings = JsonUtil.deserialize( initString, Settings.class );
     }
 
@@ -86,7 +87,7 @@ public class FtpTelemetrySender implements TelemetrySender
         // connect
         try
         {
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "establishing " + settings.getFtpMode() + " connection to " + settings.getHost() );
+            LOGGER.trace( sessionLabel, () -> "establishing " + settings.getFtpMode() + " connection to " + settings.getHost() );
             ftpClient.connect( settings.getHost() );
 
             final int reply = ftpClient.getReplyCode();
@@ -97,7 +98,7 @@ public class FtpTelemetrySender implements TelemetrySender
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "connected to " + settings.getHost() );
+            LOGGER.trace( sessionLabel, () -> "connected to " + settings.getHost() );
         }
         catch ( final IOException e )
         {
@@ -140,7 +141,7 @@ public class FtpTelemetrySender implements TelemetrySender
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "authenticated to " + settings.getHost() + " as " + settings.getUsername() );
+            LOGGER.trace( sessionLabel, () -> "authenticated to " + settings.getHost() + " as " + settings.getUsername() );
         }
         catch ( final IOException e )
         {
@@ -157,7 +158,7 @@ public class FtpTelemetrySender implements TelemetrySender
             final byte[] fileBytes = dataToJsonZipFile( telemetryPublishBean );
             final ByteArrayInputStream fileStream = new ByteArrayInputStream( fileBytes );
 
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "preparing to transfer " + fileBytes.length + " bytes to file path " + filePath );
+            LOGGER.trace( sessionLabel, () -> "preparing to transfer " + fileBytes.length + " bytes to file path " + filePath );
 
             final Instant startTime = Instant.now();
             ftpClient.storeFile( filePath, fileStream );
@@ -170,7 +171,7 @@ public class FtpTelemetrySender implements TelemetrySender
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "completed transfer of " + fileBytes.length + " in ", () -> TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( sessionLabel, () -> "completed transfer of " + fileBytes.length + " in ", () -> TimeDuration.fromCurrent( startTime ) );
         }
         catch ( final IOException e )
         {
@@ -187,17 +188,16 @@ public class FtpTelemetrySender implements TelemetrySender
             try
             {
                 ftpClient.disconnect();
-                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "disconnected" );
+                LOGGER.trace( sessionLabel, () -> "disconnected" );
             }
             catch ( final IOException e )
             {
-                LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "error while disconnecting ftp client: " + e.getMessage() );
+                LOGGER.trace( sessionLabel, () -> "error while disconnecting ftp client: " + e.getMessage() );
             }
         }
     }
 
-    @Getter
-    @AllArgsConstructor
+    @Value
     private static class Settings implements Serializable
     {
         private FtpMode ftpMode;

@@ -41,7 +41,7 @@
 <%@ include file="fragment/header.jsp" %>
 <body>
 <%
-    final boolean newWindow = JspUtility.getPwmRequest(pageContext).getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_NEW_WINDOW);
+    final boolean newWindow = JspUtility.getPwmRequest(pageContext).getDomainConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_NEW_WINDOW);
     final List<ShortcutItem> shortcutItems = (List<ShortcutItem>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ShortcutItems);
 %>
 <div id="wrapper">

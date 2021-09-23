@@ -70,10 +70,10 @@ public class ErrorMessageTag extends PwmAbstractTag
 
             if ( error != null )
             {
-                final boolean allowHtml = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_ERRORS_ALLOW_HTML ) );
-                final boolean showErrorDetail = pwmApplication.determineIfDetailErrorMsgShown();
+                final boolean allowHtml = Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_ERRORS_ALLOW_HTML ) );
+                final boolean showErrorDetail = pwmRequest.getPwmDomain().determineIfDetailErrorMsgShown();
 
-                String outputMsg = error.toUserStr( pwmRequest.getPwmSession(), pwmApplication );
+                String outputMsg = error.toUserStr( pwmRequest.getLocale(), pwmRequest.getDomainConfig() );
                 if ( !allowHtml )
                 {
                     outputMsg = StringUtil.escapeHtml( outputMsg );

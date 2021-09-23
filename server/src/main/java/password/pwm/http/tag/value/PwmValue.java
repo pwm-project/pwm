@@ -23,7 +23,7 @@ package password.pwm.http.tag.value;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
@@ -33,7 +33,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.ClientApiServlet;
 import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
@@ -74,7 +74,7 @@ public enum PwmValue
     PwmValue( final ValueOutput valueOutput, final Flag... flags )
     {
         this.valueOutput = valueOutput;
-        this.flags = JavaHelper.enumSetFromArray( flags );
+        this.flags = CollectionUtil.enumSetFromArray( flags );
     }
 
     public ValueOutput getValueOutput( )
@@ -101,7 +101,7 @@ public enum PwmValue
         @Override
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            String outputURL = pwmRequest.getConfig().readSettingAsString( PwmSetting.URL_HOME );
+            String outputURL = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.URL_HOME );
             if ( outputURL == null || outputURL.isEmpty() )
             {
                 outputURL = pwmRequest.getHttpServletRequest().getContextPath();
@@ -127,7 +127,7 @@ public enum PwmValue
         @Override
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final boolean maskPasswordFields = pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_MASK_PASSWORD_FIELDS );
+            final boolean maskPasswordFields = pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.DISPLAY_MASK_PASSWORD_FIELDS );
             return maskPasswordFields ? "password" : "text";
         }
     }
@@ -137,7 +137,7 @@ public enum PwmValue
         @Override
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final boolean maskPasswordFields = pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.DISPLAY_MASK_RESPONSE_FIELDS );
+            final boolean maskPasswordFields = pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.DISPLAY_MASK_RESPONSE_FIELDS );
             return maskPasswordFields ? "password" : "text";
         }
     }
@@ -147,7 +147,7 @@ public enum PwmValue
         @Override
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final String customScript = pwmRequest.getConfig().readSettingAsString(
+            final String customScript = pwmRequest.getDomainConfig().readSettingAsString(
                     PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT );
             if ( customScript != null && !customScript.isEmpty() )
             {
@@ -206,21 +206,21 @@ public enum PwmValue
 
             if ( PwmConstants.TRIAL_MODE )
             {
-                return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_TrialMode", pwmRequest.getConfig(), Admin.class, fieldNames );
+                return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_TrialMode", pwmRequest.getDomainConfig(), Admin.class, fieldNames );
             }
-            else if ( pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION )
+            else if ( pwmRequest.getPwmDomain().getApplicationMode() == PwmApplicationMode.CONFIGURATION )
             {
                 String output = "";
-                if ( Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.CLIENT_JSP_SHOW_ICONS ) ) )
+                if ( Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CLIENT_JSP_SHOW_ICONS ) ) )
                 {
                     output += "<span id=\"icon-configModeHelp\" class=\"btn-icon pwm-icon pwm-icon-question-circle\"></span>";
                 }
-                output += LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_ConfigModeActive", pwmRequest.getConfig(), Admin.class, fieldNames );
+                output += LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_ConfigModeActive", pwmRequest.getDomainConfig(), Admin.class, fieldNames );
                 return output;
             }
-            else if ( pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN ) )
+            else if ( pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
             {
-                return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_AdminUser", pwmRequest.getConfig(), Admin.class, fieldNames );
+                return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_AdminUser", pwmRequest.getDomainConfig(), Admin.class, fieldNames );
 
             }
 
@@ -253,8 +253,8 @@ public enum PwmValue
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
         {
             final Locale locale = pwmRequest.getLocale();
-            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-            final LocaleHelper.TextDirection textDirection = LocaleHelper.textDirectionForLocale( pwmApplication, locale );
+            final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+            final LocaleHelper.TextDirection textDirection = LocaleHelper.textDirectionForLocale( pwmDomain, locale );
             return textDirection.name();
         }
     }
@@ -274,7 +274,7 @@ public enum PwmValue
         @Override
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
         {
-            final String flagFileName = pwmRequest.getConfig().getKnownLocaleFlagMap().get( pwmRequest.getLocale() );
+            final String flagFileName = pwmRequest.getAppConfig().getKnownLocaleFlagMap().get( pwmRequest.getLocale() );
             return flagFileName == null ? "" : flagFileName;
         }
     }

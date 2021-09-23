@@ -346,26 +346,26 @@ UILibrary.editLdapDN = function(nextFunction, options) {
             var entryName = dnInformation['entryName'];
             var out = '';
             if (navigable) {
-                out += '<tr><td style="width:10px" class="navigableDN" data-dn="' + loopDN + '"><span class="pwm-icon pwm-icon-level-down"></span></td>';
+                out += '<tr><td class="navigableDN" data-dn="' + loopDN + '"><span class="pwm-icon pwm-icon-level-down"></span></td>';
             } else {
-                out += '<tr><td style="width:10px"></td>';
+                out += '<tr><td></td>';
             }
-            out += '<td class="selectableDN" data-dn="' + loopDN + '" title="' + loopDN + '"><a><code>' + entryName + '</code></a></td>';
+            out += '<td class="selectableDN" data-dn="' + loopDN + '" title="' + loopDN + '">' + entryName + '</td>';
             out += '</tr>';
             return out;
         };
 
         if (data['data']['navigableDNlist'] && !PWM_MAIN.JSLibrary.isEmpty(data['data']['navigableDNlist'])) {
             var navigableDNlist = data['data']['navigableDNlist'];
-            for (var i in navigableDNlist) {
-                body += makeEntryHtml(navigableDNlist[i],true);
-            }
+            PWM_MAIN.JSLibrary.forEachInArray(navigableDNlist,function (item) {
+                body += makeEntryHtml(item,true);
+            });
         }
         if (data['data']['selectableDNlist'] && !PWM_MAIN.JSLibrary.isEmpty(data['data']['selectableDNlist'])) {
             var selectableDNlist = data['data']['selectableDNlist'];
-            for (var i in selectableDNlist) {
-                body += makeEntryHtml(selectableDNlist[i],false);
-            }
+            PWM_MAIN.JSLibrary.forEachInArray(selectableDNlist,function (item){
+                body += makeEntryHtml(item,false);
+            });
         }
         body += '</table></div>';
 

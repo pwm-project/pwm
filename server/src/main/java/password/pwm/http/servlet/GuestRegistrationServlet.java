@@ -25,12 +25,12 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.Permission;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.value.data.ActionConfiguration;
@@ -41,6 +41,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
@@ -52,10 +53,10 @@ import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.FormMap;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -76,6 +77,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -91,7 +93,7 @@ import java.util.Set;
                 PwmConstants.URL_PREFIX_PRIVATE + "/GuestRegistration",
         }
 )
-public class GuestRegistrationServlet extends AbstractPwmServlet
+public class GuestRegistrationServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( GuestRegistrationServlet.class );
 
@@ -119,81 +121,67 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
     }
 
     @Override
-    protected GuestRegistrationAction readProcessAction( final PwmRequest request )
-            throws PwmUnrecoverableException
+    public Class<? extends ProcessAction> getProcessActionsClass()
     {
-        try
-        {
-            return GuestRegistrationAction.valueOf( request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
-        }
-        catch ( final IllegalArgumentException e )
-        {
-            return null;
-        }
+        return GuestRegistrationAction.class;
     }
-
 
     @Override
-    protected void processAction( final PwmRequest pwmRequest )
-            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
+    protected PwmServletDefinition getServletDefinition()
     {
-        //Fetch the session state bean.
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final GuestRegistrationBean guestRegistrationBean = pwmApplication.getSessionStateService().getBean( pwmRequest, GuestRegistrationBean.class );
-
-        final Configuration config = pwmApplication.getConfig();
-
-        if ( !config.readSettingAsBoolean( PwmSetting.GUEST_ENABLE ) )
-        {
-            pwmRequest.respondWithError( PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo() );
-            return;
-        }
-
-        if ( !pwmSession.getSessionManager().checkPermission( pwmApplication, Permission.GUEST_REGISTRATION ) )
-        {
-            pwmRequest.respondWithError( PwmError.ERROR_UNAUTHORIZED.toInfo() );
-            return;
-        }
-
-        checkConfiguration( config );
-
-        final GuestRegistrationAction action = readProcessAction( pwmRequest );
-        if ( action != null )
-        {
-            pwmRequest.validatePwmFormID();
-            switch ( action )
-            {
-                case create:
-                    handleCreateRequest( pwmRequest, guestRegistrationBean );
-                    return;
-
-                case search:
-                    handleSearchRequest( pwmRequest, guestRegistrationBean );
-                    return;
-
-                case update:
-                    handleUpdateRequest( pwmRequest, guestRegistrationBean );
-                    return;
-
-                case selectPage:
-                    handleSelectPageRequest( pwmRequest, guestRegistrationBean );
-                    return;
-
-                default:
-                    JavaHelper.unhandledSwitchStatement( action );
-            }
-        }
-
-        this.forwardToJSP( pwmRequest, guestRegistrationBean );
+        return PwmServletDefinition.GuestRegistration;
     }
 
-    protected void handleSelectPageRequest(
-            final PwmRequest pwmRequest,
-            final GuestRegistrationBean guestRegistrationBean
+    @Override
+    public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
+    {
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.GUEST_ENABLE ) )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation(
+                    PwmError.ERROR_SERVICE_NOT_AVAILABLE,
+                    "Setting "
+                            + PwmSetting.GUEST_ENABLE.toMenuLocationDebug( null, null ) + " is not enabled." )
+            );
+        }
+
+        if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmDomain, Permission.GUEST_REGISTRATION ) )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNAUTHORIZED ) );
+        }
+
+        checkConfiguration( pwmDomain.getConfig() );
+
+        return ProcessStatus.Continue;
+    }
+
+    @Override
+    protected Optional<? extends ProcessAction> readProcessAction( final PwmRequest request )
+            throws PwmUnrecoverableException
+    {
+        return super.readProcessAction( request );
+    }
+
+    @Override
+    protected void nextStep( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+    {
+        this.forwardToJSP( pwmRequest );
+    }
+
+    private GuestRegistrationBean getBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
+    {
+        return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, GuestRegistrationBean.class );
+    }
+
+    @ActionHandler( action = "selectPage" )
+    protected ProcessStatus handleSelectPageRequest(
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException
     {
+        final GuestRegistrationBean guestRegistrationBean = getBean( pwmRequest );
         final String requestedPage = pwmRequest.readParameterAsString( "page" );
         try
         {
@@ -203,24 +191,23 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         {
             LOGGER.error( pwmRequest, () -> "unknown page select request: " + requestedPage );
         }
-        this.forwardToJSP( pwmRequest, guestRegistrationBean );
+        return ProcessStatus.Continue;
     }
 
-
-    protected void handleUpdateRequest(
-            final PwmRequest pwmRequest,
-            final GuestRegistrationBean guestRegistrationBean
+    @ActionHandler( action = "update" )
+    protected ProcessStatus handleUpdateRequest(
+            final PwmRequest pwmRequest
 
     )
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {
-        //Fetch the session state bean.
+        final GuestRegistrationBean guestRegistrationBean = getBean( pwmRequest );
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final Configuration config = pwmApplication.getConfig();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+        final DomainConfig config = pwmDomain.getConfig();
 
-        final List<FormConfiguration> formItems = pwmApplication.getConfig().readSettingAsForm( PwmSetting.GUEST_UPDATE_FORM );
+        final List<FormConfiguration> formItems = pwmDomain.getConfig().readSettingAsForm( PwmSetting.GUEST_UPDATE_FORM );
         final String expirationAttribute = config.readSettingAsString( PwmSetting.GUEST_EXPIRATION_ATTRIBUTE );
 
         try
@@ -237,7 +224,8 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
             // check unique fields against ldap
             FormUtility.validateFormValueUniqueness(
-                    pwmApplication,
+                    pwmRequest.getLabel(),
+                    pwmDomain,
                     formValues,
                     ssBean.getLocale(),
                     Collections.singletonList( guestRegistrationBean.getUpdateUserIdentity() )
@@ -256,7 +244,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
             // send email.
             final UserInfo guestUserInfoBean = UserInfoFactory.newUserInfo(
-                    pwmApplication,
+                    pwmRequest.getPwmApplication(),
                     pwmRequest.getLabel(),
                     pwmRequest.getLocale(),
                     guestRegistrationBean.getUpdateUserIdentity(),
@@ -264,11 +252,11 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             );
             this.sendUpdateGuestEmailConfirmation( pwmRequest, guestUserInfoBean );
 
-            pwmApplication.getStatisticsManager().incrementValue( Statistic.UPDATED_GUESTS );
+            StatisticsClient.incrementStat( pwmRequest, Statistic.UPDATED_GUESTS );
 
             //everything good so forward to confirmation page.
             pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_UpdateGuest );
-            return;
+            return ProcessStatus.Halt;
         }
         catch ( final PwmOperationalException e )
         {
@@ -281,7 +269,8 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             LOGGER.error( pwmRequest, info );
             setLastError( pwmRequest, info );
         }
-        this.forwardToUpdateJSP( pwmRequest, guestRegistrationBean );
+        this.forwardToUpdateJSP( pwmRequest );
+        return ProcessStatus.Halt;
     }
 
     private void sendUpdateGuestEmailConfirmation(
@@ -290,7 +279,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final Locale locale = pwmRequest.getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_UPDATEGUEST, locale );
 
@@ -303,23 +292,23 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         pwmRequest.getPwmApplication().getEmailQueue().submitEmail( configuredEmailSetting, guestUserInfo, null );
     }
 
-    protected void handleSearchRequest(
-            final PwmRequest pwmRequest,
-            final GuestRegistrationBean guestRegistrationBean
+    @ActionHandler( action = "search" )
+    protected ProcessStatus handleSearchRequest(
+            final PwmRequest pwmRequest
     )
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {
         LOGGER.trace( pwmRequest, () -> "Enter: handleSearchRequest(...)" );
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider();
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
 
         final String adminDnAttribute = config.readSettingAsString( PwmSetting.GUEST_ADMIN_ATTRIBUTE );
-        final Boolean origAdminOnly = config.readSettingAsBoolean( PwmSetting.GUEST_EDIT_ORIG_ADMIN_ONLY );
+        final boolean origAdminOnly = config.readSettingAsBoolean( PwmSetting.GUEST_EDIT_ORIG_ADMIN_ONLY );
 
         final String usernameParam = pwmRequest.readParameterAsString( "username" );
-        final GuestRegistrationBean guBean = pwmApplication.getSessionStateService().getBean( pwmRequest, GuestRegistrationBean.class );
+        final GuestRegistrationBean guBean = pwmDomain.getSessionStateService().getBean( pwmRequest, GuestRegistrationBean.class );
 
         final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                 .chaiProvider( chaiProvider )
@@ -328,7 +317,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
                 .username( usernameParam )
                 .build();
 
-        final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+        final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
 
         try
         {
@@ -346,7 +335,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
                     }
                 }
                 final UserInfo guestUserInfo = UserInfoFactory.newUserInfo(
-                        pwmApplication,
+                        pwmRequest.getPwmApplication(),
                         pwmRequest.getLabel(),
                         pwmRequest.getLocale(),
                         theGuest,
@@ -363,7 +352,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
                             final ErrorInformation info = new ErrorInformation( PwmError.ERROR_ORIG_ADMIN_ONLY );
                             setLastError( pwmRequest, info );
                             LOGGER.error( pwmRequest, info );
-                            this.forwardToJSP( pwmRequest, guestRegistrationBean );
+                            this.forwardToJSP( pwmRequest );
                         }
                     }
                 }
@@ -389,8 +378,8 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
                 guBean.setUpdateUserIdentity( theGuest );
 
-                this.forwardToUpdateJSP( pwmRequest, guestRegistrationBean );
-                return;
+                this.forwardToUpdateJSP( pwmRequest );
+                return ProcessStatus.Halt;
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -401,23 +390,23 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         {
             final ErrorInformation error = e.getErrorInformation();
             setLastError( pwmRequest, error );
-            this.forwardToJSP( pwmRequest, guestRegistrationBean );
-            return;
+            this.forwardToJSP( pwmRequest );
+            return ProcessStatus.Halt;
         }
-        this.forwardToJSP( pwmRequest, guestRegistrationBean );
+        this.forwardToJSP( pwmRequest );
+        return ProcessStatus.Halt;
     }
 
-
-    private void handleCreateRequest(
-            final PwmRequest pwmRequest,
-            final GuestRegistrationBean guestRegistrationBean
+    @ActionHandler( action = "create" )
+    private ProcessStatus handleCreateRequest(
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
         final Locale locale = ssBean.getLocale();
 
         final List<FormConfiguration> guestUserForm = config.readSettingAsForm( PwmSetting.GUEST_FORM );
@@ -465,7 +454,10 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             LOGGER.info( pwmRequest, () -> "created user object: " + guestUserDN );
 
             final ChaiUser theUser = provider.getEntryFactory().newChaiUser( guestUserDN );
-            final UserIdentity userIdentity = UserIdentity.createUserIdentity( guestUserDN, pwmSession.getUserInfo().getUserIdentity().getLdapProfileID() );
+            final UserIdentity userIdentity = UserIdentity.create(
+                    guestUserDN,
+                    pwmSession.getUserInfo().getUserIdentity().getLdapProfileID(),
+                    pwmRequest.getDomainID() );
 
             // write the expiration date:
             if ( expirationDate != null )
@@ -475,27 +467,25 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             }
 
             final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
-                    pwmApplication,
+                    pwmDomain,
                     pwmRequest.getLabel(),
                     userIdentity,
-                    theUser,
-                    locale
-            );
+                    theUser );
 
-            final PasswordData newPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), passwordPolicy, pwmApplication );
+            final PasswordData newPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), passwordPolicy, pwmDomain );
             theUser.setPassword( newPassword.getStringValue() );
 
 
             {
                 // execute configured actions
                 LOGGER.debug( pwmRequest, () -> "executing configured actions to user " + theUser.getEntryDN() );
-                final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction( PwmSetting.GUEST_WRITE_ATTRIBUTES );
+                final List<ActionConfiguration> actions = pwmDomain.getConfig().readSettingAsAction( PwmSetting.GUEST_WRITE_ATTRIBUTES );
                 if ( actions != null && !actions.isEmpty() )
                 {
                     final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, userIdentity );
 
 
-                    final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, theUser )
+                    final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmDomain, theUser )
                             .setExpandPwmMacros( true )
                             .setMacroMachine( macroRequest )
                             .createActionExecutor();
@@ -507,7 +497,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             //everything good so forward to success page.
             this.sendGuestUserEmailConfirmation( pwmRequest, userIdentity );
 
-            pwmApplication.getStatisticsManager().incrementValue( Statistic.NEW_USERS );
+            StatisticsClient.incrementStat( pwmRequest, Statistic.NEW_USERS );
 
             pwmRequest.getPwmResponse().forwardToSuccessPage( Message.Success_CreateGuest );
         }
@@ -516,23 +506,24 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             final ErrorInformation info = new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE, "error creating user: " + e.getMessage() );
             setLastError( pwmRequest, info );
             LOGGER.error( pwmRequest, info );
-            this.forwardToJSP( pwmRequest, guestRegistrationBean );
+            this.forwardToJSP( pwmRequest );
         }
         catch ( final PwmOperationalException e )
         {
             LOGGER.error( pwmRequest, () -> e.getErrorInformation().toDebugStr() );
             setLastError( pwmRequest, e.getErrorInformation() );
-            this.forwardToJSP( pwmRequest, guestRegistrationBean );
+            this.forwardToJSP( pwmRequest );
         }
+        return ProcessStatus.Halt;
     }
 
     private static Instant readExpirationFromRequest(
             final PwmRequest pwmRequest
     )
-            throws PwmOperationalException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
+            throws PwmOperationalException, ChaiOperationException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final Configuration config = pwmApplication.getConfig();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+        final DomainConfig config = pwmDomain.getConfig();
         final long durationValueDays = config.readSettingAsLong( PwmSetting.GUEST_MAX_VALID_DAYS );
         final String expirationAttribute = config.readSettingAsString( PwmSetting.GUEST_EXPIRATION_ATTRIBUTE );
 
@@ -578,7 +569,7 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         return expirationDate;
     }
 
-    private static String determineUserDN( final Map<FormConfiguration, String> formValues, final Configuration config )
+    private static String determineUserDN( final Map<FormConfiguration, String> formValues, final DomainConfig config )
             throws PwmUnrecoverableException
     {
         final String namingAttribute = config.getDefaultLdapProfile().readSettingAsString(
@@ -604,8 +595,8 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
             throws PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final Configuration config = pwmApplication.getConfig();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+        final DomainConfig config = pwmDomain.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_GUEST, locale );
 
@@ -617,15 +608,15 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
 
         final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, userIdentity );
 
-        pwmApplication.getEmailQueue().submitEmail( configuredEmailSetting, null, macroRequest );
+        pwmDomain.getPwmApplication().getEmailQueue().submitEmail( configuredEmailSetting, null, macroRequest );
     }
 
     private void forwardToJSP(
-            final PwmRequest pwmRequest,
-            final GuestRegistrationBean guestRegistrationBean
+            final PwmRequest pwmRequest
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
+        final GuestRegistrationBean guestRegistrationBean = getBean( pwmRequest );
         calculateFutureDateFlags( pwmRequest, guestRegistrationBean );
         if ( Page.search == guestRegistrationBean.getCurrentPage() )
         {
@@ -640,13 +631,13 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
     }
 
     private void forwardToUpdateJSP(
-            final PwmRequest pwmRequest,
-            final GuestRegistrationBean guestRegistrationBean
+            final PwmRequest pwmRequest
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
+        final GuestRegistrationBean guestRegistrationBean = getBean( pwmRequest );
         calculateFutureDateFlags( pwmRequest, guestRegistrationBean );
-        final List<FormConfiguration> guestUpdateForm = pwmRequest.getConfig().readSettingAsForm( PwmSetting.GUEST_UPDATE_FORM );
+        final List<FormConfiguration> guestUpdateForm = pwmRequest.getDomainConfig().readSettingAsForm( PwmSetting.GUEST_UPDATE_FORM );
         final Map<FormConfiguration, String> formValueMap = new LinkedHashMap<>();
         for ( final FormConfiguration formConfiguration : guestUpdateForm )
         {
@@ -658,21 +649,15 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         pwmRequest.forwardToJsp( JspUrl.GUEST_UPDATE );
     }
 
-    private static void checkConfiguration( final Configuration configuration )
+    private static void checkConfiguration( final DomainConfig domainConfig )
             throws PwmUnrecoverableException
     {
-        final String namingAttribute = configuration.getDefaultLdapProfile().readSettingAsString( PwmSetting.LDAP_NAMING_ATTRIBUTE );
-        final List<FormConfiguration> formItems = configuration.readSettingAsForm( PwmSetting.GUEST_FORM );
+        final String namingAttribute = domainConfig.getDefaultLdapProfile().readSettingAsString( PwmSetting.LDAP_NAMING_ATTRIBUTE );
+        final List<FormConfiguration> formItems = domainConfig.readSettingAsForm( PwmSetting.GUEST_FORM );
 
         {
-            boolean namingIsInForm = false;
-            for ( final FormConfiguration formItem : formItems )
-            {
-                if ( namingAttribute.equalsIgnoreCase( formItem.getName() ) )
-                {
-                    namingIsInForm = true;
-                }
-            }
+            final boolean namingIsInForm = formItems.stream()
+                    .anyMatch( ( formItem ) ->  namingAttribute.equalsIgnoreCase( formItem.getName() ) );
 
             if ( !namingIsInForm )
             {
@@ -687,11 +672,12 @@ public class GuestRegistrationServlet extends AbstractPwmServlet
         }
     }
 
+
     private void calculateFutureDateFlags( final PwmRequest pwmRequest, final GuestRegistrationBean guestRegistrationBean )
     {
         final PwmDateFormat dateFormat = PwmDateFormat.newPwmDateFormat( "yyyy-MM-dd" );
 
-        final long maxValidDays = pwmRequest.getConfig().readSettingAsLong( PwmSetting.GUEST_MAX_VALID_DAYS );
+        final long maxValidDays = pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.GUEST_MAX_VALID_DAYS );
         pwmRequest.setAttribute( PwmRequestAttribute.GuestMaximumValidDays, String.valueOf( maxValidDays ) );
 
 

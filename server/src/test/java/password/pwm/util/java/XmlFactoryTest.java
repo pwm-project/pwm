@@ -39,7 +39,7 @@ public class XmlFactoryTest
         Assert.assertEquals( "PwmConfiguration", xmlDocument.getRootElement().getName() );
         final Optional<XmlElement> configIsEditable = xmlDocument.evaluateXpathToElement( "//property[@key='configIsEditable']" );
         Assert.assertTrue( configIsEditable.isPresent() );
-        Assert.assertEquals( "false", configIsEditable.get().getText() );
+        Assert.assertEquals( "false", configIsEditable.get().getText().orElseThrow() );
         final List<XmlElement> allSettings = xmlDocument.evaluateXpathToElements( "//setting" );
         Assert.assertEquals( 279, allSettings.size() );
     }

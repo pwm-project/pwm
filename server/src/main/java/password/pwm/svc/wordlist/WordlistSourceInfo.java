@@ -30,4 +30,5 @@ public class WordlistSourceInfo implements Serializable
     private String hash;
     private long bytes;
     private String importUrl;
+    private long lines;
 }

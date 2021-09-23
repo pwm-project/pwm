@@ -20,10 +20,10 @@
 
 package password.pwm.ws.client.rest.form;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -53,15 +53,15 @@ public class RestFormDataClient
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestFormDataClient.class );
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final SessionLabel sessionLabel;
     private RemoteWebServiceConfiguration remoteWebServiceConfiguration;
 
-    public RestFormDataClient( final PwmApplication pwmApplication, final SessionLabel sessionLabel )
+    public RestFormDataClient( final PwmDomain pwmDomain, final SessionLabel sessionLabel )
     {
         this.sessionLabel = sessionLabel;
-        this.pwmApplication = pwmApplication;
-        final List<RemoteWebServiceConfiguration> values = pwmApplication.getConfig().readSettingAsRemoteWebService( PwmSetting.EXTERNAL_REMOTE_DATA_URL );
+        this.pwmDomain = pwmDomain;
+        final List<RemoteWebServiceConfiguration> values = pwmDomain.getConfig().readSettingAsRemoteWebService( PwmSetting.EXTERNAL_REMOTE_DATA_URL );
         if ( values != null && !values.isEmpty() )
         {
             remoteWebServiceConfiguration = values.iterator().next();
@@ -91,7 +91,7 @@ public class RestFormDataClient
             final Map<String, String> configuredHeaders = new LinkedHashMap<>( remoteWebServiceConfiguration.getHeaders() );
 
             // add basic auth header;
-            if ( !StringUtil.isEmpty( remoteWebServiceConfiguration.getUsername() ) && !StringUtil.isEmpty( remoteWebServiceConfiguration.getPassword() ) )
+            if ( StringUtil.notEmpty( remoteWebServiceConfiguration.getUsername() ) && StringUtil.notEmpty( remoteWebServiceConfiguration.getPassword() ) )
             {
                 final String authHeaderValue = new BasicAuthInfo( remoteWebServiceConfiguration.getUsername(),
                         new PasswordData( remoteWebServiceConfiguration.getPassword() ) )
@@ -114,7 +114,7 @@ public class RestFormDataClient
         final PwmHttpClientResponse httpResponse;
         try
         {
-            httpResponse = getHttpClient( pwmApplication.getConfig() ).makeRequest( pwmHttpClientRequest, sessionLabel );
+            httpResponse = getHttpClient( pwmDomain.getConfig() ).makeRequest( pwmHttpClientRequest, sessionLabel );
             final String responseBody = httpResponse.getBody();
             LOGGER.trace( () -> "external rest call returned: " + httpResponse.getStatusPhrase() + ", body: " + responseBody );
             if ( httpResponse.getStatusCode() != 200 )
@@ -135,7 +135,7 @@ public class RestFormDataClient
 
     }
 
-    private PwmHttpClient getHttpClient( final Configuration configuration )
+    private PwmHttpClient getHttpClient( final DomainConfig domainConfig )
             throws PwmUnrecoverableException
     {
 
@@ -145,7 +145,7 @@ public class RestFormDataClient
                 .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
                 .certificates( certificates )
                 .build();
-        return pwmApplication.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
+        return pwmDomain.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
     }
 
 }

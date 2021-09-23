@@ -21,9 +21,8 @@
 package password.pwm.svc.pwnotify;
 
 import com.novell.ldapchai.ChaiUser;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.UserPermission;
@@ -34,10 +33,13 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.permission.UserPermissionUtility;
+import password.pwm.svc.PwmService;
+import password.pwm.svc.node.NodeService;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
@@ -49,37 +51,33 @@ import java.io.Writer;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayDeque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 
 public class PwNotifyEngine
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwNotifyEngine.class );
 
-    private static final SessionLabel SESSION_LABEL = SessionLabel.PW_EXP_NOTICE_LABEL;
-
     private static final int MAX_LOG_SIZE = 1024 * 1024 * 1024;
 
+    private final PwNotifyService pwNotifyService;
     private final PwNotifySettings settings;
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final Writer debugWriter;
     private final StringBuffer internalLog = new StringBuffer(  );
     private final List<UserPermission> permissionList;
     private final PwNotifyStorageService storageService;
-    private final Supplier<Boolean> cancelFlag;
 
-    private final ConditionalTaskExecutor debugOutputTask = new ConditionalTaskExecutor(
+    private final ConditionalTaskExecutor debugOutputTask = ConditionalTaskExecutor.forPeriodicTask(
             this::periodicDebugOutput,
-            new ConditionalTaskExecutor.TimeDurationPredicate( 1, TimeDuration.Unit.MINUTES )
+            TimeDuration.MINUTE
     );
 
     private final AtomicInteger examinedCount = new AtomicInteger( 0 );
@@ -89,18 +87,18 @@ public class PwNotifyEngine
     private volatile boolean running;
 
     PwNotifyEngine(
-            final PwmApplication pwmApplication,
+            final PwNotifyService pwNotifyService,
+            final PwmDomain pwmDomain,
             final PwNotifyStorageService storageService,
-            final Supplier<Boolean> cancelFlag,
             final Writer debugWriter
     )
     {
-        this.pwmApplication = pwmApplication;
-        this.cancelFlag = cancelFlag;
+        this.pwNotifyService = pwNotifyService;
+        this.pwmDomain = pwmDomain;
         this.storageService = storageService;
-        this.settings = PwNotifySettings.fromConfiguration( pwmApplication.getConfig() );
+        this.settings = PwNotifySettings.fromConfiguration( pwmDomain.getConfig() );
         this.debugWriter = debugWriter;
-        this.permissionList = pwmApplication.getConfig().readSettingAsUserPermission( PwmSetting.PW_EXPY_NOTIFY_PERMISSION );
+        this.permissionList = pwmDomain.getConfig().readSettingAsUserPermission( PwmSetting.PW_EXPY_NOTIFY_PERMISSION );
     }
 
     public boolean isRunning()
@@ -115,9 +113,10 @@ public class PwNotifyEngine
 
     private boolean checkIfRunningOnMaster( )
     {
-        if ( !pwmApplication.getPwmEnvironment().isInternalRuntimeInstance() )
+        if ( !pwmDomain.getPwmApplication().getPwmEnvironment().isInternalRuntimeInstance() )
         {
-            if ( pwmApplication.getClusterService() != null && pwmApplication.getClusterService().isMaster() )
+            final NodeService nodeService = pwmDomain.getPwmApplication().getNodeService();
+            if ( nodeService != null && nodeService.isMaster() )
             {
                 return true;
             }
@@ -142,12 +141,12 @@ public class PwNotifyEngine
             internalLog.delete( 0, internalLog.length() );
             running = true;
 
-            if ( !canRunOnThisServer() || cancelFlag.get() )
+            if ( !canRunOnThisServer() || pwNotifyService.status() == PwmService.STATUS.CLOSED )
             {
                 return;
             }
 
-            if ( JavaHelper.isEmpty( permissionList ) )
+            if ( CollectionUtil.isEmpty( permissionList ) )
             {
                 log( "no users are included in permission list setting "
                         + PwmSetting.PW_EXPY_NOTIFY_PERMISSION.toMenuLocationDebug( null, null )
@@ -157,25 +156,25 @@ public class PwNotifyEngine
             }
 
             log( "starting job, beginning ldap search" );
-            final Queue<UserIdentity> workQueue = new ArrayDeque<>( UserPermissionUtility.discoverMatchingUsers(
-                    pwmApplication,
-                    permissionList, SESSION_LABEL, settings.getMaxLdapSearchSize(),
+            final Iterator<UserIdentity> workQueue = UserPermissionUtility.discoverMatchingUsers(
+                    pwmDomain,
+                    permissionList, pwNotifyService.getSessionLabel(), settings.getMaxLdapSearchSize(),
                     settings.getSearchTimeout()
-            ) );
+            );
 
             log( "ldap search complete, examining users..." );
 
-            final ThreadPoolExecutor threadPoolExecutor = createExecutor( pwmApplication );
-            while ( workQueue.peek() != null )
+            final ThreadPoolExecutor threadPoolExecutor = createExecutor( pwmDomain );
+            while ( workQueue.hasNext() )
             {
-                if ( !checkIfRunningOnMaster() || cancelFlag.get() )
+                if ( !checkIfRunningOnMaster() || pwNotifyService.status() == PwmService.STATUS.CLOSED )
                 {
                     final String msg = "job interrupted, server is no longer the cluster master.";
                     log( msg );
                     throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, msg );
                 }
 
-                threadPoolExecutor.submit( new ProcessJob( workQueue.poll() ) );
+                threadPoolExecutor.submit( new ProcessJob( workQueue.next() ) );
             }
 
             JavaHelper.closeAndWaitExecutor( threadPoolExecutor, TimeDuration.DAY );
@@ -232,31 +231,31 @@ public class PwNotifyEngine
     )
             throws PwmUnrecoverableException
     {
-        if ( !canRunOnThisServer() || cancelFlag.get() )
+        if ( !canRunOnThisServer() || pwNotifyService.status() == PwmService.STATUS.CLOSED )
         {
             return;
         }
 
         examinedCount.incrementAndGet();
-        final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
+        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( pwNotifyService.getSessionLabel(), userIdentity );
         final Instant passwordExpirationTime = LdapOperationsHelper.readPasswordExpirationTime( theUser );
 
         if ( passwordExpirationTime == null )
         {
-            LOGGER.trace( SESSION_LABEL, () -> "skipping user '" + userIdentity.toDisplayString() + "', has no password expiration" );
+            LOGGER.trace( pwNotifyService.getSessionLabel(), () -> "skipping user '" + userIdentity.toDisplayString() + "', has no password expiration" );
             return;
         }
 
         if ( passwordExpirationTime.isBefore( Instant.now() ) )
         {
-            LOGGER.trace( SESSION_LABEL, () -> "skipping user '" + userIdentity.toDisplayString() + "', password expiration is in the past" );
+            LOGGER.trace( pwNotifyService.getSessionLabel(), () -> "skipping user '" + userIdentity.toDisplayString() + "', password expiration is in the past" );
             return;
         }
 
         final int nextDayInterval = figureNextDayInterval( passwordExpirationTime );
         if ( nextDayInterval < 1 )
         {
-            LOGGER.trace( SESSION_LABEL, () -> "skipping user '" + userIdentity.toDisplayString() + "', password expiration time is not within an interval" );
+            LOGGER.trace( pwNotifyService.getSessionLabel(), () -> "skipping user '" + userIdentity.toDisplayString() + "', password expiration time is not within an interval" );
             return;
         }
 
@@ -267,7 +266,7 @@ public class PwNotifyEngine
         }
 
         log( "sending notice to " + userIdentity.toDisplayString() + " for interval " + nextDayInterval );
-        storageService.writeStoredUserState( userIdentity, SESSION_LABEL, new PwNotifyUserStatus( passwordExpirationTime, Instant.now(), nextDayInterval ) );
+        storageService.writeStoredUserState( userIdentity, pwNotifyService.getSessionLabel(), new PwNotifyUserStatus( passwordExpirationTime, Instant.now(), nextDayInterval ) );
         sendNoticeEmail( userIdentity );
     }
 
@@ -302,7 +301,7 @@ public class PwNotifyEngine
     )
             throws PwmUnrecoverableException
     {
-        final Optional<PwNotifyUserStatus> optionalStoredState = storageService.readStoredUserState( userIdentity, SESSION_LABEL );
+        final Optional<PwNotifyUserStatus> optionalStoredState = storageService.readStoredUserState( userIdentity, pwNotifyService.getSessionLabel() );
 
         if ( !optionalStoredState.isPresent() )
         {
@@ -327,20 +326,20 @@ public class PwNotifyEngine
             throws PwmUnrecoverableException
     {
         final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxyForOfflineUser(
-                pwmApplication,
-                SESSION_LABEL,
+                pwmDomain.getPwmApplication(),
+                pwNotifyService.getSessionLabel(),
                 userIdentity
         );
         final Locale ldapLocale = LocaleHelper.parseLocaleString( userInfoBean.getLanguage() );
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, ldapLocale, SESSION_LABEL, userIdentity );
-        final EmailItemBean emailItemBean = pwmApplication.getConfig().readSettingAsEmail(
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), ldapLocale, pwNotifyService.getSessionLabel(), userIdentity );
+        final EmailItemBean emailItemBean = pwmDomain.getConfig().readSettingAsEmail(
                 PwmSetting.EMAIL_PW_EXPIRATION_NOTICE,
                 ldapLocale
         );
 
         noticeCount.incrementAndGet();
-        StatisticsManager.incrementStat( pwmApplication, Statistic.PWNOTIFY_EMAILS_SENT );
-        pwmApplication.getEmailQueue().submitEmail( emailItemBean, userInfoBean, macroRequest );
+        StatisticsClient.incrementStat( pwmDomain, Statistic.PWNOTIFY_EMAILS_SENT );
+        pwmDomain.getPwmApplication().getEmailQueue().submitEmail( emailItemBean, userInfoBean, macroRequest );
     }
 
     private void log( final String output )
@@ -359,7 +358,7 @@ public class PwNotifyEngine
             }
             catch ( final IOException e )
             {
-                LOGGER.warn( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> "unexpected IO error writing to debugWriter: " + e.getMessage() );
+                LOGGER.warn( pwNotifyService.getSessionLabel(), () -> "unexpected IO error writing to debugWriter: " + e.getMessage() );
             }
         }
 
@@ -377,12 +376,12 @@ public class PwNotifyEngine
             }
         }
 
-        LOGGER.trace( SessionLabel.PWNOTIFY_SESSION_LABEL, () -> output );
+        LOGGER.trace( pwNotifyService.getSessionLabel(), () -> output );
     }
 
-    private ThreadPoolExecutor createExecutor( final PwmApplication pwmApplication )
+    private ThreadPoolExecutor createExecutor( final PwmDomain pwmDomain )
     {
-        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, this.getClass() ), true );
+        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmDomain.getPwmApplication(), this.getClass() ), true );
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
                 1,
                 10,

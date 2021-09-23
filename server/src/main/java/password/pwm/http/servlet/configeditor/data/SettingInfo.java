@@ -28,7 +28,7 @@ import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.PwmSettingProperty;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplateSet;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -73,7 +73,7 @@ public class SettingInfo implements Serializable
                 .options( setting.getOptions() )
                 .pattern( setting.getRegExPattern().toString() )
                 .placeholder( setting.getExample( template ) )
-                .flags( Collections.unmodifiableSet( JavaHelper.copiedEnumSet( setting.getFlags(), PwmSettingFlag.class ) ) )
+                .flags( Collections.unmodifiableSet( CollectionUtil.copiedEnumSet( setting.getFlags(), PwmSettingFlag.class ) ) )
                 .build();
     }
 }

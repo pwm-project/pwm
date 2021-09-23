@@ -28,7 +28,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
 import password.pwm.util.cli.CliParameters;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.secure.PwmTrustManager;
 import password.pwm.util.secure.X509Utils;
@@ -71,7 +71,7 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
         if ( isSecureLDAP( ldapUrl ) )
         {
             final List<X509Certificate> certificates = readCertificates( ldapUrl );
-            if ( JavaHelper.isEmpty( certificates ) )
+            if ( CollectionUtil.isEmpty( certificates ) )
             {
                 out( "canceled" );
                 return;

@@ -26,7 +26,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
@@ -49,6 +49,7 @@ public class CEFAuditFormatter implements AuditFormatter
 
     static
     {
+        // ordering is important to this map.
         final Map<String, String> map = new LinkedHashMap<>( );
         map.put( "\\", "\\\\" );
         map.put( "=", "\\=" );
@@ -93,11 +94,11 @@ public class CEFAuditFormatter implements AuditFormatter
     )
             throws PwmUnrecoverableException
     {
-        final Configuration configuration = pwmApplication.getConfig();
-        final Settings settings = Settings.fromConfiguration( configuration );
+        final AppConfig domainConfig = pwmApplication.getConfig();
+        final Settings settings = Settings.fromConfiguration( domainConfig );
         final Map<String, Object> auditRecordMap = JsonUtil.deserializeMap( JsonUtil.serialize( auditRecord ) );
 
-        final Optional<String> srcHost = JavaHelper.deriveLocalServerHostname( configuration );
+        final Optional<String> srcHost = PwmApplication.deriveLocalServerHostname( pwmApplication.getConfig() );
 
         final StringBuilder cefOutput = new StringBuilder(  );
 
@@ -180,7 +181,7 @@ public class CEFAuditFormatter implements AuditFormatter
 
     private void appendCefValue( final String name, final String value, final StringBuilder cefOutput, final Settings settings )
     {
-        if ( !StringUtil.isEmpty( value ) && !StringUtil.isEmpty( name ) )
+        if ( StringUtil.notEmpty( value ) && StringUtil.notEmpty( name ) )
         {
             final String outputValue = trimCEFValue( name, escapeCEFValue( value ), settings );
             cefOutput.append( " " );
@@ -222,14 +223,14 @@ public class CEFAuditFormatter implements AuditFormatter
         private String headerProduct;
         private String headerVendor;
 
-        static Settings fromConfiguration( final Configuration configuration )
+        static Settings fromConfiguration( final AppConfig appConfig )
         {
             return Settings.builder()
-                    .cefMaxExtensionChars( JavaHelper.silentParseInt( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_MAX_EXTENSION_CHARS ), 1023 ) )
-                    .cefTimezone( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_TIMEZONE ) )
-                    .headerSeverity( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_SEVERITY ) )
-                    .headerProduct( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_PRODUCT ) )
-                    .headerVendor( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_VENDOR ) )
+                    .cefMaxExtensionChars( JavaHelper.silentParseInt( appConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_MAX_EXTENSION_CHARS ), 1023 ) )
+                    .cefTimezone( appConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_TIMEZONE ) )
+                    .headerSeverity( appConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_SEVERITY ) )
+                    .headerProduct( appConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_PRODUCT ) )
+                    .headerVendor( appConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_CEF_HEADER_VENDOR ) )
                     .build();
         }
     }
