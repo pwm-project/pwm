@@ -318,7 +318,7 @@ public class OAuthMachine
 
         {
             final String returnUrlOverride = pwmRequest.getDomainConfig().readAppProperty( AppProperty.OAUTH_RETURN_URL_OVERRIDE );
-            final String siteURL = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
+            final String siteURL = pwmRequest.getAppConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
             if ( returnUrlOverride != null && !returnUrlOverride.trim().isEmpty() )
             {
                 debugSource = "AppProperty(\"" + AppProperty.OAUTH_RETURN_URL_OVERRIDE.getKey() + "\")";
