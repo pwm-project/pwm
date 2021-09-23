@@ -45,7 +45,7 @@ public class MacroRequest
     private final MacroReplacer macroReplacer;
     private final UserInfo targetUserInfo;
 
-    public static MacroRequest forStatic( )
+    public static MacroRequest forStatic()
     {
         return new MacroRequest( null, null, null, null, null, null );
     }

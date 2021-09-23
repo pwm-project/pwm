@@ -28,9 +28,12 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
+import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
-import password.pwm.config.Configuration;
+import password.pwm.bean.DomainID;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -44,7 +47,7 @@ public class TestHelper
 {
     public static void setupLogging()
     {
-        final String pwmPackageName = PwmApplication.class.getPackage().getName();
+        final String pwmPackageName = PwmDomain.class.getPackage().getName();
         final Logger pwmPackageLogger = Logger.getLogger( pwmPackageName );
         final String chaiPackageName = ChaiUser.class.getPackage().getName();
         final Logger chaiPackageLogger = Logger.getLogger( chaiPackageName );
@@ -62,17 +65,18 @@ public class TestHelper
     {
         final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newConfig();
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
-        modifier.writeSetting( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL, null, new StringValue( PwmLogLevel.FATAL.toString() ), null );
-        final Configuration configuration = new Configuration( modifier.newStoredConfiguration() );
-        return makeTestPwmApplication( tempFolder, configuration );
+        final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL, null, DomainID.systemId() );
+        modifier.writeSetting( key, new StringValue( PwmLogLevel.FATAL.toString() ), null );
+        final AppConfig appConfig = new AppConfig( modifier.newStoredConfiguration() );
+        return makeTestPwmApplication( tempFolder, appConfig );
     }
 
-    public static PwmApplication makeTestPwmApplication( final File tempFolder, final Configuration configuration )
+    public static PwmApplication makeTestPwmApplication( final File tempFolder, final AppConfig appConfig )
             throws PwmUnrecoverableException
     {
         Logger.getRootLogger().setLevel( Level.OFF );
         final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
-                .config( configuration )
+                .config( appConfig )
                 .applicationPath( tempFolder )
                 .applicationMode( PwmApplicationMode.READ_ONLY )
                 .internalRuntimeInstance( true )

@@ -23,8 +23,9 @@ package password.pwm.http.servlet.configeditor;
 import com.google.gson.annotations.SerializedName;
 import lombok.Value;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigItemKey;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationUtil;
 
 import java.io.Serializable;
 import java.util.Locale;
@@ -41,16 +42,16 @@ class SearchResultItem implements Serializable
     private final String profile;
 
     static SearchResultItem fromKey(
-            final StoredConfigItemKey key,
+            final StoredConfigKey key,
             final StoredConfiguration storedConfiguration,
             final Locale locale )
     {
         final PwmSetting setting = key.toPwmSetting();
         return new SearchResultItem(
                 setting.getCategory().toString(),
-                storedConfiguration.readSetting( setting, key.getProfileID() ).toDebugString( locale ),
+                storedConfiguration.readStoredValue( key ).orElseThrow().toDebugString( locale ),
                 setting.getCategory().toMenuLocationDebug( key.getProfileID(), locale ),
-                storedConfiguration.isDefaultValue( setting, key.getProfileID() ),
+                StoredConfigurationUtil.isDefaultValue( storedConfiguration, key ),
                 key.getProfileID()
         );
     }

@@ -159,7 +159,7 @@ public class PasswordRuleReaderHelper
 
         for ( final String value : values )
         {
-            if ( !StringUtil.isEmpty( value ) )
+            if ( StringUtil.notEmpty( value ) )
             {
                 String valueToCompile = value;
 
@@ -183,12 +183,6 @@ public class PasswordRuleReaderHelper
         }
 
         return patterns;
-    }
-
-    public String getChangeMessage( )
-    {
-        final String changeMessage = passwordPolicy.getValue( PwmPasswordRule.ChangeMessage );
-        return changeMessage == null ? "" : changeMessage;
     }
 
     public ADPolicyComplexity getADComplexityLevel( )

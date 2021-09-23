@@ -22,7 +22,7 @@ package password.pwm.http.servlet.oauth;
 
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.util.PasswordData;
@@ -56,7 +56,7 @@ public class OAuthSettings implements Serializable
                 && ( dnAttributeName != null && !dnAttributeName.isEmpty() );
     }
 
-    public static OAuthSettings forSSOAuthentication( final Configuration config )
+    public static OAuthSettings forSSOAuthentication( final DomainConfig config )
     {
         return OAuthSettings.builder()
                 .loginURL( config.readSettingAsString( PwmSetting.OAUTH_ID_LOGIN_URL ) )

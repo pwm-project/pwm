@@ -22,9 +22,10 @@ package password.pwm.config.value;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
@@ -69,12 +70,10 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
             public X509CertificateValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
                 final List<String> b64certificates = new ArrayList<>();
-                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final String b64encodedStr = loopValueElement.getText();
-
-                    b64certificates.add( b64encodedStr );
+                    loopValueElement.getText().ifPresent( b64certificates::add );
                 }
                 return new X509CertificateValue( Collections.unmodifiableList( b64certificates ) );
             }
@@ -89,7 +88,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
 
     public boolean hasCertificates( )
     {
-        return !JavaHelper.isEmpty( b64certificates );
+        return !CollectionUtil.isEmpty( b64certificates );
     }
 
     public X509CertificateValue( final List<String> b64certificates )
@@ -98,10 +97,9 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
         {
             throw new NullPointerException( "certificates cannot be null" );
         }
-        this.b64certificates = Collections.unmodifiableList(
-                b64certificates.stream()
+        this.b64certificates = b64certificates.stream()
                 .map( StringUtil::stripAllWhitespace )
-                .collect( Collectors.toList() ) );
+                .collect( Collectors.toUnmodifiableList() );
         this.certs = new LazySupplier<>( () -> X509Utils.certificatesFromBase64s( b64certificates ) );
     }
 

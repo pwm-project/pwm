@@ -79,7 +79,7 @@
                     <br/><br/>
                     <input class="configStringInput" maxlength="100" id="<%=ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION%>" name="<%=ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION%>" value="<%=configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION)%>" <pwm:autofocus/> />
                     <br/><br/>
-                        <% String privacyText = JavaHelper.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_PRIVACY_TXT); %>
+                        <% String privacyText = ContextManager.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_PRIVACY_TXT); %>
                         <div id="agreementWrapper" style="display: none" class="fadein">
                             <% if (!StringUtil.isEmpty(privacyText)) { %>
                             <label><b>Data Privacy Policy</b></label>

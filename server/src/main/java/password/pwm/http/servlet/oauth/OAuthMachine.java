@@ -25,7 +25,7 @@ import password.pwm.AppProperty;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -42,6 +42,7 @@ import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.BasicAuthInfo;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -82,10 +83,10 @@ public class OAuthMachine
     )
             throws PwmUnrecoverableException
     {
-        final String requestStateStr = pwmRequest.readParameterAsString( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_PARAM_OAUTH_STATE ) );
+        final String requestStateStr = pwmRequest.readParameterAsString( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_PARAM_OAUTH_STATE ) );
         if ( requestStateStr != null )
         {
-            final String stateJson = pwmRequest.getPwmApplication().getSecureService().decryptStringValue( requestStateStr );
+            final String stateJson = pwmRequest.getPwmDomain().getSecureService().decryptStringValue( requestStateStr );
             final OAuthState oAuthState = JsonUtil.deserialize( stateJson, OAuthState.class );
             if ( oAuthState != null )
             {
@@ -111,7 +112,7 @@ public class OAuthMachine
         LOGGER.trace( sessionLabel, () -> "preparing to redirect user to oauth authentication service, setting nextUrl to " + nextUrl );
         pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress( true );
 
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final String state = makeStateStringForRequest( pwmRequest, nextUrl, forgottenPasswordProfile );
         final String redirectUri = figureOauthSelfEndPointUrl( pwmRequest );
         final String code = config.readAppProperty( AppProperty.OAUTH_ID_REQUEST_TYPE );
@@ -122,34 +123,22 @@ public class OAuthMachine
         urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_STATE ), state );
         urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
 
-        if ( !StringUtil.isEmpty( settings.getScope() ) )
+        if ( StringUtil.notEmpty( settings.getScope() ) )
         {
             urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_SCOPE ), settings.getScope() );
         }
 
         if ( userIdentity != null )
         {
-            final String parametersValue = figureUsernameGrantParam( pwmRequest, userIdentity );
-            if ( !StringUtil.isEmpty( parametersValue ) )
-            {
-                urlParams.put( "parameters", parametersValue );
-            }
+            final Optional<String> parametersValue = figureUsernameGrantParam( pwmRequest, userIdentity );
+            parametersValue.ifPresent( s -> urlParams.put( "parameters", s ) );
         }
 
         final String redirectUrl = PwmURL.appendAndEncodeUrlParameters( settings.getLoginURL(), urlParams );
 
-        try
-        {
-            pwmRequest.sendRedirect( redirectUrl );
-            pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress( true );
-            LOGGER.debug( sessionLabel, () -> "redirecting user to oauth id server, url: " + redirectUrl );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
+        pwmRequest.getPwmResponse().sendRedirect( redirectUrl );
+        pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress( true );
+        LOGGER.debug( sessionLabel, () -> "redirecting user to oauth id server, url: " + redirectUrl );
     }
 
     OAuthResolveResults makeOAuthResolveRequest(
@@ -158,7 +147,7 @@ public class OAuthMachine
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final String requestUrl = settings.getCodeResolveUrl();
         final String grantType = config.readAppProperty( AppProperty.OAUTH_ID_ACCESS_GRANT_TYPE );
         final String redirectUri = figureOauthSelfEndPointUrl( pwmRequest );
@@ -185,7 +174,7 @@ public class OAuthMachine
             final String resolveResponseBodyStr
     )
     {
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final String oauthExpiresParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_EXPIRES );
         final String oauthAccessTokenParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN );
         final String refreshTokenParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN );
@@ -207,7 +196,7 @@ public class OAuthMachine
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final String requestUrl = settings.getCodeResolveUrl();
         final String grantType = config.readAppProperty( AppProperty.OAUTH_ID_REFRESH_GRANT_TYPE );
 
@@ -228,7 +217,7 @@ public class OAuthMachine
     {
         final PwmHttpClientResponse restResults;
         {
-            final Configuration config = pwmRequest.getConfig();
+            final DomainConfig config = pwmRequest.getDomainConfig();
             final String requestUrl = settings.getAttributesUrl();
             final Map<String, String> requestParams = new HashMap<>();
             requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
@@ -296,10 +285,10 @@ public class OAuthMachine
         {
             final PwmHttpClientConfiguration config = PwmHttpClientConfiguration.builder()
                     .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
-                    .certificates( JavaHelper.isEmpty( certs ) ? null : certs )
+                    .certificates( CollectionUtil.isEmpty( certs ) ? null : certs )
                     .maskBodyDebugOutput( true )
                     .build();
-            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmApplication().getHttpClientService().getPwmHttpClient( config );
+            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient( config );
             pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, pwmRequest.getLabel() );
         }
         catch ( final PwmException e )
@@ -326,8 +315,8 @@ public class OAuthMachine
         final String redirectUri;
 
         {
-            final String returnUrlOverride = pwmRequest.getConfig().readAppProperty( AppProperty.OAUTH_RETURN_URL_OVERRIDE );
-            final String siteURL = pwmRequest.getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
+            final String returnUrlOverride = pwmRequest.getDomainConfig().readAppProperty( AppProperty.OAUTH_RETURN_URL_OVERRIDE );
+            final String siteURL = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
             if ( returnUrlOverride != null && !returnUrlOverride.trim().isEmpty() )
             {
                 debugSource = "AppProperty(\"" + AppProperty.OAUTH_RETURN_URL_OVERRIDE.getKey() + "\")";
@@ -350,7 +339,7 @@ public class OAuthMachine
                     final int port = requestUri.getPort();
                     redirectUri = requestUri.getScheme() + "://" + requestUri.getHost()
                             + ( port > 0 && port != 80 && port != 443 ? ":" + requestUri.getPort() : "" )
-                            + pwmRequest.getContextPath()
+                            + pwmRequest.getBasePath()
                             + PwmServletDefinition.OAuthConsumer.servletUrl();
                 }
                 catch ( final URISyntaxException e )
@@ -366,9 +355,9 @@ public class OAuthMachine
 
     public boolean checkOAuthExpiration(
             final PwmRequest pwmRequest
-    )
+    ) throws PwmUnrecoverableException
     {
-        if ( !Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.OAUTH_ENABLE_TOKEN_REFRESH ) ) )
+        if ( !Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.OAUTH_ENABLE_TOKEN_REFRESH ) ) )
         {
             return false;
         }
@@ -441,10 +430,10 @@ public class OAuthMachine
 
 
         final String jsonValue = JsonUtil.serialize( oAuthState );
-        return pwmRequest.getPwmApplication().getSecureService().encryptToString( jsonValue );
+        return pwmRequest.getPwmDomain().getSecureService().encryptToString( jsonValue );
     }
 
-    private String figureUsernameGrantParam(
+    private Optional<String> figureUsernameGrantParam(
             final PwmRequest pwmRequest,
             final UserIdentity userIdentity
     )
@@ -452,13 +441,13 @@ public class OAuthMachine
     {
         if ( userIdentity == null )
         {
-            return null;
+            return Optional.empty();
         }
 
         final String macroText = settings.getUsernameSendValue();
         if ( StringUtil.isEmpty( macroText ) )
         {
-            return null;
+            return Optional.empty();
         }
 
         final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, userIdentity );
@@ -486,8 +475,12 @@ public class OAuthMachine
         final String resultBody = restResults.getBody();
         final Map<String, String> resultBodyMap = JsonUtil.deserializeStringMap( resultBody );
         final String data = resultBodyMap.get( "data" );
-        LOGGER.debug( sessionLabel, () -> "oauth /sign endpoint returned signed username data: " + data );
-        return data;
+        if ( StringUtil.isEmpty( data ) )
+        {
+            LOGGER.debug( sessionLabel, () -> "oauth /sign endpoint returned signed username data: " + data );
+            return Optional.of( data );
+        }
+        return Optional.empty();
     }
 
     public String readAttributeFromBodyMap(
@@ -527,7 +520,7 @@ public class OAuthMachine
                     }
 
                     final String strValue = singleObjValue.toString();
-                    if ( !StringUtil.isEmpty( strValue ) )
+                    if ( StringUtil.notEmpty( strValue ) )
                     {
                         return strValue;
                     }

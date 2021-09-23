@@ -27,12 +27,14 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.function.UserMatchViewerFunction;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -52,7 +54,7 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
 import password.pwm.util.LDAPPermissionCalculator;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.Percent;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
@@ -71,10 +73,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class ConfigGuideUtils
 {
-
     private static final PwmLogger LOGGER = PwmLogger.getLogger( ConfigGuideUtils.class.getName() );
 
     static void writeConfig(
@@ -129,7 +131,7 @@ public class ConfigGuideUtils
     }
 
     public static SchemaOperationResult extendSchema(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final ConfigGuideBean configGuideBean,
             final boolean doSchemaExtension
     )
@@ -151,7 +153,7 @@ public class ConfigGuideUtils
                     .setSetting( ChaiSetting.PROMISCUOUS_SSL, "true" )
                     .build();
 
-            final ChaiProvider chaiProvider = pwmApplication.getLdapConnectionService().getChaiProviderFactory().newProvider( chaiConfiguration );
+            final ChaiProvider chaiProvider = pwmDomain.getLdapConnectionService().getChaiProviderFactory().newProvider( chaiConfiguration );
             if ( doSchemaExtension )
             {
                 return SchemaManager.extendSchema( chaiProvider );
@@ -173,11 +175,12 @@ public class ConfigGuideUtils
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final ConfigGuideBean configGuideBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ConfigGuideBean.class );
+        final ConfigGuideBean configGuideBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ConfigGuideBean.class );
 
         if ( configGuideBean.getStep() == GuideStep.LDAP_PERMISSIONS )
         {
-            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
+            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(
+                    new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) ).getDomainConfigs().get( ConfigGuideForm.DOMAIN_ID ) );
             pwmRequest.setAttribute( PwmRequestAttribute.LdapPermissionItems, ldapPermissionCalculator );
         }
 
@@ -192,7 +195,7 @@ public class ConfigGuideUtils
     {
         final int ordinal = step.ordinal();
         final int total = GuideStep.values().length - 2;
-        return new Percent( ordinal, total );
+        return Percent.of( ordinal, total );
     }
 
     static void checkLdapServer( final ConfigGuideBean configGuideBean )
@@ -214,7 +217,7 @@ public class ConfigGuideUtils
 
         if ( Boolean.parseBoolean( formData.get( ConfigGuideFormField.PARAM_LDAP_SECURE ) ) )
         {
-            final Configuration tempConfig = new Configuration( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
+            final AppConfig tempConfig = new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
             X509Utils.readRemoteCertificates( host, port, tempConfig );
         }
     }
@@ -223,10 +226,10 @@ public class ConfigGuideUtils
     public static void restUploadConfig( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
-        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING )
+        if ( pwmDomain.getApplicationMode() == PwmApplicationMode.RUNNING )
         {
             final String errorMsg = "config upload is not permitted when in running mode";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_UPLOAD_FAILURE, errorMsg, new String[]
@@ -239,14 +242,14 @@ public class ConfigGuideUtils
 
         if ( ServletFileUpload.isMultipartContent( req ) )
         {
-            final InputStream uploadedFile = pwmRequest.readFileUploadStream( PwmConstants.PARAM_FILE_UPLOAD );
-            if ( uploadedFile != null )
+            final Optional<InputStream> uploadedFile = pwmRequest.readFileUploadStream( PwmConstants.PARAM_FILE_UPLOAD );
+            if ( uploadedFile.isPresent() )
             {
-                try
+                try ( InputStream inputStream = uploadedFile.get() )
                 {
-                    final StoredConfiguration storedConfig = StoredConfigurationFactory.input( uploadedFile );
+                    final StoredConfiguration storedConfig = StoredConfigurationFactory.input( inputStream );
                     final List<String> configErrors = StoredConfigurationUtil.validateValues( storedConfig );
-                    if ( !JavaHelper.isEmpty( configErrors ) )
+                    if ( !CollectionUtil.isEmpty( configErrors ) )
                     {
                         throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, configErrors.get( 0 ) ) );
                     }
@@ -282,32 +285,33 @@ public class ConfigGuideUtils
             final ConfigGuideBean configGuideBean = ConfigGuideServlet.getBean( pwmRequest );
             final Map<ConfigGuideFormField, String> form = configGuideBean.getFormData();
             final PwmApplication tempApplication = PwmApplication.createPwmApplication(
-                    pwmRequest.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( new Configuration( storedConfiguration ) ) );
+                    pwmRequest.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( new AppConfig( storedConfiguration ) ) );
+            final PwmDomain pwmDomain = tempApplication.domains().get( ConfigGuideForm.DOMAIN_ID );
 
             final String adminDN = form.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_USER );
-            final UserIdentity adminIdentity = UserIdentity.createUserIdentity( adminDN, PwmConstants.PROFILE_ID_DEFAULT );
+            final UserIdentity adminIdentity = UserIdentity.create( adminDN, ConfigGuideForm.LDAP_PROFILE_NAME, ConfigGuideForm.DOMAIN_ID );
 
             final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
             final Collection<UserIdentity> results = userMatchViewerFunction.discoverMatchingUsers(
-                    tempApplication,
+                    pwmRequest.getLabel(),
+                    pwmDomain,
                     1,
                     storedConfiguration,
-                    PwmSetting.QUERY_MATCH_PWM_ADMIN,
-                    null
-            );
+                    StoredConfigKey.forSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, null, ConfigGuideForm.DOMAIN_ID ) );
 
             if ( !results.isEmpty() )
             {
                 final UserIdentity foundIdentity = results.iterator().next();
-                if ( foundIdentity.canonicalEquals( adminIdentity, tempApplication ) )
+                if ( foundIdentity.canonicalEquals( pwmRequest.getLabel(), adminIdentity, tempApplication ) )
                 {
-                    records.add( HealthRecord.forMessage( HealthMessage.LDAP_AdminUserOk ) );
+                    records.add( HealthRecord.forMessage( ConfigGuideForm.DOMAIN_ID, HealthMessage.LDAP_AdminUserOk ) );
                 }
             }
         }
         catch ( final Exception e )
         {
             records.add( HealthRecord.forMessage(
+                    ConfigGuideForm.DOMAIN_ID,
                     HealthMessage.Config_SettingIssue,
                     PwmSetting.LDAP_PROXY_USER_DN.getLabel( pwmRequest.getLocale() ),
                     e.getMessage() ) );
@@ -316,6 +320,7 @@ public class ConfigGuideUtils
         if ( records.isEmpty() )
         {
             records.add( HealthRecord.forMessage(
+                    ConfigGuideForm.DOMAIN_ID,
                     HealthMessage.Config_SettingIssue,
                     PwmSetting.LDAP_PROXY_USER_DN.getLabel( pwmRequest.getLocale() ),
                     "User not found" ) );

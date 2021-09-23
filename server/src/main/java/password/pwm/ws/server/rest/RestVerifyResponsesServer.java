@@ -25,9 +25,10 @@ import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.cr.bean.ChallengeBean;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import lombok.Data;
+import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.option.WebServiceUsage;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
@@ -50,6 +51,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @WebServlet(
         urlPatterns = {
@@ -61,7 +63,9 @@ public class RestVerifyResponsesServer extends RestServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestVerifyResponsesServer.class );
 
-    @Data
+    private static final String FIELD_USERNAME = "username";
+
+    @Value
     public static class JsonPutChallengesInput implements Serializable
     {
         public List<ChallengeBean> challenges;
@@ -106,8 +110,9 @@ public class RestVerifyResponsesServer extends RestServlet
 
         final String username = RestUtility.readValueFromJsonAndParam(
                 jsonInput.getUsername(),
-                restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation ),
-                "username" );
+                restRequest.readParameterAsString( FIELD_USERNAME, PwmHttpRequestWrapper.Flag.BypassValidation ),
+                FIELD_USERNAME
+        ).orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_FIELD_REQUIRED, FIELD_USERNAME ) );
 
         final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 
@@ -116,13 +121,13 @@ public class RestVerifyResponsesServer extends RestServlet
 
         try
         {
-            final ResponseSet responseSet = restRequest.getPwmApplication().getCrService().readUserResponseSet(
+            final Optional<ResponseSet> responseSet = restRequest.getDomain().getCrService().readUserResponseSet(
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getUserIdentity(),
                     targetUserIdentity.getChaiUser()
             );
 
-            final boolean verified = responseSet != null && responseSet.test( jsonInput.toCrMap() );
+            final boolean verified = responseSet.isPresent() && responseSet.get().test( jsonInput.toCrMap() );
 
             final RestResultBean restResultBean = RestResultBean.forSuccessMessage( verified, restRequest, Message.Success_Unknown );
 

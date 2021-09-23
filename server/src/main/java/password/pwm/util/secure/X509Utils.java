@@ -20,10 +20,10 @@
 
 package password.pwm.util.secure;
 
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.option.CertificateMatchingMode;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -35,6 +35,7 @@ import password.pwm.http.PwmURL;
 import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -83,27 +84,27 @@ public class X509Utils
 
     public static List<X509Certificate> readRemoteCertificates(
             final URI uri,
-            final Configuration configuration
+            final AppConfig appConfig
     )
             throws PwmOperationalException
     {
         final String host = uri.getHost();
         final int port = PwmURL.portForUriSchema( uri );
 
-        return readRemoteCertificates( host, port, configuration );
+        return readRemoteCertificates( host, port, appConfig );
     }
 
     public static List<X509Certificate> readRemoteCertificates(
             final String host,
             final int port,
-            final Configuration configuration
+            final AppConfig appConfig
     )
             throws PwmOperationalException
     {
         LOGGER.debug( () -> "ServerCertReader: beginning certificate read procedure to import certificates from host=" + host + ", port=" + port );
         final CertificateReadingTrustManager certReaderTm = CertificateReadingTrustManager.newCertReaderTrustManager(
-                configuration,
-                readCertificateFlagsFromConfig( configuration ) );
+                appConfig,
+                readCertificateFlagsFromConfig( appConfig ) );
 
         try
         {
@@ -153,7 +154,7 @@ public class X509Utils
             throw new PwmOperationalException( e.getErrorInformation() );
         }
 
-        if ( JavaHelper.isEmpty( certs ) )
+        if ( CollectionUtil.isEmpty( certs ) )
         {
             LOGGER.debug( () -> "ServerCertReader: unable to read certificates: null returned from CertReaderTrustManager.getCertificates()" );
         }
@@ -169,7 +170,7 @@ public class X509Utils
     }
 
     public static List<X509Certificate> readRemoteHttpCertificates(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final URI uri
     )
@@ -178,7 +179,7 @@ public class X509Utils
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
                 .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuousCertReader )
                 .build();
-        final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
+        final PwmHttpClient pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
         final PwmHttpClientRequest request = PwmHttpClientRequest.builder()
                 .method( HttpMethod.GET )
                 .url( uri.toString() )
@@ -215,9 +216,9 @@ public class X509Utils
         throw new PwmUnrecoverableException( requestError );
     }
 
-    private static ReadCertificateFlag[] readCertificateFlagsFromConfig( final Configuration configuration )
+    private static ReadCertificateFlag[] readCertificateFlagsFromConfig( final AppConfig appConfig )
     {
-        final CertificateMatchingMode mode = configuration.readCertificateMatchingMode();
+        final CertificateMatchingMode mode = appConfig.readCertificateMatchingMode();
         return mode == CertificateMatchingMode.CA_ONLY
                 ? Collections.singletonList( X509Utils.ReadCertificateFlag.ReadOnlyRootCA ).toArray( new X509Utils.ReadCertificateFlag[0] )
                 : new X509Utils.ReadCertificateFlag[0];
@@ -294,45 +295,45 @@ public class X509Utils
 
     public static List<X509Certificate> certificatesFromBase64s( final Collection<String> b64certificates )
     {
-        final Function<String, X509Certificate> mapFunction = s ->
+        final Function<String, Optional<X509Certificate>> mapFunction = s ->
         {
             try
             {
-                return certificateFromBase64( s );
+                return Optional.of( certificateFromBase64( s ) );
             }
             catch ( final Exception e )
             {
                 LOGGER.error( () -> "error decoding certificate from b64: " + e.getMessage() );
             }
-            return null;
+            return Optional.empty();
         };
 
         return b64certificates
                 .stream()
                 .map( mapFunction )
-                .filter( Objects::nonNull )
+                .flatMap( Optional::stream )
                 .collect( Collectors.toList() );
     }
 
     public static List<String> certificatesToBase64s( final Collection<X509Certificate> certificates )
     {
-        final Function<X509Certificate, String> mapFunction = s ->
+        final Function<X509Certificate, Optional<String>> mapFunction = s ->
         {
             try
             {
-                return certificateToBase64( s );
+                return Optional.of( certificateToBase64( s ) );
             }
             catch ( final Exception e )
             {
                 LOGGER.error( () -> "error encoding certificate to b64: " + e.getMessage() );
             }
-            return null;
+            return Optional.empty();
         };
 
         return certificates
                 .stream()
                 .map( mapFunction )
-                .filter( Objects::nonNull )
+                .flatMap( Optional::stream )
                 .collect( Collectors.toList() );
     }
 
@@ -420,7 +421,7 @@ public class X509Utils
     }
 
     public static String certificateToBase64( final X509Certificate certificate )
-            throws CertificateEncodingException
+            throws CertificateEncodingException, PwmUnrecoverableException
     {
         return StringUtil.base64Encode( certificate.getEncoded() );
     }
@@ -464,7 +465,7 @@ public class X509Utils
         return false;
     }
 
-    public static TrustManager[] getDefaultJavaTrustManager( final Configuration configuration )
+    public static TrustManager[] getDefaultJavaTrustManager( final AppConfig appConfig )
             throws PwmUnrecoverableException
     {
         try
@@ -494,7 +495,7 @@ public class X509Utils
         }
     }
 
-    public static Set<X509Certificate> readCertsForListOfLdapUrls( final List<String> ldapUrls, final Configuration configuration )
+    public static Set<X509Certificate> readCertsForListOfLdapUrls( final List<String> ldapUrls, final AppConfig appConfig )
             throws PwmUnrecoverableException
     {
         final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
@@ -503,7 +504,7 @@ public class X509Utils
             for ( final String ldapUrlString : ldapUrls )
             {
                 final URI ldapURI = new URI( ldapUrlString );
-                final List<X509Certificate> certs = X509Utils.readRemoteCertificates( ldapURI, configuration );
+                final List<X509Certificate> certs = X509Utils.readRemoteCertificates( ldapURI, appConfig );
                 if ( certs != null )
                 {
                     resultCertificates.addAll( certs );

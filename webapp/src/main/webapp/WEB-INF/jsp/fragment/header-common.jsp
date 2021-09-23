@@ -23,7 +23,7 @@
 --%>
 
 
-<%@ page import="password.pwm.PwmApplication" %>
+<%@ page import="password.pwm.PwmDomain" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
 <%@ page import="password.pwm.http.ContextManager" %>

@@ -71,13 +71,14 @@ public enum PwmSettingSyntax
     OPTIONLIST( OptionListValue.factory() ),
     FILE( FileValue.factory() ),
     PROFILE( StringArrayValue.factory() ),
+    DOMAIN( StringArrayValue.factory() ),
     VERIFICATION_METHOD( VerificationMethodValue.factory() ),
     PRIVATE_KEY( PrivateKeyValue.factory() ),
     NAMED_SECRET( NamedSecretValue.factory() ),
     CUSTOMLINKS( CustomLinkValue.factory() ),
     REMOTE_WEB_SERVICE( RemoteWebServiceValue.factory() ),;
 
-    private StoredValue.StoredValueFactory storedValueImpl;
+    private final StoredValue.StoredValueFactory storedValueImpl;
 
     PwmSettingSyntax( final StoredValue.StoredValueFactory storedValueImpl )
     {

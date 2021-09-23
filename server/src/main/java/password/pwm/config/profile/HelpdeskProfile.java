@@ -20,6 +20,7 @@
 
 package password.pwm.config.profile;
 
+import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfiguration;
@@ -34,9 +35,9 @@ public class HelpdeskProfile extends AbstractProfile implements Profile
 {
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.Helpdesk;
 
-    protected HelpdeskProfile( final String identifier, final StoredConfiguration storedConfiguration )
+    protected HelpdeskProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedConfiguration )
     {
-        super( identifier, storedConfiguration );
+        super( domainID, identifier, storedConfiguration );
     }
 
     @Override
@@ -61,9 +62,9 @@ public class HelpdeskProfile extends AbstractProfile implements Profile
     public static class HelpdeskProfileFactory implements ProfileFactory
     {
         @Override
-        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final String identifier )
         {
-            return new HelpdeskProfile( identifier, storedConfiguration );
+            return new HelpdeskProfile( domainID, identifier, storedConfiguration );
         }
     }
 }

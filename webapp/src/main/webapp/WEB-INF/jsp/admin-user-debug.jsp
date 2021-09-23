@@ -248,7 +248,7 @@
         </table>
         <br/>
 
-        <% if (JspUtility.getPwmRequest( pageContext ).getConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) ) { %>
+        <% if (JspUtility.getPwmRequest( pageContext ).getDomainConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) ) { %>
         <table>
             <tr>
                 <td colspan="10" class="title">Password Notification Status</td>
@@ -354,9 +354,9 @@
                             <td><%=JspUtility.friendlyWrite(pageContext, ldapPolicy.getDisplayName(JspUtility.locale(request)))%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, userPolicy.getDisplayName(JspUtility.locale(request)))%></td>
                         </tr>
-                        <% for (final PwmPasswordRule rule : PwmPasswordRule.sortedByLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getConfig())) { %>
+                        <% for (final PwmPasswordRule rule : PwmPasswordRule.sortedByLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getDomainConfig())) { %>
                         <tr>
-                            <td><span title="<%=rule.getKey()%>"><%=rule.getLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getConfig())%></span></td>
+                            <td><span title="<%=rule.getKey()%>"><%=rule.getLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getDomainConfig())%></span></td>
                             <td><%=rule.getRuleType()%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, configPolicy.getValue(rule))%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, ldapPolicy.getValue(rule))%></td>

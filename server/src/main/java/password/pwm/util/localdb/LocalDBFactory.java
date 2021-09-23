@@ -22,7 +22,7 @@ package password.pwm.util.localdb;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmEnvironment;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.java.FileSystemUtility;
@@ -31,6 +31,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,6 +40,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
+ * Factory for building {@link LocalDB} instances.
  * @author Jason D. Rivard
  */
 public class LocalDBFactory
@@ -50,18 +52,18 @@ public class LocalDBFactory
             final File dbDirectory,
             final boolean readonly,
             final PwmEnvironment pwmEnvironment,
-            final Configuration configuration
+            final AppConfig appConfig
     )
             throws Exception
     {
         CREATION_LOCK.lock();
         try
         {
-            final Configuration config = ( configuration == null && pwmEnvironment != null )
+            final AppConfig config = ( appConfig == null && pwmEnvironment != null )
                     ? pwmEnvironment.getConfig()
-                    : configuration;
+                    : appConfig;
 
-            final long startTime = System.currentTimeMillis();
+            final Instant startTime = Instant.now();
 
             final String className;
             final Map<String, String> initParameters;
@@ -87,7 +89,6 @@ public class LocalDBFactory
             final LocalDB localDB = new LocalDBAdaptor( dbProvider );
 
             initInstance( dbProvider, dbDirectory, initParameters, className, parameters );
-            final TimeDuration openTime = TimeDuration.of( System.currentTimeMillis() - startTime, TimeDuration.Unit.MILLISECONDS );
 
             if ( !readonly )
             {
@@ -120,7 +121,7 @@ public class LocalDBFactory
                     debugText.append( ", " ).append( StringUtil.formatDiskSize( freeSpace ) ).append( " free" );
                 }
             }
-            LOGGER.info( () -> debugText, () -> openTime );
+            LOGGER.info( () -> debugText, () -> TimeDuration.fromCurrent( startTime ) );
 
             return localDB;
         }
@@ -183,14 +184,14 @@ public class LocalDBFactory
         LOGGER.trace( () -> "db init completed for " + theClass );
     }
 
-    private static Map<LocalDBProvider.Parameter, String> makeParameterMap( final Configuration configuration, final boolean readOnly )
+    private static Map<LocalDBProvider.Parameter, String> makeParameterMap( final AppConfig appConfig, final boolean readOnly )
     {
         final Map<LocalDBProvider.Parameter, String> parameters = new HashMap<>();
         if ( readOnly )
         {
             parameters.put( LocalDBProvider.Parameter.readOnly, Boolean.TRUE.toString() );
         }
-        if ( Boolean.parseBoolean( configuration.readAppProperty( AppProperty.LOCALDB_AGGRESSIVE_COMPACT_ENABLED ) ) )
+        if ( Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.LOCALDB_AGGRESSIVE_COMPACT_ENABLED ) ) )
         {
             parameters.put( LocalDBProvider.Parameter.aggressiveCompact, Boolean.TRUE.toString() );
         }

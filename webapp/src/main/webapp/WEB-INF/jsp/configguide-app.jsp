@@ -50,7 +50,7 @@
                 <div class="setting_body">
                     <%=PwmSetting.PWM_SITE_URL.getDescription(JspUtility.locale(request))%>
                     <br/><br/>
-                    Example: <code><%=PwmSetting.PWM_SITE_URL.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
+                    Example: <code><%=ConfigGuideForm.getSettingExample(configGuideBean,PwmSetting.PWM_SITE_URL)%></code>
                     <br/><br/>
                     <div class="setting_item">
                         <div id="titlePane_<%=ConfigGuideFormField.PARAM_APP_SITEURL%>" style="padding-left: 5px; padding-top: 5px">

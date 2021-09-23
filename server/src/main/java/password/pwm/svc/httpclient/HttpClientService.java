@@ -22,6 +22,7 @@ package password.pwm.svc.httpclient;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.bean.DomainID;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -39,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -47,7 +49,6 @@ public class HttpClientService extends AbstractPwmService implements PwmService
     private static final PwmLogger LOGGER = PwmLogger.forClass( HttpClientService.class );
 
     private Class<PwmHttpClientProvider> httpClientClass;
-    private PwmApplication pwmApplication;
 
     private final Map<PwmHttpClientConfiguration, ThreadLocal<PwmHttpClientProvider>> clients = new ConcurrentHashMap<>(  );
     private final Map<PwmHttpClientProvider, Object> issuedClients = Collections.synchronizedMap( new WeakHashMap<>(  ) );
@@ -68,24 +69,29 @@ public class HttpClientService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication )
+    protected Set<PwmApplication.Condition> openConditions()
+    {
+        return Collections.emptySet();
+    }
+
+    @Override
+    protected STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmApplication = pwmApplication;
         final String implClassName = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_IMPLEMENTATION );
         try
         {
             this.httpClientClass = ( Class<PwmHttpClientProvider> ) this.getClass().getClassLoader().loadClass( implClassName );
-            LOGGER.trace( () -> "loaded http client implementation: " + implClassName );
         }
-        catch ( final Exception e )
+        catch ( final ClassNotFoundException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation(
                     PwmError.ERROR_INTERNAL, "unable to load pwmHttpClass implementation: " + e.getMessage() );
             setStartupError( errorInformation );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        setStatus( STATUS.OPEN );
+
+        return STATUS.OPEN;
     }
 
     @Override
@@ -129,7 +135,7 @@ public class HttpClientService extends AbstractPwmService implements PwmService
         try
         {
             final PwmHttpClientProvider newClient = httpClientClass.getDeclaredConstructor().newInstance();
-            newClient.init( pwmApplication, this, pwmHttpClientConfiguration );
+            newClient.init( getPwmApplication(), this, pwmHttpClientConfiguration );
             issuedClients.put( newClient, null );
             threadLocal.set( newClient );
             stats.increment( StatsKey.createdClients );

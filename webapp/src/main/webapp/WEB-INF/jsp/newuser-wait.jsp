@@ -42,7 +42,7 @@
     try {
         final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
         refreshSeconds = 30 * NewUserServlet.getNewUserProfile(pwmRequest).readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME);
-        checkIntervalSeconds = Long.parseLong(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS));
+        checkIntervalSeconds = Long.parseLong(pwmRequest.getDomainConfig().readAppProperty(AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS));
     } catch (PwmException e) {
         /* noop */
     }

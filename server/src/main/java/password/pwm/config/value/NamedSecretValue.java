@@ -23,7 +23,7 @@ package password.pwm.config.value;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.error.ErrorInformation;
@@ -102,7 +102,7 @@ public class NamedSecretValue implements StoredValue
                     throws PwmOperationalException, PwmUnrecoverableException
             {
                 final Map<String, NamedSecretData> values = new LinkedHashMap<>();
-                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
 
                 try
                 {
@@ -112,19 +112,22 @@ public class NamedSecretValue implements StoredValue
                         final Optional<XmlElement> passwordElement = value.getChild( ELEMENT_PASSWORD );
                         if ( nameElement.isPresent() && passwordElement.isPresent() )
                         {
-                            final String name = nameElement.get().getText();
-                            final String encodedValue = passwordElement.get().getText();
-                            final PasswordData passwordData = new PasswordData( SecureEngine.decryptStringValue( encodedValue, key, PwmBlockAlgorithm.CONFIG ) );
-                            final List<XmlElement> usages = value.getChildren( ELEMENT_USAGE );
-                            final List<String> strUsages = new ArrayList<>();
-                            if ( usages != null )
+                            final Optional<String> name = nameElement.get().getText();
+                            final Optional<String> encodedValue = passwordElement.get().getText();
+                            if ( name.isPresent() && encodedValue.isPresent() )
                             {
-                                for ( final XmlElement usageElement : usages )
+                                final PasswordData passwordData = new PasswordData( SecureEngine.decryptStringValue( encodedValue.get(), key, PwmBlockAlgorithm.CONFIG ) );
+                                final List<XmlElement> usages = value.getChildren( ELEMENT_USAGE );
+                                final List<String> strUsages = new ArrayList<>();
+                                if ( usages != null )
                                 {
-                                    strUsages.add( usageElement.getText() );
+                                    for ( final XmlElement usageElement : usages )
+                                    {
+                                        usageElement.getText().ifPresent( strUsages::add );
+                                    }
                                 }
+                                values.put( name.get(), new NamedSecretData( passwordData, Collections.unmodifiableList( strUsages ) ) );
                             }
-                            values.put( name, new NamedSecretData( passwordData, Collections.unmodifiableList( strUsages ) ) );
                         }
                     }
                 }

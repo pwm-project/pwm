@@ -32,17 +32,14 @@
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="WEB-INF/jsp/fragment/header.jsp" %>
 <body>
-<%
-    final String redirectURL = request.getContextPath() + JspUtility.getPwmRequest(pageContext).getPwmApplication().getConfig().readSettingAsString(PwmSetting.URL_INTRO);
-    response.sendRedirect(redirectURL);
-%>
+<%JspUtility.getPwmRequest(pageContext).getPwmResponse().sendRedirectToIntoPage();%>
 <div id="wrapper">
     <jsp:include page="WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_MainPage"/>
     </jsp:include>
     <div id="centerbody">
         <p>
-            <a href="<%=redirectURL%>">Continue</a>
+            <a href="<pwm:url url="/private" addContext="true"/>">Continue</a>
         </p>
     </div>
     <div class="push"></div>

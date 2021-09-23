@@ -56,7 +56,7 @@
                         <br/>
                         <br/>
                         <div id="titlePane_<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER%>" style="padding-left: 5px; padding-top: 5px" style="display: none">
-                            Example: <code><%=PwmSetting.LDAP_TEST_USER_DN.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
+                            Example: <code><%=ConfigGuideForm.getSettingExample(configGuideBean,PwmSetting.LDAP_TEST_USER_DN)%></code>
                             <br/><br/>
                             <b>LDAP Test User DN</b>
                             <br/>

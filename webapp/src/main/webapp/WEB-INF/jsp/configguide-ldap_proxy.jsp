@@ -32,7 +32,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
-<% final boolean isAD = ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().getTemplates().contains(PwmSettingTemplate.AD); %>
+<% final boolean isAD = ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().get(ConfigGuideForm.DOMAIN_ID).contains(PwmSettingTemplate.AD); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
@@ -50,7 +50,7 @@
                     <pwm:display key="ldap_admin_description" bundle="ConfigGuide"/>
                     <div class="setting_item">
                         <label>
-                            Example: <code><%=PwmSetting.LDAP_PROXY_USER_DN.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
+                            Example: <code><%=ConfigGuideForm.getSettingExample(configGuideBean,PwmSetting.LDAP_PROXY_USER_DN)%></code>
                             <br/><br/>
                             <b><pwm:display key="ldap_admin_title_proxy_dn" bundle="ConfigGuide"/></b>
                             <br/>

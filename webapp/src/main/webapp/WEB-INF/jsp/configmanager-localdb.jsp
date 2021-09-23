@@ -31,23 +31,15 @@
 <%@ page import="password.pwm.util.java.FileSystemUtility" %>
 <%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="password.pwm.PwmApplication" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS);%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    PwmRequest localdb_pwmRequest = null;
-    PwmApplication localdb_pwmApplication = null;
-    try {
-        localdb_pwmRequest = PwmRequest.forRequest(request, response);
-        localdb_pwmApplication = localdb_pwmRequest.getPwmApplication();
-    } catch (PwmException e) {
-        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
-    }
+    PwmApplication localdb_pwmApplication = JspUtility.getPwmRequest( pageContext ).getPwmApplication();
 %>
-
-
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body>
@@ -119,7 +111,8 @@
                             ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                             : localdb_pwmApplication.getLocalDB().getFileLocation() == null
                             ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                            : StringUtil.formatDiskSize(FileSystemUtility.diskSpaceRemaining(localdb_pwmApplication.getLocalDB().getFileLocation())) %>
+                            : StringUtil.formatDiskSize(FileSystemUtility.diskSpaceRemaining(
+                            localdb_pwmApplication.getLocalDB().getFileLocation())) %>
                 </td>
             </tr>
         </table>

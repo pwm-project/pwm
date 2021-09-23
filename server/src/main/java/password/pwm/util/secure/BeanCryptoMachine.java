@@ -26,6 +26,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequestContext;
+import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -53,9 +54,9 @@ public class BeanCryptoMachine<T extends Serializable>
 
     private String newKey()
     {
-        final int length = Integer.parseInt( pwmRequestContext.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
+        final int length = Integer.parseInt( pwmRequestContext.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
 
-        final String random = pwmRequestContext.getPwmApplication().getSecureService().pwmRandom().alphaNumericString( length );
+        final String random = pwmRequestContext.getPwmDomain().getSecureService().pwmRandom().alphaNumericString( length );
 
         // timestamp component for uniqueness
         final String prefix = Long.toString( System.currentTimeMillis(), Character.MAX_RADIX );
@@ -73,12 +74,12 @@ public class BeanCryptoMachine<T extends Serializable>
             return Optional.empty();
         }
 
-        final SecureService secureService = pwmRequestContext.getPwmApplication().getSecureService();
+        final DomainSecureService domainSecureService = pwmRequestContext.getPwmDomain().getSecureService();
         final int delimiterIndex = input.indexOf( DELIMITER );
         final String key = input.substring( 0, delimiterIndex );
         final String payload = input.substring( delimiterIndex + 1 );
-        final PwmSecurityKey pwmSecurityKey = secureService.appendedSecurityKey( key );
-        final Wrapper wrapper = secureService.decryptObject( payload, pwmSecurityKey, Wrapper.class );
+        final PwmSecurityKey pwmSecurityKey = domainSecureService.appendedSecurityKey( key );
+        final Wrapper wrapper = domainSecureService.decryptObject( payload, pwmSecurityKey, Wrapper.class );
 
         final TimeDuration stateAge = TimeDuration.fromCurrent( wrapper.getTimestamp() );
         if ( stateAge.isLongerThan( maxIdleTimeout ) )
@@ -109,11 +110,11 @@ public class BeanCryptoMachine<T extends Serializable>
             this.key = newKey();
         }
 
-        final SecureService secureService = pwmRequestContext.getPwmApplication().getSecureService();
-        final PwmSecurityKey pwmSecurityKey = secureService.appendedSecurityKey( key );
+        final DomainSecureService domainSecureService = pwmRequestContext.getPwmDomain().getSecureService();
+        final PwmSecurityKey pwmSecurityKey = domainSecureService.appendedSecurityKey( key );
         final String className = bean.getClass().getName();
         final String jsonBean = JsonUtil.serialize( bean );
-        final String payload = secureService.encryptObjectToString( new Wrapper( Instant.now(), className, jsonBean ), pwmSecurityKey );
+        final String payload = domainSecureService.encryptObjectToString( new Wrapper( Instant.now(), className, jsonBean ), pwmSecurityKey );
         return key + DELIMITER + payload;
     }
 

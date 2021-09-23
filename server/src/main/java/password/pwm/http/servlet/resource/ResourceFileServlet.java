@@ -21,8 +21,8 @@
 package password.pwm.http.servlet.resource;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -32,9 +32,8 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.http.servlet.PwmServlet;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -49,8 +48,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.zip.GZIPOutputStream;
 
@@ -83,56 +84,22 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
         try
         {
             pwmRequest = PwmRequest.forRequest( req, resp );
+            processAction( pwmRequest );
+            return;
         }
         catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( () -> "unable to satisfy request using standard mechanism, reverting to raw resource server" );
         }
 
-        if ( pwmRequest != null )
-        {
-            try
-            {
-                processAction( pwmRequest );
-            }
-            catch ( final PwmUnrecoverableException e )
-            {
-                LOGGER.error( pwmRequest, () -> "error during resource servlet request processing: " + e.getMessage() );
-            }
-        }
-        else
-        {
-            try
-            {
-                rawRequestProcessor( req, resp );
-            }
-            catch ( final PwmUnrecoverableException e )
-            {
-                LOGGER.error( () -> "error serving raw resource request: " + e.getMessage() );
-            }
-        }
-    }
-
-    private void rawRequestProcessor( final HttpServletRequest req, final HttpServletResponse resp )
-            throws IOException, PwmUnrecoverableException
-    {
-
-        final ResourceFileRequest resourceFileRequest = new ResourceFileRequest( null, ResourceServletConfiguration.defaultConfiguration(), req );
-
-        final FileResource file = resourceFileRequest.getRequestedFileResource();
-
-        if ( file == null || !file.exists() )
-        {
-            resp.sendError( HttpServletResponse.SC_NOT_FOUND );
-            return;
-        }
-
-        handleUncachedResponse( resp, file, false );
+        resp.sendError( 500, "unable to initialize request for resource url" );
     }
 
     protected void processAction( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
+        final Instant startTime = Instant.now();
+
         if ( pwmRequest.getMethod() != HttpMethod.GET )
         {
             throw new PwmUnrecoverableException( new ErrorInformation(
@@ -140,44 +107,23 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
                     "unable to process resource request for request method " + pwmRequest.getMethod() ) );
         }
 
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final ResourceServletService resourceService = pwmApplication.getResourceServletService();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+        final ResourceServletService resourceService = pwmDomain.getResourceServletService();
         final ResourceServletConfiguration resourceConfiguration = resourceService.getResourceServletConfiguration();
 
-        final ResourceFileRequest resourceFileRequest = new ResourceFileRequest( pwmApplication.getConfig(), resourceConfiguration, pwmRequest.getHttpServletRequest() );
+        final ResourceFileRequest resourceFileRequest = new ResourceFileRequest( pwmDomain.getConfig(), resourceConfiguration, pwmRequest.getHttpServletRequest() );
         final String requestURI = resourceFileRequest.getRequestURI();
 
         final FileResource file;
-        try
         {
-            file = resourceFileRequest.getRequestedFileResource();
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            pwmRequest.getPwmResponse().getHttpServletResponse().sendError( HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage() );
-            try
-            {
-                pwmRequest.debugHttpRequestToLog( "returning HTTP 500 status", null );
-            }
-            catch ( final PwmUnrecoverableException e2 )
-            {
-                /* noop */
-            }
-            return;
-        }
+            final Optional<FileResource> resolvedFile = doResolve( resourceService, resourceFileRequest, pwmRequest );
 
-        if ( file == null || !file.exists() )
-        {
-            pwmRequest.getPwmResponse().getHttpServletResponse().sendError( HttpServletResponse.SC_NOT_FOUND );
-            try
+            if ( resolvedFile.isEmpty() )
             {
-                pwmRequest.debugHttpRequestToLog( "returning HTTP 404 status", null );
+                return;
             }
-            catch ( final PwmUnrecoverableException e )
-            {
-                /* noop */
-            }
-            return;
+
+            file = resolvedFile.get();
         }
 
         // Get content type by file name and set default GZIP support and content disposition.
@@ -213,9 +159,11 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
 
             pwmRequest.debugHttpRequestToLog( debugText, () -> TimeDuration.fromCurrent( pwmRequest.getRequestStartTime() ) );
 
-            final MovingAverage cacheHitRatio = resourceService.getCacheHitRatio();
-            StatisticsManager.incrementStat( pwmApplication, Statistic.HTTP_RESOURCE_REQUESTS );
-            cacheHitRatio.update( fromCache ? 1 : 0 );
+            StatisticsClient.incrementStat( pwmDomain, Statistic.HTTP_RESOURCE_REQUESTS );
+            resourceService.getAverageStats().update( ResourceServletService.AverageStat.cacheHitRatio, fromCache ? 1 : 0 );
+            resourceService.getAverageStats().update( ResourceServletService.AverageStat.avgResponseTimeMS, TimeDuration.fromCurrent( startTime ) );
+            resourceService.getCountingStats().increment( ResourceServletService.CountingStat.requestsServed );
+            resourceService.getCountingStats().increment( ResourceServletService.CountingStat.bytesServed, file.length() );
         }
         catch ( final Exception e )
         {
@@ -230,6 +178,52 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             }
 
         }
+    }
+
+    private Optional<FileResource> doResolve(
+            final ResourceServletService resourceService,
+            final ResourceFileRequest resourceFileRequest,
+            final PwmRequest pwmRequest
+
+    )
+            throws IOException
+    {
+        try
+        {
+            final Optional<FileResource> resolvedFile = resourceFileRequest.getRequestedFileResource();
+
+            if ( resolvedFile.isEmpty() )
+            {
+                pwmRequest.getPwmResponse().getHttpServletResponse().sendError( HttpServletResponse.SC_NOT_FOUND );
+                resourceService.getCountingStats().increment( ResourceServletService.CountingStat.requestsNotFound );
+
+                try
+                {
+                    pwmRequest.debugHttpRequestToLog( "returning HTTP 404 status", null );
+                }
+                catch ( final PwmUnrecoverableException e )
+                {
+                    /* noop */
+                }
+                return Optional.empty();
+            }
+
+            return Optional.of( resolvedFile.get() );
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            pwmRequest.getPwmResponse().getHttpServletResponse().sendError( HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage() );
+            try
+            {
+                pwmRequest.debugHttpRequestToLog( "returning HTTP 500 status", null );
+            }
+            catch ( final PwmUnrecoverableException e2 )
+            {
+                /* noop */
+            }
+        }
+
+        return Optional.empty();
     }
 
     private String makeDebugText( final boolean fromCache, final boolean acceptsGzip, final boolean uncacheable )
@@ -278,7 +272,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
     )
             throws UncacheableResourceException, IOException, PwmUnrecoverableException
     {
-        final FileResource file = resourceFileRequest.getRequestedFileResource();
+        final FileResource file = resourceFileRequest.getRequestedFileResource().orElseThrow();
 
         if ( file.length() > resourceFileRequest.getResourceServletConfiguration().getMaxCacheBytes() )
         {
@@ -286,14 +280,14 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
         }
 
         boolean fromCache = false;
-        final CacheKey cacheKey = new CacheKey( file, resourceFileRequest.allowsCompression() );
+        final CacheKey cacheKey = CacheKey.createCacheKey( file, resourceFileRequest.allowsCompression() );
         CacheEntry cacheEntry = responseCache.getIfPresent( cacheKey );
         if ( cacheEntry == null )
         {
             final Map<String, String> headers = new HashMap<>();
             final ByteArrayOutputStream tempOutputStream = new ByteArrayOutputStream();
 
-            try ( InputStream input = resourceFileRequest.getRequestedFileResource().getInputStream() )
+            try ( InputStream input = file.getInputStream() )
             {
                 if ( resourceFileRequest.allowsCompression() )
                 {

@@ -21,8 +21,11 @@
 package password.pwm.util.macro;
 
 import password.pwm.AppProperty;
+import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.java.StringUtil;
@@ -36,14 +39,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class UserMacros
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserMacros.class );
 
-    static final List<Macro> USER_MACROS = Collections.unmodifiableList( Stream.of(
+    static final List<Macro> USER_MACROS = List.of(
             new UserIDMacro(),
             new UserLdapMacro(),
             new UserPwExpirationTimeMacro(),
@@ -53,13 +54,14 @@ public class UserMacros
             new UserLdapProfileMacro(),
             new OtpSetupTimeMacro(),
             new ResponseSetupTimeMacro(),
+            new DefaultDomainEmailFromAddressMacro(),
+
 
             new TargetUserIDMacro(),
             new TargetUserLdapMacro(),
             new TargetUserPwExpirationTimeMacro(),
             new TargetUserDaysUntilPwExpireMacro(),
-            new TargetUserEmailMacro()
-            ).collect( Collectors.toList() ) );
+            new TargetUserEmailMacro() );
 
     abstract static class AbstractUserMacro extends AbstractMacro
     {
@@ -79,16 +81,6 @@ public class UserMacros
         )
                 throws MacroParseException
         {
-            final UserInfo userInfo;
-            {
-                final Optional<UserInfo> optionalUserInfo = loadUserInfo( macroRequest );
-                if ( !optionalUserInfo.isPresent() )
-                {
-                    return "";
-                }
-                userInfo = optionalUserInfo.get();
-            }
-
             final List<String> parameters = splitMacroParameters( matchValue, ignoreWords() );
 
             final String ldapAttr;
@@ -101,7 +93,96 @@ public class UserMacros
                 throw new MacroParseException( "required attribute name parameter is missing" );
             }
 
-            final int length;
+            final int length = readLengthParam( parameters, macroRequest );
+
+            final String paddingChar;
+            if ( parameters.size() > 2 && !parameters.get( 2 ).isEmpty() )
+            {
+                paddingChar = parameters.get( 2 );
+            }
+            else
+            {
+                paddingChar = "";
+            }
+
+            if ( parameters.size() > 3 )
+            {
+                throw new MacroParseException( "too many parameters" );
+            }
+
+           final String ldapValue = readLdapValue( macroRequest, ldapAttr, matchValue );
+
+            final StringBuilder returnValue = new StringBuilder();
+            returnValue.append( ldapValue == null
+                    ? ""
+                    : ldapValue );
+
+            if ( length > 0 && length < returnValue.length() )
+            {
+                returnValue.delete( length, returnValue.length() );
+            }
+
+            if ( length > 0 && paddingChar.length() > 0 )
+            {
+                while ( returnValue.length() < length )
+                {
+                    returnValue.append( paddingChar );
+                }
+            }
+
+            return returnValue.toString();
+        }
+
+        private String readLdapValue(
+                final MacroRequest macroRequest,
+                final String ldapAttr,
+                final String matchValue
+
+        )
+        {
+            final UserInfo userInfo;
+            {
+                final Optional<UserInfo> optionalUserInfo = loadUserInfo( macroRequest );
+                if ( optionalUserInfo.isEmpty() )
+                {
+                    return "";
+                }
+                userInfo = optionalUserInfo.get();
+            }
+
+            final String ldapValue;
+            if ( "dn".equalsIgnoreCase( ldapAttr ) )
+            {
+                ldapValue = userInfo.getUserIdentity().getUserDN();
+            }
+            else
+            {
+                try
+                {
+                    ldapValue = userInfo.readStringAttribute( ldapAttr );
+                }
+                catch ( final PwmUnrecoverableException e )
+                {
+                    LOGGER.trace( macroRequest.getSessionLabel(), () -> "could not replace value for '" + matchValue + "', ldap error: " + e.getMessage() );
+                    return "";
+                }
+
+                if ( ldapValue == null || ldapValue.length() < 1 )
+                {
+                    LOGGER.trace( macroRequest.getSessionLabel(), () -> "could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'" );
+                    return "";
+                }
+            }
+            return ldapValue;
+        }
+
+        private static int readLengthParam(
+                final List<String> parameters,
+                final MacroRequest macroRequest
+        )
+                throws MacroParseException
+        {
+            int length = 0;
             if ( parameters.size() > 1 && !parameters.get( 1 ).isEmpty() )
             {
                 try
@@ -128,69 +209,8 @@ public class UserMacros
                     throw new MacroParseException( "length parameter must be greater than zero" );
                 }
             }
-            else
-            {
-                length = 0;
-            }
 
-            final String paddingChar;
-            if ( parameters.size() > 2 && !parameters.get( 2 ).isEmpty() )
-            {
-                paddingChar = parameters.get( 2 );
-            }
-            else
-            {
-                paddingChar = "";
-            }
-
-            if ( parameters.size() > 3 )
-            {
-                throw new MacroParseException( "too many parameters" );
-            }
-
-            final String ldapValue;
-            if ( "dn".equalsIgnoreCase( ldapAttr ) )
-            {
-                ldapValue = userInfo.getUserIdentity().getUserDN();
-            }
-            else
-            {
-                try
-                {
-                    ldapValue = userInfo.readStringAttribute( ldapAttr );
-                }
-                catch ( final PwmUnrecoverableException e )
-                {
-                    LOGGER.trace( macroRequest.getSessionLabel(), () -> "could not replace value for '" + matchValue + "', ldap error: " + e.getMessage() );
-                    return "";
-                }
-
-                if ( ldapValue == null || ldapValue.length() < 1 )
-                {
-                    LOGGER.trace( macroRequest.getSessionLabel(), () -> "could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'" );
-                    return "";
-                }
-            }
-
-            final StringBuilder returnValue = new StringBuilder();
-            returnValue.append( ldapValue == null
-                    ? ""
-                    : ldapValue );
-
-            if ( length > 0 && length < returnValue.length() )
-            {
-                returnValue.delete( length, returnValue.length() );
-            }
-
-            if ( length > 0 && paddingChar.length() > 0 )
-            {
-                while ( returnValue.length() < length )
-                {
-                    returnValue.append( paddingChar );
-                }
-            }
-
-            return returnValue.toString();
+            return length;
         }
 
         abstract Optional<UserInfo> loadUserInfo( MacroRequest macroRequest );
@@ -266,7 +286,7 @@ public class UserMacros
                 if ( optionalUserInfo.isPresent() )
                 {
                     final String username = optionalUserInfo.get().getUsername();
-                    if ( !StringUtil.isEmpty( username ) )
+                    if ( StringUtil.notEmpty( username ) )
                     {
                         return username;
                     }
@@ -501,7 +521,7 @@ public class UserMacros
                 if ( optionalUserInfo.isPresent() )
                 {
                     final String emailAddress = optionalUserInfo.get().getUserEmailAddress();
-                    if ( !StringUtil.isEmpty( emailAddress ) )
+                    if ( StringUtil.notEmpty( emailAddress ) )
                     {
 
                         return emailAddress;
@@ -601,6 +621,44 @@ public class UserMacros
         public Set<MacroDefinitionFlag> flags( )
         {
             return FLAGS;
+        }
+    }
+
+    public static class DefaultDomainEmailFromAddressMacro extends AbstractUserMacro
+    {
+        private static final Pattern PATTERN = Pattern.compile( "@DefaultEmailFromAddress@" );
+
+        @Override
+        public Pattern getRegExPattern( )
+        {
+            return PATTERN;
+        }
+
+        @Override
+        public String replaceValue(
+                final String matchValue,
+                final MacroRequest request
+        )
+                throws MacroParseException
+        {
+            final UserInfo userInfo = request.getUserInfo();
+            if ( userInfo != null )
+            {
+                final UserIdentity userIdentity = userInfo.getUserIdentity();
+                if ( userIdentity != null )
+                {
+                    final DomainID domainID = userIdentity.getDomainID();
+                    if ( domainID != null )
+                    {
+                        final PwmDomain pwmDomain = request.getPwmApplication().domains().get( domainID );
+                        if ( pwmDomain != null )
+                        {
+                            return pwmDomain.getConfig().readSettingAsString( PwmSetting.EMAIL_DOMAIN_FROM_ADDRESS );
+                        }
+                    }
+                }
+            }
+            throw new MacroParseException( "@DefaultEmailFromAddress@: domain unspecified on macro request" );
         }
     }
 

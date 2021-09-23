@@ -23,7 +23,7 @@ package password.pwm.util.secure;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.UnsupportedEncodingException;
@@ -43,13 +43,13 @@ public class BCrypt
         return OpenBSDBCrypt.generate( password.toLowerCase().toCharArray(), salt, bcryptRounds );
     }
 
-    public static boolean testAnswer( final String password, final String hashedPassword, final Configuration configuration )
+    public static boolean testAnswer( final String password, final String hashedPassword, final AppConfig appConfig )
     {
         final char[] pwCharArray = password.toLowerCase().toCharArray();
         final boolean bsdCryptPass = OpenBSDBCrypt.checkPassword( hashedPassword, pwCharArray );
         if ( !bsdCryptPass )
         {
-            final boolean enableJBCrypt = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.CONFIG_JBCRYPT_PWLIB_ENABLE ) );
+            final boolean enableJBCrypt = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.CONFIG_JBCRYPT_PWLIB_ENABLE ) );
             if ( enableJBCrypt )
             {
                 // legacy check, older jbcrypt library used previously incorrectly encoded some characters

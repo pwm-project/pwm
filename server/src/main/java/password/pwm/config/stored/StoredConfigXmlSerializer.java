@@ -21,12 +21,12 @@
 package password.pwm.config.stored;
 
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingFlag;
-import password.pwm.config.PwmSettingTemplate;
-import password.pwm.config.PwmSettingTemplateSet;
+import password.pwm.config.PwmSettingScope;
 import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StoredValueEncoder;
@@ -36,8 +36,8 @@ import password.pwm.config.value.ValueFactory;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -54,17 +54,14 @@ import java.io.OutputStream;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -76,6 +73,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( StoredConfigXmlSerializer.class );
     private static final String XML_FORMAT_VERSION = "5";
+    private static final SessionLabel SESSION_LABEL = SessionLabel.SYSTEM_LABEL;
     private static final boolean ENABLE_PERF_LOGGING = false;
 
     @Override
@@ -90,7 +88,6 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
         final Instant startPreProcessXml = Instant.now();
         XmlCleaner.preProcessXml( xmlDocument );
         perfLog( "startPreProcessXml", startPreProcessXml );
-
 
         final XmlInputDocumentReader xmlInputDocumentReader = new XmlInputDocumentReader( xmlDocument );
         final StoredConfigData storedConfigData = xmlInputDocumentReader.getStoredConfigData();
@@ -108,7 +105,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             throws PwmUnrecoverableException, IOException
     {
         final XmlFactory xmlFactory = XmlFactory.getFactory();
-        final XmlDocument xmlDocument = xmlFactory.newDocument( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_ROOT );
+        final XmlDocument xmlDocument = xmlFactory.newDocument( StoredConfigXmlConstants.XML_ELEMENT_ROOT );
 
         XmlOutputHandler.makeXmlOutput( storedConfiguration, xmlDocument.getRootElement(), outputSettings );
 
@@ -127,8 +124,6 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
     static class XmlInputDocumentReader
     {
-        private final EnumMap<PwmSettingCategory, List<String>> cachedProfiles = new EnumMap<>( PwmSettingCategory.class );
-
         private final XmlDocument document;
         private final PwmSecurityKey pwmSecurityKey;
 
@@ -142,7 +137,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
         StoredConfigData getStoredConfigData()
         {
             final String createTime = readCreateTime();
-            final Instant modifyTime = readModifyTime();
+            final Optional<Instant> modifyTime = readModifyTime();
 
             // define the parallelized the readers
             final List<Supplier<List<StoredConfigData.ValueAndMetaCarrier>>> suppliers = new ArrayList<>();
@@ -152,12 +147,12 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
             // execute the readers and put results in the queue
             final Queue<StoredConfigData.ValueAndMetaCarrier> values = new ConcurrentLinkedQueue<>();
-            suppliers.parallelStream().forEach( ( supplier ) -> values.addAll( supplier.get() ) );
+            suppliers.forEach( ( supplier ) -> values.addAll( supplier.get() ) );
 
             final Instant startStoredConfigDataBuild = Instant.now();
             final StoredConfigData storedConfigData = StoredConfigData.builder()
                     .createTime( createTime )
-                    .modifyTime( modifyTime )
+                    .modifyTime( modifyTime.orElse( Instant.now() ) )
                     .metaDatas( StoredConfigData.carrierAsMetaDataMap( values ) )
                     .storedValues( StoredConfigData.carrierAsStoredValueMap( values ) )
                     .build();
@@ -171,31 +166,33 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             final List<StoredConfigData.ValueAndMetaCarrier> valueAndMetaWrapper = new ArrayList<>();
             for ( final ConfigurationProperty configurationProperty : ConfigurationProperty.values() )
             {
-                final Optional<XmlElement> propertyElement = xpathForConfigProperty( configurationProperty );
-                if ( propertyElement.isPresent() && !StringUtil.isEmpty( propertyElement.get().getText() ) )
+                xpathForConfigProperty( configurationProperty ).ifPresent( propertyElement -> propertyElement.getText().ifPresent( propertyText ->
                 {
-                    final StoredConfigItemKey key = StoredConfigItemKey.fromConfigurationProperty( configurationProperty );
-                    final StoredValue storedValue = new StringValue( propertyElement.get().getText() );
-                    final ValueMetaData metaData = readMetaDataFromXmlElement( key, propertyElement.get() ).orElse( null );
+                    final StoredConfigKey key = StoredConfigKey.forConfigurationProperty( configurationProperty );
+                    final StoredValue storedValue = new StringValue( propertyText );
+                    final ValueMetaData metaData = readMetaDataFromXmlElement( key, propertyElement ).orElse( null );
                     valueAndMetaWrapper.add( new StoredConfigData.ValueAndMetaCarrier( key, storedValue, metaData ) );
-                }
+                } ) );
             }
             perfLog( "startReadProperties", startReadProperties );
             return valueAndMetaWrapper;
         }
 
-        private List<StoredConfigData.ValueAndMetaCarrier> readSettings( )
+        private List<StoredConfigData.ValueAndMetaCarrier> readSettings()
         {
             final Instant startReadSettings = Instant.now();
             final Function<XmlElement, Stream<StoredConfigData.ValueAndMetaCarrier>> readSettingForXmlElement = xmlElement ->
             {
                 final Optional<StoredConfigData.ValueAndMetaCarrier> valueAndMetaCarrier = readSetting( xmlElement );
-                return valueAndMetaCarrier.map( Stream::of ).orElseGet( Stream::empty );
+                return valueAndMetaCarrier.stream();
             };
 
+            final Instant startSettingElementXPath = Instant.now();
             final List<XmlElement> settingElements = xpathForAllSetting();
+            perfLog( "startSettingElementXPath", startSettingElementXPath );
+
             final List<StoredConfigData.ValueAndMetaCarrier> results = settingElements
-                    .parallelStream()
+                    .stream()
                     .flatMap( readSettingForXmlElement )
                     .collect( Collectors.toList() );
             perfLog( "startReadSettings", startReadSettings );
@@ -213,23 +210,66 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
         Optional<StoredConfigData.ValueAndMetaCarrier> readSetting( final XmlElement settingElement )
         {
-            final String settingKey = settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY );
-            final String profileID = settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_PROFILE );
-            final Optional<PwmSetting> optionalPwmSetting = PwmSetting.forKey( settingKey );
-            if ( optionalPwmSetting.isPresent() )
+            final Instant startReadSetting = Instant.now();
+
+            final Optional<String> settingKey = settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY );
+            final Optional<String> profileID = settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_PROFILE );
+
+            if ( settingKey.isPresent() )
             {
-                final PwmSetting pwmSetting = optionalPwmSetting.get();
-                final boolean defaultValueSaved = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_DEFAULT ).isPresent();
-                final StoredConfigItemKey key = StoredConfigItemKey.fromSetting( pwmSetting, profileID );
-                final ValueMetaData metaData = readMetaDataFromXmlElement( key, settingElement ).orElse( null );
+                final Optional<PwmSetting> optionalPwmSetting = PwmSetting.forKey( settingKey.get() );
+                if ( optionalPwmSetting.isPresent() )
+                {
+                    final PwmSetting pwmSetting = optionalPwmSetting.get();
+                    final boolean defaultValueSaved = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_DEFAULT ).isPresent();
+                    final DomainID domainID = readDomainIdForSetting( settingElement, pwmSetting );
+                    final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, profileID.orElse( null ), domainID );
+                    final ValueMetaData metaData = readMetaDataFromXmlElement( key, settingElement ).orElse( null );
 
-                final StoredValue storedValue = defaultValueSaved
-                        ? null
-                        : ValueFactory.fromXmlValues( pwmSetting, settingElement, pwmSecurityKey );
+                    final StoredValue storedValue = defaultValueSaved
+                            ? null
+                            : ValueFactory.fromXmlValues( pwmSetting, settingElement, pwmSecurityKey );
 
-                return Optional.of( new StoredConfigData.ValueAndMetaCarrier( key, storedValue, metaData ) );
+                    perfLog( "startReadSetting: " + key, startReadSetting );
+
+                    return Optional.of( new StoredConfigData.ValueAndMetaCarrier( key, storedValue, metaData ) );
+                }
             }
 
+            return Optional.empty();
+        }
+
+        private static DomainID readDomainIdForSetting( final XmlElement xmlElement, final PwmSetting pwmSetting )
+        {
+            final Optional<DomainID> specifiedDomain = readDomainIDForNonSystemDomainElement( xmlElement );
+            if ( specifiedDomain.isPresent() )
+            {
+                return specifiedDomain.get();
+            }
+
+            if ( pwmSetting.getCategory().getScope() == PwmSettingScope.SYSTEM )
+            {
+                return DomainID.systemId();
+            }
+
+            return DomainID.DOMAIN_ID_DEFAULT;
+        }
+
+        private static Optional<DomainID> readDomainIDForNonSystemDomainElement( final XmlElement xmlElement )
+        {
+            final Optional<String> domainID = xmlElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_DOMAIN );
+            if ( domainID.isPresent() )
+            {
+                final String domainIdStr = domainID.get();
+                if ( DomainID.systemId().stringValue().equals( domainIdStr ) )
+                {
+                    return Optional.of( DomainID.systemId() );
+                }
+                else
+                {
+                    return Optional.of( DomainID.create( domainIdStr ) );
+                }
+            }
             return Optional.empty();
         }
 
@@ -241,26 +281,19 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
         String readCreateTime()
         {
             final XmlElement rootElement = document.getRootElement();
-            final String createTimeString = rootElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_CREATE_TIME );
-            if ( StringUtil.isEmpty( createTimeString ) )
-            {
-                throw new IllegalStateException( "missing createTime timestamp" );
-            }
-            else
-            {
-                return createTimeString;
-            }
+            return rootElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_CREATE_TIME )
+                    .orElseThrow( () -> new IllegalStateException( "missing createTime timestamp" ) );
         }
 
-        Instant readModifyTime()
+        Optional<Instant> readModifyTime()
         {
             final XmlElement rootElement = document.getRootElement();
-            final String modifyTimeString = rootElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_TIME );
-            if ( !StringUtil.isEmpty( modifyTimeString ) )
+            final Optional<String> modifyTimeString = rootElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_TIME );
+            if ( modifyTimeString.isPresent() )
             {
                 try
                 {
-                    return JavaHelper.parseIsoToInstant( modifyTimeString );
+                    return Optional.of( JavaHelper.parseIsoToInstant( modifyTimeString.get() ) );
                 }
                 catch ( final Exception e )
                 {
@@ -268,34 +301,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                 }
             }
 
-            return null;
-        }
-
-        private final LazySupplier<PwmSettingTemplateSet> templateSetSupplier = new LazySupplier<>( () ->
-        {
-            final Set<PwmSettingTemplate> templates = EnumSet.noneOf( PwmSettingTemplate.class );
-            templates.add( readTemplateValue( PwmSetting.TEMPLATE_LDAP ) );
-            templates.add( readTemplateValue( PwmSetting.TEMPLATE_STORAGE ) );
-            templates.add( readTemplateValue( PwmSetting.DB_VENDOR_TEMPLATE ) );
-            return new PwmSettingTemplateSet( templates );
-        } );
-
-        private PwmSettingTemplate readTemplateValue( final PwmSetting pwmSetting )
-        {
-            final Optional<XmlElement> settingElement = xpathForSetting( pwmSetting, null );
-            if ( settingElement.isPresent() )
-            {
-                try
-                {
-                    final String strValue = ( String ) ValueFactory.fromXmlValues( pwmSetting, settingElement.get(), null ).toNativeObject();
-                    return JavaHelper.readEnumFromString( PwmSettingTemplate.class, null, strValue );
-                }
-                catch ( final IllegalStateException e )
-                {
-                    LOGGER.error( () -> "error reading template", e );
-                }
-            }
-            return null;
+            return Optional.empty();
         }
 
         private List<StoredConfigData.ValueAndMetaCarrier> readLocaleBundles()
@@ -303,25 +309,32 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             final Instant startReadLocaleBundles = Instant.now();
             final Function<XmlElement, Stream<StoredConfigData.ValueAndMetaCarrier>> xmlToLocaleBundleReader = xmlElement ->
             {
-                final String bundleName = xmlElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_BUNDLE );
-                final Optional<PwmLocaleBundle> pwmLocaleBundle = PwmLocaleBundle.forKey( bundleName );
-                if ( pwmLocaleBundle.isPresent() )
+                final Optional<String> bundleName = xmlElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_BUNDLE );
+                if ( bundleName.isPresent() )
                 {
-                    final String key = xmlElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY );
-                    if ( pwmLocaleBundle.get().getDisplayKeys().contains( key ) )
+                    final Optional<PwmLocaleBundle> pwmLocaleBundle = PwmLocaleBundle.forKey( bundleName.get() );
+                    if ( pwmLocaleBundle.isPresent() )
                     {
-                        final Map<String, String> bundleMap = new LinkedHashMap<>();
-                        for ( final XmlElement valueElement : xmlElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE ) )
+                        final Optional<String> key = xmlElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY );
+                        if ( key.isPresent() )
                         {
-                            final String localeStrValue = valueElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE );
-                            bundleMap.put( localeStrValue == null ? "" : localeStrValue, valueElement.getText() );
-                        }
-                        if ( !bundleMap.isEmpty() )
-                        {
-                            final StoredConfigItemKey storedConfigItemKey = StoredConfigItemKey.fromLocaleBundle( pwmLocaleBundle.get(), key );
-                            final StoredValue storedValue = new LocalizedStringValue( bundleMap );
-                            final ValueMetaData metaData = readMetaDataFromXmlElement( storedConfigItemKey, xmlElement ).orElse( null );
-                            return Stream.of( new StoredConfigData.ValueAndMetaCarrier( storedConfigItemKey, storedValue, metaData ) );
+                            if ( pwmLocaleBundle.get().getDisplayKeys().contains( key.get() ) )
+                            {
+                                final Map<String, String> bundleMap = new LinkedHashMap<>();
+                                for ( final XmlElement valueElement : xmlElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE ) )
+                                {
+                                    final String localeStrValue = valueElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE ).orElse( "" );
+                                    valueElement.getText().ifPresent( text -> bundleMap.put( localeStrValue, text ) );
+                                }
+                                if ( !bundleMap.isEmpty() )
+                                {
+                                    final DomainID domainID = readDomainIDForNonSystemDomainElement( xmlElement ).orElse( DomainID.systemId() );
+                                    final StoredConfigKey storedConfigKey = StoredConfigKey.forLocaleBundle( pwmLocaleBundle.get(), key.get(), domainID );
+                                    final StoredValue storedValue = new LocalizedStringValue( bundleMap );
+                                    final ValueMetaData metaData = readMetaDataFromXmlElement( storedConfigKey, xmlElement ).orElse( null );
+                                    return Stream.of( new StoredConfigData.ValueAndMetaCarrier( storedConfigKey, storedValue, metaData ) );
+                                }
+                            }
                         }
                     }
                 }
@@ -330,43 +343,61 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             };
 
             final List<StoredConfigData.ValueAndMetaCarrier> results = xpathForLocaleBundles()
-                    .parallelStream()
+                    .stream()
                     .flatMap( xmlToLocaleBundleReader )
                     .collect( Collectors.toList() );
             perfLog( "startReadLocaleBundles", startReadLocaleBundles );
             return results;
         }
 
-        private Optional<ValueMetaData> readMetaDataFromXmlElement( final StoredConfigItemKey key, final XmlElement xmlElement )
+        private Optional<ValueMetaData> readMetaDataFromXmlElement( final StoredConfigKey key, final XmlElement xmlElement )
         {
             Instant instant = null;
             {
-                final String modifyTimeValue = xmlElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_TIME );
-                if ( !StringUtil.isEmpty( modifyTimeValue ) )
+                final Optional<String> modifyTimeValue = xmlElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_TIME );
+                if ( modifyTimeValue.isPresent() )
                 {
                     try
                     {
-                        instant = JavaHelper.parseIsoToInstant( modifyTimeValue );
+                        instant = JavaHelper.parseIsoToInstant( modifyTimeValue.get() );
                     }
                     catch ( final DateTimeParseException e )
                     {
-                        e.printStackTrace();
+                        LOGGER.warn( () -> "error parsing modifyTime for key '" + key.toString() + "', error: " + e.getMessage() );
                     }
                 }
             }
 
             UserIdentity userIdentity = null;
+
+            // oldStyle modifyUser attribute
             {
-                final String modifyUserValue = xmlElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_USER );
-                if ( !StringUtil.isEmpty( modifyUserValue ) )
+                final Optional<String> modifyUserValue = xmlElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_USER );
+                if ( modifyUserValue.isPresent() )
                 {
                     try
                     {
-                        userIdentity = UserIdentity.fromDelimitedKey( modifyUserValue );
+                        userIdentity = UserIdentity.fromDelimitedKey( SESSION_LABEL, modifyUserValue.get() );
+                    }
+                    catch ( final Exception e )
+                    {
+                        LOGGER.trace( () -> "unable to parse userIdentity attribute metadata for key " + key.toString() );
+                    }
+                }
+            }
+
+            // newstyle modifyUser xml value
+            {
+                final Optional<XmlElement> metaElement = xmlElement.getChild( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_USER );
+                if ( metaElement.isPresent() )
+                {
+                    try
+                    {
+                        userIdentity = UserIdentity.fromDelimitedKey( SESSION_LABEL, metaElement.get().getText().orElse( "" ) );
                     }
                     catch ( final DateTimeParseException | PwmUnrecoverableException e )
                     {
-                        LOGGER.trace( () -> "unable to parse userIdentity metadata for key " + key.toString() );
+                        LOGGER.trace( () -> "unable to parse userIdentity element for key " + key.toString() );
                     }
                 }
             }
@@ -383,12 +414,6 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
         {
             final String xpathString = "//localeBundle";
             return document.evaluateXpathToElements( xpathString );
-        }
-
-        XmlElement xpathForSettings()
-        {
-            return document.getRootElement().getChild( StoredConfigXmlConstants.XML_ELEMENT_SETTINGS )
-                    .orElseThrow( () -> new IllegalStateException( "configuration xml document missing 'settings' element" ) );
         }
 
         List<XmlElement> xpathForAllSetting()
@@ -472,19 +497,19 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                     .storedValueEncoderMode( figureEncoderMode( storedConfiguration, outputSettings ) )
                     .build();
 
-            final Consumer<StoredConfigItemKey> xmlSettingWriter = storedConfigItemKey ->
+            final Consumer<StoredConfigKey> xmlSettingWriter = storedConfigItemKey ->
             {
-                final PwmSetting pwmSetting = storedConfigItemKey.toPwmSetting();
-                final String profileID = storedConfigItemKey.getProfileID();
-                final StoredValue storedValue = storedConfiguration.readSetting( pwmSetting, profileID );
-                final XmlElement settingElement = makeSettingXmlElement( storedConfiguration, pwmSetting, profileID, storedValue, xmlOutputProcessData );
-                decorateElementWithMetaData( storedConfiguration, StoredConfigItemKey.fromSetting( pwmSetting, profileID ), settingElement );
-                settingsElement.addContent( settingElement );
+                storedConfiguration.readStoredValue( storedConfigItemKey ).ifPresent( ( storedValue ->
+                {
+                    final XmlElement settingElement = makeSettingXmlElement( storedConfiguration, storedConfigItemKey, storedValue, xmlOutputProcessData );
+                    decorateElementWithMetaData( storedConfiguration, storedConfigItemKey, settingElement );
+                    settingsElement.addContent( settingElement );
+                } ) );
             };
 
             StoredConfigurationUtil.allPossibleSettingKeysForConfiguration( storedConfiguration )
-                    .parallelStream()
-                    .filter( ( key ) -> StoredConfigItemKey.RecordType.SETTING.equals( key.getRecordType() ) )
+                    .stream()
+                    .filter( ( key ) -> StoredConfigKey.RecordType.SETTING.equals( key.getRecordType() ) )
                     .filter( ( key ) -> !key.toPwmSetting().getFlags().contains( PwmSettingFlag.Deprecated ) )
                     .sorted()
                     .forEachOrdered( xmlSettingWriter );
@@ -519,18 +544,24 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
         static XmlElement makeSettingXmlElement(
                 final StoredConfiguration storedConfiguration,
-                final PwmSetting pwmSetting,
-                final String profileID,
+                final StoredConfigKey key,
                 final StoredValue storedValue,
                 final XmlOutputProcessData xmlOutputProcessData
         )
         {
+            Objects.requireNonNull( storedValue );
+
+            final PwmSetting pwmSetting = key.toPwmSetting();
+            final String profileID = key.getProfileID();
+
             final XmlFactory xmlFactory = XmlFactory.getFactory();
 
             final XmlElement settingElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_SETTING );
+
+
             settingElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY, pwmSetting.getKey() );
 
-            if ( !StringUtil.isEmpty( profileID ) )
+            if ( StringUtil.notEmpty( profileID ) )
             {
                 settingElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_PROFILE, profileID );
             }
@@ -544,7 +575,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             }
 
             final List<XmlElement> valueElements = new ArrayList<>(  );
-            if ( storedConfiguration != null && storedConfiguration.isDefaultValue( pwmSetting, profileID ) )
+            if ( storedConfiguration != null && StoredConfigurationUtil.isDefaultValue( storedConfiguration, key ) )
             {
                 final XmlElement defaultValue = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_DEFAULT );
                 valueElements.add( defaultValue );
@@ -554,14 +585,28 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                 valueElements.addAll( storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, xmlOutputProcessData ) );
             }
 
+            decorateElementWithDomain( storedConfiguration, key, settingElement );
             settingElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION, String.valueOf( storedValue.currentSyntaxVersion() ) );
             settingElement.addContent( valueElements );
             return settingElement;
         }
 
+        private static void decorateElementWithDomain(
+                final StoredConfiguration storedConfiguration,
+                final StoredConfigKey key,
+                final XmlElement xmlElement
+        )
+        {
+            final DomainID domainID = key.getDomainID();
+            if ( !domainID.isSystem() || StoredConfigurationUtil.domainList( storedConfiguration ).size() > 1 )
+            {
+                xmlElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_DOMAIN, domainID.stringValue() );
+            }
+        }
+
         private static void decorateElementWithMetaData(
                 final StoredConfiguration storedConfiguration,
-                final StoredConfigItemKey key,
+                final StoredConfigKey key,
                 final XmlElement xmlElement
         )
         {
@@ -571,7 +616,9 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             {
                 if ( valueMetaData.get().getUserIdentity() != null )
                 {
-                    xmlElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_USER, valueMetaData.get().getUserIdentity().toDelimitedKey() );
+                    final XmlElement metaElement = XmlFactory.getFactory().newElement( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_USER );
+                    metaElement.addText( valueMetaData.get().getUserIdentity().toDelimitedKey() );
+                    xmlElement.addContent( metaElement );
                 }
 
                 if ( valueMetaData.get().getModifyDate() != null )
@@ -594,7 +641,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                             final XmlElement propertyElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_PROPERTY );
                             propertyElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY, configurationProperty.getKey() );
                             propertyElement.addText( s );
-                            decorateElementWithMetaData( storedConfiguration, StoredConfigItemKey.fromConfigurationProperty( configurationProperty ), propertyElement );
+                            decorateElementWithMetaData( storedConfiguration, StoredConfigKey.forConfigurationProperty( configurationProperty ), propertyElement );
                             propertiesElement.addContent( propertyElement );
                         }
                 );
@@ -607,31 +654,36 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
         {
             final XmlFactory xmlFactory = XmlFactory.getFactory();
             final List<XmlElement> returnList = new ArrayList<>();
-            for ( final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.values() )
+            for ( final DomainID domainID : StoredConfigurationUtil.domainList( storedConfiguration ) )
             {
-                for ( final String key : pwmLocaleBundle.getDisplayKeys() )
+                for ( final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.values() )
                 {
-                    final Map<String, String> localeBundle = storedConfiguration.readLocaleBundleMap( pwmLocaleBundle, key );
-                    if ( !JavaHelper.isEmpty( localeBundle ) )
+                    for ( final String key : pwmLocaleBundle.getDisplayKeys() )
                     {
-                        final XmlElement localeBundleElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_LOCALE_BUNDLE );
-                        localeBundleElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_BUNDLE, pwmLocaleBundle.getKey() );
-                        localeBundleElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY, key );
-
-                        final Map<String, String> localeBundleMap = storedConfiguration.readLocaleBundleMap( pwmLocaleBundle, key );
-                        for ( final Map.Entry<String, String> entry : localeBundleMap.entrySet() )
+                        final Map<String, String> localeBundle = storedConfiguration.readLocaleBundleMap( pwmLocaleBundle, key, domainID );
+                        if ( !CollectionUtil.isEmpty( localeBundle ) )
                         {
-                            final XmlElement valueElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
-                            if ( !StringUtil.isEmpty( entry.getKey() ) )
-                            {
-                                valueElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE, entry.getKey() );
-                            }
-                            valueElement.addText( entry.getValue() );
-                            localeBundleElement.addContent( valueElement );
-                        }
+                            final XmlElement localeBundleElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_LOCALE_BUNDLE );
+                            localeBundleElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_BUNDLE, pwmLocaleBundle.getKey() );
+                            localeBundleElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY, key );
 
-                        decorateElementWithMetaData( storedConfiguration, StoredConfigItemKey.fromLocaleBundle( pwmLocaleBundle, key ), localeBundleElement );
-                        returnList.add( localeBundleElement );
+                            final Map<String, String> localeBundleMap = storedConfiguration.readLocaleBundleMap( pwmLocaleBundle, key, domainID );
+                            for ( final Map.Entry<String, String> entry : localeBundleMap.entrySet() )
+                            {
+                                final XmlElement valueElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                                if ( StringUtil.notEmpty( entry.getKey() ) )
+                                {
+                                    valueElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE, entry.getKey() );
+                                }
+                                valueElement.addText( entry.getValue() );
+                                localeBundleElement.addContent( valueElement );
+                            }
+
+                            final StoredConfigKey storedConfigKey = StoredConfigKey.forLocaleBundle( pwmLocaleBundle, key, domainID );
+                            decorateElementWithDomain( storedConfiguration, storedConfigKey, localeBundleElement );
+                            decorateElementWithMetaData( storedConfiguration, storedConfigKey, localeBundleElement );
+                            returnList.add( localeBundleElement );
+                        }
                     }
                 }
             }
@@ -645,44 +697,14 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
         }
     }
 
-    public static class StoredConfigXmlConstants
-    {
-        public static final String XML_ATTRIBUTE_TYPE = "type";
-        public static final String XML_ELEMENT_ROOT = "PwmConfiguration";
-        public static final String XML_ELEMENT_PROPERTIES = "properties";
-        public static final String XML_ELEMENT_PROPERTY = "property";
-        public static final String XML_ELEMENT_SETTINGS = "settings";
-        public static final String XML_ELEMENT_SETTING = "setting";
-        public static final String XML_ELEMENT_DEFAULT = "default";
-        public static final String XML_ELEMENT_LOCALE_BUNDLE = "localeBundle";
-        public static final String XML_ELEMENT_LABEL = "label";
-        public static final String XML_ELEMENT_VALUE = "value";
-
-        public static final String XML_ATTRIBUTE_KEY = "key";
-        public static final String XML_ATTRIBUTE_SYNTAX = "syntax";
-        public static final String XML_ATTRIBUTE_PROFILE = "profile";
-        public static final String XML_ATTRIBUTE_VALUE_APP = "app";
-        public static final String XML_ATTRIBUTE_VALUE_CONFIG = "config";
-        public static final String XML_ATTRIBUTE_CREATE_TIME = "createTime";
-        public static final String XML_ATTRIBUTE_MODIFY_TIME = "modifyTime";
-        public static final String XML_ATTRIBUTE_MODIFY_USER = "modifyUser";
-        public static final String XML_ATTRIBUTE_SYNTAX_VERSION = "syntaxVersion";
-        public static final String XML_ATTRIBUTE_BUNDLE = "bundle";
-        public static final String XML_ATTRIBUTE_XML_VERSION = "xmlVersion";
-        public static final String XML_ATTRIBUTE_PWM_BUILD = "pwmBuild";
-        public static final String XML_ATTRIBUTE_PWM_VERSION = "pwmVersion";
-        public static final String XML_ATTRIBUTE_LOCALE = "locale";
-    }
-
     static class XmlCleaner
     {
-        private static final List<PwmExceptionLoggingConsumer<XmlDocument>> XML_PRE_PROCESSORS = Collections.unmodifiableList( Arrays.asList(
+        private static final List<PwmExceptionLoggingConsumer<XmlDocument>> XML_PRE_PROCESSORS = List.of(
                 new MigratePreValueXmlElements(),
                 new MigrateOldPropertyFormat(),
                 new AppPropertyOverrideMigration(),
                 new MigrateDeprecatedProperties(),
-                new UpdatePropertiesWithoutType()
-        ) );
+                new UpdatePropertiesWithoutType() );
 
         static void preProcessXml(
                 final XmlDocument document
@@ -707,20 +729,20 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                 }
 
                 final List<XmlElement> settingElements = xmlDocument.evaluateXpathToElements( "//"
-                        + StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_SETTING );
+                        + StoredConfigXmlConstants.XML_ELEMENT_SETTING );
                 for ( final XmlElement settingElement : settingElements )
                 {
-                    final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
-                    final Optional<XmlElement> defaultElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_DEFAULT );
+                    final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                    final Optional<XmlElement> defaultElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_DEFAULT );
                     if ( valueElement.isPresent() && defaultElement.isPresent() )
                     {
-                        final String textValue = settingElement.getTextTrim();
-                        if ( !StringUtil.isEmpty( textValue ) )
+                        final Optional<String> textValue = settingElement.getText();
+                        if ( textValue.isPresent() )
                         {
-                            final XmlElement newValueElement = XmlFactory.getFactory().newElement( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
-                            newValueElement.addText( textValue );
+                            final XmlElement newValueElement = XmlFactory.getFactory().newElement( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                            newValueElement.addText( textValue.get().trim() );
                             settingElement.addContent( newValueElement );
-                            final String key = settingElement.getAttributeValue( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_KEY );
+                            final String key = settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY ).orElse( "" );
                             LOGGER.info( () -> "migrating pre-xml 'value' tag format to use value element for key: " + key );
                         }
                     }
@@ -734,15 +756,15 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             public void accept( final XmlDocument xmlDocument )
             {
                 // read correct (new) //properties[@type="config"]
-                final String configPropertiesXpath = "//" + StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_PROPERTIES
-                        + "[@" + StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_TYPE + "=\""
-                        + StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_VALUE_CONFIG + "\"]";
+                final String configPropertiesXpath = "//" + StoredConfigXmlConstants.XML_ELEMENT_PROPERTIES
+                        + "[@" + StoredConfigXmlConstants.XML_ATTRIBUTE_TYPE + "=\""
+                        + StoredConfigXmlConstants.XML_ATTRIBUTE_VALUE_CONFIG + "\"]";
                 final Optional<XmlElement> configPropertiesElement = xmlDocument.evaluateXpathToElement( configPropertiesXpath );
 
                 // read list of old //properties[not (@type)]/property
-                final String nonAttributedPropertyXpath = "//" + StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_PROPERTIES
-                        + "[not (@" + StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_TYPE + ")]/"
-                        + StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_PROPERTY;
+                final String nonAttributedPropertyXpath = "//" + StoredConfigXmlConstants.XML_ELEMENT_PROPERTIES
+                        + "[not (@" + StoredConfigXmlConstants.XML_ATTRIBUTE_TYPE + ")]/"
+                        + StoredConfigXmlConstants.XML_ELEMENT_PROPERTY;
                 final List<XmlElement> nonAttributedProperties = xmlDocument.evaluateXpathToElements( nonAttributedPropertyXpath );
 
                 if ( configPropertiesElement.isPresent() && nonAttributedProperties != null )
@@ -755,8 +777,8 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                 }
 
                 // remove old //properties[not (@type] element
-                final String oldPropertiesXpath = "//" + StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_PROPERTIES
-                        + "[not (@" + StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_TYPE + ")]";
+                final String oldPropertiesXpath = "//" + StoredConfigXmlConstants.XML_ELEMENT_PROPERTIES
+                        + "[not (@" + StoredConfigXmlConstants.XML_ATTRIBUTE_TYPE + ")]";
                 final List<XmlElement> oldPropertiesElements = xmlDocument.evaluateXpathToElements( oldPropertiesXpath );
                 if ( oldPropertiesElements != null )
                 {
@@ -778,7 +800,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                     final List<XmlElement> propertyElement = xmlDocument.evaluateXpathToElements( xpathString );
                     if ( propertyElement != null && !propertyElement.isEmpty() )
                     {
-                        final String value = propertyElement.get( 0 ).getText();
+                        final String value = propertyElement.get( 0 ).getText().orElse( "" );
                         propertyElement.get( 0 ).detach();
                         attachStringSettingElement( xmlDocument, PwmSetting.TEMPLATE_LDAP, value );
 
@@ -789,7 +811,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                     final List<XmlElement> propertyElement = xmlDocument.evaluateXpathToElements( xpathString );
                     if ( propertyElement != null && !propertyElement.isEmpty() )
                     {
-                        final String value = propertyElement.get( 0 ).getText();
+                        final String value = propertyElement.get( 0 ).getText().orElse( "" );
                         propertyElement.get( 0 ).detach();
                         attachStringSettingElement( xmlDocument, PwmSetting.NOTES, value );
                     }
@@ -807,13 +829,14 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
                 final PwmSecurityKey pwmSecurityKey = inputDocumentReader.getKey();
 
+                final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, null, DomainID.DOMAIN_ID_DEFAULT );
+
                 final XmlElement settingElement = StoredConfigXmlSerializer.XmlOutputHandler.makeSettingXmlElement(
                         null,
-                        pwmSetting,
-                        null,
+                        key,
                         new StringValue( stringValue ),
                         XmlOutputProcessData.builder().storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN ).pwmSecurityKey( pwmSecurityKey ).build() );
-                final Optional<XmlElement> settingsElement = xmlDocument.getRootElement().getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_SETTING );
+                final Optional<XmlElement> settingsElement = xmlDocument.getRootElement().getChild( StoredConfigXmlConstants.XML_ELEMENT_SETTING );
                 settingsElement.ifPresent( xmlElement -> xmlElement.addContent( settingElement ) );
             }
         }
@@ -828,8 +851,8 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                 for ( final XmlElement propertiesElement : propertiesElements )
                 {
                     propertiesElement.setAttribute(
-                            StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_TYPE,
-                            StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_VALUE_CONFIG );
+                            StoredConfigXmlConstants.XML_ATTRIBUTE_TYPE,
+                            StoredConfigXmlConstants.XML_ATTRIBUTE_VALUE_CONFIG );
                 }
             }
         }
@@ -846,12 +869,12 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                     final List<XmlElement> properties = element.getChildren();
                     for ( final XmlElement property : properties )
                     {
-                        final String key = property.getAttributeValue( "key" );
-                        final String value = property.getText();
-                        if ( key != null && !key.isEmpty() && value != null && !value.isEmpty() )
+                        final Optional<String> key = property.getAttributeValue( "key" );
+                        final Optional<String> value = property.getText();
+                        if ( key.isPresent() && value.isPresent() )
                         {
-                            LOGGER.info( () -> "migrating app-property config element '" + key + "' to setting " + PwmSetting.APP_PROPERTY_OVERRIDES.getKey() );
-                            final String newValue = key + "=" + value;
+                            LOGGER.info( () -> "migrating app-property config element '" + key.get() + "' to setting " + PwmSetting.APP_PROPERTY_OVERRIDES.getKey() );
+                            final String newValue = key.get() + "=" + value.get();
 
                             final List<String> existingValues = new ArrayList<>();
                             {
@@ -877,27 +900,25 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             {
                 final StoredConfigXmlSerializer.XmlInputDocumentReader inputDocumentReader = new StoredConfigXmlSerializer.XmlInputDocumentReader( xmlDocument );
 
-                {
-                    final Optional<XmlElement> existingAppPropertySetting = inputDocumentReader.xpathForSetting( PwmSetting.APP_PROPERTY_OVERRIDES, null );
-                    existingAppPropertySetting.ifPresent( XmlElement::detach );
-                }
+                inputDocumentReader.xpathForSetting( PwmSetting.APP_PROPERTY_OVERRIDES, null ).ifPresent( XmlElement::detach );
 
                 final PwmSecurityKey pwmSecurityKey = inputDocumentReader.getKey();
 
+                final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.APP_PROPERTY_OVERRIDES, null, DomainID.DOMAIN_ID_DEFAULT );
+
                 final XmlElement settingElement = StoredConfigXmlSerializer.XmlOutputHandler.makeSettingXmlElement(
                         null,
-                        PwmSetting.APP_PROPERTY_OVERRIDES,
-                        null,
+                        key,
                         new StringArrayValue( newValues ),
                         XmlOutputProcessData.builder().storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN ).pwmSecurityKey( pwmSecurityKey ).build() );
-                final Optional<XmlElement> settingsElement = xmlDocument.getRootElement().getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_SETTING );
+                final Optional<XmlElement> settingsElement = xmlDocument.getRootElement().getChild( StoredConfigXmlConstants.XML_ELEMENT_SETTING );
                 settingsElement.ifPresent( ( s ) -> s.addContent( settingElement ) );
             }
         }
 
         private static int readDocVersion( final XmlDocument xmlDocument )
         {
-            final String xmlVersionStr = xmlDocument.getRootElement().getAttributeValue( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ATTRIBUTE_XML_VERSION );
+            final String xmlVersionStr = xmlDocument.getRootElement().getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_XML_VERSION ).orElse( "0" );
             return JavaHelper.silentParseInt( xmlVersionStr, 0 );
         }
     }

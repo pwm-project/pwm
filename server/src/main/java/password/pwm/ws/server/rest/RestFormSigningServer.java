@@ -22,7 +22,7 @@ package password.pwm.ws.server.rest;
 
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
@@ -32,12 +32,12 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.SecureService;
+import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.ws.server.RestAuthenticationType;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
@@ -95,12 +95,12 @@ public class RestFormSigningServer extends RestServlet
     {
         try
         {
-            if ( !JavaHelper.isEmpty( inputFormData ) )
+            if ( !CollectionUtil.isEmpty( inputFormData ) )
             {
-                final SecureService securityService = restRequest.getPwmApplication().getSecureService();
+                final DomainSecureService securityService = restRequest.getDomain().getSecureService();
                 final SignedFormData signedFormData = new SignedFormData( Instant.now(), inputFormData );
                 final String signedValue = securityService.encryptObjectToString( signedFormData );
-                StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_SIGNING_FORM );
+                StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_SIGNING_FORM );
                 LOGGER.trace( () -> "processed request signing form for form with keys '"
                         + JsonUtil.serializeCollection( inputFormData.keySet() )
                         + "' and timestamp " + signedFormData.getTimestamp().toString() );
@@ -122,11 +122,11 @@ public class RestFormSigningServer extends RestServlet
         }
     }
 
-    public static Map<String, String> readSignedFormValue( final PwmApplication pwmApplication, final String input ) throws PwmUnrecoverableException
+    public static Map<String, String> readSignedFormValue( final PwmDomain pwmDomain, final String input ) throws PwmUnrecoverableException
     {
-        final int maxAgeSeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS ) );
+        final int maxAgeSeconds = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS ) );
         final TimeDuration maxAge = TimeDuration.of( maxAgeSeconds, TimeDuration.Unit.SECONDS );
-        final SignedFormData signedFormData = pwmApplication.getSecureService().decryptObject( input, SignedFormData.class );
+        final SignedFormData signedFormData = pwmDomain.getSecureService().decryptObject( input, SignedFormData.class );
 
         if ( signedFormData == null )
         {

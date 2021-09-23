@@ -20,7 +20,7 @@
 
 package password.pwm.http.tag;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.bean.FormNonce;
 import password.pwm.error.PwmUnrecoverableException;
@@ -41,17 +41,17 @@ public class PwmFormIDTag extends TagSupport
 
     private static String buildPwmFormID( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        if ( pwmRequest == null || pwmRequest.getPwmApplication() == null )
+        if ( pwmRequest == null || pwmRequest.getPwmDomain() == null )
         {
             return "";
         }
 
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        if ( pwmApplication == null )
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+        if ( pwmDomain == null )
         {
             return "";
         }
-        final SessionStateService sessionStateService = pwmApplication.getSessionStateService();
+        final SessionStateService sessionStateService = pwmDomain.getSessionStateService();
         final String value = sessionStateService.getSessionStateInfo( pwmRequest );
         final FormNonce formID = new FormNonce(
                 pwmRequest.getPwmSession().getLoginInfoBean().getGuid(),
@@ -59,7 +59,7 @@ public class PwmFormIDTag extends TagSupport
                 pwmRequest.getPwmSession().getLoginInfoBean().getReqCounter(),
                 value
         );
-        return pwmRequest.getPwmApplication().getSecureService().encryptObjectToString( formID );
+        return pwmRequest.getPwmDomain().getSecureService().encryptObjectToString( formID );
     }
 
     @Override

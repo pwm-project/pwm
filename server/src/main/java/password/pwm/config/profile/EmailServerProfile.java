@@ -20,7 +20,7 @@
 
 package password.pwm.config.profile;
 
-import password.pwm.config.PwmSetting;
+import password.pwm.bean.DomainID;
 import password.pwm.config.stored.StoredConfiguration;
 
 import java.util.Locale;
@@ -30,9 +30,9 @@ public class EmailServerProfile extends AbstractProfile
 
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.EmailServers;
 
-    protected EmailServerProfile( final String identifier, final StoredConfiguration storedConfiguration )
+    protected EmailServerProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedConfiguration )
     {
-        super( identifier, storedConfiguration );
+        super( domainID, identifier, storedConfiguration );
     }
 
     @Override
@@ -44,16 +44,15 @@ public class EmailServerProfile extends AbstractProfile
     @Override
     public String getDisplayName( final Locale locale )
     {
-        final String value = this.readSettingAsLocalizedString( PwmSetting.EMAIL_SERVERS, locale );
-        return value != null && !value.isEmpty() ? value : this.getIdentifier();
+        return this.getIdentifier();
     }
 
     public static class EmailServerProfileFactory implements ProfileFactory
     {
         @Override
-        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final String identifier )
         {
-            return new EmailServerProfile( identifier, storedConfiguration );
+            return new EmailServerProfile( domainID, identifier, storedConfiguration );
         }
     }
 }

@@ -27,7 +27,7 @@ import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.svc.otp.OTPUserRecord;
 
 import java.time.Instant;
 import java.util.Collection;

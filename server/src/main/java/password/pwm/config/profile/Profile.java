@@ -20,6 +20,7 @@
 
 package password.pwm.config.profile;
 
+import password.pwm.bean.DomainID;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.data.UserPermission;
 
@@ -38,6 +39,6 @@ public interface Profile
 
     interface ProfileFactory
     {
-        Profile makeFromStoredConfiguration( StoredConfiguration storedConfiguration, String identifier );
+        Profile makeFromStoredConfiguration( StoredConfiguration storedConfiguration, DomainID domainID, String identifier );
     }
 }

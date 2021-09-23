@@ -20,14 +20,11 @@
 
 package password.pwm.util.java;
 
-import lombok.Value;
-
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Thread safe rotating int incrementer with configurable floor and ceiling values.
  */
-@Value
 public class AtomicLoopLongIncrementer
 {
     private final AtomicLong incrementer;

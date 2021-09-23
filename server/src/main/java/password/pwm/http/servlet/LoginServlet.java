@@ -32,6 +32,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmURL;
 import password.pwm.http.bean.LoginServletBean;
 import password.pwm.ldap.auth.AuthenticationType;
@@ -47,6 +48,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,12 +65,12 @@ import java.util.Map;
         name = "LoginServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/login",
+                PwmConstants.URL_PREFIX_PRIVATE + "/foom",
                 PwmConstants.URL_PREFIX_PRIVATE + "/Login"
         }
 )
 public class LoginServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.getLogger( LoginServlet.class.getName() );
 
     public enum LoginServletAction implements ProcessAction
@@ -116,10 +118,10 @@ public class LoginServlet extends ControlledPwmServlet
     {
         if ( pwmRequest.isAuthenticated() && !passwordOnly( pwmRequest ) )
         {
-            final String redirectURL = pwmRequest.getContextPath()
-                    + pwmRequest.getConfig().readSettingAsString( PwmSetting.URL_INTRO );
+            final String redirectURL = pwmRequest.getBasePath()
+                    + pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.URL_INTRO );
             LOGGER.debug( pwmRequest, () -> "user is already authenticated, so redirecting user to intro url: " + redirectURL );
-            pwmRequest.sendRedirect( redirectURL );
+            pwmRequest.getPwmResponse().sendRedirect( redirectURL );
             return ProcessStatus.Halt;
         }
         return ProcessStatus.Continue;
@@ -143,7 +145,7 @@ public class LoginServlet extends ControlledPwmServlet
         }
 
         // login has succeeded
-        pwmRequest.sendRedirect( determinePostLoginUrl( pwmRequest ) );
+        pwmRequest.getPwmResponse().sendRedirect( determinePostLoginUrl( pwmRequest ) );
         return ProcessStatus.Halt;
     }
 
@@ -189,18 +191,18 @@ public class LoginServlet extends ControlledPwmServlet
             throws PwmUnrecoverableException, IOException
     {
         final String encryptedNextUrl = pwmRequest.readParameterAsString( PwmConstants.PARAM_POST_LOGIN_URL );
-        if ( !StringUtil.isEmpty( encryptedNextUrl ) )
+        if ( StringUtil.notEmpty( encryptedNextUrl ) )
         {
-            final String nextUrl = pwmRequest.getPwmApplication().getSecureService().decryptStringValue( encryptedNextUrl );
-            if ( !StringUtil.isEmpty( nextUrl ) )
+            final String nextUrl = pwmRequest.getPwmDomain().getSecureService().decryptStringValue( encryptedNextUrl );
+            if ( StringUtil.notEmpty( nextUrl ) )
             {
-                final LoginServletBean loginServletBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, LoginServletBean.class );
+                final LoginServletBean loginServletBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, LoginServletBean.class );
                 LOGGER.trace( pwmRequest, () -> "received nextUrl and storing in module bean, value: " + nextUrl );
                 loginServletBean.setNextUrl( nextUrl );
             }
         }
 
-        pwmRequest.sendRedirect( PwmServletDefinition.Login );
+        pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.Login );
         return ProcessStatus.Halt;
     }
 
@@ -240,7 +242,7 @@ public class LoginServlet extends ControlledPwmServlet
         }
 
         final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 pwmRequest,
                 PwmAuthenticationSource.LOGIN_FORM
         );
@@ -267,6 +269,17 @@ public class LoginServlet extends ControlledPwmServlet
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
+        final ArrayList<String> domainIds = new ArrayList<>( pwmRequest.getAppConfig().getDomainIDs() );
+        if ( domainIds.size() > 1 )
+        {
+            pwmRequest.setAttribute( PwmRequestAttribute.DomainList, domainIds );
+        }
+        else
+        {
+            pwmRequest.setAttribute( PwmRequestAttribute.DomainList, new ArrayList<>() );
+        }
+
+
         final JspUrl url = passwordOnly ? JspUrl.LOGIN_PW_ONLY : JspUrl.LOGIN;
         pwmRequest.forwardToJsp( url );
     }
@@ -274,19 +287,19 @@ public class LoginServlet extends ControlledPwmServlet
     private static String determinePostLoginUrl( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final LoginServletBean loginServletBean = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, LoginServletBean.class );
+        final LoginServletBean loginServletBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, LoginServletBean.class );
         final String decryptedValue = loginServletBean.getNextUrl();
 
-        if ( !StringUtil.isEmpty( decryptedValue ) )
+        if ( StringUtil.notEmpty( decryptedValue ) )
         {
-            final PwmURL originalPwmURL = new PwmURL( URI.create( decryptedValue ), pwmRequest.getContextPath() );
-            if ( !originalPwmURL.isLoginServlet() )
+            final PwmURL originalPwmURL = PwmURL.create( URI.create( decryptedValue ), pwmRequest.getBasePath(), pwmRequest.getPwmApplication().getConfig() );
+            if ( !originalPwmURL.matches( PwmServletDefinition.Login ) )
             {
                 loginServletBean.setNextUrl( null );
                 return decryptedValue;
             }
         }
-        return pwmRequest.getContextPath();
+        return pwmRequest.getBasePath();
     }
 
     public static void redirectToLoginServlet( final PwmRequest pwmRequest )
@@ -295,20 +308,20 @@ public class LoginServlet extends ControlledPwmServlet
         //store the original requested url
         final String originalRequestedUrl = pwmRequest.getURLwithQueryString();
 
-        final String encryptedRedirUrl = pwmRequest.getPwmApplication().getSecureService().encryptToString( originalRequestedUrl );
+        final String encryptedRedirUrl = pwmRequest.getPwmDomain().getSecureService().encryptToString( originalRequestedUrl );
 
         final Map<String, String> paramMap = new HashMap<>();
         paramMap.put( PwmConstants.PARAM_POST_LOGIN_URL, encryptedRedirUrl );
         paramMap.put( PwmConstants.PARAM_ACTION_REQUEST, LoginServletAction.receiveUrl.toString() );
 
         final String redirectUrl = PwmURL.appendAndEncodeUrlParameters(
-                pwmRequest.getContextPath() + PwmServletDefinition.Login.servletUrl(),
+                pwmRequest.getBasePath() + PwmServletDefinition.Login.servletUrl(),
                 paramMap
         );
 
         LOGGER.trace( pwmRequest, () -> "redirecting to self to set nextUrl to: " + originalRequestedUrl );
 
-        pwmRequest.sendRedirect( redirectUrl );
+        pwmRequest.getPwmResponse().sendRedirect( redirectUrl );
     }
 }
 

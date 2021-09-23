@@ -33,7 +33,7 @@ import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.health.HealthMonitor;
+import password.pwm.health.HealthService;
 import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
@@ -41,9 +41,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.StringUtil;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -73,6 +71,7 @@ public enum PwmIfTest
     passwordExpired( new PasswordExpired() ),
     showMaskedTokenSelection( new BooleanAppPropertyTest( AppProperty.TOKEN_MASK_SHOW_SELECTION ) ),
     clientFormShowRegexEnabled( new BooleanAppPropertyTest( AppProperty.CLIENT_FORM_CLIENT_REGEX_ENABLED ) ),
+    multiDomain( new MultiDomainTest() ),
 
     forgottenPasswordEnabled( new BooleanPwmSettingTest( PwmSetting.FORGOTTEN_PASSWORD_ENABLE ) ),
     forgottenUsernameEnabled( new BooleanPwmSettingTest( PwmSetting.FORGOTTEN_USERNAME_ENABLE ) ),
@@ -106,7 +105,7 @@ public enum PwmIfTest
 
     PwmIfTest( final Test... test )
     {
-        tests = test == null ? Collections.emptySet() : Collections.unmodifiableSet( new HashSet<>( Arrays.asList( test ) ) );
+        tests = test == null ? Collections.emptySet() : Set.of( test );
     }
 
     private Set<Test> getTests()
@@ -151,9 +150,9 @@ public enum PwmIfTest
                 final PwmIfOptions options
         )
         {
-            if ( pwmRequest.getPwmApplication() != null && pwmRequest.getConfig() != null )
+            if ( pwmRequest.getPwmDomain() != null && pwmRequest.getDomainConfig() != null )
             {
-                final String strValue = pwmRequest.getConfig().readAppProperty( appProperty );
+                final String strValue = pwmRequest.getDomainConfig().readAppProperty( appProperty );
                 return Boolean.parseBoolean( strValue );
             }
             return false;
@@ -184,8 +183,8 @@ public enum PwmIfTest
                 return false;
             }
 
-            return pwmRequest != null && pwmRequest.getConfig() != null
-                    && pwmRequest.getConfig().readSettingAsBoolean( setting );
+            return pwmRequest != null && pwmRequest.getDomainConfig() != null
+                    && pwmRequest.getDomainConfig().readSettingAsBoolean( setting );
         }
     }
 
@@ -194,10 +193,10 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final PwmApplicationMode applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
+            final PwmApplicationMode applicationMode = pwmRequest.getPwmDomain().getApplicationMode();
             final boolean configMode = applicationMode == PwmApplicationMode.CONFIGURATION;
-            final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN );
-            if ( Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.CLIENT_WARNING_HEADER_SHOW ) ) )
+            final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
+            if ( Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CLIENT_WARNING_HEADER_SHOW ) ) )
             {
                 if ( configMode || PwmConstants.TRIAL_MODE )
                 {
@@ -246,7 +245,7 @@ public enum PwmIfTest
 
             return pwmRequest != null
                     && pwmRequest.getPwmSession().getSessionManager().checkPermission(
-                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getPwmDomain(),
                     permission );
         }
     }
@@ -311,7 +310,7 @@ public enum PwmIfTest
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmApplication().determineIfDetailErrorMsgShown();
+            return pwmRequest.getPwmDomain().determineIfDetailErrorMsgShown();
         }
     }
 
@@ -346,7 +345,7 @@ public enum PwmIfTest
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.CONFIGURATION;
+            return pwmRequest.getPwmDomain().getApplicationMode() == PwmApplicationMode.CONFIGURATION;
         }
     }
 
@@ -361,20 +360,20 @@ public enum PwmIfTest
                 return false;
             }
 
-            final PwmApplicationMode mode = pwmRequest.getPwmApplication().getApplicationMode();
+            final PwmApplicationMode mode = pwmRequest.getPwmDomain().getApplicationMode();
 
             if ( mode == PwmApplicationMode.CONFIGURATION )
             {
                 return true;
             }
 
-            final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN );
+            final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
             if ( adminUser )
             {
-                final HealthMonitor healthMonitor = pwmRequest.getPwmApplication().getHealthMonitor();
-                if ( healthMonitor != null && healthMonitor.status() == PwmService.STATUS.OPEN )
+                final HealthService healthService = pwmRequest.getPwmApplication().getHealthMonitor();
+                if ( healthService != null && healthService.status() == PwmService.STATUS.OPEN )
                 {
-                    if ( healthMonitor.getMostSevereHealthStatus() == HealthStatus.WARN )
+                    if ( healthService.getMostSevereHealthStatus() == HealthStatus.WARN )
                     {
                         return true;
                     }
@@ -400,7 +399,7 @@ public enum PwmIfTest
                 return false;
             }
 
-            if ( pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING )
+            if ( pwmRequest.getPwmDomain().getApplicationMode() != PwmApplicationMode.RUNNING )
             {
                 return true;
             }
@@ -412,7 +411,7 @@ public enum PwmIfTest
 
             if ( pwmRequest.isAuthenticated() )
             {
-                if ( pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmApplication(), Permission.PWMADMIN ) )
+                if ( pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
                 {
                     return true;
                 }
@@ -436,7 +435,7 @@ public enum PwmIfTest
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
             final String profileID = pwmRequest.getPwmSession().getUserInfo().getProfileIDs().get( profileDefinition );
-            return !StringUtil.isEmpty( profileID );
+            return StringUtil.notEmpty( profileID );
         }
     }
 
@@ -485,11 +484,11 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
+            if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
             {
                 final Optional<PeopleSearchProfile> peopleSearchProfile = pwmRequest.isAuthenticated()
-                        ? Optional.ofNullable( pwmRequest.getPwmSession().getSessionManager().getPeopleSearchProfile() )
-                        : pwmRequest.getConfig().getPublicPeopleSearchProfile();
+                        ? Optional.ofNullable( pwmRequest.getPeopleSearchProfile() )
+                        : pwmRequest.getDomainConfig().getPublicPeopleSearchProfile();
 
                 if ( peopleSearchProfile.isPresent() )
                 {
@@ -527,7 +526,7 @@ public enum PwmIfTest
                 return false;
             }
 
-            final SetupOtpProfile setupOtpProfile = pwmRequest.getPwmSession().getSessionManager().getSetupOTPProfile();
+            final SetupOtpProfile setupOtpProfile = pwmRequest.getSetupOTPProfile();
             return setupOtpProfile != null && setupOtpProfile.readSettingAsBoolean( PwmSetting.OTP_ALLOW_SETUP );
         }
     }
@@ -537,8 +536,8 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options )
         {
-            final String customJs = pwmRequest.getConfig().readSettingAsString( PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT );
-            return !StringUtil.isEmpty( customJs );
+            final String customJs = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT );
+            return StringUtil.notEmpty( customJs );
         }
     }
 
@@ -547,8 +546,18 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws PwmUnrecoverableException
         {
-            final ChangePasswordProfile changePasswordProfile = pwmRequest.getPwmSession().getSessionManager().getChangePasswordProfile();
+            final ChangePasswordProfile changePasswordProfile = pwmRequest.getChangePasswordProfile();
             return changePasswordProfile.readSettingAsBoolean( PwmSetting.PASSWORD_SHOW_AUTOGEN );
+        }
+    }
+
+
+    private static class MultiDomainTest implements Test
+    {
+        @Override
+        public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws PwmUnrecoverableException
+        {
+            return pwmRequest.getPwmApplication().isMultiDomain();
         }
     }
 }

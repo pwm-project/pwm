@@ -32,7 +32,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.LocalDB;
@@ -40,28 +40,25 @@ import password.pwm.util.localdb.LocalDBException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class PwmLogManager
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmLogManager.class );
 
-    public static final List<Package> LOGGING_PACKAGES = Collections.unmodifiableList( Arrays.asList(
-            PwmApplication.class.getPackage(),
-            ChaiUser.class.getPackage(),
-            Package.getPackage( "org.jasig.cas.client" )
-    ) );
+    public static final List<String> LOGGING_PACKAGES = List.of(
+            PwmApplication.class.getPackage().getName(),
+            ChaiUser.class.getPackage().getName(),
+            "org.jasig.cas.client" );
 
     public static void deinitializeLogger( )
     {
         // clear all existing package loggers
-        for ( final Package logPackage : LOGGING_PACKAGES )
+        for ( final String logPackage : LOGGING_PACKAGES )
         {
             if ( logPackage != null )
             {
-                final Logger logger = Logger.getLogger( logPackage.getName() );
+                final Logger logger = Logger.getLogger( logPackage );
                 logger.setAdditivity( false );
                 logger.removeAllAppenders();
                 logger.setLevel( Level.TRACE );
@@ -75,7 +72,7 @@ public class PwmLogManager
 
     public static void initializeLogger(
             final PwmApplication pwmApplication,
-            final Configuration config,
+            final AppConfig config,
             final File log4jConfigFile,
             final String consoleLogLevel,
             final File pwmApplicationPath,
@@ -117,7 +114,7 @@ public class PwmLogManager
     {
         try
         {
-            initConsoleLogger( new Configuration( StoredConfigurationFactory.newConfig() ), pwmLogLevel );
+            initConsoleLogger( new AppConfig( StoredConfigurationFactory.newConfig() ), pwmLogLevel );
         }
         catch ( final Exception e )
         {
@@ -127,7 +124,7 @@ public class PwmLogManager
     }
 
     private static void initConsoleLogger(
-            final Configuration config,
+            final AppConfig config,
             final String consoleLogLevel
     )
     {
@@ -138,11 +135,11 @@ public class PwmLogManager
             final ConsoleAppender consoleAppender = new ConsoleAppender( patternLayout );
             final Level level = Level.toLevel( consoleLogLevel );
             consoleAppender.setThreshold( level );
-            for ( final Package logPackage : LOGGING_PACKAGES )
+            for ( final String logPackage : LOGGING_PACKAGES )
             {
                 if ( logPackage != null )
                 {
-                    final Logger logger = Logger.getLogger( logPackage.getName() );
+                    final Logger logger = Logger.getLogger( logPackage );
                     logger.setLevel( Level.TRACE );
                     logger.addAppender( consoleAppender );
                 }
@@ -156,7 +153,7 @@ public class PwmLogManager
     }
 
     private static void initFileLogger(
-            final Configuration config,
+            final AppConfig config,
             final String fileLogLevel,
             final File pwmApplicationPath
     )
@@ -193,12 +190,12 @@ public class PwmLogManager
 
                 PwmLogger.setFileAppender( fileAppender );
 
-                for ( final Package logPackage : LOGGING_PACKAGES )
+                for ( final String logPackage : LOGGING_PACKAGES )
                 {
                     if ( logPackage != null )
                     {
                         //if (!logPackage.equals(PwmApplication.class.getPackage())) {
-                        final Logger logger = Logger.getLogger( logPackage.getName() );
+                        final Logger logger = Logger.getLogger( logPackage );
                         logger.setLevel( Level.TRACE );
                         logger.addAppender( fileAppender );
                         //}
@@ -245,11 +242,11 @@ public class PwmLogManager
         {
             final LocalDBLog4jAppender localDBLog4jAppender = new LocalDBLog4jAppender( localDBLogger );
             localDBLog4jAppender.setThreshold( localDBLogLevel.getLog4jLevel() );
-            for ( final Package logPackage : LOGGING_PACKAGES )
+            for ( final String logPackage : LOGGING_PACKAGES )
             {
-                if ( logPackage != null && !logPackage.equals( PwmApplication.class.getPackage() ) )
+                if ( logPackage != null && !logPackage.equals( PwmApplication.class.getPackage().getName() ) )
                 {
-                    final Logger logger = Logger.getLogger( logPackage.getName() );
+                    final Logger logger = Logger.getLogger( logPackage );
                     logger.addAppender( localDBLog4jAppender );
                     logger.setLevel( Level.TRACE );
                 }

@@ -73,7 +73,7 @@
         </table>
         <br/>
         <div class="buttonbar">
-            <% if (JspUtility.getPwmRequest( pageContext ).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+            <% if (JspUtility.getPwmRequest( pageContext ).getDomainConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
             <form action="<pwm:url url='<%=PwmServletDefinition.PublicCommand.servletUrl()%>' addContext="true"/>" method="get"
                   enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
                 <button class="btn" type="submit" name="submitBtn">

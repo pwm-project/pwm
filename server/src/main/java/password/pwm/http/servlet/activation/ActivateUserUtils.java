@@ -25,11 +25,11 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.ActivateUserProfile;
@@ -53,9 +53,11 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
@@ -81,9 +83,9 @@ class ActivateUserUtils
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final ChaiUser theUser = pwmApplication.getProxiedChaiUser( userIdentity );
+        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( pwmRequest.getLabel(), userIdentity );
 
         final ActivateUserProfile activateUserProfile = ActivateUserServlet.activateUserProfile( pwmRequest );
 
@@ -107,11 +109,11 @@ class ActivateUserUtils
                 // execute configured actions
                 LOGGER.debug( pwmRequest, () -> "executing configured pre-actions to user " + theUser.getEntryDN() );
                 final List<ActionConfiguration> configValues = activateUserProfile.readSettingAsAction( PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES );
-                if ( !JavaHelper.isEmpty( configValues ) )
+                if ( !CollectionUtil.isEmpty( configValues ) )
                 {
                     final MacroRequest macroRequest = MacroRequest.forUser( pwmRequest, userIdentity );
 
-                    final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmApplication, userIdentity )
+                    final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmDomain, userIdentity )
                             .setExpandPwmMacros( true )
                             .setMacroMachine( macroRequest )
                             .createActionExecutor();
@@ -121,7 +123,7 @@ class ActivateUserUtils
             }
 
             //authenticate the pwm session
-            final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmApplication, pwmRequest, PwmAuthenticationSource.USER_ACTIVATION );
+            final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmDomain, pwmRequest, PwmAuthenticationSource.USER_ACTIVATION );
             sessionAuthenticator.authUserWithUnknownPassword( userIdentity, AuthenticationType.AUTH_FROM_PUBLIC_MODULE );
 
             //ensure a change password is triggered
@@ -129,12 +131,11 @@ class ActivateUserUtils
             pwmSession.getLoginInfoBean().getAuthFlags().add( AuthenticationType.AUTH_FROM_PUBLIC_MODULE );
             pwmSession.getLoginInfoBean().getLoginFlags().add( LoginInfoBean.LoginFlag.forcePwChange );
 
-
             // mark the event log
-            pwmApplication.getAuditManager().submit( AuditEvent.ACTIVATE_USER, pwmSession.getUserInfo(), pwmSession );
+            AuditServiceClient.submitUserEvent( pwmRequest, AuditEvent.ACTIVATE_USER, pwmSession.getUserInfo() );
 
             // update the stats bean
-            pwmApplication.getStatisticsManager().incrementValue( Statistic.ACTIVATED_USERS );
+            StatisticsClient.incrementStat( pwmRequest, Statistic.ACTIVATED_USERS );
 
             // send email or sms
             sendPostActivationNotice( pwmRequest );
@@ -155,7 +156,7 @@ class ActivateUserUtils
             throws ChaiUnavailableException, PwmDataValidationException, PwmUnrecoverableException
     {
         final String searchFilter = figureLdapSearchFilter( pwmRequest );
-        final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxyChaiProvider( userIdentity.getLdapProfileID() );
+        final ChaiProvider chaiProvider = pwmRequest.getPwmDomain().getProxyChaiProvider( pwmRequest.getLabel(), userIdentity.getLdapProfileID() );
         final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
 
         for ( final Map.Entry<FormConfiguration, String> entry : formValues.entrySet() )
@@ -234,10 +235,10 @@ class ActivateUserUtils
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final UserInfo userInfo = pwmSession.getUserInfo();
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_ACTIVATION, locale );
 
@@ -247,7 +248,7 @@ class ActivateUserUtils
             return false;
         }
 
-        pwmApplication.getEmailQueue().submitEmail(
+        pwmDomain.getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmSession.getUserInfo(),
                 pwmSession.getSessionManager().getMacroMachine( )
@@ -256,14 +257,14 @@ class ActivateUserUtils
     }
 
     static boolean sendPostActivationSms( final PwmRequest pwmRequest )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final Configuration config = pwmApplication.getConfig();
+        final DomainConfig config = pwmDomain.getConfig();
         final UserInfo userInfo = pwmSession.getUserInfo();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
-        final LdapProfile ldapProfile = userInfo.getUserIdentity().getLdapProfile( config );
+        final LdapProfile ldapProfile = userInfo.getUserIdentity().getLdapProfile( pwmRequest.getAppConfig() );
 
         final String message = config.readSettingAsLocalizedString( PwmSetting.SMS_ACTIVATION_TEXT, locale );
 
@@ -284,7 +285,7 @@ class ActivateUserUtils
             return false;
         }
 
-        pwmApplication.sendSmsUsingQueue(
+        pwmRequest.getPwmApplication().sendSmsUsingQueue(
                 toSmsNumber,
                 message,
                 pwmRequest.getLabel(),
@@ -296,15 +297,15 @@ class ActivateUserUtils
     static String figureLdapSearchFilter( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final Configuration config = pwmApplication.getConfig();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+        final DomainConfig config = pwmDomain.getConfig();
         final List<FormConfiguration> configuredActivationForm = config.readSettingAsForm( PwmSetting.ACTIVATE_USER_FORM );
 
         final String configuredSearchFilter = config.readSettingAsString( PwmSetting.ACTIVATE_USER_SEARCH_FILTER );
         final String searchFilter;
         if ( configuredSearchFilter == null || configuredSearchFilter.isEmpty() )
         {
-            searchFilter = FormUtility.ldapSearchFilterForForm( pwmApplication, configuredActivationForm );
+            searchFilter = FormUtility.ldapSearchFilterForForm( pwmDomain, configuredActivationForm );
             LOGGER.trace( pwmRequest, () -> "auto generated search filter based on activation form: " + searchFilter );
         }
         else
@@ -339,12 +340,12 @@ class ActivateUserUtils
     static void initUserActivationBean( final PwmRequest pwmRequest, final UserIdentity userIdentity )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final ActivateUserBean activateUserBean = pwmApplication.getSessionStateService().getBean( pwmRequest, ActivateUserBean.class );
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+        final ActivateUserBean activateUserBean = pwmDomain.getSessionStateService().getBean( pwmRequest, ActivateUserBean.class );
 
         final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser( pwmRequest.getPwmRequestContext(), userIdentity, ProfileDefinition.ActivateUser );
 
-        if ( !profileID.isPresent() || !pwmApplication.getConfig().getUserActivationProfiles().containsKey( profileID.get() ) )
+        if ( !profileID.isPresent() || !pwmDomain.getConfig().getUserActivationProfiles().containsKey( profileID.get() ) )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_ACTIVATE_NO_PERMISSION, "no matching user activation profile for user" );
         }

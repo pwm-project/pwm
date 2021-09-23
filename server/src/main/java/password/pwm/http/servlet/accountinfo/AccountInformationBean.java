@@ -22,7 +22,7 @@ package password.pwm.http.servlet.accountinfo;
 
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ViewStatusFields;
@@ -82,14 +82,14 @@ public class AccountInformationBean implements Serializable
 
         builder.accountInfo( ViewableUserInfoDisplayReader.makeDisplayData(
                 accountInformationProfile.readSettingAsOptionList( PwmSetting.ACCOUNT_INFORMATION_VIEW_STATUS_VALUES, ViewStatusFields.class ),
-                pwmRequest.getConfig(),
+                pwmRequest.getDomainConfig(),
                 userInfo,
                 pwmRequest.getPwmSession().getSessionStateBean(),
                 locale
         ) );
         builder.formData( makeFormInfo( pwmRequest, accountInformationProfile, locale ) );
         builder.auditData( makeAuditInfo(
-                pwmRequest.getPwmApplication(),
+                pwmRequest.getPwmDomain(),
                 accountInformationProfile,
                 pwmRequest.getLabel(),
                 userInfo,
@@ -107,12 +107,12 @@ public class AccountInformationBean implements Serializable
     {
         final PwmPasswordPolicy pwmPasswordPolicy = pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy();
         final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
-        final List<String> rules = PasswordRequirementsTag.getPasswordRequirementsStrings( pwmPasswordPolicy, pwmRequest.getConfig(), pwmRequest.getLocale(), macroRequest );
+        final List<String> rules = PasswordRequirementsTag.getPasswordRequirementsStrings( pwmPasswordPolicy, pwmRequest.getDomainConfig(), pwmRequest.getLocale(), macroRequest );
         return Collections.unmodifiableList( rules );
     }
 
     public static List<ActivityRecord> makeAuditInfo(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final AccountInformationProfile accountInformationProfile,
             final SessionLabel sessionLabel,
             final UserInfo userInfo,
@@ -128,7 +128,7 @@ public class AccountInformationBean implements Serializable
         final List<UserAuditRecord> auditRecords = new ArrayList<>();
         try
         {
-            auditRecords.addAll( pwmApplication.getAuditManager().readUserHistory( sessionLabel, userInfo ) );
+            auditRecords.addAll( pwmDomain.getUserHistoryService().readUserHistory( sessionLabel, userInfo ) );
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -140,7 +140,7 @@ public class AccountInformationBean implements Serializable
         {
             returnData.add( new ActivityRecord(
                     userAuditRecord.getTimestamp(),
-                    userAuditRecord.getEventCode().getLocalizedString( pwmApplication.getConfig(), locale )
+                    userAuditRecord.getEventCode().getLocalizedString( pwmDomain.getConfig(), locale )
             ) );
         }
 

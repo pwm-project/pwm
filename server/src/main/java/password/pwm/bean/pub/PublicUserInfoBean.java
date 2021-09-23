@@ -23,7 +23,7 @@ package password.pwm.bean.pub;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.bean.PasswordStatus;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.tag.PasswordRequirementsTag;
@@ -70,7 +70,7 @@ public class PublicUserInfoBean implements Serializable
 
     public static PublicUserInfoBean fromUserInfoBean(
             final UserInfo userInfoBean,
-            final Configuration config,
+            final DomainConfig config,
             final Locale locale,
             final MacroRequest macroRequest
     )

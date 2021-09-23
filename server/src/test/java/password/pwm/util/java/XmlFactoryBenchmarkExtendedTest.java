@@ -59,20 +59,13 @@ public class XmlFactoryBenchmarkExtendedTest
     public void benchmarkW3c ()
             throws Exception
     {
-        benchmarkImpl( XmlFactory.FactoryType.W3C );
+        benchmarkImpl( );
     }
 
-    @Benchmark
-    public void benchmarkJDom ()
+    private void benchmarkImpl ()
             throws Exception
     {
-        benchmarkImpl( XmlFactory.FactoryType.JDOM );
-    }
-
-    private void benchmarkImpl ( final XmlFactory.FactoryType factoryType )
-            throws Exception
-    {
-        final XmlFactory xmlFactory = XmlFactory.getFactory( factoryType );
+        final XmlFactory xmlFactory = XmlFactory.getFactory();
         final InputStream xmlFactoryTestXmlFile = XmlFactoryTest.class.getResourceAsStream( "XmlFactoryTest.xml" );
         final XmlDocument xmlDocument = xmlFactory.parseXml( xmlFactoryTestXmlFile );
         xmlFactory.outputDocument( xmlDocument, new NullOutputStream() );

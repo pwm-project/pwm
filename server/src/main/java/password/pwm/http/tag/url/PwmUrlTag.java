@@ -21,7 +21,7 @@
 package password.pwm.http.tag.url;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.PwmSetting;
@@ -89,7 +89,7 @@ public class PwmUrlTag extends PwmAbstractTag
         }
         if ( pwmRequest != null )
         {
-            workingUrl = insertResourceNonce( pwmRequest.getPwmApplication(), workingUrl );
+            workingUrl = insertResourceNonce( pwmRequest.getPwmDomain(), workingUrl );
         }
 
         outputURL = workingUrl;
@@ -109,7 +109,6 @@ public class PwmUrlTag extends PwmAbstractTag
 
     public static String insertContext( final PageContext pageContext, final String urlString )
     {
-        final String contextPath = pageContext.getServletContext().getContextPath();
         if ( !urlString.startsWith( "/" ) )
         {
             return urlString;
@@ -124,20 +123,33 @@ public class PwmUrlTag extends PwmAbstractTag
             return urlString;
         }
 
+        PwmRequest pwmRequest = null;
+        try
+        {
+            pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
+        }
+        catch ( final PwmException e )
+        {
+            /* noop */
+        }
+
+        final String contextPath = pwmRequest == null
+                ? pageContext.getServletContext().getContextPath()
+                : pwmRequest.getBasePath();
+
         if ( urlString.startsWith( contextPath ) )
         {
             return urlString;
         }
-
+        
         return contextPath + urlString;
-
     }
 
-    public static String insertResourceNonce( final PwmApplication pwmApplication, final String urlString )
+    public static String insertResourceNonce( final PwmDomain pwmDomain, final String urlString )
     {
-        if ( pwmApplication != null && urlString.contains( RESOURCE_URL ) )
+        if ( pwmDomain != null && urlString.contains( RESOURCE_URL ) )
         {
-            final String nonce = pwmApplication.getResourceServletService().getResourceNonce();
+            final String nonce = pwmDomain.getResourceServletService().getResourceNonce();
             if ( nonce != null && nonce.length() > 0 )
             {
                 return urlString.replaceFirst( RESOURCE_URL, RESOURCE_URL + nonce );
@@ -153,7 +165,7 @@ public class PwmUrlTag extends PwmAbstractTag
     {
         if ( pwmRequest.isFlag( PwmRequestFlag.INCLUDE_CONFIG_CSS ) )
         {
-            return pwmRequest.getConfig().readAppProperty( AppProperty.CONFIG_THEME );
+            return pwmRequest.getDomainConfig().readAppProperty( AppProperty.CONFIG_THEME );
         }
 
         final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
@@ -162,9 +174,9 @@ public class PwmUrlTag extends PwmAbstractTag
             return ssBean.getTheme();
         }
 
-        if ( pwmRequest.getConfig() != null )
+        if ( pwmRequest.getDomainConfig() != null )
         {
-            return pwmRequest.getConfig().readSettingAsString( PwmSetting.INTERFACE_THEME );
+            return pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.INTERFACE_THEME );
         }
         else
         {
@@ -182,7 +194,7 @@ public class PwmUrlTag extends PwmAbstractTag
 
         if ( pwmRequest != null )
         {
-            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+            final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
             themeName = figureThemeName( pwmRequest );
 
@@ -190,11 +202,11 @@ public class PwmUrlTag extends PwmAbstractTag
             {
                 if ( themeUrl == PwmThemeURL.MOBILE_THEME_URL )
                 {
-                    themeURL = pwmApplication.getConfig().readSettingAsString( PwmSetting.DISPLAY_CSS_CUSTOM_MOBILE_STYLE );
+                    themeURL = pwmDomain.getConfig().readSettingAsString( PwmSetting.DISPLAY_CSS_CUSTOM_MOBILE_STYLE );
                 }
                 else
                 {
-                    themeURL = pwmApplication.getConfig().readSettingAsString( PwmSetting.DISPLAY_CSS_CUSTOM_STYLE );
+                    themeURL = pwmDomain.getConfig().readSettingAsString( PwmSetting.DISPLAY_CSS_CUSTOM_STYLE );
                 }
             }
         }

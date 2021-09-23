@@ -28,6 +28,7 @@ public enum Admin implements PwmDisplayBundle
 
     EventLog_Narrative_Startup,
     EventLog_Narrative_Shutdown,
+    EventLog_Narrative_Restart,
     EventLog_Narrative_FatalEvent,
     EventLog_Narrative_ModifyConfiguration,
     EventLog_Narrative_IntruderAttempt,

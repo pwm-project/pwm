@@ -28,6 +28,7 @@
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
+<%@ page import="password.pwm.PwmDomain" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -36,10 +37,10 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <%
     List<Locale> localeList = Collections.emptyList();
-    PwmApplication localeselect_pwmApplication = null;
+    PwmDomain localeselect_pwmDomain = null;
     try {
-        localeselect_pwmApplication = PwmRequest.forRequest(request, response).getPwmApplication();
-        localeList = localeselect_pwmApplication.getConfig().getKnownLocales();
+        localeselect_pwmDomain = PwmRequest.forRequest(request, response).getPwmDomain();
+        localeList = localeselect_pwmDomain.getPwmApplication().getConfig().getKnownLocales();
     } catch (PwmException e) {
         /* noop */
     }
@@ -55,11 +56,11 @@
                 <% for (final Locale locale : localeList) { %>
                 <tr>
                     <td>
-                        <% final String flagCode = localeselect_pwmApplication.getConfig().getKnownLocaleFlagMap().get(locale); %>
+                        <% final String flagCode = localeselect_pwmDomain.getPwmApplication().getConfig().getKnownLocaleFlagMap().get(locale); %>
                         <img alt="flag" src="<pwm:context/><pwm:url url='/public/resources/flags/png/'/><%=flagCode%>.png"/>
                     </td>
                     <td>
-                        <a href="<pwm:context/>?<%=localeselect_pwmApplication.getConfig().readAppProperty(password.pwm.AppProperty.HTTP_PARAM_NAME_LOCALE)%>=<%=locale.toString()%>">
+                        <a href="<pwm:context/>?<%=localeselect_pwmDomain.getConfig().readAppProperty(password.pwm.AppProperty.HTTP_PARAM_NAME_LOCALE)%>=<%=locale.toString()%>">
                             <%=locale.getDisplayName()%> - <%=locale.getDisplayName(locale)%>
                         </a>
                     </td>

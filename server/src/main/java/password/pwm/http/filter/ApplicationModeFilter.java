@@ -20,9 +20,9 @@
 
 package password.pwm.http.filter;
 
-import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -35,6 +35,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.Set;
 
 public class ApplicationModeFilter extends AbstractPwmFilter
 {
@@ -47,11 +48,12 @@ public class ApplicationModeFilter extends AbstractPwmFilter
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
     )
-            throws IOException, ServletException
+            throws IOException, ServletException, PwmUnrecoverableException
     {
         // ignore if resource request
         final PwmURL pwmURL = pwmRequest.getURL();
-        if ( !pwmURL.isResourceURL() && !pwmURL.isRestService() && !pwmURL.isReferenceURL() && !pwmURL.isClientApiServlet() )
+
+        if ( !pwmURL.isResourceURL() && !pwmURL.isRestService() && !pwmURL.isReferenceURL() && !pwmURL.matches( PwmServletDefinition.ClientApi ) )
         {
             // check for valid config
             try
@@ -93,8 +95,8 @@ public class ApplicationModeFilter extends AbstractPwmFilter
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PwmApplicationMode mode = pwmApplication.getApplicationMode();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+        final PwmApplicationMode mode = pwmDomain.getApplicationMode();
 
         final PwmURL pwmURL = pwmRequest.getURL();
 
@@ -113,7 +115,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter
             else
             {
                 LOGGER.debug( () -> "unable to find a valid configuration, redirecting " + pwmURL + " to ConfigGuide" );
-                pwmRequest.sendRedirect( PwmServletDefinition.ConfigGuide );
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.ConfigGuide );
                 return ProcessStatus.Halt;
             }
         }
@@ -130,7 +132,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter
         }
 
         // allow oauth
-        if ( pwmURL.isOauthConsumer() )
+        if ( pwmURL.matches( PwmServletDefinition.OAuthConsumer ) )
         {
             return ProcessStatus.Continue;
         }
@@ -138,19 +140,23 @@ public class ApplicationModeFilter extends AbstractPwmFilter
         // block if public request and not running or in trial
         if ( !PwmConstants.TRIAL_MODE )
         {
+            final Set<PwmServletDefinition> permittedServlets = Set.of(
+                    PwmServletDefinition.ConfigManager,
+                    PwmServletDefinition.ConfigGuide,
+                    PwmServletDefinition.PublicCommand,
+                    PwmServletDefinition.PrivateCommand,
+                    PwmServletDefinition.Login,
+                    PwmServletDefinition.Logout,
+                    PwmServletDefinition.OAuthConsumer,
+                    PwmServletDefinition.Admin );
+
             if ( mode != PwmApplicationMode.RUNNING )
             {
                 final boolean permittedURl = pwmURL.isResourceURL()
                         || pwmURL.isIndexPage()
-                        || pwmURL.isConfigManagerURL()
-                        || pwmURL.isConfigGuideURL()
-                        || pwmURL.isCommandServletURL()
                         || pwmURL.isReferenceURL()
-                        || pwmURL.isLoginServlet()
-                        || pwmURL.isLogoutURL()
-                        || pwmURL.isOauthConsumer()
-                        || pwmURL.isAdminUrl()
-                        || pwmURL.isRestService();
+                        || pwmURL.isRestService()
+                        || pwmURL.matches( permittedServlets );
 
                 if ( !permittedURl )
                 {

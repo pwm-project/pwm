@@ -23,34 +23,35 @@ package password.pwm.http;
 import password.pwm.PwmConstants;
 import password.pwm.util.java.StringUtil;
 
-import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 public enum HttpContentType
 {
-    json( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET, "application/json", "application/javascript" ),
+    json( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET.displayName(), "application/json", "application/javascript" ),
     zip( HttpEntityDataType.ByteArray, null, "application/zip" ),
     gzip( HttpEntityDataType.ByteArray, null, "application/gzip" ),
-    xml( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET, "text/xml" ),
-    csv( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET, "text/csv" ),
-    javascript( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET, "text/javascript" ),
-    plain( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET, "text/plain" ),
-    html( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET, "text/html" ),
-    form( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET, "application/x-www-form-urlencoded" ),
+    xml( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET.displayName(), "text/xml" ),
+    csv( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET.displayName(), "text/csv" ),
+    javascript( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET.displayName(), "text/javascript" ),
+    plain( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET.displayName(), "text/plain" ),
+    html( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET.displayName(), "text/html" ),
+    form( HttpEntityDataType.String, PwmConstants.DEFAULT_CHARSET.displayName(), "application/x-www-form-urlencoded" ),
     png( HttpEntityDataType.ByteArray, null, "image/png" ),
     jpg( HttpEntityDataType.ByteArray, null, "image/jpg", "image/jpeg" ),
     bmp( HttpEntityDataType.ByteArray, null, "image/bmp" ),
     webp( HttpEntityDataType.ByteArray, null, "image/webp" ),
     octetstream( HttpEntityDataType.ByteArray, null, "application/octet-stream" ),;
 
-    private final String[] mimeType;
-    private final Charset charset;
+    private final List<String> mimeType;
+    private final String charset;
     private final HttpEntityDataType dataType;
 
-    HttpContentType( final HttpEntityDataType dataType, final Charset charset, final String... mimeType )
+    HttpContentType( final HttpEntityDataType dataType, final String charset, final String... mimeType )
     {
-        this.mimeType = mimeType;
+        this.mimeType = mimeType == null ? Collections.emptyList() : List.copyOf( Arrays.asList( mimeType ) );
         this.dataType = dataType;
         this.charset = charset;
     }
@@ -60,7 +61,7 @@ public enum HttpContentType
         String output = getMimeType();
         if ( charset != null )
         {
-            output += "; charset=" + charset.name();
+            output += "; charset=" + charset;
         }
 
         return output;
@@ -68,7 +69,7 @@ public enum HttpContentType
 
     public String getMimeType( )
     {
-        return this.mimeType[0];
+        return this.mimeType.get( 0 );
     }
 
     public HttpEntityDataType getDataType()

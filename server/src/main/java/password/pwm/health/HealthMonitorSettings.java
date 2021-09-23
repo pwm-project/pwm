@@ -23,7 +23,7 @@ package password.pwm.health;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
@@ -32,18 +32,23 @@ import java.io.Serializable;
 @Builder
 class HealthMonitorSettings implements Serializable
 {
+    private boolean healthCheckEnabled;
     private TimeDuration nominalCheckInterval;
     private TimeDuration minimumCheckInterval;
     private TimeDuration maximumRecordAge;
     private TimeDuration maximumForceCheckWait;
+    private TimeDuration threadDumpInterval;
 
-    static HealthMonitorSettings fromConfiguration( final Configuration config )
+    static HealthMonitorSettings fromConfiguration( final AppConfig config )
     {
         return HealthMonitorSettings.builder()
+                .healthCheckEnabled( Boolean.parseBoolean( config.readAppProperty( AppProperty.HEALTHCHECK_ENABLED ) ) )
                 .nominalCheckInterval( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_NOMINAL_CHECK_INTERVAL ) ), TimeDuration.Unit.SECONDS ) )
                 .minimumCheckInterval( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MIN_CHECK_INTERVAL ) ), TimeDuration.Unit.SECONDS ) )
                 .maximumRecordAge( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MAX_RECORD_AGE ) ), TimeDuration.Unit.SECONDS ) )
                 .maximumForceCheckWait( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MAX_FORCE_WAIT ) ), TimeDuration.Unit.SECONDS ) )
+                .threadDumpInterval( TimeDuration.of(
+                        Long.parseLong( config.readAppProperty( AppProperty.LOGGING_EXTRA_PERIODIC_THREAD_DUMP_INTERVAL ) ), TimeDuration.Unit.SECONDS ) )
                 .build();
     }
 }

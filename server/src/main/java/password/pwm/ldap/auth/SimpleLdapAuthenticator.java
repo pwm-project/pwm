@@ -21,7 +21,7 @@
 package password.pwm.ldap.auth;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
@@ -44,7 +44,7 @@ public class SimpleLdapAuthenticator
             );
 
     public static AuthenticationResult authenticateUser(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final PasswordData password
@@ -52,7 +52,7 @@ public class SimpleLdapAuthenticator
             throws PwmUnrecoverableException
     {
         final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
-                pwmApplication,
+                pwmDomain,
                 sessionLabel,
                 userIdentity,
                 AuthenticationType.AUTHENTICATED,

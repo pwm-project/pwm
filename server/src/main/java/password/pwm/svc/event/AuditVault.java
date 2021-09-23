@@ -20,21 +20,18 @@
 
 package password.pwm.svc.event;
 
-import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.localdb.LocalDBException;
 
 import java.time.Instant;
 import java.util.Iterator;
 
 public interface AuditVault
 {
-
-    void init( PwmApplication pwmApplication, LocalDB localDB, Settings settings ) throws LocalDBException, PwmException;
+    void init( PwmApplication pwmApplication, LocalDB localDB, AuditSettings settings )
+            throws PwmException;
 
     void close( );
 
@@ -47,11 +44,4 @@ public interface AuditVault
     String sizeToDebugString( );
 
     void add( AuditRecord record ) throws PwmOperationalException;
-
-    @Value
-    class Settings
-    {
-        private final long maxRecordCount;
-        private final TimeDuration maxRecordAge;
-    }
 }

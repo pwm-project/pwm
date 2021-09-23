@@ -261,7 +261,7 @@ public class ArgumentParser
     private static void outputHelp( ) throws OnejarException
     {
         final HelpFormatter formatter = new HelpFormatter();
-        System.out.println( TomcatOnejarRunner.getVersion() );
+        System.out.println( "PWM " + TomcatOnejarRunner.getVersion() );
         System.out.println( "usage:" );
         formatter.printOptions(
                 System.console().writer(),

@@ -29,22 +29,22 @@ public class TimeDurationTest
     @Test
     public void testConversions()
     {
-        Assert.assertEquals( TimeDuration.SECOND.asMillis(), 1000 );
-        Assert.assertEquals( TimeDuration.SECONDS_10.asMillis(), 10 * 1000 );
-        Assert.assertEquals( TimeDuration.SECONDS_30.asMillis(), 30 * 1000 );
-        Assert.assertEquals( TimeDuration.MINUTE.asMillis(), 60 * 1000 );
-        Assert.assertEquals( TimeDuration.HOUR.asMillis(), 60 * 60 * 1000 );
-        Assert.assertEquals( TimeDuration.DAY.asMillis(), 24 * 60 * 60 * 1000 );
+        Assert.assertEquals( 1000, TimeDuration.SECOND.asMillis() );
+        Assert.assertEquals( 10 * 1000, TimeDuration.SECONDS_10.asMillis() );
+        Assert.assertEquals( 30 * 1000, TimeDuration.SECONDS_30.asMillis() );
+        Assert.assertEquals( 60 * 1000, TimeDuration.MINUTE.asMillis() );
+        Assert.assertEquals( 60 * 60 * 1000, TimeDuration.HOUR.asMillis() );
+        Assert.assertEquals( 24 * 60 * 60 * 1000, TimeDuration.DAY.asMillis() );
 
         final TimeDuration timeDuration15m = TimeDuration.of( 15, TimeDuration.Unit.MINUTES );
         final TimeDuration timeDuration37h = TimeDuration.of( 37, TimeDuration.Unit.HOURS );
 
-        Assert.assertEquals( timeDuration15m.asMillis(), 15 * 60 * 1000 );
-        Assert.assertEquals( timeDuration15m.as( TimeDuration.Unit.MILLISECONDS ), 15 * 60 * 1000 );
-        Assert.assertEquals( timeDuration15m.as( TimeDuration.Unit.SECONDS ), 15 * 60 );
-        Assert.assertEquals( timeDuration15m.as( TimeDuration.Unit.MINUTES ), 15 );
-        Assert.assertEquals( timeDuration15m.as( TimeDuration.Unit.HOURS ), 0 );
-        Assert.assertEquals( timeDuration15m.as( TimeDuration.Unit.DAYS ), 0 );
+        Assert.assertEquals( 15 * 60 * 1000, timeDuration15m.asMillis() );
+        Assert.assertEquals( 15 * 60 * 1000, timeDuration15m.as( TimeDuration.Unit.MILLISECONDS ) );
+        Assert.assertEquals( 15 * 60, timeDuration15m.as( TimeDuration.Unit.SECONDS ) );
+        Assert.assertEquals( 15, timeDuration15m.as( TimeDuration.Unit.MINUTES ) );
+        Assert.assertEquals( 0, timeDuration15m.as( TimeDuration.Unit.HOURS ) );
+        Assert.assertEquals( 0, timeDuration15m.as( TimeDuration.Unit.DAYS ) );
 
         Assert.assertTrue( timeDuration37h.isLongerThan( timeDuration15m ) );
         Assert.assertFalse( timeDuration37h.isShorterThan( timeDuration15m ) );
@@ -52,8 +52,8 @@ public class TimeDurationTest
         Assert.assertEquals( timeDuration15m, timeDuration15m );
         Assert.assertNotEquals( timeDuration15m, timeDuration37h );
 
-        Assert.assertEquals( TimeDuration.MILLISECOND.add( TimeDuration.MILLISECOND ), TimeDuration.MILLISECONDS_2 );
-        Assert.assertEquals( TimeDuration.MILLISECONDS_2.subtract( TimeDuration.MILLISECOND ), TimeDuration.MILLISECOND );
+        Assert.assertEquals( TimeDuration.MILLISECONDS_2, TimeDuration.MILLISECOND.add( TimeDuration.MILLISECOND ) );
+        Assert.assertEquals( TimeDuration.MILLISECOND, TimeDuration.MILLISECONDS_2.subtract( TimeDuration.MILLISECOND ) );
 
         Assert.assertEquals( TimeDuration.MILLISECOND, TimeDuration.MILLISECOND );
         Assert.assertEquals( TimeDuration.SECOND, TimeDuration.SECOND );

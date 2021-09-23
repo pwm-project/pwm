@@ -20,9 +20,6 @@
 
 package password.pwm.svc.wordlist;
 
-import lombok.Getter;
-
-@Getter
 public enum WordlistSourceType
 {
     BuiltIn( "Built-In" ),
@@ -35,5 +32,10 @@ public enum WordlistSourceType
     WordlistSourceType( final String label )
     {
         this.label = label;
+    }
+
+    public String getLabel()
+    {
+        return label;
     }
 }

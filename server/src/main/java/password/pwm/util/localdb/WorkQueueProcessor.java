@@ -616,7 +616,7 @@ public final class WorkQueueProcessor<W extends Serializable>
     public Map<String, String> debugInfo( )
     {
         final Map<String, String> output = new HashMap<>();
-        output.put( "avgLagTime", TimeDuration.of( ( long ) avgLagTime.getAverage(), TimeDuration.Unit.MILLISECONDS ).asCompactString() );
+        output.put( "avgLagTime", avgLagTime.getAverageAsDuration().asCompactString() );
         output.put( "sendRate", sendRate.readEventRate().setScale( 2, RoundingMode.DOWN ) + "/s" );
         if ( executorService != null )
         {

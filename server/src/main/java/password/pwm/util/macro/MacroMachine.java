@@ -25,9 +25,12 @@ import lombok.Data;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.java.StatisticCounterBundle;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -87,12 +90,12 @@ public class MacroMachine
 
     }
 
-    private static Map<Pattern, Macro> makeExternalImplementations( final PwmApplication pwmApplication )
+    private static Map<Pattern, Macro> makeExternalImplementations( final PwmDomain pwmDomain )
     {
         final LinkedHashMap<Pattern, Macro> map = new LinkedHashMap<>();
-        final List<String> externalMethods = ( pwmApplication == null )
+        final List<String> externalMethods = ( pwmDomain == null )
                 ? Collections.emptyList()
-                : pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.EXTERNAL_MACROS_REST_URLS );
+                : pwmDomain.getConfig().readSettingAsStringArray( PwmSetting.EXTERNAL_MACROS_REST_URLS );
 
         int iteration = 0;
         for ( final String url : externalMethods )
@@ -111,14 +114,9 @@ public class MacroMachine
             final String input
     )
     {
-        if ( input == null )
+        if ( StringUtil.isEmpty( input ) )
         {
-            return null;
-        }
-
-        if ( input.length() < 1 )
-        {
-            return input;
+            return "";
         }
 
         final Set<Macro.Scope> scopes = effectiveScopesForRequest( macroRequest );
@@ -128,7 +126,14 @@ public class MacroMachine
         //First the User macros
         if ( scopes.contains( Macro.Scope.User ) )
         {
-            macroImplementations.putAll( makeExternalImplementations( macroRequest.getPwmApplication() ) );
+            if ( macroRequest.getPwmApplication() != null
+                    && macroRequest.getUserInfo() != null
+                    && macroRequest.getUserInfo().getUserIdentity() != null )
+            {
+                final DomainID domainID = macroRequest.getUserInfo().getUserIdentity().getDomainID();
+                final PwmDomain pwmDomain = macroRequest.getPwmApplication().domains().get( domainID );
+                macroImplementations.putAll( makeExternalImplementations( pwmDomain ) );
+            }
         }
 
         final ReplaceWorkData workData = new ReplaceWorkData( input, input, macroRequest );

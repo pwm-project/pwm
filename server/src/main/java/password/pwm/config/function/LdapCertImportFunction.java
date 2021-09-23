@@ -20,11 +20,12 @@
 
 package password.pwm.config.function;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.PwmUnrecoverableException;
@@ -44,26 +45,25 @@ public class LdapCertImportFunction implements SettingUIFunction
     public String provideFunction(
             final PwmRequest pwmRequest,
             final StoredConfigurationModifier modifier,
-            final PwmSetting setting,
-            final String profile,
+            final StoredConfigKey key,
             final String extraData
     )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        final StringArrayValue ldapUrlsValue = ( StringArrayValue ) modifier.newStoredConfiguration().readSetting( PwmSetting.LDAP_SERVER_URLS, profile );
+        final StringArrayValue ldapUrlsValue = ( StringArrayValue ) StoredConfigurationUtil.getValueOrDefault( modifier.newStoredConfiguration(), key );
         final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
         if ( ldapUrlsValue != null && ldapUrlsValue.toNativeObject() != null )
         {
             final List<String> ldapUrlStrings = ldapUrlsValue.toNativeObject();
-            resultCertificates.addAll( X509Utils.readCertsForListOfLdapUrls( ldapUrlStrings, pwmRequest.getConfig() ) );
+            resultCertificates.addAll( X509Utils.readCertsForListOfLdapUrls( ldapUrlStrings, pwmRequest.getAppConfig() ) );
         }
 
         final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
-        modifier.writeSetting( setting, profile, X509CertificateValue.fromX509( resultCertificates ), userIdentity );
-        return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmApplication.getConfig() );
+        modifier.writeSetting( key, X509CertificateValue.fromX509( resultCertificates ), userIdentity );
+        return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmDomain.getConfig() );
     }
 
 }

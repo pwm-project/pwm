@@ -24,7 +24,6 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -81,20 +80,17 @@ public class EmailValue extends AbstractValue implements StoredValue
                     final XmlElement settingElement,
                     final PwmSecurityKey input
             )
-                    throws PwmOperationalException
             {
                 final Map<String, EmailItemBean> values = new TreeMap<>();
                 {
                     final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                     for ( final XmlElement loopValueElement : valueElements )
                     {
-                        final String value = loopValueElement.getText();
-                        if ( value != null && value.length() > 0 )
+                        loopValueElement.getText().ifPresent( value ->
                         {
-                            final String localeValue = loopValueElement.getAttributeValue(
-                                    "locale" ) == null ? "" : loopValueElement.getAttributeValue( "locale" );
+                            final String localeValue = loopValueElement.getAttributeValue( "locale" ).orElse( "" );
                             values.put( localeValue, JsonUtil.deserialize( value, EmailItemBean.class ) );
-                        }
+                        } );
                     }
                 }
                 return new EmailValue( values );

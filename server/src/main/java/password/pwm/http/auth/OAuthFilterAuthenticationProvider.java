@@ -38,7 +38,7 @@ public class OAuthFilterAuthenticationProvider implements PwmHttpFilterAuthentic
     )
             throws PwmUnrecoverableException, IOException
     {
-        final OAuthSettings oauthSettings = OAuthSettings.forSSOAuthentication( pwmRequest.getConfig() );
+        final OAuthSettings oauthSettings = OAuthSettings.forSSOAuthentication( pwmRequest.getDomainConfig() );
         if ( !oauthSettings.oAuthIsConfigured() )
         {
             return;

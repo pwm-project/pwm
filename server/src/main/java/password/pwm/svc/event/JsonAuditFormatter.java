@@ -23,7 +23,7 @@ package password.pwm.svc.event;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
 
@@ -36,8 +36,8 @@ public class JsonAuditFormatter implements AuditFormatter
     )
             throws PwmUnrecoverableException
     {
-        final Configuration configuration = pwmApplication.getConfig();
-        final int maxLength = Integer.parseInt( configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_MAX_MESSAGE_LENGTH ) );
+        final AppConfig appConfig = pwmApplication.getConfig();
+        final int maxLength = Integer.parseInt( appConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_MAX_MESSAGE_LENGTH ) );
         String jsonValue = "";
         final StringBuilder message = new StringBuilder();
         message.append( PwmConstants.PWM_APP_NAME );
@@ -51,16 +51,17 @@ public class JsonAuditFormatter implements AuditFormatter
         }
         else
         {
-            final AuditRecord inputRecord = JsonUtil.cloneUsingJson( auditRecord, auditRecord.getClass() );
-            inputRecord.message = inputRecord.message == null ? "" : inputRecord.message;
-            inputRecord.narrative = inputRecord.narrative == null ? "" : inputRecord.narrative;
+            final AuditRecordData inputRecord = ( ( AuditRecordData ) auditRecord ).toBuilder()
+                    .message( auditRecord.getMessage() == null ? "" : auditRecord.getMessage() )
+                    .narrative( auditRecord.getNarrative() == null ? "" : auditRecord.getNarrative() )
+                    .build();
 
-            final String truncateMessage = configuration.readAppProperty( AppProperty.AUDIT_SYSLOG_TRUNCATE_MESSAGE );
-            final AuditRecord copiedRecord = JsonUtil.cloneUsingJson( auditRecord, auditRecord.getClass() );
-            copiedRecord.message = "";
-            copiedRecord.narrative = "";
+            final String truncateMessage = appConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_TRUNCATE_MESSAGE );
+            final AuditRecordData.AuditRecordDataBuilder copiedRecord = ( ( AuditRecordData ) auditRecord ).toBuilder();
+            copiedRecord.message( "" );
+            copiedRecord.narrative( "" );
             final int shortenedMessageLength = message.length()
-                    + JsonUtil.serialize( copiedRecord ).length()
+                    + JsonUtil.serialize( copiedRecord.build() ).length()
                     + truncateMessage.length();
             final int maxMessageAndNarrativeLength = maxLength - ( shortenedMessageLength + ( truncateMessage.length() * 2 ) );
             int maxMessageLength = inputRecord.getMessage().length();
@@ -76,15 +77,15 @@ public class JsonAuditFormatter implements AuditFormatter
                 }
             }
 
-            copiedRecord.message = inputRecord.getMessage().length() > maxMessageLength
-                    ? inputRecord.message.substring( 0, maxMessageLength ) + truncateMessage
-                    : inputRecord.message;
+            copiedRecord.message( inputRecord.getMessage().length() > maxMessageLength
+                    ? inputRecord.getMessage().substring( 0, maxMessageLength ) + truncateMessage
+                    : inputRecord.getMessage() );
 
-            copiedRecord.narrative = inputRecord.getNarrative().length() > maxNarrativeLength
-                    ? inputRecord.narrative.substring( 0, maxNarrativeLength ) + truncateMessage
-                    : inputRecord.narrative;
+            copiedRecord.narrative( inputRecord.getNarrative().length() > maxNarrativeLength
+                    ? inputRecord.getNarrative().substring( 0, maxNarrativeLength ) + truncateMessage
+                    : inputRecord.getNarrative() );
 
-            message.append( JsonUtil.serialize( copiedRecord ) );
+            message.append( JsonUtil.serialize( copiedRecord.build() ) );
         }
 
         return message.toString();

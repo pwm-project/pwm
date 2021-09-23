@@ -20,7 +20,7 @@
 
 package password.pwm.ldap.permission;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.data.UserPermission;
@@ -32,7 +32,7 @@ import java.io.Serializable;
 interface PermissionTypeHelper extends Serializable
 {
     boolean testMatch(
-            PwmApplication pwmApplication,
+            PwmDomain pwmDomain,
             SessionLabel pwmSession,
             UserIdentity userIdentity,
             UserPermission userPermission

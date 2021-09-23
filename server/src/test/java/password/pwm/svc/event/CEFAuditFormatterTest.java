@@ -21,28 +21,39 @@
 package password.pwm.svc.event;
 
 import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.rules.TemporaryFolder;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
-import password.pwm.config.stored.StoredConfigurationFactory;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.localdb.TestHelper;
+
+import java.util.Locale;
 
 public class CEFAuditFormatterTest
 {
-    @Test
-    public void testCEFFormatting() throws PwmUnrecoverableException
-    {
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+    @BeforeClass
+    public static void setUp() throws Exception
+    {
+        Locale.setDefault( PwmConstants.DEFAULT_LOCALE );
+    }
+
+    @Test
+    public void testCEFFormatting()
+            throws Exception
+    {
         final String jsonInput = "{\"perpetratorID\":\"per|son\",\"perpetratorDN\":\"cn=per|son,o=org\","
                 + "\"perpetratorLdapProfile\":\"default\",\"sourceAddress\":\"2001:DB8:D:B8:35cc::/64\",\"sourceHost\":\"ws31222\","
                 + "\"type\":\"USER\",\"eventCode\":\"ACTIVATE_USER\",\"guid\":\"16ee0bf8-b0c9-41d7-8c24-b40110fc727e\","
                 + "\"timestamp\":\"2000-01-01T00:00:00Z\",\"message\":\"message pipe|Escape, slash\\\\Escape, equal=Escape, \\nsecondLine\","
                 + "\"xdasTaxonomy\":\"XDAS_AE_CREATE_SESSION\",\"xdasOutcome\":\"XDAS_OUT_SUCCESS\"}";
 
-        final UserAuditRecord auditRecord = JsonUtil.deserialize( jsonInput, UserAuditRecord.class );
+        final UserAuditRecord auditRecord = JsonUtil.deserialize( jsonInput, AuditRecordData.class );
 
         final String appName = PwmConstants.PWM_APP_NAME;
         final String versionData = PwmConstants.SERVLET_VERSION;
@@ -53,8 +64,7 @@ public class CEFAuditFormatterTest
                 + " perpetratorID=per\\|son perpetratorDN=cn\\=per\\|son,o\\=org sourceAddress=2001:DB8:D:B8:35cc::/64 sourceHost=ws31222";
 
         final CEFAuditFormatter cefAuditFormatter = new CEFAuditFormatter();
-        final PwmApplication pwmApplication = Mockito.mock( PwmApplication.class );
-        Mockito.when( pwmApplication.getConfig() ).thenReturn( new Configuration( StoredConfigurationFactory.newConfig() ) );
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
         final String output = cefAuditFormatter.convertAuditRecordToMessage( pwmApplication, auditRecord );
         Assert.assertEquals( expectedOutput, output );
     }

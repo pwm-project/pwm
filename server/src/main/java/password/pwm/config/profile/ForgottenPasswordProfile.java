@@ -20,8 +20,8 @@
 
 package password.pwm.config.profile;
 
+import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.VerificationMethodValue;
@@ -36,9 +36,9 @@ public class ForgottenPasswordProfile extends AbstractProfile
     private Set<IdentityVerificationMethod> requiredRecoveryVerificationMethods;
     private Set<IdentityVerificationMethod> optionalRecoveryVerificationMethods;
 
-    public ForgottenPasswordProfile( final String identifier, final StoredConfiguration storedConfiguration )
+    public ForgottenPasswordProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedConfiguration )
     {
-        super( identifier, storedConfiguration );
+        super( domainID, identifier, storedConfiguration );
     }
 
     @Override
@@ -72,17 +72,17 @@ public class ForgottenPasswordProfile extends AbstractProfile
 
     public int getMinOptionalRequired( )
     {
-        final StoredValue configValue = getStoredConfiguration().readSetting( PwmSetting.RECOVERY_VERIFICATION_METHODS, getIdentifier() );
-        final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = ( VerificationMethodValue.VerificationMethodSettings ) configValue.toNativeObject();
+        final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = getSettingReader().readVerificationMethods(
+                PwmSetting.RECOVERY_VERIFICATION_METHODS );
         return verificationMethodSettings.getMinOptionalRequired();
     }
 
     public static class ForgottenPasswordProfileFactory implements ProfileFactory
     {
         @Override
-        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final String identifier )
         {
-            return new ForgottenPasswordProfile( identifier, storedConfiguration );
+            return new ForgottenPasswordProfile( domainID, identifier, storedConfiguration );
         }
     }
 }

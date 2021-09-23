@@ -29,13 +29,19 @@ import com.novell.ldapchai.provider.DirectoryVendor;
 import com.novell.ldapchai.provider.SearchScope;
 import com.novell.ldapchai.util.ChaiUtility;
 import com.novell.ldapchai.util.SearchHelper;
+import lombok.Builder;
+import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
+import password.pwm.config.AppConfig;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -50,27 +56,43 @@ import java.util.TreeMap;
 
 public class LdapBrowser
 {
+    public static final String PARAM_DN = "dn";
+    public static final String PARAM_PROFILE = "profile";
+
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapBrowser.class );
     private final StoredConfiguration storedConfiguration;
 
+    private final SessionLabel sessionLabel;
     private final ChaiProviderFactory chaiProviderFactory;
     private final Map<String, ChaiProvider> providerCache = new HashMap<>();
 
+    private enum DnType
+    {
+        navigable,
+        selectable,
+    }
+
     public LdapBrowser(
+            final SessionLabel sessionLabel,
             final ChaiProviderFactory chaiProviderFactory,
             final StoredConfiguration storedConfiguration
     )
-            throws PwmUnrecoverableException
     {
+        this.sessionLabel = sessionLabel;
         this.chaiProviderFactory = chaiProviderFactory;
         this.storedConfiguration = storedConfiguration;
     }
 
-    public LdapBrowseResult doBrowse( final String profile, final String dn ) throws PwmUnrecoverableException
+    public LdapBrowseResult doBrowse(
+            final DomainID domainID,
+            final String profile,
+            final String dn
+    )
+            throws PwmUnrecoverableException
     {
         try
         {
-            return doBrowseImpl( figureLdapProfileID( profile ), dn );
+            return doBrowseImpl( domainID, profile, dn );
         }
         catch ( final ChaiUnavailableException | ChaiOperationException e )
         {
@@ -91,103 +113,112 @@ public class LdapBrowser
         providerCache.clear();
     }
 
-    private LdapBrowseResult doBrowseImpl( final String profileID, final String dn ) throws PwmUnrecoverableException, ChaiUnavailableException, ChaiOperationException
+    private LdapBrowseResult doBrowseImpl(
+            final DomainID domainID,
+            final String profileID,
+            final String dn
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, ChaiOperationException
     {
+        final LdapBrowseResult.LdapBrowseResultBuilder result = LdapBrowseResult.builder();
 
-        final LdapBrowseResult result = new LdapBrowseResult();
+        updateBrowseResultChildren( domainID, profileID, dn, result );
+
+        result.dn( dn );
+        result.profileID( profileID );
+        final DomainConfig domainConfig = new AppConfig( storedConfiguration ).getDomainConfigs().get( domainID );
+
+        if ( domainConfig.getLdapProfiles().size() > 1 )
         {
-            final Map<String, Boolean> childDNs = new TreeMap<>( getChildEntries( profileID, dn ) );
-
-            for ( final Map.Entry<String, Boolean> entry : childDNs.entrySet() )
-            {
-                final String childDN = entry.getKey();
-                final DNInformation dnInformation = new DNInformation();
-                dnInformation.setDn( childDN );
-                dnInformation.setEntryName( entryNameFromDN( childDN ) );
-                if ( entry.getValue() )
-                {
-                    result.getNavigableDNlist().add( dnInformation );
-                }
-                else
-                {
-                    result.getSelectableDNlist().add( dnInformation );
-                }
-            }
-            result.setMaxResults( childDNs.size() >= getMaxSizeLimit() );
-
-        }
-        result.setDn( dn );
-        result.setProfileID( profileID );
-        final Configuration configuration = new Configuration( storedConfiguration );
-        if ( configuration.getLdapProfiles().size() > 1 )
-        {
-            result.getProfileList().addAll( configuration.getLdapProfiles().keySet() );
+            result.profileList( new ArrayList<>( domainConfig.getLdapProfiles().keySet() ) );
         }
 
-        if ( adRootDNList( profileID ).contains( dn ) )
+        if ( adRootDNList( domainID, profileID ).contains( dn ) )
         {
-            result.setParentDN( "" );
+            result.parentDN( "" );
         }
-        else if ( dn != null && !dn.isEmpty() )
+        else if ( StringUtil.notEmpty( dn ) )
         {
-            final ChaiEntry dnEntry = getChaiProvider( profileID ).getEntryFactory().newChaiEntry( dn );
+            final ChaiEntry dnEntry = getChaiProvider( domainID, profileID ).getEntryFactory().newChaiEntry( dn );
             final ChaiEntry parentEntry = dnEntry.getParentEntry();
             if ( parentEntry == null )
             {
-                result.setParentDN( "" );
+                result.parentDN( "" );
             }
             else
             {
-                result.setParentDN( parentEntry.getEntryDN() );
+                result.parentDN( parentEntry.getEntryDN() );
             }
         }
 
-        return result;
+        return result.build();
     }
 
-    private ChaiProvider getChaiProvider( final String profile ) throws PwmUnrecoverableException
+    private void updateBrowseResultChildren(
+            final DomainID domainID,
+            final String profileID,
+            final String dn,
+            final LdapBrowseResult.LdapBrowseResultBuilder result
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, ChaiOperationException
+    {
+        final Map<String, DnType> childDNs = new TreeMap<>( getChildEntries( domainID, profileID, dn ) );
+
+        final List<DNInformation> navigableDNs = new ArrayList<>();
+        final List<DNInformation> selectableDNs = new ArrayList<>();
+        for ( final Map.Entry<String, DnType> entry : childDNs.entrySet() )
+        {
+            final String childDN = entry.getKey();
+            final DNInformation dnInformation = new DNInformation( entryNameFromDN( childDN ), childDN );
+
+            if ( entry.getValue() == DnType.navigable )
+            {
+                navigableDNs.add( dnInformation );
+            }
+            else
+            {
+                selectableDNs.add( dnInformation );
+            }
+        }
+        result.navigableDNlist( navigableDNs );
+        result.selectableDNlist( selectableDNs );
+        result.maxResults( childDNs.size() >= getMaxSizeLimit() );
+    }
+
+    private ChaiProvider getChaiProvider( final DomainID domainID, final String profile ) throws PwmUnrecoverableException
     {
         if ( !providerCache.containsKey( profile ) )
         {
-            final Configuration configuration = new Configuration( storedConfiguration );
-            final LdapProfile ldapProfile = configuration.getLdapProfiles().get( profile );
-            final ChaiProvider chaiProvider = LdapOperationsHelper.openProxyChaiProvider( chaiProviderFactory, null, ldapProfile, configuration, null );
+            final DomainConfig domainConfig = new AppConfig( storedConfiguration ).getDomainConfigs().get( domainID );
+            final LdapProfile ldapProfile = domainConfig.getLdapProfiles().get( profile );
+            final ChaiProvider chaiProvider = LdapOperationsHelper.openProxyChaiProvider( chaiProviderFactory, sessionLabel, ldapProfile, domainConfig, null );
             providerCache.put( profile, chaiProvider );
         }
         return providerCache.get( profile );
     }
 
-    private String figureLdapProfileID( final String profile )
-    {
-        final Configuration configuration = new Configuration( storedConfiguration );
-        if ( configuration.getLdapProfiles().containsKey( profile ) )
-        {
-            return profile;
-        }
-        return configuration.getLdapProfiles().keySet().iterator().next();
-    }
-
     private int getMaxSizeLimit( )
     {
-        final Configuration configuration = new Configuration( storedConfiguration );
-        return Integer.parseInt( configuration.readAppProperty( AppProperty.LDAP_BROWSER_MAX_ENTRIES ) );
+        final AppConfig appConfig = new AppConfig( storedConfiguration );
+        return Integer.parseInt( appConfig.readAppProperty( AppProperty.LDAP_BROWSER_MAX_ENTRIES ) );
     }
 
-    private Map<String, Boolean> getChildEntries(
+    private Map<String, DnType> getChildEntries(
+            final DomainID domainID,
             final String profile,
             final String dn
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, ChaiOperationException
     {
 
-        final HashMap<String, Boolean> returnMap = new HashMap<>();
-        final ChaiProvider chaiProvider = getChaiProvider( profile );
-        if ( ( dn == null || dn.isEmpty() ) && chaiProvider.getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY )
+        final HashMap<String, DnType> returnMap = new HashMap<>();
+        final ChaiProvider chaiProvider = getChaiProvider( domainID, profile );
+        if ( StringUtil.isEmpty( dn ) && chaiProvider.getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY )
         {
-            final Set<String> adRootDNList = adRootDNList( profile );
+            final Set<String> adRootDNList = adRootDNList( domainID, profile );
             for ( final String rootDN : adRootDNList )
             {
-                returnMap.put( rootDN, true );
+                returnMap.put( rootDN, DnType.navigable );
             }
         }
         else
@@ -201,7 +232,6 @@ public class LdapBrowser
                 searchHelper.setAttributes( "subordinateCount" );
                 searchHelper.setSearchScope( SearchScope.ONE );
                 results = chaiProvider.searchMultiValues( dn, searchHelper );
-
             }
 
             for ( final Map.Entry<String, Map<String, List<String>>> entry : results.entrySet() )
@@ -212,7 +242,7 @@ public class LdapBrowser
                 if ( attributeResults.containsKey( "subordinateCount" ) )
                 {
                     // only eDir actually returns this operational attribute
-                    final Integer subordinateCount = Integer.parseInt( attributeResults.get( "subordinateCount" ).iterator().next() );
+                    final int subordinateCount = Integer.parseInt( attributeResults.get( "subordinateCount" ).iterator().next() );
                     hasSubs = subordinateCount > 0;
                 }
                 else
@@ -229,18 +259,18 @@ public class LdapBrowser
                     }
                     catch ( final Exception e )
                     {
-                        LOGGER.debug( () -> "error during subordinate entry count of " + dn + ", error: " + e.getMessage() );
+                        LOGGER.debug( sessionLabel, () -> "error during subordinate entry count of " + dn + ", error: " + e.getMessage() );
                     }
                 }
-                returnMap.put( resultDN, hasSubs );
+                returnMap.put( resultDN, hasSubs ? DnType.navigable : DnType.selectable );
             }
         }
-        return returnMap;
+        return Collections.unmodifiableMap( returnMap );
     }
 
-    private Set<String> adRootDNList( final String profile ) throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
+    private Set<String> adRootDNList( final DomainID domainID, final String profile ) throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
     {
-        final ChaiProvider chaiProvider = getChaiProvider( profile );
+        final ChaiProvider chaiProvider = getChaiProvider( domainID, profile );
         final Set<String> adRootValues = new HashSet<>();
         if ( chaiProvider.getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY )
         {
@@ -263,96 +293,24 @@ public class LdapBrowser
         return dn.substring( start, end );
     }
 
+    @Value
+    @Builder
     public static class LdapBrowseResult implements Serializable
     {
         private String dn;
         private String profileID;
         private String parentDN;
-        private List<String> profileList = new ArrayList<>();
+        private List<String> profileList;
         private boolean maxResults;
 
-        private List<DNInformation> navigableDNlist = new ArrayList<>();
-        private List<DNInformation> selectableDNlist = new ArrayList<>();
-
-        public String getDn( )
-        {
-            return dn;
-        }
-
-        public void setDn( final String dn )
-        {
-            this.dn = dn;
-        }
-
-        public String getProfileID( )
-        {
-            return profileID;
-        }
-
-        public void setProfileID( final String profileID )
-        {
-            this.profileID = profileID;
-        }
-
-        public String getParentDN( )
-        {
-            return parentDN;
-        }
-
-        public void setParentDN( final String parentDN )
-        {
-            this.parentDN = parentDN;
-        }
-
-        public List<String> getProfileList( )
-        {
-            return profileList;
-        }
-
-        public boolean isMaxResults( )
-        {
-            return maxResults;
-        }
-
-        public void setMaxResults( final boolean maxResults )
-        {
-            this.maxResults = maxResults;
-        }
-
-        public List<DNInformation> getNavigableDNlist( )
-        {
-            return navigableDNlist;
-        }
-
-        public List<DNInformation> getSelectableDNlist( )
-        {
-            return selectableDNlist;
-        }
+        private List<DNInformation> navigableDNlist;
+        private List<DNInformation> selectableDNlist;
     }
 
+    @Value
     public static class DNInformation implements Serializable
     {
-        private String entryName;
-        private String dn;
-
-        public String getEntryName( )
-        {
-            return entryName;
-        }
-
-        public void setEntryName( final String entryName )
-        {
-            this.entryName = entryName;
-        }
-
-        public String getDn( )
-        {
-            return dn;
-        }
-
-        public void setDn( final String dn )
-        {
-            this.dn = dn;
-        }
+        private final String entryName;
+        private final String dn;
     }
 }

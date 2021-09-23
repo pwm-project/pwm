@@ -62,7 +62,7 @@
                 </tr>
                 <tr class="noborder">
                     <td class="noborder">
-                        <% final PwmLogLevel configuredLevel = JspUtility.getPwmRequest( pageContext ).getConfig().readSettingAsEnum(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL,PwmLogLevel.class); %>
+                        <% final PwmLogLevel configuredLevel = JspUtility.getPwmRequest( pageContext ).getAppConfig().readSettingAsEnum(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL,PwmLogLevel.class); %>
                         <select name="level" style="width: auto;" id="level">
                             <% for (final PwmLogLevel level : PwmLogLevel.values()) { %>
                             <% final boolean disabled = level.compareTo(configuredLevel) < 0; %>

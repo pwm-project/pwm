@@ -26,16 +26,19 @@ import org.apache.commons.io.output.NullOutputStream;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.Percent;
+import password.pwm.util.java.StatisticAverageBundle;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.ChecksumOutputStream;
@@ -48,23 +51,39 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public class ResourceServletService implements PwmService
+public class ResourceServletService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ResourceServletService.class );
 
-
     private ResourceServletConfiguration resourceServletConfiguration;
     private Cache<CacheKey, CacheEntry> cache;
-    private final MovingAverage cacheHitRatio = new MovingAverage( 60 * 60 * 1000 );
-    private String resourceNonce;
-    private STATUS status = STATUS.CLOSED;
+    private String resourceNonce = "";
 
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
+
+    private final StatisticAverageBundle<AverageStat> averageStats = new StatisticAverageBundle<>( AverageStat.class );
+    private final StatisticCounterBundle<CountingStat> countingStats = new StatisticCounterBundle<>( CountingStat.class );
+
+    enum AverageStat
+    {
+        cacheHitRatio,
+        avgResponseTimeMS,
+    }
+
+    enum CountingStat
+    {
+        requestsServed,
+        requestsNotFound,
+        bytesServed,
+    }
 
     public String getResourceNonce( )
     {
@@ -76,9 +95,14 @@ public class ResourceServletService implements PwmService
         return cache;
     }
 
-    public MovingAverage getCacheHitRatio( )
+    StatisticAverageBundle<AverageStat> getAverageStats()
     {
-        return cacheHitRatio;
+        return averageStats;
+    }
+
+    StatisticCounterBundle<CountingStat> getCountingStats()
+    {
+        return countingStats;
     }
 
     public long bytesInCache( )
@@ -103,57 +127,61 @@ public class ResourceServletService implements PwmService
 
     public Percent cacheHitRatio( )
     {
-        final BigDecimal numerator = BigDecimal.valueOf( getCacheHitRatio().getAverage() );
+        final BigDecimal numerator = BigDecimal.valueOf( averageStats.getAverage( AverageStat.cacheHitRatio ) );
         final BigDecimal denominator = BigDecimal.ONE;
-        return new Percent( numerator, denominator );
+        return Percent.of( numerator, denominator );
     }
 
     @Override
-    public STATUS status( )
+    protected Set<PwmApplication.Condition> openConditions()
     {
-        return status;
+        return Collections.emptySet();
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmApplication.domains().get( domainID );
         try
         {
-            this.resourceServletConfiguration = ResourceServletConfiguration.createResourceServletConfiguration( pwmApplication );
+            this.resourceServletConfiguration = ResourceServletConfiguration.fromConfig( getSessionLabel(), pwmDomain );
 
             cache = Caffeine.newBuilder()
                     .maximumSize( resourceServletConfiguration.getMaxCacheItems() )
                     .build();
 
-            status = STATUS.OPEN;
+            setStatus( STATUS.OPEN );
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error during cache initialization, will remain closed; error: " + e.getMessage() );
-            status = STATUS.CLOSED;
-            return;
+            LOGGER.error( getSessionLabel(), () -> "error during cache initialization, will remain closed; error: " + e.getMessage() );
+            return STATUS.CLOSED;
         }
 
         try
         {
+            final Instant start = Instant.now();
             resourceNonce = makeResourcePathNonce();
+            LOGGER.trace( getSessionLabel(), () -> "calculated nonce", () -> TimeDuration.fromCurrent( start ) );
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error during nonce generation, will remain closed; error: " + e.getMessage() );
-            status = STATUS.CLOSED;
+            LOGGER.error( getSessionLabel(), () -> "error during nonce generation, will remain closed; error: " + e.getMessage() );
+            return STATUS.CLOSED;
         }
+
+        return STATUS.OPEN;
     }
 
     @Override
     public void close( )
     {
-
+        setStatus( STATUS.CLOSED );
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
         return Collections.emptyList();
     }
@@ -161,7 +189,12 @@ public class ResourceServletService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        return null;
+        final Map<String, String> debugInfo = new HashMap<>();
+        debugInfo.putAll( averageStats.debugStats() );
+        debugInfo.putAll( countingStats.debugStats() );
+        return ServiceInfoBean.builder()
+                .debugProperties( debugInfo )
+                .build();
     }
 
     ResourceServletConfiguration getResourceServletConfiguration( )
@@ -172,17 +205,17 @@ public class ResourceServletService implements PwmService
     private String makeResourcePathNonce( )
             throws IOException
     {
-        final boolean enablePathNonce = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE ) );
+        final boolean enablePathNonce = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE ) );
         if ( !enablePathNonce )
         {
             return "";
         }
 
         final Instant startTime = Instant.now();
-        final String nonce = checksumAllResources( pwmApplication );
-        LOGGER.debug( () -> "completed generation of nonce '" + nonce + "'", () ->  TimeDuration.fromCurrent( startTime ) );
+        final String nonce = checksumAllResources( pwmDomain );
+        LOGGER.debug( getSessionLabel(), () -> "completed generation of nonce '" + nonce + "'", () ->  TimeDuration.fromCurrent( startTime ) );
 
-        final String noncePrefix = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
+        final String noncePrefix = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
         return "/" + noncePrefix + nonce;
     }
 
@@ -199,7 +232,7 @@ public class ResourceServletService implements PwmService
             return true;
         }
 
-        if ( !themeName.matches( pwmRequest.getConfig().readAppProperty( AppProperty.SECURITY_INPUT_THEME_MATCH_REGEX ) ) )
+        if ( !themeName.matches( pwmRequest.getDomainConfig().readAppProperty( AppProperty.SECURITY_INPUT_THEME_MATCH_REGEX ) ) )
         {
             LOGGER.warn( pwmRequest, () -> "discarding suspicious theme name in request: " + themeName );
             return false;
@@ -216,12 +249,12 @@ public class ResourceServletService implements PwmService
         for ( final String testUrl : testUrls )
         {
             final String themePathUrl = ResourceFileServlet.RESOURCE_PATH + testUrl.replace( ResourceFileServlet.TOKEN_THEME, themeName );
-            final FileResource resolvedFile = ResourceFileRequest.resolveRequestedResource(
-                    pwmRequest.getConfig(),
+            final Optional<FileResource> resolvedFile = ResourceFileRequest.resolveRequestedResource(
+                    pwmRequest.getDomainConfig(),
                     servletContext,
                     themePathUrl,
                     getResourceServletConfiguration() );
-            if ( resolvedFile != null && resolvedFile.exists() )
+            if ( resolvedFile.isPresent() )
             {
                 LOGGER.debug( pwmRequest, () -> "check for theme validity of '" + themeName + "' returned true" );
                 return true;
@@ -232,12 +265,12 @@ public class ResourceServletService implements PwmService
         return false;
     }
 
-    private String checksumAllResources( final PwmApplication pwmApplication )
+    private String checksumAllResources( final PwmDomain pwmDomain )
             throws IOException
     {
         try ( ChecksumOutputStream checksumStream = new ChecksumOutputStream( new NullOutputStream() ) )
         {
-            checksumResourceFilePath( pwmApplication, checksumStream );
+            checksumResourceFilePath( pwmDomain, checksumStream );
 
             for ( final FileResource fileResource : getResourceServletConfiguration().getCustomFileBundle().values() )
             {
@@ -261,23 +294,23 @@ public class ResourceServletService implements PwmService
         }
     }
 
-    private static void checksumResourceFilePath( final PwmApplication pwmApplication, final ChecksumOutputStream checksumStream )
+    private static void checksumResourceFilePath( final PwmDomain pwmDomain, final ChecksumOutputStream checksumStream )
     {
-        if ( pwmApplication.getPwmEnvironment().getContextManager() != null )
+        if ( pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager() != null )
         {
             try
             {
-                final File webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
-                if ( webInfPath != null && webInfPath.exists() )
+                final Optional<File> webInfPath = pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager().locateWebInfFilePath();
+                if ( webInfPath.isPresent() && webInfPath.get().exists() )
                 {
-                    final File basePath = webInfPath.getParentFile();
+                    final File basePath = webInfPath.get().getParentFile();
                     if ( basePath != null && basePath.exists() )
                     {
                         final File resourcePath = new File( basePath.getAbsolutePath() + File.separator + "public" + File.separator + "resources" );
                         if ( resourcePath.exists() )
                         {
-                            try ( ClosableIterator<FileSystemUtility.FileSummaryInformation> iter =
-                                          FileSystemUtility.readFileInformation( Collections.singletonList( resourcePath ) ) )
+                            final Iterator<FileSystemUtility.FileSummaryInformation> iter =
+                                    FileSystemUtility.readFileInformation( Collections.singletonList( resourcePath ) );
                             {
                                 while ( iter.hasNext()  )
                                 {

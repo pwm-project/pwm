@@ -354,9 +354,14 @@ input[type=password]::-ms-reveal {
     content: "\f19d";
 }
 
-.tile-image.forgotten-image:before {
+.tile-image.forgotten-username-image:before {
     content: "\f09c";
 }
+
+.tile-image.forgotten-password-image:before {
+    content: "\f09c";
+}
+
 
 .tile-image.security-image:before {
     content: "\f0cb";

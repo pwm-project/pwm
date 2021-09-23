@@ -20,8 +20,6 @@
 
 package password.pwm.svc.wordlist;
 
-import password.pwm.PwmApplication;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
@@ -38,13 +36,13 @@ public class WordlistService extends AbstractWordlist implements Wordlist
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    protected WordlistType getWordlistType()
     {
-        super.init( pwmApplication, WordlistType.WORDLIST );
+        return WordlistType.WORDLIST;
     }
 
     @Override
-    PwmLogger getLogger()
+    protected PwmLogger getLogger()
     {
         return LOGGER;
     }

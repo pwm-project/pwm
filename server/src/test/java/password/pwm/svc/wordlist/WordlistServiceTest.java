@@ -27,7 +27,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.localdb.TestHelper;
@@ -113,9 +113,9 @@ public class WordlistServiceTest
     public void testCaseSensitiveWordlist()
             throws Exception
     {
-        final Configuration configuration = Mockito.spy( new Configuration( StoredConfigurationFactory.newConfig() ) );
-        Mockito.when( configuration.readSettingAsBoolean( PwmSetting.WORDLIST_CASE_SENSITIVE ) ).thenReturn( true );
-        final WordlistService wordlistService = makeWordlistService( configuration );
+        final AppConfig appConfig = Mockito.spy( new AppConfig( StoredConfigurationFactory.newConfig() ) );
+        Mockito.when( appConfig.readSettingAsBoolean( PwmSetting.WORDLIST_CASE_SENSITIVE ) ).thenReturn( true );
+        final WordlistService wordlistService = makeWordlistService( appConfig );
 
         Assert.assertTrue( wordlistService.containsWord( "password-test" ) );
         Assert.assertFalse( wordlistService.containsWord( "PASSWORD-TEST" ) );
@@ -129,9 +129,9 @@ public class WordlistServiceTest
     public void testChunkedWords()
             throws Exception
     {
-        final Configuration configuration = Mockito.spy( new Configuration( StoredConfigurationFactory.newConfig() ) );
-        Mockito.when( configuration.readSettingAsLong( PwmSetting.PASSWORD_WORDLIST_WORDSIZE ) ).thenReturn( 4L );
-        final WordlistService wordlistService = makeWordlistService( configuration );
+        final AppConfig appConfig = Mockito.spy( new AppConfig( StoredConfigurationFactory.newConfig() ) );
+        Mockito.when( appConfig.readSettingAsLong( PwmSetting.PASSWORD_WORDLIST_WORDSIZE ) ).thenReturn( 4L );
+        final WordlistService wordlistService = makeWordlistService( appConfig );
 
         Assert.assertTrue( wordlistService.containsWord( "abcdefghijklmnopqrstuvwxyz" ) );
         Assert.assertTrue( wordlistService.containsWord( "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ) );
@@ -144,20 +144,20 @@ public class WordlistServiceTest
         Assert.assertTrue( wordlistService.containsWord( "ABCde" ) );
     }
 
-    private WordlistService makeWordlistService( final Configuration inputConfiguration )
+    private WordlistService makeWordlistService( final AppConfig inputDomainConfig )
             throws Exception
     {
 
-        final Configuration configuration = inputConfiguration == null
-                ? Mockito.spy( new Configuration( StoredConfigurationFactory.newConfig() ) )
-                : inputConfiguration;
-        Mockito.when( configuration.readAppProperty( AppProperty.WORDLIST_TEST_MODE ) ).thenReturn( "true" );
-        Mockito.when( configuration.readSettingAsString( PwmSetting.WORDLIST_FILENAME ) ).thenReturn( "" );
+        final AppConfig appConfig = inputDomainConfig == null
+                ? Mockito.spy( new AppConfig( StoredConfigurationFactory.newConfig() ) )
+                : inputDomainConfig;
+        Mockito.when( appConfig.readAppProperty( AppProperty.WORDLIST_TEST_MODE ) ).thenReturn( "true" );
+        Mockito.when( appConfig.readSettingAsString( PwmSetting.WORDLIST_FILENAME ) ).thenReturn( "" );
 
         final URL url = this.getClass().getResource( "test-wordlist.zip" );
-        Mockito.when( configuration.readAppProperty( AppProperty.WORDLIST_BUILTIN_PATH ) ).thenReturn( url.toString() );
+        Mockito.when( appConfig.readAppProperty( AppProperty.WORDLIST_BUILTIN_PATH ) ).thenReturn( url.toString() );
 
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), configuration );
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), appConfig );
         return pwmApplication.getWordlistService();
     }
 }

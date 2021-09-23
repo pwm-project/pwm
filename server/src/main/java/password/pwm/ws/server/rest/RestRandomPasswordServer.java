@@ -32,7 +32,7 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.java.StringUtil;
@@ -206,20 +206,18 @@ public class RestRandomPasswordServer extends RestServlet
         {
             final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.getUsername() );
             pwmPasswordPolicy = PasswordUtility.readPasswordPolicyForUser(
-                    restRequest.getPwmApplication(),
+                    restRequest.getDomain(),
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getUserIdentity(),
-                    targetUserIdentity.getChaiUser(),
-                    restRequest.getLocale()
-            );
+                    targetUserIdentity.getChaiUser() );
         }
 
         final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = jsonInputToRandomConfig( jsonInput, pwmPasswordPolicy );
-        final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( restRequest.getSessionLabel(), randomConfig, restRequest.getPwmApplication() );
+        final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( restRequest.getSessionLabel(), randomConfig, restRequest.getDomain() );
         final JsonOutput outputMap = new JsonOutput();
         outputMap.password = randomPassword.getStringValue();
 
-        StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_SETPASSWORD );
+        StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_SETPASSWORD );
 
         return outputMap;
     }

@@ -26,7 +26,7 @@
 <%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.http.PwmSessionWrapper" %>
+<%@ page import="password.pwm.http.PwmSessionFactory" %>
 <%@ page import="password.pwm.svc.stats.Statistic" %>
 <%@ page import="java.util.Locale" %>
 

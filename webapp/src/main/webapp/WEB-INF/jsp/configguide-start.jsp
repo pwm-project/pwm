@@ -50,7 +50,7 @@
             </pwm:if>
         </p>
         <br/><br/>
-        <% String welcomeText = JavaHelper.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_WELCOME_TXT); %>
+        <% String welcomeText = ContextManager.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_WELCOME_TXT); %>
         <% String macroText = MacroRequest.forStatic().expandMacros(welcomeText); %>
         <% if (!StringUtil.isEmpty(macroText)) { %>
         <div id="agreementText" class="eulaText"><%=macroText%></div>

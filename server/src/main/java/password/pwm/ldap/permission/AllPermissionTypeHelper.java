@@ -20,7 +20,7 @@
 
 package password.pwm.ldap.permission;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.data.UserPermission;
@@ -31,7 +31,7 @@ class AllPermissionTypeHelper implements PermissionTypeHelper
 {
     @Override
     public boolean testMatch(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel pwmSession,
             final UserIdentity userIdentity,
             final UserPermission userPermission

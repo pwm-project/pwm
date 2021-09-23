@@ -21,11 +21,13 @@
 package password.pwm.config.value;
 
 import password.pwm.PwmConstants;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.LazySupplier;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlDocument;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -41,6 +43,20 @@ import java.util.Locale;
 
 public abstract class AbstractValue implements StoredValue
 {
+    private static final PwmSecurityKey HASHING_KEY;
+
+    static
+    {
+        try
+        {
+            HASHING_KEY = new PwmSecurityKey( "hash-key" );
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            throw new IllegalStateException( "unable to create internal HASHING_KEY: " + e.getMessage() );
+        }
+    }
+
     private final transient LazySupplier<String> valueHashSupplier = new LazySupplier<>( () -> valueHashComputer( AbstractValue.this ) );
 
     public String toString()
@@ -72,22 +88,42 @@ public abstract class AbstractValue implements StoredValue
         return valueHashSupplier.get();
     }
 
+    protected static String b64encode( final ImmutableByteArray immutableByteArray )
+            throws PwmUnrecoverableException
+    {
+        final String input = StringUtil.base64Encode( immutableByteArray.copyOf(), StringUtil.Base64Options.GZIP );
+        return "\n" + StringUtil.insertRepeatedLineBreaks( input, PwmConstants.XML_OUTPUT_LINE_WRAP_LENGTH ) + "\n";
+    }
+
+    protected static ImmutableByteArray b64decode( final String b64EncodedContents )
+    {
+        try
+        {
+            final CharSequence whitespaceStripped = StringUtil.stripAllWhitespace( b64EncodedContents );
+            final byte[] output = StringUtil.base64Decode( whitespaceStripped, StringUtil.Base64Options.GZIP );
+            return ImmutableByteArray.of( output );
+        }
+        catch ( final Exception e )
+        {
+            throw new IllegalStateException( e );
+        }
+    }
+    
     static String valueHashComputer( final StoredValue storedValue )
     {
         try
         {
-            final PwmSecurityKey testingKey = new PwmSecurityKey( "test" );
             final XmlOutputProcessData xmlOutputProcessData = XmlOutputProcessData.builder()
-                    .pwmSecurityKey( testingKey )
+                    .pwmSecurityKey( HASHING_KEY )
                     .storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN )
                     .build();
-            final List<XmlElement> xmlValues = storedValue.toXmlValues( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE, xmlOutputProcessData );
+            final List<XmlElement> xmlValues = storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, xmlOutputProcessData );
             final XmlDocument document = XmlFactory.getFactory().newDocument( "root" );
             document.getRootElement().addContent( xmlValues );
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             XmlFactory.getFactory().outputDocument( document, byteArrayOutputStream );
-            final String stringToHash = new String( byteArrayOutputStream.toByteArray(), PwmConstants.DEFAULT_CHARSET );
-            return SecureEngine.hash( stringToHash, PwmHashAlgorithm.SHA512 );
+            final byte[] bytesToHash = byteArrayOutputStream.toByteArray();
+            return SecureEngine.hash( bytesToHash, PwmHashAlgorithm.SHA512 );
 
         }
         catch ( final IOException | PwmUnrecoverableException e )

@@ -49,7 +49,7 @@ public class SuccessMessageTag extends PwmAbstractTag
             final String outputMsg;
             if ( successMsg == null || successMsg.isEmpty() )
             {
-                outputMsg = Message.getLocalizedMessage( pwmRequest.getLocale(), Message.Success_Unknown, pwmRequest.getConfig() );
+                outputMsg = Message.getLocalizedMessage( pwmRequest.getLocale(), Message.Success_Unknown, pwmRequest.getDomainConfig() );
             }
             else
             {

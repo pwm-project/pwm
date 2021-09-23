@@ -23,9 +23,9 @@ package password.pwm.config;
 import password.pwm.PwmConstants;
 import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.macro.MacroRequest;
 
@@ -45,12 +45,16 @@ public enum PwmSettingCategory
     TEMPLATES( null ),
     NOTES( null ),
 
+    DOMAINS( null ),
+
     LDAP( null ),
     SETTINGS( null ),
     PROFILES( null ),
     MODULES( null ),
     MODULES_PUBLIC( MODULES ),
     MODULES_PRIVATE( MODULES ),
+
+    SYSTEM( SETTINGS ),
 
     LDAP_PROFILE( LDAP ),
     LDAP_BASE( LDAP_PROFILE ),
@@ -69,10 +73,14 @@ public enum PwmSettingCategory
     ORACLE_DS( LDAP_SETTINGS ),
 
     APPLICATION( SETTINGS ),
-    GENERAL( APPLICATION ),
-    CLUSTERING( APPLICATION ),
-    LOCALIZATION( APPLICATION ),
-    TELEMETRY( APPLICATION ),
+
+
+    NODES( SYSTEM ),
+
+    DOMAIN( SETTINGS ),
+    URL_SETTINGS( SETTINGS ),
+    LOCALIZATION( SETTINGS ),
+    TELEMETRY( SETTINGS ),
 
     AUDITING( SETTINGS ),
     AUDIT_CONFIG( AUDITING ),
@@ -83,6 +91,7 @@ public enum PwmSettingCategory
     CAPTCHA( SETTINGS ),
 
     INTRUDER( SETTINGS ),
+    INTRUDER_SYSTEM_SETTINGS( INTRUDER ),
     INTRUDER_SETTINGS( INTRUDER ),
     INTRUDER_TIMEOUTS( INTRUDER ),
 
@@ -131,6 +140,7 @@ public enum PwmSettingCategory
     PASSWORD_POLICY( PROFILES ),
     CHALLENGE_POLICY( PROFILES ),
 
+    HTTP_CLIENT( SETTINGS ),
     HTTPS_SERVER( SETTINGS ),
 
     ADMINISTRATION( MODULES_PRIVATE ),
@@ -192,7 +202,8 @@ public enum PwmSettingCategory
     DELETE_ACCOUNT_SETTINGS( DELETE_ACCOUNT ),
     DELETE_ACCOUNT_PROFILE( DELETE_ACCOUNT ),
 
-    INTERNAL( SETTINGS ),;
+    INTERNAL_DOMAIN( SETTINGS ),
+    INTERNAL_SYSTEM( SETTINGS ),;
 
     private static final Comparator<PwmSettingCategory> MENU_LOCATION_COMPARATOR = Comparator.comparing(
             ( pwmSettingCategory ) -> pwmSettingCategory.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ) );
@@ -350,12 +361,10 @@ public enum PwmSettingCategory
 
     public static List<PwmSettingCategory> valuesForReferenceDoc()
     {
-        final List<PwmSettingCategory> values = sortedValues().stream()
+        return sortedValues().stream()
                 .filter( ( category ) -> !category.isHidden() )
                 .filter( ( category ) -> !category.getSettings().isEmpty() )
-                .collect( Collectors.toList( ) );
-
-        return Collections.unmodifiableList( values );
+                .collect( Collectors.toUnmodifiableList( ) );
     }
 
     public static List<PwmSettingCategory> associatedProfileCategories( final PwmSettingCategory inputCategory )
@@ -375,7 +384,7 @@ public enum PwmSettingCategory
         returnValues.add( topLevelCategory );
         returnValues.addAll( topLevelCategory.getChildren() );
 
-        return Collections.unmodifiableList( returnValues );
+        return List.copyOf( returnValues );
     }
 
     public static Optional<PwmSettingCategory> forKey( final String key )
@@ -413,10 +422,10 @@ public enum PwmSettingCategory
                 final Optional<XmlElement> profileElement = categoryElement.getChild( "profile" );
                 if ( profileElement.isPresent() )
                 {
-                    final String settingKey = profileElement.get().getAttributeValue( "setting" );
-                    if ( settingKey != null )
+                    final Optional<String> settingKey = profileElement.get().getAttributeValue( "setting" );
+                    if ( settingKey.isPresent() )
                     {
-                        return PwmSetting.forKey( settingKey );
+                        return PwmSetting.forKey( settingKey.get() );
                     }
                 }
                 if ( nested )
@@ -435,8 +444,9 @@ public enum PwmSettingCategory
         private static int readLevel( final PwmSettingCategory category )
         {
             final XmlElement settingElement = PwmSettingXml.readCategoryXml( category );
-            final String levelAttribute = settingElement.getAttributeValue( PwmSettingXml.XML_ELEMENT_LEVEL );
-            return levelAttribute != null ? Integer.parseInt( levelAttribute ) : 0;
+            return settingElement.getAttributeValue( PwmSettingXml.XML_ELEMENT_LEVEL )
+                    .map( ( value ) -> JavaHelper.silentParseInt( value, 0 ) )
+                    .orElse( 0 );
         }
 
         private static PwmSettingScope readScope( final PwmSettingCategory category )
@@ -461,10 +471,10 @@ public enum PwmSettingCategory
             while ( nextCategory != null )
             {
                 final XmlElement settingElement = PwmSettingXml.readCategoryXml( category );
-                final String attributeValue = settingElement.getAttributeValue( attribute );
-                if ( !StringUtil.isEmpty( attributeValue ) )
+                final Optional<String> attributeValue = settingElement.getAttributeValue( attribute );
+                if ( attributeValue.isPresent() )
                 {
-                    return attributeValue;
+                    return attributeValue.get();
                 }
                 nextCategory = nextCategory.getParent();
             }
@@ -498,8 +508,8 @@ public enum PwmSettingCategory
         {
             final Set<PwmSettingCategory> categories = Arrays.stream( PwmSettingCategory.values() )
                     .filter( ( loopCategory ) -> loopCategory.getParent() == category )
-                    .collect( Collectors.toSet() );
-            return Collections.unmodifiableSet( JavaHelper.copiedEnumSet( categories, PwmSettingCategory.class ) );
+                    .collect( Collectors.toUnmodifiableSet() );
+            return Collections.unmodifiableSet( CollectionUtil.copiedEnumSet( categories, PwmSettingCategory.class ) );
         }
 
         public static Set<PwmSetting> readSettings( final PwmSettingCategory category )
@@ -507,7 +517,7 @@ public enum PwmSettingCategory
             final Set<PwmSetting> settings = Arrays.stream( PwmSetting.values() )
                     .filter( ( setting ) -> setting.getCategory() == category )
                     .collect( Collectors.toSet() );
-            return Collections.unmodifiableSet( JavaHelper.copiedEnumSet( settings, PwmSetting.class ) );
+            return Collections.unmodifiableSet( CollectionUtil.copiedEnumSet( settings, PwmSetting.class ) );
         }
     }
 }

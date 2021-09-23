@@ -25,6 +25,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -35,9 +36,10 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.cli.CliParameters;
+import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.operations.CrService;
+import password.pwm.svc.cr.CrService;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -46,8 +48,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.TreeMap;
 
 public class ResponseStatsCommand extends AbstractCliCommand
@@ -58,12 +60,12 @@ public class ResponseStatsCommand extends AbstractCliCommand
             throws Exception
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
-        out( "searching for users" );
-        final List<UserIdentity> userIdentities = readAllUsersFromLdap( pwmApplication );
-        out( "found " + userIdentities.size() + " users, reading...." );
+        final ResponseStats responseStats = new ResponseStats();
 
-        final ResponseStats responseStats = makeStatistics( pwmApplication, userIdentities );
-
+        for ( final PwmDomain pwmDomain : pwmApplication.domains().values() )
+        {
+            makeStatistics( pwmDomain, responseStats );
+        }
         final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
         final long startTime = System.currentTimeMillis();
         out( "beginning output to " + outputFile.getAbsolutePath() );
@@ -82,91 +84,88 @@ public class ResponseStatsCommand extends AbstractCliCommand
 
     static int userCounter = 0;
 
-    ResponseStats makeStatistics(
-            final PwmApplication pwmApplication,
-            final List<UserIdentity> userIdentities
+    void makeStatistics(
+            final PwmDomain pwmDomain,
+            final ResponseStats responseStats
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
-        final ResponseStats responseStats = new ResponseStats();
-        final Timer timer = new Timer();
-        timer.scheduleAtFixedRate( new TimerTask()
-        {
-            @Override
-            public void run( )
-            {
-                out( "processing...  " + userCounter + " users read" );
-            }
-        }, 30 * 1000, 30 * 1000 );
-        final CrService crService = pwmApplication.getCrService();
+        out( "searching for users in domain " + pwmDomain.getDomainID() );
+        final List<UserIdentity> userIdentities = readAllUsersFromLdap( pwmDomain );
+        out( "found " + userIdentities.size() + " users, reading...." );
+
+
+        final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask(
+                () -> out( "processing...  " + userCounter + " users read" ),
+                TimeDuration.SECONDS_30 );
+
+        final CrService crService = pwmDomain.getCrService();
         for ( final UserIdentity userIdentity : userIdentities )
         {
             userCounter++;
-            final ResponseInfoBean responseInfoBean = crService.readUserResponseInfo( null, userIdentity, pwmApplication.getProxiedChaiUser( userIdentity ) );
-            makeStatistics( responseStats, responseInfoBean );
+            final Optional<ResponseInfoBean> responseInfoBean = crService.readUserResponseInfo(
+                    SessionLabel.CLI_SESSION_LABEL, userIdentity,
+                    pwmDomain.getProxiedChaiUser( SessionLabel.CLI_SESSION_LABEL, userIdentity ) );
+            responseInfoBean.ifPresent( infoBean -> makeStatistics( responseStats, infoBean ) );
+            debugOutputter.conditionallyExecuteTask();
         }
-        timer.cancel();
-        return responseStats;
     }
 
     static void makeStatistics( final ResponseStats responseStats, final ResponseInfoBean responseInfoBean )
     {
-        if ( responseInfoBean != null )
+        Objects.requireNonNull( responseInfoBean );
         {
+            final Map<Challenge, String> crMap = responseInfoBean.getCrMap();
+            if ( crMap != null )
             {
-                final Map<Challenge, String> crMap = responseInfoBean.getCrMap();
-                if ( crMap != null )
+                for ( final Challenge challenge : crMap.keySet() )
                 {
-                    for ( final Challenge challenge : crMap.keySet() )
+                    final String challengeText = challenge.getChallengeText();
+                    if ( challengeText != null && !challengeText.isEmpty() )
                     {
-                        final String challengeText = challenge.getChallengeText();
-                        if ( challengeText != null && !challengeText.isEmpty() )
+                        if ( !responseStats.challengeTextOccurrence.containsKey( challengeText ) )
                         {
-                            if ( !responseStats.challengeTextOccurrence.containsKey( challengeText ) )
-                            {
-                                responseStats.challengeTextOccurrence.put( challengeText, 0 );
-                            }
-                            responseStats.challengeTextOccurrence.put( challengeText,
-                                    1 + responseStats.challengeTextOccurrence.get( challengeText ) );
+                            responseStats.challengeTextOccurrence.put( challengeText, 0 );
                         }
-                    }
-                }
-            }
-            {
-                final Map<Challenge, String> helpdeskCrMap = responseInfoBean.getHelpdeskCrMap();
-                if ( helpdeskCrMap != null )
-                {
-                    for ( final Challenge challenge : helpdeskCrMap.keySet() )
-                    {
-                        final String challengeText = challenge.getChallengeText();
-                        if ( challengeText != null && !challengeText.isEmpty() )
-                        {
-                            if ( !responseStats.helpdeskChallengeTextOccurrence.containsKey( challengeText ) )
-                            {
-                                responseStats.helpdeskChallengeTextOccurrence.put( challengeText, 0 );
-                            }
-                            responseStats.helpdeskChallengeTextOccurrence.put( challengeText,
-                                    1 + responseStats.helpdeskChallengeTextOccurrence.get( challengeText ) );
-                        }
+                        responseStats.challengeTextOccurrence.put( challengeText,
+                                1 + responseStats.challengeTextOccurrence.get( challengeText ) );
                     }
                 }
             }
         }
-
+        {
+            final Map<Challenge, String> helpdeskCrMap = responseInfoBean.getHelpdeskCrMap();
+            if ( helpdeskCrMap != null )
+            {
+                for ( final Challenge challenge : helpdeskCrMap.keySet() )
+                {
+                    final String challengeText = challenge.getChallengeText();
+                    if ( challengeText != null && !challengeText.isEmpty() )
+                    {
+                        if ( !responseStats.helpdeskChallengeTextOccurrence.containsKey( challengeText ) )
+                        {
+                            responseStats.helpdeskChallengeTextOccurrence.put( challengeText, 0 );
+                        }
+                        responseStats.helpdeskChallengeTextOccurrence.put( challengeText,
+                                1 + responseStats.helpdeskChallengeTextOccurrence.get( challengeText ) );
+                    }
+                }
+            }
+        }
     }
 
     private static List<UserIdentity> readAllUsersFromLdap(
-            final PwmApplication pwmApplication
+            final PwmDomain pwmDomain
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
         final List<UserIdentity> returnList = new ArrayList<>();
 
-        for ( final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values() )
+        for ( final LdapProfile ldapProfile : pwmDomain.getConfig().getLdapProfiles().values() )
         {
-            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
             final TimeDuration searchTimeout = TimeDuration.of(
-                    Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT_MS ) ),
+                    Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT_MS ) ),
                     TimeDuration.Unit.MILLISECONDS );
 
             final SearchConfiguration searchConfiguration = SearchConfiguration.builder()

@@ -27,7 +27,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ProcessStatus;
-import password.pwm.http.PwmHttpResponseWrapper;
+import password.pwm.http.PwmCookiePath;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.logging.PwmLogger;
@@ -45,7 +45,8 @@ public abstract class HttpAuthenticationUtilities
     private static final Set<AuthenticationMethod> IGNORED_AUTH_METHODS = EnumSet.noneOf( AuthenticationMethod.class );
 
 
-    public static ProcessStatus attemptAuthenticationMethods( final PwmRequest pwmRequest ) throws IOException, ServletException
+    public static ProcessStatus attemptAuthenticationMethods( final PwmRequest pwmRequest )
+            throws IOException, ServletException, PwmUnrecoverableException
     {
         if ( pwmRequest.isAuthenticated() )
         {
@@ -60,13 +61,13 @@ public abstract class HttpAuthenticationUtilities
                 try
                 {
                     final String className = authenticationMethod.getClassName();
-                    final Class clazz = Class.forName( className );
-                    final Object newInstance = clazz.newInstance();
+                    final Class<?> clazz = Class.forName( className );
+                    final Object newInstance = clazz.getDeclaredConstructor().newInstance();
                     filterAuthenticationProvider = ( PwmHttpFilterAuthenticationProvider ) newInstance;
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.trace( () -> "could not load authentication class '" + authenticationMethod + "', will ignore" );
+                    LOGGER.trace( () -> "could not load authentication class '" + authenticationMethod + "', will ignore (error: " + e.getMessage() + ")" );
                     IGNORED_AUTH_METHODS.add( authenticationMethod );
                 }
 
@@ -131,14 +132,14 @@ public abstract class HttpAuthenticationUtilities
 
         pwmRequest.getPwmSession().getLoginInfoBean().setFlag( LoginInfoBean.LoginFlag.authRecordSet );
 
-        final String cookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_NAME );
+        final String cookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_NAME );
         if ( cookieName == null || cookieName.isEmpty() )
         {
             LOGGER.debug( pwmRequest, () -> "skipping auth record cookie set, cookie name parameter is blank" );
             return;
         }
 
-        final int cookieAgeSeconds = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_AGE ) );
+        final int cookieAgeSeconds = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_AGE ) );
         if ( cookieAgeSeconds < 1 )
         {
             LOGGER.debug( pwmRequest, () -> "skipping auth record cookie set, cookie age parameter is less than 1" );
@@ -151,7 +152,7 @@ public abstract class HttpAuthenticationUtilities
 
         try
         {
-            pwmRequest.getPwmResponse().writeEncryptedCookie( cookieName, httpAuthRecord, cookieAgeSeconds, PwmHttpResponseWrapper.CookiePath.Application );
+            pwmRequest.getPwmResponse().writeEncryptedCookie( cookieName, httpAuthRecord, cookieAgeSeconds, PwmCookiePath.Domain );
             LOGGER.debug( pwmRequest, () -> "wrote auth record cookie to user browser for use during forgotten password" );
         }
         catch ( final PwmUnrecoverableException e )

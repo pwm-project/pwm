@@ -44,16 +44,16 @@ public enum PwmApplicationMode
             return ERROR;
         }
 
-        final PwmApplication pwmApplication;
+        final PwmApplication pwmDomain;
         try
         {
-            pwmApplication = contextManager.getPwmApplication();
+            pwmDomain = contextManager.getPwmApplication();
         }
         catch ( final Throwable t )
         {
             return ERROR;
         }
 
-        return pwmApplication.getApplicationMode();
+        return pwmDomain.getApplicationMode();
     }
 }

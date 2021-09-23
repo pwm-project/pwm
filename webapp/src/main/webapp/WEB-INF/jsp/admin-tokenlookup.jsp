@@ -68,7 +68,7 @@
             {
                 try
                 {
-                    tokenPayload = tokenlookup_pwmRequest.getPwmApplication().getTokenService().retrieveTokenData(tokenlookup_pwmRequest.getLabel(), tokenKey);
+                    tokenPayload = tokenlookup_pwmRequest.getPwmDomain().getTokenService().retrieveTokenData(tokenlookup_pwmRequest.getLabel(), tokenKey);
                 } catch ( PwmOperationalException e )
                 {
                     tokenExpired = e.getError() == PwmError.ERROR_TOKEN_EXPIRED;

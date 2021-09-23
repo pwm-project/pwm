@@ -81,6 +81,9 @@ PWM_CFGEDIT.syntaxFunctionMap = {
     PROFILE: function (settingKey) {
         StringArrayValueHandler.init(settingKey);
     },
+    DOMAIN: function (settingKey) {
+        StringArrayValueHandler.init(settingKey);
+    },
     LOCALIZED_STRING: function (settingKey) {
         LocalizedStringValueHandler.init(settingKey);
     },
@@ -196,6 +199,12 @@ PWM_CFGEDIT.writeSetting = function(keyName, valueData, nextAction) {
         } else {
             PWM_MAIN.clearError();
         }
+        var restartEditor = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'],'ReloadEditorOnModify');
+        if ( restartEditor )
+        {
+            PWM_MAIN.gotoUrl(window.location.href);
+            return;
+        }
         if (nextAction !== undefined) {
             nextAction();
         }
@@ -210,7 +219,8 @@ PWM_CFGEDIT.writeSetting = function(keyName, valueData, nextAction) {
 };
 
 PWM_CFGEDIT.resetSetting=function(keyName, nextAction) {
-    var url = "editor?processAction=resetSetting&key=" + keyName;
+    var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'resetSetting');
+    url = PWM_MAIN.addParamToUrl(url, 'key', keyName);
     if (PWM_CFGEDIT.readCurrentProfile()) {
         url = PWM_MAIN.addParamToUrl(url,'profile',PWM_CFGEDIT.readCurrentProfile());
     }
@@ -330,10 +340,9 @@ PWM_CFGEDIT.readInitialTextBasedValue = function(key) {
 PWM_CFGEDIT.saveConfiguration = function() {
     PWM_VAR['cancelHeartbeatCheck'] = true;
     PWM_MAIN.preloadAll(function(){
-        var confirmText = PWM_CONFIG.showString('MenuDisplay_SaveConfig');
         var confirmFunction = function(){
-            var url = "editor?processAction=finishEditing";
-            var loadFunction = function(data) {
+            var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'finishEditing');
+            var saveFunction = function(data) {
                 if (data['error'] === true) {
                     PWM_MAIN.showErrorDialog(data);
                 } else {
@@ -344,16 +353,49 @@ PWM_CFGEDIT.saveConfiguration = function() {
                 }
             };
             PWM_MAIN.showWaitDialog({title:'Saving...',loadFunction:function(){
-                    PWM_MAIN.ajaxRequest(url,loadFunction);
+                    PWM_MAIN.ajaxRequest(url,saveFunction);
                 }});
         };
-        PWM_CFGEDIT.showChangeLog(confirmText,confirmFunction);
+        PWM_CFGEDIT.showChangeLog(confirmFunction);
+    });
+};
+
+PWM_CFGEDIT.showChangeLog=function(nextFunction) {
+    var jasonFunction = function() {
+        PWM_CFGEDIT.showHealthWarnings(nextFunction);
+    }
+    var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'readChangeLog');
+    var loadFunction = function(data) {
+        PWM_MAIN.closeWaitDialog();
+        var bodyText = PWM_CFGEDIT.makeChangeLogHtml(data['data']);
+        var titleText = 'Changes';
+        var okLabel = PWM_MAIN.showString('Button_Continue');
+        PWM_MAIN.showConfirmDialog({title: titleText, okLabel:okLabel, text: bodyText, dialogClass:'wide', showClose: true, okAction:jasonFunction});
+    };
+    PWM_MAIN.showWaitDialog({loadFunction: function () {
+            PWM_MAIN.ajaxRequest(url, loadFunction);
+        }
+    });
+};
+
+PWM_CFGEDIT.showHealthWarnings=function( nextFunction ) {
+    var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'readWarnings');
+    var loadFunction = function(data) {
+        PWM_MAIN.closeWaitDialog();
+        var bodyText = PWM_CFGEDIT.makeConfigWarningsHtml(data['data'])
+        bodyText += '<br/><div>' + PWM_CONFIG.showString('MenuDisplay_SaveConfig') + '</div>';
+        var titleText = 'Configuration Concerns';
+        PWM_MAIN.showConfirmDialog({title: titleText, text: bodyText, dialogClass:'wide', showClose: true, okAction:nextFunction});
+    };
+    PWM_MAIN.showWaitDialog({loadFunction: function () {
+            PWM_MAIN.ajaxRequest(url, loadFunction);
+        }
     });
 };
 
 PWM_CFGEDIT.setConfigurationPassword = function(password) {
     if (password) {
-        var url = "editor?processAction=setConfigurationPassword";
+        var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'setConfigurationPassword');
         var loadFunction = function(data) {
             if (data['error']) {
                 PWM_MAIN.closeWaitDialog();
@@ -421,6 +463,7 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
         PWM_CFGEDIT.handleModifiedSettingsRadioClick();
     });
 
+    PWM_CFGEDIT.initDomainMenu();
 
     PWM_CONFIG.heartbeatCheck();
 
@@ -431,6 +474,30 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
         nextFunction();
     }
 };
+
+PWM_CFGEDIT.initDomainMenu = function() {
+    var domainList = PWM_VAR['domainIds'];
+    if ( domainList && domainList.length > 1 )
+    {
+        var domainMenuElement = PWM_MAIN.getObject('domainMenu');
+        var html = '<select id="domainMenuSelect">';
+
+        var systemSelected = PWM_VAR['selectedDomainId'] === 'system';
+        html += '<option value="system"' + ( systemSelected ? ' selected' : '') + '>System</option>';
+
+        PWM_MAIN.JSLibrary.forEachInArray( domainList, function(domainId){
+            var selected = PWM_VAR['selectedDomainId'] === domainId;
+            html += '<option ' + ( selected ? 'selected ' : '') + 'value="' + domainId + '">Domain: ' + domainId + "</option>";
+        } )
+        html += '</select>';
+        domainMenuElement.innerHTML = html;
+        PWM_MAIN.addEventHandler('domainMenuSelect','change',function(){
+            var selectedDomain = PWM_MAIN.JSLibrary.readValueOfSelectElement('domainMenuSelect');
+            PWM_MAIN.Preferences.writeSessionStorage('configEditor-lastSelected', null);
+            PWM_MAIN.gotoUrl(PWM_GLOBAL['url-context'] + '/private/config/editor/' + selectedDomain );
+        });
+    }
+}
 
 PWM_CFGEDIT.executeSettingFunction = function (setting, name, resultHandler, extraData) {
     var jsonSendData = {};
@@ -445,7 +512,7 @@ PWM_CFGEDIT.executeSettingFunction = function (setting, name, resultHandler, ext
             }});
     };
 
-    var requestUrl = "editor?processAction=executeSettingFunction";
+    var requestUrl = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'executeSettingFunction');
     if (PWM_CFGEDIT.readCurrentProfile()) {
         requestUrl = PWM_MAIN.addParamToUrl(requestUrl,'profile',PWM_CFGEDIT.readCurrentProfile());
     }
@@ -459,47 +526,6 @@ PWM_CFGEDIT.executeSettingFunction = function (setting, name, resultHandler, ext
                 }
             };
             PWM_MAIN.ajaxRequest(requestUrl, loadFunction, {content:jsonSendData});
-        }});
-};
-
-PWM_CFGEDIT.showChangeLog=function(confirmText, confirmFunction) {
-    var url = "editor?processAction=readChangeLog";
-    var loadFunction = function(data) {
-        PWM_MAIN.closeWaitDialog();
-        if (data['error']) {
-            PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
-        } else {
-            var showChangeLogDialog = function() {
-                var bodyText = '<div class="changeLogViewBox">';
-                bodyText += data['data']['html'];
-                bodyText += '</div>';
-
-                if (data['data']['health']) {
-                    bodyText += '<br/><div>Configuration Concerns:</div>';
-                    bodyText += '<div><ul>';
-                    for (var i in data['data']['health']['records']) {
-                        var detail = data['data']['health']['records'][i]['detail'];
-                        bodyText += '<li>' + detail + '</li>';
-                    }
-                    bodyText += '</ul></div>';
-                }
-
-                if (confirmText !== undefined) {
-                    bodyText += '<br/><div>' + confirmText + '</div>';
-                }
-                if (confirmFunction === undefined) {
-                    PWM_MAIN.showDialog({title: "Unsaved Configuration Editor Changes", text: bodyText, dialogClass:'wide', showClose: true});
-                } else {
-                    PWM_MAIN.showConfirmDialog({title: "Unsaved Configuration Editor Changes", text: bodyText, dialogClass:'wide', showClose: true, okAction:confirmFunction});
-                }
-            };
-
-            showChangeLogDialog()
-
-        }
-    };
-    PWM_MAIN.showWaitDialog({loadFunction: function () {
-            PWM_MAIN.ajaxRequest(url, loadFunction);
         }});
 };
 
@@ -523,7 +549,7 @@ PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
     };
 
     console.log('beginning search #' + iteration);
-    var url = "editor?processAction=search";
+    var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'search');
 
     var loadFunction = function(data) {
         resetDisplay();
@@ -679,33 +705,59 @@ PWM_CFGEDIT.setBreadcrumbText = function(text) {
 
 };
 
+PWM_CFGEDIT.makeChangeLogHtml = function(changeData) {
+    var bodyText = '<div class="changeLogViewBox">';
+    if (PWM_MAIN.JSLibrary.isEmpty(changeData)) {
+        bodyText += '<div class="changeLogValue">No changes.</div>';
+    } else {
+        PWM_MAIN.JSLibrary.forEachInObject(changeData, function (key) {
+            bodyText += '<div class="changeLogKey">' + key + '</div>';
+            bodyText += '<div class="changeLogValue">' + changeData[key] + '</div>';
+        });
+    }
+    bodyText += '</div>';
+    return bodyText;
+};
 
+PWM_CFGEDIT.makeConfigWarningsHtml = function(configWarnings) {
+    var bodyText = '<div class="changeLogViewBox">';
+    PWM_MAIN.JSLibrary.forEachInObject(configWarnings,function(key){
+        bodyText += '<div class="changeLogKey">' + key + '</div>';
+        var values = configWarnings[key];
+        PWM_MAIN.JSLibrary.forEachInArray(values,function(value){
+            bodyText += '<div class="changeLogValue">' + value + '</div>';
+        });
+    });
+    bodyText += '</div>';
+    return bodyText;
+};
 
 PWM_CFGEDIT.cancelEditing = function() {
-    var url =  "editor?processAction=readChangeLog";
+    var nextUrl = PWM_GLOBAL['url-context'] + '/private/config/manager';
+    var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'readChangeLog');
     PWM_MAIN.showWaitDialog({loadFunction:function(){
             var loadFunction = function(data) {
                 if (data['error']) {
                     PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
                 } else {
-                    if (data['data']['modified'] === true) {
-                        var bodyText = '<div class="changeLogViewBox">';
-                        bodyText += data['data']['html'];
-                        bodyText += '</div><br/><div>';
+                    if (!PWM_MAIN.JSLibrary.isEmpty(data['data'])) {
+                        var bodyText = PWM_CFGEDIT.makeChangeLogHtml(data['data']);
+                        bodyText += '<div>';
                         bodyText += PWM_CONFIG.showString('MenuDisplay_CancelConfig');
                         bodyText += '</div>';
                         PWM_MAIN.closeWaitDialog();
                         PWM_MAIN.showConfirmDialog({dialogClass:'wide',showClose:true,allowMove:true,text:bodyText,okAction:
                                 function () {
                                     PWM_MAIN.showWaitDialog({loadFunction: function () {
-                                            PWM_MAIN.ajaxRequest('editor?processAction=cancelEditing',function(){
-                                                PWM_MAIN.gotoUrl('manager', {addFormID: true});
+                                            var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'cancelEditing');
+                                            PWM_MAIN.ajaxRequest(url,function(){
+                                                PWM_MAIN.gotoUrl(nextUrl, {addFormID: true});
                                             });
                                         }});
                                 }
                         });
                     } else {
-                        PWM_MAIN.gotoUrl('manager', {addFormID: true});
+                        PWM_MAIN.gotoUrl(nextUrl, {addFormID: true});
                     }
                 }
             };
@@ -718,7 +770,7 @@ PWM_CFGEDIT.showMacroHelp = function() {
         PWM_MAIN.getObject('panel-testMacroOutput').innerHTML = PWM_MAIN.showString('Display_PleaseWait');
         var sendData = {};
         sendData['input'] = PWM_MAIN.getObject('input-testMacroInput').value;
-        var url = "editor?processAction=testMacro";
+        var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'testMacro');
         var loadFunction = function(data) {
             PWM_MAIN.getObject('panel-testMacroOutput').innerHTML = data['data'];
         };
@@ -777,7 +829,7 @@ PWM_CFGEDIT.showDateTimeFormatHelp = function() {
 
 PWM_CFGEDIT.ldapHealthCheck = function() {
     PWM_MAIN.showWaitDialog({loadFunction:function() {
-            var url = "editor?processAction=ldapHealthCheck";
+            var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'ldapHealthCheck');
             url = PWM_MAIN.addParamToUrl(url,'profile',PWM_CFGEDIT.readCurrentProfile());
             var loadFunction = function(data) {
                 PWM_MAIN.closeWaitDialog();
@@ -796,7 +848,7 @@ PWM_CFGEDIT.ldapHealthCheck = function() {
 
 PWM_CFGEDIT.databaseHealthCheck = function() {
     PWM_MAIN.showWaitDialog({title:'Checking database connection...',loadFunction:function(){
-            var url =  "editor?processAction=databaseHealthCheck";
+            var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'databaseHealthCheck');
             var loadFunction = function(data) {
                 PWM_MAIN.closeWaitDialog();
                 if (data['error']) {
@@ -813,7 +865,7 @@ PWM_CFGEDIT.databaseHealthCheck = function() {
 
 PWM_CFGEDIT.httpsCertificateView = function() {
     PWM_MAIN.showWaitDialog({title:'Parsing...',loadFunction:function(){
-            var url =  "editor?processAction=httpsCertificateView";
+            var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'httpsCertificateView');
             var loadFunction = function(data) {
                 PWM_MAIN.closeWaitDialog();
                 if (data['error']) {
@@ -836,7 +888,7 @@ PWM_CFGEDIT.smsHealthCheck = function() {
     PWM_MAIN.showDialog({text:dialogBody,showCancel:true,title:'Test SMS connection',closeOnOk:false,okAction:function(){
             var formElement = PWM_MAIN.getObject("smsCheckParametersForm");
             var formData = PWM_MAIN.JSLibrary.formToValueMap(formElement);
-            var url =  "editor?processAction=smsHealthCheck";
+            var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'smsHealthCheck');
             PWM_MAIN.showWaitDialog({loadFunction:function(){
                     var loadFunction = function(data) {
                         if (data['error']) {
@@ -863,7 +915,7 @@ PWM_CFGEDIT.emailHealthCheck = function() {
     PWM_MAIN.showDialog({text:dialogBody,showCancel:true,title:'Test Email Connection',closeOnOk:false,okAction:function(){
             var formElement = PWM_MAIN.getObject("emailCheckParametersForm");
             var formData = PWM_MAIN.JSLibrary.formToValueMap(formElement);
-            var url = "editor?processAction=emailHealthCheck";
+            var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'emailHealthCheck');
             url = PWM_MAIN.addParamToUrl(url,'profile',PWM_CFGEDIT.readCurrentProfile());
             PWM_MAIN.showWaitDialog({loadFunction:function(){
                     var loadFunction = function(data) {
@@ -885,7 +937,8 @@ PWM_CFGEDIT.selectTemplate = function(newTemplate) {
         text: PWM_CONFIG.showString('Warning_ChangeTemplate'),
         okAction: function () {
             PWM_MAIN.showWaitDialog({loadFunction: function () {
-                    var url = "editor?processAction=setOption&template=" + newTemplate;
+                    var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'setOption');
+                    url = PWM_MAIN.addParamToUrl(url, 'template',newTemplate);
                     PWM_MAIN.ajaxRequest(url, function(){ PWM_MAIN.gotoUrl('editor'); });
                 }});
         }
@@ -895,11 +948,21 @@ PWM_CFGEDIT.selectTemplate = function(newTemplate) {
 PWM_CFGEDIT.loadMainPageBody = function() {
 
     var drawSettingsFunction = function () {
+        var dispatched = false;
         var lastSelected = PWM_MAIN.Preferences.readSessionStorage('configEditor-lastSelected', null);
         if (lastSelected) {
-            PWM_CFGEDIT.dispatchNavigationItem(lastSelected);
-        } else {
-            PWM_CFGEDIT.dispatchNavigationItem({id: 'TEMPLATES', type: 'category', category: 'TEMPLATES'});
+                PWM_CFGEDIT.dispatchNavigationItem(lastSelected);
+                dispatched = true;
+        }
+
+        if (!dispatched)
+        {
+            var systemSelected = PWM_VAR['selectedDomainId'] === 'system';
+            if (systemSelected) {
+                PWM_CFGEDIT.dispatchNavigationItem({id: 'DOMAINS', type: 'category', category: 'DOMAINS'});
+            } else {
+                PWM_CFGEDIT.dispatchNavigationItem({id: 'TEMPLATES', type: 'category', category: 'TEMPLATES'});
+            }
         }
 
         require(["dojo/io-query"], function (ioQuery) {
@@ -1107,7 +1170,7 @@ PWM_CFGEDIT.drawNavigationMenu = function(nextFunction) {
         );
     };
 
-    var url = 'editor?processAction=menuTreeData';
+    var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'menuTreeData');
     var filterParams = PWM_CFGEDIT.readNavigationFilters();
 
     PWM_MAIN.ajaxRequest(url,function(data){
@@ -1130,7 +1193,6 @@ PWM_CFGEDIT.readNavigationFilters = function() {
 PWM_CFGEDIT.dispatchNavigationItem = function(item) {
     var currentID = item['id'];
     var type = item['type'];
-    //debugger;
     if  (type === 'navigation') {
         /* not used, nav tree set to auto-expand */
     } else if (type === 'category') {
@@ -1218,8 +1280,9 @@ PWM_CFGEDIT.initConfigSettingsDefinition=function(nextFunction) {
             for (var settingKey in data['data']) {
                 PWM_SETTINGS[settingKey] = data['data'][settingKey];
             }
+            PWM_VAR['domainIds'] = data['data']['var']['domainIds'];
         }
-        console.log('loaded client-configsettings data');
+        console.log('loaded settings data');
         if (nextFunction) nextFunction();
     };
     var errorFunction = function(error) {
@@ -1228,7 +1291,8 @@ PWM_CFGEDIT.initConfigSettingsDefinition=function(nextFunction) {
         if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
         if (nextFunction) nextFunction();
     };
-    PWM_MAIN.ajaxRequest(clientConfigUrl, loadFunction, {method:'GET',errorFunction:errorFunction});
+    var filterParams = PWM_CFGEDIT.readNavigationFilters();
+    PWM_MAIN.ajaxRequest(clientConfigUrl, loadFunction, {method:'POST',errorFunction:errorFunction,content:filterParams});
 };
 
 PWM_CFGEDIT.displaySettingHelp = function(settingKey) {

@@ -34,7 +34,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.bean.ForgottenPasswordStage;
 import password.pwm.http.servlet.forgottenpw.ForgottenPasswordStateMachine;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -105,7 +105,7 @@ public class RestForgottenPasswordServer extends RestServlet
     public RestResultBean doRestForgottenPasswordService( final RestRequest restRequest )
             throws PwmUnrecoverableException, IOException
     {
-        final PwmRequestContext pwmRequestContext = restRequest.commonValues();
+        final PwmRequestContext pwmRequestContext = restRequest.getPwmRestRequest();
         final JsonInput jsonInput = restRequest.readBodyAsJsonObject( JsonInput.class );
         final BeanCryptoMachine<ForgottenPasswordBean> beanBeanCryptoMachine = new BeanCryptoMachine<>( pwmRequestContext, figureMaxIdleTimeout( pwmRequestContext ) );
         final ForgottenPasswordStateMachine stateMachine;
@@ -116,7 +116,7 @@ public class RestForgottenPasswordServer extends RestServlet
             final Optional<ForgottenPasswordBean> readBean = beanBeanCryptoMachine.decryprt( jsonInput.getState() );
             final ForgottenPasswordBean inputBean = readBean.orElseGet( ForgottenPasswordBean::new );
             stateMachine = new ForgottenPasswordStateMachine(
-                    restRequest.commonValues(),
+                    restRequest.getPwmRestRequest(),
                     inputBean );
 
             newState = !readBean.isPresent();
@@ -129,7 +129,7 @@ public class RestForgottenPasswordServer extends RestServlet
         }
 
         ErrorInformation errorInformation = null;
-        if ( !newState && !JavaHelper.isEmpty( jsonInput.getForm() ) )
+        if ( !newState && !CollectionUtil.isEmpty( jsonInput.getForm() ) )
         {
             try
             {
@@ -158,7 +158,7 @@ public class RestForgottenPasswordServer extends RestServlet
 
     private TimeDuration figureMaxIdleTimeout( final PwmRequestContext pwmRequestContext )
     {
-        final long idleSeconds = pwmRequestContext.getConfig().readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
+        final long idleSeconds = pwmRequestContext.getDomainConfig().readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
         return TimeDuration.of( idleSeconds, TimeDuration.Unit.SECONDS );
     }
 

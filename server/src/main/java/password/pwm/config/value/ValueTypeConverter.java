@@ -25,12 +25,14 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.ChallengeItemConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -38,11 +40,11 @@ import password.pwm.util.logging.PwmLogger;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -74,13 +76,10 @@ public final class ValueTypeConverter
 
     public static String valueToString( final StoredValue value )
     {
-        if ( value == null )
-        {
-            return null;
-        }
+        Objects.requireNonNull( value );
         if ( ( !( value instanceof StringValue ) ) && ( !( value instanceof BooleanValue ) ) )
         {
-            throw new IllegalArgumentException( "setting value is not readable as string" );
+            throw new IllegalArgumentException( "setting value is type '" + value.getClass().getSimpleName() + "' not readable as string" );
         }
         final Object nativeObject = value.toNativeObject();
         if ( nativeObject == null )
@@ -168,7 +167,7 @@ public final class ValueTypeConverter
     {
         if ( value == null )
         {
-            return null;
+            return Collections.emptyList();
         }
 
         if ( value instanceof CustomLinkValue )
@@ -192,23 +191,13 @@ public final class ValueTypeConverter
         }
 
         final List<String> results = new ArrayList<>( ( List<String> ) value.toNativeObject() );
-        for ( final Iterator iter = results.iterator(); iter.hasNext(); )
-        {
-            final Object loopString = iter.next();
-            if ( loopString == null || loopString.toString().length() < 1 )
-            {
-                iter.remove();
-            }
-        }
-        return results;
+        results.removeIf( StringUtil::isEmpty );
+        return List.copyOf( results );
     }
 
     public static List<UserPermission> valueToUserPermissions( final StoredValue value )
     {
-        if ( value == null )
-        {
-            return Collections.emptyList();
-        }
+        Objects.requireNonNull( value );
 
         if ( !( value instanceof UserPermissionValue ) )
         {
@@ -216,15 +205,20 @@ public final class ValueTypeConverter
         }
 
         final List<UserPermission> results = new ArrayList<>( ( List<UserPermission> ) value.toNativeObject() );
-        for ( final Iterator iter = results.iterator(); iter.hasNext(); )
+        results.removeIf( Objects::isNull );
+        return List.copyOf( results );
+    }
+
+    public static Map<String, List<ChallengeItemConfiguration>> valueToChallengeItems( final StoredValue value )
+    {
+        Objects.requireNonNull( value );
+
+        if ( !( value instanceof ChallengeValue ) )
         {
-            final Object loopString = iter.next();
-            if ( loopString == null || loopString.toString().length() < 1 )
-            {
-                iter.remove();
-            }
+            throw new IllegalArgumentException( "setting value is not readable as challenge items" );
         }
-        return results;
+
+        return ( Map<String, List<ChallengeItemConfiguration>> ) value.toNativeObject();
     }
 
     public static boolean valueToBoolean( final StoredValue value )
@@ -326,7 +320,7 @@ public final class ValueTypeConverter
         }
 
         final Set<String> strValues = ( Set<String> ) value.toNativeObject();
-        return JavaHelper.readEnumSetFromStringCollection( enumClass, strValues );
+        return CollectionUtil.readEnumSetFromStringCollection( enumClass, strValues );
     }
 
     public static List<String> valueToProfileID( final PwmSetting profileSetting, final StoredValue storedValue )
@@ -341,7 +335,7 @@ public final class ValueTypeConverter
         final List<String> returnSet = profiles
                 .stream()
                 .distinct()
-                .filter( ( profile ) -> !StringUtil.isEmpty( profile ) )
+                .filter( ( profile ) -> StringUtil.notEmpty( profile ) )
                 .collect( Collectors.toCollection( ArrayList::new ) );
 
         if ( returnSet.isEmpty() )

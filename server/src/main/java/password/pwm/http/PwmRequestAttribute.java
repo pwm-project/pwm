@@ -66,6 +66,9 @@ public enum PwmRequestAttribute
     ConfigEnablePersistentLogin,
     ApplicationPath,
 
+    DomainId,
+    DomainList,
+
     ConfigHasCertificates,
 
     CaptchaClientUrl,
