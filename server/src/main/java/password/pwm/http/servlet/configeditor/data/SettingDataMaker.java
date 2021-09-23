@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,14 @@
 
 package password.pwm.http.servlet.configeditor.data;
 
-import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingTemplateSet;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
-import password.pwm.config.stored.StoredConfigurationFactory;
-import password.pwm.config.value.ValueTypeConverter;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.java.TimeDuration;
@@ -39,41 +39,44 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SettingDataMaker
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SettingDataMaker.class );
 
-    public static void initializeCache()
-    {
-            try
-            {
-                SettingDataMaker.generateSettingData( StoredConfigurationFactory.newConfig(), null, PwmConstants.DEFAULT_LOCALE );
-            }
-            catch ( final Exception e )
-            {
-                LOGGER.debug( () -> "error initializing generateSettingData: " + e.getMessage() );
-            }
-    }
-
     public static SettingData generateSettingData(
+            final DomainID domainID,
             final StoredConfiguration storedConfiguration,
             final SessionLabel sessionLabel,
-            final Locale locale
-
+            final Locale locale,
+            final NavTreeSettings navTreeSettings
     )
             throws PwmUnrecoverableException
     {
         final Instant startGenerateTime = Instant.now();
-        final PwmSettingTemplateSet templateSet = storedConfiguration.getTemplateSet();
+        final PwmSettingTemplateSet templateSet = storedConfiguration.getTemplateSet().get( domainID );
 
-        final Map<String, SettingInfo> settingMap = Collections.unmodifiableMap( Arrays.stream( PwmSetting.values() )
-                .collect( Collectors.toMap(
-                        PwmSetting::getKey,
-                        pwmSetting -> SettingInfo.forSetting( pwmSetting, templateSet, locale ),
-                        ( u, v ) -> v,
-                        LinkedHashMap::new ) ) );
+        final Map<String, SettingInfo> settingMap;
+        {
+            final Set<PwmSetting> interestedSets = StoredConfigurationUtil.allPossibleSettingKeysForConfiguration( storedConfiguration ).stream()
+                    .filter( k -> k.isRecordType( StoredConfigKey.RecordType.SETTING ) )
+                    .filter( k -> NavTreeDataMaker.settingMatcher( domainID, storedConfiguration, k.toPwmSetting(), k.getProfileID(), navTreeSettings ) )
+                    .map( StoredConfigKey::toPwmSetting )
+                    .collect( Collectors.toSet() );
+
+            settingMap = interestedSets.stream()
+                    .sorted()
+                    .collect( Collectors.toMap(
+                            PwmSetting::getKey,
+                            pwmSetting -> SettingInfo.forSetting( pwmSetting, templateSet, locale ),
+                            ( u, v ) ->
+                            {
+                                throw new IllegalStateException();
+                            },
+                            LinkedHashMap::new ) );
+        }
 
         final Map<String, CategoryInfo> categoryInfoMap = Collections.unmodifiableMap( Arrays.stream( PwmSettingCategory.values() )
                 .collect( Collectors.toMap(
@@ -90,7 +93,9 @@ public class SettingDataMaker
                         LinkedHashMap::new ) ) );
 
         final VarData varMap = VarData.builder()
-                .ldapProfileIds( ValueTypeConverter.valueToStringArray( storedConfiguration.readSetting( PwmSetting.LDAP_PROFILE_LIST, null ) ) )
+                .ldapProfileIds( StoredConfigurationUtil.profilesForSetting( domainID, PwmSetting.LDAP_PROFILE_LIST, storedConfiguration ) )
+                .domainIds( StoredConfigurationUtil.domainList( storedConfiguration ).stream()
+                        .map( DomainID::stringValue ).sorted().collect( Collectors.toList() ) )
                 .currentTemplate( templateSet )
                 .build();
 

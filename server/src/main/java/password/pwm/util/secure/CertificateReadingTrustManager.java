@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,10 @@
 
 package password.pwm.util.secure;
 
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -46,18 +47,18 @@ public class CertificateReadingTrustManager implements X509TrustManager
 
     private List<X509Certificate> certificates = new ArrayList<>();
 
-    CertificateReadingTrustManager( final Configuration configuration, final X509TrustManager wrappedTrustManager, final X509Utils.ReadCertificateFlag... readCertificateFlags )
+    CertificateReadingTrustManager( final AppConfig appConfig, final X509TrustManager wrappedTrustManager, final X509Utils.ReadCertificateFlag... readCertificateFlags )
     {
         this.readCertificateFlags = readCertificateFlags;
         this.wrappedTrustManager = wrappedTrustManager;
-        this.trustManagerSettings = TrustManagerSettings.fromConfiguration( configuration );
+        this.trustManagerSettings = TrustManagerSettings.fromConfiguration( appConfig );
     }
 
     public static CertificateReadingTrustManager newCertReaderTrustManager(
-            final Configuration configuration,
+            final AppConfig appConfig,
             final X509Utils.ReadCertificateFlag... readCertificateFlags )
     {
-        return new CertificateReadingTrustManager( configuration, PromiscuousTrustManager.createPromiscuousTrustManager(), readCertificateFlags );
+        return new CertificateReadingTrustManager( appConfig, PromiscuousTrustManager.createPromiscuousTrustManager(), readCertificateFlags );
     }
 
     @Override
@@ -84,7 +85,7 @@ public class CertificateReadingTrustManager implements X509TrustManager
     public List<X509Certificate> getCertificates( )
             throws PwmUnrecoverableException
     {
-        if ( JavaHelper.isEmpty( certificates ) )
+        if ( CollectionUtil.isEmpty( certificates ) )
         {
             final String msg = "remote server did not present any certificates";
             LOGGER.debug( () -> "ServerCertReader: " + msg );

@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.i18n.Admin" %>
-<%@ page import="password.pwm.svc.intruder.RecordType" %>
+<%@ page import="password.pwm.svc.intruder.IntruderRecordType" %>
 <%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 
@@ -97,8 +97,8 @@
             <div id="IntrudersTab" class="tab-content-pane" title="<pwm:display key="Title_Intruders" bundle="Admin"/>">
                 <div class="tab-container" style="width: 100%; height: 100%;">
                     <% boolean checked = true; %>
-                    <% for (final RecordType recordType : RecordType.values()) { %>
-                    <% final String titleName = LocaleHelper.getLocalizedMessage(activity_pwmRequest.getLocale(),"IntruderRecordType_" + recordType.toString(), activity_pwmRequest.getConfig(), Admin.class); %>
+                    <% for (final IntruderRecordType recordType : IntruderRecordType.values()) { %>
+                    <% final String titleName = LocaleHelper.getLocalizedMessage(activity_pwmRequest.getLocale(),"IntruderRecordType_" + recordType.toString(), activity_pwmRequest.getDomainConfig(), Admin.class); %>
                     <input name="intruder_tabs" type="radio" id="tab-2.<%=recordType%>" <%=checked?"checked=\"checked\"":""%> class="input"/>
                     <label for="tab-2.<%=recordType%>" class="label"><%=titleName%></label>
                     <div class="tab-content-pane" title="<%=titleName%>">

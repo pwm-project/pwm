@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@
                 </tr>
                 <tr class="noborder">
                     <td class="noborder">
-                        <% final PwmLogLevel configuredLevel = JspUtility.getPwmRequest( pageContext ).getConfig().readSettingAsEnum(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL,PwmLogLevel.class); %>
+                        <% final PwmLogLevel configuredLevel = JspUtility.getPwmRequest( pageContext ).getAppConfig().readSettingAsEnum(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL,PwmLogLevel.class); %>
                         <select name="level" style="width: auto;" id="level">
                             <% for (final PwmLogLevel level : PwmLogLevel.values()) { %>
                             <% final boolean disabled = level.compareTo(configuredLevel) < 0; %>

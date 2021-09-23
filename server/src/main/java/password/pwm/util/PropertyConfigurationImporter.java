@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@
 
 package password.pwm.util;
 
+import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfiguration;
@@ -35,6 +37,7 @@ import password.pwm.config.value.UserPermissionValue;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
@@ -56,6 +59,8 @@ import java.util.regex.Pattern;
 public class PropertyConfigurationImporter
 {
     private static final String LDAP_PROFILE = "default";
+    private static final DomainID DOMAIN_ID = DomainID.DOMAIN_ID_DEFAULT;
+
 
     private Map<String, String> inputMap;
 
@@ -118,90 +123,95 @@ public class PropertyConfigurationImporter
     {
         readInputFile( propertiesInput );
 
-        final StoredConfigurationModifier storedConfiguration = StoredConfigurationModifier.newModifier( StoredConfigurationFactory.newConfig( ) );
-        StoredConfigurationUtil.initNewRandomSecurityKey( storedConfiguration );
-        storedConfiguration.writeConfigProperty(
+
+        final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( StoredConfigurationFactory.newConfig( ) );
+        StoredConfigurationUtil.initNewRandomSecurityKey( modifier );
+        modifier.writeConfigProperty(
                 ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( false ) );
-        storedConfiguration.writeConfigProperty(
+        modifier.writeConfigProperty(
                 ConfigurationProperty.CONFIG_EPOCH, String.valueOf( 0 ) );
-        storedConfiguration.writeConfigProperty(
+        modifier.writeConfigProperty(
                 ConfigurationProperty.IMPORT_LDAP_CERTIFICATES, Boolean.toString( true ) );
 
         // static values
-        storedConfiguration.writeSetting( PwmSetting.TEMPLATE_LDAP, null, new StringValue(
-                        inputMap.getOrDefault( PropertyKey.TEMPLATE_LDAP.name( ), PropertyKey.TEMPLATE_LDAP.getDefaultValue() ) ),
-                null );
-
+        modifySetting( modifier, PwmSetting.TEMPLATE_LDAP, null, new StringValue(
+                        inputMap.getOrDefault( PropertyKey.TEMPLATE_LDAP.name( ), PropertyKey.TEMPLATE_LDAP.getDefaultValue() ) ) );
         if ( inputMap.containsKey( PropertyKey.DISPLAY_THEME.name( ) ) )
         {
-            storedConfiguration.writeSetting( PwmSetting.PASSWORD_POLICY_SOURCE, null, new StringValue(
-                            inputMap.get( PropertyKey.DISPLAY_THEME.name( ) ) ),
-                    null );
+            modifySetting( modifier, PwmSetting.PASSWORD_POLICY_SOURCE, null, new StringValue(
+                            inputMap.get( PropertyKey.DISPLAY_THEME.name( ) ) ) );
         }
 
-        storedConfiguration.writeSetting( PwmSetting.DISPLAY_HOME_BUTTON, null, BooleanValue.of( false ), null );
-        storedConfiguration.writeSetting( PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE, null, BooleanValue.of( false ), null );
-        storedConfiguration.writeSetting( PwmSetting.PASSWORD_REQUIRE_CURRENT, null, BooleanValue.of( false ), null );
-        storedConfiguration.writeSetting( PwmSetting.PASSWORD_POLICY_SOURCE, null, new StringValue( "LDAP" ), null );
-        storedConfiguration.writeSetting( PwmSetting.CERTIFICATE_VALIDATION_MODE, null, new StringValue( "CA_ONLY" ), null );
+        modifySetting( modifier, PwmSetting.DISPLAY_HOME_BUTTON, null, BooleanValue.of( false ) );
+        modifySetting( modifier, PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE, null, BooleanValue.of( false ) );
+        modifySetting( modifier, PwmSetting.PASSWORD_REQUIRE_CURRENT, null, BooleanValue.of( false ) );
+        modifySetting( modifier, PwmSetting.PASSWORD_POLICY_SOURCE, null, new StringValue( "LDAP" ) );
+        modifySetting( modifier, PwmSetting.CERTIFICATE_VALIDATION_MODE, null, new StringValue( "CA_ONLY" ) );
         {
             final String notes = "Configuration generated via properties import at " + JavaHelper.toIsoDate( Instant.now( ) );
-            storedConfiguration.writeSetting( PwmSetting.NOTES, null, new StringValue( notes ), null );
+            modifySetting( modifier, PwmSetting.NOTES, null, new StringValue( notes ) );
         }
 
         // ldap server
-        storedConfiguration.writeSetting( PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE, makeLdapServerUrlValue( ), null );
-        storedConfiguration.writeSetting( PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE,
-                new StringValue( inputMap.get( PropertyKey.ID_VAULT_ADMIN_LDAP.name( ) ) ), null );
-        storedConfiguration.writeSetting( PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE,
-                new PasswordValue( PasswordData.forStringValue( inputMap.get( PropertyKey.ID_VAULT_PASSWORD.name( ) ) ) ), null );
-        storedConfiguration.writeSetting( PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE,
-                new StringArrayValue( Collections.singletonList( inputMap.get( PropertyKey.USER_CONTAINER.name( ) ) ) ), null );
+        modifySetting( modifier, PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE, makeLdapServerUrlValue( ) );
+        modifySetting( modifier, PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE,
+                new StringValue( inputMap.get( PropertyKey.ID_VAULT_ADMIN_LDAP.name( ) ) ) );
+        modifySetting( modifier, PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE,
+                new PasswordValue( PasswordData.forStringValue( inputMap.get( PropertyKey.ID_VAULT_PASSWORD.name( ) ) ) ) );
+        modifySetting( modifier, PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE,
+                new StringArrayValue( Collections.singletonList( inputMap.get( PropertyKey.USER_CONTAINER.name( ) ) ) ) );
 
         // oauth
-        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_LOGIN_URL, null, new StringValue( makeOAuthBaseUrl( ) + "/grant" ), null );
-        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_CODERESOLVE_URL, null, new StringValue( makeOAuthBaseUrl( ) + "/authcoderesolve" ), null );
-        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_ATTRIBUTES_URL, null, new StringValue( makeOAuthBaseUrl( ) + "/getattributes" ), null );
-        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_CLIENTNAME, null, new StringValue( "sspr" ), null );
-        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_DN_ATTRIBUTE_NAME, null, new StringValue( "name" ), null );
-        storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_SECRET, null,
-                new PasswordValue( PasswordData.forStringValue( inputMap.get( PropertyKey.SSO_SERVICE_PWD.name( ) ) ) ), null );
+        modifySetting( modifier, PwmSetting.OAUTH_ID_LOGIN_URL, null, new StringValue( makeOAuthBaseUrl( ) + "/grant" ) );
+        modifySetting( modifier, PwmSetting.OAUTH_ID_CODERESOLVE_URL, null, new StringValue( makeOAuthBaseUrl( ) + "/authcoderesolve" ) );
+        modifySetting( modifier, PwmSetting.OAUTH_ID_ATTRIBUTES_URL, null, new StringValue( makeOAuthBaseUrl( ) + "/getattributes" ) );
+        modifySetting( modifier, PwmSetting.OAUTH_ID_CLIENTNAME, null, new StringValue( "sspr" ) );
+        modifySetting( modifier, PwmSetting.OAUTH_ID_DN_ATTRIBUTE_NAME, null, new StringValue( "name" ) );
+        modifySetting( modifier, PwmSetting.OAUTH_ID_SECRET, null,
+                new PasswordValue( PasswordData.forStringValue( inputMap.get( PropertyKey.SSO_SERVICE_PWD.name( ) ) ) ) );
 
         //urls
-        storedConfiguration.writeSetting( PwmSetting.URL_FORWARD, null, makeForwardUrl( ), null );
-        storedConfiguration.writeSetting( PwmSetting.URL_LOGOUT, null, makeLogoutUrl( ), null );
-        storedConfiguration.writeSetting( PwmSetting.PWM_SITE_URL, null, makeSelfUrl( ), null );
-        storedConfiguration.writeSetting( PwmSetting.SECURITY_REDIRECT_WHITELIST, null, makeWhitelistUrl( ), null );
+        modifySetting( modifier, PwmSetting.URL_FORWARD, null, makeForwardUrl( ) );
+        modifySetting( modifier, PwmSetting.URL_LOGOUT, null, makeLogoutUrl( ) );
+        modifySetting( modifier, PwmSetting.PWM_SITE_URL, null, makeSelfUrl( ) );
+        modifySetting( modifier, PwmSetting.SECURITY_REDIRECT_WHITELIST, null, makeWhitelistUrl( ) );
 
         // admin settings
-        storedConfiguration.writeSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, null, makeAdminPermissions( ), null );
-        StoredConfigurationUtil.setPassword( storedConfiguration, inputMap.get( PropertyKey.CONFIGURATION_PWD.name( ) ) );
+        modifySetting( modifier, PwmSetting.QUERY_MATCH_PWM_ADMIN, null, makeAdminPermissions( ) );
+        StoredConfigurationUtil.setPassword( modifier, inputMap.get( PropertyKey.CONFIGURATION_PWD.name( ) ) );
 
         // certificates
         {
             final Optional<Collection<X509Certificate>> optionalCert = readCertificate( PropertyKey.LDAP_SERVERCERTS );
             if ( optionalCert.isPresent( ) )
             {
-                storedConfiguration.writeSetting( PwmSetting.LDAP_SERVER_CERTS, LDAP_PROFILE, X509CertificateValue.fromX509( optionalCert.get( ) ), null );
+                modifySetting( modifier, PwmSetting.LDAP_SERVER_CERTS, LDAP_PROFILE, X509CertificateValue.fromX509( optionalCert.get( ) ) );
             }
         }
         {
             final Optional<Collection<X509Certificate>> optionalCert = readCertificate( PropertyKey.AUDIT_SERVERCERTS );
             if ( optionalCert.isPresent( ) )
             {
-                storedConfiguration.writeSetting( PwmSetting.AUDIT_SYSLOG_CERTIFICATES, null, X509CertificateValue.fromX509( optionalCert.get( ) ), null );
+                modifySetting( modifier, PwmSetting.AUDIT_SYSLOG_CERTIFICATES, null, X509CertificateValue.fromX509( optionalCert.get( ) ) );
             }
         }
         {
             final Optional<Collection<X509Certificate>> optionalCert = readCertificate( PropertyKey.OAUTH_IDSERVER_SERVERCERTS );
             if ( optionalCert.isPresent( ) )
             {
-                storedConfiguration.writeSetting( PwmSetting.OAUTH_ID_CERTIFICATE, null, X509CertificateValue.fromX509( optionalCert.get( ) ), null );
+                modifySetting( modifier, PwmSetting.OAUTH_ID_CERTIFICATE, null, X509CertificateValue.fromX509( optionalCert.get( ) ) );
             }
         }
 
 
-        return storedConfiguration.newStoredConfiguration();
+        return modifier.newStoredConfiguration();
+    }
+
+    private void modifySetting( final StoredConfigurationModifier modifier, final PwmSetting pwmSetting, final String profile, final StoredValue storedValue )
+            throws PwmUnrecoverableException
+    {
+        final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, profile, DOMAIN_ID );
+        modifier.writeSetting( key, storedValue, null );
     }
 
     private String makeOAuthBaseUrl( )
@@ -261,7 +271,7 @@ public class PropertyConfigurationImporter
         for ( final PropertyKey propertyKey : interestedProperties )
         {
             final String value = inputMap.get( propertyKey.name() );
-            if ( !StringUtil.isEmpty( value ) )
+            if ( StringUtil.notEmpty( value ) )
             {
                 permissions.add( UserPermission.builder()
                         .type( UserPermissionType.ldapQuery )
@@ -287,7 +297,7 @@ public class PropertyConfigurationImporter
             throws IOException
     {
         final String base64Cert = inputMap.get( propertyKey.name( ) );
-        if ( !StringUtil.isEmpty( base64Cert ) )
+        if ( StringUtil.notEmpty( base64Cert ) )
         {
             final List<X509Certificate> returnCerts = new ArrayList<>( );
             for ( final String splitB64Cert : StringUtil.splitAndTrim( base64Cert, "," ) )

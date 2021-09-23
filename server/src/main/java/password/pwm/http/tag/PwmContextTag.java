@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,10 @@
 
 package password.pwm.http.tag;
 
+import password.pwm.http.PwmRequest;
+
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
 
@@ -34,7 +37,11 @@ public class PwmContextTag extends TagSupport
         try
         {
             final HttpServletRequest req = ( HttpServletRequest ) pageContext.getRequest();
-            pageContext.getOut().write( req.getContextPath() );
+            final HttpServletResponse resp = ( HttpServletResponse ) pageContext.getResponse();
+
+            final PwmRequest pwmRequest = PwmRequest.forRequest( req, resp );
+            final String path = pwmRequest.getBasePath();
+            pageContext.getOut().write( path );
         }
         catch ( final Exception e )
         {

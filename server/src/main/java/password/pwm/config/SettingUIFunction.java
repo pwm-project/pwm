@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 package password.pwm.config;
 
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.http.PwmRequest;
 
@@ -30,8 +31,7 @@ public interface SettingUIFunction
     Serializable provideFunction(
             PwmRequest pwmRequest,
             StoredConfigurationModifier modifier,
-            PwmSetting setting,
-            String profile,
+            StoredConfigKey key,
             String extraData
     )
             throws Exception;

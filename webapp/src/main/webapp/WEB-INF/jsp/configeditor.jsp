@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.tag.url.PwmThemeURL" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -45,6 +46,7 @@
     <div class="configeditor-header" id="header" >
         <div id="header-center-wide" style="min-width: 850px">
             <div id="header-title">
+                <span id="domainMenu"></span>
                 <span id="currentPageDisplay"></span>
                 <span style="visibility: hidden" id="working_icon" class="headerIcon pwm-icon pwm-icon-cog pwm-icon-spin"></span>
 
@@ -189,6 +191,8 @@
             PWM_CFGEDIT.initConfigEditor();
             PWM_CONFIG.initConfigHeader();
         });
+        var PWM_VAR = PWM_VAR || {};
+        PWM_VAR['selectedDomainId'] = '<%=JspUtility.getAttribute(pageContext,PwmRequestAttribute.DomainId)%>';
     </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
@@ -202,6 +206,7 @@
 <pwm:script-ref url="/public/resources/js/configeditor-settings-customlink.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-remotewebservices.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor-settings-permissions.js"/>
+<pwm:script-ref url="/public/resources/js/configeditor-settings-stringarray.js"/>
 <pwm:script-ref url="/public/resources/js/configeditor.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 

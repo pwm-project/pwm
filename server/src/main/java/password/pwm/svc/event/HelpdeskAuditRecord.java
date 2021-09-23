@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,53 +20,11 @@
 
 package password.pwm.svc.event;
 
-import java.time.Instant;
-
-public class HelpdeskAuditRecord extends UserAuditRecord
+public interface HelpdeskAuditRecord extends UserAuditRecord
 {
-    protected String targetID;
-    protected String targetDN;
-    protected String targetLdapProfile;
+    String getTargetID( );
 
-    @SuppressWarnings( "checkstyle:ParameterNumber" )
-    HelpdeskAuditRecord(
-            final Instant timestamp,
-            final AuditEvent eventCode,
-            final String perpetratorID,
-            final String perpetratorDN,
-            final String perpetratorLdapProfile,
-            final String message,
-            final String targetID,
-            final String targetDN,
-            final String targetLdapProfile,
-            final String sourceAddress,
-            final String sourceHost
-    )
-    {
-        super( timestamp, eventCode, perpetratorID, perpetratorDN, perpetratorLdapProfile, message, sourceHost, sourceAddress );
-        this.perpetratorID = perpetratorID;
-        this.perpetratorDN = perpetratorDN;
-        this.perpetratorLdapProfile = perpetratorLdapProfile;
-        this.targetID = targetID;
-        this.targetDN = targetDN;
-        this.targetLdapProfile = targetLdapProfile;
-        this.sourceAddress = sourceAddress;
-        this.sourceHost = sourceHost;
-    }
+    String getTargetDN( );
 
-
-    public String getTargetID( )
-    {
-        return targetID;
-    }
-
-    public String getTargetDN( )
-    {
-        return targetDN;
-    }
-
-    public String getTargetLdapProfile( )
-    {
-        return targetLdapProfile;
-    }
+    String getTargetLdapProfile( );
 }

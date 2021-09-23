@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.pwm-project</groupId>
         <artifactId>pwm-parent</artifactId>
-        <version>2.0.0-SNAPSHOT</version>
+        <version>2.1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -16,7 +16,7 @@
     <name>PWM Password Self Service: Executable Server JAR</name>
 
     <properties>
-        <tomcat.version>9.0.39</tomcat.version>
+        <tomcat.version>9.0.52</tomcat.version>
     </properties>
 
     <build>
@@ -49,6 +49,7 @@
                     <archive>
                         <manifestEntries>
                             <Main-Class>password.pwm.onejar.OnejarMain</Main-Class>
+                            <Implementation-Archive-Name>pwm.onejar</Implementation-Archive-Name>
                             <Implementation-Title>${project.name}</Implementation-Title>
                             <Implementation-Version>${project.version}</Implementation-Version>
                             <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
@@ -56,6 +57,7 @@
                             <Implementation-Build>${build.number}</Implementation-Build>
                             <Implementation-Revision>${build.revision}</Implementation-Revision>
                             <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
+                            <Implementation-Build-Java-Spec-Version>${java.specification.version}</Implementation-Build-Java-Spec-Version>
                             <SCM-Git-Branch>${git.branch}</SCM-Git-Branch>
                             <SCM-Git-Commit-ID>${git.commit.id}</SCM-Git-Commit-ID>
                             <SCM-Git-Commit-ID-Abbrev>${git.commit.id.abbrev}</SCM-Git-Commit-ID-Abbrev>

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,66 +20,18 @@
 
 package password.pwm.svc.event;
 
-import lombok.Builder;
-
-import java.io.Serializable;
-import java.time.Instant;
-
 /**
  * UserAuditRecord data.
  */
-public class UserAuditRecord extends AuditRecord implements Serializable
+public interface UserAuditRecord extends SystemAuditRecord
 {
-    protected String perpetratorID;
-    protected String perpetratorDN;
-    protected String perpetratorLdapProfile;
-    protected String sourceAddress;
-    protected String sourceHost;
+    String getPerpetratorID();
 
-    @SuppressWarnings( "checkstyle:ParameterNumber" )
-    @Builder
-    protected UserAuditRecord(
-            final Instant timestamp,
-            final AuditEvent eventCode,
-            final String perpetratorID,
-            final String perpetratorDN,
-            final String perpetratorLdapProfile,
-            final String message,
-            final String sourceAddress,
-            final String sourceHost
-    )
-    {
-        super( timestamp, eventCode, message );
-        this.perpetratorID = perpetratorID;
-        this.perpetratorDN = perpetratorDN;
-        this.perpetratorLdapProfile = perpetratorLdapProfile;
-        this.sourceAddress = sourceAddress;
-        this.sourceHost = sourceHost;
-    }
+    String getPerpetratorDN();
 
+    String getSourceAddress();
 
-    public String getPerpetratorID( )
-    {
-        return perpetratorID;
-    }
+    String getSourceHost();
 
-    public String getPerpetratorDN( )
-    {
-        return perpetratorDN;
-    }
-
-    public String getSourceAddress( )
-    {
-        return sourceAddress;
-    }
-
-    public String getSourceHost( )
-    {
-        return sourceHost;
-    }
-
-    public String getPerpetratorLdapProfile( )
-    {
-        return perpetratorLdapProfile;
-    }
+    String getPerpetratorLdapProfile();
 }

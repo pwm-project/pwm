@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.token.TokenUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -109,7 +109,7 @@ public class HelpdeskVerificationOptionsBean implements Serializable
                 try
                 {
                     returnList.addAll( TokenUtil.figureAvailableTokenDestinations(
-                            pwmRequest.getPwmApplication(),
+                            pwmRequest.getPwmDomain(),
                             pwmRequest.getLabel(),
                             pwmRequest.getLocale(),
                             userInfo,
@@ -137,7 +137,7 @@ public class HelpdeskVerificationOptionsBean implements Serializable
                 {
                     case ATTRIBUTES:
                     {
-                        if ( JavaHelper.isEmpty( formInformations ) )
+                        if ( CollectionUtil.isEmpty( formInformations ) )
                         {
                             returnSet.add( IdentityVerificationMethod.ATTRIBUTES );
                         }
@@ -156,7 +156,7 @@ public class HelpdeskVerificationOptionsBean implements Serializable
 
                     case TOKEN:
                     {
-                        if ( JavaHelper.isEmpty( tokenDestinations ) )
+                        if ( CollectionUtil.isEmpty( tokenDestinations ) )
                         {
                             returnSet.add( IdentityVerificationMethod.TOKEN );
                         }
@@ -175,14 +175,14 @@ public class HelpdeskVerificationOptionsBean implements Serializable
         {
             final Map<VerificationMethodValue.EnabledState, Collection<IdentityVerificationMethod>> returnMap = new HashMap<>();
             {
-                final Set<IdentityVerificationMethod> optionalMethods = JavaHelper.copiedEnumSet(
+                final Set<IdentityVerificationMethod> optionalMethods = CollectionUtil.copiedEnumSet(
                         helpdeskProfile.readOptionalVerificationMethods(),
                         IdentityVerificationMethod.class );
                 optionalMethods.removeAll( unavailableMethods );
                 returnMap.put( VerificationMethodValue.EnabledState.optional, optionalMethods );
             }
             {
-                final Set<IdentityVerificationMethod> requiredMethods = JavaHelper.copiedEnumSet(
+                final Set<IdentityVerificationMethod> requiredMethods = CollectionUtil.copiedEnumSet(
                         helpdeskProfile.readRequiredVerificationMethods(),
                         IdentityVerificationMethod.class );
                 requiredMethods.removeAll( unavailableMethods );
@@ -192,8 +192,8 @@ public class HelpdeskVerificationOptionsBean implements Serializable
         }
 
         if (
-                JavaHelper.isEmpty( verificationMethodsMap.get( VerificationMethodValue.EnabledState.required ) )
-                        && !JavaHelper.isEmpty( helpdeskProfile.readRequiredVerificationMethods() )
+                CollectionUtil.isEmpty( verificationMethodsMap.get( VerificationMethodValue.EnabledState.required ) )
+                        && !CollectionUtil.isEmpty( helpdeskProfile.readRequiredVerificationMethods() )
         )
         {
             final String msg = "configuration requires verification, but target user has no eligible required verification methods available.";

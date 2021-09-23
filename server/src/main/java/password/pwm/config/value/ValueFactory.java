@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,15 @@
 package password.pwm.config.value;
 
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
+
+import java.util.Objects;
 
 public class ValueFactory
 {
@@ -72,6 +75,25 @@ public class ValueFactory
             LOGGER.error( () -> errorMsg, e );
             throw new IllegalStateException( "unable to read xml element '" + settingElement.getName() + "' from setting '" + setting.getKey() + "' error: " + e.getMessage(), e );
         }
+    }
+
+    public static boolean isDefaultValue( final PwmSettingTemplateSet templateSet, final PwmSetting pwmSetting, final StoredValue storedValue )
+    {
+        if ( storedValue == null )
+        {
+            return false;
+        }
+
+        final StoredValue defaultValue = pwmSetting.getDefaultValue( templateSet );
+
+        if ( Objects.equals( defaultValue, storedValue ) )
+        {
+            return true;
+        }
+
+        final String defaultHash = defaultValue.valueHash();
+        final String valueHash = storedValue.valueHash();
+        return Objects.equals( defaultHash, valueHash );
     }
 }
 

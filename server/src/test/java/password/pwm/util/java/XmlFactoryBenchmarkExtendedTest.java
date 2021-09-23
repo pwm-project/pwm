@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,20 +59,13 @@ public class XmlFactoryBenchmarkExtendedTest
     public void benchmarkW3c ()
             throws Exception
     {
-        benchmarkImpl( XmlFactory.FactoryType.W3C );
+        benchmarkImpl( );
     }
 
-    @Benchmark
-    public void benchmarkJDom ()
+    private void benchmarkImpl ()
             throws Exception
     {
-        benchmarkImpl( XmlFactory.FactoryType.JDOM );
-    }
-
-    private void benchmarkImpl ( final XmlFactory.FactoryType factoryType )
-            throws Exception
-    {
-        final XmlFactory xmlFactory = XmlFactory.getFactory( factoryType );
+        final XmlFactory xmlFactory = XmlFactory.getFactory();
         final InputStream xmlFactoryTestXmlFile = XmlFactoryTest.class.getResourceAsStream( "XmlFactoryTest.xml" );
         final XmlDocument xmlDocument = xmlFactory.parseXml( xmlFactoryTestXmlFile );
         xmlFactory.outputDocument( xmlDocument, new NullOutputStream() );

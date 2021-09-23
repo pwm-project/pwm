@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,16 @@
 
 package password.pwm.config.profile;
 
+import password.pwm.bean.DomainID;
 import password.pwm.config.stored.StoredConfiguration;
 
 public class ActivateUserProfile extends AbstractProfile implements Profile
 {
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.ActivateUser;
 
-    protected ActivateUserProfile( final String identifier, final StoredConfiguration storedValueMap )
+    protected ActivateUserProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedValueMap )
     {
-        super( identifier, storedValueMap );
+        super( domainID, identifier, storedValueMap );
     }
 
     @Override
@@ -40,9 +41,9 @@ public class ActivateUserProfile extends AbstractProfile implements Profile
     public static class UserActivationProfileFactory implements ProfileFactory
     {
         @Override
-        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final String identifier )
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final String identifier )
         {
-            return new ActivateUserProfile( identifier, storedConfiguration );
+            return new ActivateUserProfile( domainID, identifier, storedConfiguration );
         }
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.util.localdb.TestHelper;
 
 import java.io.InputStream;
@@ -35,7 +35,7 @@ public class StoredConfigurationTest
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    private static Configuration configuration;
+    private static AppConfig appConfig;
 
     @BeforeClass
     public static void setUp() throws Exception
@@ -43,7 +43,7 @@ public class StoredConfigurationTest
         try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ) )
         {
             final StoredConfiguration storedConfiguration = StoredConfigurationFactory.input( xmlFile );
-            configuration = new Configuration( storedConfiguration );
+            appConfig = new AppConfig( storedConfiguration );
         }
     }
 
@@ -51,7 +51,7 @@ public class StoredConfigurationTest
     public void configurationHashTest()
             throws Exception
     {
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), configuration );
-        final String configHash = configuration.configurationHash( pwmApplication.getSecureService() );
+        final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), appConfig );
+        final String configHash = StoredConfigurationUtil.valueHash( appConfig.getStoredConfiguration() );
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,13 +56,14 @@ import password.pwm.http.servlet.oauth.OAuthConsumerServlet;
 import password.pwm.http.servlet.peoplesearch.PrivatePeopleSearchServlet;
 import password.pwm.http.servlet.peoplesearch.PublicPeopleSearchServlet;
 import password.pwm.http.servlet.updateprofile.UpdateProfileServlet;
+import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.JavaHelper;
 
 import javax.servlet.annotation.WebServlet;
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 
 public enum PwmServletDefinition
 {
@@ -89,12 +90,12 @@ public enum PwmServletDefinition
     ClientApi( ClientApiServlet.class, null ),
     Admin( AdminServlet.class, AdminBean.class ),
     ConfigGuide( ConfigGuideServlet.class, ConfigGuideBean.class ),
-    ConfigEditor( ConfigEditorServlet.class, null ),
-    ConfigManager( ConfigManagerServlet.class, ConfigManagerBean.class ),
+    ConfigEditor( ConfigEditorServlet.class, null, Flag.RequiresConfigAuth ),
+    ConfigManager( ConfigManagerServlet.class, ConfigManagerBean.class, Flag.RequiresConfigAuth ),
     ConfigManager_Login( ConfigManagerLoginServlet.class, ConfigManagerBean.class ),
-    ConfigManager_Wordlists( ConfigManagerWordlistServlet.class, ConfigManagerBean.class ),
-    ConfigManager_LocalDB( ConfigManagerLocalDBServlet.class, ConfigManagerBean.class ),
-    ConfigManager_Certificates( ConfigManagerCertificatesServlet.class, ConfigManagerBean.class ),
+    ConfigManager_Wordlists( ConfigManagerWordlistServlet.class, ConfigManagerBean.class, Flag.RequiresConfigAuth ),
+    ConfigManager_LocalDB( ConfigManagerLocalDBServlet.class, ConfigManagerBean.class, Flag.RequiresConfigAuth ),
+    ConfigManager_Certificates( ConfigManagerCertificatesServlet.class, ConfigManagerBean.class, Flag.RequiresConfigAuth ),
     FullPageHealth( FullPageHealthServlet.class, null ),
 
     NewUser( NewUserServlet.class, NewUserBean.class ),
@@ -102,7 +103,7 @@ public enum PwmServletDefinition
     ForgottenPassword( password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet.class, ForgottenPasswordBean.class ),
     ForgottenUsername( password.pwm.http.servlet.ForgottenUsernameServlet.class, null ),;
 
-    private final String[] patterns;
+    private final List<String> patterns;
     private final String servletUrl;
     private final Class<? extends PwmServlet> pwmServletClass;
     private final Class<? extends PwmSessionBean> pwmSessionBeanClass;
@@ -111,6 +112,7 @@ public enum PwmServletDefinition
     public enum Flag
     {
         RequiresUserPasswordAndBind,
+        RequiresConfigAuth,
     }
 
     PwmServletDefinition(
@@ -121,27 +123,30 @@ public enum PwmServletDefinition
     {
         this.pwmServletClass = pwmServletClass;
         this.pwmSessionBeanClass = pwmSessionBeanClass;
-        final EnumSet flagSet = EnumSet.noneOf( Flag.class );
-        Collections.addAll( flagSet, flags );
-        this.flags = Collections.unmodifiableSet( flagSet );
+        this.flags = CollectionUtil.enumSetFromArray( flags );
 
         try
         {
-            this.patterns = getWebServletAnnotation( pwmServletClass ).urlPatterns();
+            final String[] definedPatterns = getWebServletAnnotation( pwmServletClass ).urlPatterns();
+            if ( definedPatterns == null || definedPatterns.length < 1 )
+            {
+                throw new IllegalStateException( "no url patterns are defined for servlet " + this.name() );
+            }
+            this.patterns = List.of( definedPatterns );
         }
         catch ( final Exception e )
         {
             throw new IllegalStateException( "error initializing PwmServletInfo value " + this.toString() + ", error: " + e.getMessage() );
         }
 
-        final String firstPattern = patterns[ 0 ];
+        final String firstPattern = patterns.iterator().next();
         final int lastSlash = firstPattern.lastIndexOf( "/" );
         servletUrl = firstPattern.substring( lastSlash + 1 );
     }
 
-    public String[] urlPatterns( )
+    public List<String> urlPatterns( )
     {
-        return patterns == null ? null : Arrays.copyOf( patterns, patterns.length );
+        return patterns;
     }
 
     public String servletUrlName( )
@@ -151,7 +156,7 @@ public enum PwmServletDefinition
 
     public String servletUrl( )
     {
-        return patterns[ 0 ];
+        return patterns.iterator().next();
     }
 
     public Class<? extends PwmServlet> getPwmServletClass( )
@@ -174,11 +179,17 @@ public enum PwmServletDefinition
             }
         }
 
-        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "missing WebServlet annotation for class " + this.getClass().getName() ) );
+        throw new PwmUnrecoverableException( new ErrorInformation(
+                PwmError.ERROR_INTERNAL, "missing WebServlet annotation for class " + this.getClass().getName() ) );
     }
 
     public Collection<Flag> getFlags()
     {
         return flags;
+    }
+
+    public static Set<PwmServletDefinition> withFlag( final Flag flag )
+    {
+        return JavaHelper.readEnumsFromPredicate( PwmServletDefinition.class, e -> e.flags.contains( flag ) );
     }
 }

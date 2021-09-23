@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,23 +24,23 @@ public abstract class PwmException extends Exception
 {
     protected final ErrorInformation errorInformation;
 
-    public PwmException( final ErrorInformation error )
+    protected PwmException( final ErrorInformation error )
     {
         this.errorInformation = error == null ? new ErrorInformation( PwmError.ERROR_INTERNAL ) : error;
     }
 
-    public PwmException( final ErrorInformation error, final Throwable initialCause )
+    protected PwmException( final ErrorInformation error, final Throwable initialCause )
     {
         this.errorInformation = error == null ? new ErrorInformation( PwmError.ERROR_INTERNAL ) : error;
         this.initCause( initialCause );
     }
 
-    public PwmException( final PwmError error )
+    protected PwmException( final PwmError error )
     {
         this.errorInformation = new ErrorInformation( error );
     }
 
-    public PwmException( final PwmError error, final String detailedErrorMsg )
+    protected PwmException( final PwmError error, final String detailedErrorMsg )
     {
         this.errorInformation = new ErrorInformation( error, detailedErrorMsg );
     }

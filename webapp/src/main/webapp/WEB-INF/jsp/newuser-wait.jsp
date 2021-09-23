@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@
     try {
         final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
         refreshSeconds = 30 * NewUserServlet.getNewUserProfile(pwmRequest).readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME);
-        checkIntervalSeconds = Long.parseLong(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS));
+        checkIntervalSeconds = Long.parseLong(pwmRequest.getDomainConfig().readAppProperty(AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS));
     } catch (PwmException e) {
         /* noop */
     }

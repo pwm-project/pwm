@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@
 package password.pwm.svc.token;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.util.java.JavaHelper;
@@ -34,8 +33,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-@Getter
-@EqualsAndHashCode
+@Value
 public class TokenPayload implements Serializable
 {
     @SerializedName( "t" )

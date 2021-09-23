@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -48,6 +48,19 @@
 
 <pwm:script-ref url="/public/resources/webjars/pwm-client/vendor.js" />
 <pwm:script-ref url="/public/resources/webjars/pwm-client/peoplesearch.ng.js" />
+
+<pwm:script>
+    <script type="text/javascript">
+        <%-- including the angular injections this way delays them after the dojo load and prevents errors --%>
+        PWM_GLOBAL['startupFunctions'].push(function() {
+            setTimeout(function(){
+                //PWM_MAIN.loadJsFile( PWM_GLOBAL['url-context'] + "/public/resources/webjars/pwm-client/vendor.js");
+                //PWM_MAIN.loadJsFile( PWM_GLOBAL['url-context'] + "/public/resources/webjars/pwm-client/peoplesearch.ng.js");
+
+            },5000);
+        });
+    </script>
+</pwm:script>
 
 </body>
 </html>

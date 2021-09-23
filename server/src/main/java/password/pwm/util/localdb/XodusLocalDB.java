@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.zip.Deflater;
@@ -71,6 +72,7 @@ public class XodusLocalDB implements LocalDBProvider
 
     private static final String FILE_SUB_PATH = "xodus";
     private static final String README_FILENAME = "README.TXT";
+    private static final int DEFAULT_MEMORY_USAGE = 50 * 1024 * 1024;
 
     private Environment environment;
     private File fileLocation;
@@ -98,8 +100,10 @@ public class XodusLocalDB implements LocalDBProvider
 
     private final Map<LocalDB.DB, Store> cachedStoreObjects = new HashMap<>();
 
-    private final ConditionalTaskExecutor outputLogExecutor = new ConditionalTaskExecutor(
-            ( ) -> outputStats(), new ConditionalTaskExecutor.TimeDurationPredicate( STATS_OUTPUT_INTERVAL ).setNextTimeFromNow( TimeDuration.MINUTE )
+    private final ConditionalTaskExecutor outputLogExecutor = ConditionalTaskExecutor.forPeriodicTask(
+            this::outputStats,
+            STATS_OUTPUT_INTERVAL,
+            TimeDuration.MINUTE
     );
 
     private BindMachine bindMachine = new BindMachine( BindMachine.DEFAULT_ENABLE_COMPRESSION, BindMachine.DEFAULT_MIN_COMPRESSION_LENGTH );
@@ -209,7 +213,7 @@ public class XodusLocalDB implements LocalDBProvider
     {
         final EnvironmentConfig environmentConfig = new EnvironmentConfig();
         environmentConfig.setEnvCloseForcedly( true );
-        environmentConfig.setMemoryUsage( 50 * 1024 * 1024 );
+        environmentConfig.setMemoryUsage( DEFAULT_MEMORY_USAGE );
         environmentConfig.setEnvGatherStatistics( true );
 
         for ( final Map.Entry<String, String> entry : initParameters.entrySet() )
@@ -245,12 +249,11 @@ public class XodusLocalDB implements LocalDBProvider
     @Override
     public boolean contains( final LocalDB.DB db, final String key ) throws LocalDBException
     {
-        checkStatus( false );
-        return get( db, key ) != null;
+        return get( db, key ).isPresent();
     }
 
     @Override
-    public String get( final LocalDB.DB db, final String key ) throws LocalDBException
+    public Optional<String> get( final LocalDB.DB db, final String key ) throws LocalDBException
     {
         checkStatus( false );
         return environment.computeInReadonlyTransaction( transaction ->
@@ -259,9 +262,9 @@ public class XodusLocalDB implements LocalDBProvider
             final ByteIterable returnValue = store.get( transaction, bindMachine.keyToEntry( key ) );
             if ( returnValue != null )
             {
-                return bindMachine.entryToValue( returnValue );
+                return Optional.of( bindMachine.entryToValue( returnValue ) );
             }
-            return null;
+            return Optional.empty();
         } );
     }
 

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ package password.pwm.svc.token;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.util.SearchHelper;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -44,16 +44,16 @@ class LdapTokenMachine implements TokenMachine
 {
     private static final String KEY_VALUE_DELIMITER = " ";
 
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
     private String tokenAttribute;
     private TokenService tokenService;
 
-    LdapTokenMachine( final TokenService tokenService, final PwmApplication pwmApplication )
+    LdapTokenMachine( final TokenService tokenService, final PwmDomain pwmDomain )
             throws PwmOperationalException
     {
         this.tokenService = tokenService;
-        this.pwmApplication = pwmApplication;
-        this.tokenAttribute = pwmApplication.getConfig().readSettingAsString( PwmSetting.TOKEN_LDAP_ATTRIBUTE );
+        this.pwmDomain = pwmDomain;
+        this.tokenAttribute = pwmDomain.getConfig().readSettingAsString( PwmSetting.TOKEN_LDAP_ATTRIBUTE );
     }
 
     @Override
@@ -75,7 +75,7 @@ class LdapTokenMachine implements TokenMachine
             final String storedHash = tokenKey.getStoredHash();
             final SearchHelper tempSearchHelper = new SearchHelper();
             final Map<String, String> filterAttributes = new HashMap<>();
-            for ( final String loopStr : pwmApplication.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES ) )
+            for ( final String loopStr : pwmDomain.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES ) )
             {
                 filterAttributes.put( "objectClass", loopStr );
             }
@@ -86,7 +86,7 @@ class LdapTokenMachine implements TokenMachine
 
         try
         {
-            final UserSearchEngine userSearchEngine = pwmApplication.getUserSearchEngine();
+            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
             final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                     .filter( searchFilter )
                     .build();
@@ -95,7 +95,7 @@ class LdapTokenMachine implements TokenMachine
             {
                 return Optional.empty();
             }
-            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, sessionLabel, user, null );
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmDomain.getPwmApplication(), sessionLabel, user, null );
             final String tokenAttributeValue = userInfo.readStringAttribute( tokenAttribute );
             if ( tokenAttribute != null && tokenAttributeValue.length() > 0 )
             {
@@ -136,7 +136,7 @@ class LdapTokenMachine implements TokenMachine
             final String encodedTokenPayload = tokenService.toEncryptedString( tokenPayload );
 
             final UserIdentity userIdentity = tokenPayload.getUserIdentity();
-            final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
+            final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( tokenService.getSessionLabel(), userIdentity );
             chaiUser.writeStringAttribute( tokenAttribute, md5sumToken + KEY_VALUE_DELIMITER + encodedTokenPayload );
         }
         catch ( final ChaiException e )
@@ -157,7 +157,8 @@ class LdapTokenMachine implements TokenMachine
             final UserIdentity userIdentity = payload.get().getUserIdentity();
             try
             {
-                final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
+                final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( tokenService.getSessionLabel(), userIdentity );
+                tokenService.getStats().increment( TokenService.StatsKey.tokensRemoved );
                 chaiUser.deleteAttribute( tokenAttribute, null );
             }
             catch ( final ChaiException e )
@@ -189,7 +190,7 @@ class LdapTokenMachine implements TokenMachine
     @Override
     public TokenKey keyFromKey( final String key ) throws PwmUnrecoverableException
     {
-        return StoredTokenKey.fromKeyValue( pwmApplication, key );
+        return StoredTokenKey.fromKeyValue( pwmDomain, key );
     }
 
     @Override

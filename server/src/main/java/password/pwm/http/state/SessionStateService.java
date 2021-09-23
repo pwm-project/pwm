@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 package password.pwm.http.state;
 
 import password.pwm.PwmApplication;
+import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.error.PwmError;
@@ -29,18 +30,20 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.PwmSessionBean;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-public class SessionStateService implements PwmService
+public class SessionStateService extends AbstractPwmService implements PwmService
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( SessionStateService.class );
 
     private SessionBeanProvider sessionBeanProvider = new LocalSessionBeanImpl();
@@ -51,13 +54,14 @@ public class SessionStateService implements PwmService
     private final Map<Class<? extends PwmSessionBean>, PwmSessionBean> beanInstanceCache = new HashMap<>();
 
     @Override
-    public STATUS status( )
+    protected Set<PwmApplication.Condition> openConditions()
     {
-        return STATUS.OPEN;
+        return Collections.emptySet();
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
     {
         {
             final SessionBeanMode sessionBeanMode = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.SECURITY_MODULE_SESSION_MODE, SessionBeanMode.class );
@@ -106,8 +110,9 @@ public class SessionStateService implements PwmService
             }
         }
 
+        LOGGER.trace( getSessionLabel(), () -> "initialized " + sessionBeanProvider.getClass().getName() + " provider" );
 
-        LOGGER.trace( () -> "initialized " + sessionBeanProvider.getClass().getName() + " provider" );
+        return STATUS.OPEN;
     }
 
     @Override
@@ -116,9 +121,9 @@ public class SessionStateService implements PwmService
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
@@ -189,9 +194,9 @@ public class SessionStateService implements PwmService
         }
         try
         {
-            return theClass.newInstance().supportedModes().contains( mode );
+            return theClass.getDeclaredConstructor().newInstance().supportedModes().contains( mode );
         }
-        catch ( final InstantiationException | IllegalAccessException e )
+        catch ( final ReflectiveOperationException e )
         {
             e.printStackTrace();
         }
@@ -202,7 +207,7 @@ public class SessionStateService implements PwmService
     {
         try
         {
-            final E newBean = theClass.newInstance();
+            final E newBean = theClass.getDeclaredConstructor().newInstance();
             newBean.setGuid( sessionGuid );
             newBean.setTimestamp( Instant.now() );
             return newBean;

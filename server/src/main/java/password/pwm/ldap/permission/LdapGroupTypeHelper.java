@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 package password.pwm.ldap.permission;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -41,7 +41,7 @@ class LdapGroupTypeHelper implements PermissionTypeHelper
 
     @Override
     public boolean testMatch(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final UserPermission userPermission
@@ -49,14 +49,14 @@ class LdapGroupTypeHelper implements PermissionTypeHelper
             throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
-        final String groupDN = userPermission.getLdapQuery();
+        final String groupDN = userPermission.getLdapBase();
 
         if ( userIdentity == null )
         {
             return false;
         }
 
-        LOGGER.trace( sessionLabel, () -> "begin check for ldapGroup match for " + userIdentity + " using queryMatch: " + groupDN );
+        LOGGER.trace( sessionLabel, () -> "begin check for ldapGroup match for " + userIdentity + " using groupMatch: " + groupDN );
 
         boolean result = false;
         if ( StringUtil.isEmpty( groupDN ) )
@@ -65,10 +65,10 @@ class LdapGroupTypeHelper implements PermissionTypeHelper
         }
         else
         {
-            final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
+            final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() );
             final String filterString = "(" + ldapProfile.readSettingAsString( PwmSetting.LDAP_USER_GROUP_ATTRIBUTE ) + "=" + groupDN + ")";
             LOGGER.trace( sessionLabel, () -> "checking ldap to see if " + userIdentity + " matches group '" + groupDN + "' using filter '" + filterString + "'" );
-            result = LdapQueryHelper.selfUserSearch( pwmApplication, sessionLabel, userIdentity, filterString );
+            result = LdapQueryHelper.selfUserSearch( pwmDomain, sessionLabel, userIdentity, filterString );
 
         }
 
@@ -89,7 +89,7 @@ class LdapGroupTypeHelper implements PermissionTypeHelper
     {
         return SearchConfiguration.builder()
                 .groupDN( userPermission.getLdapBase() )
-                .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ) )
+                .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ).orElse( null ) )
                 .build();
     }
 

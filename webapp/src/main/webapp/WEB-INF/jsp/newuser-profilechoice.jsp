@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@
         </table>
         <br/>
         <div class="buttonbar">
-            <% if (JspUtility.getPwmRequest( pageContext ).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+            <% if (JspUtility.getPwmRequest( pageContext ).getDomainConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
             <form action="<pwm:url url='<%=PwmServletDefinition.PublicCommand.servletUrl()%>' addContext="true"/>" method="get"
                   enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
                 <button class="btn" type="submit" name="submitBtn">

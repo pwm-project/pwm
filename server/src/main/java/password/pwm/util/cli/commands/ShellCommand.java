@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import password.pwm.util.cli.MainClass;
 
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -174,7 +173,7 @@ public class ShellCommand extends AbstractCliCommand
         {
             return Collections.emptyList();
         }
-        return Collections.unmodifiableList( Arrays.asList( input.trim().split( "\\s+" ) ) );
+        return List.of( input.trim().split( "\\s+" ) );
     }
 
 }

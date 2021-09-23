@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 package password.pwm.ldap.search;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
@@ -110,7 +110,7 @@ public class UserSearchResults implements Serializable
         return sizeExceeded;
     }
 
-    public List<Map<String, Object>> resultsAsJsonOutput( final PwmApplication pwmApplication, final UserIdentity ignoreUser )
+    public List<Map<String, Object>> resultsAsJsonOutput( final PwmDomain pwmDomain, final UserIdentity ignoreUser )
             throws PwmUnrecoverableException
     {
         final List<Map<String, Object>> outputList = new ArrayList<>();
@@ -124,7 +124,7 @@ public class UserSearchResults implements Serializable
                 {
                     rowMap.put( attribute, this.getResults().get( userIdentity ).get( attribute ) );
                 }
-                rowMap.put( "userKey", userIdentity.toObfuscatedKey( pwmApplication ) );
+                rowMap.put( "userKey", userIdentity.toObfuscatedKey( pwmDomain.getPwmApplication() ) );
                 rowMap.put( "id", idCounter );
                 outputList.add( rowMap );
                 idCounter++;

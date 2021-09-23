@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,13 @@
 package password.pwm.svc.telemetry;
 
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TelemetryPublishBean;
 import password.pwm.error.PwmUnrecoverableException;
 
 public interface TelemetrySender
 {
-    void init( PwmApplication pwmApplication, String initString );
+    void init( PwmApplication pwmDomain, SessionLabel sessionLabel, String initString );
 
     void publish( TelemetryPublishBean statsPublishBean ) throws PwmUnrecoverableException;
 }

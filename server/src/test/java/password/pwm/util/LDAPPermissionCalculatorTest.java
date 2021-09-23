@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,15 @@
 
 package password.pwm.util;
 
+import org.junit.Assert;
 import org.junit.Test;
+import password.pwm.config.AppConfig;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
+
+import java.util.List;
 
 public class LDAPPermissionCalculatorTest
 {
@@ -32,7 +37,9 @@ public class LDAPPermissionCalculatorTest
             throws PwmUnrecoverableException
     {
         final StoredConfiguration defaultConfig = StoredConfigurationFactory.newConfig();
-        final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( defaultConfig );
-        ldapPermissionCalculator.getPermissionRecords();
+        final DomainConfig domainConfig = new AppConfig( defaultConfig ).getDomainConfigs().values().stream().findFirst().orElseThrow();
+        final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( domainConfig );
+        final List<LDAPPermissionCalculator.PermissionRecord> records = ldapPermissionCalculator.getPermissionRecords();
+        Assert.assertFalse( records.isEmpty() );
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 package password.pwm.util.logging;
 
 import org.apache.log4j.Level;
+import password.pwm.util.java.JavaHelper;
 
 public enum PwmLogLevel
 {
@@ -31,49 +32,28 @@ public enum PwmLogLevel
     ERROR( Level.ERROR ),
     FATAL( Level.FATAL ),;
 
+    private final int log4jLevel;
+
     PwmLogLevel( final Level log4jLevel )
     {
-        this.log4jLevel = log4jLevel;
+        this.log4jLevel = log4jLevel.toInt();
     }
-
-    private final Level log4jLevel;
 
     public Level getLog4jLevel( )
     {
-        return log4jLevel;
+        return Level.toLevel( log4jLevel );
     }
 
     public static PwmLogLevel fromLog4jLevel( final Level level )
     {
-        if ( level == null )
-        {
-            return null;
-        }
+        final int log4jIntLevel = level == null
+                ? Level.TRACE.toInt()
+                : level.toInt();
 
-        if ( Level.TRACE.equals( level ) )
-        {
-            return TRACE;
-        }
-        else if ( Level.DEBUG.equals( level ) )
-        {
-            return DEBUG;
-        }
-        else if ( Level.INFO.equals( level ) )
-        {
-            return INFO;
-        }
-        else if ( Level.WARN.equals( level ) )
-        {
-            return WARN;
-        }
-        else if ( Level.ERROR.equals( level ) )
-        {
-            return ERROR;
-        }
-        else if ( Level.FATAL.equals( level ) )
-        {
-            return FATAL;
-        }
-        return TRACE;
+        return JavaHelper.readEnumFromPredicate(
+                PwmLogLevel.class,
+                pwmLogLevel -> pwmLogLevel.log4jLevel == log4jIntLevel
+        )
+                .orElse( TRACE );
     }
 }

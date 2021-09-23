@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public interface LocalDBProvider
@@ -49,7 +50,7 @@ public interface LocalDBProvider
             throws LocalDBException;
 
     @LocalDB.ReadOperation
-    String get( LocalDB.DB db, String key )
+    Optional<String> get( LocalDB.DB db, String key )
             throws LocalDBException;
 
     @LocalDB.WriteOperation

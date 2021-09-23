@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@
                 End User License Agreement
             </div>
             <div class="setting_body">
-                <div id="agreementText" class="eulaText"><%=JavaHelper.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_EULA_TXT)%></div>
+                <div id="agreementText" class="eulaText"><%=ContextManager.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_EULA_TXT)%></div>
             </div>
 
             <br/><br/>

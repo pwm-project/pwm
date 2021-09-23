@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ package password.pwm.receiver;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -75,7 +74,7 @@ public class Settings
     static Settings readFromFile( final String filename ) throws IOException
     {
         final Properties properties = new Properties();
-        try ( Reader reader = new InputStreamReader( new FileInputStream( new File( filename ) ), StandardCharsets.UTF_8 ) )
+        try ( Reader reader = new InputStreamReader( new FileInputStream( filename ), StandardCharsets.UTF_8 ) )
         {
             properties.load( reader );
             final Map<Setting, String> returnMap = new HashMap<>();
@@ -96,6 +95,6 @@ public class Settings
     public boolean isFtpEnabled( )
     {
         final String value = settings.get( Setting.ftpSite );
-        return !StringUtil.isEmpty( value );
+        return StringUtil.notEmpty( value );
     }
 }

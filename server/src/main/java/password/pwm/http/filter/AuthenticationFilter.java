@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@
 
 package password.pwm.http.filter;
 
-import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -50,6 +50,9 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Authentication servlet filter.  This filter wraps all servlet requests and requests direct to *.jsp
@@ -64,15 +67,25 @@ public class AuthenticationFilter extends AbstractPwmFilter
     private static final PwmLogger LOGGER = PwmLogger.getLogger( AuthenticationFilter.class.getName() );
 
     @Override
+    boolean isInterested( final PwmApplicationMode mode, final PwmURL pwmURL )
+    {
+        return ( pwmURL.isPrivateUrl()
+                || pwmURL.isAdminUrl()
+                || pwmURL.isChangePasswordURL() )
+                && ( !pwmURL.isResourceURL() && !pwmURL.isRestService()
+        );
+    }
+
+    @Override
     public void processFilter(
             final PwmApplicationMode mode,
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
     )
-            throws IOException, ServletException
+            throws IOException, ServletException, PwmUnrecoverableException
     {
         final PwmURL pwmURL = pwmRequest.getURL();
-        if ( pwmURL.isPublicUrl() && !pwmURL.isLoginServlet() )
+        if ( pwmURL.isPublicUrl() && !pwmURL.matches( PwmServletDefinition.Login ) )
         {
             chain.doFilter();
             return;
@@ -81,10 +94,10 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
         try
         {
-            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+            final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
             final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-            if ( pwmApplication.getApplicationMode() == PwmApplicationMode.NEW )
+            if ( pwmDomain.getApplicationMode() == PwmApplicationMode.NEW )
             {
                 if ( pwmRequest.getURL().isConfigGuideURL() )
                 {
@@ -93,7 +106,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
                 }
             }
 
-            if ( pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION )
+            if ( pwmDomain.getApplicationMode() == PwmApplicationMode.CONFIGURATION )
             {
                 if ( pwmRequest.getURL().isConfigManagerURL() )
                 {
@@ -118,33 +131,25 @@ public class AuthenticationFilter extends AbstractPwmFilter
             pwmRequest.respondWithError( e.getErrorInformation(), true );
         }
     }
-
-    @Override
-    boolean isInterested( final PwmApplicationMode mode, final PwmURL pwmURL )
-    {
-        return !pwmURL.isResourceURL() && !pwmURL.isRestService();
-    }
-
+    
     private void processAuthenticatedSession(
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         // read the basic auth info out of the header (if it exists);
-        if ( pwmRequest.getConfig().readSettingAsBoolean( PwmSetting.BASIC_AUTH_ENABLED ) )
+        if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.BASIC_AUTH_ENABLED ) )
         {
-            final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmApplication, pwmRequest );
+            final Optional<BasicAuthInfo> basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmDomain, pwmRequest );
 
             final BasicAuthInfo originalBasicAuthInfo = pwmSession.getLoginInfoBean().getBasicAuth();
 
             //check to make sure basic auth info is same as currently known user in session.
-            if ( basicAuthInfo != null
-                    && originalBasicAuthInfo != null
-                    && !originalBasicAuthInfo.equals( basicAuthInfo ) )
+            if ( basicAuthInfo.isPresent() && Objects.equals( basicAuthInfo.get(), originalBasicAuthInfo ) )
             {
                 // if we read here then user is using basic auth, and header has changed since last request
                 // this means something is screwy, so log out the session
@@ -153,7 +158,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
                 final UserInfo userInfo = pwmSession.getUserInfo();
                 final ErrorInformation errorInformation = new ErrorInformation(
                         PwmError.ERROR_BAD_SESSION,
-                        "basic auth header user '" + basicAuthInfo.getUsername()
+                        "basic auth header user '" + basicAuthInfo.get().getUsername()
                                 + "' does not match currently logged in user '" + userInfo.getUserIdentity()
                                 + "', session will be logged out"
                 );
@@ -171,7 +176,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         // check status of oauth expiration
         if ( pwmSession.getLoginInfoBean().getOauthExp() != null )
         {
-            final OAuthSettings oauthSettings = OAuthSettings.forSSOAuthentication( pwmRequest.getConfig() );
+            final OAuthSettings oauthSettings = OAuthSettings.forSSOAuthentication( pwmRequest.getDomainConfig() );
             final OAuthMachine oAuthMachine = new OAuthMachine( pwmRequest.getLabel(), oauthSettings );
             if ( oAuthMachine.checkOAuthExpiration( pwmRequest ) )
             {
@@ -189,20 +194,22 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
         if ( pwmSession.getSessionManager().isAuthenticatedWithoutPasswordAndBind() )
         {
-            final PwmServletDefinition pwmServletDefinition = pwmRequest.getURL().forServletDefinition();
-            if ( pwmServletDefinition != null
-                    && pwmServletDefinition.getFlags().contains( PwmServletDefinition.Flag.RequiresUserPasswordAndBind ) )
+            final Optional<PwmServletDefinition> pwmServletDefinition = pwmRequest.getURL().forServletDefinition();
+            if ( pwmServletDefinition.isPresent() )
             {
-                try
+                if ( pwmServletDefinition.get().getFlags().contains( PwmServletDefinition.Flag.RequiresUserPasswordAndBind ) )
                 {
-                    LOGGER.debug( pwmRequest, () -> "user is authenticated without a password, but module " + pwmServletDefinition.name()
-                            +  " requires user connection, redirecting to login page" );
-                    LoginServlet.redirectToLoginServlet( pwmRequest );
-                    return;
-                }
-                catch ( final Throwable e1 )
-                {
-                    LOGGER.error( () -> "error while marking pre-login url:" + e1.getMessage() );
+                    try
+                    {
+                        LOGGER.debug( pwmRequest, () -> "user is authenticated without a password, but module " + pwmServletDefinition.get().name()
+                                + " requires user connection, redirecting to login page" );
+                        LoginServlet.redirectToLoginServlet( pwmRequest );
+                        return;
+                    }
+                    catch ( final Throwable e1 )
+                    {
+                        LOGGER.error( () -> "error while marking pre-login url:" + e1.getMessage() );
+                    }
                 }
             }
         }
@@ -218,12 +225,12 @@ public class AuthenticationFilter extends AbstractPwmFilter
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
 
         final boolean bypassSso = pwmRequest.getPwmSession().getLoginInfoBean().isLoginFlag( LoginInfoBean.LoginFlag.noSso );
-        if ( !bypassSso && pwmRequest.getPwmApplication().getApplicationMode() == PwmApplicationMode.RUNNING )
+        if ( !bypassSso && pwmRequest.getPwmDomain().getApplicationMode() == PwmApplicationMode.RUNNING )
         {
             final ProcessStatus authenticationProcessStatus = HttpAuthenticationUtilities.attemptAuthenticationMethods( pwmRequest );
             if ( authenticationProcessStatus == ProcessStatus.Halt )
@@ -247,11 +254,11 @@ public class AuthenticationFilter extends AbstractPwmFilter
         {
             pwmSession.getSessionStateBean().setSessionIdRecycleNeeded( true );
             LOGGER.debug( pwmRequest, () -> "session authenticated during request, issuing redirect to originally requested url: " + originalRequestedUrl );
-            pwmRequest.sendRedirect( originalRequestedUrl );
+            pwmRequest.getPwmResponse().sendRedirect( originalRequestedUrl );
             return;
         }
 
-        if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.BASIC_AUTH_FORCE ) )
+        if ( pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.BASIC_AUTH_FORCE ) )
         {
             final String displayMessage = LocaleHelper.getLocalizedMessage( Display.Title_Application, pwmRequest );
             pwmRequest.getPwmResponse().setHeader( HttpHeader.WWW_Authenticate, "Basic realm=\"" + displayMessage + "\"" );
@@ -259,7 +266,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
             return;
         }
 
-        if ( pwmRequest.getURL().isLoginServlet() )
+        if ( pwmRequest.getURL().matches( PwmServletDefinition.Login ) )
         {
             chain.doFilter();
             return;
@@ -273,7 +280,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
         //user is not authenticated so forward to LoginPage.
         LOGGER.trace( pwmRequest, () -> "user requested resource requiring authentication (" + req.getRequestURI()
-                        + "), but is not authenticated; redirecting to LoginServlet" );
+                + "), but is not authenticated; redirecting to LoginServlet" );
 
         LoginServlet.redirectToLoginServlet( pwmRequest );
     }
@@ -289,12 +296,17 @@ public class AuthenticationFilter extends AbstractPwmFilter
         final UserInfo userInfo = pwmSession.getUserInfo();
         final LoginInfoBean loginInfoBean = pwmSession.getLoginInfoBean();
 
-        if ( pwmURL.isResourceURL() || pwmURL.isConfigManagerURL() || pwmURL.isLogoutURL() || pwmURL.isLoginServlet() )
+        final List<PwmServletDefinition> ignoredServlets = List.of(
+                PwmServletDefinition.Login,
+                PwmServletDefinition.ConfigManager,
+                PwmServletDefinition.Logout );
+
+        if ( pwmURL.isResourceURL() || pwmURL.matches( ignoredServlets ) )
         {
             return ProcessStatus.Continue;
         }
 
-        if ( pwmRequest.getPwmApplication().getApplicationMode() != PwmApplicationMode.RUNNING )
+        if ( pwmRequest.getPwmDomain().getApplicationMode() != PwmApplicationMode.RUNNING )
         {
             return ProcessStatus.Continue;
         }
@@ -305,8 +317,8 @@ public class AuthenticationFilter extends AbstractPwmFilter
             if ( !pwmURL.isChangePasswordURL() )
             {
                 LOGGER.debug( pwmRequest, () -> "user is authenticated via forgotten password mechanism, redirecting to change password servlet" );
-                pwmRequest.sendRedirect(
-                        pwmRequest.getContextPath()
+                pwmRequest.getPwmResponse().sendRedirect(
+                        pwmRequest.getBasePath()
                                 + PwmConstants.URL_PREFIX_PUBLIC
                                 + "/"
                                 + PwmServletDefinition.PrivateChangePassword.servletUrlName() );
@@ -321,7 +333,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
         // if change password in progress and req is for ChangePassword servlet, then allow request as is
         if ( pwmURL.isChangePasswordURL() )
         {
-            final ChangePasswordBean cpb = pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+            final ChangePasswordBean cpb = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
             final PasswordChangeProgressChecker.ProgressTracker progressTracker = cpb.getChangeProgressTracker();
             if ( progressTracker != null && progressTracker.getBeginTime() != null )
             {
@@ -332,10 +344,10 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
         if ( userInfo.isRequiresResponseConfig() && !pwmSession.getLoginInfoBean().isLoginFlag( LoginInfoBean.LoginFlag.skipSetupCr ) )
         {
-            if ( !pwmURL.isSetupResponsesURL() )
+            if ( !pwmURL.matches( PwmServletDefinition.SetupResponses ) )
             {
                 LOGGER.debug( pwmRequest, () -> "user is required to setup responses, redirecting to setup responses servlet" );
-                pwmRequest.sendRedirect( PwmServletDefinition.SetupResponses );
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.SetupResponses );
                 return ProcessStatus.Halt;
             }
             else
@@ -346,10 +358,10 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
         if ( userInfo.isRequiresOtpConfig() && !pwmSession.getLoginInfoBean().isLoginFlag( LoginInfoBean.LoginFlag.skipOtp ) )
         {
-            if ( !pwmURL.isSetupOtpSecretURL() )
+            if ( !pwmURL.matches( PwmServletDefinition.SetupOtp ) )
             {
                 LOGGER.debug( pwmRequest, () -> "user is required to setup OTP configuration, redirecting to OTP setup page" );
-                pwmRequest.sendRedirect( PwmServletDefinition.SetupOtp );
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.SetupOtp );
                 return ProcessStatus.Halt;
             }
             else
@@ -360,10 +372,10 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
         if ( userInfo.isRequiresUpdateProfile() )
         {
-            if ( !pwmURL.isProfileUpdateURL() )
+            if ( !pwmURL.matches( PwmServletDefinition.UpdateProfile ) )
             {
                 LOGGER.debug( pwmRequest, () -> "user is required to update profile, redirecting to profile update servlet" );
-                pwmRequest.sendRedirect( PwmServletDefinition.UpdateProfile );
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.UpdateProfile );
                 return ProcessStatus.Halt;
             }
             else
@@ -377,13 +389,13 @@ public class AuthenticationFilter extends AbstractPwmFilter
             if ( userInfo.isRequiresNewPassword() && !loginInfoBean.isLoginFlag( LoginInfoBean.LoginFlag.skipNewPw ) )
             {
                 LOGGER.debug( pwmRequest, () -> "user password in ldap requires changing, redirecting to change password servlet" );
-                pwmRequest.sendRedirect( PwmServletDefinition.PrivateChangePassword );
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.PrivateChangePassword );
                 return ProcessStatus.Halt;
             }
             else if ( loginInfoBean.getLoginFlags().contains( LoginInfoBean.LoginFlag.forcePwChange ) )
             {
                 LOGGER.debug( pwmRequest, () -> "previous activity in application requires forcing pw change, redirecting to change password servlet" );
-                pwmRequest.sendRedirect( PwmServletDefinition.PrivateChangePassword );
+                pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.PrivateChangePassword );
                 return ProcessStatus.Halt;
             }
             else

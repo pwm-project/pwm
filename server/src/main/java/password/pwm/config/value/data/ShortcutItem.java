@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,23 +29,12 @@ import java.net.URI;
 @Value
 public class ShortcutItem implements Serializable
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( ShortcutItem.class );
 
     private final String label;
     private final URI shortcutURI;
     private final String ldapQuery;
     private final String description;
-
-    public String toString( )
-    {
-        return "ShortcutItem{"
-                + "label='" + label + '\''
-                + ", shortcutURI=" + shortcutURI
-                + ", ldapQuery='" + ldapQuery + '\''
-                + ", description='" + description + '\''
-                + '}';
-    }
 
     public static ShortcutItem parsePwmConfigInput( final String input )
     {

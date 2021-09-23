@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,12 +46,15 @@ public class HttpTelemetrySender implements TelemetrySender
     private static final PwmLogger LOGGER = PwmLogger.forClass( HttpTelemetrySender.class );
 
     private PwmApplication pwmApplication;
+    private SessionLabel sessionLabel;
     private Settings settings;
 
+
     @Override
-    public void init( final PwmApplication pwmApplication, final String initString )
+    public void init( final PwmApplication pwmDomain, final SessionLabel sessionLabel, final String initString )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmApplication = pwmDomain;
+        this.sessionLabel = sessionLabel;
         settings = JsonUtil.deserialize( initString, HttpTelemetrySender.Settings.class );
     }
 
@@ -74,9 +77,9 @@ public class HttpTelemetrySender implements TelemetrySender
                 .headers( headers )
                 .build();
 
-        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "preparing to send telemetry data to '" + settings.getUrl() + ")" );
-        pwmHttpClient.makeRequest( pwmHttpClientRequest, SessionLabel.TELEMETRY_SESSION_LABEL );
-        LOGGER.trace( SessionLabel.TELEMETRY_SESSION_LABEL, () -> "sent telemetry data to '" + settings.getUrl() + ")" );
+        LOGGER.trace( sessionLabel, () -> "preparing to send telemetry data to '" + settings.getUrl() + ")" );
+        pwmHttpClient.makeRequest( pwmHttpClientRequest, sessionLabel );
+        LOGGER.trace( sessionLabel, () -> "sent telemetry data to '" + settings.getUrl() + ")" );
     }
 
     @Getter

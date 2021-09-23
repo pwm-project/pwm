@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,6 @@ import password.pwm.error.ErrorInformation;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -42,16 +40,11 @@ public abstract class PwmSessionBean implements Serializable
         AUTHENTICATED,
     }
 
-    private static List<Class<? extends PwmSessionBean>> publicBeans;
+    private static List<Class<? extends PwmSessionBean>> publicBeans = List.of(
+            ActivateUserBean.class,
+            ForgottenPasswordBean.class,
+            NewUserBean.class );
 
-    static
-    {
-        final List<Class<? extends PwmSessionBean>> list = new ArrayList<>(  );
-        list.add( ActivateUserBean.class );
-        list.add( ForgottenPasswordBean.class );
-        list.add( NewUserBean.class );
-        publicBeans = Collections.unmodifiableList( list );
-    }
 
     private String guid;
     private Instant timestamp;

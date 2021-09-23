@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ PWM_RESPONSES.makeSelectOptionsDistinct=function() {
         var selectedIndex = selectedElement.selectedIndex;
         var selectedValue = selectedElement.options[selectedIndex].value;
         var responseID = selectedElement.getAttribute('data-response-id');
-        selectedElement.innerHTML = '';
+        selectedElement.innerHTML = '<optgroup></optgroup>';
         if (selectedValue === 'UNSELECTED') {
             var unselectedOption = document.createElement('option');
             unselectedOption.value = 'UNSELECTED';

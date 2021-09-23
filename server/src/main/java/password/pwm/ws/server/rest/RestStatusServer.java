@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -92,12 +92,12 @@ public class RestStatusServer extends RestServlet
 
             final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(
                     userInfo,
-                    restRequest.getPwmApplication().getConfig(),
+                    restRequest.getDomain().getConfig(),
                     restRequest.getLocale(),
                     macroRequest
             );
 
-            StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_STATUS );
+            StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_STATUS );
 
             final RestResultBean restResultBean = RestResultBean.withData( publicUserInfoBean );
             LOGGER.debug( restRequest.getSessionLabel(), () -> "completed REST status request, result="

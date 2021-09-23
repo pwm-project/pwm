@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import password.pwm.PwmConstants;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StoredValueEncoder;
@@ -66,7 +66,7 @@ public class PwmSettingTest
                 storedValue.toNativeObject();
                 storedValue.toDebugString( PwmConstants.DEFAULT_LOCALE );
                 storedValue.toDebugJsonObject( PwmConstants.DEFAULT_LOCALE );
-                storedValue.toXmlValues( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE, outputSettings );
+                storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, outputSettings );
                 storedValue.validateValue( pwmSetting );
                 Assert.assertNotNull( storedValue.valueHash() );
                 JsonUtil.serialize( (Serializable) storedValue.toNativeObject() );
@@ -112,7 +112,9 @@ public class PwmSettingTest
         final List<XmlElement> results = xmlDoc.evaluateXpathToElements( expression );
         for ( final XmlElement result : results )
         {
-            final String key = result.getAttributeValue( "key" );
+            final String key = result.getAttributeValue( "key" )
+                    .orElseThrow( () -> new IllegalStateException( "setting element " + result.getName() + " missing key attribute" ) );
+
             Assert.assertFalse( StringUtil.isEmpty( key ) );
             final Optional<PwmSetting> pwmSetting = PwmSetting.forKey( key );
             Assert.assertTrue( "unknown PwmSetting.xml setting reference for key " + key, pwmSetting.isPresent() );

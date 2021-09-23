@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,8 @@ public class ReportStatusBean implements Serializable
                     final BigDecimal eventRate = reportService.getEventRate().setScale( 2, RoundingMode.UP );
                     if ( eventRate != null )
                     {
-                        presentableMap.add( new DisplayElement( "usersPerSecond", DisplayElement.Type.number, "Users/Second", eventRate.toString() ) );
+                        presentableMap.add( new DisplayElement( "usersPerMinute", DisplayElement.Type.number, "Users/Minute",
+                                eventRate.multiply( new BigDecimal( "60" ) ).toString() ) );
                     }
                     if ( !BigDecimal.ZERO.equals( eventRate ) )
                     {

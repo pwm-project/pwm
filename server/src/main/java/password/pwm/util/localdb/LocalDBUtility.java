@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.zip.GZIPInputStream;
@@ -194,7 +195,7 @@ public class LocalDBUtility
             final Appendable debugOutput
     )
     {
-        final Percent percentComplete = new Percent( exportLineCounter, totalLines );
+        final Percent percentComplete = Percent.of( exportLineCounter, totalLines );
         final String percentStr = percentComplete.pretty( 2 );
         final long secondsRemaining = totalLines / eventRateMeter.readEventRate().longValue();
 
@@ -304,9 +305,7 @@ public class LocalDBUtility
             }
 
             this.debugOutputWriter = ConditionalTaskExecutor.forPeriodicTask( () ->
-            {
-                writeStringToOut( debugOutput, debugStatsString() );
-            }, TimeDuration.of( 30, TimeDuration.Unit.SECONDS ) );
+                    writeStringToOut( debugOutput, debugStatsString() ), TimeDuration.of( 30, TimeDuration.Unit.SECONDS ) );
         }
 
         void doImport( final InputStream inputStream )
@@ -477,8 +476,8 @@ public class LocalDBUtility
     public boolean readImportInprogressFlag( )
             throws LocalDBException
     {
-        return IN_PROGRESS_STATUS_VALUE.equals(
-                localDB.get( LocalDB.DB.PWM_META, AppAttribute.LOCALDB_IMPORT_STATUS.getKey() ) );
+        final Optional<String> storedImportValue = localDB.get( LocalDB.DB.PWM_META, AppAttribute.LOCALDB_IMPORT_STATUS.getKey() );
+        return storedImportValue.isPresent() && IN_PROGRESS_STATUS_VALUE.equals( storedImportValue.get() );
     }
 
     static boolean hasBooleanParameter( final LocalDBProvider.Parameter parameter, final Map<LocalDBProvider.Parameter, String> parameters )

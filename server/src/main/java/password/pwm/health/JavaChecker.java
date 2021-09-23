@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,24 @@ package password.pwm.health;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.bean.DomainID;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
-public class JavaChecker implements HealthChecker
+public class JavaChecker implements HealthSupplier
 {
     @Override
+    public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplier.HealthSupplierRequest request )
+    {
+        final PwmApplication pwmApplication = request.getPwmApplication();
+
+        final Supplier<List<HealthRecord>> supplier = () -> doHealthCheck( pwmApplication );
+        return Collections.singletonList( supplier );
+    }
+
     public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
     {
         final List<HealthRecord> records = new ArrayList<>();
@@ -36,18 +47,18 @@ public class JavaChecker implements HealthChecker
         final int maxActiveThreads = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_JAVA_MAX_THREADS ) );
         if ( Thread.activeCount() > maxActiveThreads )
         {
-            records.add( HealthRecord.forMessage( HealthMessage.Java_HighThreads ) );
+            records.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.Java_HighThreads ) );
         }
 
         final long minMemory = Long.parseLong( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_JAVA_MIN_HEAP_BYTES ) );
         if ( Runtime.getRuntime().maxMemory() <= minMemory )
         {
-            records.add( HealthRecord.forMessage( HealthMessage.Java_SmallHeap ) );
+            records.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.Java_SmallHeap ) );
         }
 
         if ( records.isEmpty() )
         {
-            records.add( HealthRecord.forMessage( HealthMessage.Java_OK ) );
+            records.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.Java_OK ) );
         }
 
         return records;

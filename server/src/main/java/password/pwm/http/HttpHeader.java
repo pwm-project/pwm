@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ package password.pwm.http;
 
 import password.pwm.PwmConstants;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.StringUtil;
+
+import java.util.Optional;
 
 public enum HttpHeader
 {
@@ -42,6 +43,7 @@ public enum HttpHeader
     ETag( "ETag" ),
     Expires( "Expires" ),
     If_None_Match( "If-None-Match" ),
+    Last_Modified( "Last-Modified" ),
     Location( "Location" ),
     Origin( "Origin" ),
     Referer( "Referer" ),
@@ -56,6 +58,7 @@ public enum HttpHeader
 
 
     XAmb( "X-" + PwmConstants.PWM_APP_NAME + "-Amb" ),
+    XDomain( "X-" + PwmConstants.PWM_APP_NAME + "-Domain" ),
     XVersion( "X-" + PwmConstants.PWM_APP_NAME + "-Version" ),
     XInstance( "X-" + PwmConstants.PWM_APP_NAME + "-Instance" ),
     XSessionID( "X-" + PwmConstants.PWM_APP_NAME + "-SessionID" ),
@@ -85,21 +88,8 @@ public enum HttpHeader
         return JavaHelper.enumArrayContainsValue( properties, Property.Sensitive );
     }
 
-    public static HttpHeader forHttpHeader( final String header )
+    public static Optional<HttpHeader> forHttpHeader( final String header )
     {
-        if ( StringUtil.isEmpty( header ) )
-        {
-            return null;
-        }
-
-        for ( final HttpHeader httpHeader : values() )
-        {
-            if ( header.equals( httpHeader.getHttpName() ) )
-            {
-                return httpHeader;
-            }
-        }
-
-        return null;
+        return JavaHelper.readEnumFromPredicate( HttpHeader.class, loopHeader -> header.equalsIgnoreCase( loopHeader.getHttpName() ) );
     }
 }

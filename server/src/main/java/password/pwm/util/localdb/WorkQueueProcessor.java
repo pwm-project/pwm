@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -616,7 +616,7 @@ public final class WorkQueueProcessor<W extends Serializable>
     public Map<String, String> debugInfo( )
     {
         final Map<String, String> output = new HashMap<>();
-        output.put( "avgLagTime", TimeDuration.of( ( long ) avgLagTime.getAverage(), TimeDuration.Unit.MILLISECONDS ).asCompactString() );
+        output.put( "avgLagTime", avgLagTime.getAverageAsDuration().asCompactString() );
         output.put( "sendRate", sendRate.readEventRate().setScale( 2, RoundingMode.DOWN ) + "/s" );
         if ( executorService != null )
         {

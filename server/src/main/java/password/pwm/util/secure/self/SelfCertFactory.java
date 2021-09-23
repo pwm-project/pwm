@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ import password.pwm.AppAttribute;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.svc.secure.SystemSecureService;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.SecureService;
 
 import java.io.IOException;
 import java.net.URI;
@@ -44,7 +44,11 @@ public class SelfCertFactory
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SelfCertFactory.class );
 
-    public static KeyStore getExistingCertOrGenerateNewCert( final PwmApplication pwmApplication, final PasswordData password, final String alias )
+    public static KeyStore getExistingCertOrGenerateNewCert(
+            final PwmApplication pwmApplication,
+            final PasswordData password,
+            final String alias
+    )
         throws Exception
     {
         final Settings settings = Settings.fromConfiguration( pwmApplication.getConfig() );
@@ -67,15 +71,13 @@ public class SelfCertFactory
 
     public static KeyStore generateNewCert(
         final Settings settings,
-        final SecureService secureService,
+        final SystemSecureService domainSecureService,
         final PasswordData password,
         final String alias
     )
         throws Exception
     {
-        final SelfCertGenerator selfCertGenerator = new SelfCertGenerator(
-            settings,
-            secureService );
+        final SelfCertGenerator selfCertGenerator = new SelfCertGenerator( settings, domainSecureService );
         final StoredCertData storedCertData = selfCertGenerator.generateNewCertificate( makeSubjectName( settings ) );
         return storedCertToKeyStore( storedCertData, alias, password );
     }
@@ -112,7 +114,7 @@ public class SelfCertFactory
         String cnName = PwmConstants.PWM_APP_NAME.toLowerCase() + ".example.com";
         {
             final String siteURL = settings.getSiteUrl();
-            if ( !StringUtil.isEmpty( siteURL ) )
+            if ( StringUtil.notEmpty( siteURL ) )
             {
                 try
                 {

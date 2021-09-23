@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@
                         <br/>
                         <br/>
                         <div id="titlePane_<%=ConfigGuideFormField.PARAM_LDAP_TEST_USER%>" style="padding-left: 5px; padding-top: 5px" style="display: none">
-                            Example: <code><%=PwmSetting.LDAP_TEST_USER_DN.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
+                            Example: <code><%=ConfigGuideForm.getSettingExample(configGuideBean,PwmSetting.LDAP_TEST_USER_DN)%></code>
                             <br/><br/>
                             <b>LDAP Test User DN</b>
                             <br/>

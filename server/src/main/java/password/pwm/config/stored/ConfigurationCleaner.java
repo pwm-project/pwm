@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,10 @@
 package password.pwm.config.stored;
 
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.RecoveryMinLifetimeOption;
 import password.pwm.config.option.WebServiceUsage;
@@ -32,30 +33,30 @@ import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-class ConfigurationCleaner
+public class ConfigurationCleaner
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigurationCleaner.class );
 
-    private static final List<PwmExceptionLoggingConsumer<StoredConfigurationModifier>> STORED_CONFIG_POST_PROCESSORS = Collections.unmodifiableList( Arrays.asList(
+    private static final List<PwmExceptionLoggingConsumer<StoredConfigurationModifier>> STORED_CONFIG_POST_PROCESSORS = List.of(
             new UpdateDeprecatedAdComplexitySettings(),
             new UpdateDeprecatedMinPwdLifetimeSetting(),
             new UpdateDeprecatedPublicHealthSetting(),
             new ProfileNonProfiledSettings(),
-            new CheckForSuperfluousProfileSettings()
-    ) );
+            new RemoveSuperfluousProfileSettings(),
+            new RemoveDefaultSettings() );
 
-    static void postProcessStoredConfig(
+    public static void postProcessStoredConfig(
             final StoredConfigurationModifier storedConfiguration
     )
     {
@@ -68,32 +69,50 @@ class ConfigurationCleaner
         public void accept( final StoredConfigurationModifier modifier )
                 throws PwmUnrecoverableException
         {
-            final StoredConfiguration oldConfig = modifier.newStoredConfiguration();
-            final Configuration configuration = new Configuration( oldConfig );
-            for ( final String profileID : configuration.getPasswordProfileIDs() )
+            final StoredConfiguration existingConfig = modifier.newStoredConfiguration();
+
+            CollectionUtil.iteratorToStream( modifier.newStoredConfiguration().keys() )
+                    .filter( key -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
+                    .filter( key -> key.toPwmSetting() == PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY )
+                    .forEach( key -> doConversion( existingConfig, key, modifier ) );
+        }
+
+        private static void doConversion(
+                final StoredConfiguration existingConfig,
+                final StoredConfigKey key,
+                final StoredConfigurationModifier modifier
+        )
+        {
+            final StoredValue storedValue = existingConfig.readStoredValue( key ).orElseThrow();
+
+            final boolean ad2003Enabled = ValueTypeConverter.valueToBoolean( storedValue );
+            final StoredValue value;
+            if ( ad2003Enabled )
             {
-                if ( !oldConfig.isDefaultValue( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) )
-                {
-                    final boolean ad2003Enabled = ValueTypeConverter.valueToBoolean( oldConfig.readSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) );
-                    final StoredValue value;
-                    if ( ad2003Enabled )
-                    {
-                        value = new StringValue( ADPolicyComplexity.AD2003.toString() );
-                    }
-                    else
-                    {
-                        value = new StringValue( ADPolicyComplexity.NONE.toString() );
-                    }
-                    LOGGER.info( () -> "converting deprecated non-default setting "
-                            + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY.getKey() + "/" + profileID
-                            + " to replacement setting "
-                            + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL + ", value="
-                            + ValueTypeConverter.valueToString( value ) );
-                    final Optional<ValueMetaData> valueMetaData = oldConfig.readMetaData(
-                            StoredConfigItemKey.fromSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID ) );
-                    final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
-                    modifier.writeSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL, profileID, value, userIdentity );
-                }
+                value = new StringValue( ADPolicyComplexity.AD2003.toString() );
+            }
+            else
+            {
+                value = new StringValue( ADPolicyComplexity.NONE.toString() );
+            }
+
+            final String profileID = key.getProfileID();
+
+            LOGGER.info( () -> "converting deprecated non-default setting "
+                    + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY.getKey() + "/" + profileID
+                    + " to replacement setting "
+                    + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL + ", value="
+                    + ValueTypeConverter.valueToString( value ) );
+            final Optional<ValueMetaData> valueMetaData = existingConfig.readMetaData( key );
+            final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
+            try
+            {
+                final StoredConfigKey writeKey = StoredConfigKey.forSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL, profileID, key.getDomainID() );
+                modifier.writeSetting( writeKey, value, userIdentity );
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                LOGGER.error( () -> "error converting deprecated AD password policy setting: " + key + ", error: " + e.getMessage() );
             }
         }
     }
@@ -105,24 +124,29 @@ class ConfigurationCleaner
                 throws PwmUnrecoverableException
         {
             final StoredConfiguration oldConfig = modifier.newStoredConfiguration();
-            for ( final String profileID : oldConfig.profilesForSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME ) )
+            for ( final DomainID domainID : StoredConfigurationUtil.domainList( oldConfig ) )
             {
-                if ( !oldConfig.isDefaultValue( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID ) )
+                for ( final String profileID : StoredConfigurationUtil.profilesForSetting( domainID, PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, oldConfig ) )
                 {
-                    final boolean enforceEnabled = ValueTypeConverter.valueToBoolean( oldConfig.readSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID ) );
-                    final StoredValue value = enforceEnabled
-                            ? new StringValue( RecoveryMinLifetimeOption.NONE.name() )
-                            : new StringValue( RecoveryMinLifetimeOption.ALLOW.name() );
-                    final ValueMetaData existingData = oldConfig.readSettingMetadata( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID );
-                    final UserIdentity newActor = existingData != null && existingData.getUserIdentity() != null
-                            ? existingData.getUserIdentity()
-                            : null;
-                    LOGGER.info( () -> "converting deprecated non-default setting "
-                            + PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ) + "/" + profileID
-                            + " to replacement setting " + PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE )
-                            + ", value="
-                            + ValueTypeConverter.valueToString( value ) );
-                    modifier.writeSetting( PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS, profileID, value, newActor );
+                    final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID, domainID );
+                    final Optional<StoredValue> oldValue = oldConfig.readStoredValue( key );
+                    if ( oldValue.isPresent() && !StoredConfigurationUtil.isDefaultValue( oldConfig, key ) )
+                    {
+                        final boolean enforceEnabled = ValueTypeConverter.valueToBoolean( oldValue.get() );
+                        final StoredValue value = enforceEnabled
+                                ? new StringValue( RecoveryMinLifetimeOption.NONE.name() )
+                                : new StringValue( RecoveryMinLifetimeOption.ALLOW.name() );
+                        final Optional<ValueMetaData> existingData = oldConfig.readSettingMetadata( key );
+                        final UserIdentity newActor = existingData.map( ValueMetaData::getUserIdentity ).orElse( null );
+                        LOGGER.info( () -> "converting deprecated non-default setting "
+                                + PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ) + "/" + profileID
+                                + " to replacement setting " + PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE )
+                                + ", value="
+                                + ValueTypeConverter.valueToString( value ) );
+
+                        final StoredConfigKey destKey = StoredConfigKey.forSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID, domainID );
+                        modifier.writeSetting( destKey, value, newActor );
+                    }
                 }
             }
         }
@@ -135,21 +159,28 @@ class ConfigurationCleaner
                 throws PwmUnrecoverableException
         {
             final StoredConfiguration oldConfig = modifier.newStoredConfiguration();
-            if ( !oldConfig.isDefaultValue( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES, null ) )
+            for ( final DomainID domainID : StoredConfigurationUtil.domainList( oldConfig ) )
             {
-                LOGGER.info( () -> "converting deprecated non-default setting "
-                        + PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE )
-                        + " to replacement setting " + PwmSetting.WEBSERVICES_PUBLIC_ENABLE.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ) );
-                final Set<String> existingValues = ( Set<String> ) oldConfig.readSetting( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, null ).toNativeObject();
-                final Set<String> newValues = new LinkedHashSet<>( existingValues );
-                newValues.add( WebServiceUsage.Health.name() );
-                newValues.add( WebServiceUsage.Statistics.name() );
+                final StoredConfigKey existingPubWebservicesKey = StoredConfigKey.forSetting( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES, null, domainID );
+                if ( oldConfig.readStoredValue( existingPubWebservicesKey ).isPresent() )
+                {
+                    LOGGER.info( () -> "converting deprecated non-default setting "
+                            + PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE )
+                            + " to replacement setting " + PwmSetting.WEBSERVICES_PUBLIC_ENABLE.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ) );
+                    final StoredConfigKey existingPubEnableKey = StoredConfigKey.forSetting( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, null, domainID );
+                    final StoredValue existingStoredValue = StoredConfigurationUtil.getValueOrDefault( oldConfig, existingPubEnableKey );
+                    final Set<String> existingValues =  ( Set<String> ) existingStoredValue.toNativeObject();
+                    final Set<String> newValues = new LinkedHashSet<>( existingValues );
+                    newValues.add( WebServiceUsage.Health.name() );
+                    newValues.add( WebServiceUsage.Statistics.name() );
 
-                final Optional<ValueMetaData> valueMetaData = oldConfig.readMetaData(
-                        StoredConfigItemKey.fromSetting( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES, null ) );
-                final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
+                    final Optional<ValueMetaData> valueMetaData = oldConfig.readMetaData( existingPubWebservicesKey );
+                    final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
 
-                modifier.writeSetting( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, null, new OptionListValue( newValues ), userIdentity );
+                    final StoredConfigKey destKey = StoredConfigKey.forSetting( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, null, domainID );
+                    modifier.writeSetting( destKey, new OptionListValue( newValues ), userIdentity );
+
+                }
             }
         }
     }
@@ -161,9 +192,8 @@ class ConfigurationCleaner
                 throws PwmUnrecoverableException
         {
             final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
-            inputConfig.modifiedItems()
-                    .parallelStream()
-                    .filter( ( key ) -> StoredConfigItemKey.RecordType.SETTING.equals( key.getRecordType() ) )
+            CollectionUtil.iteratorToStream( inputConfig.keys() )
+                    .filter( ( key ) -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                     .filter( ( key ) -> key.toPwmSetting().getCategory().hasProfiles() )
                     .filter( ( key ) -> StringUtil.isEmpty( key.getProfileID() ) )
                     .forEach( ( key ) -> convertSetting( inputConfig, modifier, key ) );
@@ -172,12 +202,12 @@ class ConfigurationCleaner
         private void convertSetting(
                 final StoredConfiguration inputConfig,
                 final StoredConfigurationModifier modifier,
-                final StoredConfigItemKey key )
+                final StoredConfigKey key )
         {
             final PwmSetting pwmSetting = key.toPwmSetting();
 
-            final List<String> targetProfiles = inputConfig.profilesForSetting( pwmSetting );
-            final StoredValue value = inputConfig.readSetting( pwmSetting, null );
+            final List<String> targetProfiles = StoredConfigurationUtil.profilesForSetting(  key.getDomainID(), pwmSetting, inputConfig );
+            final StoredValue value = inputConfig.readStoredValue( key ).orElseThrow();
             final Optional<ValueMetaData> valueMetaData = inputConfig.readMetaData( key );
 
             for ( final String destProfile : targetProfiles )
@@ -186,7 +216,8 @@ class ConfigurationCleaner
                 {
                     try
                     {
-                        modifier.writeSettingAndMetaData( pwmSetting, destProfile, value, valueMetaData.orElse( null ) );
+                        final var newKey = StoredConfigKey.forSetting( pwmSetting, destProfile, key.getDomainID() );
+                        modifier.writeSettingAndMetaData( newKey, value, valueMetaData.orElse( null ) );
                     }
                     catch ( final PwmUnrecoverableException e )
                     {
@@ -208,30 +239,29 @@ class ConfigurationCleaner
         }
     }
 
-    private static class CheckForSuperfluousProfileSettings implements PwmExceptionLoggingConsumer<StoredConfigurationModifier>
+    private static class RemoveSuperfluousProfileSettings implements PwmExceptionLoggingConsumer<StoredConfigurationModifier>
     {
         @Override
         public void accept( final StoredConfigurationModifier modifier )
                 throws PwmUnrecoverableException
         {
             final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
-            inputConfig.modifiedItems()
-                    .stream()
-                    .filter( ( key ) -> StoredConfigItemKey.RecordType.SETTING.equals( key.getRecordType() ) )
+            CollectionUtil.iteratorToStream( inputConfig.keys() )
+                    .filter( ( key ) -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                     .filter( ( key ) -> key.toPwmSetting().getCategory().hasProfiles() )
                     .filter( ( key ) -> verifyProfileIsValid( key, inputConfig ) )
                     .forEach( ( key ) -> removeSuperfluousProfile( key, modifier ) );
         }
 
-        boolean verifyProfileIsValid( final StoredConfigItemKey key, final StoredConfiguration inputConfig )
+        boolean verifyProfileIsValid( final StoredConfigKey key, final StoredConfiguration inputConfig )
         {
             final PwmSetting pwmSetting = key.toPwmSetting();
             final String recordID = key.getProfileID();
-            final List<String> profiles = inputConfig.profilesForSetting( pwmSetting );
+            final List<String> profiles = StoredConfigurationUtil.profilesForSetting( key.getDomainID(), pwmSetting, inputConfig );
             return !profiles.contains( recordID );
         }
 
-        void removeSuperfluousProfile( final StoredConfigItemKey key, final StoredConfigurationModifier modifier )
+        void removeSuperfluousProfile( final StoredConfigKey key, final StoredConfigurationModifier modifier )
         {
             try
             {
@@ -241,6 +271,42 @@ class ConfigurationCleaner
             catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.warn( () -> "error deleting setting " + key.toString() + " with non-existing profileID: " + e.getMessage() );
+            }
+        }
+    }
+
+    private static class RemoveDefaultSettings implements PwmExceptionLoggingConsumer<StoredConfigurationModifier>
+    {
+        @Override
+        public void accept( final StoredConfigurationModifier modifier )
+                throws PwmUnrecoverableException
+        {
+            final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
+            CollectionUtil.iteratorToStream( inputConfig.keys() )
+                    .filter( ( key ) -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
+                    .filter( key -> !valueIsDefault( key, inputConfig, inputConfig.getTemplateSet().get( key.getDomainID() ) ) )
+                    .forEach( ( key ) -> removeDefaultValue( key, inputConfig, modifier ) );
+        }
+
+        private boolean valueIsDefault( final StoredConfigKey key, final StoredConfiguration inputConfig, final PwmSettingTemplateSet pwmSettingTemplateSet )
+        {
+            final StoredValue value = inputConfig.readStoredValue( key ).orElseThrow();
+            final String loopHash = value.valueHash();
+            final String defaultHash = key.toPwmSetting().getDefaultValue( pwmSettingTemplateSet ).valueHash();
+            return !Objects.equals( loopHash, defaultHash );
+        }
+
+        private void removeDefaultValue( final StoredConfigKey key, final StoredConfiguration inputConfig, final StoredConfigurationModifier modifier )
+        {
+            try
+            {
+                final StoredValue value = inputConfig.readStoredValue( key ).orElseThrow();
+                LOGGER.info( () -> "removing setting " + key.toString() + " with default value: " + value.toDebugString( PwmConstants.DEFAULT_LOCALE ) );
+                modifier.deleteKey( key );
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                LOGGER.warn( () -> "error deleting setting " + key.toString() + " with default value: " + e.getMessage() );
             }
         }
     }

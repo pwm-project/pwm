@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -354,9 +354,14 @@ input[type=password]::-ms-reveal {
     content: "\f19d";
 }
 
-.tile-image.forgotten-image:before {
+.tile-image.forgotten-username-image:before {
     content: "\f09c";
 }
+
+.tile-image.forgotten-password-image:before {
+    content: "\f09c";
+}
+
 
 .tile-image.security-image:before {
     content: "\f0cb";

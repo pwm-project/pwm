@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,16 @@
 
 package password.pwm.util.localdb;
 
+import password.pwm.util.java.CollectionUtil;
+
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -78,12 +82,12 @@ public class MemoryLocalDB implements LocalDBProvider
     }
 
     @Override
-    public String get( final LocalDB.DB db, final String key )
+    public Optional<String> get( final LocalDB.DB db, final String key )
             throws LocalDBException
     {
         operationPreCheck();
         final Map<String, String> map = maps.get( db );
-        return map.get( key );
+        return Optional.of( map.get( key ) );
     }
 
     @Override
@@ -127,7 +131,7 @@ public class MemoryLocalDB implements LocalDBProvider
         if ( keyValueMap != null )
         {
             final Map<String, String> map = maps.get( db );
-            map.putAll( keyValueMap );
+            map.putAll( CollectionUtil.stripNulls( keyValueMap ) );
         }
     }
 
@@ -137,6 +141,9 @@ public class MemoryLocalDB implements LocalDBProvider
             throws LocalDBException
     {
         operationPreCheck();
+
+        Objects.requireNonNull( key );
+        Objects.requireNonNull( value );
 
         final Map<String, String> map = maps.get( db );
         return null != map.put( key, value );

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import java.io.IOException;
 )
 public class TelemetryViewerServlet extends HttpServlet
 {
+    private static final Logger LOGGER = Logger.createLogger( TelemetryViewerServlet.class );
     private static final String PARAM_DAYS = "days";
 
     public static final String SUMMARY_ATTR = "SummaryBean";
@@ -45,6 +46,7 @@ public class TelemetryViewerServlet extends HttpServlet
     @Override
     protected void doGet( final HttpServletRequest req, final HttpServletResponse resp ) throws ServletException, IOException
     {
+        LOGGER.debug( "htttp request for viewer" );
         final String daysString = req.getParameter( PARAM_DAYS );
         final int days = StringUtil.isEmpty( daysString ) ? 30 : Integer.parseInt( daysString );
         final ContextManager contextManager = ContextManager.getContextManager( req.getServletContext() );
@@ -52,7 +54,7 @@ public class TelemetryViewerServlet extends HttpServlet
 
         {
             final String errorState = app.getStatus().getErrorState();
-            if ( !StringUtil.isEmpty( errorState ) )
+            if ( StringUtil.notEmpty( errorState ) )
             {
                 resp.sendError( 500, errorState );
                 final String htmlBody = "<html>Error: " + errorState + "</html>";

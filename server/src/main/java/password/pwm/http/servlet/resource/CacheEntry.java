@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,15 @@
 
 package password.pwm.http.servlet.resource;
 
+import lombok.Value;
 import password.pwm.http.bean.ImmutableByteArray;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
+@Value
 final class CacheEntry implements Serializable
 {
     private final ImmutableByteArray entity;
@@ -32,17 +36,7 @@ final class CacheEntry implements Serializable
 
     CacheEntry( final ImmutableByteArray entity, final Map<String, String> headerStrings )
     {
-        this.entity = entity;
-        this.headerStrings = headerStrings;
-    }
-
-    public ImmutableByteArray getEntity( )
-    {
-        return entity;
-    }
-
-    public Map<String, String> getHeaderStrings( )
-    {
-        return headerStrings;
+        this.entity = Objects.requireNonNull( entity );
+        this.headerStrings = headerStrings == null ? Collections.emptyMap() : Map.copyOf( headerStrings );
     }
 }

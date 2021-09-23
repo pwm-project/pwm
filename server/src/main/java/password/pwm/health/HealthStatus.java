@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,10 @@
 
 package password.pwm.health;
 
+import password.pwm.config.SettingReader;
 import password.pwm.i18n.Health;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 
 import java.util.Collection;
 import java.util.EnumSet;
@@ -43,7 +44,7 @@ public enum HealthStatus
         return HealthStatus.class.getSimpleName() + "_" + this.toString();
     }
 
-    public String getDescription( final Locale locale, final password.pwm.config.Configuration config )
+    public String getDescription( final Locale locale, final SettingReader config )
     {
         return LocaleHelper.getLocalizedMessage( locale, this.getKey(), config, Health.class );
     }
@@ -51,7 +52,7 @@ public enum HealthStatus
     public static Optional<HealthStatus> mostSevere( final Collection<HealthStatus> healthStatuses )
     {
         // enumset will sort in natural order, with most severe first.
-        final EnumSet<HealthStatus> sortedSet = JavaHelper.copiedEnumSet( healthStatuses, HealthStatus.class );
+        final EnumSet<HealthStatus> sortedSet = CollectionUtil.copiedEnumSet( healthStatuses, HealthStatus.class );
         if ( sortedSet.isEmpty() )
         {
             return Optional.empty();

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@
 
 package password.pwm.svc.wordlist;
 
-import password.pwm.PwmApplication;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
@@ -38,13 +36,13 @@ public class WordlistService extends AbstractWordlist implements Wordlist
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    protected WordlistType getWordlistType()
     {
-        super.init( pwmApplication, WordlistType.WORDLIST );
+        return WordlistType.WORDLIST;
     }
 
     @Override
-    PwmLogger getLogger()
+    protected PwmLogger getLogger()
     {
         return LOGGER;
     }

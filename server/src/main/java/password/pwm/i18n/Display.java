@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 package password.pwm.i18n;
 
-import password.pwm.config.Configuration;
+import password.pwm.config.SettingReader;
 import password.pwm.util.i18n.LocaleHelper;
 
 import java.util.Locale;
@@ -321,7 +321,7 @@ public enum Display implements PwmDisplayBundle
     Value_Default,
     Placeholder_Search,;
 
-    public static String getLocalizedMessage( final Locale locale, final Display key, final Configuration config )
+    public static String getLocalizedMessage( final Locale locale, final Display key, final SettingReader config )
     {
         return LocaleHelper.getLocalizedMessage( locale, key.toString(), config, Display.class );
     }

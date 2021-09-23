@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@
 
 package password.pwm.util;
 
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmDataStoreException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.ClosableIterator;
 
 import java.util.Map;
+import java.util.Optional;
 
 public interface DataStore
 {
@@ -39,7 +41,7 @@ public interface DataStore
     boolean contains( String key )
             throws PwmDataStoreException, PwmUnrecoverableException;
 
-    String get( String key )
+    Optional<String> get( String key )
             throws PwmDataStoreException, PwmUnrecoverableException;
 
     ClosableIterator<Map.Entry<String, String>> iterator( )
@@ -58,4 +60,6 @@ public interface DataStore
 
     long size( )
             throws PwmDataStoreException, PwmUnrecoverableException;
+
+    DataStorageMethod getDataStorageMethod();
 }

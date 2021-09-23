@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,10 @@
 
 package password.pwm.config.option;
 
-import password.pwm.config.Configuration;
+import password.pwm.config.SettingReader;
 import password.pwm.i18n.Display;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 
 public enum IdentityVerificationMethod implements Serializable, ConfigurationOption
@@ -55,19 +52,13 @@ public enum IdentityVerificationMethod implements Serializable, ConfigurationOpt
         return userSelectable;
     }
 
-    public String getLabel( final Configuration configuration, final Locale locale )
+    public String getLabel( final SettingReader settingReader, final Locale locale )
     {
-        return Display.getLocalizedMessage( locale, this.labelKey, configuration );
+        return Display.getLocalizedMessage( locale, this.labelKey, settingReader );
     }
 
-    public String getDescription( final Configuration configuration, final Locale locale )
+    public String getDescription( final SettingReader settingReader, final Locale locale )
     {
-        return Display.getLocalizedMessage( locale, this.descriptionKey, configuration );
-    }
-
-    public static IdentityVerificationMethod[] availableValues( )
-    {
-        final List<IdentityVerificationMethod> values = new ArrayList<>( Arrays.asList( IdentityVerificationMethod.values() ) );
-        return values.toArray( new IdentityVerificationMethod[0] );
+        return Display.getLocalizedMessage( locale, this.descriptionKey, settingReader );
     }
 }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.IdentityVerificationMethod;
@@ -40,11 +40,11 @@ import password.pwm.util.logging.PwmLogger;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 class HelpdeskVerificationStateBean implements Serializable
@@ -80,30 +80,27 @@ class HelpdeskVerificationStateBean implements Serializable
     {
         purgeOldRecords();
 
-        final HelpdeskValidationRecord record = getRecord( identity, method );
-        if ( record != null )
-        {
-            records.remove( record );
-        }
+        final Optional<HelpdeskValidationRecord> optionalRecord = getRecord( identity, method );
+        optionalRecord.ifPresent( records::remove );
         records.add( new HelpdeskValidationRecord( Instant.now(), identity, method ) );
     }
 
     public boolean hasRecord( final UserIdentity identity, final IdentityVerificationMethod method )
     {
         purgeOldRecords();
-        return getRecord( identity, method ) != null;
+        return getRecord( identity, method ).isPresent();
     }
 
-    private HelpdeskValidationRecord getRecord( final UserIdentity identity, final IdentityVerificationMethod method )
+    private Optional<HelpdeskValidationRecord> getRecord( final UserIdentity identity, final IdentityVerificationMethod method )
     {
         for ( final HelpdeskValidationRecord record : records )
         {
             if ( record.getIdentity().equals( identity ) && ( method == null || record.getMethod() == method ) )
             {
-                return record;
+                return Optional.of( record );
             }
         }
-        return null;
+        return Optional.empty();
     }
 
 
@@ -122,7 +119,7 @@ class HelpdeskVerificationStateBean implements Serializable
     }
 
     List<ViewableValidationRecord> asViewableValidationRecords(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final Locale locale
     )
             throws ChaiOperationException, ChaiUnavailableException, PwmUnrecoverableException
@@ -130,13 +127,17 @@ class HelpdeskVerificationStateBean implements Serializable
         final Map<Instant, ViewableValidationRecord> returnRecords = new TreeMap<>();
         for ( final HelpdeskValidationRecord record : records )
         {
-            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, SessionLabel.SYSTEM_LABEL, record.getIdentity(), PwmConstants.DEFAULT_LOCALE );
+            final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
+                    pwmDomain.getPwmApplication(),
+                    SessionLabel.SYSTEM_LABEL,
+                    record.getIdentity(),
+                    PwmConstants.DEFAULT_LOCALE );
             final String username = userInfo.getUsername();
-            final String profile = pwmApplication.getConfig().getLdapProfiles().get( record.getIdentity().getLdapProfileID() ).getDisplayName( locale );
-            final String method = record.getMethod().getLabel( pwmApplication.getConfig(), locale );
+            final String profile = pwmDomain.getConfig().getLdapProfiles().get( record.getIdentity().getLdapProfileID() ).getDisplayName( locale );
+            final String method = record.getMethod().getLabel( pwmDomain.getConfig(), locale );
             returnRecords.put( record.getTimestamp(), new ViewableValidationRecord( record.getTimestamp(), profile, username, method ) );
         }
-        return Collections.unmodifiableList( new ArrayList<>( returnRecords.values() ) );
+        return List.copyOf( returnRecords.values() );
     }
 
     @Value
@@ -156,9 +157,9 @@ class HelpdeskVerificationStateBean implements Serializable
         private IdentityVerificationMethod method;
     }
 
-    String toClientString( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
+    String toClientString( final PwmDomain pwmDomain ) throws PwmUnrecoverableException
     {
-        return pwmApplication.getSecureService().encryptObjectToString( this );
+        return pwmDomain.getSecureService().encryptObjectToString( this );
     }
 
     static HelpdeskVerificationStateBean fromClientString(
@@ -167,14 +168,14 @@ class HelpdeskVerificationStateBean implements Serializable
     )
             throws PwmUnrecoverableException
     {
-        final int maxAgeSeconds = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HELPDESK_VERIFICATION_TIMEOUT_SECONDS ) );
+        final int maxAgeSeconds = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HELPDESK_VERIFICATION_TIMEOUT_SECONDS ) );
         final TimeDuration maxAge = TimeDuration.of( maxAgeSeconds, TimeDuration.Unit.SECONDS );
         final UserIdentity actor = pwmRequest.getUserInfoIfLoggedIn();
 
         HelpdeskVerificationStateBean state = null;
         if ( rawValue != null && !rawValue.isEmpty() )
         {
-            state = pwmRequest.getPwmApplication().getSecureService().decryptObject( rawValue, HelpdeskVerificationStateBean.class );
+            state = pwmRequest.getPwmDomain().getSecureService().decryptObject( rawValue, HelpdeskVerificationStateBean.class );
             if ( !state.getActor().equals( actor ) )
             {
                 state = null;

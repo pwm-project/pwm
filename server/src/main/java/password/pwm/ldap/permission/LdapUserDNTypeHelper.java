@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 package password.pwm.ldap.permission;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.LdapProfile;
@@ -40,7 +40,7 @@ class LdapUserDNTypeHelper implements PermissionTypeHelper
 
     @Override
     public boolean testMatch(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final UserPermission userPermission
@@ -60,9 +60,9 @@ class LdapUserDNTypeHelper implements PermissionTypeHelper
             LOGGER.trace( sessionLabel, () -> "missing userDN value, skipping check" );
         }
 
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmApplication.getConfig() );
-        final String userCanonicalDN = ldapProfile.readCanonicalDN( pwmApplication, userIdentity.getUserDN() );
-        final String configuredCanonicalDN = ldapProfile.readCanonicalDN( pwmApplication, userPermission.getLdapBase() );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() );
+        final String userCanonicalDN = ldapProfile.readCanonicalDN( sessionLabel, pwmDomain, userIdentity.getUserDN() );
+        final String configuredCanonicalDN = ldapProfile.readCanonicalDN( sessionLabel, pwmDomain, userPermission.getLdapBase() );
         return Objects.equals( userCanonicalDN, configuredCanonicalDN );
     }
 
@@ -73,7 +73,7 @@ class LdapUserDNTypeHelper implements PermissionTypeHelper
                 .username( "*" )
                 .enableContextValidation( false )
                 .enableValueEscaping( false )
-                .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ) )
+                .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ).orElse( null ) )
                 .contexts( Collections.singletonList( userPermission.getLdapBase() ) )
                 .searchScope( SearchConfiguration.SearchScope.base )
                 .build();

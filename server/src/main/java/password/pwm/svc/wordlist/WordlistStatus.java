@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ public class WordlistStatus implements Serializable
     private WordlistSourceInfo remoteInfo;
     private long bytes;
     private long valueCount;
+    private long importMs;
     private String configHash;
 
     @Builder.Default

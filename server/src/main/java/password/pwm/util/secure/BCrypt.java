@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,14 @@ package password.pwm.util.secure;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 
 @SuppressWarnings( "all" )
+@SuppressFBWarnings( "DMI_RANDOM_USED_ONLY_ONCE" )
 public class BCrypt
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( BCrypt.class );
@@ -42,13 +43,13 @@ public class BCrypt
         return OpenBSDBCrypt.generate( password.toLowerCase().toCharArray(), salt, bcryptRounds );
     }
 
-    public static boolean testAnswer( final String password, final String hashedPassword, final Configuration configuration )
+    public static boolean testAnswer( final String password, final String hashedPassword, final AppConfig appConfig )
     {
         final char[] pwCharArray = password.toLowerCase().toCharArray();
         final boolean bsdCryptPass = OpenBSDBCrypt.checkPassword( hashedPassword, pwCharArray );
         if ( !bsdCryptPass )
         {
-            final boolean enableJBCrypt = Boolean.parseBoolean( configuration.readAppProperty( AppProperty.CONFIG_JBCRYPT_PWLIB_ENABLE ) );
+            final boolean enableJBCrypt = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.CONFIG_JBCRYPT_PWLIB_ENABLE ) );
             if ( enableJBCrypt )
             {
                 // legacy check, older jbcrypt library used previously incorrectly encoded some characters

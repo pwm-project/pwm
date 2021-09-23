@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 <%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.http.PwmSessionWrapper" %>
+<%@ page import="password.pwm.http.PwmSessionFactory" %>
 <%@ page import="password.pwm.svc.stats.Statistic" %>
 <%@ page import="java.util.Locale" %>
 

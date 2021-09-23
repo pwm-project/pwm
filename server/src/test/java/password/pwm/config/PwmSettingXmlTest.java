@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,8 @@ public class PwmSettingXmlTest
         Assert.assertFalse( settingElements.isEmpty() );
         for ( final XmlElement element : settingElements )
         {
-            final String key = element.getAttributeValue( "key" );
+            final String key = element.getAttributeValue( "key" )
+                    .orElseThrow( () -> new IllegalStateException( "setting element " + element.getName() + " missing key attribute" ) );
 
             final String errorMsg = "PwmSetting.xml contains setting key of '"
                     + key + "' which does not exist in PwmSetting.java";
@@ -94,7 +95,9 @@ public class PwmSettingXmlTest
         Assert.assertFalse( categoryElements.isEmpty() );
         for ( final XmlElement element : categoryElements )
         {
-            final String key = element.getAttributeValue( "key" );
+            final String key = element.getAttributeValue( "key" )
+                    .orElseThrow( () -> new IllegalStateException( "category element " + element.getName() + " missing key attribute" ) );
+
             final PwmSettingCategory category = JavaHelper.readEnumFromString( PwmSettingCategory.class, null, key );
 
             final String errorMsg = "PwmSetting.xml contains category key of '"
@@ -110,7 +113,9 @@ public class PwmSettingXmlTest
         Assert.assertFalse( profileElements.isEmpty() );
         for ( final XmlElement element : profileElements )
         {
-            final String settingKey = element.getAttributeValue( "setting" );
+            final String settingKey = element.getAttributeValue( "setting" )
+                    .orElseThrow( () -> new IllegalStateException( "profile element " + element.getName() + " missing setting attribute" ) );
+
             final Optional<PwmSetting> setting = PwmSetting.forKey( settingKey );
 
             final String errorMsg = "PwmSetting.xml contains category/profile@setting key of '"

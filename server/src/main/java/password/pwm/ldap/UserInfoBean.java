@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.svc.otp.OTPUserRecord;
 
 import java.time.Instant;
 import java.util.Collection;

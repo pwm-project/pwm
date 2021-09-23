@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ package password.pwm.http.servlet.resource;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -53,15 +54,9 @@ class ZipFileResource implements FileResource
     }
 
     @Override
-    public long lastModified( )
+    public Instant lastModified( )
     {
-        return zipEntry.getTime();
-    }
-
-    @Override
-    public boolean exists( )
-    {
-        return zipEntry != null && zipFile != null;
+        return Instant.ofEpochMilli( zipEntry.getTime() );
     }
 
     @Override

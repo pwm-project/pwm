@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,25 +20,7 @@
 
 package password.pwm.svc.event;
 
-import java.io.Serializable;
-
-public class SystemAuditRecord extends AuditRecord implements Serializable
+public interface SystemAuditRecord extends AuditRecord
 {
 
-    protected String instance;
-
-    SystemAuditRecord(
-            final AuditEvent eventCode,
-            final String message,
-            final String instance
-    )
-    {
-        super( eventCode, message );
-        this.instance = instance;
-    }
-
-    public String getInstance( )
-    {
-        return instance;
-    }
 }

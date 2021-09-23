@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ package password.pwm.http;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.i18n.PwmDisplayBundle;
@@ -56,17 +57,19 @@ public abstract class JspUtility
     }
 
     public static <E extends PwmSessionBean> E getSessionBean( final PageContext pageContext, final Class<E> theClass )
+            throws PwmUnrecoverableException
     {
         final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
         try
         {
-            return pwmRequest.getPwmApplication().getSessionStateService().getBean( pwmRequest, theClass );
+            return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, theClass );
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.warn( () -> "unable to load pwmRequest object during jsp execution: " + e.getMessage() );
+            final String msg = "unable to load pwmRequest object during jsp execution: " + e.getMessage();
+            LOGGER.warn( () -> msg );
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, msg );
         }
-        return null;
     }
 
     public static Serializable getAttribute( final PageContext pageContext, final PwmRequestAttribute requestAttr )
@@ -131,7 +134,7 @@ public abstract class JspUtility
         {
             try
             {
-                return pwmRequest.getConfig().readSettingAsLong( pwmSetting );
+                return pwmRequest.getDomainConfig().readSettingAsLong( pwmSetting );
             }
             catch ( final Exception e )
             {
@@ -206,7 +209,7 @@ public abstract class JspUtility
     public static String localizedString( final PageContext pageContext, final String key, final Class<? extends PwmDisplayBundle> bundleClass, final String... values )
     {
         final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
-        return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), key, pwmRequest.getConfig(), bundleClass, values );
+        return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), key, pwmRequest.getDomainConfig(), bundleClass, values );
     }
 }
 

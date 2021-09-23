@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,7 +173,7 @@ class FtpDataIngestor
 
         ftpClient.connect( settings.getSetting( Settings.Setting.ftpSite ) );
         LOGGER.info( "ftp connect complete" );
-        if ( !StringUtil.isEmpty( settings.getSetting( Settings.Setting.ftpUser ) ) && !StringUtil.isEmpty( settings.getSetting( Settings.Setting.ftpPassword ) ) )
+        if ( StringUtil.notEmpty( settings.getSetting( Settings.Setting.ftpUser ) ) && StringUtil.notEmpty( settings.getSetting( Settings.Setting.ftpPassword ) ) )
         {
             final boolean loggedInSuccess = ftpClient.login( settings.getSetting( Settings.Setting.ftpUser ), settings.getSetting( Settings.Setting.ftpPassword ) );
             LOGGER.info( "ftp login complete, success=" + loggedInSuccess );

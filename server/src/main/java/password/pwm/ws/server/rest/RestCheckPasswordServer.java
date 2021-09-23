@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -131,9 +132,6 @@ public class RestCheckPasswordServer extends RestServlet
 
         final JsonInput jsonInput;
         {
-
-
-
             final JsonInput jsonBody = RestUtility.deserializeJsonBody( restRequest, JsonInput.class, RestUtility.Flag.AllowNullReturn );
 
             jsonInput = new JsonInput(
@@ -141,18 +139,18 @@ public class RestCheckPasswordServer extends RestServlet
                             jsonBody == null ? null : jsonBody.getPassword1(),
                             restRequest.readParameterAsString( FIELD_PASSWORD_1 ),
                             FIELD_PASSWORD_1
-                    ),
+                    ).orElse( null ),
                     RestUtility.readValueFromJsonAndParam(
                             jsonBody == null ? null : jsonBody.getPassword2(),
                             restRequest.readParameterAsString( FIELD_PASSWORD_2 ),
                             FIELD_PASSWORD_2
-                    ),
+                    ).orElse( null ),
                     RestUtility.readValueFromJsonAndParam(
                             jsonBody == null ? null : jsonBody.getUsername(),
                             restRequest.readParameterAsString( FIELD_USERNAME ),
                             FIELD_USERNAME,
                             RestUtility.ReadValueFlag.optional
-                    )
+                    ).orElse( null )
             );
         }
 
@@ -194,11 +192,10 @@ public class RestCheckPasswordServer extends RestServlet
                     userInfo
             );
 
-            restRequest.getPwmApplication().getStatisticsManager().incrementValue( Statistic.REST_CHECKPASSWORD );
+            StatisticsClient.incrementStat( restRequest.getPwmApplication(), Statistic.REST_CHECKPASSWORD );
 
             final PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
-                    restRequest.getPwmApplication(),
-                    restRequest.getLocale(),
+                    restRequest.getPwmRestRequest(),
                     targetUserIdentity.getChaiUser(),
                     checkRequest.getUserInfo(),
                     null,

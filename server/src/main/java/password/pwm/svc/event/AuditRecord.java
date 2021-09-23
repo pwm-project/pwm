@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,82 +20,30 @@
 
 package password.pwm.svc.event;
 
-import password.pwm.util.secure.PwmRandom;
+import password.pwm.bean.DomainID;
 
 import java.io.Serializable;
 import java.time.Instant;
 
-public abstract class AuditRecord implements Serializable
+public interface AuditRecord extends Serializable
 {
-    protected AuditEvent.Type type;
-    protected AuditEvent eventCode;
-    protected String guid;
-    protected Instant timestamp = Instant.now();
-    protected String message;
-    protected String narrative;
-    protected final String xdasTaxonomy;
-    protected final String xdasOutcome;
+    AuditEventType getType( );
 
+    AuditEvent getEventCode( );
 
-    protected AuditRecord(
-            final Instant timestamp,
-            final AuditEvent eventCode,
-            final String message
-    )
-    {
-        this.type = eventCode.getType();
-        this.eventCode = eventCode;
-        this.message = message;
+    Instant getTimestamp( );
 
-        this.timestamp = timestamp;
-        this.guid = PwmRandom.getInstance().randomUUID().toString();
-        this.xdasOutcome = eventCode.getXdasOutcome();
-        this.xdasTaxonomy = eventCode.getXdasTaxonomy();
-    }
+    String getMessage( );
 
+    String getGuid( );
 
-    protected AuditRecord( final AuditEvent eventCode, final String message )
-    {
-        this( Instant.now(), eventCode, message );
-    }
+    String getNarrative( );
 
-    public AuditEvent.Type getType( )
-    {
-        return type;
-    }
+    String getXdasTaxonomy( );
 
-    public AuditEvent getEventCode( )
-    {
-        return eventCode;
-    }
+    String getXdasOutcome( );
 
-    public Instant getTimestamp( )
-    {
-        return timestamp;
-    }
+    String getInstance( );
 
-    public String getMessage( )
-    {
-        return message;
-    }
-
-    public String getGuid( )
-    {
-        return guid;
-    }
-
-    public String getNarrative( )
-    {
-        return narrative;
-    }
-
-    public String getXdasTaxonomy( )
-    {
-        return xdasTaxonomy;
-    }
-
-    public String getXdasOutcome( )
-    {
-        return xdasOutcome;
-    }
+    DomainID getDomain();
 }

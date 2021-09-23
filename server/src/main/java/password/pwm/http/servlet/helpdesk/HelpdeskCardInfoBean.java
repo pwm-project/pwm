@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -44,6 +44,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 @Value
 @Builder
@@ -84,14 +85,15 @@ public class HelpdeskCardInfoBean implements Serializable
         builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
 
         final PhotoDataReader photoDataReader = HelpdeskServlet.photoDataReader( pwmRequest, helpdeskProfile, userIdentity );
-        builder.photoURL( photoDataReader.figurePhotoURL( ) );
+        final Optional<String> optionalPhotoUrl = photoDataReader.figurePhotoURL();
+        optionalPhotoUrl.ifPresent( builder::photoURL );
 
-        builder.displayNames( figureDisplayNames( pwmRequest.getPwmApplication(), helpdeskProfile, pwmRequest.getLabel(), userInfo ) );
+        builder.displayNames( figureDisplayNames( pwmRequest.getPwmDomain(), helpdeskProfile, pwmRequest.getLabel(), userInfo ) );
 
         final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
         final HelpdeskCardInfoBean helpdeskCardInfoBean = builder.build();
 
-        if ( pwmRequest.getConfig().isDevDebugMode() )
+        if ( pwmRequest.getAppConfig().isDevDebugMode() )
         {
             LOGGER.trace( pwmRequest, () -> "completed assembly of card data report for user " + userIdentity
                     + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize( helpdeskCardInfoBean ) );
@@ -114,7 +116,7 @@ public class HelpdeskCardInfoBean implements Serializable
     }
 
     private static List<String> figureDisplayNames(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final HelpdeskProfile helpdeskProfile,
             final SessionLabel sessionLabel,
             final UserInfo userInfo
@@ -125,7 +127,7 @@ public class HelpdeskCardInfoBean implements Serializable
         final List<String> displayStringSettings = helpdeskProfile.readSettingAsStringArray( PwmSetting.HELPDESK_DISPLAY_NAMES_CARD_LABELS );
         if ( displayStringSettings != null )
         {
-            final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, sessionLabel, userInfo, null );
+            final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), sessionLabel, userInfo, null );
             for ( final String displayStringSetting : displayStringSettings )
             {
                 final String displayLabel = macroRequest.expandMacros( displayStringSetting );

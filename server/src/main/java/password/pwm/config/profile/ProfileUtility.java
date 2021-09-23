@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@
 
 package password.pwm.config.profile;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.value.data.UserPermission;
@@ -48,7 +48,7 @@ public class ProfileUtility
     )
             throws PwmUnrecoverableException
     {
-        return discoverProfileIDForUser( pwmRequestContext.getPwmApplication(), pwmRequestContext.getSessionLabel(), userIdentity, profileDefinition );
+        return discoverProfileIDForUser( pwmRequestContext.getPwmDomain(), pwmRequestContext.getSessionLabel(), userIdentity, profileDefinition );
     }
 
     public static <T extends Profile> T profileForUser(
@@ -64,24 +64,24 @@ public class ProfileUtility
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "profile of type " + profileDefinition + " is required but not assigned" );
         }
-        final Profile profileImpl = pwmRequestContext.getConfig().profileMap( profileDefinition ).get( profileID.get() );
+        final Profile profileImpl = pwmRequestContext.getDomainConfig().getProfileMap( profileDefinition ).get( profileID.get() );
         return ( T ) profileImpl;
     }
 
 
     public static Optional<String> discoverProfileIDForUser(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final ProfileDefinition profileDefinition
     )
             throws PwmUnrecoverableException
     {
-        final Map<String, Profile> profileMap = pwmApplication.getConfig().profileMap( profileDefinition );
+        final Map<String, Profile> profileMap = pwmDomain.getConfig().getProfileMap( profileDefinition );
         for ( final Profile profile : profileMap.values() )
         {
             final List<UserPermission> queryMatches = profile.profilePermissions();
-            final boolean match = UserPermissionUtility.testUserPermission( pwmApplication, sessionLabel, userIdentity, queryMatches );
+            final boolean match = UserPermissionUtility.testUserPermission( pwmDomain, sessionLabel, userIdentity, queryMatches );
             if ( match )
             {
                 return Optional.of( profile.getIdentifier() );
@@ -90,10 +90,10 @@ public class ProfileUtility
         return Optional.empty();
     }
 
-    public static List<String> profileIDsForCategory( final Configuration configuration, final PwmSettingCategory pwmSettingCategory )
+    public static List<String> profileIDsForCategory( final DomainConfig domainConfig, final PwmSettingCategory pwmSettingCategory )
     {
         final PwmSetting profileSetting = pwmSettingCategory.getProfileSetting().orElseThrow( IllegalStateException::new );
-        return configuration.readSettingAsStringArray( profileSetting );
+        return domainConfig.readSettingAsStringArray( profileSetting );
     }
 
 

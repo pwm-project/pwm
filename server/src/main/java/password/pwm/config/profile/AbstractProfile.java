@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,11 @@
 
 package password.pwm.config.profile;
 
-import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.SettingReader;
+import password.pwm.config.StoredSettingReader;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfiguration;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.VerificationMethodValue;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
@@ -44,13 +43,13 @@ public abstract class AbstractProfile implements Profile
 {
     private final String identifier;
     private final StoredConfiguration storedConfiguration;
-    private final SettingReader settingReader;
+    private final StoredSettingReader settingReader;
 
-    AbstractProfile( final String identifier, final StoredConfiguration storedConfiguration )
+    AbstractProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedConfiguration )
     {
         this.identifier = identifier;
         this.storedConfiguration = storedConfiguration;
-        this.settingReader = new SettingReader( storedConfiguration, identifier, PwmConstants.DOMAIN_ID_PLACEHOLDER );
+        this.settingReader = new StoredSettingReader( storedConfiguration, identifier, domainID );
     }
 
     @Override
@@ -141,13 +140,17 @@ public abstract class AbstractProfile implements Profile
         return storedConfiguration;
     }
 
+    protected StoredSettingReader getSettingReader()
+    {
+        return settingReader;
+    }
+
     Set<IdentityVerificationMethod> readVerificationMethods( final PwmSetting setting, final VerificationMethodValue.EnabledState enabledState )
     {
         final Set<IdentityVerificationMethod> result = EnumSet.noneOf( IdentityVerificationMethod.class );
-        final StoredValue configValue = readSetting( setting );
-        final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = ( VerificationMethodValue.VerificationMethodSettings ) configValue.toNativeObject();
+        final VerificationMethodValue.VerificationMethodSettings verificationMethodSettings = settingReader.readVerificationMethods( setting );
 
-        for ( final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.availableValues() )
+        for ( final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.values() )
         {
             if ( verificationMethodSettings.getMethodSettings().containsKey( recoveryVerificationMethods ) )
             {
@@ -157,16 +160,6 @@ public abstract class AbstractProfile implements Profile
                 }
             }
         }
-        return result;
+        return Collections.unmodifiableSet( result );
     }
-
-    protected StoredValue readSetting( final PwmSetting setting )
-    {
-        if ( !setting.getCategory().hasProfiles() )
-        {
-            throw new IllegalStateException( "attempt to read non-profiled setting '" + setting.getKey() + "' via profile" );
-        }
-        return storedConfiguration.readSetting( setting, getIdentifier() );
-    }
-
 }

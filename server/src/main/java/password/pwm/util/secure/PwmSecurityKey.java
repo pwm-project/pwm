@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ package password.pwm.util.secure;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.svc.secure.SecureService;
+import password.pwm.util.java.JavaHelper;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -34,7 +36,6 @@ import java.util.Map;
 
 public class PwmSecurityKey
 {
-
     enum Type
     {
         AES,
@@ -56,10 +57,10 @@ public class PwmSecurityKey
         this.keyData = stringToKeyData( keyData );
     }
 
-    public String keyHash( final SecureService secureService )
+    public String keyHash( final SecureService domainSecureService )
             throws PwmUnrecoverableException
     {
-        return secureService.hash( keyData );
+        return domainSecureService.hash( keyData );
     }
 
     private byte[] stringToKeyData( final String input ) throws PwmUnrecoverableException
@@ -122,4 +123,11 @@ public class PwmSecurityKey
             throw new PwmUnrecoverableException( errorInformation );
         }
     }
+
+    public PwmSecurityKey add( final PwmSecurityKey otherKey )
+    {
+        final byte[] newKeyMaterial = JavaHelper.addByteArrays( this.keyData, otherKey.keyData );
+        return new PwmSecurityKey( newKeyMaterial );
+    }
+
 }

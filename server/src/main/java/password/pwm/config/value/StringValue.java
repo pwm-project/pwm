@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,12 @@
 
 package password.pwm.config.value;
 
+import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingFlag;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.PwmSettingSyntax;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.util.java.JsonUtil;
@@ -65,8 +68,8 @@ public class StringValue extends AbstractValue implements StoredValue
             @Override
             public StringValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
-                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
-                final String value = valueElement.map( XmlElement::getText ).orElse( "" );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final String value = valueElement.flatMap( XmlElement::getText ).orElse( "" );
                 return new StringValue( value );
             }
         };
@@ -89,32 +92,45 @@ public class StringValue extends AbstractValue implements StoredValue
     @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
-        if ( pwmSetting.isRequired() )
+        return validateValue( pwmSetting, value );
+    }
+
+    public static List<String> validateValue( final PwmSetting pwmSetting, final String value )
+    {
+        if ( pwmSetting.isRequired()
+                && StringUtil.isEmpty( value ) )
         {
-            if ( StringUtil.isEmpty( value ) )
-            {
-                return Collections.singletonList( "required value missing" );
-            }
+            return Collections.singletonList( "required value missing" );
         }
 
         final Pattern pattern = pwmSetting.getRegExPattern();
         if ( pattern != null )
         {
             final Matcher matcher = pattern.matcher( value );
-            if ( value != null && value.length() > 0 && !matcher.matches() )
+            if ( StringUtil.notEmpty( value ) && !matcher.matches() )
             {
                 return Collections.singletonList( "incorrect value format for value '" + value + "'" );
             }
         }
 
-        if ( pwmSetting.getFlags().contains( PwmSettingFlag.emailSyntax ) )
+        if ( pwmSetting.getFlags().contains( PwmSettingFlag.emailSyntax )
+                && StringUtil.isEmpty( value )
+                && !FormConfiguration.testEmailAddress( null, value ) )
         {
-            if ( value != null )
+            return Collections.singletonList( "Invalid email address format: '" + value + "'" );
+        }
+
+        if ( StringUtil.notEmpty( value ) && pwmSetting.getSyntax() == PwmSettingSyntax.DOMAIN )
+        {
+            final String lCaseValue = value.toLowerCase( PwmConstants.DEFAULT_LOCALE );
+            final List<String> reservedWords = DomainID.DOMAIN_RESERVED_WORDS;
+            final boolean contains = reservedWords.stream()
+                    .map( String::toLowerCase )
+                    .anyMatch( lCaseValue::contains );
+            if ( contains )
             {
-                if ( !FormConfiguration.testEmailAddress( null, value ) )
-                {
-                    return Collections.singletonList( "Invalid email address format: '" + value + "'" );
-                }
+                return Collections.singletonList( "Domain ID is reserved word: '" + value + "'" );
+
             }
         }
 

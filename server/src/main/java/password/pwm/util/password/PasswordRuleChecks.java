@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ADPolicyComplexity;
@@ -43,7 +43,6 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -64,7 +63,7 @@ public class PasswordRuleChecks
     @Builder
     private static class RuleCheckData
     {
-        private PwmApplication pwmApplication;
+        private PwmDomain pwmDomain;
         private PwmPasswordPolicy policy;
         private UserInfo userInfo;
         private PasswordRuleReaderHelper ruleHelper;
@@ -82,7 +81,7 @@ public class PasswordRuleChecks
                 throws PwmUnrecoverableException;
     }
 
-    private static final List<RuleChecker> RULE_CHECKS = Collections.unmodifiableList( Arrays.asList(
+    private static final List<RuleChecker> RULE_CHECKS = List.of(
             new OldPasswordRuleChecker(),
             new MinimumLengthRuleChecker(),
             new MaximumLengthRuleChecker(),
@@ -99,12 +98,12 @@ public class PasswordRuleChecks
             new RegexPatternsRuleChecker(),
             new CharGroupRuleChecker(),
             new DictionaryRuleChecker(),
-            new SharedHistoryRuleChecker()
-    ) );
+            new SharedHistoryRuleChecker() );
 
 
     public static List<ErrorInformation> extendedPolicyRuleChecker(
-            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final PwmDomain pwmDomain,
             final PwmPasswordPolicy policy,
             final String password,
             final String oldPassword,
@@ -126,16 +125,16 @@ public class PasswordRuleChecks
 
         final List<ErrorInformation> errorList = new ArrayList<>();
         final MacroRequest macroRequest = userInfo == null || userInfo.getUserIdentity() == null
-                ? MacroRequest.forNonUserSpecific( pwmApplication, SessionLabel.SYSTEM_LABEL )
+                ? MacroRequest.forNonUserSpecific( pwmDomain.getPwmApplication(), sessionLabel )
                 : MacroRequest.forUser(
-                pwmApplication,
+                pwmDomain.getPwmApplication(),
                 PwmConstants.DEFAULT_LOCALE,
-                SessionLabel.SYSTEM_LABEL,
+                sessionLabel,
                 userInfo.getUserIdentity()
         );
 
         final RuleCheckData ruleCheckData = RuleCheckData.builder()
-                .pwmApplication( pwmApplication )
+                .pwmDomain( pwmDomain )
                 .policy( policy )
                 .userInfo( userInfo )
                 .ruleHelper( policy.getRuleHelper() )
@@ -166,7 +165,7 @@ public class PasswordRuleChecks
             final PasswordRuleReaderHelper ruleHelper = ruleCheckData.getRuleHelper();
 
             //check against old password
-            if ( !StringUtil.isEmpty( oldPassword ) && ruleHelper.readBooleanValue( PwmPasswordRule.DisallowCurrent ) )
+            if ( StringUtil.notEmpty( oldPassword ) && ruleHelper.readBooleanValue( PwmPasswordRule.DisallowCurrent ) )
             {
                 if ( oldPassword.equalsIgnoreCase( password ) )
                 {
@@ -510,7 +509,7 @@ public class PasswordRuleChecks
                 if ( complexityLevel == ADPolicyComplexity.AD2003 || complexityLevel == ADPolicyComplexity.AD2008 )
                 {
                     final int maxGroupViolations = ruleHelper.readIntValue( PwmPasswordRule.ADComplexityMaxViolations );
-                    errorList.addAll( PwmPasswordRuleUtil.checkPasswordForADComplexity(
+                    errorList.addAll( PwmPasswordAdRuleUtil.checkPasswordForADComplexity(
                             complexityLevel,
                             ruleCheckData.getUserInfo(),
                             password,
@@ -606,16 +605,16 @@ public class PasswordRuleChecks
                 throws PwmUnrecoverableException
         {
             final List<ErrorInformation> errorList = new ArrayList<>();
-            final PwmApplication pwmApplication = ruleCheckData.getPwmApplication();
+            final PwmDomain pwmDomain = ruleCheckData.getPwmDomain();
 
             // check password strength
             final int requiredPasswordStrength = ruleCheckData.getRuleHelper().readIntValue( PwmPasswordRule.MinimumStrength );
             if ( requiredPasswordStrength > 0 )
             {
-                if ( pwmApplication != null )
+                if ( pwmDomain != null )
                 {
                     final int passwordStrength = PasswordUtility.judgePasswordStrength(
-                            pwmApplication.getConfig(),
+                            pwmDomain.getConfig(),
                             password
                     );
                     if ( passwordStrength < requiredPasswordStrength )
@@ -717,17 +716,17 @@ public class PasswordRuleChecks
                 throws PwmUnrecoverableException
         {
             final List<ErrorInformation> errorList = new ArrayList<>();
-            final PwmApplication pwmApplication = ruleCheckData.getPwmApplication();
+            final PwmDomain pwmDomain = ruleCheckData.getPwmDomain();
             final PasswordRuleReaderHelper ruleHelper = ruleCheckData.getRuleHelper();
 
             // check if the password is in the dictionary.
             if ( ruleHelper.readBooleanValue( PwmPasswordRule.EnableWordlist ) )
             {
-                if ( pwmApplication != null )
+                if ( pwmDomain != null )
                 {
-                    if ( pwmApplication.getWordlistService() != null && pwmApplication.getWordlistService().status() == PwmService.STATUS.OPEN )
+                    if ( pwmDomain.getPwmApplication().getWordlistService() != null && pwmDomain.getPwmApplication().getWordlistService().status() == PwmService.STATUS.OPEN )
                     {
-                        final boolean found = pwmApplication.getWordlistService().containsWord( password );
+                        final boolean found = pwmDomain.getPwmApplication().getWordlistService().containsWord( password );
 
                         if ( found )
                         {
@@ -737,7 +736,7 @@ public class PasswordRuleChecks
                     }
                     else
                     {
-                        final boolean failWhenClosed = Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.PASSWORD_RULE_WORDLIST_FAIL_WHEN_CLOSED ) );
+                        final boolean failWhenClosed = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RULE_WORDLIST_FAIL_WHEN_CLOSED ) );
                         if ( failWhenClosed )
                         {
                             throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "wordlist service is not available" );
@@ -757,15 +756,15 @@ public class PasswordRuleChecks
                 throws PwmUnrecoverableException
         {
             final List<ErrorInformation> errorList = new ArrayList<>();
-            final PwmApplication pwmApplication = ruleCheckData.getPwmApplication();
+            final PwmDomain pwmDomain = ruleCheckData.getPwmDomain();
 
             // check for shared (global) password history
-            if ( pwmApplication != null )
+            if ( pwmDomain != null )
             {
-                if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE )
-                        && pwmApplication.getSharedHistoryManager().status() == PwmService.STATUS.OPEN )
+                if ( pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE )
+                        && pwmDomain.getSharedHistoryManager().status() == PwmService.STATUS.OPEN )
                 {
-                    final boolean found = pwmApplication.getSharedHistoryManager().containsWord( password );
+                    final boolean found = pwmDomain.getSharedHistoryManager().containsWord( password );
 
                     if ( found )
                     {

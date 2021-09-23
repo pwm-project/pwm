@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public abstract class AbstractPwmFilter implements Filter
         final boolean interested;
         try
         {
-            final PwmURL pwmURL = new PwmURL( req );
+            final PwmURL pwmURL = PwmURL.create( req );
             interested = isInterested( mode, pwmURL );
         }
         catch ( final Exception e )
@@ -78,16 +78,10 @@ public abstract class AbstractPwmFilter implements Filter
             try
             {
                 pwmRequest = PwmRequest.forRequest( req, resp );
+                final PwmURL pwmURL = PwmURL.create( req );
             }
             catch ( final PwmException e )
             {
-                final PwmURL pwmURL = new PwmURL( req );
-                if ( pwmURL.isResourceURL() )
-                {
-                    filterChain.doFilter( req, resp );
-                    return;
-                }
-
                 LOGGER.error( pwmRequest, () -> "unexpected error processing filter chain: " + e.getMessage(), e );
             }
 
@@ -104,13 +98,11 @@ public abstract class AbstractPwmFilter implements Filter
             {
                 LOGGER.debug( pwmRequest, () -> "i/o error processing request: " + e.getMessage() );
             }
-
         }
         else
         {
             filterChain.doFilter( req, resp );
         }
-
     }
 
     abstract void processFilter(

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 package password.pwm.ws.client.rest;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
@@ -46,7 +46,7 @@ public class RestClientHelper
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestClientHelper.class );
 
     public static String makeOutboundRestWSCall(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final Locale locale,
             final String url,
             final String jsonRequestBody
@@ -56,7 +56,7 @@ public class RestClientHelper
         final PwmHttpClientConfiguration clientConfig = PwmHttpClientConfiguration.builder()
                 .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous )
                 .build();
-        final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( clientConfig );
+        final PwmHttpClient pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( clientConfig );
 
         final Map<String, String> httpPost = new LinkedHashMap<>();
         if ( locale != null )

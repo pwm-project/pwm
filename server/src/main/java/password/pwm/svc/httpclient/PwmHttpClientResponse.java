@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ package password.pwm.svc.httpclient;
 
 import lombok.Builder;
 import lombok.Value;
+import password.pwm.PwmApplication;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpEntityDataType;
 import password.pwm.http.bean.ImmutableByteArray;
@@ -46,9 +47,16 @@ public class PwmHttpClientResponse implements Serializable, PwmHttpClientMessage
     private final String body;
     private final ImmutableByteArray binaryBody;
 
-    public String toDebugString( final PwmHttpClient pwmHttpClient )
+    String toDebugString( final PwmApplication pwmApplication, final PwmHttpClientConfiguration pwmHttpClientConfiguration )
     {
         final String topLine = "HTTP response status " + statusCode + " " + statusPhrase;
-        return pwmHttpClient.entityToDebugString( topLine, this );
+        return PwmHttpClientMessage.entityToDebugString( topLine, pwmApplication, pwmHttpClientConfiguration, this );
+    }
+
+    long size()
+    {
+        long size = PwmHttpClientMessage.sizeImpl( this );
+        size += statusPhrase == null ? 0 : statusPhrase.length();
+        return size;
     }
 }

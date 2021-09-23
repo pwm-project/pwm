@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,9 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.ClosableIterator;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
-class StubRecordManager implements RecordManager
+class StubRecordManager implements IntruderRecordManager
 {
     @Override
     public boolean checkSubject( final String subject )
@@ -55,9 +56,9 @@ class StubRecordManager implements RecordManager
     }
 
     @Override
-    public IntruderRecord readIntruderRecord( final String subject )
+    public Optional<IntruderRecord> readIntruderRecord( final String subject )
     {
-        return null;
+        return Optional.empty();
     }
 
     @Override

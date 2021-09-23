@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,13 +49,13 @@ public class TinyUrlShortener extends BasicUrlShortener
     }
 
     @Override
-    public String shorten( final String input, final PwmApplication context )
+    public String shorten( final String input, final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {
         LOGGER.debug( () -> "Trying to shorten url: " + input );
         final String encodedUrl = StringUtil.urlEncode( input );
         final String callUrl = apiUrl + encodedUrl;
-        final PwmHttpClient pwmHttpClient = context.getHttpClientService().getPwmHttpClient(  );
+        final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient(  );
 
         final PwmHttpClientRequest request = PwmHttpClientRequest.builder()
                 .method( HttpMethod.GET )

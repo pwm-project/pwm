@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,11 @@ public enum PwmSettingFlag
     /* No Default - Makes the setting UI act as if there is not a default to reset to */
     NoDefault,
 
+    /* Only shown if multi-domain is enabled */
+    MultiDomain,
+
+    ReloadEditorOnModify,
+
     Select_AllowUserInput,
 
     Permission_HideGroups,
@@ -53,6 +58,8 @@ public enum PwmSettingFlag
     Verification_HideMinimumOptional,
 
     WebService_NoBody,
+
+    Sorted,
 
     Deprecated,
 }

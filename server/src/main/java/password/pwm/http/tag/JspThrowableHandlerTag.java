@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 package password.pwm.http.tag;
 
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
@@ -79,12 +79,12 @@ public class JspThrowableHandlerTag extends TagSupport
     private String jspOutput( final String errorReference )
     {
         Locale userLocale = PwmConstants.DEFAULT_LOCALE;
-        Configuration configuration = null;
+        DomainConfig domainConfig = null;
         try
         {
             final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
             userLocale = pwmRequest.getLocale();
-            configuration = pwmRequest.getConfig();
+            domainConfig = pwmRequest.getDomainConfig();
         }
         catch ( final Exception e )
         {
@@ -94,7 +94,7 @@ public class JspThrowableHandlerTag extends TagSupport
                 {
                         errorReference,
                 };
-        return LocaleHelper.getLocalizedMessage( userLocale, Display.Display_ErrorReference, configuration, strArgs );
+        return LocaleHelper.getLocalizedMessage( userLocale, Display.Display_ErrorReference, domainConfig, strArgs );
 
     }
 }

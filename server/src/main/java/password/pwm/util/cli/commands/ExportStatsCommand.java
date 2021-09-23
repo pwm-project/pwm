@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 package password.pwm.util.cli.commands;
 
 import password.pwm.PwmApplication;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.TimeDuration;
 
@@ -38,7 +38,7 @@ public class ExportStatsCommand extends AbstractCliCommand
             throws Exception
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
-        final StatisticsManager statsManger = pwmApplication.getStatisticsManager();
+        final StatisticsService statsManger = pwmApplication.getStatisticsManager();
 
         final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
         final long startTime = System.currentTimeMillis();

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,6 @@ import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,7 +56,7 @@ public abstract class StoredValueEncoder
         Mode( final SecureOutputEngine secureOutputEngine, final String... prefixes )
         {
             this.secureOutputEngine = secureOutputEngine;
-            this.prefixes = Collections.unmodifiableList( Arrays.asList( prefixes ) );
+            this.prefixes = List.of( prefixes );
         }
 
         public List<String> getPrefixes()
@@ -115,7 +113,7 @@ public abstract class StoredValueEncoder
 
         static ParsedInput parseInput( final String value )
         {
-            if ( !StringUtil.isEmpty( value ) )
+            if ( StringUtil.notEmpty( value ) )
             {
                 for ( final Mode mode : Mode.values() )
                 {

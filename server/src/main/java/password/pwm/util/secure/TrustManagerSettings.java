@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ package password.pwm.util.secure;
 
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.option.CertificateMatchingMode;
 
 @Value
@@ -32,7 +32,7 @@ class TrustManagerSettings
     private final boolean allowSelfSigned;
     private final CertificateMatchingMode certificateMatchingMode;
 
-    public static TrustManagerSettings fromConfiguration( final Configuration config )
+    public static TrustManagerSettings fromConfiguration( final AppConfig config )
     {
         final boolean validateTimestamps = config != null && Boolean.parseBoolean( config.readAppProperty( AppProperty.SECURITY_CERTIFICATES_VALIDATE_TIMESTAMPS ) );
         final boolean allowSelfSigned = config != null && Boolean.parseBoolean( config.readAppProperty( AppProperty.SECURITY_CERTIFICATES_ALLOW_SELF_SIGNED ) );

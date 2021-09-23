@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,11 @@
 package password.pwm.config.value;
 
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.PwmSettingFlag;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -33,8 +35,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class StringArrayValue extends AbstractValue implements StoredValue
 {
@@ -42,7 +46,9 @@ public class StringArrayValue extends AbstractValue implements StoredValue
 
     public StringArrayValue( final List<String> values )
     {
-        this.values = values == null ? Collections.emptyList() : Collections.unmodifiableList( values );
+        final List<String> copiedValues = new ArrayList<>( values == null ? Collections.emptyList() : values );
+        copiedValues.removeAll( Collections.singleton( null ) );
+        this.values = Collections.unmodifiableList( copiedValues );
     }
 
     public static StoredValueFactory factory( )
@@ -52,32 +58,29 @@ public class StringArrayValue extends AbstractValue implements StoredValue
             @Override
             public StringArrayValue fromJson( final String input )
             {
-                if ( input == null )
+                if ( StringUtil.isEmpty( input ) )
                 {
                     return new StringArrayValue( Collections.emptyList() );
                 }
                 else
                 {
-                    List<String> srcList = JsonUtil.deserializeStringList( input );
-                    srcList = srcList == null ? Collections.emptyList() : srcList;
-                    while ( srcList.contains( null ) )
-                    {
-                        srcList.remove( null );
-                    }
-                    return new StringArrayValue( Collections.unmodifiableList( srcList ) );
+                    return new StringArrayValue( JsonUtil.deserializeStringList( input ) );
                 }
             }
 
             @Override
             public StringArrayValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
-                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
-                final List<String> values = new ArrayList<>();
-                for ( final XmlElement loopValueElement : valueElements )
+                final List<String> values = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE ).stream()
+                        .map( XmlElement::getText )
+                        .flatMap( Optional::stream )
+                        .collect( Collectors.toList() );
+
+                if ( pwmSetting != null && pwmSetting.getFlags().contains( PwmSettingFlag.Sorted ) )
                 {
-                    final String value = loopValueElement.getText();
-                    values.add( value );
+                    Collections.sort( values );
                 }
+
                 return new StringArrayValue( values );
             }
         };
@@ -99,7 +102,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue
     @Override
     public List<String> toNativeObject( )
     {
-        return Collections.unmodifiableList( values );
+        return values;
     }
 
     @Override
@@ -132,7 +135,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue
         if ( values != null && !values.isEmpty() )
         {
             final StringBuilder sb = new StringBuilder();
-            for ( final Iterator valueIterator = values.iterator(); valueIterator.hasNext(); )
+            for ( final Iterator<String> valueIterator = values.iterator(); valueIterator.hasNext(); )
             {
                 sb.append( valueIterator.next() );
                 if ( valueIterator.hasNext() )

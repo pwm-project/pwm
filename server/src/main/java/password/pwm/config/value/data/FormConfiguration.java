@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -32,7 +32,6 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
@@ -268,39 +267,7 @@ public class FormConfiguration implements Serializable
         return source == null ? Source.ldap : source;
     }
 
-    public boolean equals( final Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-        if ( !( o instanceof FormConfiguration ) )
-        {
-            return false;
-        }
-
-        final FormConfiguration parameterConfig = ( FormConfiguration ) o;
-
-        return !( name != null ? !name.equals( parameterConfig.name ) : parameterConfig.name != null );
-    }
-
-    public int hashCode( )
-    {
-        return ( name != null ? name.hashCode() : 0 );
-    }
-
-    public String toString( )
-    {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append( "FormItem: " );
-        sb.append( JsonUtil.serialize( this ) );
-
-        return sb.toString();
-    }
-
-
-    public void checkValue( final Configuration config, final String value, final Locale locale )
+    public void checkValue( final DomainConfig config, final String value, final Locale locale )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
 
@@ -428,7 +395,7 @@ public class FormConfiguration implements Serializable
      *
      * @return true if the email address is valid.
      */
-    public static boolean testEmailAddress( final Configuration config, final String address )
+    public static boolean testEmailAddress( final DomainConfig config, final String address )
     {
         final String patternStr;
         if ( config != null )
@@ -445,7 +412,7 @@ public class FormConfiguration implements Serializable
         return matcher.matches();
     }
 
-    public String displayValue( final String value, final Locale locale, final Configuration config )
+    public String displayValue( final String value, final Locale locale, final DomainConfig config )
     {
         if ( value == null )
         {
@@ -462,7 +429,7 @@ public class FormConfiguration implements Serializable
                     if ( value.equals( key ) )
                     {
                         final String displayValue = entry.getValue();
-                        if ( !StringUtil.isEmpty( displayValue ) )
+                        if ( StringUtil.notEmpty( displayValue ) )
                         {
                             return displayValue;
                         }

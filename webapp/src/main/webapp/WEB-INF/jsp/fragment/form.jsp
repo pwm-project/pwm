@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 --%>
 
 
-<%@ page import="password.pwm.PwmApplication" %>
+<%@ page import="password.pwm.PwmDomain" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.value.data.FormConfiguration" %>
@@ -42,12 +42,13 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.util.java.CollectionUtil" %>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmRequest formPwmRequest = PwmRequest.forRequest(request,response); %>
 <% final Locale formLocale = formPwmRequest.getLocale(); %>
 <% final List<FormConfiguration> formConfigurationList = (List<FormConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormConfiguration); %>
-<% if (JavaHelper.isEmpty(formConfigurationList)) { %>
+<% if ( CollectionUtil.isEmpty(formConfigurationList)) { %>
 <!-- [ form definition is not available ] -->
 <% } else { %>
 <%
@@ -55,7 +56,7 @@
     final boolean showPasswordFields = (Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormShowPasswordFields);
     final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormData);
 
-    final PwmApplication pwmApplication = formPwmRequest.getPwmApplication();
+    final PwmDomain pwmDomain = formPwmRequest.getPwmDomain();
     for (final FormConfiguration loopConfiguration : formConfigurationList) {
         String currentValue = formDataMap != null ? formDataMap.get(loopConfiguration) : "";
         currentValue = currentValue == null ? "" : currentValue;
@@ -220,7 +221,7 @@
             PWM_GLOBAL['startupFunctions'].push(function(){
                 PWM_MAIN.showTooltip({
                     id: "label_required_<%=loopConfiguration.getName()%>",
-                    text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmApplication.getConfig(),new String[]{loopConfiguration.getLabel(formLocale)})%>',
+                    text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmDomain.getConfig(),new String[]{loopConfiguration.getLabel(formLocale)})%>',
                     position: ['above']
                 });
             });
@@ -238,7 +239,7 @@
                 PWM_GLOBAL['startupFunctions'].push(function(){
                     PWM_MAIN.showTooltip({
                         id: "label_required_password",
-                        text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmApplication.getConfig(),new String[]{JspUtility.getMessage(pageContext,Display.Field_NewPassword)})%>',
+                        text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmDomain.getConfig(),new String[]{JspUtility.getMessage(pageContext,Display.Field_NewPassword)})%>',
                         position: ['above']
                     });
                 });

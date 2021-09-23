@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 
 package password.pwm.util.java;
 
-import net.iharder.Base64;
 import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -45,7 +44,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -212,18 +213,12 @@ public abstract class StringUtil
 
         if ( diskSize > count * count * count )
         {
-            final StringBuilder sb = new StringBuilder();
-            sb.append( nf.format( diskSize / count / count / count ) );
-            sb.append( " GB" );
-            return sb.toString();
+            return nf.format( diskSize / count / count / count ) + " GB";
         }
 
         if ( diskSize > count * count )
         {
-            final StringBuilder sb = new StringBuilder();
-            sb.append( nf.format( diskSize / count / count ) );
-            sb.append( " MB" );
-            return sb.toString();
+            return nf.format( diskSize / count / count ) + " MB";
         }
 
         return PwmNumberFormat.forDefaultLocale().format( diskSize ) + " bytes";
@@ -233,7 +228,7 @@ public abstract class StringUtil
     {
         final String compare1 = value1 == null ? "" : value1;
         final String compare2 = value2 == null ? "" : value2;
-        return compare1.equalsIgnoreCase( compare2 );
+        return Objects.equals( compare1.toLowerCase( PwmConstants.DEFAULT_LOCALE ), compare2.toLowerCase( PwmConstants.DEFAULT_LOCALE ) );
     }
 
     public static boolean nullSafeEquals( final String value1, final String value2 )
@@ -245,21 +240,6 @@ public abstract class StringUtil
     {
         GZIP,
         URL_SAFE,;
-
-        private static int asBase64UtilOptions( final Base64Options... options )
-        {
-            int b64UtilOptions = 0;
-
-            if ( JavaHelper.enumArrayContainsValue( options, Base64Options.GZIP ) )
-            {
-                b64UtilOptions = b64UtilOptions | Base64.GZIP;
-            }
-            if ( JavaHelper.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
-            {
-                b64UtilOptions = b64UtilOptions | Base64.URL_SAFE;
-            }
-            return b64UtilOptions;
-        }
     }
 
     public static String escapeJS( final String input )
@@ -313,12 +293,6 @@ public abstract class StringUtil
         }
     }
 
-    public static byte[] base64Decode( final String input )
-            throws IOException
-    {
-        return Base64.decode( input );
-    }
-
     public static String base32Encode( final byte[] input )
             throws IOException
     {
@@ -326,31 +300,62 @@ public abstract class StringUtil
         return new String( base32.encode( input ), PwmConstants.DEFAULT_CHARSET );
     }
 
-    public static byte[] base64Decode( final String input, final StringUtil.Base64Options... options )
+    public static byte[] base64Decode( final CharSequence input, final StringUtil.Base64Options... options )
             throws IOException
     {
-        final int b64UtilOptions = Base64Options.asBase64UtilOptions( options );
-
-        return Base64.decode( input, b64UtilOptions );
-    }
-
-    public static String base64Encode( final byte[] input )
-    {
-        return Base64.encodeBytes( input );
-    }
-
-    public static String base64Encode( final byte[] input, final StringUtil.Base64Options... options )
-            throws IOException
-    {
-        final int b64UtilOptions = Base64Options.asBase64UtilOptions( options );
-
-        if ( b64UtilOptions > 0 )
+        if ( StringUtil.isEmpty( input ) )
         {
-            return Base64.encodeBytes( input, b64UtilOptions );
+            return new byte[0];
+        }
+
+        final byte[] decodedBytes;
+        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
+        {
+            decodedBytes = java.util.Base64.getUrlDecoder().decode( input.toString() );
         }
         else
         {
-            return Base64.encodeBytes( input );
+            decodedBytes = java.util.Base64.getMimeDecoder().decode( input.toString() );
+        }
+
+        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.GZIP ) )
+        {
+            return JavaHelper.gunzip( decodedBytes );
+        }
+        else
+        {
+            return decodedBytes;
+        }
+    }
+
+
+    public static String base64Encode( final byte[] input, final StringUtil.Base64Options... options )
+            throws PwmUnrecoverableException
+    {
+        final byte[] compressedBytes;
+        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.GZIP ) )
+        {
+            try
+            {
+                compressedBytes = JavaHelper.gzip( input );
+            }
+            catch ( final IOException e )
+            {
+                throw PwmUnrecoverableException.convert( e );
+            }
+        }
+        else
+        {
+            compressedBytes = input;
+        }
+
+        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
+        {
+            return java.util.Base64.getUrlEncoder().encodeToString( compressedBytes );
+        }
+        else
+        {
+            return java.util.Base64.getMimeEncoder().encodeToString( compressedBytes );
         }
     }
 
@@ -368,7 +373,7 @@ public abstract class StringUtil
     {
         if ( input == null )
         {
-            return null;
+            return "";
         }
 
         if ( input.length() >= length )
@@ -466,7 +471,7 @@ public abstract class StringUtil
 
     public static String mapToString( final Map map )
     {
-        return mapToString( map, "=", "," );
+        return mapToString( map, "=", ", " );
     }
 
     public static String mapToString( final Map map, final String keyValueSeparator, final String recordSeparator )
@@ -513,6 +518,11 @@ public abstract class StringUtil
     public static boolean isEmpty( final CharSequence input )
     {
         return StringUtils.isEmpty( input );
+    }
+
+    public static boolean notEmpty( final CharSequence input )
+    {
+        return !StringUtils.isEmpty( input );
     }
 
     public static boolean isTrimEmpty( final String input )
@@ -567,27 +577,85 @@ public abstract class StringUtil
         }
     }
 
-    public static String stripAllWhitespace( final String input )
+    public static String stripAllWhitespace( final CharSequence input )
     {
         return stripAllChars( input, Character::isWhitespace );
     }
 
-    public static String stripAllChars( final String input, final Predicate<Character> stripPredicate )
+    public static CharSequence cleanNonPrintableCharacters( final CharSequence input )
     {
-        final StringBuilder sb = new StringBuilder( input );
-        int index = 0;
-        while ( index < sb.length() )
+        final Predicate<Character> nonPrintableCharPredicate = character ->
+                ( Character.isISOControl( character ) && !Character.isWhitespace( character ) )
+                        || !Character.isDefined( character );
+
+        return replaceAllChars( input,
+                character -> nonPrintableCharPredicate.test( character ) ? Optional.of( "?" ) : Optional.empty() );
+    }
+
+    public static String stripAllChars( final CharSequence input, final Predicate<Character> characterPredicate )
+    {
+        return replaceAllChars( input,
+                character -> ( characterPredicate.test( character ) ) ? Optional.of( "" ) : Optional.empty() );
+    }
+
+    public static String replaceAllChars( final CharSequence input, final Function<Character, Optional<String>> replacementFunction )
+    {
+        if ( isEmpty( input ) )
         {
-            final char loopChar = sb.charAt( index );
-            if ( stripPredicate.test( loopChar ) )
+            return "";
+        }
+
+        if ( replacementFunction == null )
+        {
+            return input.toString();
+        }
+
+        final int inputLength = input.length();
+
+        // count of valid output chars
+        int index = 0;
+        {
+            // loop through input chars and stop if replacement char is needed ( but no actual coppying yet )
+            while ( index < inputLength )
             {
-                sb.deleteCharAt( index );
+                final Character indexChar = input.charAt( index );
+                final Optional<String> replacementStr = replacementFunction.apply( indexChar );
+                if ( replacementStr.isEmpty() )
+                {
+                    index++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            // return input string if we made it through input without detecting replacement char
+            if ( index >= inputLength )
+            {
+                return input.toString();
+            }
+        }
+
+        // create the destination builder
+        final StringBuilder sb = new StringBuilder( input.subSequence( 0, index ) );
+
+        // loop through remaining chars and copy one by one
+        while ( index < inputLength )
+        {
+            final char loopChar = input.charAt( index );
+            final Optional<String> replacementStr = replacementFunction.apply( loopChar );
+            if ( replacementStr.isPresent() )
+            {
+                sb.append( replacementStr.get() );
             }
             else
             {
-                index++;
+                sb.append( loopChar );
             }
+            index++;
         }
+
         return sb.toString();
     }
 
@@ -615,9 +683,12 @@ public abstract class StringUtil
         int index = 0;
         while ( index < inputLength )
         {
-            final int endIndex = Math.min( index + periodicity, inputLength );
-            output.append( input, index, endIndex );
-            output.append( insertValue );
+            final int endIndex = index + periodicity;
+            output.append( input, index, Math.min( endIndex, inputLength ) );
+            if ( endIndex < inputLength )
+            {
+                output.append( insertValue );
+            }
             index += periodicity;
         }
         return output.toString();
@@ -635,20 +706,10 @@ public abstract class StringUtil
             return true;
         }
 
-        final String lcaseValue = value.toLowerCase();
-        for ( final String item : collection )
-        {
-            if ( item != null )
-            {
-                final String lcaseItem = item.toLowerCase();
-                if ( lcaseItem.equalsIgnoreCase( lcaseValue ) )
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        final String lCaseValue = value.toLowerCase();
+        return collection.stream()
+                .map( String::toLowerCase )
+                .anyMatch( lCaseValue::equals );
     }
 
     public static void validateLdapSearchFilter( final String filter )
@@ -671,5 +732,33 @@ public abstract class StringUtil
     public static InputStream stringToInputStream( final String input )
     {
         return new ByteArrayInputStream( input.getBytes( PwmConstants.DEFAULT_CHARSET ) );
+    }
+
+    private static final Map<Character, String> URL_PATH_ENCODING_REPLACEMENTS = Map.ofEntries(
+            Map.entry( ' ', "%20" ),
+            Map.entry( '!', "%21" ),
+            Map.entry( '#', "%23" ),
+            Map.entry( '$', "%24" ),
+            Map.entry( '&', "%26" ),
+            Map.entry( '\'', "%27" ),
+            Map.entry( '(', "%28" ),
+            Map.entry( ')', "%29" ),
+            Map.entry( '*', "%2A" ),
+            Map.entry( '+', "%2B" ),
+            Map.entry( ',', "%2C" ),
+            Map.entry( '/', "%2F" ),
+            Map.entry( ':', "%3A" ),
+            Map.entry( ';', "%3B" ),
+            Map.entry( '=', "%3D" ),
+            Map.entry( '?', "%3F" ),
+            Map.entry( '@', "%40" ),
+            Map.entry( '[', "%5B" ),
+            Map.entry( ']', "%5D" )
+    );
+
+    public static CharSequence urlPathEncode( final CharSequence input )
+    {
+        return replaceAllChars( input,
+                character -> Optional.ofNullable( URL_PATH_ENCODING_REPLACEMENTS.getOrDefault( character, null ) ) );
     }
 }

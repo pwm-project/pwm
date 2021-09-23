@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@
 
 package password.pwm.util.localdb;
 
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmDataStoreException;
 import password.pwm.util.DataStore;
 import password.pwm.util.java.ClosableIterator;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class LocalDBDataStore implements DataStore
 {
@@ -50,7 +52,7 @@ public class LocalDBDataStore implements DataStore
     }
 
     @Override
-    public String get( final String key ) throws PwmDataStoreException
+    public Optional<String> get( final String key ) throws PwmDataStoreException
     {
         return localDB.get( db, key );
     }
@@ -112,5 +114,11 @@ public class LocalDBDataStore implements DataStore
     public long size( ) throws PwmDataStoreException
     {
         return localDB.size( db );
+    }
+
+    @Override
+    public DataStorageMethod getDataStorageMethod()
+    {
+        return DataStorageMethod.LOCALDB;
     }
 }

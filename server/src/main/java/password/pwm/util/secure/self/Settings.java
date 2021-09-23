@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.java.TimeDuration;
 
@@ -44,7 +44,7 @@ public class Settings
     @Builder.Default
     private String siteUrl = "http://" + PwmConstants.PWM_APP_NAME.toLowerCase() + ".example.com";
 
-    public static Settings fromConfiguration ( final Configuration config )
+    public static Settings fromConfiguration ( final AppConfig config )
     {
         return Settings.builder()
             .keySize( Integer.parseInt( config.readAppProperty( AppProperty.SECURITY_HTTPSSERVER_SELF_KEY_SIZE )  ) )

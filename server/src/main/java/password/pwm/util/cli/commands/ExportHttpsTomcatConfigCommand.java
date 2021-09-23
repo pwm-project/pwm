@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ package password.pwm.util.cli.commands;
 
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TLSVersion;
 import password.pwm.util.cli.CliParameters;
@@ -52,7 +52,7 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
         )
         {
             TomcatConfigWriter.writeOutputFile(
-                    cliEnvironment.getConfig(),
+                    cliEnvironment.getPwmApplication().getConfig(),
                     fileInputStream,
                     fileOutputStream
             );
@@ -113,22 +113,22 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
         private static final String TOKEN_TLS_CIPHERS = "%TLS_CIPHERS%";
 
         public static void writeOutputFile(
-                final Configuration configuration,
+                final AppConfig appConfig,
                 final InputStream sourceFile,
                 final OutputStream outputFile
         )
                 throws IOException
         {
             String fileContents = IOUtils.toString( sourceFile, PwmConstants.DEFAULT_CHARSET.toString() );
-            fileContents = fileContents.replace( TOKEN_TLS_PROTOCOLS, getTlsProtocolsValue( configuration ) );
-            final String tlsCiphers = configuration.readSettingAsString( PwmSetting.HTTPS_CIPHERS );
+            fileContents = fileContents.replace( TOKEN_TLS_PROTOCOLS, getTlsProtocolsValue( appConfig ) );
+            final String tlsCiphers = appConfig.readSettingAsString( PwmSetting.HTTPS_CIPHERS );
             fileContents = fileContents.replace( TOKEN_TLS_CIPHERS, tlsCiphers );
             outputFile.write( fileContents.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
 
-        public static String getTlsProtocolsValue( final Configuration configuration )
+        public static String getTlsProtocolsValue( final AppConfig domainConfig )
         {
-            final Set<TLSVersion> tlsVersions = configuration.readSettingAsOptionList( PwmSetting.HTTPS_PROTOCOLS, TLSVersion.class );
+            final Set<TLSVersion> tlsVersions = domainConfig.readSettingAsOptionList( PwmSetting.HTTPS_PROTOCOLS, TLSVersion.class );
             final StringBuilder output = new StringBuilder();
             for ( final Iterator<TLSVersion> versionIterator = tlsVersions.iterator(); versionIterator.hasNext(); )
             {

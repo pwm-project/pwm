@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,10 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.event.AuditEvent;
-import password.pwm.svc.event.AuditRecord;
-import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.IOException;
@@ -139,7 +139,8 @@ public class PwmLogger
             try
             {
                 final CharSequence cleanedString = PwmLogger.removeUserDataFromString( pwmRequest.getPwmSession().getLoginInfoBean(), message.get() );
-                cleanedMessage = () -> cleanedString;
+                final CharSequence printableString = StringUtil.cleanNonPrintableCharacters( cleanedString );
+                cleanedMessage = () -> printableString;
             }
             catch ( final PwmUnrecoverableException e1 )
             {
@@ -222,11 +223,7 @@ public class PwmLogger
                     messageInfo.put( "errorMessage", logEvent.getMessage() );
 
                     final String messageInfoStr = JsonUtil.serializeMap( messageInfo );
-                    final AuditRecord auditRecord = new AuditRecordFactory( pwmApplication ).createSystemAuditRecord(
-                            AuditEvent.FATAL_EVENT,
-                            messageInfoStr
-                    );
-                    pwmApplication.getAuditManager().submit( sessionLabel, auditRecord );
+                    AuditServiceClient.submitSystemEvent( pwmApplication, SessionLabel.SYSTEM_LABEL, AuditEvent.FATAL_EVENT, messageInfoStr );
                 }
             }
         }
@@ -307,6 +304,16 @@ public class PwmLogger
 
     public void trace( final SessionLabel sessionLabel, final Supplier<CharSequence> message )
     {
+        doLogEvent( PwmLogLevel.TRACE, sessionLabel, message, null );
+    }
+
+    public void traceDevDebug( final SessionLabel sessionLabel, final Supplier<CharSequence> message )
+    {
+        if ( pwmApplication == null || !pwmApplication.getConfig().isDevDebugMode() )
+        {
+            return;
+        }
+
         doLogEvent( PwmLogLevel.TRACE, sessionLabel, message, null );
     }
 
@@ -423,6 +430,11 @@ public class PwmLogger
     public void error( final SessionLabel sessionLabel, final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.ERROR, sessionLabel, message, null );
+    }
+
+    public void error( final SessionLabel sessionLabel, final Supplier<CharSequence> message, final Supplier<TimeDuration> timeDurationSupplier )
+    {
+        doLogEvent( PwmLogLevel.ERROR, sessionLabel, message, null, timeDurationSupplier );
     }
 
     public void error( final SessionLabel sessionLabel, final ErrorInformation errorInformation )

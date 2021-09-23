@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,53 +20,37 @@
 
 package password.pwm.svc.intruder;
 
+import lombok.Data;
+import password.pwm.bean.DomainID;
+import password.pwm.util.java.StringUtil;
+
 import java.io.Serializable;
 import java.time.Instant;
 
+@Data
 public class IntruderRecord implements Serializable
 {
-    private RecordType type;
+    private IntruderRecordType type;
+    private DomainID domainID;
     private String subject;
     private Instant timeStamp = Instant.now();
     private int attemptCount = 0;
     private boolean alerted = false;
 
-    IntruderRecord( )
-    {
-    }
-
-    public IntruderRecord( final RecordType type, final String subject )
+    public IntruderRecord( final DomainID domainID, final IntruderRecordType type, final String subject )
     {
         if ( type == null )
         {
             throw new IllegalArgumentException( "type must have a value" );
         }
-        if ( subject == null || subject.length() < 1 )
+        if ( StringUtil.isEmpty( subject ) )
         {
             throw new IllegalArgumentException( "subject must have a value" );
         }
+
         this.type = type;
+        this.domainID = domainID;
         this.subject = subject;
-    }
-
-    public RecordType getType( )
-    {
-        return type;
-    }
-
-    public String getSubject( )
-    {
-        return subject;
-    }
-
-    public Instant getTimeStamp( )
-    {
-        return timeStamp;
-    }
-
-    public int getAttemptCount( )
-    {
-        return attemptCount;
     }
 
     void incrementAttemptCount( )
@@ -79,15 +63,5 @@ public class IntruderRecord implements Serializable
     {
         alerted = false;
         attemptCount = 0;
-    }
-
-    public boolean isAlerted( )
-    {
-        return alerted;
-    }
-
-    void setAlerted( )
-    {
-        this.alerted = true;
     }
 }

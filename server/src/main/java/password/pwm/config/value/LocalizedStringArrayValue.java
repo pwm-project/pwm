@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -31,6 +32,7 @@ import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -72,20 +74,14 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
             public LocalizedStringArrayValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
                 final List<XmlElement> valueElements = settingElement.getChildren( "value" );
+
                 final Map<String, List<String>> values = new TreeMap<>();
                 for ( final XmlElement loopValueElement  : valueElements )
                 {
-                    final String localeString = loopValueElement.getAttributeValue(
-                            "locale" ) == null ? "" : loopValueElement.getAttributeValue( "locale" );
-                    final String value = loopValueElement.getText();
-                    List<String> valueList = values.get( localeString );
-                    if ( valueList == null )
-                    {
-                        valueList = new ArrayList<>();
-                        values.put( localeString, valueList );
-                    }
-                    valueList.add( value );
+                    final String localeString = loopValueElement.getAttributeValue( "locale" ).orElse( "" );
+                    loopValueElement.getText().ifPresent( value -> values.computeIfAbsent( localeString, s -> new ArrayList<>() ).add( value ) );
                 }
+
                 return new LocalizedStringArrayValue( values );
             }
         };
@@ -151,10 +147,11 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
     @Override
     public String toDebugString( final Locale locale )
     {
-        if ( values == null )
+        if ( CollectionUtil.isEmpty( values ) )
         {
             return "";
         }
+
         final StringBuilder sb = new StringBuilder();
         for ( final Map.Entry<String, List<String>> entry : values.entrySet() )
         {
@@ -162,9 +159,14 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
             if ( !values.get( localeKey ).isEmpty() )
             {
                 sb.append( "Locale: " ).append( LocaleHelper.debugLabel( LocaleHelper.parseLocaleString( localeKey ) ) ).append( "\n" );
-                for ( final String value : entry.getValue() )
+                for ( final Iterator<String> iterator = entry.getValue().iterator(); iterator.hasNext(); )
                 {
-                    sb.append( "  " ).append( value ).append( "\n" );
+                    final String value = iterator.next();
+                    sb.append( "  " ).append( value );
+                    if ( iterator.hasNext() )
+                    {
+                        sb.append( "\n" );
+                    }
                 }
             }
         }

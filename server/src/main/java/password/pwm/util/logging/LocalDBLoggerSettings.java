@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,11 @@
 package password.pwm.util.logging;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
@@ -32,7 +33,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-@Data
+@Value
 @Builder( toBuilder = true )
 public class LocalDBLoggerSettings implements Serializable
 {
@@ -43,7 +44,7 @@ public class LocalDBLoggerSettings implements Serializable
     static final TimeDuration MINIMUM_MAX_AGE = TimeDuration.HOUR;
 
     @Builder.Default
-    private int maxEvents = 1000 * 1000;
+    private int maxEvents = 1000_000;
 
     @Builder.Default
     private TimeDuration maxAge = TimeDuration.of( 7, TimeDuration.Unit.DAYS );
@@ -52,7 +53,7 @@ public class LocalDBLoggerSettings implements Serializable
     private Set<Flag> flags = Collections.emptySet();
 
     @Builder.Default
-    private int maxBufferSize = 1000;
+    private int maxBufferSize = 10_000;
 
     @Builder.Default
     private TimeDuration maxBufferWaitTime = TimeDuration.of( 1, TimeDuration.Unit.MINUTES );
@@ -66,6 +67,13 @@ public class LocalDBLoggerSettings implements Serializable
         DevDebug,
     }
 
+    TimeDuration cleanerFrequency()
+    {
+        final long ageSlice = this.getMaxAge().asMillis() / 1000;
+        final long cleanerFrequencyMs = JavaHelper.rangeCheck( TimeDuration.MINUTE.asMillis(), ageSlice, TimeDuration.DAY.asMillis() );
+        return TimeDuration.of( cleanerFrequencyMs, TimeDuration.Unit.MILLISECONDS );
+    }
+
     LocalDBLoggerSettings applyValueChecks()
     {
         return toBuilder()
@@ -74,22 +82,22 @@ public class LocalDBLoggerSettings implements Serializable
                 .build();
     }
 
-    public static LocalDBLoggerSettings fromConfiguration( final Configuration configuration )
+    public static LocalDBLoggerSettings fromConfiguration( final AppConfig appConfig )
     {
         final Set<Flag> flags = EnumSet.noneOf( Flag.class );
-        if ( configuration.isDevDebugMode() )
+        if ( appConfig.isDevDebugMode() )
         {
             flags.add( Flag.DevDebug );
         }
-        final int maxEvents = ( int ) configuration.readSettingAsLong( PwmSetting.EVENTS_PWMDB_MAX_EVENTS );
-        final long maxAgeMS = 1000 * configuration.readSettingAsLong( PwmSetting.EVENTS_PWMDB_MAX_AGE );
+        final int maxEvents = ( int ) appConfig.readSettingAsLong( PwmSetting.EVENTS_PWMDB_MAX_EVENTS );
+        final long maxAgeMS = 1000 * appConfig.readSettingAsLong( PwmSetting.EVENTS_PWMDB_MAX_AGE );
         final TimeDuration maxAge = TimeDuration.of( maxAgeMS, TimeDuration.Unit.MILLISECONDS );
-        final int maxBufferSize = Integer.parseInt( configuration.readAppProperty( AppProperty.LOCALDB_LOGWRITER_BUFFER_SIZE ) );
+        final int maxBufferSize = Integer.parseInt( appConfig.readAppProperty( AppProperty.LOCALDB_LOGWRITER_BUFFER_SIZE ) );
         final TimeDuration maxBufferWaitTime = TimeDuration.of(
-                Long.parseLong( configuration.readAppProperty( AppProperty.LOCALDB_LOGWRITER_MAX_BUFFER_WAIT_MS ) ),
+                Long.parseLong( appConfig.readAppProperty( AppProperty.LOCALDB_LOGWRITER_MAX_BUFFER_WAIT_MS ) ),
                 TimeDuration.Unit.MILLISECONDS
         );
-        final int maxTrimSize = Integer.parseInt( configuration.readAppProperty( AppProperty.LOCALDB_LOGWRITER_MAX_TRIM_SIZE ) );
+        final int maxTrimSize = Integer.parseInt( appConfig.readAppProperty( AppProperty.LOCALDB_LOGWRITER_MAX_TRIM_SIZE ) );
 
         return LocalDBLoggerSettings.builder()
                 .maxEvents( maxEvents )

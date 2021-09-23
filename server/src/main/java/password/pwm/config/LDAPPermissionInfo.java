@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,12 +62,12 @@ public class LDAPPermissionInfo implements Serializable
         helpdesk,
         guestManager,;
 
-        public String getLabel( final Locale locale, final Configuration config )
+        public String getLabel( final Locale locale, final DomainConfig config )
         {
             return LocaleHelper.getLocalizedMessage( locale, "Actor_Label_" + this.toString(), config, Config.class );
         }
 
-        public String getDescription( final Locale locale, final Configuration config )
+        public String getDescription( final Locale locale, final DomainConfig config )
         {
             final MacroRequest macroRequest = MacroRequest.forStatic();
             return macroRequest.expandMacros( LocaleHelper.getLocalizedMessage( locale, "Actor_Description_" + this.toString(), config, Config.class ) );

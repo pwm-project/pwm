@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,14 +30,12 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 public class ObsoleteUrlFilter extends AbstractPwmFilter
@@ -45,15 +43,7 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( ObsoleteUrlFilter.class );
 
-    private static final Map<String, String> STATIC_REDIRECTS;
-
-    static
-    {
-        final Map<String, String> staticRedirects = new HashMap<>();
-        staticRedirects.put( PwmConstants.URL_PREFIX_PRIVATE, PwmConstants.URL_PREFIX_PRIVATE + "/" );
-        STATIC_REDIRECTS = Collections.unmodifiableMap( staticRedirects );
-    }
-
+    private static final Map<String, String> STATIC_REDIRECTS = Map.of( PwmConstants.URL_PREFIX_PRIVATE, PwmConstants.URL_PREFIX_PRIVATE + "/" );
 
     @Override
     void processFilter( final PwmApplicationMode mode, final PwmRequest pwmRequest, final PwmFilterChain filterChain )
@@ -90,17 +80,18 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter
         }
 
         final String requestUrl = pwmRequest.getURLwithoutQueryString();
-        final String requestServletUrl = requestUrl.substring( pwmRequest.getContextPath().length() );
+        final String requestServletUrl = requestUrl.substring( pwmRequest.getBasePath().length() );
 
         for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
         {
             boolean match = false;
+            patternLoop:
             for ( final String patternUrl : pwmServletDefinition.urlPatterns() )
             {
                 if ( patternUrl.equals( requestServletUrl ) )
                 {
                     match = true;
-                    break;
+                    break patternLoop;
                 }
             }
 
@@ -112,8 +103,8 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter
                             + requestServletUrl
                             + "' detected, redirecting to canonical URL of '"
                             + pwmServletDefinition.servletUrl() + "'" );
-                    StatisticsManager.incrementStat( pwmRequest, Statistic.OBSOLETE_URL_REQUESTS );
-                    pwmRequest.sendRedirect( pwmServletDefinition );
+                    StatisticsClient.incrementStat( pwmRequest, Statistic.OBSOLETE_URL_REQUESTS );
+                    pwmRequest.getPwmResponse().sendRedirect( pwmServletDefinition );
                     return ProcessStatus.Halt;
                 }
             }
@@ -130,11 +121,11 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter
 
         for ( final Map.Entry<String, String> entry : STATIC_REDIRECTS.entrySet() )
         {
-            final String testUrl = pwmRequest.getContextPath() + entry.getKey();
+            final String testUrl = pwmRequest.getBasePath() + entry.getKey();
             if ( StringUtil.nullSafeEquals( requestUrl, testUrl ) )
             {
-                final String nextUrl = pwmRequest.getContextPath() + entry.getValue();
-                pwmRequest.sendRedirect( nextUrl );
+                final String nextUrl = pwmRequest.getBasePath() + entry.getValue();
+                pwmRequest.getPwmResponse().sendRedirect( nextUrl );
                 return ProcessStatus.Halt;
             }
         }

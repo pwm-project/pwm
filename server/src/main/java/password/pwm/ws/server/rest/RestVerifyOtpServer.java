@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,9 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.i18n.Message;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.operations.OtpService;
-import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.svc.otp.OtpService;
+import password.pwm.svc.otp.OTPUserRecord;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
@@ -83,12 +83,12 @@ public class RestVerifyOtpServer extends RestServlet
                             jsonBody == null ? null : jsonBody.getToken(),
                             restRequest.readParameterAsString( "token" ),
                             "token"
-                    ),
+                    ).orElse( null ),
                     RestUtility.readValueFromJsonAndParam(
                             jsonBody == null ? null : jsonBody.getUsername(),
                             restRequest.readParameterAsString( "username" ),
                             "username"
-                    )
+                    ).orElse( null )
             );
         }
 
@@ -96,7 +96,7 @@ public class RestVerifyOtpServer extends RestServlet
 
         try
         {
-            final OtpService otpService = restRequest.getPwmApplication().getOtpService();
+            final OtpService otpService = restRequest.getDomain().getOtpService();
             final OTPUserRecord otpUserRecord = otpService.readOTPUserConfiguration( restRequest.getSessionLabel(), targetUserIdentity.getUserIdentity() );
 
             final boolean verified = otpUserRecord != null && otpService.validateToken(
@@ -107,7 +107,7 @@ public class RestVerifyOtpServer extends RestServlet
                     false
             );
 
-            StatisticsManager.incrementStat( restRequest.getPwmApplication(), Statistic.REST_VERIFYOTP );
+            StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_VERIFYOTP );
             return RestResultBean.forSuccessMessage( verified, restRequest, Message.Success_Unknown );
         }
         catch ( final ChaiUnavailableException e )

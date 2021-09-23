@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 
 <%@ page import="password.pwm.i18n.Admin" %>
 <%@ page import="password.pwm.util.logging.LocalDBLogger" %>
+<%@ page import="java.time.Instant" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -110,11 +111,11 @@
                     <p>
                         This page shows the debug log
                         history. This records shown here are stored in the LocalDB.  The LocalDB contains <%=JspUtility.friendlyWrite( pageContext, localDBLogger.getStoredEventCount() )%> events. The oldest event stored in the LocalDB is from
-                        <span class="timestamp"><%= JspUtility.friendlyWrite( pageContext, JspUtility.getPwmRequest( pageContext ).getPwmApplication().getLocalDBLogger().getTailDate() ) %></span>.
+                        <span class="timestamp"><%= JspUtility.friendlyWrite( pageContext, JspUtility.getPwmRequest( pageContext ).getPwmApplication().getLocalDBLogger().getTailDate().orElse( Instant.EPOCH ) ) %></span>.
                     </p>
                     <p>
                         The LocalDB is configured to capture events of level
-                        <i><%=JspUtility.getPwmRequest( pageContext ).getConfig().readSettingAsString(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL)%>
+                        <i><%=JspUtility.getPwmRequest( pageContext ).getAppConfig().readSettingAsString(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL)%>
                         </i> and higher.
                     </p>
                 </div>

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Value;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -61,8 +61,9 @@ import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CacheLoader;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
@@ -106,7 +107,7 @@ class PeopleSearchDataReader
             throws PwmUnrecoverableException
     {
         this.pwmRequest = pwmRequest;
-        this.peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getConfig(), peopleSearchProfile );
+        this.peopleSearchConfiguration = new PeopleSearchConfiguration( pwmRequest.getDomainConfig(), peopleSearchProfile );
     }
 
     SearchResultBean makeSearchResultBean(
@@ -118,16 +119,16 @@ class PeopleSearchDataReader
 
         {
             // try to serve from cache first
-            final SearchResultBean cachedResult = pwmRequest.getPwmApplication().getCacheService().get( cacheKey, SearchResultBean.class );
+            final SearchResultBean cachedResult = pwmRequest.getPwmDomain().getCacheService().get( cacheKey, SearchResultBean.class );
             if ( cachedResult != null )
             {
                 final SearchResultBean copyWithCacheSet = cachedResult.toBuilder().fromCache( true ).build();
-                StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
                 return copyWithCacheSet;
             }
             else
             {
-                StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_MISSES );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_MISSES );
             }
         }
 
@@ -135,7 +136,7 @@ class PeopleSearchDataReader
         final SearchResultBean searchResultBean = makeSearchResultsImpl( searchRequestBean )
                 .toBuilder().fromCache( false ).build();
 
-        StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_SEARCHES );
+        StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_SEARCHES );
         storeDataInCache( cacheKey, searchResultBean );
         LOGGER.trace( pwmRequest, () -> "returning " + searchResultBean.getSearchResults().size()
                 + " results for search request "
@@ -159,16 +160,16 @@ class PeopleSearchDataReader
 
         {
             // if value is cached then return;
-            final OrgChartDataBean cachedOutput = pwmRequest.getPwmApplication().getCacheService().get( cacheKey, OrgChartDataBean.class );
+            final OrgChartDataBean cachedOutput = pwmRequest.getPwmDomain().getCacheService().get( cacheKey, OrgChartDataBean.class );
             if ( cachedOutput != null )
             {
-                StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
                 LOGGER.trace( pwmRequest, () -> "completed makeOrgChartData of " + userIdentity.toDisplayString() + " from cache" );
                 return cachedOutput;
             }
             else
             {
-                StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_MISSES );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_MISSES );
             }
         }
 
@@ -210,10 +211,10 @@ class PeopleSearchDataReader
                     childCount++;
                 }
             }
-            orgChartData.setChildren( Collections.unmodifiableList( new ArrayList<>( sortedChildren.values() ) ) );
+            orgChartData.setChildren( List.copyOf( sortedChildren.values() ) );
         }
 
-        if ( !StringUtil.isEmpty( peopleSearchConfiguration.getOrgChartAssistantAttr( userIdentity ) ) )
+        if ( StringUtil.notEmpty( peopleSearchConfiguration.getOrgChartAssistantAttr( userIdentity ) ) )
         {
             final List<UserIdentity> assistantIdentities = readUserDNAttributeValues( userIdentity, peopleSearchConfiguration.getOrgChartAssistantAttr( userIdentity ) );
             if ( assistantIdentities != null && !assistantIdentities.isEmpty() )
@@ -246,15 +247,15 @@ class PeopleSearchDataReader
 
         final CacheKey cacheKey = makeCacheKey( UserDetailBean.class.getSimpleName(), userIdentity.toDelimitedKey() );
         {
-            final UserDetailBean cachedOutput = pwmRequest.getPwmApplication().getCacheService().get( cacheKey, UserDetailBean.class );
+            final UserDetailBean cachedOutput = pwmRequest.getPwmDomain().getCacheService().get( cacheKey, UserDetailBean.class );
             if ( cachedOutput != null )
             {
-                StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_HITS );
                 return cachedOutput;
             }
             else
             {
-                StatisticsManager.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_MISSES );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.PEOPLESEARCH_CACHE_MISSES );
             }
         }
 
@@ -271,11 +272,9 @@ class PeopleSearchDataReader
         userDetailBean.setDetail( attributeBeans );
 
         final PhotoDataReader photoDataReader = photoDataReader( userIdentity );
-        final String photoURL = photoDataReader.figurePhotoURL( );
-        if ( photoURL != null )
-        {
-            userDetailBean.setPhotoURL( photoURL );
-        }
+        final Optional<String> photoURL = photoDataReader.figurePhotoURL( );
+        photoURL.ifPresent( userDetailBean::setPhotoURL );
+
         final List<String> displayName = figureDisplaynames( userIdentity );
         if ( displayName != null )
         {
@@ -292,7 +291,7 @@ class PeopleSearchDataReader
 
     private List<LinkReferenceBean> makeUserDetailLinks( final UserIdentity actorIdentity ) throws PwmUnrecoverableException
     {
-        final String userLinksStr = pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_VIEW_DETAIL_LINKS );
+        final String userLinksStr = pwmRequest.getDomainConfig().readAppProperty( AppProperty.PEOPLESEARCH_VIEW_DETAIL_LINKS );
         if ( StringUtil.isEmpty( userLinksStr ) )
         {
             return Collections.emptyList();
@@ -332,7 +331,7 @@ class PeopleSearchDataReader
 
         final List<String> returnObj = new ArrayList<>();
 
-        final int maxValues = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_VALUE_MAXCOUNT ) );
+        final int maxValues = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.PEOPLESEARCH_VALUE_MAXCOUNT ) );
         final ChaiUser chaiUser = getChaiUser( userIdentity );
         try
         {
@@ -376,7 +375,7 @@ class PeopleSearchDataReader
         {
             userIdentity = null;
         }
-        final String keyString = operationIdentifier + "|" + pwmRequest.getPwmApplication().getSecureService().hash( dataIdentifier );
+        final String keyString = operationIdentifier + "|" + pwmRequest.getPwmDomain().getSecureService().hash( dataIdentifier );
         return CacheKey.newKey(
                 this.getClass(),
                 userIdentity,
@@ -391,7 +390,7 @@ class PeopleSearchDataReader
         final OrgChartReferenceBean orgChartReferenceBean = new OrgChartReferenceBean();
         orgChartReferenceBean.setUserKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
         final PhotoDataReader photoDataReader = photoDataReader( userIdentity );
-        orgChartReferenceBean.setPhotoURL( photoDataReader.figurePhotoURL( ) );
+        photoDataReader.figurePhotoURL( ).ifPresent( orgChartReferenceBean::setPhotoURL );
 
         final List<String> displayLabels = figureDisplaynames( userIdentity );
         orgChartReferenceBean.setDisplayNames( displayLabels );
@@ -408,7 +407,7 @@ class PeopleSearchDataReader
 
         final List<UserIdentity> returnObj = new ArrayList<>();
 
-        final int maxValues = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_VALUE_MAXCOUNT ) );
+        final int maxValues = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.PEOPLESEARCH_VALUE_MAXCOUNT ) );
         final ChaiUser chaiUser = getChaiUser( userIdentity );
         final Set<String> ldapValues;
         try
@@ -428,10 +427,10 @@ class PeopleSearchDataReader
         }
 
 
-        final boolean checkUserDNValues = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.PEOPLESEARCH_MAX_VALUE_VERIFYUSERDN ) );
+        final boolean checkUserDNValues = Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.PEOPLESEARCH_MAX_VALUE_VERIFYUSERDN ) );
         for ( final String userDN : ldapValues )
         {
-            final UserIdentity loopIdentity = UserIdentity.createUserIdentity( userDN, userIdentity.getLdapProfileID() );
+            final UserIdentity loopIdentity = UserIdentity.create( userDN, userIdentity.getLdapProfileID(), pwmRequest.getDomainID() );
             if ( returnObj.size() < maxValues )
             {
                 if ( checkUserDNValues )
@@ -455,12 +454,12 @@ class PeopleSearchDataReader
     )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final TimeDuration maxCacheTime = this.peopleSearchConfiguration.getMaxCacheTime();
         if ( !maxCacheTime.isZero() )
         {
             final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( maxCacheTime );
-            pwmApplication.getCacheService().put( cacheKey, cachePolicy, data );
+            pwmDomain.getCacheService().put( cacheKey, cachePolicy, data );
         }
     }
 
@@ -472,11 +471,11 @@ class PeopleSearchDataReader
     )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final CacheKey cacheKey = makeCacheKey( operationIdentifier.name(), dataIdentifier );
         final TimeDuration maxCacheTime = this.peopleSearchConfiguration.getMaxCacheTime();
         final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( maxCacheTime );
-        return pwmApplication.getCacheService().get( cacheKey, cachePolicy, classOfT, cacheLoader );
+        return pwmDomain.getCacheService().get( cacheKey, cachePolicy, classOfT, cacheLoader );
     }
 
 
@@ -591,7 +590,7 @@ class PeopleSearchDataReader
             throws PwmUnrecoverableException
     {
         final Locale locale = pwmRequest.getLocale();
-        final ChaiProvider chaiProvider = pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity ).getChaiProvider();
+        final ChaiProvider chaiProvider = pwmRequest.getPwmDomain().getProxiedChaiUser( pwmRequest.getLabel(), userIdentity ).getChaiProvider();
         final UserInfo userInfo = UserInfoFactory.newUserInfo(
                 pwmRequest.getPwmApplication(),
                 pwmRequest.getLabel(),
@@ -650,7 +649,7 @@ class PeopleSearchDataReader
             return configuredFilter;
         }
 
-        final List<String> defaultObjectClasses = pwmRequest.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
+        final List<String> defaultObjectClasses = pwmRequest.getDomainConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
         final Set<String> searchAttributes = peopleSearchConfiguration.getSearchAttributes();
         final StringBuilder filter = new StringBuilder();
 
@@ -679,7 +678,7 @@ class PeopleSearchDataReader
 
     private String makeAdvancedFilter( final Map<String, String> attributesInSearchRequest )
     {
-        final List<String> defaultObjectClasses = pwmRequest.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
+        final List<String> defaultObjectClasses = pwmRequest.getDomainConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
         final List<FormConfiguration> searchAttributes = peopleSearchConfiguration.getSearchForm();
 
         return HelpdeskServletUtil.makeAdvancedSearchFilter( defaultObjectClasses, searchAttributes, attributesInSearchRequest );
@@ -700,7 +699,7 @@ class PeopleSearchDataReader
     {
         final boolean useProxy = useProxy();
         return useProxy
-                ? pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity )
+                ? pwmRequest.getPwmDomain().getProxiedChaiUser( pwmRequest.getLabel(), userIdentity )
                 : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
     }
 
@@ -753,70 +752,23 @@ class PeopleSearchDataReader
 
         final Instant startTime = Instant.now();
 
-        final SearchRequestBean.SearchMode searchMode = searchRequest.getMode() == null
-                ? SearchRequestBean.SearchMode.simple
-                : searchRequest.getMode();
-
         final SearchConfiguration searchConfiguration;
         {
-            final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
-            builder.contexts( this.peopleSearchConfiguration.getLdapBase() );
-            builder.enableContextValidation( false );
-            builder.enableValueEscaping( false );
-            builder.enableSplitWhitespace( true );
 
-            if ( !useProxy() )
+
+            final Optional<SearchConfiguration> optionalSearchConfiguration = makeSearchConfiguration( searchRequest );
+            if ( optionalSearchConfiguration.isPresent() )
             {
-                builder.ldapProfile( pwmRequest.getPwmSession().getUserInfo().getUserIdentity().getLdapProfileID() );
-                builder.chaiProvider( pwmRequest.getPwmSession().getSessionManager().getChaiProvider() );
+                searchConfiguration = optionalSearchConfiguration.get();
             }
-
-            switch ( searchMode )
+            else
             {
-                case simple:
-                {
-                    if ( StringUtil.isEmpty( searchRequest.getUsername() ) )
-                    {
-                        return SearchResultBean.builder().searchResults( Collections.emptyList() ).build();
-                    }
-
-                    builder.filter( makeSimpleSearchFilter() );
-                    builder.username( searchRequest.getUsername() );
-                }
-                break;
-
-                case advanced:
-                {
-                    if ( JavaHelper.isEmpty( searchRequest.nonEmptySearchValues() ) )
-                    {
-                        return SearchResultBean.builder().searchResults( Collections.emptyList() ).build();
-                    }
-
-                    final Map<FormConfiguration, String> formValues = new LinkedHashMap<>();
-                    final Map<String, String> requestSearchValues = SearchRequestBean.searchValueToMap( searchRequest.getSearchValues() );
-                    for ( final FormConfiguration formConfiguration : peopleSearchConfiguration.getSearchForm() )
-                    {
-                        final String attribute = formConfiguration.getName();
-                        final String value = requestSearchValues.get( attribute );
-                        if ( !StringUtil.isEmpty( value ) )
-                        {
-                            formValues.put( formConfiguration, value );
-                        }
-                    }
-
-                    builder.filter( makeAdvancedFilter( requestSearchValues ) );
-                    builder.formValues( formValues );
-                }
-                break;
-
-                default:
-                    JavaHelper.unhandledSwitchStatement( searchMode );
+                return SearchResultBean.builder().searchResults( Collections.emptyList() ).build();
             }
-
-            searchConfiguration = builder.build();
         }
 
-        final UserSearchEngine userSearchEngine = pwmRequest.getPwmApplication().getUserSearchEngine();
+
+        final UserSearchEngine userSearchEngine = pwmRequest.getPwmDomain().getUserSearchEngine();
 
         final UserSearchResults results;
         final boolean sizeExceeded;
@@ -831,11 +783,11 @@ class PeopleSearchDataReader
         catch ( final PwmOperationalException e )
         {
             final ErrorInformation errorInformation = e.getErrorInformation();
-            LOGGER.error( pwmRequest.getLabel(), () -> errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest.getLabel(), errorInformation::toDebugStr );
             throw new PwmUnrecoverableException( errorInformation );
         }
 
-        final List<Map<String, Object>> resultOutput = new ArrayList<>( results.resultsAsJsonOutput( pwmRequest.getPwmApplication(), null ) );
+        final List<Map<String, Object>> resultOutput = new ArrayList<>( results.resultsAsJsonOutput( pwmRequest.getPwmDomain(), null ) );
         if ( searchRequest.isIncludeDisplayName() )
         {
             for ( final Map<String, Object> map : resultOutput )
@@ -843,7 +795,7 @@ class PeopleSearchDataReader
                 final String userKey = ( String ) map.get( "userKey" );
                 if ( userKey != null )
                 {
-                    final UserIdentity userIdentity = UserIdentity.fromKey( userKey, pwmRequest.getPwmApplication() );
+                    final UserIdentity userIdentity = UserIdentity.fromKey( pwmRequest.getLabel(), userKey, pwmRequest.getPwmApplication() );
                     final String displayValue = figureDisplaynameValue( pwmRequest, userIdentity );
                     map.put( "_displayName", displayValue );
                 }
@@ -858,7 +810,7 @@ class PeopleSearchDataReader
         final String aboutMessage = LocaleHelper.getLocalizedMessage(
                 pwmRequest.getLocale(),
                 Display.Display_SearchResultsInfo.getKey(),
-                pwmRequest.getConfig(),
+                pwmRequest.getDomainConfig(),
                 Display.class,
                 new String[]
                         {
@@ -871,6 +823,72 @@ class PeopleSearchDataReader
                 .searchResults( resultOutput )
                 .aboutResultMessage( aboutMessage )
                 .build();
+    }
+
+    private Optional<SearchConfiguration> makeSearchConfiguration(
+            final SearchRequestBean searchRequest
+    )
+            throws PwmUnrecoverableException
+    {
+        final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
+        builder.contexts( this.peopleSearchConfiguration.getLdapBase() );
+        builder.enableContextValidation( false );
+        builder.enableValueEscaping( false );
+        builder.enableSplitWhitespace( true );
+
+        if ( !useProxy() )
+        {
+            builder.ldapProfile( pwmRequest.getPwmSession().getUserInfo().getUserIdentity().getLdapProfileID() );
+            builder.chaiProvider( pwmRequest.getPwmSession().getSessionManager().getChaiProvider() );
+        }
+
+        final SearchRequestBean.SearchMode searchMode = searchRequest.getMode() == null
+                ? SearchRequestBean.SearchMode.simple
+                : searchRequest.getMode();
+
+        switch ( searchMode )
+        {
+            case simple:
+            {
+                if ( StringUtil.isEmpty( searchRequest.getUsername() ) )
+                {
+                    return Optional.empty();
+                }
+
+                builder.filter( makeSimpleSearchFilter() );
+                builder.username( searchRequest.getUsername() );
+            }
+            break;
+
+            case advanced:
+            {
+                if ( CollectionUtil.isEmpty( searchRequest.nonEmptySearchValues() ) )
+                {
+                    return Optional.empty();
+                }
+
+                final Map<FormConfiguration, String> formValues = new LinkedHashMap<>();
+                final Map<String, String> requestSearchValues = SearchRequestBean.searchValueToMap( searchRequest.getSearchValues() );
+                for ( final FormConfiguration formConfiguration : peopleSearchConfiguration.getSearchForm() )
+                {
+                    final String attribute = formConfiguration.getName();
+                    final String value = requestSearchValues.get( attribute );
+                    if ( StringUtil.notEmpty( value ) )
+                    {
+                        formValues.put( formConfiguration, value );
+                    }
+                }
+
+                builder.filter( makeAdvancedFilter( requestSearchValues ) );
+                builder.formValues( formValues );
+            }
+            break;
+
+            default:
+                JavaHelper.unhandledSwitchStatement( searchMode );
+        }
+
+        return Optional.of( builder.build() );
     }
 
     private String readUserAttribute(
@@ -908,7 +926,7 @@ class PeopleSearchDataReader
         final List<String> returnValues = new ArrayList<>(  );
         final String mailtoAttr = this.peopleSearchConfiguration.getEmailAttribute( userIdentity );
         final String value = readUserAttribute( userIdentity, mailtoAttr );
-        if ( !StringUtil.isEmpty( value ) )
+        if ( StringUtil.notEmpty( value ) )
         {
             returnValues.add( value );
         }
@@ -936,7 +954,7 @@ class PeopleSearchDataReader
         final Instant startTime = Instant.now();
         LOGGER.trace( pwmRequest, () -> "beginning csv export starting with user " + userIdentity.toDisplayString() + " and depth of " + depth );
 
-        final ThreadPoolExecutor executor = pwmRequest.getPwmApplication().getPeopleSearchService().getJobExecutor();
+        final ThreadPoolExecutor executor = pwmRequest.getPwmDomain().getPeopleSearchService().getJobExecutor();
 
         final AtomicInteger rowCounter = new AtomicInteger( 0 );
         final OrgChartExportState orgChartExportState = new OrgChartExportState(
@@ -1030,7 +1048,7 @@ class PeopleSearchDataReader
                 for ( final Map.Entry<String, AttributeDetailBean> entry : userDetailBean.getDetail().entrySet() )
                 {
                     final List<String> values = entry.getValue().getValues();
-                    if ( JavaHelper.isEmpty( values ) )
+                    if ( CollectionUtil.isEmpty( values ) )
                     {
                         outputRowValues.add( " " );
                     }
@@ -1052,7 +1070,7 @@ class PeopleSearchDataReader
             if ( depth > 0 && orgChartExportState.getRowCounter().get() < peopleSearchConfiguration.getExportCsvMaxItems() )
             {
                 final List<OrgChartReferenceBean> children = orgChartDataBean.getChildren();
-                if ( !JavaHelper.isEmpty( children ) )
+                if ( !CollectionUtil.isEmpty( children ) )
                 {
                     for ( final OrgChartReferenceBean child : children )
                     {

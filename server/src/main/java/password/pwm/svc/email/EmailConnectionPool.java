@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 package password.pwm.svc.email;
 
+import jakarta.mail.Transport;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -28,9 +29,7 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import jakarta.mail.Transport;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -63,7 +62,7 @@ public class EmailConnectionPool
             final List<EmailServer> servers,
             final EmailServiceSettings settings )
     {
-        this.servers = Collections.unmodifiableList( new ArrayList<>( servers ) );
+        this.servers = List.copyOf( servers );
         this.serverIncrementer = AtomicLoopIntIncrementer.builder().ceiling( servers.size() ).build();
         this.settings = settings;
     }

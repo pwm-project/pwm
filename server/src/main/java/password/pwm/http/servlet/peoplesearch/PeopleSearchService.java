@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,10 @@
 package password.pwm.http.servlet.peoplesearch;
 
 import password.pwm.PwmApplication;
+import password.pwm.bean.DomainID;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 
@@ -33,22 +35,14 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class PeopleSearchService implements PwmService
+public class PeopleSearchService extends AbstractPwmService implements PwmService
 {
-    private PwmApplication pwmApplication;
     private ThreadPoolExecutor threadPoolExecutor;
 
     @Override
-    public STATUS status()
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
     {
-        return STATUS.OPEN;
-    }
-
-    @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
-    {
-        this.pwmApplication = pwmApplication;
-
         final int maxThreadCount = 5;
 
         final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, PeopleSearchService.class ), true );
@@ -60,6 +54,8 @@ public class PeopleSearchService implements PwmService
                 new ArrayBlockingQueue<>( 5000 ),
                 threadFactory
         );
+
+        return STATUS.OPEN;
     }
 
     @Override
@@ -69,7 +65,7 @@ public class PeopleSearchService implements PwmService
     }
 
     @Override
-    public List<HealthRecord> healthCheck()
+    public List<HealthRecord> serviceHealthCheck()
     {
         return Collections.emptyList();
     }

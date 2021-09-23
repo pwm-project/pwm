@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 package password.pwm.config.stored;
 
-import password.pwm.config.PwmSetting;
+import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.value.StoredValue;
 import password.pwm.error.PwmUnrecoverableException;
@@ -28,10 +28,9 @@ import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 public interface StoredConfiguration
 {
@@ -43,25 +42,17 @@ public interface StoredConfiguration
 
     Optional<String> readConfigProperty( ConfigurationProperty propertyName );
 
-    PwmSettingTemplateSet getTemplateSet();
+    Map<DomainID, PwmSettingTemplateSet> getTemplateSet();
 
-    List<String> profilesForSetting( PwmSetting pwmSetting );
+    Optional<ValueMetaData> readSettingMetadata( StoredConfigKey storedConfigKey );
 
-    ValueMetaData readSettingMetadata( PwmSetting setting, String profileID );
+    Map<String, String> readLocaleBundleMap( PwmLocaleBundle bundleName, String keyName, DomainID domainID );
 
-    Map<String, String> readLocaleBundleMap( PwmLocaleBundle bundleName, String keyName );
+    Iterator<StoredConfigKey> keys();
 
-    StoredValue readSetting( PwmSetting setting, String profileID );
+    Optional<ValueMetaData> readMetaData( StoredConfigKey storedConfigKey );
 
-    boolean isDefaultValue( PwmSetting setting, String profileID );
-
-    String valueHash();
-
-    Set<StoredConfigItemKey> modifiedItems();
-
-    Optional<ValueMetaData> readMetaData( StoredConfigItemKey storedConfigItemKey );
-
-    Optional<StoredValue> readStoredValue( StoredConfigItemKey storedConfigItemKey );
+    Optional<StoredValue> readStoredValue( StoredConfigKey storedConfigKey );
 
     StoredConfiguration copy();
 }

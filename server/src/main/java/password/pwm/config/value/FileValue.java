@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,16 @@
 package password.pwm.config.value;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -46,6 +48,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class FileValue extends AbstractValue implements StoredValue
 {
@@ -59,69 +62,97 @@ public class FileValue extends AbstractValue implements StoredValue
     @Value
     public static class FileInformation implements Serializable
     {
-        private String filename;
-        private String filetype;
+        private static final long serialVersionUID = 1L;
+
+        private final String filename;
+        private final String filetype;
     }
 
-    @Value
+    @EqualsAndHashCode
     public static class FileContent implements Serializable
     {
-        private ImmutableByteArray contents;
+        private static final long serialVersionUID = 1L;
 
-        static FileContent fromEncodedString( final String input )
+        private final String b64EncodedContents;
+        private final transient Supplier<ImmutableByteArray> byteContents;
+
+        private FileContent( final String b64EncodedContents )
+        {
+            this.b64EncodedContents = b64EncodedContents;
+            this.byteContents = new LazySupplier<>( () -> b64decode( b64EncodedContents ) );
+        }
+
+        public static FileContent fromEncodedString( final String input )
                 throws IOException
         {
-            final String whitespaceStrippedInput = StringUtil.stripAllWhitespace( input );
-            final byte[] convertedBytes = StringUtil.base64Decode( whitespaceStrippedInput );
-            return new FileContent( ImmutableByteArray.of( convertedBytes ) );
+            final String whitespaceStripped = StringUtil.stripAllWhitespace( input );
+            return new FileContent( whitespaceStripped );
+        }
+
+        public static FileContent fromBytes( final ImmutableByteArray contents )
+                throws PwmUnrecoverableException
+        {
+            return new FileContent( b64encode( contents ) );
         }
 
         String toEncodedString( )
                 throws IOException
         {
-            return StringUtil.base64Encode( contents.copyOf(), StringUtil.Base64Options.GZIP );
+            return b64EncodedContents;
         }
 
         String sha512sum( )
                 throws PwmUnrecoverableException
         {
-            return SecureEngine.hash( contents.newByteArrayInputStream(), PwmHashAlgorithm.SHA512 );
+            return SecureEngine.hash( byteContents.get().newByteArrayInputStream(), PwmHashAlgorithm.SHA512 );
         }
 
         public int size( )
         {
-            return contents.size();
+            return byteContents.get().size();
         }
+
+        public ImmutableByteArray getContents()
+        {
+            return byteContents.get();
+        }
+
+        
+    }
+
+    public static FileValue newFileValue( final String filename, final String fileMimeType, final ImmutableByteArray contents )
+            throws PwmUnrecoverableException
+    {
+        final FileInformation fileInformation = new FileValue.FileInformation( filename, fileMimeType );
+        final FileContent fileContent = FileContent.fromBytes( contents );
+        return new FileValue( Collections.singletonMap( fileInformation, fileContent ) );
     }
 
     public FileValue( final Map<FileInformation, FileContent> values )
     {
-        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
+        this.values = values == null ? Collections.emptyMap() : Map.copyOf( values );
     }
 
     public static StoredValueFactory factory( )
     {
         return new StoredValueFactory()
         {
-
             @Override
             public FileValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
-                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 final Map<FileInformation, FileContent> values = new LinkedHashMap<>();
                 for ( final XmlElement loopValueElement : valueElements )
                 {
                     final Optional<XmlElement> loopFileInformation = loopValueElement.getChild( XML_ELEMENT_FILE_INFORMATION );
-                    if ( loopFileInformation.isPresent() )
+                    loopFileInformation.flatMap( XmlElement::getText ).ifPresent( loopFileInformationJson ->
                     {
-                        final String loopFileInformationJson = loopFileInformation.get().getText();
                         final FileInformation fileInformation = JsonUtil.deserialize( loopFileInformationJson,
                                 FileInformation.class );
 
                         final Optional<XmlElement> loopFileContentElement = loopValueElement.getChild( XML_ELEMENT_FILE_CONTENT );
-                        if ( loopFileContentElement.isPresent() )
+                        loopFileContentElement.flatMap( XmlElement::getText ).ifPresent( fileContentString ->
                         {
-                            final String fileContentString = loopFileContentElement.get().getText();
                             final FileContent fileContent;
                             try
                             {
@@ -132,8 +163,8 @@ public class FileValue extends AbstractValue implements StoredValue
                             {
                                 LOGGER.error( () -> "error reading file contents item: " + e.getMessage(), e );
                             }
-                        }
-                    }
+                        } );
+                    } );
                 }
                 return new FileValue( values );
             }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,12 @@
 package password.pwm.http.tag;
 
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
+import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -129,7 +130,7 @@ public class DisplayTag extends PwmAbstractTag
             final Locale locale = pwmRequest == null ? PwmConstants.DEFAULT_LOCALE : pwmRequest.getLocale();
 
             final Class bundle = readBundle();
-            String displayMessage = figureDisplayMessage( locale, pwmRequest == null ? null : pwmRequest.getConfig(), bundle );
+            String displayMessage = figureDisplayMessage( locale, pwmRequest == null ? null : pwmRequest.getDomainConfig(), bundle );
 
             if ( pwmRequest != null )
             {
@@ -182,7 +183,7 @@ public class DisplayTag extends PwmAbstractTag
         return Display.class;
     }
 
-    private String figureDisplayMessage( final Locale locale, final Configuration config, final Class bundleClass )
+    private String figureDisplayMessage( final Locale locale, final DomainConfig config, final Class<? extends PwmDisplayBundle> bundleClass )
     {
         try
         {

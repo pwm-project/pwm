@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,12 @@ package password.pwm.config.profile;
 
 import com.novell.ldapchai.ChaiPasswordRule;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Message;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -490,25 +488,7 @@ public enum PwmPasswordRule
         return positiveBooleanMerge;
     }
 
-    public static PwmPasswordRule forKey( final String key )
-    {
-        if ( key == null )
-        {
-            return null;
-        }
-
-        for ( final PwmPasswordRule rule : values() )
-        {
-            if ( key.equals( rule.getKey() ) )
-            {
-                return rule;
-            }
-        }
-
-        return null;
-    }
-
-    public String getLabel( final Locale locale, final Configuration config )
+    public String getLabel( final Locale locale, final DomainConfig config )
     {
         final String key = "Rule_" + this.toString();
         try
@@ -521,13 +501,13 @@ public enum PwmPasswordRule
         }
     }
 
-    public static List<PwmPasswordRule> sortedByLabel ( final Locale locale, final Configuration config )
+    public static List<PwmPasswordRule> sortedByLabel ( final Locale locale, final DomainConfig config )
     {
         final TreeMap<String, PwmPasswordRule> sortedMap = new TreeMap<>();
         for ( final PwmPasswordRule rule : PwmPasswordRule.values() )
         {
             sortedMap.put( rule.getLabel( locale, config ), rule );
         }
-        return Collections.unmodifiableList( new ArrayList<>( sortedMap.values() ) );
+        return List.copyOf( sortedMap.values() );
     }
 }

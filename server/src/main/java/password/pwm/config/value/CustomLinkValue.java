@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,11 +79,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
                 final List<CustomLinkConfiguration> values = new ArrayList<>();
                 for ( final XmlElement loopValueElement  : valueElements )
                 {
-                    final String value = loopValueElement.getText();
-                    if ( value != null && value.length() > 0 && loopValueElement.getAttributeValue( "locale" ) == null )
-                    {
-                        values.add( JsonUtil.deserialize( value, CustomLinkConfiguration.class ) );
-                    }
+                    loopValueElement.getText().ifPresent( value -> values.add( JsonUtil.deserialize( value, CustomLinkConfiguration.class ) ) );
                 }
                 return new CustomLinkValue( values );
             }

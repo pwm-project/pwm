@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@
             </pwm:if>
         </p>
         <br/><br/>
-        <% String welcomeText = JavaHelper.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_WELCOME_TXT); %>
+        <% String welcomeText = ContextManager.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_WELCOME_TXT); %>
         <% String macroText = MacroRequest.forStatic().expandMacros(welcomeText); %>
         <% if (!StringUtil.isEmpty(macroText)) { %>
         <div id="agreementText" class="eulaText"><%=macroText%></div>

@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@
                     <%=pwmLocaleBundle.getTheClass().getSimpleName()%>
                 </td>
                 <td>
-                    <%=LocaleHelper.booleanString(!pwmLocaleBundle.isAdminOnly(), pwmRequest.getLocale(), pwmRequest.getConfig())%>
+                    <%=LocaleHelper.booleanString(!pwmLocaleBundle.isAdminOnly(), pwmRequest.getLocale(), pwmRequest.getDomainConfig())%>
                 </td>
                 <td>
                     <%=numberFormat.format(bundleStats.getTotalKeys())%>
@@ -132,7 +132,7 @@
                     Percent Present
                 </td>
             </tr>
-            <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
+            <% for (final Locale loopLocale: pwmRequest.getAppConfig().getKnownLocales()) { %>
             <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
@@ -189,7 +189,7 @@
                     Percent Present
                 </td>
             </tr>
-            <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
+            <% for (final Locale loopLocale: pwmRequest.getAppConfig().getKnownLocales()) { %>
             <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
@@ -247,7 +247,7 @@
                     Percent Present
                 </td>
             </tr>
-            <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
+            <% for (final Locale loopLocale: pwmRequest.getAppConfig().getKnownLocales()) { %>
             <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
@@ -304,7 +304,7 @@
                     Percent Present
                 </td>
             </tr>
-            <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
+            <% for (final Locale loopLocale: pwmRequest.getAppConfig().getKnownLocales()) { %>
             <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
@@ -336,14 +336,14 @@
                     Has Default Random Challenge Questions
                 </td>
             </tr>
-            <% for (final Locale loopLocale: pwmRequest.getConfig().getKnownLocales()) { %>
+            <% for (final Locale loopLocale: pwmRequest.getAppConfig().getKnownLocales()) { %>
             <% final boolean highLight =  ( highlightedLocales.contains(loopLocale)); %>
             <tr<%=highLight ? " class=\"highlight\"" : ""%>>
                 <td>
                     <%= loopLocale.getDisplayName() %>
                 </td>
                 <td>
-                    <%= LocaleHelper.booleanString(configLocaleStats.getDefaultChallenges().contains(loopLocale),  pwmRequest.getLocale(),pwmRequest.getConfig())%>
+                    <%= LocaleHelper.booleanString(configLocaleStats.getDefaultChallenges().contains(loopLocale),  pwmRequest.getLocale(),pwmRequest.getDomainConfig())%>
                 </td>
             </tr>
             <% } %>
@@ -364,7 +364,7 @@
         </tr>
         <% for (final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.allValues()) { %>
         <% if (!pwmLocaleBundle.isAdminOnly()) { %>
-        <% for (final Locale locale : pwmRequest.getConfig().getKnownLocales()) { %>
+        <% for (final Locale locale : pwmRequest.getAppConfig().getKnownLocales()) { %>
         <% if ( highlightedLocales.contains(locale)) { %>
         <% for (final String key : LocaleStats.missingKeysForBundleAndLocale( pwmLocaleBundle, locale )) { %>
         <tr>

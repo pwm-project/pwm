@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.PwmDomain;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.ApplicationPage;
 import password.pwm.error.ErrorInformation;
@@ -35,17 +35,18 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
-import password.pwm.http.PwmHttpResponseWrapper;
+import password.pwm.http.PwmCookiePath;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmURL;
+import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.svc.PwmService;
 import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
-import password.pwm.svc.PwmService;
-import password.pwm.svc.intruder.IntruderManager;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
+import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.svc.intruder.IntruderDomainService;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -56,6 +57,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -70,13 +72,45 @@ public class CaptchaUtility
 
     public enum CaptchaMode
     {
-        V3,
-        V3_INVISIBLE,
+        V2( null ),
+        V2_INVISIBLE( null ),
+
+        // v3 versions deprecated since implementation is actually V2 only.
+        V3( V2 ),
+        V3_INVISIBLE( V2_INVISIBLE ),;
+
+        private final CaptchaMode replacement;
+
+        CaptchaMode( final CaptchaMode replacement )
+        {
+            this.replacement = replacement;
+        }
+
+        public CaptchaMode getReplacement()
+        {
+            return replacement;
+        }
+
+        boolean isDeprecated()
+        {
+            return replacement != null;
+        }
     }
 
     public static CaptchaMode readCaptchaMode( final PwmRequest pwmRequest )
     {
-        return pwmRequest.getConfig().readSettingAsEnum( PwmSetting.CAPTCHA_RECAPTCHA_MODE, CaptchaMode.class );
+        final CaptchaMode captchaMode = pwmRequest.getDomainConfig().readSettingAsEnum( PwmSetting.CAPTCHA_RECAPTCHA_MODE, CaptchaMode.class );
+        if ( captchaMode == null )
+        {
+            return CaptchaMode.V2;
+        }
+
+        if ( captchaMode.isDeprecated() )
+        {
+            return captchaMode.getReplacement();
+        }
+
+        return captchaMode;
     }
 
     /**
@@ -114,8 +148,8 @@ public class CaptchaUtility
             throw new PwmUnrecoverableException( errorInfo );
         }
 
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PasswordData privateKey = pwmApplication.getConfig().readSettingAsPassword( PwmSetting.RECAPTCHA_KEY_PRIVATE );
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+        final PasswordData privateKey = pwmDomain.getConfig().readSettingAsPassword( PwmSetting.RECAPTCHA_KEY_PRIVATE );
 
         final String bodyText = "secret=" + StringUtil.urlEncode( privateKey.getStringValue() )
                 + "&"
@@ -127,13 +161,13 @@ public class CaptchaUtility
         {
             final PwmHttpClientRequest clientRequest = PwmHttpClientRequest.builder()
                     .method( HttpMethod.POST )
-                    .url( pwmApplication.getConfig().readAppProperty( AppProperty.RECAPTCHA_VALIDATE_URL ) )
+                    .url( pwmDomain.getConfig().readAppProperty( AppProperty.RECAPTCHA_VALIDATE_URL ) )
                     .body( bodyText )
                     .headers( Collections.singletonMap( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValueWithEncoding() ) )
                     .build();
 
             LOGGER.debug( pwmRequest, () -> "sending reCaptcha verification request" );
-            final PwmHttpClient client = pwmRequest.getPwmApplication().getHttpClientService().getPwmHttpClient();
+            final PwmHttpClient client = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient();
             final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest, pwmRequest.getLabel()  );
 
             if ( clientResponse.getStatusCode() != HttpServletResponse.SC_OK )
@@ -144,19 +178,29 @@ public class CaptchaUtility
                 ) );
             }
 
-            final JsonElement responseJson = new JsonParser().parse( clientResponse.getBody() );
+            final JsonElement responseJson = JsonParser.parseString( clientResponse.getBody() );
             final JsonObject topObject = responseJson.getAsJsonObject();
-            if ( topObject != null && topObject.has( "success" ) )
+            if ( topObject != null )
             {
-                final boolean success = topObject.get( "success" ).getAsBoolean();
-                if ( success )
+                if ( topObject.has( "score" ) )
                 {
-                    writeCaptchaSkipCookie( pwmRequest );
-                    LOGGER.trace( pwmRequest, () -> "captcha verification passed" );
-                    StatisticsManager.incrementStat( pwmRequest, Statistic.CAPTCHA_SUCCESSES );
-                    return true;
+                    final String errorMsg = "captcha response contains 'score' attribute, indicating captcha setting key is not expected Version 2 key type";
+                    LOGGER.error( () -> errorMsg );
+                    final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CAPTCHA_API_ERROR, errorMsg );
+                    throw new PwmUnrecoverableException( errorInfo );
                 }
 
+                if ( topObject.has( "success" ) )
+                {
+                    final boolean success = topObject.get( "success" ).getAsBoolean();
+                    if ( success )
+                    {
+                        writeCaptchaSkipCookie( pwmRequest );
+                        LOGGER.trace( pwmRequest, () -> "captcha verification passed" );
+                        StatisticsClient.incrementStat( pwmRequest, Statistic.CAPTCHA_SUCCESSES );
+                        return true;
+                    }
+                }
                 if ( topObject.has( "error-codes" ) )
                 {
                     final List<String> errorCodes = new ArrayList<>();
@@ -178,7 +222,7 @@ public class CaptchaUtility
         }
 
         LOGGER.trace( pwmRequest, () -> "captcha verification failed" );
-        StatisticsManager.incrementStat( pwmRequest, Statistic.CAPTCHA_FAILURES );
+        StatisticsClient.incrementStat( pwmRequest, Statistic.CAPTCHA_FAILURES );
         return false;
     }
 
@@ -189,15 +233,15 @@ public class CaptchaUtility
             throws PwmUnrecoverableException
     {
         final String cookieValue = figureSkipCookieValue( pwmRequest );
-        final int captchaSkipCookieLifetimeSeconds = Integer.parseInt( pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_AGE ) );
-        final String captchaSkipCookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME );
+        final int captchaSkipCookieLifetimeSeconds = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_AGE ) );
+        final String captchaSkipCookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME );
         if ( cookieValue != null )
         {
             pwmRequest.getPwmResponse().writeCookie(
                     captchaSkipCookieName,
                     cookieValue,
                     captchaSkipCookieLifetimeSeconds,
-                    PwmHttpResponseWrapper.CookiePath.Application
+                    PwmCookiePath.Domain
             );
         }
     }
@@ -205,7 +249,7 @@ public class CaptchaUtility
     private static String figureSkipCookieValue( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        String cookieValue = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_COOKIE );
+        String cookieValue = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_COOKIE );
         if ( cookieValue == null || cookieValue.trim().length() < 1 )
         {
             return null;
@@ -223,11 +267,11 @@ public class CaptchaUtility
             throws PwmUnrecoverableException
     {
         final String allowedSkipValue = figureSkipCookieValue( pwmRequest );
-        final String captchaSkipCookieName = pwmRequest.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME );
+        final String captchaSkipCookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME );
         if ( allowedSkipValue != null )
         {
-            final String cookieValue = pwmRequest.readCookie( captchaSkipCookieName );
-            if ( allowedSkipValue.equals( cookieValue ) )
+            final Optional<String> cookieValue = pwmRequest.readCookie( captchaSkipCookieName );
+            if ( cookieValue.isPresent() && allowedSkipValue.equals( cookieValue.get() ) )
             {
                 LOGGER.debug( pwmRequest, () -> "browser has a valid " + captchaSkipCookieName + " cookie value of " + allowedSkipValue + ", skipping captcha check" );
                 return true;
@@ -261,7 +305,7 @@ public class CaptchaUtility
             return false;
         }
 
-        final Set<ApplicationPage> protectedModules = pwmRequest.getConfig().readSettingAsOptionList(
+        final Set<ApplicationPage> protectedModules = pwmRequest.getDomainConfig().readSettingAsOptionList(
                 PwmSetting.CAPTCHA_PROTECTED_PAGES,
                 ApplicationPage.class
         );
@@ -272,23 +316,23 @@ public class CaptchaUtility
 
         if ( protectedModules != null )
         {
-            if ( protectedModules.contains( ApplicationPage.LOGIN ) && pwmURL.isLoginServlet() )
+            if ( protectedModules.contains( ApplicationPage.LOGIN ) && pwmURL.matches( PwmServletDefinition.Login ) )
             {
                 enabled = true;
             }
-            else if ( protectedModules.contains( ApplicationPage.FORGOTTEN_PASSWORD ) && pwmURL.isForgottenPasswordServlet() )
+            else if ( protectedModules.contains( ApplicationPage.FORGOTTEN_PASSWORD ) && pwmURL.matches( PwmServletDefinition.ForgottenPassword ) )
             {
                 enabled = true;
             }
-            else if ( protectedModules.contains( ApplicationPage.FORGOTTEN_USERNAME ) && pwmURL.isForgottenUsernameServlet() )
+            else if ( protectedModules.contains( ApplicationPage.FORGOTTEN_USERNAME ) && pwmURL.matches( PwmServletDefinition.ForgottenUsername ) )
             {
                 enabled = true;
             }
-            else if ( protectedModules.contains( ApplicationPage.USER_ACTIVATION ) && pwmURL.isUserActivationServlet() )
+            else if ( protectedModules.contains( ApplicationPage.USER_ACTIVATION ) && pwmURL.matches( PwmServletDefinition.ActivateUser ) )
             {
                 enabled = true;
             }
-            else if ( protectedModules.contains( ApplicationPage.NEW_USER_REGISTRATION ) && pwmURL.isNewUserRegistrationServlet() )
+            else if ( protectedModules.contains( ApplicationPage.NEW_USER_REGISTRATION ) && pwmURL.matches( PwmServletDefinition.NewUser ) )
             {
                 enabled = true;
             }
@@ -302,7 +346,7 @@ public class CaptchaUtility
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmRequest.getPwmApplication().getConfig();
+        final DomainConfig config = pwmRequest.getPwmDomain().getConfig();
         final PasswordData privateKey = config.readSettingAsPassword( PwmSetting.RECAPTCHA_KEY_PRIVATE );
         final String publicKey = config.readSettingAsString( PwmSetting.RECAPTCHA_KEY_PUBLIC );
 
@@ -311,16 +355,16 @@ public class CaptchaUtility
 
     public static void prepareCaptchaDisplay( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
     {
-        StatisticsManager.incrementStat( pwmRequest, Statistic.CAPTCHA_PRESENTATIONS );
+        StatisticsClient.incrementStat( pwmRequest, Statistic.CAPTCHA_PRESENTATIONS );
 
-        final String reCaptchaPublicKey = pwmRequest.getConfig().readSettingAsString( PwmSetting.RECAPTCHA_KEY_PUBLIC );
+        final String reCaptchaPublicKey = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.RECAPTCHA_KEY_PUBLIC );
         pwmRequest.setAttribute( PwmRequestAttribute.CaptchaPublicKey, reCaptchaPublicKey );
         {
-            final String urlValue = pwmRequest.getConfig().readAppProperty( AppProperty.RECAPTCHA_CLIENT_JS_URL );
+            final String urlValue = pwmRequest.getDomainConfig().readAppProperty( AppProperty.RECAPTCHA_CLIENT_JS_URL );
             pwmRequest.setAttribute( PwmRequestAttribute.CaptchaClientUrl, urlValue );
         }
         {
-            final String configuredUrl = pwmRequest.getConfig().readAppProperty( AppProperty.RECAPTCHA_CLIENT_IFRAME_URL );
+            final String configuredUrl = pwmRequest.getDomainConfig().readAppProperty( AppProperty.RECAPTCHA_CLIENT_IFRAME_URL );
             final String url = configuredUrl + "?k=" + reCaptchaPublicKey + "&hl=" + pwmRequest.getLocale().toString();
             pwmRequest.setAttribute( PwmRequestAttribute.CaptchaIframeUrl, url );
         }
@@ -335,11 +379,11 @@ public class CaptchaUtility
             return true;
         }
 
-        final String configValue = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_PARAM );
-        if ( !StringUtil.isEmpty( configValue ) )
+        final String configValue = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_PARAM );
+        if ( StringUtil.notEmpty( configValue ) )
         {
             final String requestValue = pwmRequest.readParameterAsString( PwmConstants.PARAM_SKIP_CAPTCHA );
-            if ( !StringUtil.isEmpty( requestValue ) )
+            if ( StringUtil.notEmpty( requestValue ) )
             {
                 if ( StringUtil.nullSafeEquals( configValue, requestValue ) )
                 {
@@ -359,7 +403,7 @@ public class CaptchaUtility
 
     private static boolean checkIntruderCount( final PwmRequest pwmRequest )
     {
-        final long maxIntruderCount = pwmRequest.getConfig().readSettingAsLong( PwmSetting.CAPTCHA_INTRUDER_COUNT_TRIGGER );
+        final long maxIntruderCount = pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.CAPTCHA_INTRUDER_COUNT_TRIGGER );
 
         if ( maxIntruderCount == 0 )
         {
@@ -373,7 +417,7 @@ public class CaptchaUtility
             return true;
         }
 
-        final IntruderManager intruderManager = pwmRequest.getPwmApplication().getIntruderManager();
+        final IntruderDomainService intruderManager = pwmRequest.getPwmDomain().getIntruderService();
         if ( intruderManager == null || intruderManager.status() != PwmService.STATUS.OPEN )
         {
             return false;

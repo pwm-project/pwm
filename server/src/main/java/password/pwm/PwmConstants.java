@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -94,9 +92,6 @@ public abstract class PwmConstants
     public static final String PROFILE_ID_ALL = "all";
     public static final String PROFILE_ID_DEFAULT = "default";
 
-    public static final String DOMAIN_ID_DEFAULT = "default";
-    public static final String DOMAIN_ID_PLACEHOLDER = "default";
-
     public static final String TOKEN_KEY_PWD_CHG_DATE = "_lastPwdChange";
 
     public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle( "httpHeaderAuthorizationBasic" );
@@ -111,26 +106,10 @@ public abstract class PwmConstants
 
     public static final String REQUEST_ATTR_FORGOTTEN_PW_USERINFO_CACHE = "ForgottenPw-UserInfoCache";
     public static final String REQUEST_ATTR_FORGOTTEN_PW_AVAIL_TOKEN_DEST_CACHE = "ForgottenPw-AvailableTokenDestCache";
+    public static final String REQUEST_ATTR_DOMAIN = "domain";
     public static final String REQUEST_ATTR_PWM_APPLICATION = "PwmApplication";
 
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle( "log.removedValue" );
-
-    public static final Collection<Locale> INCLUDED_LOCALES = Collections.emptyList();
-
-    static
-    {
-        /*
-        final List<Locale> localeList = new ArrayList<>();
-        final String inputString = readPwmConstantsBundle( "includedLocales" );
-        final List<String> inputList = JsonUtil.deserializeStringList( inputString );
-        for ( final String localeKey : inputList )
-        {
-            localeList.add( new Locale( localeKey ) );
-        }
-        INCLUDED_LOCALES = Collections.unmodifiableCollection( localeList );
-
-         */
-    }
 
     public static final String URL_JSP_CONFIG_GUIDE = "WEB-INF/jsp/configguide-%1%.jsp";
 
@@ -153,6 +132,7 @@ public abstract class PwmConstants
     public static final String PARAM_PASSWORD = "password";
     public static final String PARAM_CONTEXT = "context";
     public static final String PARAM_LDAP_PROFILE = "ldapProfile";
+
     public static final String PARAM_SKIP_CAPTCHA = "skipCaptcha";
     public static final String PARAM_POST_LOGIN_URL = "posturl";
     public static final String PARAM_FILE_UPLOAD = "fileUpload";
@@ -172,7 +152,7 @@ public abstract class PwmConstants
     public static final String RESOURCE_FILE_WELCOME_TXT = "welcome.txt";
 
     // don't worry.  look over there.
-    public static final List<String> X_AMB_HEADER = Collections.unmodifiableList( Arrays.asList(
+    public static final List<String> X_AMB_HEADER = List.of(
             "bonjour!",
             "something witty!",
             "just like X-Fry, only ambier",
@@ -227,11 +207,10 @@ public abstract class PwmConstants
             // thx krowten
             "it's a wholesome can of software goodness",
 
-            "this password is an memorial of the richard d. kiel memorial abend"
-    ) );
+            "this password is an memorial of the richard d. kiel memorial abend" );
 
 
-    private static String readPwmConstantsBundle( final String key )
+    public static String readPwmConstantsBundle( final String key )
     {
         return ResourceBundle.getBundle( PwmConstants.class.getName() ).getString( key );
     }

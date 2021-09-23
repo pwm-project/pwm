@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -248,7 +248,7 @@
             require(["dojo/parser","dijit/TitlePane","dojo/domReady!","dojox/form/Uploader"],function(dojoParser){
                 dojoParser.parse();
             });
-            PWM_VAR['config_localDBLogLevel'] = '<%=pwmRequest.getConfig().getEventLogLocalDBLevel()%>'
+            PWM_VAR['config_localDBLogLevel'] = '<%=pwmRequest.getAppConfig().getEventLogLocalDBLevel()%>'
 
             require(["dojo/domReady!"],function(){
                 PWM_ADMIN.showAppHealth('healthBody', {showRefresh: true, showTimestamp: true});

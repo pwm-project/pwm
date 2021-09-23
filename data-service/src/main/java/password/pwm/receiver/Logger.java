@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,23 +20,29 @@
 
 package password.pwm.receiver;
 
+import java.time.Instant;
+
 public class Logger
 {
-
     private final String name;
 
-    private Logger( final String name )
+    private Logger( final Class classname )
     {
-        this.name = name;
+        this.name = classname.getName();
     }
 
-    public static Logger createLogger( final String name )
+    public static Logger createLogger( final Class classname )
     {
-        return new Logger( name );
+        return new Logger( classname );
     }
 
     public void info( final CharSequence input )
     {
-        System.out.println( input );
+        System.out.println( "PwmReceiver: " + Instant.now().toString() + ", INFO , " + name + ", " + input );
+    }
+
+    public void debug( final CharSequence input )
+    {
+        System.out.println( "PwmReceiver: " + Instant.now().toString() + ", DEBUG, " + name + ", " + input );
     }
 }

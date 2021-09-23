@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
-import com.novell.ldapchai.cr.ChallengeSet;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.PwmLdapVendor;
 import password.pwm.util.PasswordData;
@@ -52,6 +52,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.LongAdder;
 
 public class JsonUtil
 {
@@ -148,7 +149,7 @@ public class JsonUtil
     }
 
     /**
-     * Gson Serializer for {@link java.security.cert.X509Certificate}.  Neccessary because sometimes X509Certs have circular refecences
+     * Gson Serializer for {@link java.security.cert.X509Certificate}.  Necessary because sometimes X509Certs have circular references
      * and the default gson serializer will cause a {@code java.lang.StackOverflowError}.  Standard Base64 encoding of
      * the cert is used as the json format.
      */
@@ -165,7 +166,7 @@ public class JsonUtil
             {
                 return new JsonPrimitive( StringUtil.base64Encode( cert.getEncoded() ) );
             }
-            catch ( final CertificateEncodingException e )
+            catch ( final PwmUnrecoverableException | CertificateEncodingException e )
             {
                 throw new IllegalStateException( "unable to json-encode certificate: " + e.getMessage() );
             }
@@ -270,27 +271,6 @@ public class JsonUtil
         }
     }
 
-    private static class ChallengeSetAdapter implements JsonDeserializer<ChallengeSet>
-    {
-        private ChallengeSetAdapter( )
-        {
-        }
-
-        @Override
-        public ChallengeSet deserialize( final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext )
-        {
-            try
-            {
-                return null;
-            }
-            catch ( final Exception e )
-            {
-                LOGGER.debug( () -> "unable to parse stored json ChallengeSet.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage() );
-                throw new JsonParseException( e );
-            }
-        }
-    }
-
     private static class ByteArrayToBase64TypeAdapter implements JsonSerializer<byte[]>, JsonDeserializer<byte[]>
     {
         @Override
@@ -315,9 +295,9 @@ public class JsonUtil
             {
                 return new JsonPrimitive( StringUtil.base64Encode( src, StringUtil.Base64Options.GZIP ) );
             }
-            catch ( final IOException e )
+            catch ( final PwmUnrecoverableException e )
             {
-                final String errorMsg = "io stream error while serializing byte array: " + e.getMessage();
+                final String errorMsg = "error while JSON serializing byte array: " + e.getMessage();
                 LOGGER.error( () -> errorMsg );
                 throw new JsonParseException( errorMsg, e );
             }
@@ -373,6 +353,44 @@ public class JsonUtil
         }
     }
 
+    private static class DomainIDTypeAdaptor implements JsonSerializer<DomainID>, JsonDeserializer<DomainID>
+    {
+        @Override
+        public DomainID deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
+        {
+            final String sValue = json.getAsString();
+            if ( DomainID.systemId().toString().equals( sValue ) )
+            {
+                return DomainID.systemId();
+            }
+            return DomainID.create( json.getAsString() );
+        }
+
+        @Override
+        public JsonElement serialize( final DomainID src, final Type typeOfSrc, final JsonSerializationContext context )
+        {
+            return new JsonPrimitive( src.toString() );
+        }
+    }
+
+    private static class LongAdderTypeAdaptor implements JsonSerializer<LongAdder>, JsonDeserializer<LongAdder>
+    {
+        @Override
+        public LongAdder deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
+        {
+            final long longValue = json.getAsLong();
+            final LongAdder longAddr = new LongAdder();
+            longAddr.add( longValue );
+            return longAddr;
+        }
+
+        @Override
+        public JsonElement serialize( final LongAdder src, final Type typeOfSrc, final JsonSerializationContext context )
+        {
+            return new JsonPrimitive( src.longValue() );
+        }
+    }
+
     private static GsonBuilder registerTypeAdapters( final GsonBuilder gsonBuilder )
     {
         gsonBuilder.registerTypeAdapter( Date.class, new DateTypeAdapter() );
@@ -381,6 +399,8 @@ public class JsonUtil
         gsonBuilder.registerTypeAdapter( byte[].class, new ByteArrayToBase64TypeAdapter() );
         gsonBuilder.registerTypeAdapter( PasswordData.class, new PasswordDataTypeAdapter() );
         gsonBuilder.registerTypeAdapter( PwmLdapVendorTypeAdaptor.class, new PwmLdapVendorTypeAdaptor() );
+        gsonBuilder.registerTypeAdapter( DomainID.class, new DomainIDTypeAdaptor() );
+        gsonBuilder.registerTypeAdapter( LongAdder.class, new LongAdderTypeAdaptor() );
         return gsonBuilder;
     }
 

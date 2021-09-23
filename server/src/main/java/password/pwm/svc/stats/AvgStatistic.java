@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,24 +27,21 @@ import java.util.Locale;
 
 public enum AvgStatistic
 {
-    AVG_PASSWORD_SYNC_TIME( "AvgPasswordSyncTime", null, "ms" ),
-    AVG_AUTHENTICATION_TIME( "AvgAuthenticationTime", null, "ms" ),
-    AVG_PASSWORD_STRENGTH( "AvgPasswordStrength", null, "" ),
-    AVG_LDAP_SEARCH_TIME( "AvgLdapSearchTime", null, "ms" ),
-    AVG_REQUEST_PROCESS_TIME( "AvgRequestProcessTime", null, "ms" ),;
+    AVG_PASSWORD_SYNC_TIME( "AvgPasswordSyncTime", "ms" ),
+    AVG_AUTHENTICATION_TIME( "AvgAuthenticationTime",  "ms" ),
+    AVG_PASSWORD_STRENGTH( "AvgPasswordStrength", "" ),
+    AVG_LDAP_SEARCH_TIME( "AvgLdapSearchTime",  "ms" ),
+    AVG_REQUEST_PROCESS_TIME( "AvgRequestProcessTime",  "ms" ),;
 
     private final String key;
-    private final Statistic.StatDetail statDetail;
     private final String unit;
 
     AvgStatistic(
             final String key,
-            final Statistic.StatDetail statDetail,
             final String unit
     )
     {
         this.key = key;
-        this.statDetail = statDetail;
         this.unit = unit;
     }
 

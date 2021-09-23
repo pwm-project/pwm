@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import password.pwm.PwmApplication;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
-import password.pwm.util.db.DatabaseAccessor;
-import password.pwm.util.db.DatabaseException;
-import password.pwm.util.db.DatabaseTable;
+import password.pwm.svc.db.DatabaseAccessor;
+import password.pwm.svc.db.DatabaseException;
+import password.pwm.svc.db.DatabaseTable;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
@@ -34,6 +34,8 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 class DatabaseNodeDataService implements NodeDataServiceProvider
 {
@@ -46,7 +48,7 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
 
     DatabaseNodeDataService( final PwmApplication pwmApplication ) throws PwmUnrecoverableException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmApplication = Objects.requireNonNull( pwmApplication );
 
         if ( pwmApplication.getDatabaseService().status() != PwmService.STATUS.OPEN )
         {
@@ -86,9 +88,12 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
                 final String dbKey = tableIterator.next().getKey();
                 if ( dbKey.startsWith( KEY_PREFIX_NODE ) )
                 {
-                    final String rawValueInDb = databaseAccessor.get( TABLE, dbKey );
-                    final StoredNodeData nodeDataInDb = JsonUtil.deserialize( rawValueInDb, StoredNodeData.class );
-                    returnList.put( nodeDataInDb.getInstanceID(), nodeDataInDb );
+                    final Optional<String> rawValueInDb = databaseAccessor.get( TABLE, dbKey );
+                    rawValueInDb.ifPresent( s ->
+                    {
+                        final StoredNodeData nodeDataInDb = JsonUtil.deserialize( s, StoredNodeData.class );
+                        returnList.put( nodeDataInDb.getInstanceID(), nodeDataInDb );
+                    } );
                 }
             }
         }

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import password.pwm.util.java.XmlElement;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Optional;
 
 public enum PwmSettingTemplate
 {
@@ -63,8 +64,8 @@ public enum PwmSettingTemplate
     public boolean isHidden( )
     {
         final XmlElement templateElement = readTemplateElement( this );
-        final String requiredAttribute = templateElement.getAttributeValue( "hidden" );
-        return requiredAttribute != null && "true".equalsIgnoreCase( requiredAttribute );
+        final Optional<String> requiredAttribute = templateElement.getAttributeValue( "hidden" );
+        return requiredAttribute.isPresent() && "true".equalsIgnoreCase( requiredAttribute.get() );
     }
 
     private static XmlElement readTemplateElement( final PwmSettingTemplate pwmSettingTemplate )

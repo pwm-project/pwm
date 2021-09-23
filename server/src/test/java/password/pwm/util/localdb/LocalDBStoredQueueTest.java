@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,11 @@ public class LocalDBStoredQueueTest
             final List<String> values = localDBStoredQueue.stream().collect( Collectors.toList() );
             Assert.assertEquals( 2, values.size() );
         }
+
+        {
+            final List<String> values = new ArrayList<>( localDBStoredQueue );
+            Assert.assertEquals( 2, values.size() );
+        }
     }
 
     @Test
@@ -96,20 +101,50 @@ public class LocalDBStoredQueueTest
     {
         addValues( localDBStoredQueue, MAX_PROBLEM_SIZE );
 
+        Assert.assertEquals( MAX_PROBLEM_SIZE, localDBStoredQueue.size() );
+
         {
             final Iterator<String> iter = localDBStoredQueue.descendingIterator();
             for ( int i = 0; i < MAX_PROBLEM_SIZE; i++ )
             {
+                Assert.assertTrue( iter.hasNext() );
+                Assert.assertTrue( iter.hasNext() );
                 Assert.assertEquals( String.valueOf( i ), iter.next() );
             }
+            Assert.assertFalse( iter.hasNext() );
+
+            boolean seenNoSuchElementException = false;
+            try
+            {
+                iter.next();
+            }
+            catch ( final NoSuchElementException e )
+            {
+                seenNoSuchElementException = true;
+            }
+            Assert.assertTrue( seenNoSuchElementException );
         }
 
         {
             final Iterator<String> iter = localDBStoredQueue.iterator();
             for ( int i = ( MAX_PROBLEM_SIZE - 1 ); i > -1; i-- )
             {
+                Assert.assertTrue( iter.hasNext() );
+                Assert.assertTrue( iter.hasNext() );
                 Assert.assertEquals( String.valueOf( i ), iter.next() );
             }
+            Assert.assertFalse( iter.hasNext() );
+
+            boolean seenNoSuchElementException = false;
+            try
+            {
+                iter.next();
+            }
+            catch ( final NoSuchElementException e )
+            {
+                seenNoSuchElementException = true;
+            }
+            Assert.assertTrue( seenNoSuchElementException );
         }
     }
 
@@ -214,6 +249,7 @@ public class LocalDBStoredQueueTest
     @Test
     public void testIsEmptyAfterAddFirstRemoveLast()
     {
+        Assert.assertTrue( localDBStoredQueue.isEmpty() );
         localDBStoredQueue.addFirst( "Something" );
         Assert.assertFalse( localDBStoredQueue.isEmpty() );
         localDBStoredQueue.removeLast();

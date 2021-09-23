@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ package password.pwm.svc.httpclient;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
+import password.pwm.PwmApplication;
 import password.pwm.http.HttpEntityDataType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.bean.ImmutableByteArray;
@@ -50,22 +51,35 @@ public class PwmHttpClientRequest implements Serializable, PwmHttpClientMessage
 
     private final HttpEntityDataType dataType = HttpEntityDataType.String;
 
-    private final ImmutableByteArray binaryBody = null;
+    private final ImmutableByteArray binaryBody;
 
     @Singular
     private final Map<String, String> headers;
 
-    public String toDebugString( final PwmHttpClient pwmHttpClient, final String additionalText )
+    String toDebugString(
+            final PwmHttpClient pwmHttpClient,
+            final PwmApplication pwmApplication,
+            final PwmHttpClientConfiguration pwmHttpClientConfiguration,
+            final String additionalText
+    )
     {
         final String topLine = "HTTP " + method + " request to " + url
                 + ( StringUtil.isEmpty( additionalText )
                 ? ""
-                : " " + additionalText );
-        return pwmHttpClient.entityToDebugString( topLine, this );
+                : " " + ( additionalText == null ? "" : additionalText ) );
+        return PwmHttpClientMessage.entityToDebugString( topLine, pwmApplication, pwmHttpClientConfiguration, this );
     }
 
     public boolean isHttps()
     {
         return "https".equals( URI.create( getUrl() ).getScheme() );
+    }
+
+    public long size()
+    {
+        long size = PwmHttpClientMessage.sizeImpl( this );
+        size += method == null ? 0 : method.toString().length();
+        size += url == null ? 0 : url.length();
+        return size;
     }
 }

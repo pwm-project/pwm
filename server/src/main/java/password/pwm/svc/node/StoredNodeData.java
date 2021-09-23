@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,15 @@ package password.pwm.svc.node;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.PwmApplication;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.Serializable;
 import java.time.Instant;
 
-@Getter
+@Value
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 class StoredNodeData implements Serializable
 {
@@ -47,7 +48,7 @@ class StoredNodeData implements Serializable
                 pwmApplication.getStartupTime(),
                 pwmApplication.getInstanceID(),
                 pwmApplication.getRuntimeNonce(),
-                pwmApplication.getConfig().configurationHash( pwmApplication.getSecureService() )
+                StoredConfigurationUtil.valueHash( pwmApplication.getConfig().getStoredConfiguration() )
         );
     }
 }

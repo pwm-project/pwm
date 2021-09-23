@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,6 @@ import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.HttpHeader;
-import password.pwm.http.PwmSession;
-import password.pwm.http.PwmSessionWrapper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -38,7 +36,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -60,7 +57,7 @@ public class CookieManagementFilter implements Filter
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.trace( () -> "unable to load application configuration while checking samesite cookie attribute config", e );
+            LOGGER.trace( () -> "unable to load application configuration while checking samesite cookie attribute config" );
         }
     }
 
@@ -79,8 +76,15 @@ public class CookieManagementFilter implements Filter
         markSessionForRecycle( ( HttpServletRequest ) servletRequest );
     }
 
+    /**
+     * Ensures that every session that modifies its samesite cookies also triggers a session ID
+     * recycle, once per session.
+     *
+     * @param httpServletRequest The request to be marked
+     */
     private void markSessionForRecycle( final HttpServletRequest httpServletRequest )
     {
+        /*
         if ( StringUtil.isEmpty( value ) )
         {
             return;
@@ -92,11 +96,11 @@ public class CookieManagementFilter implements Filter
             PwmSession pwmSession = null;
             try
             {
-                pwmSession = PwmSessionWrapper.readPwmSession( httpSession );
+                pwmSession = PwmSessionFactory.readPwmSession( httpSession );
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.trace( () -> "unable to load session while checking samesite cookie attribute config", e );
+                LOGGER.trace( () -> "unable to load session while checking samesite cookie attribute config" );
             }
 
             if ( pwmSession != null )
@@ -108,6 +112,8 @@ public class CookieManagementFilter implements Filter
                 }
             }
         }
+
+         */
     }
 
     public static void addSameSiteCookieAttribute( final HttpServletResponse response, final String value )

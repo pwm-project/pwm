@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ package password.pwm.config.value;
 import lombok.Value;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IdentityVerificationMethod;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -72,7 +72,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
                 final int minOptionalRequired
         )
         {
-            this.methodSettings = Collections.unmodifiableMap( JavaHelper.copiedEnumMap( methodSettings, IdentityVerificationMethod.class ) );
+            this.methodSettings = Collections.unmodifiableMap( CollectionUtil.copiedEnumMap( methodSettings, IdentityVerificationMethod.class ) );
             this.minOptionalRequired = minOptionalRequired;
         }
 
@@ -105,11 +105,11 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 
     private static VerificationMethodSettings normalizeSettings( final VerificationMethodSettings input )
     {
-        final Map<IdentityVerificationMethod, VerificationMethodValue.VerificationMethodSetting> tempMap = JavaHelper.copiedEnumMap(
+        final Map<IdentityVerificationMethod, VerificationMethodValue.VerificationMethodSetting> tempMap = CollectionUtil.copiedEnumMap(
                 input.getMethodSettings(),
                 IdentityVerificationMethod.class );
 
-        for ( final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.availableValues() )
+        for ( final IdentityVerificationMethod recoveryVerificationMethods : IdentityVerificationMethod.values() )
         {
             if ( !tempMap.containsKey( recoveryVerificationMethods ) )
             {
@@ -117,7 +117,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
             }
         }
 
-        return new VerificationMethodSettings( tempMap, input.getMinOptionalRequired() );
+        return new VerificationMethodSettings( Collections.unmodifiableMap( tempMap ), input.getMinOptionalRequired() );
     }
 
     public static StoredValueFactory factory( )
@@ -142,12 +142,15 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
             public VerificationMethodValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
-                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 if ( valueElement.isPresent() )
                 {
-                    final String inputStr = valueElement.get().getText();
-                    final VerificationMethodSettings settings = JsonUtil.deserialize( inputStr, VerificationMethodSettings.class );
-                    return new VerificationMethodValue( settings );
+                    final Optional<String> inputStr = valueElement.get().getText();
+                    if ( inputStr.isPresent() )
+                    {
+                        final VerificationMethodSettings settings = JsonUtil.deserialize( inputStr.get(), VerificationMethodSettings.class );
+                        return new VerificationMethodValue( settings );
+                    }
                 }
                 return  new VerificationMethodValue(  );
             }

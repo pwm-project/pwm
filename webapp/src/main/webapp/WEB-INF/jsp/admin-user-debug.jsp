@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -248,7 +248,7 @@
         </table>
         <br/>
 
-        <% if (JspUtility.getPwmRequest( pageContext ).getConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) ) { %>
+        <% if (JspUtility.getPwmRequest( pageContext ).getDomainConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) ) { %>
         <table>
             <tr>
                 <td colspan="10" class="title">Password Notification Status</td>
@@ -354,9 +354,9 @@
                             <td><%=JspUtility.friendlyWrite(pageContext, ldapPolicy.getDisplayName(JspUtility.locale(request)))%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, userPolicy.getDisplayName(JspUtility.locale(request)))%></td>
                         </tr>
-                        <% for (final PwmPasswordRule rule : PwmPasswordRule.sortedByLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getConfig())) { %>
+                        <% for (final PwmPasswordRule rule : PwmPasswordRule.sortedByLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getDomainConfig())) { %>
                         <tr>
-                            <td><span title="<%=rule.getKey()%>"><%=rule.getLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getConfig())%></span></td>
+                            <td><span title="<%=rule.getKey()%>"><%=rule.getLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getDomainConfig())%></span></td>
                             <td><%=rule.getRuleType()%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, configPolicy.getValue(rule))%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, ldapPolicy.getValue(rule))%></td>

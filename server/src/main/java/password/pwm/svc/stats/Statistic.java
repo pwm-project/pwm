@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,11 @@
 
 package password.pwm.svc.stats;
 
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 
 import java.util.Arrays;
@@ -56,6 +57,7 @@ public enum Statistic
     HTTP_REQUESTS( "HttpRequests", null ),
     HTTP_RESOURCE_REQUESTS( "HttpResourceRequests", null ),
     HTTP_SESSIONS( "HttpSessions", null ),
+    HTTP_CLIENT_REQUESTS( "HttpClientRequests", null ),
     ACTIVATED_USERS( "ActivatedUsers", null ),
     NEW_USERS( "NewUsers", new ConfigSettingDetail( PwmSetting.NEWUSER_ENABLE ) ),
     GUESTS( "Guests", new ConfigSettingDetail( PwmSetting.GUEST_ENABLE ) ),
@@ -130,13 +132,13 @@ public enum Statistic
         return key;
     }
 
-    public boolean isActive( final PwmApplication pwmApplication )
+    public boolean isActive( final PwmDomain pwmDomain )
     {
         if ( statDetail == null )
         {
             return true;
         }
-        return statDetail.isActive( pwmApplication );
+        return statDetail.isActive( pwmDomain );
     }
 
     public static SortedSet<Statistic> sortedValues( final Locale locale )
@@ -180,7 +182,7 @@ public enum Statistic
 
     interface StatDetail
     {
-        boolean isActive( PwmApplication pwmApplication );
+        boolean isActive( PwmDomain pwmDomain );
     }
 
     static class ConfigSettingDetail implements StatDetail
@@ -193,16 +195,14 @@ public enum Statistic
         }
 
         @Override
-        public boolean isActive( final PwmApplication pwmApplication )
+        public boolean isActive( final PwmDomain pwmDomain )
         {
-            return pwmApplication.getConfig().readSettingAsBoolean( pwmSetting );
+            return pwmDomain.getConfig().readSettingAsBoolean( pwmSetting );
         }
     }
 
     public static Optional<Statistic> forKey( final String key )
     {
-        return Arrays.stream( values() )
-                .filter( loopValue -> loopValue.getKey().equals( key ) )
-                .findFirst();
+        return JavaHelper.readEnumFromPredicate( Statistic.class,  loopValue -> loopValue.getKey().equals( key ) );
     }
 }

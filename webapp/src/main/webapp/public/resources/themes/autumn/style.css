@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,6 +74,7 @@ p {
     color: black;
     padding: 5px 5px 40px 5px;
     border: 0;
+    border-radius: 5px;
 }
 
 #centerbody.tile-centerbody {
@@ -83,7 +84,7 @@ p {
 }
 
 .header-button {
-    margin: 0px;
+    margin: 0;
     margin-top: 6px;
     margin-left: 6px;
     border: 1px solid transparent;

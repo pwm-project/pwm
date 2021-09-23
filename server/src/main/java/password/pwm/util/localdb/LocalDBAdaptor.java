@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public class LocalDBAdaptor implements LocalDB
 {
@@ -75,12 +76,12 @@ public class LocalDBAdaptor implements LocalDB
 
 
     @Override
-    public String get( final DB db, final String key ) throws LocalDBException
+    public Optional<String> get( final DB db, final String key ) throws LocalDBException
     {
         ParameterValidator.validateDBValue( db );
         ParameterValidator.validateKeyValue( key );
 
-        final String value = innerDB.get( db, key );
+        final Optional<String> value = innerDB.get( db, key );
         markRead();
         return value;
     }
@@ -91,7 +92,6 @@ public class LocalDBAdaptor implements LocalDB
         innerDB.init( dbDirectory, initParameters, parameters );
     }
 
-    @Override
     public LocalDBIterator<Map.Entry<String, String>> iterator( final DB db ) throws LocalDBException
     {
         ParameterValidator.validateDBValue( db );

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ package password.pwm.config.function;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -33,13 +34,14 @@ import java.net.URI;
 public class SMSGatewayCertImportFunction extends AbstractUriCertImportFunction
 {
     @Override
-    String getUri( final StoredConfigurationModifier modifier, final PwmSetting pwmSetting, final String profile, final String extraData )
+    String getUri( final StoredConfigurationModifier modifier, final StoredConfigKey key, final String extraData )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String uriString;
         final String menuDebugLocation;
 
-        uriString = ( String ) modifier.newStoredConfiguration().readSetting( PwmSetting.SMS_GATEWAY_URL, null ).toNativeObject();
+        final var urlSettingKey = StoredConfigKey.forSetting( PwmSetting.SMS_GATEWAY_URL, key.getProfileID(), key.getDomainID() );
+        uriString = ( String ) modifier.newStoredConfiguration().readStoredValue( urlSettingKey ).orElseThrow().toNativeObject();
         menuDebugLocation = PwmSetting.SMS_GATEWAY_URL.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
 
         if ( uriString.isEmpty() )

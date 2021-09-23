@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -365,7 +365,11 @@ ChallengeSettingHandler.toggleAdminDefinedRow = function(toggleElement,inputID,k
 };
 
 ChallengeSettingHandler.deleteRow = function(keyName, localeKey, rowName) {
+    var questionText = PWM_VAR['clientSettingCache'][keyName][localeKey][rowName]['text'];
+    var adminDefined = PWM_VAR['clientSettingCache'][keyName][localeKey][rowName]['adminDefined'];
+    var output = (adminDefined ? 'the question "' + questionText + '"': 'the [User Defined] question?');
     PWM_MAIN.showConfirmDialog({
+        text: 'Are you sure you want to remove ' + output,
         okAction:function(){
             PWM_MAIN.showWaitDialog({loadFunction:function(){
                     delete PWM_VAR['clientSettingCache'][keyName][localeKey][rowName];

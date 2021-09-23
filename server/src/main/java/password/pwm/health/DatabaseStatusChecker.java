@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,36 +22,47 @@ package password.pwm.health;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmEnvironment;
-import password.pwm.config.Configuration;
+import password.pwm.bean.DomainID;
+import password.pwm.config.AppConfig;
 import password.pwm.error.PwmException;
-import password.pwm.util.db.DatabaseAccessor;
-import password.pwm.util.db.DatabaseTable;
+import password.pwm.svc.db.DatabaseAccessor;
+import password.pwm.svc.db.DatabaseTable;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
-public class DatabaseStatusChecker implements HealthChecker
+public class DatabaseStatusChecker implements HealthSupplier
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseStatusChecker.class );
 
     @Override
-    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
+    public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplierRequest request )
     {
-        return Collections.emptyList();
+        final PwmApplication pwmApplication = request.getPwmApplication();
+        final Supplier<List<HealthRecord>> supplier = () -> doHealthCheck( pwmApplication );
+        return Collections.singletonList( supplier );
     }
 
-    public static List<HealthRecord> checkNewDatabaseStatus( final PwmApplication pwmApplication, final Configuration config )
+    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
+    {
+        return checkDatabaseStatus( pwmApplication, pwmApplication.getConfig() );
+    }
+
+    public static List<HealthRecord> checkNewDatabaseStatus( final PwmApplication pwmApplication, final AppConfig config )
     {
         return checkDatabaseStatus( pwmApplication, config );
     }
 
-    private static List<HealthRecord> checkDatabaseStatus( final PwmApplication pwmApplication, final Configuration config )
+    private static List<HealthRecord> checkDatabaseStatus( final PwmApplication pwmApplication, final AppConfig config )
     {
         if ( !config.hasDbConfigured() )
         {
-            return Collections.singletonList( HealthRecord.forMessage( HealthMessage.Database_Error,
-                            "Database not configured" ) );
+            return Collections.singletonList( HealthRecord.forMessage(
+                    DomainID.systemId(),
+                    HealthMessage.Database_Error,
+                    "Database not configured" ) );
         }
 
         PwmApplication runtimeInstance = null;

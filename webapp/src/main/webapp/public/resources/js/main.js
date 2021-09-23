@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2168,6 +2168,14 @@ PWM_MAIN.numberFormat = function (number) {
     }
 
     return number;
+};
+
+PWM_MAIN.loadJsFile = function(filename) {
+    var script = document.createElement("script");  // create a script DOM node
+    script.src = filename;
+    script.type = 'text/javascript'
+    document.head.appendChild(script);
+    PWM_MAIN.log("main: loaded js file: " + filename)
 };
 
 PWM_MAIN.pageLoadHandler();

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@
 package password.pwm.svc.token;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.secure.SecureService;
+import password.pwm.svc.secure.DomainSecureService;
 
 class StoredTokenKey implements TokenKey
 {
@@ -58,7 +58,7 @@ class StoredTokenKey implements TokenKey
         return new StoredTokenKey( storedHash );
     }
 
-    static StoredTokenKey fromKeyValue( final PwmApplication pwmApplication, final String input )
+    static StoredTokenKey fromKeyValue( final PwmDomain pwmDomain, final String input )
             throws PwmUnrecoverableException
     {
         if ( input == null )
@@ -71,9 +71,9 @@ class StoredTokenKey implements TokenKey
             throw new IllegalArgumentException( "new key value has stored suffix" );
         }
 
-        final int maxHashLength = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.TOKEN_STORAGE_MAX_KEY_LENGTH ) );
-        final SecureService secureService = pwmApplication.getSecureService();
-        final String generatedHash = secureService.hash( input );
+        final int maxHashLength = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.TOKEN_STORAGE_MAX_KEY_LENGTH ) );
+        final DomainSecureService domainSecureService = pwmDomain.getSecureService();
+        final String generatedHash = domainSecureService.hash( input );
         final String storedHash = StringUtil.truncate( generatedHash, maxHashLength ) + SUFFIX;
 
         return new StoredTokenKey( storedHash );

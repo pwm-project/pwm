@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public enum AppProperty
     CLIENT_PW_SHOW_REVERT_TIMEOUT                   ( "client.pwShowRevertTimeout" ),
     CLIENT_JS_ENABLE_HTML5DIALOG                    ( "client.js.enableHtml5Dialog" ),
     CLIENT_JSP_SHOW_ICONS                           ( "client.jsp.showIcons" ),
-    CONFIG_MAX_JDBC_JAR_SIZE                        ( "config.maxJdbcJarSize" ),
+    CONFIG_MAX_FILEVALUE_SIZE                       ( "config.max.fileValue.size" ),
     CONFIG_RELOAD_ON_CHANGE                         ( "config.reloadOnChange" ),
     CONFIG_MAX_PERSISTENT_LOGIN_SECONDS             ( "config.maxPersistentLoginSeconds" ),
     CONFIG_HISTORY_MAX_ITEMS                        ( "config.login.history.maxEvents" ),
@@ -75,7 +75,6 @@ public enum AppProperty
     CONFIG_JBCRYPT_PWLIB_ENABLE                     ( "config.enableJbCryptPwLibrary" ),
     CONFIG_EDITOR_BLOCK_OLD_IE                      ( "configEditor.blockOldIE" ),
     CONFIG_EDITOR_USER_PERMISSION_MATCH_LIMIT       ( "configEditor.userPermission.matchResultsLimit" ),
-    CONFIG_EDITOR_USER_PERMISSION_TIMEOUT_SECONDS   ( "configEditor.userPermission.matchTimeoutSeconds" ),
     CONFIG_EDITOR_IDLE_TIMEOUT                      ( "configEditor.idleTimeoutSeconds" ),
     CONFIG_GUIDE_IDLE_TIMEOUT                       ( "configGuide.idleTimeoutSeconds" ),
     CONFIG_MANAGER_ZIPDEBUG_MAXLOGBYTES             ( "configManager.zipDebug.maxLogBytes" ),
@@ -131,6 +130,7 @@ public enum AppProperty
     HTTP_CLIENT_CONNECT_TIMEOUT_MS                  ( "http.client.connectTimeoutMs" ),
     HTTP_CLIENT_REQUEST_TIMEOUT_MS                  ( "http.client.requestTimeoutMs" ),
     HTTP_CLIENT_RESPONSE_MAX_SIZE                   ( "http.client.response.maxSize" ),
+    HTTP_CLIENT_IMPLEMENTATION                      ( "http.client.implementation" ),
     HTTP_CLIENT_ENABLE_HOSTNAME_VERIFICATION        ( "http.client.enableHostnameVerification" ),
     HTTP_CLIENT_PROMISCUOUS_WORDLIST_ENABLE         ( "http.client.promiscuous.wordlist.enable" ),
     HTTP_ENABLE_GZIP                                ( "http.gzip.enable" ),
@@ -138,6 +138,7 @@ public enum AppProperty
     HTTP_HEADER_SERVER                              ( "http.header.server" ),
     HTTP_HEADER_SEND_CONTENT_LANGUAGE               ( "http.header.sendContentLanguage" ),
     HTTP_HEADER_SEND_XAMB                           ( "http.header.sendXAmb" ),
+    HTTP_HEADER_SEND_XDOMAIN                        ( "http.header.sendXDomain" ),
     HTTP_HEADER_SEND_XINSTANCE                      ( "http.header.sendXInstance" ),
     HTTP_HEADER_SEND_XNOISE                         ( "http.header.sendXNoise" ),
     HTTP_HEADER_SEND_XSESSIONID                     ( "http.header.sendXSessionID" ),
@@ -145,6 +146,7 @@ public enum AppProperty
     HTTP_HEADER_SEND_XCONTENTTYPEOPTIONS            ( "http.header.sendXContentTypeOptions" ),
     HTTP_HEADER_SEND_XXSSPROTECTION                 ( "http.header.sendXXSSProtection" ),
     HTTP_HEADER_NOISE_LENGTH                        ( "http.header.noise.length" ),
+    HTTP_HEADER_CACHE_CONTROL                       ( "http.header.cacheControl" ),
     HTTP_HEADER_CSP_NONCE_BYTES                     ( "http.header.csp.nonce.bytes" ),
     HTTP_PARAM_NAME_FORWARD_URL                     ( "http.parameter.forward" ),
     HTTP_PARAM_NAME_LOGOUT_URL                      ( "http.parameter.logout" ),
@@ -191,6 +193,7 @@ public enum AppProperty
     INTRUDER_MAX_DELAY_PENALTY_MS                   ( "intruder.maximumDelayPenaltyMS" ),
     INTRUDER_DELAY_PER_COUNT_MS                     ( "intruder.delayPerCountMS" ),
     INTRUDER_DELAY_MAX_JITTER_MS                    ( "intruder.delayMaxJitterMS" ),
+    INTRUDER_STORAGE_HASH_ALGORITHM                 ( "intruder.storageHashAlgorithm" ),
     HEALTHCHECK_ENABLED                             ( "healthCheck.enabled" ),
     HEALTHCHECK_NOMINAL_CHECK_INTERVAL              ( "healthCheck.nominalCheckIntervalSeconds" ),
     HEALTHCHECK_MIN_CHECK_INTERVAL                  ( "healthCheck.minimumCheckIntervalSeconds" ),
@@ -237,6 +240,7 @@ public enum AppProperty
     LDAP_SEARCH_PARALLEL_FACTOR                     ( "ldap.search.parallel.factor" ),
     LDAP_SEARCH_PARALLEL_THREAD_MAX                 ( "ldap.search.parallel.threadMax" ),
     LDAP_ORACLE_POST_TEMPPW_USE_CURRENT_TIME        ( "ldap.oracle.postTempPasswordUseCurrentTime" ),
+    LOGGING_OUTPUT_CONFIGURATION                    ( "logging.outputConfiguration" ),
     LOGGING_PATTERN                                 ( "logging.pattern" ),
     LOGGING_EXTRA_PERIODIC_THREAD_DUMP_INTERVAL     ( "logging.extra.periodicThreadDumpIntervalSeconds" ),
     LOGGING_FILE_MAX_SIZE                           ( "logging.file.maxSize" ),
@@ -372,6 +376,8 @@ public enum AppProperty
     WORDLIST_BUILTIN_PATH                           ( "wordlist.builtin.path" ),
     WORDLIST_CHAR_LENGTH_MAX                        ( "wordlist.maxCharLength" ),
     WORDLIST_CHAR_LENGTH_MIN                        ( "wordlist.minCharLength" ),
+    WORDLIST_BUCKET_CHECK_WARNING_TIMEOUT_MS        ( "wordlist.bucketCheckLogWarningTimeoutMs" ),
+    WORDLIST_WARMUP_COUNT                           ( "wordlist.warmup.count" ),
     WORDLIST_IMPORT_AUTO_IMPORT_RECHECK_SECONDS     ( "wordlist.import.autoImportRecheckSeconds" ),
     WORDLIST_IMPORT_DURATION_GOAL_MS                ( "wordlist.import.durationGoalMS" ),
     WORDLIST_IMPORT_MIN_FREE_SPACE                  ( "wordlist.import.minFreeSpace" ),
@@ -379,8 +385,11 @@ public enum AppProperty
     WORDLIST_IMPORT_MAX_TRANSACTIONS                ( "wordlist.import.maxTransactions" ),
     WORDLIST_IMPORT_MAX_CHARS_TRANSACTIONS          ( "wordlist.import.maxCharsTransactions" ),
     WORDLIST_IMPORT_LINE_COMMENTS                   ( "wordlist.import.lineComments" ),
+    WORDLIST_IMPORT_PAUSE_DURATION_MS               ( "wordlist.import.pauseDurationMs" ),
+    WORDLIST_IMPORT_PAUSE_FREQUENCY_MS              ( "wordlist.import.pauseFrequencyMs" ),
     WORDLIST_INSPECTOR_FREQUENCY_SECONDS            ( "wordlist.inspector.frequencySeconds" ),
     WORDLIST_TEST_MODE                              ( "wordlist.testMode" ),
+    WORDLIST_BUCKET_CHECK_TIME_WARNING_MS           ( "wordlist.bucket.checkTimeWarningMs" ),
     WS_REST_CLIENT_PWRULE_HALTONERROR               ( "ws.restClient.pwRule.haltOnError" ),
     WS_REST_SERVER_SIGNING_FORM_TIMEOUT_SECONDS     ( "ws.restServer.signing.form.timeoutSeconds" ),
     WS_REST_SERVER_STATISTICS_DEFAULT_HISTORY       ( "ws.restServer.statistics.defaultHistoryDays" ),
@@ -401,18 +410,6 @@ public enum AppProperty
     public String getKey( )
     {
         return key;
-    }
-
-    public static AppProperty forKey( final String key )
-    {
-        for ( final AppProperty appProperty : AppProperty.values() )
-        {
-            if ( appProperty.getKey().equals( key ) )
-            {
-                return appProperty;
-            }
-        }
-        return null;
     }
 
     public String getDefaultValue( )

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,13 +79,9 @@ public class OptionListValue extends AbstractValue implements StoredValue
                 final Set<String> values = new TreeSet<>();
                 for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final String value = loopValueElement.getText();
-                    if ( value != null && !value.trim().isEmpty() )
-                    {
-                        values.add( value );
-                    }
+                    loopValueElement.getText().ifPresent( value -> values.add( value.trim() ) );
                 }
-                return new OptionListValue( values );
+                return new OptionListValue( Collections.unmodifiableSet( values ) );
             }
         };
     }

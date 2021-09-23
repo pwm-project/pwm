@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -44,13 +44,13 @@
     boolean showContextSelector = false;
     try {
         final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-        selectableContextMode = pwmRequest.getConfig().readSettingAsEnum(PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE,SelectableContextMode.class);
-        ldapProfiles = pwmRequest.getConfig().getLdapProfiles();
+        selectableContextMode = pwmRequest.getDomainConfig().readSettingAsEnum(PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE,SelectableContextMode.class);
+        ldapProfiles = pwmRequest.getDomainConfig().getLdapProfiles();
         selectedProfileParam = pwmRequest.readParameterAsString(PwmConstants.PARAM_LDAP_PROFILE);
-        selectedProfile = pwmRequest.getConfig().getLdapProfiles().containsKey(selectedProfileParam)
-                ? pwmRequest.getConfig().getLdapProfiles().get(selectedProfileParam)
-                : pwmRequest.getConfig().getDefaultLdapProfile();
-        selectableContexts = selectedProfile.getSelectableContexts(pwmRequest.getPwmApplication());
+        selectedProfile = pwmRequest.getDomainConfig().getLdapProfiles().containsKey(selectedProfileParam)
+                ? pwmRequest.getDomainConfig().getLdapProfiles().get(selectedProfileParam)
+                : pwmRequest.getDomainConfig().getDefaultLdapProfile();
+        selectableContexts = selectedProfile.getSelectableContexts(pwmRequest.getLabel(),pwmRequest.getPwmDomain());
         showContextSelector = selectableContextMode == SelectableContextMode.SHOW_CONTEXTS && selectableContexts.size() > 0;
     } catch (PwmException e) {
         /* noop */

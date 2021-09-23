@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ package password.pwm.http.servlet.peoplesearch;
 
 import password.pwm.AppProperty;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.PeopleSearchProfile;
@@ -39,18 +39,18 @@ import java.util.Set;
 public class PeopleSearchConfiguration
 {
     private final PeopleSearchProfile peopleSearchProfile;
-    private final Configuration configuration;
+    private final DomainConfig domainConfig;
 
-    PeopleSearchConfiguration( final Configuration configuration, final PeopleSearchProfile peopleSearchProfile )
+    PeopleSearchConfiguration( final DomainConfig domainConfig, final PeopleSearchProfile peopleSearchProfile )
             throws PwmUnrecoverableException
     {
-        this.configuration = configuration;
+        this.domainConfig = domainConfig;
         this.peopleSearchProfile = peopleSearchProfile;
     }
 
     String getEmailAttribute( final UserIdentity userIdentity )
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig.getAppConfig() );
         return ldapProfile.readSettingAsString( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE );
     }
 
@@ -66,36 +66,36 @@ public class PeopleSearchConfiguration
 
     String getOrgChartParentAttr( final UserIdentity userIdentity )
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig.getAppConfig() );
         return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_PARENT );
     }
 
     String getOrgChartChildAttr( final UserIdentity userIdentity  )
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig.getAppConfig() );
         return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_CHILD );
     }
 
     String getOrgChartAssistantAttr( final UserIdentity userIdentity  )
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig.getAppConfig() );
         return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_ASSISTANT );
     }
 
     String getOrgChartWorkforceIDAttr( final UserIdentity userIdentity  )
     {
-        final LdapProfile ldapProfile = userIdentity.getLdapProfile( configuration );
+        final LdapProfile ldapProfile = userIdentity.getLdapProfile( domainConfig.getAppConfig() );
         return ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_ORGCHART_WORKFORCEID );
     }
 
     public boolean isOrgChartShowChildCount()
     {
-        return Boolean.parseBoolean( configuration.readAppProperty( AppProperty.PEOPLESEARCH_ORGCHART_ENABLE_CHILD_COUNT ) );
+        return Boolean.parseBoolean( domainConfig.readAppProperty( AppProperty.PEOPLESEARCH_ORGCHART_ENABLE_CHILD_COUNT ) );
     }
 
     public int getOrgChartMaxParents()
     {
-        return Integer.parseInt( configuration.readAppProperty( AppProperty.PEOPLESEARCH_ORGCHART_MAX_PARENTS ) );
+        return Integer.parseInt( domainConfig.readAppProperty( AppProperty.PEOPLESEARCH_ORGCHART_MAX_PARENTS ) );
     }
 
     public boolean isEnableExportCsv()
@@ -105,7 +105,7 @@ public class PeopleSearchConfiguration
 
     public int getExportCsvMaxDepth()
     {
-        return Integer.parseInt( configuration.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_DEPTH ) );
+        return Integer.parseInt( domainConfig.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_DEPTH ) );
     }
 
     public boolean isEnableMailtoLinks()
@@ -115,7 +115,7 @@ public class PeopleSearchConfiguration
 
     public int getMailtoLinksMaxDepth( )
     {
-        return Integer.parseInt( configuration.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_DEPTH ) );
+        return Integer.parseInt( domainConfig.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_DEPTH ) );
     }
 
     TimeDuration getMaxCacheTime()
@@ -126,18 +126,18 @@ public class PeopleSearchConfiguration
 
     TimeDuration getExportCsvMaxDuration( )
     {
-        final int seconds = Integer.parseInt( configuration.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_SECONDS ) );
+        final int seconds = Integer.parseInt( domainConfig.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_SECONDS ) );
         return TimeDuration.of( seconds, TimeDuration.Unit.SECONDS );
     }
 
     int getExportCsvMaxThreads( )
     {
-        return Integer.parseInt( configuration.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_THREADS ) );
+        return Integer.parseInt( domainConfig.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_THREADS ) );
     }
 
     int getExportCsvMaxItems( )
     {
-        return Integer.parseInt( configuration.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_ITEMS ) );
+        return Integer.parseInt( domainConfig.readAppProperty( AppProperty.PEOPLESEARCH_EXPORT_CSV_MAX_ITEMS ) );
     }
 
     public String getSearchFilter()

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ package password.pwm.util.cli;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.util.localdb.LocalDB;
 
@@ -37,7 +37,7 @@ public class CliEnvironment
 {
     final ConfigurationReader configurationReader;
     final File configurationFile;
-    final Configuration config;
+    final AppConfig config;
     final File applicationPath;
     final PwmApplication pwmApplication;
     final LocalDB localDB;

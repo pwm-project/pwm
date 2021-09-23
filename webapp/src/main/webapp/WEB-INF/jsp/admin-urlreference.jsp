@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@
                 <td class="key">New User Registration</td>
                 <td><a href="<pwm:context/><%=PwmServletDefinition.NewUser.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.NewUser.servletUrl()%></a></td>
             </tr>
-            <% for (final String id : JspUtility.getPwmRequest(pageContext).getConfig().getNewUserProfiles().keySet()) { %>
+            <% for (final String id : JspUtility.getPwmRequest(pageContext).getDomainConfig().getNewUserProfiles().keySet()) { %>
             <tr>
                 <td class="key">New User Registration "<%=id%>" profile</td>
                 <td><a href="<pwm:context/><%=PwmServletDefinition.NewUser.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.NewUser.servletUrl()%>/profile/<%=id%></a></td>

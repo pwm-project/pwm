@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -66,7 +66,6 @@ import password.pwm.util.cli.commands.VersionCommand;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogManager;
@@ -80,11 +79,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.TreeMap;
 
@@ -197,7 +197,7 @@ public class MainClass
         final File configurationFile = locateConfigurationFile( applicationPath );
 
         final ConfigurationReader configReader = loadConfiguration( configurationFile );
-        final Configuration config = configReader.getConfiguration();
+        final AppConfig config = configReader.getConfiguration();
 
         final PwmApplication pwmApplication;
         final LocalDB localDB;
@@ -218,7 +218,7 @@ public class MainClass
             localDB = null;
         }
 
-        out( "environment initialized" );
+        out( PwmConstants.PWM_APP_NAME + " environment initialized" );
         out( "" );
 
         final Writer outputStream = new OutputStreamWriter( System.out, PwmConstants.DEFAULT_CHARSET );
@@ -412,10 +412,6 @@ public class MainClass
                 out( "error closing LocalDB environment: " + e.getMessage() );
             }
         }
-
-        //System.exit(0);
-        return;
-
     }
 
     private static void initLog4j( final PwmLogLevel logLevel )
@@ -428,11 +424,11 @@ public class MainClass
 
         final Layout patternLayout = new EnhancedPatternLayout( LOGGING_PATTERN );
         final ConsoleAppender consoleAppender = new ConsoleAppender( patternLayout );
-        for ( final Package logPackage : PwmLogManager.LOGGING_PACKAGES )
+        for ( final String logPackage : PwmLogManager.LOGGING_PACKAGES )
         {
             if ( logPackage != null )
             {
-                final Logger logger = Logger.getLogger( logPackage.getName() );
+                final Logger logger = Logger.getLogger( logPackage );
                 logger.addAppender( consoleAppender );
                 logger.setLevel( logLevel.getLog4jLevel() );
             }
@@ -441,7 +437,7 @@ public class MainClass
     }
 
     private static LocalDB loadPwmDB(
-            final Configuration config,
+            final AppConfig config,
             final boolean readonly,
             final File applicationPath
     )
@@ -470,14 +466,14 @@ public class MainClass
     private static PwmApplication loadPwmApplication(
             final File applicationPath,
             final Collection<PwmEnvironment.ApplicationFlag> flags,
-            final Configuration config,
+            final AppConfig config,
             final File configurationFile,
             final boolean readonly
     )
-            throws LocalDBException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final PwmApplicationMode mode = readonly ? PwmApplicationMode.READ_ONLY : PwmApplicationMode.RUNNING;
-        final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = new HashSet<>();
+        final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = EnumSet.noneOf( PwmEnvironment.ApplicationFlag.class  );
         if ( flags == null )
         {
             applicationFlags.addAll( PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem( null ) );
@@ -525,10 +521,10 @@ public class MainClass
         }
         else
         {
-            final String appPathStr = PwmEnvironment.ParseHelper.readValueFromSystem( PwmEnvironment.EnvironmentParameter.applicationPath, null );
-            if ( appPathStr != null && !appPathStr.isEmpty() )
+            final Optional<String> appPathStr = PwmEnvironment.ParseHelper.readValueFromSystem( PwmEnvironment.EnvironmentParameter.applicationPath, null );
+            if ( appPathStr.isPresent() )
             {
-                applicationPath = new File( appPathStr );
+                applicationPath = new File( appPathStr.get() );
             }
             else
             {

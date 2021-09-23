@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,6 +114,7 @@ PWM_ADMIN.initAdminNavMenu = function() {
 PWM_ADMIN.reportDataHeaders = function() {
     return [
         {field:"username",label:PWM_ADMIN.showString("Field_Report_Username")},
+        {field:"domainID",label:PWM_ADMIN.showString("Field_Report_DomainID"),hidden:true},
         {field:"userDN",label:PWM_ADMIN.showString("Field_Report_UserDN"),hidden:true},
         {field:"ldapProfile",label:PWM_ADMIN.showString("Field_Report_LDAP_Profile"),hidden:true},
         {field:"email",label:PWM_ADMIN.showString("Field_Report_Email"),hidden:true},
@@ -329,9 +330,10 @@ PWM_ADMIN.refreshActiveSessionGrid=function() {
 
 PWM_ADMIN.intruderHeaders = function(){
     return [
+        {field:"domainID",label:PWM_ADMIN.showString('Field_Intruder_Domain')},
         {field:"subject",label:PWM_ADMIN.showString('Field_Intruder_Subject')},
-        {field:"timestamp",label:PWM_ADMIN.showString('Field_Intruder_Timestamp')},
-        {field:"count",label:PWM_ADMIN.showString('Field_Intruder_Count')},
+        {field:"timeStamp",label:PWM_ADMIN.showString('Field_Intruder_Timestamp')},
+        {field:"attemptCount",label:PWM_ADMIN.showString('Field_Intruder_Count')},
         {field:"status",label:PWM_ADMIN.showString('Field_Intruder_Status')}
     ];
 };
@@ -388,6 +390,7 @@ PWM_ADMIN.refreshIntruderGrid=function() {
 
 PWM_ADMIN.auditUserHeaders = function() {
     return [
+        {field:"domain",label:PWM_ADMIN.showString('Field_Audit_Domain')},
         {field:"timestamp",label:PWM_ADMIN.showString('Field_Audit_Timestamp')},
         {field:"perpetratorID",label:PWM_ADMIN.showString('Field_Audit_PerpetratorID')},
         {field:"perpetratorDN",label:PWM_ADMIN.showString('Field_Audit_PerpetratorDN'),hidden:true},
@@ -403,6 +406,7 @@ PWM_ADMIN.auditUserHeaders = function() {
 
 PWM_ADMIN.auditHelpdeskHeaders = function() {
     return [
+        {field:"domain",label:PWM_ADMIN.showString('Field_Audit_Domain')},
         {field:"timestamp",label:PWM_ADMIN.showString('Field_Audit_Timestamp')},
         {field:"perpetratorID",label:PWM_ADMIN.showString('Field_Audit_PerpetratorID')},
         {field:"perpetratorDN",label:PWM_ADMIN.showString('Field_Audit_PerpetratorDN'),hidden:true},

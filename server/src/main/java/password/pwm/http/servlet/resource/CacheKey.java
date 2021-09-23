@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,47 +20,22 @@
 
 package password.pwm.http.servlet.resource;
 
-import java.io.Serializable;
+import lombok.Value;
 
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.Objects;
+
+@Value
 final class CacheKey implements Serializable
 {
     private final String fileName;
     private final boolean acceptsGzip;
-    private final long fileModificationTimestamp;
+    private final Instant fileModificationTimestamp;
 
-    CacheKey( final FileResource file, final boolean acceptsGzip )
+    static CacheKey createCacheKey( final FileResource file, final boolean acceptsGzip )
     {
-        this.fileName = file.getName();
-        this.acceptsGzip = acceptsGzip;
-        this.fileModificationTimestamp = file.lastModified();
-    }
-
-    @Override
-    public boolean equals( final Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        final CacheKey cacheKey = ( CacheKey ) o;
-
-        return acceptsGzip == cacheKey.acceptsGzip
-                && fileModificationTimestamp == cacheKey.fileModificationTimestamp
-                && !( fileName != null ? !fileName.equals( cacheKey.fileName ) : cacheKey.fileName != null );
-
-    }
-
-    @Override
-    public int hashCode( )
-    {
-        int result = fileName != null ? fileName.hashCode() : 0;
-        result = 31 * result + ( acceptsGzip ? 1 : 0 );
-        result = 31 * result + ( int ) ( fileModificationTimestamp ^ ( fileModificationTimestamp >>> 32 ) );
-        return result;
+        Objects.requireNonNull( file );
+        return new CacheKey( file.getName(), acceptsGzip, file.lastModified() );
     }
 }

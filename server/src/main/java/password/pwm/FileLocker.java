@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 package password.pwm;
 
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -128,10 +128,10 @@ class FileLocker
     public void waitForFileLock( )
             throws PwmUnrecoverableException
     {
-        final Configuration configuration = pwmEnvironment.getConfig();
+        final AppConfig domainConfig = pwmEnvironment.getConfig();
         final int maxWaitSeconds = pwmEnvironment.getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance )
                 ? 1
-                : Integer.parseInt( configuration.readAppProperty( AppProperty.APPLICATION_FILELOCK_WAIT_SECONDS ) );
+                : Integer.parseInt( domainConfig.readAppProperty( AppProperty.APPLICATION_FILELOCK_WAIT_SECONDS ) );
         final Instant startTime = Instant.now();
         final TimeDuration attemptInterval = TimeDuration.of( 5021, TimeDuration.Unit.MILLISECONDS );
 

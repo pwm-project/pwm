@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,12 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.NewUserBean;
+import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.SecureService;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -43,6 +43,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 class NewUserFormUtils
 {
@@ -62,8 +63,12 @@ class NewUserFormUtils
         final List<FormConfiguration> newUserForm = NewUserServlet.getFormDefinition( pwmRequest );
         final Map<FormConfiguration, String> userFormValues = FormUtility.readFormValuesFromRequest( pwmRequest,
                 newUserForm, userLocale );
-        final PasswordData passwordData1 = pwmRequest.readParameterAsPassword( NewUserServlet.FIELD_PASSWORD1 );
-        final PasswordData passwordData2 = pwmRequest.readParameterAsPassword( NewUserServlet.FIELD_PASSWORD2 );
+        final PasswordData passwordData1 = pwmRequest.readParameterAsPassword( NewUserServlet.FIELD_PASSWORD1 )
+                .orElseThrow( () -> new NoSuchElementException( "missing " +  NewUserServlet.FIELD_PASSWORD1 + " field" ) );
+
+        final PasswordData passwordData2 = pwmRequest.readParameterAsPassword( NewUserServlet.FIELD_PASSWORD2 )
+                .orElseThrow( () -> new NoSuchElementException( "missing " +  NewUserServlet.FIELD_PASSWORD2 + " field" ) );
+
 
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
         return injectRemoteValuesIntoForm( userFormValues, newUserBean.getRemoteInputData(), newUserProfile, passwordData1, passwordData2 );
@@ -102,7 +107,7 @@ class NewUserFormUtils
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
+        final DomainSecureService domainSecureService = pwmRequest.getPwmDomain().getSecureService();
 
         final Map<String, String> payloadMap = tokenPayload.getData();
 
@@ -113,7 +118,7 @@ class NewUserFormUtils
 
         final String encryptedTokenData = payloadMap.get( NewUserServlet.TOKEN_PAYLOAD_ATTR );
 
-        return secureService.decryptObject( encryptedTokenData, NewUserTokenData.class );
+        return domainSecureService.decryptObject( encryptedTokenData, NewUserTokenData.class );
     }
 
     static Map<String, String> toTokenPayload(
@@ -129,8 +134,8 @@ class NewUserFormUtils
         newUserTokenData.setCurrentTokenField( newUserBean.getCurrentTokenField() );
         newUserTokenData.setCompletedTokenFields( newUserBean.getCompletedTokenFields() );
 
-        final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
-        final String encodedTokenData = secureService.encryptObjectToString( newUserTokenData );
+        final DomainSecureService domainSecureService = pwmRequest.getPwmDomain().getSecureService();
+        final String encodedTokenData = domainSecureService.encryptObjectToString( newUserTokenData );
         final Map<String, String> payloadMap = new HashMap<>();
         payloadMap.put( NewUserServlet.TOKEN_PAYLOAD_ATTR, encodedTokenData );
         return payloadMap;
@@ -146,7 +151,7 @@ class NewUserFormUtils
             {
                 final String attrName = formConfiguration.getName();
                 final String value = newUserForm.getFormData().get( attrName );
-                if ( !StringUtil.isEmpty( value ) )
+                if ( StringUtil.notEmpty( value ) )
                 {
                     ldapData.put( attrName, value );
                 }
@@ -182,7 +187,7 @@ class NewUserFormUtils
             for ( final FormConfiguration formConfiguration : formConfigurations )
             {
                 final String name = formConfiguration.getName();
-                final boolean formHasValue = !StringUtil.isEmpty( newFormValues.get( name ) );
+                final boolean formHasValue = StringUtil.notEmpty( newFormValues.get( name ) );
 
                 if ( formConfiguration.isReadonly() || ( !formHasValue && injectedValues.containsKey( name ) ) )
                 {

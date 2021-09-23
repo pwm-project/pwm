@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 package password.pwm.util.secure;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -47,6 +48,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -93,7 +95,7 @@ public class SecureEngine
         {
             final String errorMsg = "unexpected error b64 encoding crypto result: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            LOGGER.error( () -> errorInformation.toDebugStr() );
+            LOGGER.error( errorInformation::toDebugStr );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }
@@ -110,10 +112,9 @@ public class SecureEngine
     {
         try
         {
-            if ( value == null || value.length() < 1 )
-            {
-                return null;
-            }
+            Objects.requireNonNull( value );
+            Objects.requireNonNull( key );
+            Objects.requireNonNull( blockAlgorithm );
 
             final SecretKey aesKey = key.getKey( blockAlgorithm.getBlockKey() );
             final byte[] nonce;
@@ -159,7 +160,7 @@ public class SecureEngine
         {
             final String errorMsg = "unexpected error performing simple crypt operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            LOGGER.error( () -> errorInformation.toDebugStr() );
+            LOGGER.error( errorInformation::toDebugStr );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }
@@ -217,7 +218,7 @@ public class SecureEngine
                 if ( workingValue.length <= checksumSize )
                 {
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_CRYPT_ERROR,
-                            "incoming " + blockAlgorithm.toString() + " data is missing checksum" ) );
+                            "incoming " + blockAlgorithm + " data is missing checksum" ) );
                 }
                 final byte[] inputChecksum = Arrays.copyOfRange( workingValue, 0, checksumSize );
                 final byte[] inputPayload = Arrays.copyOfRange( workingValue, checksumSize, workingValue.length );
@@ -225,7 +226,7 @@ public class SecureEngine
                 if ( !Arrays.equals( inputChecksum, computedChecksum ) )
                 {
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_CRYPT_ERROR,
-                            "incoming " + blockAlgorithm.toString() + " data has incorrect checksum" ) );
+                            "incoming " + blockAlgorithm + " data has incorrect checksum" ) );
                 }
                 workingValue = inputPayload;
             }
@@ -502,6 +503,7 @@ public class SecureEngine
         }
     }
 
+    @SuppressFBWarnings( "DMI_RANDOM_USED_ONLY_ONCE" )
     public static void benchmark( final Writer outputData ) throws PwmUnrecoverableException, IOException
     {
         final int testIterations = 10 * 1000;

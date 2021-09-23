@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,15 +84,14 @@ public class EdirSchemaExtender implements SchemaExtender
 
     private boolean allStatesCorrect( )
     {
-        boolean allStatesCorrect = true;
         for ( final SchemaDefinition.State value : stateMap.values() )
         {
             if ( SchemaDefinition.State.correct != value )
             {
-                allStatesCorrect = false;
+                return false;
             }
         }
-        return allStatesCorrect;
+        return true;
     }
 
     private void execute( final boolean readOnly ) throws PwmUnrecoverableException

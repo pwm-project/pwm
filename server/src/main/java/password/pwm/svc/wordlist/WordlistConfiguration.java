@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import lombok.Getter;
 import lombok.Value;
 import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
@@ -62,12 +62,18 @@ public class WordlistConfiguration implements Serializable
     private final LocalDB.DB db;
     private final PwmSetting wordlistFilenameSetting;
     private final boolean testMode;
+    private final int warmupLookups;
 
     @Builder.Default
     private final Collection<String> commentPrefixes = new ArrayList<>();
 
     private final TimeDuration autoImportRecheckDuration;
     private final TimeDuration importDurationGoal;
+    private final TimeDuration bucketCheckLogWarningTimeout;
+
+    private final TimeDuration importPauseDuration;
+    private final TimeDuration importPauseFrequency;
+
     private final int importMinTransactions;
     private final int importMaxTransactions;
     private final long importMaxChars;
@@ -76,7 +82,7 @@ public class WordlistConfiguration implements Serializable
     private final TimeDuration inspectorFrequency;
 
     static WordlistConfiguration fromConfiguration(
-            final Configuration configuration,
+            final AppConfig appConfig,
             final WordlistType type
     )
     {
@@ -84,8 +90,8 @@ public class WordlistConfiguration implements Serializable
         {
             case SEEDLIST:
             {
-                return commonBuilder( configuration ).toBuilder()
-                        .autoImportUrl( readAutoImportUrl( configuration, PwmSetting.SEEDLIST_FILENAME ) )
+                return commonBuilder( appConfig ).toBuilder()
+                        .autoImportUrl( readAutoImportUrl( appConfig, PwmSetting.SEEDLIST_FILENAME ) )
                         .metaDataAppAttribute( AppAttribute.SEEDLIST_METADATA )
                         .builtInWordlistLocationProperty( AppProperty.SEEDLIST_BUILTIN_PATH )
                         .db( LocalDB.DB.SEEDLIST_WORDS )
@@ -95,10 +101,10 @@ public class WordlistConfiguration implements Serializable
 
             case WORDLIST:
             {
-                return commonBuilder( configuration ).toBuilder()
-                        .caseSensitive( configuration.readSettingAsBoolean( PwmSetting.WORDLIST_CASE_SENSITIVE )  )
-                        .checkSize( (int) configuration.readSettingAsLong( PwmSetting.PASSWORD_WORDLIST_WORDSIZE ) )
-                        .autoImportUrl( readAutoImportUrl( configuration, PwmSetting.WORDLIST_FILENAME ) )
+                return commonBuilder( appConfig ).toBuilder()
+                        .caseSensitive( appConfig.readSettingAsBoolean( PwmSetting.WORDLIST_CASE_SENSITIVE )  )
+                        .checkSize( (int) appConfig.readSettingAsLong( PwmSetting.PASSWORD_WORDLIST_WORDSIZE ) )
+                        .autoImportUrl( readAutoImportUrl( appConfig, PwmSetting.WORDLIST_FILENAME ) )
                         .metaDataAppAttribute( AppAttribute.WORDLIST_METADATA )
                         .builtInWordlistLocationProperty( AppProperty.WORDLIST_BUILTIN_PATH )
                         .db( LocalDB.DB.WORDLIST_WORDS )
@@ -114,36 +120,34 @@ public class WordlistConfiguration implements Serializable
     }
 
     private static WordlistConfiguration commonBuilder(
-            final Configuration configuration
+            final AppConfig appConfig
     )
     {
         return WordlistConfiguration.builder()
-                .commentPrefixes( StringUtil.splitAndTrim( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_LINE_COMMENTS ), ";;;" ) )
-                .testMode( Boolean.parseBoolean( configuration.readAppProperty( AppProperty.WORDLIST_TEST_MODE ) ) )
-                .minWordSize( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MIN ) ) )
-                .maxWordSize( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MAX ) ) )
-                .autoImportRecheckDuration( TimeDuration.of(
-                        Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_AUTO_IMPORT_RECHECK_SECONDS ) ),
-                        TimeDuration.Unit.SECONDS ) )
-                .importDurationGoal( TimeDuration.of(
-                        Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_DURATION_GOAL_MS ) ),
-                        TimeDuration.Unit.MILLISECONDS ) )
-                .importMinTransactions( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_TRANSACTIONS ) ) )
-                .importMaxTransactions( Integer.parseInt( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_TRANSACTIONS ) ) )
-                .importMaxChars( JavaHelper.silentParseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_CHARS_TRANSACTIONS ), 10_1024_1024 ) )
-                .inspectorFrequency( TimeDuration.of(
-                        Long.parseLong( configuration.readAppProperty( AppProperty.WORDLIST_INSPECTOR_FREQUENCY_SECONDS ) ),
-                        TimeDuration.Unit.SECONDS ) )
-                .importMinFreeSpace( JavaHelper.silentParseLong( configuration.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_FREE_SPACE ), 100_000_000 ) )
+                .commentPrefixes( StringUtil.splitAndTrim( appConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_LINE_COMMENTS ), ";;;" ) )
+                .testMode( Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.WORDLIST_TEST_MODE ) ) )
+                .minWordSize( Integer.parseInt( appConfig.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MIN ) ) )
+                .maxWordSize( Integer.parseInt( appConfig.readAppProperty( AppProperty.WORDLIST_CHAR_LENGTH_MAX ) ) )
+                .warmupLookups( Integer.parseInt( appConfig.readAppProperty( AppProperty.WORDLIST_WARMUP_COUNT ) ) )
+                .bucketCheckLogWarningTimeout( appConfig.readDurationAppProperty( AppProperty.WORDLIST_BUCKET_CHECK_WARNING_TIMEOUT_MS ) )
+                .autoImportRecheckDuration( appConfig.readDurationAppProperty( AppProperty.WORDLIST_IMPORT_AUTO_IMPORT_RECHECK_SECONDS ) )
+                .importDurationGoal( appConfig.readDurationAppProperty( AppProperty.WORDLIST_IMPORT_DURATION_GOAL_MS ) )
+                .importMinTransactions( Integer.parseInt( appConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_TRANSACTIONS ) ) )
+                .importMaxTransactions( Integer.parseInt( appConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_TRANSACTIONS ) ) )
+                .importMaxChars( JavaHelper.silentParseLong( appConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_MAX_CHARS_TRANSACTIONS ), 10_1024_1024 ) )
+                .inspectorFrequency( appConfig.readDurationAppProperty( AppProperty.WORDLIST_INSPECTOR_FREQUENCY_SECONDS ) )
+                .importMinFreeSpace( JavaHelper.silentParseLong( appConfig.readAppProperty( AppProperty.WORDLIST_IMPORT_MIN_FREE_SPACE ), 100_000_000 ) )
+                .importPauseDuration( appConfig.readDurationAppProperty( AppProperty.WORDLIST_IMPORT_PAUSE_DURATION_MS ) )
+                .importPauseFrequency( appConfig.readDurationAppProperty( AppProperty.WORDLIST_IMPORT_PAUSE_FREQUENCY_MS ) )
                 .build();
     }
 
     private static String readAutoImportUrl(
-            final Configuration configuration,
+            final AppConfig appConfig,
             final PwmSetting wordlistFileSetting
     )
     {
-        final String inputUrl = configuration.readSettingAsString( wordlistFileSetting );
+        final String inputUrl = appConfig.readSettingAsString( wordlistFileSetting );
 
         if ( StringUtil.isEmpty( inputUrl ) )
         {
@@ -170,6 +174,11 @@ public class WordlistConfiguration implements Serializable
             throw new IllegalStateException( "unexpected error generating wordlist-config hash: " + e.getMessage() );
         }
     } );
+
+    public boolean isAutoImportUrlConfigured()
+    {
+        return StringUtil.notEmpty( getAutoImportUrl() );
+    }
 
     String configHash( )
     {

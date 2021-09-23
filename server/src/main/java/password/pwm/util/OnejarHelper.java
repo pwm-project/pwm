@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.error.PwmUnrecoverableException;
@@ -70,18 +70,18 @@ public class OnejarHelper
     /**
      * Return properties used by the OneJar launcher to configure the web container.  This reads settings from the
      * application configuration.
-     * @param configuration a valid configuration instance
+     * @param appConfig a valid configuration instance
      * @return A List of properties used by the Onejar util
      * @throws Exception If anything goes wrong
      */
-    private static Properties createProperties( final Configuration configuration )
+    private static Properties createProperties( final AppConfig appConfig )
             throws Exception
     {
-        final String sslProtocolSettingValue = ExportHttpsTomcatConfigCommand.TomcatConfigWriter.getTlsProtocolsValue( configuration );
+        final String sslProtocolSettingValue = ExportHttpsTomcatConfigCommand.TomcatConfigWriter.getTlsProtocolsValue( appConfig );
         final Properties newProps = new Properties();
         newProps.setProperty( "sslEnabledProtocols",  sslProtocolSettingValue );
-        final String ciphers = configuration.readSettingAsString( PwmSetting.HTTPS_CIPHERS );
-        if ( !StringUtil.isEmpty( ciphers ) )
+        final String ciphers = appConfig.readSettingAsString( PwmSetting.HTTPS_CIPHERS );
+        if ( StringUtil.notEmpty( ciphers ) )
         {
             newProps.setProperty( "ciphers", ciphers );
         }
@@ -111,7 +111,7 @@ public class OnejarHelper
     {
         final File configFile = new File( applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
         final ConfigurationReader configReader = new ConfigurationReader( configFile );
-        final Configuration config = configReader.getConfiguration();
+        final AppConfig config = configReader.getConfiguration();
         final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
                 .config( config )
                 .applicationPath( applicationPath )

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,17 +24,19 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmApplication;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.pub.SessionStateInfoBean;
-import password.pwm.config.Configuration;
+import password.pwm.config.SettingReader;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Admin;
 import password.pwm.ldap.UserInfo;
+import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
@@ -56,7 +58,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SessionTrackService implements PwmService
+public class SessionTrackService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SessionTrackService.class );
 
@@ -66,18 +68,17 @@ public class SessionTrackService implements PwmService
             .maximumSize( 10 )
             .build();
 
-    private PwmApplication pwmApplication;
-
     @Override
-    public STATUS status( )
+    protected Set<PwmApplication.Condition> openConditions()
     {
-        return STATUS.OPEN;
+        return Collections.emptySet();
     }
 
     @Override
-    public void init( final PwmApplication pwmApplication ) throws PwmException
+    public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
+            throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        return STATUS.OPEN;
     }
 
     @Override
@@ -87,7 +88,7 @@ public class SessionTrackService implements PwmService
     }
 
     @Override
-    public List<HealthRecord> healthCheck( )
+    public List<HealthRecord> serviceHealthCheck( )
     {
         return Collections.emptyList();
     }
@@ -117,7 +118,7 @@ public class SessionTrackService implements PwmService
 
     private Set<PwmSession> copyOfSessionSet( )
     {
-        return new HashSet<>( pwmSessions.keySet() );
+        return Set.copyOf(  pwmSessions.keySet() );
     }
 
     public Map<DebugKey, String> getDebugData( )
@@ -125,20 +126,12 @@ public class SessionTrackService implements PwmService
         try
         {
             final Collection<PwmSession> sessionCopy = copyOfSessionSet();
-            int sessionCounter = 0;
-            long sizeTotal = 0;
-            for ( final PwmSession pwmSession : sessionCopy )
-            {
-                try
-                {
-                    sizeTotal += pwmSession.size();
-                    sessionCounter++;
-                }
-                catch ( final Exception e )
-                {
-                    LOGGER.error( () -> "error during session size calculation: " + e.getMessage() );
-                }
-            }
+            final int sessionCounter = sessionCopy.size();
+            final long sizeTotal = sessionCopy.stream()
+                    .map( PwmSession::size )
+                    .map( Long::valueOf )
+                    .reduce( 0L, Long::sum );
+
             final Map<DebugKey, String> returnMap = new EnumMap<>( DebugKey.class );
             returnMap.put( DebugKey.HttpSessionCount, String.valueOf( sessionCounter ) );
             returnMap.put( DebugKey.HttpSessionTotalSize, String.valueOf( sizeTotal ) );
@@ -169,7 +162,7 @@ public class SessionTrackService implements PwmService
     public Iterator<SessionStateInfoBean> getSessionInfoIterator( )
     {
         final Iterator<PwmSession> sessionIterator = new HashSet<>( currentValidSessionSet() ).iterator();
-        return new Iterator<SessionStateInfoBean>()
+        return new Iterator<>()
         {
             @Override
             public boolean hasNext( )
@@ -198,7 +191,7 @@ public class SessionTrackService implements PwmService
 
     public void outputToCsv(
             final Locale locale,
-            final Configuration config,
+            final SettingReader config,
             final OutputStream outputStream
             )
             throws IOException
@@ -299,12 +292,12 @@ public class SessionTrackService implements PwmService
 
     public List<UserIdentity> getRecentLogins( )
     {
-        return Collections.unmodifiableList( new ArrayList<>( recentLoginCache.asMap().keySet() ) );
+        return List.copyOf( recentLoginCache.asMap().keySet() );
     }
 
     public String generateNewSessionID()
     {
-        final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
+        final PwmRandom pwmRandom = getPwmApplication().getSecureService().pwmRandom();
 
         for ( int safetyCounter = 0; safetyCounter < 1000; safetyCounter++ )
         {

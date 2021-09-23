@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@ package password.pwm.ldap.auth;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -31,28 +32,30 @@ import password.pwm.error.PwmUnrecoverableException;
 public abstract class AuthenticationUtility
 {
     public static void checkIfUserEligibleToAuthentication(
-            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final PwmDomain pwmDomain,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
         try
         {
-            checkIfUserEligibleToAuthenticationImpl( pwmApplication, userIdentity );
+            checkIfUserEligibleToAuthenticationImpl( sessionLabel, pwmDomain, userIdentity );
         }
         catch ( final ChaiOperationException | ChaiUnavailableException e )
         {
-            throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ) );
+            throw new PwmUnrecoverableException( PwmError.forChaiError( e.getErrorCode() ).orElse( PwmError.ERROR_INTERNAL ) );
         }
     }
 
     private static void checkIfUserEligibleToAuthenticationImpl(
-            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final PwmDomain pwmDomain,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, ChaiOperationException
     {
-        final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser( userIdentity );
+        final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
 
         if ( !chaiUser.isAccountEnabled() )
         {

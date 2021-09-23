@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,15 @@ package password.pwm.util;
 
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.db.DatabaseDataStore;
-import password.pwm.util.db.DatabaseTable;
+import password.pwm.svc.db.DatabaseDataStore;
+import password.pwm.svc.db.DatabaseTable;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
 
 public abstract class DataStoreFactory
 {
-    public static DataStore autoDbOrLocalDBstore( final PwmApplication pwmApplication, final DatabaseTable table, final LocalDB.DB db ) throws PwmUnrecoverableException
+    public static DataStore autoDbOrLocalDBstore( final PwmApplication pwmApplication, final DatabaseTable table, final LocalDB.DB db )
+            throws PwmUnrecoverableException
     {
         if ( pwmApplication.getConfig().hasDbConfigured() )
         {

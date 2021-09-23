@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,11 @@ package password.pwm.health;
 
 import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
-import password.pwm.config.Configuration;
-import password.pwm.ws.server.rest.bean.HealthData;
+import password.pwm.bean.DomainID;
+import password.pwm.config.DomainConfig;
+import password.pwm.config.SettingReader;
+import password.pwm.ws.server.rest.bean.PublicHealthData;
+import password.pwm.ws.server.rest.bean.PublicHealthRecord;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -41,12 +44,16 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
 
     // new fields
     private final HealthTopic topic;
+    private final DomainID domainID;
     private final HealthMessage message;
     private final List<String> fields;
 
     private static final Comparator<HealthRecord> COMPARATOR = Comparator.comparing(
-            HealthRecord::getStatus,
+            HealthRecord::getDomainID,
             Comparator.nullsLast( Comparator.naturalOrder() ) )
+            .thenComparing(
+                    HealthRecord::getStatus,
+                    Comparator.nullsLast( Comparator.naturalOrder() ) )
             .thenComparing(
                     healthRecord -> healthRecord.getTopic( null, null ),
                     Comparator.nullsLast( Comparator.naturalOrder() ) )
@@ -56,31 +63,35 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
 
 
     private HealthRecord(
+            final DomainID domainID,
             final HealthStatus status,
             final HealthTopic topicEnum,
             final HealthMessage message,
             final String... fields
     )
     {
+        this.domainID = Objects.requireNonNull( domainID );
         this.status = Objects.requireNonNull( status,  "status cannot be null" );
         this.topic = Objects.requireNonNull( topicEnum,  "topic cannot be null" );
         this.message = Objects.requireNonNull( message,  "message cannot be null" );
         this.fields = fields == null ? Collections.emptyList() : List.copyOf( Arrays.asList( fields ) );
     }
 
-    public static HealthRecord forMessage( final HealthMessage message )
+
+
+    public static HealthRecord forMessage( final DomainID domainID, final HealthMessage message )
     {
-        return new HealthRecord( message.getStatus(), message.getTopic(), message );
+        return new HealthRecord( domainID, message.getStatus(), message.getTopic(), message );
     }
 
-    public static HealthRecord forMessage( final HealthMessage message, final String... fields )
+    public static HealthRecord forMessage( final DomainID domainID, final HealthMessage message, final String... fields )
     {
-        return new HealthRecord( message.getStatus(), message.getTopic(), message, fields );
+        return new HealthRecord( domainID, message.getStatus(), message.getTopic(), message, fields );
     }
 
-    public static HealthRecord forMessage( final HealthMessage message, final HealthTopic healthTopic, final String... fields )
+    public static HealthRecord forMessage( final DomainID domainID, final HealthMessage message, final HealthTopic healthTopic, final String... fields )
     {
-        return new HealthRecord( message.getStatus(), healthTopic, message, fields );
+        return new HealthRecord( domainID, message.getStatus(), healthTopic, message, fields );
     }
 
     public HealthStatus getStatus( )
@@ -88,7 +99,12 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
         return status;
     }
 
-    public String getTopic( final Locale locale, final Configuration config )
+    public DomainID getDomainID()
+    {
+        return domainID;
+    }
+
+    public String getTopic( final Locale locale, final SettingReader config )
     {
         if ( topic != null )
         {
@@ -97,7 +113,7 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
         return "";
     }
 
-    public String getDetail( final Locale locale, final Configuration config )
+    public String getDetail( final Locale locale, final SettingReader config )
     {
         if ( message != null )
         {
@@ -106,7 +122,7 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
         return "";
     }
 
-    public String toDebugString( final Locale locale, final Configuration config )
+    public String toDebugString( final Locale locale, final SettingReader config )
     {
         return HealthRecord.class.getSimpleName() + " " + status.getDescription( locale, config ) + " " + this.getTopic(
                 locale, config ) + " " + this.getDetail( locale, config );
@@ -123,17 +139,17 @@ public class HealthRecord implements Serializable, Comparable<HealthRecord>
         return Collections.singletonList( this );
     }
 
-    public static HealthData asHealthDataBean(
-            final Configuration configuration,
+    public static PublicHealthData asHealthDataBean(
+            final DomainConfig domainConfig,
             final Locale locale,
             final List<HealthRecord> profileRecords
     )
     {
-        final List<password.pwm.ws.server.rest.bean.HealthRecord> healthRecordBeans = password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords(
-                profileRecords, locale, configuration );
-        return HealthData.builder()
+        final List<PublicHealthRecord> healthRecordBeans = PublicHealthRecord.fromHealthRecords(
+                profileRecords, locale, domainConfig );
+        return PublicHealthData.builder()
                 .timestamp( Instant.now() )
-                .overall( HealthMonitor.getMostSevereHealthStatus( profileRecords ).toString() )
+                .overall( HealthUtils.getMostSevereHealthStatus( profileRecords ).toString() )
                 .records( healthRecordBeans )
                 .build();
     }

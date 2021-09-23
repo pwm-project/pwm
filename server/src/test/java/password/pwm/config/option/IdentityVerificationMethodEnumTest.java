@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,29 +22,29 @@ package password.pwm.config.option;
 
 import org.junit.Test;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
 
 public class IdentityVerificationMethodEnumTest
 {
     @Test
-    public void testLabels() throws PwmUnrecoverableException
+    public void testLabels()
     {
-        final Configuration configuration = new Configuration( StoredConfigurationFactory.newConfig() );
+        final AppConfig appConfig = AppConfig.defaultConfig();
         for ( final IdentityVerificationMethod method : IdentityVerificationMethod.values() )
         {
-            method.getLabel( configuration, PwmConstants.DEFAULT_LOCALE );
+            method.getLabel( appConfig, PwmConstants.DEFAULT_LOCALE );
         }
     }
 
     @Test
     public void testDescriptions() throws PwmUnrecoverableException
     {
-        final Configuration configuration = new Configuration( StoredConfigurationFactory.newConfig() );
+        final AppConfig appConfig = new AppConfig( StoredConfigurationFactory.newConfig() );
         for ( final IdentityVerificationMethod category : IdentityVerificationMethod.values() )
         {
-            category.getDescription( configuration, PwmConstants.DEFAULT_LOCALE );
+            category.getDescription( appConfig, PwmConstants.DEFAULT_LOCALE );
         }
     }
 

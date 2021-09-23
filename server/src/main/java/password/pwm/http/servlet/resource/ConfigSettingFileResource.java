@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,25 +21,24 @@
 package password.pwm.http.servlet.resource;
 
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
-import password.pwm.util.java.StringUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 
 public class ConfigSettingFileResource implements FileResource
 {
     private final String bodyText;
     private final String requestURI;
 
-    public ConfigSettingFileResource( final PwmSetting pwmSetting, final Configuration configuration, final String requestURI )
+    public ConfigSettingFileResource( final PwmSetting pwmSetting, final DomainConfig domainConfig, final String requestURI )
     {
-        this.bodyText = configuration.readSettingAsString( pwmSetting );
+        this.bodyText = domainConfig.readSettingAsString( pwmSetting );
         this.requestURI = requestURI;
     }
-
 
     @Override
     public InputStream getInputStream()
@@ -55,15 +54,9 @@ public class ConfigSettingFileResource implements FileResource
     }
 
     @Override
-    public long lastModified()
+    public Instant lastModified()
     {
-        return 0;
-    }
-
-    @Override
-    public boolean exists()
-    {
-        return !StringUtil.isEmpty( bodyText );
+        return Instant.EPOCH;
     }
 
     @Override

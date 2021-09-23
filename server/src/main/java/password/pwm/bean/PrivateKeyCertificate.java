@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 package password.pwm.bean;
 
 import lombok.Value;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.X509Utils;
 
@@ -41,6 +42,7 @@ public class PrivateKeyCertificate implements Serializable
     private final String privateKey;
 
     public PrivateKeyCertificate( final List<X509Certificate> certificates, final PrivateKey privateKey )
+            throws PwmUnrecoverableException
     {
         this.b64certificates = X509Utils.certificatesToBase64s( certificates );
         this.privateKey = StringUtil.base64Encode( privateKey.getEncoded() );

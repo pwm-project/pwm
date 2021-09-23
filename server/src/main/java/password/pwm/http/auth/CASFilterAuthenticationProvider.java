@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.jasig.cas.client.util.AbstractCasFilter;
 import org.jasig.cas.client.util.CommonUtils;
 import org.jasig.cas.client.util.XmlUtils;
 import org.jasig.cas.client.validation.Assertion;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
@@ -69,15 +69,15 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
 
     public static boolean isFilterEnabled( final PwmRequest pwmRequest )
     {
-        final String clearPassUrl = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAS_CLEAR_PASS_URL );
+        final String clearPassUrl = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAS_CLEAR_PASS_URL );
 
         if ( !( clearPassUrl == null || clearPassUrl.trim().isEmpty() ) )
         {
             return true;
         }
 
-        final String alg = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAS_CLEARPASS_ALGORITHM );
-        final Map<FileInformation, FileContent> privatekey = pwmRequest.getConfig().readSettingAsFile( PwmSetting.CAS_CLEARPASS_KEY );
+        final String alg = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAS_CLEARPASS_ALGORITHM );
+        final Map<FileInformation, FileContent> privatekey = pwmRequest.getDomainConfig().readSettingAsFile( PwmSetting.CAS_CLEARPASS_KEY );
 
         if ( !privatekey.isEmpty() && ( !( alg == null || alg.trim().isEmpty() ) ) )
         {
@@ -130,7 +130,7 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
             throws UnsupportedEncodingException, PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final HttpSession session = pwmRequest.getHttpServletRequest().getSession();
 
         //make sure user session isn't already authenticated
@@ -159,14 +159,14 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
         }
         else
         {
-            final Map<FileInformation, FileContent> privatekey = pwmRequest.getConfig().readSettingAsFile( PwmSetting.CAS_CLEARPASS_KEY );
-            final String alg = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAS_CLEARPASS_ALGORITHM );
+            final Map<FileInformation, FileContent> privatekey = pwmRequest.getDomainConfig().readSettingAsFile( PwmSetting.CAS_CLEARPASS_KEY );
+            final String alg = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAS_CLEARPASS_ALGORITHM );
 
             password = decryptPassword( alg, privatekey, encodedPsw );
         }
 
         // If using the old method
-        final String clearPassUrl = pwmRequest.getConfig().readSettingAsString( PwmSetting.CAS_CLEAR_PASS_URL );
+        final String clearPassUrl = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAS_CLEAR_PASS_URL );
         if ( ( clearPassUrl != null && clearPassUrl.length() > 0 ) && ( password == null || password.getStringValue().length() < 1 ) )
         {
             LOGGER.trace( pwmRequest, () -> "using CAS clearpass via proxy" );
@@ -204,7 +204,7 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
 
         //user isn't already authenticated and has CAS assertion and password, so try to auth them.
         LOGGER.debug( pwmRequest, () -> "attempting to authenticate user '" + username + "' using CAS assertion and password" );
-        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmApplication, pwmRequest, PwmAuthenticationSource.CAS );
+        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmDomain, pwmRequest, PwmAuthenticationSource.CAS );
         sessionAuthenticator.searchAndAuthenticateUser( username, password, null, null );
         return true;
     }

@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -59,13 +59,13 @@
                     <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form" id="form-<%=method.toString()%>">
                         <button class="btn" type="submit" name="submitBtn">
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
-                            <%=method.getLabel(pwmRequest.getConfig(),pwmRequest.getLocale())%>
+                            <%=method.getLabel(pwmRequest.getDomainConfig(),pwmRequest.getLocale())%>
                         </button>
                         <input type="hidden" name="<%=PwmConstants.PARAM_METHOD_CHOICE%>" value="<%=method.toString()%>"/>
                         <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
-                    <p><%=method.getDescription(pwmRequest.getConfig(),pwmRequest.getLocale())%></p>
+                    <p><%=method.getDescription(pwmRequest.getDomainConfig(),pwmRequest.getLocale())%></p>
                 </td>
             </tr>
             <% } %>

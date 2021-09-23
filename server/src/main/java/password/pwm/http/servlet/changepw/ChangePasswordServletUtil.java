@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ package password.pwm.http.servlet.changepw;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.PasswordStatus;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.RequireCurrentPasswordMode;
 import password.pwm.config.profile.ChangePasswordProfile;
@@ -45,6 +45,7 @@ import password.pwm.ldap.PasswordChangeProgressChecker;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordUtility;
@@ -148,7 +149,7 @@ public class ChangePasswordServletUtil
     )
             throws PwmUnrecoverableException
     {
-        final Configuration config = pwmRequest.getConfig();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final Locale locale = pwmRequest.getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_CHANGEPASSWORD, locale );
 
@@ -158,8 +159,8 @@ public class ChangePasswordServletUtil
             return;
         }
 
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        pwmApplication.getEmailQueue().submitEmail(
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+        pwmDomain.getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmRequest.getPwmSession().getUserInfo(),
 
@@ -184,7 +185,7 @@ public class ChangePasswordServletUtil
             if ( pwmRequest.getPwmSession().getLoginInfoBean().getAuthFlags().contains( AuthenticationType.AUTH_FROM_PUBLIC_MODULE ) )
             {
                 allowChange = ForgottenPasswordUtil.permitPwChangeDuringMinLifetime(
-                        pwmRequest.getPwmApplication(),
+                        pwmRequest.getPwmDomain(),
                         pwmRequest.getLabel(),
                         userInfo.getUserIdentity()
                 );
@@ -211,19 +212,19 @@ public class ChangePasswordServletUtil
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         // password accepted, setup change password
-        final ChangePasswordBean cpb = pwmApplication.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+        final ChangePasswordBean cpb = pwmDomain.getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
 
         // change password
-        PasswordUtility.setActorPassword( pwmRequest, pwmApplication, newPassword );
+        PasswordUtility.setActorPassword( pwmRequest, pwmDomain, newPassword );
 
         //init values for progress screen
         {
             final PasswordChangeProgressChecker.ProgressTracker tracker = new PasswordChangeProgressChecker.ProgressTracker();
             final PasswordChangeProgressChecker checker = new PasswordChangeProgressChecker(
-                    pwmApplication,
+                    pwmDomain,
                     ChangePasswordServlet.getProfile( pwmRequest ),
                     pwmRequest.getUserInfoIfLoggedIn(),
                     pwmRequest.getLabel(),
@@ -237,7 +238,7 @@ public class ChangePasswordServletUtil
         ChangePasswordServletUtil.sendChangePasswordEmailNotice( pwmRequest );
 
         // send audit event
-        pwmApplication.getAuditManager().submit( AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfo(), pwmSession );
+        AuditServiceClient.submitUserEvent( pwmRequest, AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfo() );
     }
 
     static boolean warnPageShouldBeShown(

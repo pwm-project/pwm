@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,18 @@
 
 package password.pwm.svc.event;
 
-import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.localdb.LocalDBException;
 
 import java.time.Instant;
 import java.util.Iterator;
 
 public interface AuditVault
 {
-
-    void init( PwmApplication pwmApplication, LocalDB localDB, Settings settings ) throws LocalDBException, PwmException;
+    void init( PwmApplication pwmApplication, LocalDB localDB, AuditSettings settings )
+            throws PwmException;
 
     void close( );
 
@@ -47,11 +44,4 @@ public interface AuditVault
     String sizeToDebugString( );
 
     void add( AuditRecord record ) throws PwmOperationalException;
-
-    @Value
-    class Settings
-    {
-        private final long maxRecordCount;
-        private final TimeDuration maxRecordAge;
-    }
 }

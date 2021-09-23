@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,11 @@ package password.pwm.http.servlet.helpdesk;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.profile.HelpdeskProfile;
@@ -37,16 +37,17 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.permission.UserPermissionType;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.stats.Statistic;
-import password.pwm.svc.stats.StatisticsManager;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -60,7 +61,7 @@ public class HelpdeskServletUtil
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskServletUtil.class );
 
-    static String makeAdvancedSearchFilter( final Configuration configuration, final HelpdeskProfile helpdeskProfile )
+    static String makeAdvancedSearchFilter( final DomainConfig domainConfig, final HelpdeskProfile helpdeskProfile )
     {
         final String configuredFilter = helpdeskProfile.readSettingAsString( PwmSetting.HELPDESK_SEARCH_FILTER );
         if ( configuredFilter != null && !configuredFilter.isEmpty() )
@@ -68,7 +69,7 @@ public class HelpdeskServletUtil
             return configuredFilter;
         }
 
-        final List<String> defaultObjectClasses = configuration.readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
+        final List<String> defaultObjectClasses = domainConfig.readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
         final List<FormConfiguration> searchAttributes = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_FORM );
         final StringBuilder filter = new StringBuilder();
 
@@ -101,12 +102,12 @@ public class HelpdeskServletUtil
     }
 
     static String makeAdvancedSearchFilter(
-            final Configuration configuration,
+            final DomainConfig domainConfig,
             final HelpdeskProfile helpdeskProfile,
             final Map<String, String> attributesInSearchRequest
     )
     {
-        final List<String> defaultObjectClasses = configuration.readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
+        final List<String> defaultObjectClasses = domainConfig.readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES );
         final List<FormConfiguration> searchAttributes = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_FORM );
         return makeAdvancedSearchFilter( defaultObjectClasses, searchAttributes, attributesInSearchRequest );
     }
@@ -136,7 +137,7 @@ public class HelpdeskServletUtil
             {
                 final String searchAttribute = formConfiguration.getName();
                 final String value = attributesInSearchRequest.get( searchAttribute );
-                if ( !StringUtil.isEmpty( value ) )
+                if ( StringUtil.notEmpty( value ) )
                 {
                     filter.append( "(" ).append( searchAttribute ).append( "=" );
 
@@ -175,7 +176,7 @@ public class HelpdeskServletUtil
     )
             throws PwmUnrecoverableException
     {
-        final String filterSetting = makeAdvancedSearchFilter( pwmRequest.getConfig(), helpdeskProfile );
+        final String filterSetting = makeAdvancedSearchFilter( pwmRequest.getDomainConfig(), helpdeskProfile );
         String filterString = filterSetting.replace( PwmConstants.VALUE_REPLACEMENT_USERNAME, "*" );
         while ( filterString.contains( "**" ) )
         {
@@ -210,9 +211,9 @@ public class HelpdeskServletUtil
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final UserIdentity actorUserIdentity = pwmRequest.getUserInfoIfLoggedIn().canonicalized( pwmRequest.getPwmApplication() );
+        final UserIdentity actorUserIdentity = pwmRequest.getUserInfoIfLoggedIn().canonicalized( pwmRequest.getLabel(), pwmRequest.getPwmApplication() );
 
-        if ( actorUserIdentity.canonicalEquals( userIdentity, pwmRequest.getPwmApplication() ) )
+        if ( actorUserIdentity.canonicalEquals( pwmRequest.getLabel(), userIdentity, pwmRequest.getPwmApplication() ) )
         {
             final String errorMsg = "cannot select self";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, errorMsg );
@@ -233,7 +234,7 @@ public class HelpdeskServletUtil
         }
 
         final HelpdeskDetailInfoBean helpdeskDetailInfoBean = HelpdeskDetailInfoBean.makeHelpdeskDetailInfo( pwmRequest, helpdeskProfile, userIdentity );
-        final HelpdeskAuditRecord auditRecord = new AuditRecordFactory( pwmRequest ).createHelpdeskAuditRecord(
+        final HelpdeskAuditRecord auditRecord = AuditRecordFactory.make( pwmRequest ).createHelpdeskAuditRecord(
                 AuditEvent.HELPDESK_VIEW_DETAIL,
                 pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
                 null,
@@ -241,9 +242,9 @@ public class HelpdeskServletUtil
                 pwmRequest.getLabel().getSourceAddress(),
                 pwmRequest.getLabel().getSourceHostname()
         );
-        pwmRequest.getPwmApplication().getAuditManager().submit( pwmRequest.getLabel(), auditRecord );
+        AuditServiceClient.submit( pwmRequest, auditRecord );
 
-        StatisticsManager.incrementStat( pwmRequest, Statistic.HELPDESK_USER_LOOKUP );
+        StatisticsClient.incrementStat( pwmRequest, Statistic.HELPDESK_USER_LOOKUP );
         return helpdeskDetailInfoBean;
     }
 
@@ -267,7 +268,7 @@ public class HelpdeskServletUtil
     )
     {
         final Collection<IdentityVerificationMethod> requiredMethods = helpdeskProfile.readRequiredVerificationMethods();
-        if ( JavaHelper.isEmpty( requiredMethods ) )
+        if ( CollectionUtil.isEmpty( requiredMethods ) )
         {
             return true;
         }
@@ -292,8 +293,8 @@ public class HelpdeskServletUtil
     )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final Configuration config = pwmRequest.getConfig();
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+        final DomainConfig config = pwmRequest.getDomainConfig();
         final Locale locale = pwmRequest.getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail( PwmSetting.EMAIL_HELPDESK_UNLOCK, locale );
 
@@ -313,7 +314,7 @@ public class HelpdeskServletUtil
 
         final MacroRequest macroRequest = getTargetUserMacroRequest( pwmRequest, helpdeskProfile, userIdentity );
 
-        pwmApplication.getEmailQueue().submitEmail(
+        pwmDomain.getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 userInfo,
                 macroRequest
@@ -329,7 +330,7 @@ public class HelpdeskServletUtil
     {
         final boolean useProxy = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY );
         return useProxy
-                ? pwmRequest.getPwmApplication().getProxiedChaiUser( userIdentity )
+                ? pwmRequest.getPwmDomain().getProxiedChaiUser( pwmRequest.getLabel(), userIdentity )
                 : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
     }
 

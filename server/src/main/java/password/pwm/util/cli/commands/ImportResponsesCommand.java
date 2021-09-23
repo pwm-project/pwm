@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,11 @@ package password.pwm.util.cli.commands;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChallengeSet;
 import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
@@ -62,19 +65,20 @@ public class ImportResponsesCommand extends AbstractCliCommand
                 final RestChallengesServer.JsonChallengesData inputData;
                 inputData = JsonUtil.deserialize( line, RestChallengesServer.JsonChallengesData.class );
 
-                final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( inputData.username );
-                final ChaiUser user = pwmApplication.getProxiedChaiUser( userIdentity );
+                final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( SessionLabel.CLI_SESSION_LABEL, inputData.username );
+                final PwmDomain pwmDomain = figureDomain( userIdentity, pwmApplication );
+                final ChaiUser user = pwmDomain.getProxiedChaiUser( SessionLabel.CLI_SESSION_LABEL, userIdentity );
                 if ( user.exists() )
                 {
                     out( "writing responses to user '" + user.getEntryDN() + "'" );
                     try
                     {
-                        final ChallengeProfile challengeProfile = pwmApplication.getCrService().readUserChallengeProfile(
+                        final ChallengeProfile challengeProfile = pwmDomain.getCrService().readUserChallengeProfile(
                                 null, userIdentity, user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE );
                         final ChallengeSet challengeSet = challengeProfile.getChallengeSet();
-                        final String userGuid = LdapOperationsHelper.readLdapGuidValue( pwmApplication, null, userIdentity, false );
+                        final String userGuid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, null, userIdentity, false );
                         final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean( PwmConstants.DEFAULT_LOCALE, challengeSet.getIdentifier() );
-                        pwmApplication.getCrService().writeResponses( null, userIdentity, user, userGuid, responseInfoBean );
+                        pwmDomain.getCrService().writeResponses( null, userIdentity, user, userGuid, responseInfoBean );
                     }
                     catch ( final Exception e )
                     {
@@ -91,6 +95,25 @@ public class ImportResponsesCommand extends AbstractCliCommand
 
             out( "output complete, " + counter + " responses imported in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         }
+    }
+
+    private PwmDomain figureDomain( final UserIdentity userIdentity, final PwmApplication pwmApplication )
+    {
+        if ( pwmApplication.isMultiDomain() )
+        {
+            final DomainID domainID = userIdentity.getDomainID();
+            if ( domainID == null )
+            {
+                throw new IllegalArgumentException( "user '" + userIdentity + " does not have a domain specified" );
+            }
+            final PwmDomain pwmDomain = pwmApplication.domains().get( domainID );
+            if ( pwmDomain == null )
+            {
+                throw new IllegalArgumentException( "user '" + userIdentity + " has an invalid domain specified" );
+            }
+            return pwmDomain;
+        }
+        return pwmApplication.domains().values().iterator().next();
     }
 
     @Override

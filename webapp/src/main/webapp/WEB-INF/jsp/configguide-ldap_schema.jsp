@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -33,6 +33,8 @@
 <%@ page import="java.util.List" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideUtils" %>
+<%@ page import="password.pwm.PwmDomain" %>
+<%@ page import="password.pwm.config.PwmSettingTemplateSet" %>
 
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
@@ -40,13 +42,13 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%
     final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);
-    final Set<PwmSettingTemplate> templateSet =  ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().getTemplates();
+    final PwmSettingTemplateSet templateSet =  ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().get(ConfigGuideForm.DOMAIN_ID);
     final boolean builtinExtenderAvailable = templateSet.contains(PwmSettingTemplate.NOVL) || templateSet.contains(PwmSettingTemplate.NOVL_IDM);
     boolean existingSchemaGood = false;
     String schemaActivityLog = "";
     try {
-        final PwmApplication pwmApplication = JspUtility.getPwmRequest(pageContext).getPwmApplication();
-        final SchemaOperationResult schemaManager = ConfigGuideUtils.extendSchema(pwmApplication, configGuideBean, false);
+        final PwmDomain pwmDomain = JspUtility.getPwmRequest(pageContext).getPwmDomain();
+        final SchemaOperationResult schemaManager = ConfigGuideUtils.extendSchema( pwmDomain, configGuideBean, false);
         existingSchemaGood = schemaManager.isSuccess();
         schemaActivityLog = schemaManager.getOperationLog();
     } catch (Exception e) {

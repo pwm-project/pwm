@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ package password.pwm.util;
 
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmRequest;
@@ -33,6 +33,7 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * Simple data object containing username/password info derived from a "Basic" Authorization HTTP Header.
@@ -50,20 +51,20 @@ public class BasicAuthInfo implements Serializable
     /**
      * Extracts the basic auth info from the header.
      *
-     * @param pwmApplication a reference to the application
+     * @param pwmDomain a reference to the application
      * @param pwmRequest http servlet request
      * @return a BasicAuthInfo object containing username/password, or null if the "Authorization" header doesn't exist or is malformed
      */
-    public static BasicAuthInfo parseAuthHeader(
-            final PwmApplication pwmApplication,
+    public static Optional<BasicAuthInfo> parseAuthHeader(
+            final PwmDomain pwmDomain,
             final PwmRequest pwmRequest
     )
     {
-        return parseAuthHeader( pwmApplication, pwmRequest.getHttpServletRequest() );
+        return parseAuthHeader( pwmDomain, pwmRequest.getHttpServletRequest() );
     }
 
-    public static BasicAuthInfo parseAuthHeader(
-            final PwmApplication pwmApplication,
+    public static Optional<BasicAuthInfo> parseAuthHeader(
+            final PwmDomain pwmDomain,
             final HttpServletRequest httpServletRequest
     )
     {
@@ -81,12 +82,12 @@ public class BasicAuthInfo implements Serializable
                 try
                 {
                     // ***** Decode the username/chpass string
-                    final String charSet = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_BASIC_AUTH_CHARSET );
+                    final String charSet = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_BASIC_AUTH_CHARSET );
                     final String decoded = new String( StringUtil.base64Decode( encodedValue ), charSet );
 
                     // The decoded string should now look something like:
                     //   "cn=user,o=company:chpass" or "user:chpass"
-                    return parseHeaderString( decoded );
+                    return Optional.of( parseHeaderString( decoded ) );
                 }
                 catch ( final IOException e )
                 {
@@ -95,7 +96,7 @@ public class BasicAuthInfo implements Serializable
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public static BasicAuthInfo parseHeaderString( final String input )

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,9 @@
 package password.pwm.util;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.FormNonce;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -53,13 +52,12 @@ public class Validator
             throws PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
         final String submittedPwmFormID = pwmRequest.readParameterAsString( PwmConstants.PARAM_FORM_ID );
 
-        if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.SECURITY_ENABLE_FORM_NONCE ) )
+        if ( pwmRequest.getAppConfig().readSettingAsBoolean( PwmSetting.SECURITY_ENABLE_FORM_NONCE ) )
         {
-            final FormNonce formNonce = pwmRequest.getPwmApplication().getSecureService().decryptObject(
+            final FormNonce formNonce = pwmRequest.getPwmDomain().getSecureService().decryptObject(
                     submittedPwmFormID,
                     FormNonce.class
             );
@@ -79,7 +77,7 @@ public class Validator
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        final boolean enforceRequestSequencing = Boolean.parseBoolean( pwmRequest.getConfig().readAppProperty( AppProperty.SECURITY_HTTP_FORCE_REQUEST_SEQUENCING ) );
+        final boolean enforceRequestSequencing = Boolean.parseBoolean( pwmRequest.getAppConfig().readAppProperty( AppProperty.SECURITY_HTTP_FORCE_REQUEST_SEQUENCING ) );
 
         if ( enforceRequestSequencing )
         {
@@ -93,7 +91,7 @@ public class Validator
 
             try
             {
-                final FormNonce formNonce = pwmRequest.getPwmApplication().getSecureService().decryptObject(
+                final FormNonce formNonce = pwmRequest.getPwmDomain().getSecureService().decryptObject(
                         submittedPwmFormID,
                         FormNonce.class
                 );
@@ -116,7 +114,7 @@ public class Validator
 
 
     public static String sanitizeInputValue(
-            final Configuration config,
+            final AppConfig config,
             final String input,
             final int maxLength
     )
@@ -153,14 +151,14 @@ public class Validator
     }
 
 
-    public static String sanitizeHeaderValue( final Configuration configuration, final String input )
+    public static String sanitizeHeaderValue( final AppConfig domainConfig, final String input )
     {
         if ( input == null )
         {
             return null;
         }
 
-        final String regexStripPatternStr = configuration.readAppProperty( AppProperty.SECURITY_HTTP_STRIP_HEADER_REGEX );
+        final String regexStripPatternStr = domainConfig.readAppProperty( AppProperty.SECURITY_HTTP_STRIP_HEADER_REGEX );
         if ( regexStripPatternStr != null && !regexStripPatternStr.isEmpty() )
         {
             final Pattern pattern = Pattern.compile( regexStripPatternStr );

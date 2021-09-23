@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 package password.pwm.i18n;
 
-import password.pwm.config.Configuration;
+import password.pwm.config.SettingReader;
 import password.pwm.util.i18n.LocaleHelper;
 
 import java.util.Locale;
@@ -58,6 +58,7 @@ public enum Message implements PwmDisplayBundle
 
     EventLog_Startup( null ),
     EventLog_Shutdown( null ),
+    EventLog_Restart( null ),
     EventLog_FatalEvent( null ),
     EventLog_ModifyConfiguration( null ),
     EventLog_IntruderAttempt( null ),
@@ -164,7 +165,7 @@ public enum Message implements PwmDisplayBundle
 
     private final Message pluralMessage;
 
-    public static String getLocalizedMessage( final Locale locale, final Message message, final Configuration config, final String... fieldValue )
+    public static String getLocalizedMessage( final Locale locale, final Message message, final SettingReader config, final String... fieldValue )
     {
         return LocaleHelper.getLocalizedMessage( locale, message.getKey(), config, Message.class, fieldValue );
     }
@@ -179,7 +180,7 @@ public enum Message implements PwmDisplayBundle
         return pluralMessage;
     }
 
-    public String getLocalizedMessage( final Locale locale, final Configuration config, final String... fieldValue )
+    public String getLocalizedMessage( final Locale locale, final SettingReader config, final String... fieldValue )
     {
         return Message.getLocalizedMessage( locale, this, config, fieldValue );
     }

@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@
                 <div class="setting_body">
                     <p><pwm:display key="ldap_context_description" bundle="ConfigGuide"/></p>
                     <br/>
-                    Example: <code><%=PwmSetting.LDAP_CONTEXTLESS_ROOT.getExample(ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet())%></code>
+                    Example: <code><%=ConfigGuideForm.getSettingExample( configGuideBean,PwmSetting.LDAP_CONTEXTLESS_ROOT)%></code>
                     <br/><br/>
                     <div class="setting_item">
                         <b>User Container DN</b>

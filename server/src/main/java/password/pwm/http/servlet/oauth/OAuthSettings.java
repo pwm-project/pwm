@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ package password.pwm.http.servlet.oauth;
 
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.util.PasswordData;
@@ -58,7 +58,7 @@ public class OAuthSettings implements Serializable
                 && ( dnAttributeName != null && !dnAttributeName.isEmpty() );
     }
 
-    public static OAuthSettings forSSOAuthentication( final Configuration config )
+    public static OAuthSettings forSSOAuthentication( final DomainConfig config )
     {
         return OAuthSettings.builder()
                 .loginURL( config.readSettingAsString( PwmSetting.OAUTH_ID_LOGIN_URL ) )

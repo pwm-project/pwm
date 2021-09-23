@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ package password.pwm.config.value;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.i18n.Display;
 import password.pwm.util.java.JsonUtil;
@@ -66,11 +66,14 @@ public class BooleanValue implements StoredValue
             @Override
             public BooleanValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey input )
             {
-                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 if ( valueElement.isPresent() )
                 {
-                    final String value = valueElement.get().getTextTrim();
-                    return BooleanValue.of( Boolean.parseBoolean( value ) );
+                    final Optional<String> value = valueElement.get().getText();
+                    if ( value.isPresent() )
+                    {
+                        return BooleanValue.of( Boolean.parseBoolean( value.get().trim() ) );
+                    }
                 }
                 return BooleanValue.of( false );
             }

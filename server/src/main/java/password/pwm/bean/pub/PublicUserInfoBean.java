@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ package password.pwm.bean.pub;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.bean.PasswordStatus;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.tag.PasswordRequirementsTag;
@@ -70,7 +70,7 @@ public class PublicUserInfoBean implements Serializable
 
     public static PublicUserInfoBean fromUserInfoBean(
             final UserInfo userInfoBean,
-            final Configuration config,
+            final DomainConfig config,
             final Locale locale,
             final MacroRequest macroRequest
     )

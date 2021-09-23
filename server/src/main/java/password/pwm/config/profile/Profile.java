@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 package password.pwm.config.profile;
 
+import password.pwm.bean.DomainID;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.data.UserPermission;
 
@@ -38,6 +39,6 @@ public interface Profile
 
     interface ProfileFactory
     {
-        Profile makeFromStoredConfiguration( StoredConfiguration storedConfiguration, String identifier );
+        Profile makeFromStoredConfiguration( StoredConfiguration storedConfiguration, DomainID domainID, String identifier );
     }
 }

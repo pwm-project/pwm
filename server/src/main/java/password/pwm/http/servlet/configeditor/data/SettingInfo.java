@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.PwmSettingProperty;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplateSet;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -73,7 +73,7 @@ public class SettingInfo implements Serializable
                 .options( setting.getOptions() )
                 .pattern( setting.getRegExPattern().toString() )
                 .placeholder( setting.getExample( template ) )
-                .flags( Collections.unmodifiableSet( JavaHelper.copiedEnumSet( setting.getFlags(), PwmSettingFlag.class ) ) )
+                .flags( Collections.unmodifiableSet( CollectionUtil.copiedEnumSet( setting.getFlags(), PwmSettingFlag.class ) ) )
                 .build();
     }
 }

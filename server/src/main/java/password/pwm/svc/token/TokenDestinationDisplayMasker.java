@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,19 +21,19 @@
 package password.pwm.svc.token;
 
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.java.StringUtil;
 
 public class TokenDestinationDisplayMasker
 {
-    private final Configuration configuration;
+    private final DomainConfig domainConfig;
     private boolean enabled;
 
-    public TokenDestinationDisplayMasker( final Configuration configuration )
+    public TokenDestinationDisplayMasker( final DomainConfig domainConfig )
     {
-        this.configuration = configuration;
-        this.enabled = configuration.readSettingAsBoolean( PwmSetting.TOKEN_ENABLE_VALUE_MASKING );
+        this.domainConfig = domainConfig;
+        this.enabled = domainConfig.readSettingAsBoolean( PwmSetting.TOKEN_ENABLE_VALUE_MASKING );
     }
 
     public String maskEmail( final String email )
@@ -48,8 +48,8 @@ public class TokenDestinationDisplayMasker
             return "";
         }
 
-        final String regex = configuration.readAppProperty( AppProperty.TOKEN_MASK_EMAIL_REGEX );
-        final String replace = configuration.readAppProperty( AppProperty.TOKEN_MASK_EMAIL_REPLACE );
+        final String regex = domainConfig.readAppProperty( AppProperty.TOKEN_MASK_EMAIL_REGEX );
+        final String replace = domainConfig.readAppProperty( AppProperty.TOKEN_MASK_EMAIL_REPLACE );
         return email.replaceAll( regex, replace );
     }
 
@@ -65,8 +65,8 @@ public class TokenDestinationDisplayMasker
             return "";
         }
 
-        final String regex = configuration.readAppProperty( AppProperty.TOKEN_MASK_SMS_REGEX );
-        final String replace = configuration.readAppProperty( AppProperty.TOKEN_MASK_SMS_REPLACE );
+        final String regex = domainConfig.readAppProperty( AppProperty.TOKEN_MASK_SMS_REGEX );
+        final String replace = domainConfig.readAppProperty( AppProperty.TOKEN_MASK_SMS_REPLACE );
         return phone.replaceAll( regex, replace );
     }
 }

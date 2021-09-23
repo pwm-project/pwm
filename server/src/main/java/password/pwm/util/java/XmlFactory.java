@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,6 @@
 
 package password.pwm.util.java;
 
-import org.jdom2.Document;
-import org.jdom2.input.SAXBuilder;
-import org.jdom2.input.sax.XMLReaders;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import password.pwm.error.ErrorInformation;
@@ -43,24 +38,16 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public interface XmlFactory
 {
-    enum FactoryType
-    {
-        JDOM,
-        W3C,
-    }
-
     enum OutputFlag
     {
         Compact,
@@ -78,117 +65,21 @@ public interface XmlFactory
 
     static XmlFactory getFactory()
     {
-        return new XmlFactoryW3c();
-    }
-
-    static XmlFactory getFactory( final FactoryType factoryType )
-    {
-        switch ( factoryType )
-        {
-            case JDOM:
-                return new XmlFactoryJDOM();
-
-            case W3C:
-                return new XmlFactoryW3c();
-
-            default:
-                JavaHelper.unhandledSwitchStatement( factoryType );
-
-        }
-
-        return null;
-    }
-
-
-    class XmlFactoryJDOM implements XmlFactory
-    {
-        private static final Charset STORAGE_CHARSET = StandardCharsets.UTF_8;
-
-        XmlFactoryJDOM()
-        {
-        }
-
-        @Override
-        public XmlDocument parseXml( final InputStream inputStream )
-                throws PwmUnrecoverableException
-        {
-            Objects.requireNonNull( inputStream );
-
-            final SAXBuilder builder = getBuilder();
-            final Document inputDocument;
-            try
-            {
-                inputDocument = builder.build( inputStream );
-            }
-            catch ( final Exception e )
-            {
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
-                        {
-                                "error parsing xml data: " + e.getMessage(),
-                        }
-                ) );
-            }
-            return new XmlDocument.XmlDocumentJDOM( inputDocument );
-        }
-
-        public static void outputJDOMDocument( final Document document, final OutputStream outputStream )
-                throws IOException
-        {
-            new XmlFactoryJDOM().outputDocument( document, outputStream );
-        }
-
-        @Override
-        public void outputDocument( final XmlDocument document, final OutputStream outputStream, final OutputFlag... outputFlags )
-                throws IOException
-        {
-            final Document jdomDoc =  ( ( XmlDocument.XmlDocumentJDOM )  document ).document;
-            this.outputDocument( jdomDoc, outputStream );
-        }
-
-        private void outputDocument( final Document document, final OutputStream outputStream )
-                throws IOException
-        {
-            final Format format = Format.getPrettyFormat();
-            format.setEncoding( STORAGE_CHARSET.toString() );
-            final XMLOutputter outputter = new XMLOutputter();
-            outputter.setFormat( format );
-
-            try ( Writer writer = new OutputStreamWriter( outputStream, STORAGE_CHARSET ) )
-            {
-                outputter.output( document, writer );
-            }
-        }
-
-        private static SAXBuilder getBuilder( )
-        {
-            final SAXBuilder builder = new SAXBuilder();
-            builder.setExpandEntities( false );
-            builder.setXMLReaderFactory( XMLReaders.NONVALIDATING );
-            builder.setFeature( "http://xml.org/sax/features/resolve-dtd-uris", false );
-            return builder;
-        }
-
-        @Override
-        public XmlDocument newDocument( final String rootElementName )
-        {
-            final org.jdom2.Element rootElement = new org.jdom2.Element( rootElementName );
-            final org.jdom2.Document newDoc = new org.jdom2.Document( rootElement );
-            return new XmlDocument.XmlDocumentJDOM( newDoc );
-        }
-
-        @Override
-        public XmlElement newElement( final String name )
-        {
-            return new XmlElement.XmlElementJDOM( new org.jdom2.Element ( name ) );
-        }
+        return XmlFactoryW3c.getW3cFactory();
     }
 
     class XmlFactoryW3c implements XmlFactory
     {
+        private static final XmlFactory W3C_FACTORY = new XmlFactoryW3c();
         private static final Charset STORAGE_CHARSET = StandardCharsets.UTF_8;
 
-        XmlFactoryW3c()
+        private XmlFactoryW3c()
         {
+        }
+
+        static XmlFactory getW3cFactory()
+        {
+            return W3C_FACTORY;
         }
 
         @Override
@@ -206,7 +97,7 @@ public interface XmlFactory
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                         {
                                 "error parsing xml data: " + e.getMessage(),
-                        }
+                                }
                 ) );
             }
             return new XmlDocument.XmlDocumentW3c( inputDocument );
@@ -272,7 +163,7 @@ public interface XmlFactory
                 }
                 return returnList;
             }
-            return null;
+            return Collections.emptyList();
         }
 
         @Override

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@
 package password.pwm.config.function;
 
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.AppConfig;
 import password.pwm.config.SettingUIFunction;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.ErrorInformation;
@@ -46,26 +46,25 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
     public String provideFunction(
             final PwmRequest pwmRequest,
             final StoredConfigurationModifier modifier,
-            final PwmSetting setting,
-            final String profile,
+            final StoredConfigKey key,
             final String extraData )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final List<X509Certificate> certs;
 
-        final String urlString = getUri( modifier, setting, profile, extraData );
+        final String urlString = getUri( modifier, key, extraData );
         try
         {
             final URI uri = URI.create( urlString );
             if ( "https".equalsIgnoreCase( uri.getScheme() ) )
             {
-                certs = X509Utils.readRemoteHttpCertificates( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), uri );
+                certs = X509Utils.readRemoteHttpCertificates( pwmRequest.getPwmDomain(), pwmRequest.getLabel(), uri );
             }
             else
             {
-                final Configuration configuration = new Configuration( modifier.newStoredConfiguration() );
-                certs = X509Utils.readRemoteCertificates( URI.create( urlString ), configuration );
+                final AppConfig appConfig = new AppConfig( modifier.newStoredConfiguration() );
+                certs = X509Utils.readRemoteCertificates( URI.create( urlString ), appConfig );
             }
         }
         catch ( final Exception e )
@@ -80,7 +79,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
 
 
         final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
-        store( certs, modifier, setting, profile, extraData, userIdentity );
+        store( certs, modifier, key, extraData, userIdentity );
 
         final StringBuilder returnStr = new StringBuilder();
         for ( final X509Certificate loopCert : certs )
@@ -93,8 +92,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
 
     abstract String getUri(
             StoredConfigurationModifier modifier,
-            PwmSetting pwmSetting,
-            String profile,
+            StoredConfigKey key,
             String extraData
     )
             throws PwmOperationalException, PwmUnrecoverableException;
@@ -102,15 +100,14 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
 
     void store(
             final List<X509Certificate> certs,
-            final StoredConfigurationModifier storedConfiguration,
-            final PwmSetting pwmSetting,
-            final String profile,
+            final StoredConfigurationModifier modifier,
+            final StoredConfigKey key,
             final String extraData,
             final UserIdentity userIdentity
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        storedConfiguration.writeSetting( pwmSetting, profile, X509CertificateValue.fromX509( certs ), userIdentity );
+        modifier.writeSetting( key, X509CertificateValue.fromX509( certs ), userIdentity );
     }
 
 

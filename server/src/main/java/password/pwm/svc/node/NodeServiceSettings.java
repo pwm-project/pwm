@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.config.Configuration;
+import password.pwm.config.AppConfig;
 import password.pwm.util.java.TimeDuration;
 
 @Value
@@ -35,21 +35,21 @@ class NodeServiceSettings
     private final TimeDuration nodeTimeout;
     private final TimeDuration nodePurgeInterval;
 
-    static NodeServiceSettings fromConfigForDB( final Configuration configuration )
+    static NodeServiceSettings fromConfigForDB( final AppConfig appConfig )
     {
         return new NodeServiceSettings(
-                TimeDuration.of( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_DB_HEARTBEAT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
-                TimeDuration.of( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_DB_NODE_TIMEOUT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
-                TimeDuration.of( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_DB_NODE_PURGE_SECONDS ) ), TimeDuration.Unit.SECONDS )
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_DB_HEARTBEAT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_DB_NODE_TIMEOUT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_DB_NODE_PURGE_SECONDS ) ), TimeDuration.Unit.SECONDS )
         );
     }
 
-    static NodeServiceSettings fromConfigForLDAP( final Configuration configuration )
+    static NodeServiceSettings fromConfigForLDAP( final AppConfig appConfig )
     {
         return new NodeServiceSettings(
-                TimeDuration.of( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_LDAP_HEARTBEAT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
-                TimeDuration.of( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_LDAP_NODE_TIMEOUT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
-                TimeDuration.of( Integer.parseInt( configuration.readAppProperty( AppProperty.CLUSTER_LDAP_NODE_PURGE_SECONDS ) ), TimeDuration.Unit.SECONDS )
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_LDAP_HEARTBEAT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_LDAP_NODE_TIMEOUT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_LDAP_NODE_PURGE_SECONDS ) ), TimeDuration.Unit.SECONDS )
         );
     }
 }

@@ -3,7 +3,7 @@
  ~ http://www.pwm-project.org
  ~
  ~ Copyright (c) 2006-2009 Novell, Inc.
- ~ Copyright (c) 2009-2020 The PWM Project
+ ~ Copyright (c) 2009-2021 The PWM Project
  ~
  ~ Licensed under the Apache License, Version 2.0 (the "License");
  ~ you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@
                     <br/><br/>
                     <input class="configStringInput" maxlength="100" id="<%=ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION%>" name="<%=ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION%>" value="<%=configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION)%>" <pwm:autofocus/> />
                     <br/><br/>
-                        <% String privacyText = JavaHelper.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_PRIVACY_TXT); %>
+                        <% String privacyText = ContextManager.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_PRIVACY_TXT); %>
                         <div id="agreementWrapper" style="display: none" class="fadein">
                             <% if (!StringUtil.isEmpty(privacyText)) { %>
                             <label><b>Data Privacy Policy</b></label>

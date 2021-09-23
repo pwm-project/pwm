@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,30 +41,34 @@ class StoredConfigData
     private Instant modifyTime = Instant.now();
 
     @Singular
-    private Map<StoredConfigItemKey, StoredValue> storedValues;
+    private Map<StoredConfigKey, StoredValue> storedValues;
 
     @Singular
-    private Map<StoredConfigItemKey, ValueMetaData> metaDatas;
+    private Map<StoredConfigKey, ValueMetaData> metaDatas;
 
     @Value
     static class ValueAndMetaCarrier
     {
-        private final StoredConfigItemKey key;
+        private final StoredConfigKey key;
         private final StoredValue value;
         private final ValueMetaData metaData;
     }
 
-    static Map<StoredConfigItemKey, ValueMetaData> carrierAsMetaDataMap( final Collection<ValueAndMetaCarrier> input )
+    static Map<StoredConfigKey, ValueMetaData> carrierAsMetaDataMap( final Collection<ValueAndMetaCarrier> input )
     {
         return input.stream()
                 .filter( ( t ) -> t.getKey() != null && t.getMetaData() != null )
-                .collect( Collectors.toMap( StoredConfigData.ValueAndMetaCarrier::getKey, StoredConfigData.ValueAndMetaCarrier::getMetaData ) );
+                .collect( Collectors.toMap(
+                        StoredConfigData.ValueAndMetaCarrier::getKey,
+                        StoredConfigData.ValueAndMetaCarrier::getMetaData ) );
     }
 
-    static Map<StoredConfigItemKey, StoredValue> carrierAsStoredValueMap( final Collection<ValueAndMetaCarrier> input )
+    static Map<StoredConfigKey, StoredValue> carrierAsStoredValueMap( final Collection<ValueAndMetaCarrier> input )
     {
         return input.stream()
                 .filter( ( t ) -> t.getKey() != null && t.getValue() != null )
-                .collect( Collectors.toMap( StoredConfigData.ValueAndMetaCarrier::getKey, StoredConfigData.ValueAndMetaCarrier::getValue ) );
+                .collect( Collectors.toMap(
+                        StoredConfigData.ValueAndMetaCarrier::getKey,
+                        StoredConfigData.ValueAndMetaCarrier::getValue ) );
     }
 }

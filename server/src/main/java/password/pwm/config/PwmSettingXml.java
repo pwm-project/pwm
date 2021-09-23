@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,10 +133,8 @@ public class PwmSettingXml
         {
             return Collections.emptySet();
         }
-        final String templateStrValues = element.getAttributeValue( XML_ATTRIBUTE_TEMPLATE );
-        final String[] templateSplitValues = templateStrValues == null
-                ? new String[ 0 ]
-                : templateStrValues.split( "," );
+        final String templateStrValues = element.getAttributeValue( XML_ATTRIBUTE_TEMPLATE ).orElse( "" );
+        final String[] templateSplitValues = templateStrValues.split( "," );
         final Set<PwmSettingTemplate> definedTemplates = new LinkedHashSet<>();
         for ( final String templateStrValue : templateSplitValues )
         {

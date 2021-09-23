@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,9 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import password.pwm.svc.secure.SystemSecureService;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.SecureService;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -54,9 +54,9 @@ class SelfCertGenerator
     private static volatile boolean bouncyCastleInitialized;
 
     private final Settings settings;
-    private final SecureService secureService;
+    private final SystemSecureService secureService;
 
-    SelfCertGenerator( final Settings settings,  final SecureService secureService )
+    SelfCertGenerator( final Settings settings,  final SystemSecureService secureService )
     {
         this.secureService = secureService;
         this.settings = settings;

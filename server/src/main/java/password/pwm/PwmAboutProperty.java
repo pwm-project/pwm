@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ package password.pwm;
 
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
-import password.pwm.util.db.DatabaseService;
+import password.pwm.ldap.LdapConnectionService;
+import password.pwm.svc.db.DatabaseService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
@@ -34,7 +35,6 @@ import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
@@ -60,19 +60,19 @@ public enum PwmAboutProperty
     app_sharedHistorySize( null, pwmApplication -> Long.toString( pwmApplication.getSharedHistoryManager().size() ) ),
     app_sharedHistoryOldestTime( null, pwmApplication -> format( pwmApplication.getSharedHistoryManager().getOldestEntryTime() ) ),
     app_emailQueueSize( null, pwmApplication -> Integer.toString( pwmApplication.getEmailQueue().queueSize() ) ),
-    app_emailQueueOldestTime( null, pwmApplication -> format( Date.from( pwmApplication.getEmailQueue().eldestItem() ) ) ),
+    app_emailQueueOldestTime( null, pwmApplication -> format( pwmApplication.getEmailQueue().eldestItem() ) ),
     app_smsQueueSize( null, pwmApplication -> Integer.toString( pwmApplication.getSmsQueue().queueSize() ) ),
-    app_smsQueueOldestTime( null, pwmApplication -> format( Date.from( pwmApplication.getSmsQueue().eldestItem() ) ) ),
-    app_syslogQueueSize( null, pwmApplication -> Integer.toString( pwmApplication.getAuditManager().syslogQueueSize() ) ),
+    app_smsQueueOldestTime( null, pwmApplication -> format( pwmApplication.getSmsQueue().eldestItem() ) ),
+    app_syslogQueueSize( null, pwmApplication -> Integer.toString( pwmApplication.getAuditService().syslogQueueSize() ) ),
     app_localDbLogSize( null, pwmApplication -> Integer.toString( pwmApplication.getLocalDBLogger().getStoredEventCount() ) ),
-    app_localDbLogOldestTime( null, pwmApplication -> format( pwmApplication.getLocalDBLogger().getTailDate() ) ),
+    app_localDbLogOldestTime( null, pwmApplication -> format( pwmApplication.getLocalDBLogger().getTailDate().orElse( null ) ) ),
     app_localDbStorageSize( null, pwmApplication -> StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( pwmApplication.getLocalDB().getFileLocation() ) ) ),
     app_localDbFreeSpace( null, pwmApplication -> StringUtil.formatDiskSize( FileSystemUtility.diskSpaceRemaining( pwmApplication.getLocalDB().getFileLocation() ) ) ),
     app_configurationRestartCounter( null, pwmApplication -> Integer.toString( pwmApplication.getPwmEnvironment().getContextManager().getRestartCount() ) ),
     app_secureBlockAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().getDefaultBlockAlgorithm().getLabel() ),
     app_secureHashAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().getDefaultHashAlgorithm().toString() ),
-    app_ldapProfileCount( null, pwmApplication -> Integer.toString( pwmApplication.getConfig().getLdapProfiles().size() ) ),
-    app_ldapConnectionCount( null, pwmApplication -> Integer.toString( pwmApplication.getLdapConnectionService().connectionCount() ) ),
+    app_ldapProfileCount( null, pwmApplication -> Integer.toString( LdapConnectionService.totalLdapProfileCount( pwmApplication ) ) ),
+    app_ldapConnectionCount( null, pwmApplication -> Long.toString( LdapConnectionService.totalLdapConnectionCount( pwmApplication ) ) ),
     app_activeSessionCount( "Active Session Count", pwmApplication -> Integer.toString( pwmApplication.getSessionTrackService().sessionCount() ) ),
     app_activeRequestCount( "Active Request Count", pwmApplication -> Integer.toString( pwmApplication.getActiveServletRequests().get() ) ),
 
@@ -157,12 +157,6 @@ public enum PwmAboutProperty
 
         return Collections.unmodifiableMap( returnMap );
     }
-
-    private static String format( final Date date )
-    {
-        return format( date == null ? null : date.toInstant() );
-    }
-
 
     private static String format( final Instant date )
     {

@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ public enum Admin implements PwmDisplayBundle
 
     EventLog_Narrative_Startup,
     EventLog_Narrative_Shutdown,
+    EventLog_Narrative_Restart,
     EventLog_Narrative_FatalEvent,
     EventLog_Narrative_ModifyConfiguration,
     EventLog_Narrative_IntruderAttempt,

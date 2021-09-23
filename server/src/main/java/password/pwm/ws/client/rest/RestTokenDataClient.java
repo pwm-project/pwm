@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ package password.pwm.ws.client.rest;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Value;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -50,7 +50,7 @@ public class RestTokenDataClient implements RestClient
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestTokenDataClient.class );
 
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
 
     @Value
     public static class TokenDestinationData implements Serializable
@@ -60,9 +60,9 @@ public class RestTokenDataClient implements RestClient
         private String displayValue;
     }
 
-    public RestTokenDataClient( final PwmApplication pwmApplication )
+    public RestTokenDataClient( final PwmDomain pwmDomain )
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
     }
 
     private TokenDestinationData invoke(
@@ -84,19 +84,23 @@ public class RestTokenDataClient implements RestClient
         if ( userIdentity != null )
         {
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
-                    pwmApplication,
+                    pwmDomain.getPwmApplication(),
                     sessionLabel,
-                    userIdentity, locale
-            );
+                    userIdentity, locale );
 
-            final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfo.getUserIdentity() );
-            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean( userInfo, pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE, macroRequest );
+            final MacroRequest macroRequest = MacroRequest.forUser(
+                    pwmDomain.getPwmApplication(),
+                    PwmConstants.DEFAULT_LOCALE,
+                    SessionLabel.SYSTEM_LABEL,
+                    userInfo.getUserIdentity() );
+
+            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean( userInfo, pwmDomain.getConfig(), PwmConstants.DEFAULT_LOCALE, macroRequest );
             sendData.put( RestClient.DATA_KEY_USERINFO, publicUserInfoBean );
         }
 
 
         final String jsonRequestData = JsonUtil.serializeMap( sendData );
-        final String responseBody = RestClientHelper.makeOutboundRestWSCall( pwmApplication, locale, url, jsonRequestData );
+        final String responseBody = RestClientHelper.makeOutboundRestWSCall( pwmDomain, locale, url, jsonRequestData );
         return JsonUtil.deserialize( responseBody, TokenDestinationData.class );
     }
 
@@ -108,7 +112,7 @@ public class RestTokenDataClient implements RestClient
     )
             throws PwmUnrecoverableException
     {
-        final String configuredUrl = pwmApplication.getConfig().readSettingAsString( PwmSetting.EXTERNAL_MACROS_DEST_TOKEN_URLS );
+        final String configuredUrl = pwmDomain.getConfig().readSettingAsString( PwmSetting.EXTERNAL_MACROS_DEST_TOKEN_URLS );
         if ( configuredUrl != null && !configuredUrl.isEmpty() )
         {
             try
@@ -129,16 +133,16 @@ public class RestTokenDataClient implements RestClient
     private TokenDestinationData builtInService( final TokenDestinationData tokenDestinationData )
     {
 
-        final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( pwmApplication.getConfig() );
+        final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( pwmDomain.getConfig() );
 
         final StringBuilder tokenSendDisplay = new StringBuilder();
 
-        if ( !StringUtil.isEmpty( tokenDestinationData.getEmail() ) )
+        if ( StringUtil.notEmpty( tokenDestinationData.getEmail() ) )
         {
             tokenSendDisplay.append( tokenDestinationDisplayMasker.maskEmail( tokenDestinationData.getEmail() ) );
         }
 
-        if ( !StringUtil.isEmpty( tokenDestinationData.getSms() ) )
+        if ( StringUtil.notEmpty( tokenDestinationData.getSms() ) )
         {
             if ( tokenSendDisplay.length() > 0 )
             {

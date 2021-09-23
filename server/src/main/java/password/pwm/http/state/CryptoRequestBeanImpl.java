@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.SecureService;
+import password.pwm.svc.secure.DomainSecureService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,12 +48,12 @@ public class CryptoRequestBeanImpl implements SessionBeanProvider
         final String submittedPwmFormID = pwmRequest.readParameterAsString( PwmConstants.PARAM_FORM_ID );
         if ( submittedPwmFormID != null && submittedPwmFormID.length() > 0 )
         {
-            final FormNonce formNonce = pwmRequest.getPwmApplication().getSecureService().decryptObject(
+            final FormNonce formNonce = pwmRequest.getPwmDomain().getSecureService().decryptObject(
                     submittedPwmFormID,
                     FormNonce.class
             );
-            final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
-            final E bean = secureService.decryptObject( formNonce.getPayload(), theClass );
+            final DomainSecureService domainSecureService = pwmRequest.getPwmDomain().getSecureService();
+            final E bean = domainSecureService.decryptObject( formNonce.getPayload(), theClass );
             cachedMap.put( theClass, bean );
             return bean;
         }
@@ -71,7 +71,7 @@ public class CryptoRequestBeanImpl implements SessionBeanProvider
     @Override
     public String getSessionStateInfo( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        final SecureService secureService = pwmRequest.getPwmApplication().getSecureService();
+        final DomainSecureService domainSecureService = pwmRequest.getPwmDomain().getSecureService();
         final Map<Class, PwmSessionBean> cachedMap = ( Map<Class, PwmSessionBean> ) pwmRequest.getHttpServletRequest().getAttribute( attrName );
         if ( cachedMap == null || cachedMap.isEmpty() )
         {
@@ -82,7 +82,7 @@ public class CryptoRequestBeanImpl implements SessionBeanProvider
             throw new IllegalStateException( "unable to handle multiple session state beans" );
         }
         final PwmSessionBean bean = cachedMap.values().iterator().next();
-        return secureService.encryptObjectToString( bean );
+        return domainSecureService.encryptObjectToString( bean );
     }
 
     @Override

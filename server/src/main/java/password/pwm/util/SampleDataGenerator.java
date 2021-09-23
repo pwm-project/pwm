@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,9 @@
 package password.pwm.util;
 
 import com.novell.ldapchai.cr.Answer;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
@@ -31,7 +32,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoBean;
 import password.pwm.util.macro.MacroRequest;
-import password.pwm.util.operations.otp.OTPUserRecord;
+import password.pwm.svc.otp.OTPUserRecord;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -40,6 +41,9 @@ import java.util.Map;
 
 public class SampleDataGenerator
 {
+    private static final DomainID SAMPLE_USER_DOMAIN = DomainID.create( "default" );
+    private static final String SAMPLE_USER_LDAP_PROFILE = "profile1";
+
     public static UserInfo sampleUserData()
     {
         final Map<String, String> userAttributes = new LinkedHashMap<>();
@@ -77,7 +81,7 @@ public class SampleDataGenerator
         );
         responseInfoBean.setTimestamp( Instant.ofEpochSecond( 941246275 ) );
 
-        final UserIdentity userIdentity = UserIdentity.createUserIdentity( "cn=FLast,ou=test,o=org", "profile1" );
+        final UserIdentity userIdentity = UserIdentity.create( "cn=FLast,ou=test,o=org", SAMPLE_USER_LDAP_PROFILE, SAMPLE_USER_DOMAIN );
 
         return UserInfoBean.builder()
                 .userIdentity( userIdentity )
@@ -128,7 +132,7 @@ public class SampleDataGenerator
             );
             responseInfoBean.setTimestamp( Instant.ofEpochSecond( 941244474 ) );
 
-            final UserIdentity userIdentity = UserIdentity.createUserIdentity( "cn=TUser,ou=test,o=org", "profile1" );
+            final UserIdentity userIdentity = UserIdentity.create( "cn=TUser,ou=test,o=org", SAMPLE_USER_LDAP_PROFILE, SAMPLE_USER_DOMAIN );
 
             return UserInfoBean.builder()
                     .userIdentity( userIdentity )
@@ -142,7 +146,7 @@ public class SampleDataGenerator
 
     }
 
-    public static MacroRequest sampleMacroRequest( final PwmApplication pwmApplication )
+    public static MacroRequest sampleMacroRequest( final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
     {
         final UserInfo targetUserInfoBean = sampleTargetUserInfo();
@@ -156,7 +160,7 @@ public class SampleDataGenerator
         loginInfoBean.setUserCurrentPassword( PasswordData.forStringValue( "PaSSw0rd" ) );
 
         return MacroRequest.builder()
-                .pwmApplication( pwmApplication )
+                .pwmApplication( null )
                 .userInfo( userInfoBean )
                 .targetUserInfo( targetUserInfoBean )
                 .loginInfoBean( loginInfoBean )

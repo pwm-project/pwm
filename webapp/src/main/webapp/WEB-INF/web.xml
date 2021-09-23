@@ -4,7 +4,7 @@
   ~ http://www.pwm-project.org
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2020 The PWM Project
+  ~ Copyright (c) 2009-2021 The PWM Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -126,6 +126,10 @@
         <filter-class>password.pwm.http.filter.GZIPFilter</filter-class>
     </filter>
     <filter>
+        <filter-name>DomainInitFilter</filter-name>
+        <filter-class>password.pwm.http.filter.DomainInitFilter</filter-class>
+    </filter>
+    <filter>
         <filter-name>RequestInitializationFilter</filter-name>
         <filter-class>password.pwm.http.filter.RequestInitializationFilter</filter-class>
     </filter>
@@ -146,12 +150,16 @@
         <filter-class>password.pwm.http.filter.AuthenticationFilter</filter-class>
     </filter>
     <filter>
-        <filter-name>AdminAuthorizationFilter</filter-name>
+        <filter-name>AuthorizationFilter</filter-name>
         <filter-class>password.pwm.http.filter.AuthorizationFilter</filter-class>
     </filter>
     <filter>
-        <filter-name>ConfigAuthorizationFilter</filter-name>
+        <filter-name>ConfigAccessFilter</filter-name>
         <filter-class>password.pwm.http.filter.ConfigAccessFilter</filter-class>
+    </filter>
+    <filter>
+        <filter-name>DomainRouterFilter</filter-name>
+        <filter-class>password.pwm.http.filter.DomainRouterFilter</filter-class>
     </filter>
     <filter-mapping>
         <filter-name>CookieUpdateFilter</filter-name>
@@ -159,6 +167,10 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>GZIPFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>DomainInitFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
     <filter-mapping>
@@ -179,18 +191,19 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>AuthenticationFilter</filter-name>
-        <url-pattern>/private/*</url-pattern>
-        <url-pattern>/public/changepassword</url-pattern>
-        <url-pattern>/public/ChangePassword</url-pattern>
+        <url-pattern>/*</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>AdminAuthorizationFilter</filter-name>
-        <url-pattern>/private/admin/*</url-pattern>
+        <filter-name>AuthorizationFilter</filter-name>
+        <url-pattern>/*</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>ConfigAuthorizationFilter</filter-name>
-        <url-pattern>/private/config</url-pattern>
-        <url-pattern>/private/config/*</url-pattern>
+        <filter-name>ConfigAccessFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>DomainRouterFilter</filter-name>
+        <url-pattern>/*</url-pattern>
     </filter-mapping>
     <listener>
         <listener-class>password.pwm.http.HttpEventManager</listener-class>

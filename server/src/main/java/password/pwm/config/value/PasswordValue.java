@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ package password.pwm.config.value;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigXmlSerializer;
+import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -91,32 +91,29 @@ public class PasswordValue implements StoredValue
             )
                     throws PwmOperationalException, PwmUnrecoverableException
             {
-                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlSerializer.StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                final Optional<XmlElement> valueElement = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 if ( valueElement.isPresent() )
                 {
-                    final String rawValue = valueElement.get().getText();
+                    final Optional<String> rawValue = valueElement.get().getText();
 
-                    final PasswordValue newPasswordValue = new PasswordValue();
-                    if ( rawValue == null || rawValue.isEmpty() )
+                    if ( rawValue.isEmpty() )
                     {
-                        return newPasswordValue;
+                        return new PasswordValue();
                     }
 
-                    final boolean plainTextSetting;
-                    {
-                        final String plainTextAttributeStr = valueElement.get().getAttributeValue( "plaintext" );
-                        plainTextSetting = plainTextAttributeStr != null && Boolean.parseBoolean( plainTextAttributeStr );
-                    }
+                    final boolean plainTextSetting = valueElement.get().getAttributeValue( "plaintext" )
+                            .map( Boolean::parseBoolean )
+                            .orElse( false );
 
                     if ( plainTextSetting )
                     {
-                        return new PasswordValue( new PasswordData( rawValue ) );
+                        return new PasswordValue( new PasswordData( rawValue.get() ) );
                     }
                     else
                     {
                         try
                         {
-                            final Optional<String> encodedValue = StoredValueEncoder.decode( rawValue, StoredValueEncoder.Mode.CONFIG_PW, key );
+                            final Optional<String> encodedValue = StoredValueEncoder.decode( rawValue.get(), StoredValueEncoder.Mode.CONFIG_PW, key );
                             if ( encodedValue.isPresent() )
                             {
                                 return new PasswordValue( new PasswordData( encodedValue.get() ) );

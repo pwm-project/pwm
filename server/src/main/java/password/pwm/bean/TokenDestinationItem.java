@@ -3,7 +3,7 @@
  * http://www.pwm-project.org
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2020 The PWM Project
+ * Copyright (c) 2009-2021 The PWM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
-import password.pwm.config.Configuration;
+import password.pwm.PwmDomain;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.PwmUnrecoverableException;
@@ -35,12 +35,11 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.svc.token.TokenDestinationDisplayMasker;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.secure.SecureService;
+import password.pwm.svc.secure.DomainSecureService;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -52,19 +51,13 @@ import java.util.Optional;
 @Builder
 public class TokenDestinationItem implements Serializable
 {
-    private static final Map<PwmSetting, TokenDestinationItem.Type> SETTING_TO_DEST_TYPE_MAP;
-
-    static
-    {
-        final Map<PwmSetting, TokenDestinationItem.Type> tempMap = new HashMap<>(  );
-        tempMap.put( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE, TokenDestinationItem.Type.email );
-        tempMap.put( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE_2, TokenDestinationItem.Type.email );
-        tempMap.put( PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE_3, TokenDestinationItem.Type.email );
-        tempMap.put( PwmSetting.SMS_USER_PHONE_ATTRIBUTE, TokenDestinationItem.Type.sms );
-        tempMap.put( PwmSetting.SMS_USER_PHONE_ATTRIBUTE_2, TokenDestinationItem.Type.sms );
-        tempMap.put( PwmSetting.SMS_USER_PHONE_ATTRIBUTE_3, TokenDestinationItem.Type.sms );
-        SETTING_TO_DEST_TYPE_MAP = Collections.unmodifiableMap( tempMap );
-    }
+    private static final Map<PwmSetting, TokenDestinationItem.Type> SETTING_TO_DEST_TYPE_MAP = Map.of(
+        PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE, TokenDestinationItem.Type.email,
+        PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE_2, TokenDestinationItem.Type.email,
+        PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE_3, TokenDestinationItem.Type.email,
+        PwmSetting.SMS_USER_PHONE_ATTRIBUTE, TokenDestinationItem.Type.sms,
+        PwmSetting.SMS_USER_PHONE_ATTRIBUTE_2, TokenDestinationItem.Type.sms,
+        PwmSetting.SMS_USER_PHONE_ATTRIBUTE_3, TokenDestinationItem.Type.sms );
 
     public static Map<PwmSetting, Type> getSettingToDestTypeMap( )
     {
@@ -95,15 +88,15 @@ public class TokenDestinationItem implements Serializable
     }
 
     public static List<TokenDestinationItem> allFromConfig(
-            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
             final UserInfo userInfo
     )
             throws PwmUnrecoverableException
     {
-        final Configuration configuration = pwmApplication.getConfig();
-        final SecureService secureService = pwmApplication.getSecureService();
+        final DomainConfig domainConfig = pwmDomain.getConfig();
+        final DomainSecureService domainSecureService = pwmDomain.getSecureService();
 
-        final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( configuration );
+        final TokenDestinationDisplayMasker tokenDestinationDisplayMasker = new TokenDestinationDisplayMasker( domainConfig );
 
         final Map<String, TokenDestinationItem> results = new LinkedHashMap<>(  );
 
@@ -115,9 +108,9 @@ public class TokenDestinationItem implements Serializable
                 }
         )
         {
-            if ( !StringUtil.isEmpty( emailValue ) )
+            if ( StringUtil.notEmpty( emailValue ) )
             {
-                final String idHash = secureService.hash( emailValue + Type.email.name() );
+                final String idHash = domainSecureService.hash( emailValue + Type.email.name() );
                 final TokenDestinationItem item = TokenDestinationItem.builder()
                         .id( idHash )
                         .display( tokenDestinationDisplayMasker.maskEmail( emailValue ) )
@@ -136,9 +129,9 @@ public class TokenDestinationItem implements Serializable
                 }
         )
         {
-            if ( !StringUtil.isEmpty( smsValue ) )
+            if ( StringUtil.notEmpty( smsValue ) )
             {
-                final String idHash = secureService.hash( smsValue + Type.sms.name() );
+                final String idHash = domainSecureService.hash( smsValue + Type.sms.name() );
                 final TokenDestinationItem item = TokenDestinationItem.builder()
                         .id( idHash )
                         .display( tokenDestinationDisplayMasker.maskPhone( smsValue ) )
@@ -149,7 +142,7 @@ public class TokenDestinationItem implements Serializable
             }
         }
 
-        return Collections.unmodifiableList( new ArrayList<>( results.values() ) );
+        return List.copyOf( results.values() );
     }
 
     public static Optional<TokenDestinationItem> tokenDestinationItemForID(
@@ -191,14 +184,14 @@ public class TokenDestinationItem implements Serializable
         return returnList;
     }
 
-    public String longDisplay( final Locale locale, final Configuration configuration )
+    public String longDisplay( final Locale locale, final DomainConfig domainConfig )
     {
         final Map<String, String> tokens = new HashMap<>();
-        tokens.put( "%LABEL%", LocaleHelper.getLocalizedMessage( locale, getType().getButtonLocalization(), configuration ) );
-        tokens.put( "%MESSAGE%", LocaleHelper.getLocalizedMessage( locale, getType().getDisplayLocalization(), configuration ) );
+        tokens.put( "%LABEL%", LocaleHelper.getLocalizedMessage( locale, getType().getButtonLocalization(), domainConfig ) );
+        tokens.put( "%MESSAGE%", LocaleHelper.getLocalizedMessage( locale, getType().getDisplayLocalization(), domainConfig ) );
         tokens.put( "%VALUE%", this.getDisplay() );
 
-        String output = configuration.readAppProperty( AppProperty.REST_SERVER_FORGOTTEN_PW_TOKEN_DISPLAY );
+        String output = domainConfig.readAppProperty( AppProperty.REST_SERVER_FORGOTTEN_PW_TOKEN_DISPLAY );
         for ( final Map.Entry<String, String> entry : tokens.entrySet() )
         {
             output = output.replace( entry.getKey(), entry.getValue() );
