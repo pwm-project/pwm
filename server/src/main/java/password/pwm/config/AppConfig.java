@@ -43,7 +43,6 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.http.HttpMethod;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -237,14 +236,6 @@ public class AppConfig implements SettingReader
     public PrivateKeyCertificate readSettingAsPrivateKey( final PwmSetting setting )
     {
         return settingReader.readSettingAsPrivateKey( setting );
-    }
-
-    @Override
-    public HttpMethod readSettingAsHttpMethod(final PwmSetting setting) {
-        return settingReader.readSettingAsEnum(setting,
-                password.pwm.config.option.HttpMethod.class) == password.pwm.config.option.HttpMethod.POST
-                        ? HttpMethod.POST
-                        : HttpMethod.GET;
     }
 
     @Override

@@ -210,9 +210,9 @@ public class RestSetPasswordServer extends RestServlet
                     newPassword
             );
 
-            StatisticsManager.incrementStat( restRequest.getDomain(), Statistic.REST_SETPASSWORD );
-            final JsonInputData jsonResultData = new JsonInputData( targetUserIdentity.getUserIdentity().toDelimitedKey(), newPassword.getStringValue(), random );
-
+            StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_SETPASSWORD );
+            final JsonInputData jsonResultData = new JsonInputData( targetUserIdentity.getUserIdentity().toDelimitedKey(),
+                            newPassword.getStringValue(), random );
             return RestResultBean.forSuccessMessage( jsonResultData, restRequest, Message.Success_PasswordChange );
         }
         catch ( final PwmException e )

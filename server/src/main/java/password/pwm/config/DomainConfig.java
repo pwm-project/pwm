@@ -234,9 +234,10 @@ public class DomainConfig implements SettingReader
         return settingReader.readSettingAsPrivateKey( setting );
     }
 
-    public HttpMethod readSettingAsHttpMethod(final PwmSetting setting) {
-        return settingReader.readSettingAsEnum(setting,
-                password.pwm.config.option.HttpMethod.class) == password.pwm.config.option.HttpMethod.POST
+    public HttpMethod readSettingAsHttpMethod( final PwmSetting setting )
+    {
+        return settingReader.readSettingAsEnum( setting,
+                password.pwm.config.option.HttpMethod.class ) == password.pwm.config.option.HttpMethod.POST
                         ? HttpMethod.POST
                         : HttpMethod.GET;
     }
