@@ -121,9 +121,9 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass()
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass()
     {
-        return GuestRegistrationAction.class;
+        return Optional.of( GuestRegistrationAction.class );
     }
 
     @Override

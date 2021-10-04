@@ -23,13 +23,13 @@
 --%>
 
 
-<%@ page import="password.pwm.http.servlet.admin.AdminServlet" %>
+<%@ page import="password.pwm.http.servlet.admin.SystemAdminServlet" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final AdminServlet.Page currentPage = AdminServlet.Page.forUrl(JspUtility.getPwmRequest(pageContext).getURL()); %>
+<% final SystemAdminServlet.Page currentPage = SystemAdminServlet.Page.forUrl(JspUtility.getPwmRequest(pageContext).getURL()); %>
 <pwm:script-ref url="/public/resources/js/uilibrary.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 <link href="<pwm:url url='/public/resources/webjars/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
@@ -44,22 +44,22 @@
     </script>
 </pwm:script>
 <div style="text-align: center; margin-bottom: 10px;">
-    <% boolean selected = currentPage == AdminServlet.Page.dashboard; %>
-    <form action="<%=AdminServlet.Page.dashboard%>" method="get" id="dashboard" name="dashboard">
+    <% boolean selected = currentPage == SystemAdminServlet.Page.dashboard; %>
+    <form action="<%=SystemAdminServlet.Page.dashboard%>" method="get" id="dashboard" name="dashboard">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-dashboard"></span></pwm:if>
             <pwm:display key="Title_Dashboard" bundle="Admin"/>
         </button>
     </form>
-    <% selected = currentPage == AdminServlet.Page.activity; %>
-    <form action="<%=AdminServlet.Page.activity%>" method="get" id="activity" name="activity">
+    <% selected = currentPage == SystemAdminServlet.Page.activity; %>
+    <form action="<%=SystemAdminServlet.Page.activity%>" method="get" id="activity" name="activity">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-users"></span></pwm:if>
             <pwm:display key="Title_UserActivity" bundle="Admin"/>
         </button>
     </form>
-    <% selected = currentPage == AdminServlet.Page.analysis; %>
-    <form action="<%=AdminServlet.Page.analysis%>" method="get" id="analysis" name="analysis">
+    <% selected = currentPage == SystemAdminServlet.Page.analysis; %>
+    <form action="<%=SystemAdminServlet.Page.analysis%>" method="get" id="analysis" name="analysis">
         <button type="submit" class="navbutton<%=selected?" selected":""%>">
             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-bar-chart-o"></span></pwm:if>
             <pwm:display key="Title_DataAnalysis" bundle="Admin"/>

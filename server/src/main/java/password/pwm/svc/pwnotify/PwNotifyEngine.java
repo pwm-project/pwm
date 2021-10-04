@@ -51,10 +51,11 @@ import java.io.Writer;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -156,16 +157,15 @@ public class PwNotifyEngine
             }
 
             log( "starting job, beginning ldap search" );
-            final Iterator<UserIdentity> workQueue = UserPermissionUtility.discoverMatchingUsers(
+            final Queue<UserIdentity> workQueue = new LinkedList<>( UserPermissionUtility.discoverMatchingUsers(
                     pwmDomain,
                     permissionList, pwNotifyService.getSessionLabel(), settings.getMaxLdapSearchSize(),
-                    settings.getSearchTimeout()
-            );
+                    settings.getSearchTimeout() ) );
 
             log( "ldap search complete, examining users..." );
 
             final ThreadPoolExecutor threadPoolExecutor = createExecutor( pwmDomain );
-            while ( workQueue.hasNext() )
+            while ( workQueue.peek() != null )
             {
                 if ( !checkIfRunningOnMaster() || pwNotifyService.status() == PwmService.STATUS.CLOSED )
                 {
@@ -174,7 +174,7 @@ public class PwNotifyEngine
                     throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, msg );
                 }
 
-                threadPoolExecutor.submit( new ProcessJob( workQueue.next() ) );
+                threadPoolExecutor.submit( new ProcessJob( workQueue.poll() ) );
             }
 
             JavaHelper.closeAndWaitExecutor( threadPoolExecutor, TimeDuration.DAY );

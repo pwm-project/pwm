@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
 @WebServlet(
@@ -70,9 +71,9 @@ public class FullPageHealthServlet extends ControlledPwmServlet
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return FullPageHealthAction.class;
+        return Optional.of( FullPageHealthAction.class );
     }
 
     @Override

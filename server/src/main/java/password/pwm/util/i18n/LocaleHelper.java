@@ -495,4 +495,28 @@ public class LocaleHelper
         }
         return Collections.unmodifiableMap( returnMap );
     }
+
+    public static class Factory
+    {
+        private final SettingReader settingReader;
+        private final Locale locale;
+        private final Class<? extends PwmDisplayBundle> bundle;
+
+        private Factory( final SettingReader settingReader, final Locale locale, final Class<? extends PwmDisplayBundle> bundle )
+        {
+            this.settingReader = settingReader;
+            this.locale = locale;
+            this.bundle = bundle;
+        }
+
+        public static Factory createFactory( final SettingReader settingReader, final Locale locale, final Class<? extends PwmDisplayBundle> bundle )
+        {
+            return new Factory( settingReader, locale, bundle );
+        }
+
+        public String get( final String key )
+        {
+            return getLocalizedMessage( locale, key, settingReader, bundle );
+        }
+    }
 }

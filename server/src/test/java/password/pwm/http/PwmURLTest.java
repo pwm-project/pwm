@@ -45,7 +45,7 @@ public class PwmURLTest
         final AppConfig appConfig = new AppConfig( StoredConfigurationFactory.newConfig() );
         final PwmURL pwmURL = PwmURL.create( new URI( "https://wwww.example.com/pwm/private/login" ), "/pwm", appConfig );
 
-        Assert.assertEquals( PwmServletDefinition.Login, pwmURL.forServletDefinition().get() );
+        Assert.assertEquals( PwmServletDefinition.Login, pwmURL.getServletDefinition().get() );
         Assert.assertEquals( "/private/login", pwmURL.determinePwmServletPath() );
         Assert.assertTrue( pwmURL.isPrivateUrl() );
         Assert.assertTrue( pwmURL.matches( PwmServletDefinition.Login ) );
@@ -65,7 +65,7 @@ public class PwmURLTest
         }
         final PwmURL pwmURL = PwmURL.create( new URI( "https://wwww.example.com/pwm/aaaa/private/login" ), "/pwm", appConfig );
 
-        Assert.assertEquals( PwmServletDefinition.Login, pwmURL.forServletDefinition().get() );
+        Assert.assertEquals( PwmServletDefinition.Login, pwmURL.getServletDefinition().get() );
         Assert.assertEquals( "/private/login", pwmURL.determinePwmServletPath() );
         Assert.assertTrue( pwmURL.isPrivateUrl() );
         Assert.assertTrue( pwmURL.matches( PwmServletDefinition.Login ) );
@@ -99,6 +99,15 @@ public class PwmURLTest
         Assert.assertTrue( pwmURL.isPublicUrl() );
         Assert.assertTrue( pwmURL.isResourceURL() );
 
+    }
+
+    @Test
+    public void testForServletDefinition() throws URISyntaxException, PwmUnrecoverableException
+    {
+        final AppConfig appConfig = new AppConfig( StoredConfigurationFactory.newConfig() );
+        final PwmURL pwmURL = PwmURL.create( new URI( "http://127.0.0.1:8080/pwm/public/ChangePassword" ), "/pwm", appConfig );
+
+        Assert.assertEquals( PwmServletDefinition.PublicChangePassword, pwmURL.getServletDefinition().get() );
     }
 
 }

@@ -38,6 +38,7 @@
 <%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.svc.PwmService" %>
+<%@ page import="password.pwm.http.servlet.admin.AdminUserDebugServlet" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -49,14 +50,14 @@
         <jsp:param name="pwm.PageName" value="User Debug"/>
     </jsp:include>
     <div id="centerbody" class="wide">
-        <h1 id="page-content-title">User Debug</h1>
-        <%@ include file="fragment/admin-nav.jsp" %>
+        <h1 id="page-content-title"><pwm:display key="Title_UserDebug" bundle="Admin"/></h1>
+        <%@ include file="fragment/admin-modular-nav.jsp" %>
 
         <% final UserDebugDataBean userDebugDataBean = (UserDebugDataBean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.UserDebugData); %>
         <% if (userDebugDataBean == null) { %>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <div id="panel-searchbar" class="searchbar">
-            <form method="post" class="pwm-form">
+            <form method="post" class="pwm-form" action="<pwm:current-url/>?processAction=<%=AdminUserDebugServlet.AdminUserDebugAction.searchUsername.toString()%>">
                 <input id="username" name="username" placeholder="<pwm:display key="Placeholder_Search"/>" title="<pwm:display key="Placeholder_Search"/>" class="helpdesk-input-username" <pwm:autofocus/> autocomplete="off"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
                 <button type="submit" class="btn"><pwm:display key="Button_Search"/></button>
@@ -531,7 +532,7 @@
                 <button type="submit" class="btn"><pwm:display key="Button_Continue"/></button>
             </form>
             <form method="get">
-                <input type="hidden" name="processAction" value="<%=AdminServlet.AdminAction.downloadUserDebug.toString()%>"/>
+                <input type="hidden" name="processAction" value="<%=AdminUserDebugServlet.AdminUserDebugAction.downloadUserDebug.toString()%>"/>
                 <button type="submit" class="btn">Download</button>
             </form>
         </div>

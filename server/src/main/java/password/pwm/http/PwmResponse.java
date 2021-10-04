@@ -250,6 +250,8 @@ public class PwmResponse extends PwmHttpResponseWrapper
     public void markAsDownload( final HttpContentType contentType, final String filename )
     {
         this.setHeader( HttpHeader.ContentDisposition, "attachment; fileName=" + filename );
+        this.setHeader( HttpHeader.ContentTransferEncoding, "binary" );
+        this.setHeader( HttpHeader.Expires, "0" );
         this.setContentType( contentType );
     }
 

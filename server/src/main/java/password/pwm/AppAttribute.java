@@ -27,7 +27,7 @@ public enum AppAttribute
     CONFIG_HASH( "configurationSettingHash" ),
     LAST_LDAP_ERROR( "lastLdapError" ),
     // TOKEN_COUNTER( "tokenCounter" ), deprecated
-    REPORT_STATUS( "reporting.status" ),
+    // REPORT_STATUS( "reporting.status" ), deprecated
     // REPORT_CLEAN_FLAG("reporting.cleanFlag"), deprecated
     SMS_ITEM_COUNTER( "smsQueue.itemCount" ),
     EMAIL_ITEM_COUNTER( "itemQueue.itemCount" ),

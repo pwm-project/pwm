@@ -44,8 +44,8 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @Value
-@Builder
-class ReportSettings implements Serializable
+@Builder( toBuilder = true )
+public class ReportSettings implements Serializable
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ReportSettings.class );
 

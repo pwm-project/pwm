@@ -26,6 +26,7 @@
 <%@ page import="password.pwm.i18n.Admin" %>
 <%@ page import="password.pwm.util.logging.LocalDBLogger" %>
 <%@ page import="java.time.Instant" %>
+<%@ page import="password.pwm.http.servlet.admin.SystemAdminServlet" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
@@ -47,7 +48,7 @@
             <form action="<pwm:context/>/private/admin" method="post" enctype="application/x-www-form-urlencoded"
                   name="form-downloadLog" id="CC" class="">
                 <input type="hidden" name="<%=PwmConstants.PARAM_FORM_ID%>" value="<pwm:FormID/>"/>
-                <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=AdminServlet.AdminAction.downloadLogData%>"/>
+                <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=SystemAdminServlet.SystemAdminAction.downloadLogData%>"/>
                 <table style="max-width: 350px; margin-right: auto; margin-left: auto">
                     <tr class="noborder">
                         <td class="noborder">

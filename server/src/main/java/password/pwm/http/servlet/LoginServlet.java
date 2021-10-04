@@ -53,6 +53,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * User interaction servlet for form-based authentication.   Depending on how PWM is deployed,
@@ -94,9 +95,9 @@ public class LoginServlet extends ControlledPwmServlet
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return LoginServletAction.class;
+        return Optional.of( LoginServletAction.class );
     }
 
     private boolean passwordOnly( final PwmRequest pwmRequest )

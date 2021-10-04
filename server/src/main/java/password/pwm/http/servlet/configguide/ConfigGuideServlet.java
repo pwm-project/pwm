@@ -137,9 +137,9 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return ConfigGuideAction.class;
+        return Optional.of( ConfigGuideAction.class );
     }
 
     static ConfigGuideBean getBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException

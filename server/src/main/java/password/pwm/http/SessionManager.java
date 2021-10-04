@@ -36,11 +36,14 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.permission.UserPermissionUtility;
+import password.pwm.svc.report.ReportProcess;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
+import java.lang.ref.SoftReference;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Wraps an <i>HttpSession</i> to provide additional PWM-related session
@@ -54,6 +57,7 @@ public class SessionManager
     private static final PwmLogger LOGGER = PwmLogger.forClass( SessionManager.class );
 
     private volatile ChaiProvider chaiProvider;
+    private volatile SoftReference<ReportProcess> reportProcess = new SoftReference<>( null );
 
     private final PwmDomain pwmDomain;
     private final PwmSession pwmSession;
@@ -188,6 +192,16 @@ public class SessionManager
 
             LOGGER.trace( pwmSession.getLabel(), () -> "incremented request counter to " + this.pwmSession.getLoginInfoBean().getReqCounter() );
         }
+    }
+
+    public void setReportProcess( final ReportProcess reportProcess )
+    {
+        this.reportProcess = new SoftReference<>( reportProcess );
+    }
+
+    public Optional<ReportProcess> getReportProcess()
+    {
+        return Optional.ofNullable( this.reportProcess.get() );
     }
 
     public boolean checkPermission( final PwmDomain pwmDomain, final Permission permission )

@@ -194,7 +194,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
 
         if ( pwmSession.getSessionManager().isAuthenticatedWithoutPasswordAndBind() )
         {
-            final Optional<PwmServletDefinition> pwmServletDefinition = pwmRequest.getURL().forServletDefinition();
+            final Optional<PwmServletDefinition> pwmServletDefinition = pwmRequest.getURL().getServletDefinition();
             if ( pwmServletDefinition.isPresent() )
             {
                 if ( pwmServletDefinition.get().getFlags().contains( PwmServletDefinition.Flag.RequiresUserPasswordAndBind ) )

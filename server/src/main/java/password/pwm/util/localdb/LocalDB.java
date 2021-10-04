@@ -121,9 +121,7 @@ public interface LocalDB
         PWM_META( Flag.Backup ),
         SHAREDHISTORY_META( Flag.Backup ),
         SHAREDHISTORY_WORDS( Flag.Backup ),
-        // WORDLIST_META(true), // @deprecated
         WORDLIST_WORDS( Flag.Backup ),
-        // SEEDLIST_META(true), // @deprecated
         SEEDLIST_WORDS( Flag.Backup ),
         PWM_STATS( Flag.Backup ),
         EVENTLOG_EVENTS( Flag.Backup ),
@@ -135,27 +133,46 @@ public interface LocalDB
         INTRUDER( Flag.Backup ),
         AUDIT_QUEUE( Flag.Backup ),
         AUDIT_EVENTS( Flag.Backup ),
-        USER_CACHE( Flag.Backup ),
-        TEMP(  ),
         SYSLOG_QUEUE( Flag.Backup ),
-        CACHE(  ),
-        REPORT_QUEUE( ),;
+
+        TEMP( Flag.Purge ),
+        CACHE( Flag.Purge ),
+
+        @Deprecated
+        WORDLIST_META( Flag.Purge ),
+
+        @Deprecated
+        SEEDLIST_META( Flag.Purge ),
+
+        @Deprecated
+        USER_CACHE( Flag.Purge ),
+
+        @Deprecated
+        REPORT_QUEUE( Flag.Purge ),;
 
         private final boolean backup;
+        private final boolean purge;
 
         private enum Flag
         {
             Backup,
+            Purge,
         }
 
         DB( final Flag... flag )
         {
             this.backup = JavaHelper.enumArrayContainsValue( flag, Flag.Backup );
+            this.purge = JavaHelper.enumArrayContainsValue( flag, Flag.Purge );
         }
 
         public boolean isBackup( )
         {
             return backup;
+        }
+
+        public boolean isPurge()
+        {
+            return purge;
         }
     }
 

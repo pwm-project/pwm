@@ -49,13 +49,6 @@ PWM_ADMIN.initAdminNavMenu = function() {
                         PWM_MAIN.gotoUrl(PWM_GLOBAL['url-context'] + '/private/admin/urls');
                     }
                 }));
-                pMenu.addChild(new MenuItem({
-                    label: 'User Debug',
-                    id: 'userDebug_dropitem',
-                    onClick: function() {
-                        PWM_MAIN.gotoUrl(PWM_GLOBAL['url-context'] + '/private/admin/userdebug');
-                    }
-                }));
                 pMenu.addChild(new MenuSeparator());
                 pMenu.addChild(new MenuItem({
                     label: 'Full Page Health Status',
@@ -171,6 +164,23 @@ PWM_ADMIN.initDownloadUserReportCsvForm = function() {
             downloadUserReportCsvForm.selectedColumns.value = selectedColumns;
         })
     });
+}
+
+
+PWM_ADMIN.initDownloadProcessReportZipForm = function() {
+    PWM_MAIN.doQuery("#reportDownloadButton", function(node){
+        PWM_MAIN.addEventHandler(node, "click", function() {
+            PWM_MAIN.showDialog({title:"Report Status",text:"Download Initiated"});
+        })
+    });
+    PWM_MAIN.doQuery("#reportCancelButton", function(node){
+        PWM_MAIN.addEventHandler(node, "click", function() {
+            var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','cancelDownload');
+            PWM_MAIN.ajaxRequest(url, function(){
+                PWM_MAIN.showDialog({title:"Report Status",text:"Download Cancelled"})
+            });
+        })
+    });
 };
 
 PWM_ADMIN.refreshReportDataGrid=function() {
@@ -210,8 +220,7 @@ PWM_ADMIN.refreshReportDataGrid=function() {
 
 
 PWM_ADMIN.refreshReportDataStatus=function() {
-    var url = PWM_GLOBAL['url-context'] + "/private/admin";
-    url = PWM_MAIN.addParamToUrl(url, 'processAction','reportStatus');
+    var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','reportStatus');
     var loadFunction = function(data) {
         if (data['data'] && data['data']['presentable']) {
             var fields = data['data']['presentable'];
@@ -224,6 +233,27 @@ PWM_ADMIN.refreshReportDataStatus=function() {
         PWM_MAIN.getObject("reportStartButton").disabled = !PWM_MAIN.JSLibrary.arrayContains(availableCommands,'Start');
         PWM_MAIN.getObject("reportStopButton").disabled = !PWM_MAIN.JSLibrary.arrayContains(availableCommands,'Stop');
         PWM_MAIN.getObject("reportClearButton").disabled = !PWM_MAIN.JSLibrary.arrayContains(availableCommands,'Clear');
+    };
+    var errorFunction = function (error) {
+        console.log('error during report status update: ' + error);
+    };
+    PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET',errorFunction:errorFunction});
+};
+
+PWM_ADMIN.refreshReportProcessStatus=function() {
+    var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','reportProcessStatus');
+    var loadFunction = function(data) {
+        if (data['data'] && data['data']['presentable']) {
+            var fields = data['data']['presentable'];
+            var htmlTable = UILibrary.displayElementsToTableContents(fields);
+            PWM_MAIN.getObject('statusTable').innerHTML = htmlTable;
+            UILibrary.initElementsToTableContents(fields);
+        }
+
+        var reportInProgress = data['data']['reportInProgress'] === true;
+        PWM_MAIN.getObject("reportDownloadButton").disabled = reportInProgress;
+        PWM_MAIN.getObject("reportCancelButton").disabled = !reportInProgress;
+        PWM_MAIN.getObject( "downloadReportOptionsFieldset" ).disabled = reportInProgress;
     };
     var errorFunction = function (error) {
         console.log('error during report status update: ' + error);

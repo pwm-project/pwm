@@ -124,9 +124,9 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return ChangePasswordServlet.ChangePasswordAction.class;
+        return Optional.of( ChangePasswordServlet.ChangePasswordAction.class );
     }
 
     static ChangePasswordProfile getProfile( final PwmRequest pwmRequest ) throws PwmUnrecoverableException

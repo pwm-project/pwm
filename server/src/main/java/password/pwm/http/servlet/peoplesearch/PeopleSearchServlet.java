@@ -92,9 +92,9 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return PeopleSearchActions.class;
+        return Optional.of( PeopleSearchActions.class );
     }
 
     @Override

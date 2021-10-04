@@ -164,9 +164,9 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return ForgottenPasswordAction.class;
+        return Optional.of( ForgottenPasswordAction.class );
     }
 
     public enum ActionChoice

@@ -335,7 +335,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     )
             throws IOException, PwmUnrecoverableException
     {
-        final String uri = getURLwithoutQueryString();
+        final String uri = getUrlWithoutQueryString();
         if ( uri == null || uri.length() < 1 )
         {
             return false;
@@ -548,7 +548,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     {
         return this.getClass().getSimpleName() + " "
                 + ( this.getLabel() == null ? "" : getLabel().toString() )
-                + " " + getURLwithoutQueryString();
+                + " " + getUrlWithoutQueryString();
 
     }
 
@@ -589,7 +589,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public String getURLwithQueryString( ) throws PwmUnrecoverableException
     {
-        return PwmURL.appendAndEncodeUrlParameters( getURLwithoutQueryString(), readParametersAsMap() );
+        return PwmURL.appendAndEncodeUrlParameters( getUrlWithoutQueryString(), readParametersAsMap() );
     }
 
     public boolean endUserFunctionalityAvailable( )

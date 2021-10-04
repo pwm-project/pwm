@@ -24,8 +24,8 @@ import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.text.WordUtils;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
@@ -33,7 +33,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.i18n.Display;
 import password.pwm.svc.PwmService;
-import password.pwm.svc.report.ReportSummaryData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
@@ -215,7 +214,11 @@ public class DailySummaryJob implements Runnable
 
         if ( settings.isReportingEnableDailyJob() )
         {
+
+
+            /*
             final List<ReportSummaryData.PresentationRow> summaryData = pwmDomain.getPwmApplication().getReportService()
+
                     .getSummaryData().asPresentableCollection( pwmDomain.getPwmApplication().getConfig(), locale );
 
             textBody.append( "-- Directory Report Summary --\n" );
@@ -230,6 +233,7 @@ public class DailySummaryJob implements Runnable
             }
 
             htmlBody.append( "<h2>Directory Report Summary</h2>" );
+
             htmlBody.append( "<table border='1'>" );
             for ( final ReportSummaryData.PresentationRow record : summaryData )
             {
@@ -240,6 +244,7 @@ public class DailySummaryJob implements Runnable
                 htmlBody.append( "</tr>" );
             }
             htmlBody.append( "</table>" );
+            */
         }
 
         textBody.append( "\n" );

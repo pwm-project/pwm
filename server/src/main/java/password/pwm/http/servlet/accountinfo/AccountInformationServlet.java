@@ -43,6 +43,7 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 @WebServlet(
         name = "UserInformationServlet",
@@ -75,9 +76,9 @@ public class AccountInformationServlet extends ControlledPwmServlet
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return AccountInformationAction.class;
+        return Optional.of( AccountInformationAction.class );
     }
 
     @Override

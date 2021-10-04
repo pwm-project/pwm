@@ -131,9 +131,9 @@ public class ClientApiServlet extends ControlledPwmServlet
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return ClientApiServlet.ClientApiAction.class;
+        return Optional.of( ClientApiAction.class );
     }
 
     @Override

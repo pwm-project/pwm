@@ -73,6 +73,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * User interaction servlet for setting up secret question/answer.
@@ -117,9 +118,9 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return SetupResponsesAction.class;
+        return Optional.of( SetupResponsesAction.class );
     }
 
     private SetupResponsesBean getSetupResponseBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException

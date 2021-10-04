@@ -35,6 +35,7 @@ import password.pwm.util.java.Percent;
 import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.TimeDuration;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,7 +50,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 @Value
-public class ReportSummaryData
+public class ReportSummaryData implements Serializable
 {
     private static final long MS_DAY = TimeDuration.DAY.asMillis();
 

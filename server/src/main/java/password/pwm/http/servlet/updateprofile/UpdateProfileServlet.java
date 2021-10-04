@@ -137,9 +137,9 @@ public class UpdateProfileServlet extends ControlledPwmServlet
 
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return UpdateProfileAction.class;
+        return Optional.of( UpdateProfileAction.class );
     }
 
     private static UpdateProfileProfile getProfile( final PwmRequest pwmRequest ) throws PwmUnrecoverableException

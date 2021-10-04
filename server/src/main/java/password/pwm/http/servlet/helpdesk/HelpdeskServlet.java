@@ -165,9 +165,9 @@ public class HelpdeskServlet extends ControlledPwmServlet
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return HelpdeskAction.class;
+        return Optional.of( HelpdeskAction.class );
     }
 
 

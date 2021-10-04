@@ -76,9 +76,9 @@ public class LogoutServlet extends ControlledPwmServlet
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return LogoutAction.class;
+        return Optional.of( LogoutAction.class );
     }
 
     @ActionHandler( action = "showLogout" )

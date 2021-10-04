@@ -109,7 +109,7 @@
             </tr>
             <tr>
                 <td class="key">Administration</td>
-                <td><a href="<pwm:context/><%=PwmServletDefinition.Admin.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.Admin.servletUrl()%></a></td>
+                <td><a href="<pwm:context/><%=PwmServletDefinition.SystemAdmin.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.SystemAdmin.servletUrl()%></a></td>
             </tr>
             <tr>
                 <td class="key">Configuration</td>

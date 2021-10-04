@@ -300,7 +300,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
 
     public String servletUriRemainder( final PwmRequest pwmRequest, final String command ) throws PwmUnrecoverableException
     {
-        String uri = pwmRequest.getURLwithoutQueryString();
+        String uri = pwmRequest.getUrlWithoutQueryString();
         if ( uri.startsWith( pwmRequest.getBasePath() ) )
         {
             uri = uri.substring( pwmRequest.getBasePath().length() );

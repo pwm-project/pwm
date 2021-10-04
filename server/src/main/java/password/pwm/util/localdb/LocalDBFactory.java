@@ -92,8 +92,14 @@ public class LocalDBFactory
 
             if ( !readonly )
             {
-                LOGGER.trace( () -> "clearing TEMP db" );
-                localDB.truncate( LocalDB.DB.TEMP );
+                for ( final LocalDB.DB db : LocalDB.DB.values() )
+                {
+                    if ( db.isPurge() && localDB.size( db ) > 0 )
+                    {
+                        LOGGER.trace( () -> "clearing " + db + " db" );
+                        localDB.truncate( db );
+                    }
+                }
 
                 final LocalDBUtility localDBUtility = new LocalDBUtility( localDB );
                 if ( localDBUtility.readImportInprogressFlag() )

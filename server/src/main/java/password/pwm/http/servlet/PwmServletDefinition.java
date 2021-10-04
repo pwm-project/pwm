@@ -39,7 +39,10 @@ import password.pwm.http.bean.ShortcutsBean;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.http.servlet.accountinfo.AccountInformationServlet;
 import password.pwm.http.servlet.activation.ActivateUserServlet;
+import password.pwm.http.servlet.admin.AdminReportServlet;
 import password.pwm.http.servlet.admin.AdminServlet;
+import password.pwm.http.servlet.admin.SystemAdminServlet;
+import password.pwm.http.servlet.admin.AdminUserDebugServlet;
 import password.pwm.http.servlet.changepw.PrivateChangePasswordServlet;
 import password.pwm.http.servlet.changepw.PublicChangePasswordServlet;
 import password.pwm.http.servlet.command.PrivateCommandServlet;
@@ -88,7 +91,12 @@ public enum PwmServletDefinition
     SelfDelete( DeleteAccountServlet.class, DeleteAccountBean.class ),
 
     ClientApi( ClientApiServlet.class, null ),
-    Admin( AdminServlet.class, AdminBean.class ),
+
+    Admin( AdminServlet.class, null, Flag.RequiresUserPasswordAndBind ),
+    SystemAdmin( SystemAdminServlet.class, AdminBean.class, Flag.RequiresUserPasswordAndBind ),
+    AdminReport( AdminReportServlet.class, null, Flag.RequiresUserPasswordAndBind ),
+    AdminUserDebug( AdminUserDebugServlet.class, null, Flag.RequiresUserPasswordAndBind ),
+
     ConfigGuide( ConfigGuideServlet.class, ConfigGuideBean.class ),
     ConfigEditor( ConfigEditorServlet.class, null, Flag.RequiresConfigAuth ),
     ConfigManager( ConfigManagerServlet.class, ConfigManagerBean.class, Flag.RequiresConfigAuth ),

@@ -29,6 +29,7 @@
 <%@ page import="password.pwm.svc.intruder.IntruderRecordType" %>
 <%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.servlet.admin.SystemAdminServlet" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -87,7 +88,7 @@
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
                             <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                         </button>
-                        <input type="hidden" name="processAction" value="<%=AdminServlet.AdminAction.downloadSessionsCsv%>"/>
+                        <input type="hidden" name="processAction" value="<%=SystemAdminServlet.SystemAdminAction.downloadSessionsCsv%>"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
                 </div>
@@ -135,7 +136,7 @@
                                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download"></span></pwm:if>
                                     <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                                 </button>
-                                <input type="hidden" name="processAction" value="<%=AdminServlet.AdminAction.downloadAuditLogCsv%>"/>
+                                <input type="hidden" name="processAction" value="<%=SystemAdminServlet.SystemAdminAction.downloadAuditLogCsv%>"/>
                                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                             </form>
                         </div>

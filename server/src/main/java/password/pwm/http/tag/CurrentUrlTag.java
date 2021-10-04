@@ -39,7 +39,7 @@ public class CurrentUrlTag extends TagSupport
         try
         {
             final PwmRequest pwmRequest = JspUtility.getPwmRequest( pageContext );
-            final String currentUrl = pwmRequest.getURLwithoutQueryString();
+            final String currentUrl = pwmRequest.getUrlWithoutQueryString();
             pageContext.getOut().write( StringUtil.escapeHtml( currentUrl ) );
         }
         catch ( final Exception e )

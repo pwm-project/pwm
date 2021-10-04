@@ -37,6 +37,7 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 
 public class ObsoleteUrlFilter extends AbstractPwmFilter
 {
@@ -79,36 +80,23 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter
             return ProcessStatus.Continue;
         }
 
-        final String requestUrl = pwmRequest.getURLwithoutQueryString();
+        final String requestUrl = pwmRequest.getUrlWithoutQueryString();
         final String requestServletUrl = requestUrl.substring( pwmRequest.getBasePath().length() );
 
-        for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
+        final Optional<PwmServletDefinition> optionalDefinition = pwmURL.getServletDefinition();
+        if ( optionalDefinition.isPresent() )
         {
-            boolean match = false;
-            patternLoop:
-            for ( final String patternUrl : pwmServletDefinition.urlPatterns() )
+            final PwmServletDefinition pwmServletDefinition = optionalDefinition.get();
+            if ( !pwmServletDefinition.servletUrl().equals( requestServletUrl ) )
             {
-                if ( patternUrl.equals( requestServletUrl ) )
-                {
-                    match = true;
-                    break patternLoop;
-                }
+                LOGGER.debug( pwmRequest, () -> "obsolete url of '"
+                        + requestServletUrl
+                        + "' detected, redirecting to canonical URL of '"
+                        + pwmServletDefinition.servletUrl() + "'" );
+                StatisticsClient.incrementStat( pwmRequest, Statistic.OBSOLETE_URL_REQUESTS );
+                pwmRequest.getPwmResponse().sendRedirect( pwmServletDefinition );
+                return ProcessStatus.Halt;
             }
-
-            if ( match )
-            {
-                if ( !pwmServletDefinition.servletUrl().equals( requestServletUrl ) )
-                {
-                    LOGGER.debug( pwmRequest, () -> "obsolete url of '"
-                            + requestServletUrl
-                            + "' detected, redirecting to canonical URL of '"
-                            + pwmServletDefinition.servletUrl() + "'" );
-                    StatisticsClient.incrementStat( pwmRequest, Statistic.OBSOLETE_URL_REQUESTS );
-                    pwmRequest.getPwmResponse().sendRedirect( pwmServletDefinition );
-                    return ProcessStatus.Halt;
-                }
-            }
-
         }
 
         return doStaticMapRedirects( pwmRequest );

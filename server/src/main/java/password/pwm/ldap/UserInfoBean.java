@@ -121,7 +121,7 @@ public class UserInfoBean implements UserInfo
     {
         if ( attributes.containsKey( attribute ) )
         {
-            return Collections.unmodifiableList( Collections.singletonList( attributes.get( attribute ) ) );
+            return Collections.singletonList( attributes.get( attribute ) );
         }
 
         return Collections.emptyList();

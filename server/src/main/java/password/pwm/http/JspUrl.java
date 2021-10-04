@@ -22,7 +22,6 @@ package password.pwm.http;
 
 public enum JspUrl
 {
-
     INIT( "init.jsp" ),
     ERROR( "error.jsp" ),
     SUCCESS( "success.jsp" ),
@@ -30,6 +29,7 @@ public enum JspUrl
     ADMIN_DASHBOARD( "admin-dashboard.jsp" ),
     ADMIN_ANALYSIS( "admin-analysis.jsp" ),
     ADMIN_ACTIVITY( "admin-activity.jsp" ),
+    ADMIN_REPORTING( "admin-reporting.jsp" ),
     ADMIN_TOKEN_LOOKUP( "admin-tokenlookup.jsp" ),
     ADMIN_LOGVIEW_WINDOW( "admin-logview-window.jsp" ),
     ADMIN_LOGVIEW( "admin-logview.jsp" ),

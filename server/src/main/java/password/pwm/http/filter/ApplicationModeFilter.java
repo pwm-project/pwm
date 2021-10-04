@@ -148,7 +148,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter
                     PwmServletDefinition.Login,
                     PwmServletDefinition.Logout,
                     PwmServletDefinition.OAuthConsumer,
-                    PwmServletDefinition.Admin );
+                    PwmServletDefinition.SystemAdmin );
 
             if ( mode != PwmApplicationMode.RUNNING )
             {

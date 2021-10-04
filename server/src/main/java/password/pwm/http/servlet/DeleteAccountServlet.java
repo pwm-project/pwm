@@ -57,6 +57,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 @WebServlet(
         name = "SelfDeleteServlet",
@@ -91,9 +92,9 @@ public class DeleteAccountServlet extends ControlledPwmServlet
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return DeleteAccountAction.class;
+        return Optional.of( DeleteAccountAction.class );
     }
 
     private DeleteAccountProfile getProfile( final PwmRequest pwmRequest ) throws PwmUnrecoverableException

@@ -133,9 +133,9 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return NewUserAction.class;
+        return Optional.of( NewUserAction.class );
     }
 
 

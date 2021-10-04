@@ -23,9 +23,11 @@ package password.pwm.util.cli.commands;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
-import password.pwm.svc.report.ReportCsvUtility;
+import password.pwm.svc.report.ReportProcess;
+import password.pwm.svc.report.ReportProcessRequest;
 import password.pwm.svc.report.ReportService;
 import password.pwm.util.cli.CliParameters;
 
@@ -54,11 +56,11 @@ public class UserReportCommand extends AbstractCliCommand
 
             final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
-            final ReportService userReport = pwmApplication.getReportService();
-            if ( userReport.status() != PwmService.STATUS.OPEN )
+            final ReportService reportService = pwmApplication.getReportService();
+            if ( reportService.status() != PwmService.STATUS.OPEN )
             {
                 out( "report service is not open or enabled" );
-                final List<HealthRecord> healthIssues = userReport.healthCheck();
+                final List<HealthRecord> healthIssues = reportService.healthCheck();
                 if ( healthIssues != null )
                 {
                     for ( final HealthRecord record : healthIssues )
@@ -69,14 +71,17 @@ public class UserReportCommand extends AbstractCliCommand
                 return;
             }
 
-            final ReportCsvUtility reportCsvUtility = new ReportCsvUtility( pwmApplication );
-            reportCsvUtility.outputToCsv( outputFileStream, true, PwmConstants.DEFAULT_LOCALE );
+            final ReportProcessRequest reportProcessRequest = ReportProcessRequest.builder().build();
+
+            try ( ReportProcess reportProcess = reportService.createReportProcess( PwmConstants.DEFAULT_LOCALE, SessionLabel.CLI_SESSION_LABEL ) )
+            {
+                reportProcess.startReport( reportProcessRequest, outputFileStream );
+            }
         }
         catch ( final IOException e )
         {
             out( "unable to open file '" + outputFile.getAbsolutePath() + "' for writing" );
             System.exit( -1 );
-            throw new Exception();
         }
 
         out( "report output complete." );
