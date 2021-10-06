@@ -59,7 +59,6 @@ import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.stats.StatisticsService;
-import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.SharedHistoryService;
 import password.pwm.svc.wordlist.WordlistService;
@@ -874,11 +873,6 @@ public class PwmApplication
     public ErrorInformation getLastLocalDBFailure( )
     {
         return lastLocalDBFailure;
-    }
-
-    public TokenService getTokenService( )
-    {
-        return ( TokenService ) pwmServiceManager.getService( PwmServiceEnum.TokenService );
     }
 
     public SessionTrackService getSessionTrackService( )
