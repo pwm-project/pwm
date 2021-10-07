@@ -64,13 +64,22 @@
                         <configuration>
                             <filesets>
                                 <fileset>
-                                    <directory>angular/.node</directory>
+                                    <directory>dist</directory>
+                                </fileset>
+                                <fileset>
+                                    <directory>node_modules</directory>
+                                </fileset>
+                                <fileset>
+                                    <directory>.node</directory>
                                 </fileset>
                                 <fileset>
                                     <directory>angular/dist</directory>
                                 </fileset>
                                 <fileset>
                                     <directory>angular/node_modules</directory>
+                                </fileset>
+                                <fileset>
+                                    <directory>angular/.node</directory>
                                 </fileset>
                             </filesets>
                         </configuration>
