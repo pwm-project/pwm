@@ -265,7 +265,7 @@ public class PropertyConfigurationImporter
         interestedProperties.add( PropertyKey.UA_ADMIN );
         interestedProperties.add( PropertyKey.RPT_ADMIN );
 
-        final String filter = "( objectclass=* )";
+        final String filter = "(objectclass=*)";
         final List<UserPermission> permissions = new ArrayList<>( );
 
         for ( final PropertyKey propertyKey : interestedProperties )
