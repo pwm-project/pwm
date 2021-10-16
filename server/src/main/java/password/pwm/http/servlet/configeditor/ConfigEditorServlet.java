@@ -813,9 +813,10 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final NavTreeSettings navTreeSettings = NavTreeSettings.readFromRequest( pwmRequest );
 
         final StoredConfiguration storedConfiguration = configManagerBean.getStoredConfiguration();
+        final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
 
         final List<NavTreeItem> navigationData = NavTreeDataMaker.makeNavTreeItems(
-                pwmRequest.getPwmDomain(),
+                domainID,
                 storedConfiguration,
                 navTreeSettings );
 
