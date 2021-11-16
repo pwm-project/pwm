@@ -256,7 +256,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     private ProcessStatus processReset( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final ResetAction resetType = pwmRequest.readParameterAsEnum( PwmConstants.PARAM_RESET_TYPE, ResetAction.class, ResetAction.exitProfileUpdate );
+        final ResetAction resetType = pwmRequest.readParameterAsEnum( PwmConstants.PARAM_RESET_TYPE, ResetAction.class ).orElse( ResetAction.exitProfileUpdate );
 
         switch ( resetType )
         {

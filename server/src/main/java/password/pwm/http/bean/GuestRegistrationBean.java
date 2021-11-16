@@ -82,9 +82,9 @@ public class GuestRegistrationBean extends PwmSessionBean
     }
 
     @Override
-    public Type getType( )
+    public BeanType getBeanType( )
     {
-        return Type.AUTHENTICATED;
+        return BeanType.AUTHENTICATED;
     }
 
     @Override

@@ -23,7 +23,6 @@ package password.pwm.ws.server.rest;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChaiChallenge;
 import com.novell.ldapchai.cr.Challenge;
-import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.cr.bean.ChallengeBean;
 import com.novell.ldapchai.exception.ChaiException;
@@ -44,9 +43,9 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.svc.cr.CrService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.svc.cr.CrService;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
@@ -173,8 +172,6 @@ public class RestChallengesServer extends RestServlet
 
             // gather data
             final ResponseSet responseSet;
-            final ChallengeSet challengeSet;
-            final ChallengeSet helpdeskChallengeSet;
             final String outputUsername;
 
             final ChaiUser chaiUser = targetUserIdentity.getChaiUser();
@@ -195,8 +192,6 @@ public class RestChallengesServer extends RestServlet
                     userLocale
             );
 
-            challengeSet = challengeProfile.getChallengeSet();
-            helpdeskChallengeSet = challengeProfile.getHelpdeskChallengeSet();
             outputUsername = targetUserIdentity.getUserIdentity().toDelimitedKey();
 
             // build output
@@ -213,15 +208,18 @@ public class RestChallengesServer extends RestServlet
                     jsonData.minimumRandoms = responseSet.getChallengeSet().getMinRandomRequired();
                 }
                 final Policy policy = new Policy();
-                if ( challengeSet != null )
+
+                challengeProfile.getChallengeSet().ifPresent( challengeSet ->
                 {
                     policy.challenges = challengesToBeans( challengeSet.getChallenges() );
                     policy.minimumRandoms = challengeSet.getMinRandomRequired();
-                }
-                if ( helpdeskChallengeSet != null && helpdesk )
+                } );
+
+                challengeProfile.getHelpdeskChallengeSet().ifPresent( helpdeskChallengeSet ->
                 {
                     policy.helpdeskChallenges = challengesToBeans( helpdeskChallengeSet.getChallenges() );
-                }
+                } );
+
                 if ( policy.challenges != null || policy.helpdeskChallenges != null )
                 {
                     jsonData.policy = policy;
@@ -279,7 +277,9 @@ public class RestChallengesServer extends RestServlet
                     restRequest.getLocale()
             );
 
-            csIdentifer = challengeProfile.getChallengeSet().getIdentifier();
+            csIdentifer = challengeProfile.getChallengeSet()
+                    .orElseThrow( () -> new PwmUnrecoverableException( PwmError.ERROR_NO_CHALLENGES.toInfo() ) )
+                    .getIdentifier();
 
             final ResponseInfoBean responseInfoBean = jsonInput.toResponseInfoBean( restRequest.getLocale(), csIdentifer );
             crService.writeResponses( restRequest.getSessionLabel(), userIdentity, chaiUser, userGUID, responseInfoBean );

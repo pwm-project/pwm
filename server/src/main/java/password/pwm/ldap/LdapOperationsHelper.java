@@ -696,11 +696,11 @@ public class LdapOperationsHelper
         );
         configBuilder.setSetting(
                 ChaiSetting.CR_ALLOW_DUPLICATE_RESPONSES,
-                Boolean.toString( config.readSettingAsBoolean( PwmSetting.CHALLENGE_ALLOW_DUPLICATE_RESPONSES ) )
+                Boolean.toString( config.readSettingAsBoolean( PwmSetting.SETUP_RESPONSES_ALLOW_DUPLICATE_RESPONSES ) )
         );
         configBuilder.setSetting(
                 ChaiSetting.CR_CASE_INSENSITIVE,
-                Boolean.toString( config.readSettingAsBoolean( PwmSetting.CHALLENGE_CASE_INSENSITIVE ) )
+                Boolean.toString( config.readSettingAsBoolean( PwmSetting.SETUP_RESPONSES_CASE_INSENSITIVE ) )
         );
 
         {

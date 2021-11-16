@@ -18,17 +18,10 @@
  * limitations under the License.
  */
 
-package password.pwm.error;
+package password.pwm.http.servlet.setupresponses;
 
-public class PwmInternalException extends RuntimeException
+public enum ResponseMode
 {
-    public PwmInternalException( final String message, final Throwable cause )
-    {
-        super( message, cause );
-    }
-
-    public PwmInternalException( final String message )
-    {
-        super( message );
-    }
+    user,
+    helpdesk,
 }

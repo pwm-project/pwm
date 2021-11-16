@@ -194,7 +194,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
     public ProcessStatus handleResetRequest( final PwmRequest pwmRequest )
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        final ResetType resetType = pwmRequest.readParameterAsEnum( PwmConstants.PARAM_RESET_TYPE, ResetType.class, ResetType.exitActivation );
+        final ResetType resetType = pwmRequest.readParameterAsEnum( PwmConstants.PARAM_RESET_TYPE, ResetType.class ).orElse( ResetType.exitActivation );
 
         switch ( resetType )
         {

@@ -31,7 +31,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.profile.ProfileDefinition;
-import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthService;
 import password.pwm.health.HealthStatus;
@@ -42,6 +41,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.java.StringUtil;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -61,10 +61,10 @@ public enum PwmIfTest
     showHeaderMenu( new ShowHeaderMenuTest() ),
     showVersionHeader( new BooleanAppPropertyTest( AppProperty.HTTP_HEADER_SEND_XVERSION ) ),
     permission( new BooleanPermissionTest() ),
-    otpSetupEnabled( new SetupOTPEnabled() ),
+    otpSetupEnabled( new ProfileEnabled( ProfileDefinition.SetupOTPProfile ) ),
     hasStoredOtpTimestamp( new HasStoredOtpTimestamp() ),
     hasCustomJavascript( new HasCustomJavascript() ),
-    setupChallengeEnabled( new BooleanPwmSettingTest( PwmSetting.CHALLENGE_ENABLE ) ),
+    setupResponsesEnabled( new ProfileEnabled( ProfileDefinition.SetupResponsesProfile ) ),
     shortcutsEnabled( new BooleanPwmSettingTest( PwmSetting.SHORTCUT_ENABLE ) ),
     peopleSearchAvailable( new BooleanPwmSettingTest( PwmSetting.PEOPLE_SEARCH_ENABLE ), new ActorHasProfileTest( ProfileDefinition.PeopleSearch ) ),
     orgChartEnabled( new OrgChartEnabled() ),
@@ -516,8 +516,15 @@ public enum PwmIfTest
         }
     }
 
-    private static class SetupOTPEnabled implements Test
+    private static class ProfileEnabled implements Test
     {
+        private final ProfileDefinition profileDefinition;
+
+        ProfileEnabled( final ProfileDefinition profileDefinition )
+        {
+            this.profileDefinition = Objects.requireNonNull( profileDefinition );
+        }
+
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
@@ -526,8 +533,21 @@ public enum PwmIfTest
                 return false;
             }
 
-            final SetupOtpProfile setupOtpProfile = pwmRequest.getSetupOTPProfile();
-            return setupOtpProfile != null && setupOtpProfile.readSettingAsBoolean( PwmSetting.OTP_ALLOW_SETUP );
+            if ( profileDefinition.getEnabledSetting().isPresent() )
+            {
+                if ( !pwmRequest.getDomainConfig().readSettingAsBoolean( profileDefinition.getEnabledSetting().get() ) )
+                {
+                    return false;
+                }
+            }
+
+            final String profileID = pwmRequest.getPwmSession().getUserInfo().getProfileIDs().get( profileDefinition );
+            if ( StringUtil.isEmpty( profileID ) )
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 

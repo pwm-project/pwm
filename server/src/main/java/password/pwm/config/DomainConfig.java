@@ -38,6 +38,7 @@ import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.SetupOtpProfile;
+import password.pwm.config.profile.SetupResponsesProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
@@ -342,6 +343,11 @@ public class DomainConfig implements SettingReader
     public Map<String, SetupOtpProfile> getSetupOTPProfiles( )
     {
         return this.getProfileMap( ProfileDefinition.SetupOTPProfile );
+    }
+
+    public Map<String, SetupResponsesProfile> getSetupResponseProfiles( )
+    {
+        return this.getProfileMap( ProfileDefinition.SetupResponsesProfile );
     }
 
     public Map<String, UpdateProfileProfile> getUpdateAttributesProfile( )

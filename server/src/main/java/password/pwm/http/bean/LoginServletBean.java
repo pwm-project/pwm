@@ -43,9 +43,9 @@ public class LoginServletBean extends PwmSessionBean
     }
 
     @Override
-    public Type getType( )
+    public BeanType getBeanType( )
     {
-        return Type.PUBLIC;
+        return BeanType.PUBLIC;
     }
 
     @Override

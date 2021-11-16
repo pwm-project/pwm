@@ -61,9 +61,9 @@ public class UpdateProfileBean extends PwmSessionBean
     private boolean tokenSent;
 
     @Override
-    public Type getType( )
+    public BeanType getBeanType( )
     {
-        return Type.AUTHENTICATED;
+        return BeanType.AUTHENTICATED;
     }
 
     @Override

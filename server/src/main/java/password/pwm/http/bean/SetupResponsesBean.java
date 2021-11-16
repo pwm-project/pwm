@@ -21,13 +21,15 @@
 package password.pwm.http.bean;
 
 import com.novell.ldapchai.cr.Challenge;
-import com.novell.ldapchai.cr.ChallengeSet;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import password.pwm.config.option.SessionBeanMode;
+import password.pwm.http.servlet.setupresponses.ResponseMode;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -37,25 +39,22 @@ import java.util.Set;
 public class SetupResponsesBean extends PwmSessionBean
 {
     private boolean hasExistingResponses;
-    private SetupData responseData;
-    private SetupData helpdeskResponseData;
-    private boolean responsesSatisfied;
-    private boolean helpdeskResponsesSatisfied;
+    private final Map<ResponseMode, SetupData> challengeData = new HashMap<>();
+    private final Set<ResponseMode> responsesSatisfied = new HashSet<>();
     private boolean confirmed;
     private Locale userLocale;
     private boolean initialized;
 
     @Override
-    public Type getType( )
+    public BeanType getBeanType( )
     {
-        return Type.AUTHENTICATED;
+        return BeanType.AUTHENTICATED;
     }
 
     @Data
     @EqualsAndHashCode( callSuper = false )
     public static class SetupData implements Serializable
     {
-        private ChallengeSet challengeSet;
         private Map<String, Challenge> indexedChallenges = Collections.emptyMap();
         private boolean simpleMode;
         private int minRandomSetup;
@@ -65,6 +64,6 @@ public class SetupResponsesBean extends PwmSessionBean
     @Override
     public Set<SessionBeanMode> supportedModes( )
     {
-        return Collections.singleton( SessionBeanMode.LOCAL );
+        return Set.of( SessionBeanMode.LOCAL );
     }
 }

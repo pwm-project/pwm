@@ -341,6 +341,16 @@ public class SecureEngine
         return JavaHelper.byteArrayToHexString( computeHmacToBytes( hmacAlgorithm, pwmSecurityKey, input.getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
     }
 
+    public static String computeHmacToString(
+            final HmacAlgorithm hmacAlgorithm,
+            final PwmSecurityKey pwmSecurityKey,
+            final String input
+    )
+            throws PwmUnrecoverableException
+    {
+        return JavaHelper.byteArrayToHexString( computeHmacToBytes( hmacAlgorithm, pwmSecurityKey, input.getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
+    }
+
     public static byte[] computeHmacToBytes(
             final HmacAlgorithm hmacAlgorithm,
             final PwmSecurityKey pwmSecurityKey,

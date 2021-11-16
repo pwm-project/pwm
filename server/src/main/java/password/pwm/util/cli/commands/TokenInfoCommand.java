@@ -22,6 +22,7 @@ package password.pwm.util.cli.commands;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
@@ -41,9 +42,9 @@ public class TokenInfoCommand extends AbstractCliCommand
             throws Exception
     {
         final String tokenKey = ( String ) cliEnvironment.getOptions().get( TOKEN_KEY_OPTION_TOKEN );
-        final String tokenId = ( String ) cliEnvironment.getOptions().get( TOKEN_KEY_OPTION_DOMAIN );
+        final String domainId = ( String ) cliEnvironment.getOptions().get( TOKEN_KEY_OPTION_DOMAIN );
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
-        final PwmDomain pwmDomain = pwmApplication.domains().get( tokenId );
+        final PwmDomain pwmDomain = pwmApplication.domains().get( DomainID.create( domainId ) );
 
         final TokenService tokenService = pwmDomain.getTokenService();
         TokenPayload tokenPayload = null;
@@ -60,7 +61,7 @@ public class TokenInfoCommand extends AbstractCliCommand
         out( " token: " + tokenKey );
         if ( lookupError != null )
         {
-            out( "result: error during token lookup: " + lookupError.toString() );
+            out( "result: error during token lookup: " + lookupError );
         }
         else if ( tokenPayload == null )
         {

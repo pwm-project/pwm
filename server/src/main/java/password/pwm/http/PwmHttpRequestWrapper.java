@@ -247,11 +247,11 @@ public class PwmHttpRequestWrapper
         return strValue != null && Boolean.parseBoolean( strValue );
     }
 
-    public <E extends Enum<E>> E readParameterAsEnum( final String name, final Class<E> enumClass, final E defaultValue )
+    public <E extends Enum<E>> Optional<E> readParameterAsEnum( final String name, final Class<E> enumClass )
             throws PwmUnrecoverableException
     {
         final String value = readParameterAsString( name, Flag.BypassValidation );
-        return JavaHelper.readEnumFromString( enumClass, defaultValue, value );
+        return JavaHelper.readEnumFromString( enumClass, value );
     }
 
     public int readParameterAsInt( final String name, final int defaultValue )
