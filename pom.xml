@@ -252,7 +252,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>9.0.1</version>
+                        <version>9.1</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -331,12 +331,12 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>4.4.1</version>
+                <version>4.4.2.2</version>
                 <dependencies>
                     <dependency>
                         <groupId>com.github.spotbugs</groupId>
                         <artifactId>spotbugs</artifactId>
-                        <version>4.4.1</version>
+                        <version>4.5.0</version>
                     </dependency>
                 </dependencies>
                 <configuration>
@@ -385,7 +385,7 @@
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>6.3.2</version>
+                <version>6.4.1</version>
                 <executions>
                     <execution>
                         <goals>
@@ -434,13 +434,13 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.20</version>
+            <version>1.18.22</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.4.1</version>
+            <version>4.5.0</version>
             <scope>provided</scope>
         </dependency>
 
@@ -454,7 +454,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>3.12.4</version>
+            <version>4.0.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -472,7 +472,7 @@
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
-            <version>0.10</version>
+            <version>0.10.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
