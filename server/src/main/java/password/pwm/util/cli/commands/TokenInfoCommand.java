@@ -21,26 +21,32 @@
 package password.pwm.util.cli.commands;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.JavaHelper;
 
-import java.util.Collections;
+import java.util.List;
 
 public class TokenInfoCommand extends AbstractCliCommand
 {
-    protected static final String TOKEN_KEY_OPTIONNAME = "token";
+    protected static final String TOKEN_KEY_OPTION_TOKEN = "token";
+    protected static final String TOKEN_KEY_OPTION_DOMAIN = "domain";
+
 
     @Override
     public void doCommand( )
             throws Exception
     {
-        final String tokenKey = ( String ) cliEnvironment.getOptions().get( TOKEN_KEY_OPTIONNAME );
+        final String tokenKey = ( String ) cliEnvironment.getOptions().get( TOKEN_KEY_OPTION_TOKEN );
+        final String domainId = ( String ) cliEnvironment.getOptions().get( TOKEN_KEY_OPTION_DOMAIN );
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
+        final PwmDomain pwmDomain = pwmApplication.domains().get( DomainID.create( domainId ) );
 
-        final TokenService tokenService = pwmApplication.getTokenService();
+        final TokenService tokenService = pwmDomain.getTokenService();
         TokenPayload tokenPayload = null;
         Exception lookupError = null;
         try
@@ -55,7 +61,7 @@ public class TokenInfoCommand extends AbstractCliCommand
         out( " token: " + tokenKey );
         if ( lookupError != null )
         {
-            out( "result: error during token lookup: " + lookupError.toString() );
+            out( "result: error during token lookup: " + lookupError );
         }
         else if ( tokenPayload == null )
         {
@@ -96,14 +102,35 @@ public class TokenInfoCommand extends AbstractCliCommand
             @Override
             public String getName( )
             {
-                return TOKEN_KEY_OPTIONNAME;
+                return TOKEN_KEY_OPTION_TOKEN;
+            }
+        };
+
+        final CliParameters.Option domainId = new CliParameters.Option()
+        {
+            @Override
+            public boolean isOptional()
+            {
+                return false;
+            }
+
+            @Override
+            public Type getType()
+            {
+                return Type.STRING;
+            }
+
+            @Override
+            public String getName()
+            {
+                return TOKEN_KEY_OPTION_DOMAIN;
             }
         };
 
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "TokenInfo";
         cliParameters.description = "Get information about an issued token";
-        cliParameters.options = Collections.singletonList( tokenValue );
+        cliParameters.options = List.of( tokenValue, domainId );
         cliParameters.needsPwmApplication = true;
         cliParameters.readOnly = false;
         return cliParameters;

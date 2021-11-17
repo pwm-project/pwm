@@ -36,6 +36,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.HmacAlgorithm;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmRandom;
@@ -62,6 +63,7 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
     protected PwmSecurityKey pwmSecurityKey;
     private PwmBlockAlgorithm defaultBlockAlgorithm;
     private PwmHashAlgorithm defaultHashAlgorithm;
+    private HmacAlgorithm defaultHmacAlgorithm;
     private PwmRandom pwmRandom;
 
     private final StatisticCounterBundle<StatKey> stats = new StatisticCounterBundle<>( StatKey.class );
@@ -70,6 +72,8 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
     {
         hashOperations,
         hashBytes,
+        hmacOperations,
+        hmacBytes,
         encryptOperations,
         encryptBytes,
         decryptOperations,
@@ -100,6 +104,10 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
         {
             final String defaultHashAlgString = pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_HASH_ALG );
             defaultHashAlgorithm = JavaHelper.readEnumFromString( PwmHashAlgorithm.class, PwmHashAlgorithm.SHA512, defaultHashAlgString );
+        }
+        {
+            final String defaultHmacAlgString = pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_HMAC_ALG );
+            defaultHmacAlgorithm = JavaHelper.readEnumFromString( HmacAlgorithm.class, HmacAlgorithm.HMAC_SHA_512, defaultHmacAlgString );
         }
         LOGGER.debug( getSessionLabel(), () -> "using default algorithms: " + StringUtil.mapToString( debugData() ) );
 
@@ -224,6 +232,16 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
         stats.increment( StatKey.hashOperations );
         stats.increment( StatKey.hashBytes, input.length() );
         return SecureEngine.hash( input, defaultHashAlgorithm );
+    }
+
+    public String ephemeralHmac(
+            final String input
+    )
+            throws PwmUnrecoverableException
+    {
+        stats.increment( StatKey.hmacOperations );
+        stats.increment( StatKey.hmacBytes, input.length() );
+        return SecureEngine.computeHmacToString( defaultHmacAlgorithm,  pwmSecurityKey, input );
     }
 
     @Override

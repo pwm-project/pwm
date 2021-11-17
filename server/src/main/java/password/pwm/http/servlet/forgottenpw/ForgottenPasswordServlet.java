@@ -291,7 +291,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
     private ProcessStatus processReset( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final ResetAction resetType = pwmRequest.readParameterAsEnum( PwmConstants.PARAM_RESET_TYPE, ResetAction.class, ResetAction.exitForgottenPassword );
+        final ResetAction resetType = pwmRequest.readParameterAsEnum( PwmConstants.PARAM_RESET_TYPE, ResetAction.class ).orElse( ResetAction.exitForgottenPassword );
 
         switch ( resetType )
         {

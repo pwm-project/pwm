@@ -194,7 +194,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
     public ProcessStatus handleResetRequest( final PwmRequest pwmRequest )
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        final ResetType resetType = pwmRequest.readParameterAsEnum( PwmConstants.PARAM_RESET_TYPE, ResetType.class, ResetType.exitActivation );
+        final ResetType resetType = pwmRequest.readParameterAsEnum( PwmConstants.PARAM_RESET_TYPE, ResetType.class ).orElse( ResetType.exitActivation );
 
         switch ( resetType )
         {
@@ -339,10 +339,12 @@ public class ActivateUserServlet extends ControlledPwmServlet
                     TokenService.TokenEntryType.unauthenticated
             );
 
-            activateUserBean.setUserIdentity( tokenPayload.getUserIdentity() );
+            if ( activateUserBean.getUserIdentity() == null )
+            {
+                ActivateUserUtils.initUserActivationBean( pwmRequest, tokenPayload.getUserIdentity() );
+            }
+
             activateUserBean.setTokenPassed( true );
-            activateUserBean.setFormValidated( true );
-            activateUserBean.setTokenDestination( tokenPayload.getDestination() );
             activateUserBean.setTokenSent( true );
 
             if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
@@ -415,7 +417,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
         final ActivateUserProfile activateUserProfile = activateUserProfile( pwmRequest );
 
         final MessageSendMethod tokenSendMethod = activateUserProfile.readSettingAsEnum( PwmSetting.ACTIVATE_TOKEN_SEND_METHOD, MessageSendMethod.class );
-        if ( tokenSendMethod != MessageSendMethod.NONE && tokenSendMethod != null )
+        if ( !activateUserBean.isTokenPassed() && tokenSendMethod != MessageSendMethod.NONE && tokenSendMethod != null )
         {
             final List<TokenDestinationItem> tokenDestinationItems = TokenUtil.figureAvailableTokenDestinations(
                     pwmDomain,
@@ -461,14 +463,16 @@ public class ActivateUserServlet extends ControlledPwmServlet
             }
         }
 
-        final String agreementText = activateUserProfile.readSettingAsLocalizedString(
-                PwmSetting.ACTIVATE_AGREEMENT_MESSAGE,
-                pwmSession.getSessionStateBean().getLocale()
-        );
-        if ( StringUtil.notEmpty( agreementText ) && !activateUserBean.isAgreementPassed() )
         {
-            ActivateUserUtils.forwardToAgreementPage( pwmRequest );
-            return;
+            final String agreementText = activateUserProfile.readSettingAsLocalizedString(
+                    PwmSetting.ACTIVATE_AGREEMENT_MESSAGE,
+                    pwmSession.getSessionStateBean().getLocale() );
+
+            if ( StringUtil.notEmpty( agreementText ) && !activateUserBean.isAgreementPassed() )
+            {
+                ActivateUserUtils.forwardToAgreementPage( pwmRequest );
+                return;
+            }
         }
 
         try

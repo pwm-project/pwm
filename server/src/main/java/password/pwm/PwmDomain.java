@@ -209,7 +209,7 @@ public class PwmDomain
 
     public TokenService getTokenService()
     {
-        return pwmApplication.getTokenService();
+        return ( TokenService ) pwmServiceManager.getService( PwmServiceEnum.TokenService );
     }
 
     public SharedHistoryService getSharedHistoryManager()

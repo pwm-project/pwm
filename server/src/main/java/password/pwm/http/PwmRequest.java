@@ -46,6 +46,7 @@ import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.SetupOtpProfile;
+import password.pwm.config.profile.SetupResponsesProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -681,6 +682,11 @@ public class PwmRequest extends PwmHttpRequestWrapper
     public SetupOtpProfile getSetupOTPProfile() throws PwmUnrecoverableException
     {
         return ( SetupOtpProfile ) getProfile( getPwmDomain(), ProfileDefinition.SetupOTPProfile );
+    }
+
+    public SetupResponsesProfile getSetupResponsesProfile() throws PwmUnrecoverableException
+    {
+        return ( SetupResponsesProfile ) getProfile( getPwmDomain(), ProfileDefinition.SetupResponsesProfile );
     }
 
     public UpdateProfileProfile getUpdateAttributeProfile() throws PwmUnrecoverableException

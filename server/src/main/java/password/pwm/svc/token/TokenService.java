@@ -521,7 +521,7 @@ public class TokenService extends AbstractPwmService implements PwmService
             }
         }
 
-        if ( domainConfig.readSettingAsBoolean( PwmSetting.CHALLENGE_ENABLE ) )
+        if ( domainConfig.readSettingAsBoolean( PwmSetting.SETUP_RESPONSE_ENABLE ) )
         {
             for ( final ForgottenPasswordProfile forgottenPasswordProfile : domainConfig.getForgottenPasswordProfiles().values() )
             {

@@ -38,6 +38,7 @@ import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.SetupOtpProfile;
+import password.pwm.config.profile.SetupResponsesProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
@@ -62,7 +63,6 @@ import java.io.StringWriter;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -85,7 +85,8 @@ public class DomainConfig implements SettingReader
 
     private final ConfigurationSuppliers configurationSuppliers = new ConfigurationSuppliers();
 
-    private final DataCache dataCache = new DataCache();
+    private final Map<String, PwmPasswordPolicy> cachedPasswordPolicy;
+    private final Map<String, Map<Locale, ChallengeProfile>> cachedChallengeProfiles;
     private final StoredSettingReader settingReader;
 
     public DomainConfig( final AppConfig appConfig, final DomainID domainID )
@@ -94,8 +95,25 @@ public class DomainConfig implements SettingReader
         this.storedConfiguration = appConfig.getStoredConfiguration();
         this.domainID = Objects.requireNonNull( domainID );
         this.settingReader = new StoredSettingReader( storedConfiguration, null, domainID );
-    }
 
+        this.cachedPasswordPolicy = Map.copyOf( getPasswordProfileIDs().stream()
+                .map( profile -> PwmPasswordPolicy.createPwmPasswordPolicy( this, profile ) )
+                .collect( Collectors.toMap(
+                        PwmPasswordPolicy::getIdentifier,
+                        pwmPasswordPolicy -> pwmPasswordPolicy
+                ) ) );
+
+        this.cachedChallengeProfiles = Map.copyOf( getChallengeProfileIDs().stream()
+                .collect( Collectors.toMap(
+                        profileId -> profileId,
+                        profileId -> Map.copyOf( appConfig.getKnownLocales().stream()
+                                .collect( Collectors.toMap(
+                                        locale -> locale,
+                                        locale -> ChallengeProfile.readChallengeProfileFromConfig( domainID, profileId, locale, storedConfiguration )
+                                ) ) )
+                ) ) );
+    }
+    
     public AppConfig getAppConfig()
     {
         return appConfig;
@@ -184,7 +202,7 @@ public class DomainConfig implements SettingReader
             throw new IllegalArgumentException( "unknown challenge profileID specified: " + profile );
         }
 
-        return ChallengeProfile.readChallengeProfileFromConfig( getDomainID(), profile, locale, storedConfiguration );
+        return cachedChallengeProfiles.get( profile ).get( locale );
     }
 
     public long readSettingAsLong( final PwmSetting setting )
@@ -194,8 +212,7 @@ public class DomainConfig implements SettingReader
 
     public PwmPasswordPolicy getPasswordPolicy( final String profile )
     {
-        return dataCache.cachedPasswordPolicy
-                .computeIfAbsent( profile, s -> PwmPasswordPolicy.createPwmPasswordPolicy( this, profile ) );
+        return cachedPasswordPolicy.get( profile );
     }
 
     public List<String> getPasswordProfileIDs( )
@@ -263,7 +280,7 @@ public class DomainConfig implements SettingReader
     {
         return appConfig.readAppProperty( property );
     }
-    
+
     public DomainID getDomainID()
     {
         return domainID;
@@ -302,11 +319,6 @@ public class DomainConfig implements SettingReader
         } );
     }
 
-    private static class DataCache
-    {
-        private final Map<String, PwmPasswordPolicy> cachedPasswordPolicy = new LinkedHashMap<>();
-    }
-
     /* generic profile stuff */
     public Map<String, NewUserProfile> getNewUserProfiles( )
     {
@@ -331,6 +343,11 @@ public class DomainConfig implements SettingReader
     public Map<String, SetupOtpProfile> getSetupOTPProfiles( )
     {
         return this.getProfileMap( ProfileDefinition.SetupOTPProfile );
+    }
+
+    public Map<String, SetupResponsesProfile> getSetupResponseProfiles( )
+    {
+        return this.getProfileMap( ProfileDefinition.SetupResponsesProfile );
     }
 
     public Map<String, UpdateProfileProfile> getUpdateAttributesProfile( )

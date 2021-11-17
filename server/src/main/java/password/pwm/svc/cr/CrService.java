@@ -42,7 +42,10 @@ import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.ChallengeProfile;
+import password.pwm.config.profile.ProfileDefinition;
+import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.profile.SetupResponsesProfile;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
@@ -333,7 +336,6 @@ public class CrService extends AbstractPwmService implements PwmService
                 }
             }
         }
-
     }
 
     private void checkResponsesAgainstWordlist( final Map<Challenge, String> responseMap )
@@ -452,7 +454,7 @@ public class CrService extends AbstractPwmService implements PwmService
             final UserIdentity userIdentity,
             final ChaiUser theUser
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final DomainConfig config = pwmDomain.getConfig();
 
@@ -504,7 +506,6 @@ public class CrService extends AbstractPwmService implements PwmService
     )
             throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException
     {
-
         int attempts = 0;
         int successes = 0;
         final Map<DataStorageMethod, String> errorMessages = new LinkedHashMap<>();
@@ -536,6 +537,14 @@ public class CrService extends AbstractPwmService implements PwmService
         if ( attempts == 0 )
         {
             final String errorMsg = "no response save methods are available or configured";
+            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, errorMsg );
+            throw new PwmOperationalException( errorInfo );
+        }
+
+        if ( successes == 0 )
+        {
+            final String errorMsg = "response storage unsuccessful; attempts=" + attempts + ", successes=" + successes
+                    + ", detail=" + JsonUtil.serializeMap( errorMessages );
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, errorMsg );
             throw new PwmOperationalException( errorInfo );
         }
@@ -601,45 +610,55 @@ public class CrService extends AbstractPwmService implements PwmService
 
     public boolean checkIfResponseConfigNeeded(
             final PwmDomain pwmDomain,
-            final SessionLabel pwmSession,
+            final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final ChallengeSet challengeSet,
             final ResponseInfoBean responseInfoBean
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        LOGGER.trace( pwmSession, () -> "beginning check to determine if responses need to be configured for user" );
+        LOGGER.trace( sessionLabel, () -> "beginning check to determine if responses need to be configured for user" );
 
         final DomainConfig config = pwmDomain.getConfig();
 
-        if ( !config.readSettingAsBoolean( PwmSetting.CHALLENGE_ENABLE ) )
+        if ( !config.readSettingAsBoolean( PwmSetting.SETUP_RESPONSE_ENABLE ) )
         {
-            LOGGER.debug( pwmSession, () -> "checkIfResponseConfigNeeded: response setup is disabled, so user is not required to setup responses" );
+            LOGGER.debug( sessionLabel, () -> "checkIfResponseConfigNeeded: response setup is disabled, so user is not required to setup responses" );
             return false;
         }
 
-        if ( !config.readSettingAsBoolean( PwmSetting.CHALLENGE_FORCE_SETUP ) )
         {
-            LOGGER.debug( pwmSession, () -> "checkIfResponseConfigNeeded: force response setup is disabled, so user is not required to setup responses" );
-            return false;
-        }
+            final Optional<String> profileId = ProfileUtility.discoverProfileIDForUser( pwmDomain, sessionLabel, userIdentity, ProfileDefinition.SetupResponsesProfile );
+            if ( profileId.isPresent() )
+            {
+                final SetupResponsesProfile setupResponsesProfile = pwmDomain.getConfig().getSetupResponseProfiles().get( profileId.get() );
+                if ( setupResponsesProfile != null )
+                {
+                    if ( !setupResponsesProfile.readSettingAsBoolean( PwmSetting.SETUP_RESPONSES_FORCE_SETUP ) )
+                    {
+                        LOGGER.debug( sessionLabel, () -> "checkIfResponseConfigNeeded: force response setup is disabled, so user is not required to setup responses" );
+                        return false;
+                    }
 
-        if ( !UserPermissionUtility.testUserPermission( pwmDomain, pwmSession, userIdentity, config.readSettingAsUserPermission( PwmSetting.QUERY_MATCH_SETUP_RESPONSE ) ) )
-        {
-            LOGGER.debug( pwmSession, () -> "checkIfResponseConfigNeeded: " + userIdentity + " does not have permission to setup responses" );
-            return false;
-        }
-
-        if ( !UserPermissionUtility.testUserPermission( pwmDomain, pwmSession, userIdentity, config.readSettingAsUserPermission( PwmSetting.QUERY_MATCH_CHECK_RESPONSES ) ) )
-        {
-            LOGGER.debug( pwmSession, () -> "checkIfResponseConfigNeeded: " + userIdentity + " is not eligible for checkIfResponseConfigNeeded due to query match" );
-            return false;
+                    if ( !UserPermissionUtility.testUserPermission( pwmDomain, sessionLabel, userIdentity,
+                            setupResponsesProfile.readSettingAsUserPermission( PwmSetting.QUERY_MATCH_CHECK_RESPONSES ) ) )
+                    {
+                        LOGGER.debug( sessionLabel, () -> "checkIfResponseConfigNeeded: " + userIdentity + " is not eligible for checkIfResponseConfigNeeded due to query match" );
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                LOGGER.debug( sessionLabel, () -> "checkIfResponseConfigNeeded: " + userIdentity + " does not have permission to setup responses" );
+                return false;
+            }
         }
 
         // check to be sure there are actually challenges in the challenge set
         if ( challengeSet == null || challengeSet.getChallenges().isEmpty() )
         {
-            LOGGER.debug( pwmSession, () -> "checkIfResponseConfigNeeded: no challenge sets configured for user " + userIdentity );
+            LOGGER.debug( sessionLabel, () -> "checkIfResponseConfigNeeded: no challenge sets configured for user " + userIdentity );
             return false;
         }
 
@@ -649,7 +668,7 @@ public class CrService extends AbstractPwmService implements PwmService
             final boolean ignoreNmasCr = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.NMAS_IGNORE_NMASCR_DURING_FORCECHECK ) );
             if ( ignoreNmasCr )
             {
-                LOGGER.debug( pwmSession, () -> "checkIfResponseConfigNeeded: app property " + AppProperty.NMAS_IGNORE_NMASCR_DURING_FORCECHECK.getKey()
+                LOGGER.debug( sessionLabel, () -> "checkIfResponseConfigNeeded: app property " + AppProperty.NMAS_IGNORE_NMASCR_DURING_FORCECHECK.getKey()
                         + "=true and user's responses are in " + responseInfoBean.getDataStorageMethod() + " format, so forcing setup of new responses." );
                 return true;
             }
@@ -665,13 +684,12 @@ public class CrService extends AbstractPwmService implements PwmService
 
             // check if responses meet the challenge set policy for the user
             //usersResponses.meetsChallengeSetRequirements(challengeSet);
-
-            LOGGER.debug( pwmSession, () -> "checkIfResponseConfigNeeded: " + userIdentity + " has good responses" );
+            LOGGER.debug( sessionLabel, () -> "checkIfResponseConfigNeeded: " + userIdentity + " has good responses" );
             return false;
         }
         catch ( final Exception e )
         {
-            LOGGER.debug( pwmSession, () -> "checkIfResponseConfigNeeded: " + userIdentity + " does not have good responses: " + e.getMessage() );
+            LOGGER.debug( sessionLabel, () -> "checkIfResponseConfigNeeded: " + userIdentity + " does not have good responses: " + e.getMessage() );
             return true;
         }
     }

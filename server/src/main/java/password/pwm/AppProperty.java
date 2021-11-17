@@ -346,6 +346,7 @@ public enum AppProperty
     SECURITY_CONFIG_MIN_SECURITY_KEY_LENGTH         ( "security.config.minSecurityKeyLength" ),
     SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG            ( "security.defaultEphemeralBlockAlg" ),
     SECURITY_DEFAULT_EPHEMERAL_HASH_ALG             ( "security.defaultEphemeralHashAlg" ),
+    SECURITY_DEFAULT_EPHEMERAL_HMAC_ALG             ( "security.defaultEphemeralHmacAlg" ),
     SEEDLIST_BUILTIN_PATH                           ( "seedlist.builtin.path" ),
     SMTP_IO_CONNECT_TIMEOUT                         ( "smtp.io.connectTimeoutMs" ),
     SMTP_IO_READ_TIMEOUT                            ( "smtp.io.readTimeoutMs" ),

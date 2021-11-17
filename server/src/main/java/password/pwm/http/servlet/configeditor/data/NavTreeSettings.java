@@ -23,6 +23,7 @@ package password.pwm.http.servlet.configeditor.data;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
+import password.pwm.PwmEnvironment;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
@@ -50,6 +51,8 @@ public class NavTreeSettings implements Serializable
 
     private final DomainManageMode domainManageMode;
 
+    private final boolean mangeHttps;
+
     public static NavTreeSettings forBasic()
     {
         return NavTreeSettings.builder()
@@ -64,10 +67,12 @@ public class NavTreeSettings implements Serializable
         final int level = ( int ) ( ( double ) inputParameters.get( "level" ) );
         final String filterText = ( String ) inputParameters.get( "text" );
         final DomainStateReader domainStateReader = DomainStateReader.forRequest( pwmRequest );
+        final boolean manageHttps = pwmRequest.getPwmApplication().getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.ManageHttps );
 
         return NavTreeSettings.builder()
                 .modifiedSettingsOnly( modifiedSettingsOnly )
                 .domainManageMode( domainStateReader.getMode() )
+                .mangeHttps( manageHttps )
                 .level( level )
                 .filterText( filterText )
                 .locale( pwmRequest.getLocale() )

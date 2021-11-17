@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 public class ChallengeProfile implements Profile, Serializable
 {
@@ -154,14 +155,14 @@ public class ChallengeProfile implements Profile, Serializable
         return locale;
     }
 
-    public ChallengeSet getChallengeSet( )
+    public Optional<ChallengeSet> getChallengeSet( )
     {
-        return challengeSet;
+        return Optional.ofNullable( challengeSet );
     }
 
-    public ChallengeSet getHelpdeskChallengeSet( )
+    public Optional<ChallengeSet> getHelpdeskChallengeSet( )
     {
-        return helpdeskChallengeSet;
+        return Optional.ofNullable( helpdeskChallengeSet );
     }
 
     public int getMinRandomSetup( )
@@ -264,5 +265,15 @@ public class ChallengeProfile implements Profile, Serializable
     public List<UserPermission> profilePermissions( )
     {
         throw new UnsupportedOperationException();
+    }
+
+    public boolean hasChallenges()
+    {
+        return !getChallengeSet().map( ChallengeSet::getChallenges ).orElse( Collections.emptyList() ).isEmpty();
+    }
+
+    public boolean hasHelpdeskChallenges()
+    {
+        return !getHelpdeskChallengeSet().map( ChallengeSet::getChallenges ).orElse( Collections.emptyList() ).isEmpty();
     }
 }

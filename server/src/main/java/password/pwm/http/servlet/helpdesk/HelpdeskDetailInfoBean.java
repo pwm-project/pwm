@@ -188,7 +188,7 @@ public class HelpdeskDetailInfoBean implements Serializable
 
         {
             final ResponseInfoBean responseInfoBean = userInfo.getResponseInfoBean();
-            if ( responseInfoBean != null && responseInfoBean.getHelpdeskCrMap() != null )
+            if (  responseInfoBean.getHelpdeskCrMap() != null )
             {
                 final List<DisplayElement> responseDisplay = new ArrayList<>();
                 int counter = 0;

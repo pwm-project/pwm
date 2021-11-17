@@ -601,8 +601,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                     final SearchResultItem item = SearchResultItem.fromKey( recordID, storedConfiguration, locale );
                     final String returnCategory = item.getNavigation();
 
-                    returnData.computeIfAbsent( returnCategory, k -> new TreeMap<>() );
-                    returnData.get( returnCategory ).put( recordID.getRecordID(), item );
+                    returnData.computeIfAbsent( returnCategory, k -> new TreeMap<>() )
+                            .put( recordID.getRecordID(), item );
                 } );
 
 
@@ -813,9 +813,10 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final NavTreeSettings navTreeSettings = NavTreeSettings.readFromRequest( pwmRequest );
 
         final StoredConfiguration storedConfiguration = configManagerBean.getStoredConfiguration();
+        final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
 
         final List<NavTreeItem> navigationData = NavTreeDataMaker.makeNavTreeItems(
-                pwmRequest.getPwmDomain(),
+                domainID,
                 storedConfiguration,
                 navTreeSettings );
 

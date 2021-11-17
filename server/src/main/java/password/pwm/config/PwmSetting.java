@@ -664,8 +664,6 @@ public enum PwmSetting
             "otp.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
     OTP_SETUP_USER_PERMISSION(
             "otp.secret.allowSetup.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.OTP_PROFILE ),
-    OTP_ALLOW_SETUP(
-            "otp.enabled", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.OTP_PROFILE ),
     OTP_FORCE_SETUP(
             "otp.forceSetup", PwmSettingSyntax.SELECT, PwmSettingCategory.OTP_PROFILE ),
     OTP_SECRET_IDENTIFIER(
@@ -673,6 +671,8 @@ public enum PwmSetting
     OTP_RECOVERY_CODES(
             "otp.secret.recoveryCodes", PwmSettingSyntax.NUMERIC, PwmSettingCategory.OTP_PROFILE ),
 
+    OTP_ALLOW_SETUP(
+            "otp.enabled", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.OTP_SETTINGS ),
     OTP_SECRET_READ_PREFERENCE(
             "otp.secret.readPreference", PwmSettingSyntax.SELECT, PwmSettingCategory.OTP_SETTINGS ),
     OTP_SECRET_WRITE_PREFERENCE(
@@ -732,20 +732,24 @@ public enum PwmSetting
             "audit.syslog.outputFormat", PwmSettingSyntax.SELECT, PwmSettingCategory.AUDIT_FORWARD ),
 
     // challenge settings
-    CHALLENGE_ENABLE(
-            "challenge.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHALLENGE ),
-    CHALLENGE_FORCE_SETUP(
-            "challenge.forceSetup", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHALLENGE ),
-    CHALLENGE_SHOW_CONFIRMATION(
-            "challenge.showConfirmation", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHALLENGE ),
-    CHALLENGE_CASE_INSENSITIVE(
-            "challenge.caseInsensitive", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHALLENGE ),
-    CHALLENGE_ALLOW_DUPLICATE_RESPONSES(
-            "challenge.allowDuplicateResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHALLENGE ),
+    SETUP_RESPONSE_ENABLE(
+            "challenge.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SETUP_RESPONSES_SETTINGS ),
+    SETUP_RESPONSES_CASE_INSENSITIVE(
+            "challenge.caseInsensitive", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SETUP_RESPONSES_SETTINGS ),
+    SETUP_RESPONSES_ALLOW_DUPLICATE_RESPONSES(
+            "challenge.allowDuplicateResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SETUP_RESPONSES_SETTINGS ),
+    SETUP_RESPONSE_PROFILE_LIST(
+            "setupResponses.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.INTERNAL_DOMAIN ),
+    SETUP_RESPONSES_FORCE_SETUP(
+            "challenge.forceSetup", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SETUP_RESPONSES_PROFILE ),
+    SETUP_RESPONSES_HELPDESK_FORCE_SETUP(
+            "challenge.helpdesk.forceSetup", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SETUP_RESPONSES_PROFILE ),
+    SETUP_RESPONSES_SHOW_CONFIRMATION(
+            "challenge.showConfirmation", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SETUP_RESPONSES_PROFILE ),
     QUERY_MATCH_SETUP_RESPONSE(
-            "challenge.allowSetup.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.CHALLENGE ),
+            "challenge.allowSetup.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.SETUP_RESPONSES_PROFILE ),
     QUERY_MATCH_CHECK_RESPONSES(
-            "command.checkResponses.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.CHALLENGE ),
+            "command.checkResponses.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.SETUP_RESPONSES_PROFILE ),
 
     // challenge policy profile
     CHALLENGE_PROFILE_LIST(

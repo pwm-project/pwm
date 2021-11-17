@@ -55,6 +55,7 @@ import password.pwm.http.servlet.newuser.NewUserServlet;
 import password.pwm.http.servlet.oauth.OAuthConsumerServlet;
 import password.pwm.http.servlet.peoplesearch.PrivatePeopleSearchServlet;
 import password.pwm.http.servlet.peoplesearch.PublicPeopleSearchServlet;
+import password.pwm.http.servlet.setupresponses.SetupResponsesServlet;
 import password.pwm.http.servlet.updateprofile.UpdateProfileServlet;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
@@ -77,7 +78,7 @@ public enum PwmServletDefinition
 
     AccountInformation( AccountInformationServlet.class, null ),
     PrivateChangePassword( PrivateChangePasswordServlet.class, ChangePasswordBean.class, Flag.RequiresUserPasswordAndBind ),
-    SetupResponses( password.pwm.http.servlet.SetupResponsesServlet.class, SetupResponsesBean.class, Flag.RequiresUserPasswordAndBind ),
+    SetupResponses( SetupResponsesServlet.class, SetupResponsesBean.class, Flag.RequiresUserPasswordAndBind ),
     UpdateProfile( UpdateProfileServlet.class, UpdateProfileBean.class, Flag.RequiresUserPasswordAndBind ),
     SetupOtp( password.pwm.http.servlet.SetupOtpServlet.class, SetupOtpBean.class, Flag.RequiresUserPasswordAndBind ),
     Helpdesk( password.pwm.http.servlet.helpdesk.HelpdeskServlet.class, null ),

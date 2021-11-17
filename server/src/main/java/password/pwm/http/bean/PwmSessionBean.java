@@ -34,7 +34,7 @@ import java.util.Set;
 @Setter
 public abstract class PwmSessionBean implements Serializable
 {
-    public enum Type
+    public enum BeanType
     {
         PUBLIC,
         AUTHENTICATED,
@@ -50,7 +50,7 @@ public abstract class PwmSessionBean implements Serializable
     private Instant timestamp;
     private ErrorInformation lastError;
 
-    public abstract Type getType( );
+    public abstract BeanType getBeanType( );
 
     public abstract Set<SessionBeanMode> supportedModes( );
 

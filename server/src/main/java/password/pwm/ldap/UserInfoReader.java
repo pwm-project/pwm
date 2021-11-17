@@ -415,7 +415,7 @@ public class UserInfoReader implements UserInfo
                     pwmDomain,
                     sessionLabel,
                     getUserIdentity(),
-                    selfCachedReference.getChallengeProfile().getChallengeSet(),
+                    selfCachedReference.getChallengeProfile().getChallengeSet().orElse( null ),
                     selfCachedReference.getResponseInfoBean() );
         }
         catch ( final ChaiUnavailableException e )
@@ -442,7 +442,7 @@ public class UserInfoReader implements UserInfo
             return false;
         }
 
-        if ( !setupOtpProfile.readSettingAsBoolean( PwmSetting.OTP_ALLOW_SETUP ) )
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.OTP_ALLOW_SETUP ) )
         {
             LOGGER.trace( sessionLabel, () -> "checkOtp: OTP allow setup is not enabled" );
             return false;

@@ -18,17 +18,16 @@
  * limitations under the License.
  */
 
-package password.pwm.error;
 
-public class PwmInternalException extends RuntimeException
+package password.pwm.http.servlet.setupresponses;
+
+import lombok.Value;
+
+import java.io.Serializable;
+
+@Value
+public class ValidationResponseBean implements Serializable
 {
-    public PwmInternalException( final String message, final Throwable cause )
-    {
-        super( message, cause );
-    }
-
-    public PwmInternalException( final String message )
-    {
-        super( message );
-    }
+    private String message;
+    private boolean success;
 }

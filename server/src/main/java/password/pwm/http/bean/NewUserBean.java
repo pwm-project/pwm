@@ -79,9 +79,9 @@ public class NewUserBean extends PwmSessionBean
     private transient VerificationMethodSystem remoteRecoveryMethod;
 
     @Override
-    public Type getType( )
+    public BeanType getBeanType( )
     {
-        return Type.PUBLIC;
+        return BeanType.PUBLIC;
     }
 
     @Override

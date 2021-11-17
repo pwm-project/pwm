@@ -26,13 +26,16 @@
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
-<%@ page import="password.pwm.http.servlet.SetupResponsesServlet" %>
+<%@ page import="password.pwm.http.servlet.setupresponses.SetupResponsesServlet" %>
+<%@ page import="password.pwm.http.servlet.setupresponses.ResponseMode" %>
+<%@ page import="password.pwm.bean.ResponseInfoBean" %>
+<%@ page import="password.pwm.http.PwmResponse" %>
+<%@ page import="password.pwm.http.servlet.setupresponses.SetupResponsesUtil" %>
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SetupResponsesBean responseBean = (SetupResponsesBean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ModuleBean); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body>
@@ -47,7 +50,6 @@
               enctype="application/x-www-form-urlencoded" id="form-setupResponses" class="pwm-form" autocomplete="off">
             <%@ include file="fragment/message.jsp" %>
             <div id="pwm-setupResponsesDiv">
-                <% request.setAttribute("setupData",responseBean.getHelpdeskResponseData()); %>
                 <jsp:include page="fragment/setupresponses-form.jsp"/>
             </div>
             <div class="buttonbar">
@@ -56,10 +58,12 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_SetResponses"/>
                 </button>
+                <% if ( SetupResponsesUtil.hasChallenges( JspUtility.getPwmRequest( pageContext ), ResponseMode.user ) ) { %>
                 <button type="submit" name="skip" class="btn" id="skipbutton" form="skipForm">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
+                <% } %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
@@ -72,7 +76,7 @@
 </div>
 <pwm:script>
     <script type="text/javascript">
-        PWM_GLOBAL['responseMode'] = "helpdesk";
+        PWM_GLOBAL['responseMode'] = "<%=ResponseMode.helpdesk%>";
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_RESPONSES.startupResponsesPage();
         });

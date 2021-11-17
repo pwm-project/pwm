@@ -248,7 +248,10 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
                     PWM_MAIN.JSLibrary.removeFromArray(PWM_VAR, 'tempValue');
                     ChallengeSettingHandler.editLocale(keyName, localeKey);
                 };
-                PWM_MAIN.showConfirmDialog({text:dialogText,loadFunction:loadFunction, okAction:okAction});
+                var cancelAction = function() {
+                    ChallengeSettingHandler.editLocale(keyName, localeKey);
+                }
+                PWM_MAIN.showConfirmDialog({text:dialogText,loadFunction:loadFunction, okAction:okAction, cancelAction:cancelAction});
             };
 
             PWM_MAIN.addEventHandler('button-toggleWordlist-' + keyName + '-' + localeKey,'click',function(){
