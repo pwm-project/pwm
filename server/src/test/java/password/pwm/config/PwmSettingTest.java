@@ -60,7 +60,7 @@ public class PwmSettingTest
                 .build();
         for ( final PwmSetting pwmSetting : PwmSetting.values() )
         {
-            System.out.println( pwmSetting.name() + " " + pwmSetting.getKey()  );
+            //System.out.println( pwmSetting.name() + " " + pwmSetting.getKey()  );
             for ( final PwmSettingTemplateSet templateSet : PwmSettingTemplateSet.allValues() )
             {
                 final StoredValue storedValue = pwmSetting.getDefaultValue( templateSet );
@@ -70,7 +70,10 @@ public class PwmSettingTest
                 storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, outputSettings );
                 storedValue.validateValue( pwmSetting );
                 Assert.assertNotNull( storedValue.valueHash() );
-                JsonUtil.serialize( (Serializable) storedValue.toNativeObject() );
+                if ( storedValue.toNativeObject() != null )
+                {
+                    JsonUtil.serialize( ( Serializable ) storedValue.toNativeObject() );
+                }
             }
         }
     }

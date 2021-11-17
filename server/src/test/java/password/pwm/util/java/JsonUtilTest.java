@@ -24,8 +24,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import password.pwm.bean.DomainID;
 import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.PwmLdapVendor;
+import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.PasswordData;
 import password.pwm.util.secure.X509Utils;
 
@@ -38,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.LongAdder;
 
 
@@ -138,7 +141,7 @@ public class JsonUtilTest
         }
         final String json = JsonUtil.serializeCollection( srcList );
 
-        final List<ActionConfiguration> deserializedList = JsonUtil.deserialize( json, List.class, ActionConfiguration.class );
+        final List<ActionConfiguration> deserializedList = JsonUtil.deserializeList( json, ActionConfiguration.class );
 
         Assert.assertEquals( srcList, deserializedList );
     }
@@ -286,6 +289,29 @@ public class JsonUtilTest
         public String getString1()
         {
             return string1;
+        }
+    }
+
+    @Test
+    public void deserializeUserPermissionTest()
+    {
+        {
+            final String json = "[{\"type\":\"ldapQuery\",\"ldapProfileID\":\"all\",\"ldapQuery\":\"(cn=asmith)\"}]";
+
+            final List<UserPermission> userPermission = JsonUtil.deserializeList( json, UserPermission.class );
+
+            Assert.assertEquals( UserPermissionType.ldapQuery, userPermission.get( 0 ).getType() );
+        }
+
+        {
+            final Map<String, Integer> map = Map.of(
+                    "J", 1,
+                    "JJ", 2,
+                    "JJJ", 3
+            );
+
+            final String json = JsonUtil.serializeMap( new TreeMap<>( map ), String.class, Integer.class );
+            Assert.assertEquals( "{\"J\":1,\"JJ\":2,\"JJJ\":3}", json );
         }
     }
 }

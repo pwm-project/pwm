@@ -53,7 +53,7 @@ public class JsonAuditFormatterTest
                 + "}";
 
         final UserAuditRecord auditRecord = JsonUtil.deserialize( jsonInput, AuditRecordData.class );
-        final String expectedOutput = PwmConstants.PWM_APP_NAME + " " + jsonInput;
+        final String expectedOutput = PwmConstants.PWM_APP_NAME + " " + JsonUtil.serialize( auditRecord );
         final AuditFormatter auditFormatter = new JsonAuditFormatter();
 
         final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );

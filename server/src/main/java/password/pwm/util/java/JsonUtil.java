@@ -31,11 +31,8 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import com.squareup.moshi.JsonAdapter;
-import com.squareup.moshi.JsonReader;
-import com.squareup.moshi.JsonWriter;
 import com.squareup.moshi.Moshi;
 import com.squareup.moshi.Types;
-import org.jetbrains.annotations.Nullable;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.error.PwmInternalException;
@@ -79,19 +76,23 @@ public class JsonUtil
 
         <T> T deserialize( String jsonString, Type type );
 
+        <V> List<V> deserializeList( String json, Class<V> classOfV );
+
+        <K, V> Map<K, V> deserializeMap( String json, Class<K> classOfK, Class<V> classOfV );
+
         List<String> deserializeStringList( String jsonString );
 
         Map<String, String> deserializeStringMap( String jsonString );
 
-        Map<String, Object> deserializeStringObjectMap( String jsonString );
-
         Map<String, Object> deserializeMap( String jsonString );
-
-        <T> T deserialize( String jsonString, Class<T> classOfT, Type... parameterizedTypes );
 
         String serialize( Serializable object, Flag... flags );
 
         String serializeMap( Map object, Flag... flags );
+
+        <V> String serializeList( List<V> object, Class<V> parameterizedValue, Flag... flags );
+
+        <K, V> String serializeMap( Map<K, V> object, Class<K> parameterizedKey, Class<V> parameterizedValue, Flag... flags );
 
         String serializeCollection( Collection object, Flag... flags );
 
@@ -100,7 +101,7 @@ public class JsonUtil
 
     private static final PwmJsonServiceProvider GSON_PROVIDER = new GsonPwmJsonServiceProvider();
     private static final PwmJsonServiceProvider MOSHI_PROVIDER = new MoshiPwmJsonServiceProvider();
-    private static final PwmJsonServiceProvider PROVIDER = GSON_PROVIDER;
+    private static final PwmJsonServiceProvider PROVIDER = MOSHI_PROVIDER;
 
     public static <T> T deserialize( final String jsonString, final TypeToken typeToken )
     {
@@ -117,9 +118,14 @@ public class JsonUtil
         return PROVIDER.deserialize( json, classOfT );
     }
 
-    public static <T> T deserialize( final String json, final Class<T> classOfT, final Type... parameterizedTypes )
+    public static <V> List<V> deserializeList( final String json, final Class<V> classOfV )
     {
-        return PROVIDER.deserialize( json, classOfT, parameterizedTypes );
+        return PROVIDER.deserializeList( json, classOfV );
+    }
+
+    public static <K, V> Map<K, V> deserializeMap( final String json, final Class<K> classOfK, final Class<V> classOfV )
+    {
+        return PROVIDER.deserializeMap( json, classOfK, classOfV );
     }
 
     public static List<String> deserializeStringList( final String jsonString )
@@ -130,11 +136,6 @@ public class JsonUtil
     public static Map<String, String> deserializeStringMap( final String jsonString )
     {
         return PROVIDER.deserializeStringMap( jsonString );
-    }
-
-    public static Map<String, Object> deserializeStringObjectMap( final String jsonString )
-    {
-        return PROVIDER.deserializeStringObjectMap( jsonString );
     }
 
     public static Map<String, Object> deserializeMap( final String jsonString )
@@ -150,6 +151,21 @@ public class JsonUtil
     public static String serializeMap( final Map object, final Flag... flags )
     {
         return PROVIDER.serializeMap( object, flags );
+    }
+
+    public static String serializeStringMap( final Map<String, String> object, final Flag... flags )
+    {
+        return PROVIDER.serializeMap( object, String.class, String.class, flags );
+    }
+
+    public static <V> String serializeList( final List<V> object, final Class<V> parameterizedKey, final Flag... flags )
+    {
+        return PROVIDER.serializeList( object, parameterizedKey, flags );
+    }
+
+    public static <K, V> String serializeMap( final Map<K, V> object, final Class<K> parameterizedKey, final Class<V> parameterizedValue, final Flag... flags )
+    {
+        return PROVIDER.serializeMap( object, parameterizedKey, parameterizedValue, flags );
     }
 
     public static String serializeCollection( final Collection object, final Flag... flags )
@@ -174,30 +190,8 @@ public class JsonUtil
             }
 
             final Moshi.Builder moshiBuilder = new Moshi.Builder();
-            registerTypeAdapters( moshiBuilder );
+            JsonAdaptors.registerTypeAdapters( moshiBuilder );
             return moshiBuilder.build();
-        }
-
-        private static <T> JsonAdapter<T> applyFlagsToAdapter( final JsonAdapter<T> adapter, final Flag... flags )
-        {
-            JsonAdapter<T> adapterInProgress = adapter;
-
-            if ( JavaHelper.enumArrayContainsValue( flags, Flag.PrettyPrint ) )
-            {
-                adapterInProgress = adapter.indent( "  " );
-            }
-
-            return adapterInProgress;
-        }
-
-        private static void registerTypeAdapters( final Moshi.Builder moshiBuilder, final Flag... flags )
-        {
-            moshiBuilder.add( Date.class, applyFlagsToAdapter( new DateTypeAdapter(), flags ) );
-            moshiBuilder.add( Instant.class, applyFlagsToAdapter( new InstantTypeAdapter(), flags ) );
-            moshiBuilder.add( X509Certificate.class, applyFlagsToAdapter( new X509CertificateAdapter(), flags ) );
-            moshiBuilder.add( PasswordData.class, applyFlagsToAdapter( new PasswordDataAdapter(), flags ) );
-            moshiBuilder.add( DomainID.class, applyFlagsToAdapter( new DomainIdAdaptor(), flags ) );
-            moshiBuilder.add( LongAdder.class, applyFlagsToAdapter( new LongAdderTypeAdaptor(), flags ) );
         }
 
         @Override
@@ -220,6 +214,11 @@ public class JsonUtil
         @Override
         public <T> T deserialize( final String jsonString, final Type type )
         {
+           return deserializeImpl( jsonString, type );
+        }
+
+        public <T> T deserializeImpl( final String jsonString, final Type type )
+        {
             final Moshi moshi = getMoshi();
             final JsonAdapter<T> adapter = moshi.adapter( type );
 
@@ -241,13 +240,6 @@ public class JsonUtil
         }
 
         @Override
-        public Map<String, Object> deserializeStringObjectMap( final String jsonString )
-        {
-            final Type type = Types.newParameterizedType( Map.class, String.class, String.class );
-            return Map.copyOf( deserialize( jsonString, type ) );
-        }
-
-        @Override
         public Map<String, Object> deserializeMap( final String jsonString )
         {
             final Type type = Types.newParameterizedType( Map.class, String.class, Object.class );
@@ -255,10 +247,23 @@ public class JsonUtil
         }
 
         @Override
+        public <V> List<V> deserializeList( final String json, final Class<V> classOfV )
+        {
+            final Type type = Types.newParameterizedType( List.class, classOfV );
+            return List.copyOf( deserialize( json, type ) );
+        }
+
+        @Override
+        public <K, V> Map<K, V> deserializeMap( final String json, final Class<K> classOfK, final Class<V> classOfV )
+        {
+            final Type type = Types.newParameterizedType( Map.class, classOfK, classOfV );
+            return Map.copyOf( deserialize( json, type ) );
+        }
+
+        @Override
         public <T> T deserialize( final String jsonString, final Class<T> classOfT )
         {
-            final Type type = Types.supertypeOf( classOfT );
-            return deserialize( jsonString, type );
+            return deserializeImpl( jsonString, classOfT );
         }
 
         @Override
@@ -268,17 +273,10 @@ public class JsonUtil
             return deserialize( jsonString, type );
         }
 
-        @Override
-        public <T> T deserialize( final String jsonString, final Class<T> classOfT, final Type... parameterizedTypes )
-        {
-            final Type type = Types.newParameterizedType( classOfT, parameterizedTypes );
-            return deserialize( jsonString, type );
-        }
-
         private <T> String serialize( final T object, final Type type, final Flag... flags )
         {
             final Moshi moshi = getMoshi();
-            final JsonAdapter<T> jsonAdapter = applyFlagsToAdapter( moshi.adapter( type ), flags );
+            final JsonAdapter<T> jsonAdapter = JsonAdaptors.applyFlagsToAdapter( moshi.adapter( type ), flags );
             return jsonAdapter.toJson( object );
         }
 
@@ -310,6 +308,20 @@ public class JsonUtil
         }
 
         @Override
+        public <V> String serializeList( final List<V> object, final Class<V> parameterizedValue, final Flag... flags )
+        {
+            final Type type = Types.newParameterizedType( List.class, parameterizedValue );
+            return serialize( object, type );
+        }
+
+        @Override
+        public <K, V> String serializeMap( final Map<K, V> object, final Class<K> parameterizedKey, final Class<V> parameterizedValue, final Flag... flags )
+        {
+            final Type type = Types.newParameterizedType( Map.class, parameterizedKey, parameterizedValue );
+            return serialize( object, type );
+        }
+
+        @Override
         public String serializeCollection( final Collection object, final Flag... flags )
         {
             final Type type = Types.subtypeOf( Collection.class );
@@ -323,238 +335,7 @@ public class JsonUtil
             return this.deserialize( jsonObj, classOfT );
         }
 
-        /**
-         * GsonSerializer that stores instants in ISO 8601 format, with a deserializer that also reads local-platform format reading.
-         */
-        private static class InstantTypeAdapter extends JsonAdapter<Instant>
-        {
-            @Nullable
-            @Override
-            public Instant fromJson( final JsonReader reader ) throws IOException
-            {
-                final String strValue = reader.nextString();
-                if ( StringUtil.isEmpty( strValue ) )
-                {
-                    return null;
-                }
-                try
-                {
-                    return JavaHelper.parseIsoToInstant( strValue );
-                }
-                catch ( final Exception e )
-                {
-                    LOGGER.debug( () -> "unable to parse stored json Instant.class timestamp '" + strValue + "' error: " + e.getMessage() );
-                    throw new IOException( e );
-                }
-            }
 
-            @Override
-            public void toJson( final JsonWriter writer, @Nullable final Instant value ) throws IOException
-            {
-                if ( value == null )
-                {
-                    writer.jsonValue( "" );
-                }
-                else
-                {
-                    writer.jsonValue( JavaHelper.toIsoDate( value ) );
-                }
-            }
-        }
-
-        /**
-         * GsonSerializer that stores dates in ISO 8601 format, with a deserializer that also reads local-platform format reading.
-         */
-        private static class DateTypeAdapter extends JsonAdapter<Date>
-        {
-            private static final PwmDateFormat ISO_DATE_FORMAT = PwmDateFormat.newPwmDateFormat(
-                    "yyyy-MM-dd'T'HH:mm:ss'Z'",
-                    PwmConstants.DEFAULT_LOCALE,
-                    TimeZone.getTimeZone( "Zulu" ) );
-
-            private static DateFormat getLegacyDateFormat()
-            {
-                final DateFormat gsonDateFormat = DateFormat.getDateTimeInstance( DateFormat.DEFAULT, DateFormat.DEFAULT );
-                gsonDateFormat.setTimeZone( TimeZone.getDefault() );
-                return gsonDateFormat;
-            }
-
-            @Nullable
-            @Override
-            public Date fromJson( final JsonReader reader ) throws IOException
-            {
-                final String strValue = reader.nextString();
-                try
-                {
-                    return Date.from( ISO_DATE_FORMAT.parse( strValue ) );
-                }
-                catch ( final ParseException e )
-                {
-                    /* noop */
-                }
-
-                // for backwards compatibility
-                try
-                {
-                    return getLegacyDateFormat().parse( strValue );
-                }
-                catch ( final ParseException e )
-                {
-                    LOGGER.debug( () -> "unable to parse stored json Date.class timestamp '" + strValue + "' error: " + e.getMessage() );
-                    throw new IOException( e );
-                }
-            }
-
-            @Override
-            public void toJson( final JsonWriter writer, @Nullable final Date value ) throws IOException
-            {
-                Objects.requireNonNull( value );
-                writer.value( ISO_DATE_FORMAT.format( value.toInstant() ) );
-            }
-        }
-
-        private static class DomainIdAdaptor extends JsonAdapter<DomainID>
-        {
-            @Nullable
-            @Override
-            public DomainID fromJson( final JsonReader reader ) throws IOException
-            {
-                final String stringValue = reader.nextString();
-
-                if ( StringUtil.isEmpty( stringValue ) )
-                {
-                    return null;
-                }
-
-                if ( DomainID.systemId().toString().equals( stringValue ) )
-                {
-                    return DomainID.systemId();
-                }
-
-                return DomainID.create( stringValue );
-            }
-
-            @Override
-            public void toJson( final JsonWriter writer, @Nullable final DomainID value ) throws IOException
-            {
-                if ( value == null )
-                {
-                    writer.nullValue();
-
-                }
-                else
-                {
-                    writer.value( value.toString() );
-                }
-            }
-        }
-
-        /**
-         * Gson Serializer for {@link java.security.cert.X509Certificate}.  Necessary because sometimes X509Certs have circular references
-         * and the default gson serializer will cause a {@code java.lang.StackOverflowError}.  Standard Base64 encoding of
-         * the cert is used as the json format.
-         */
-        private static class X509CertificateAdapter extends JsonAdapter<X509Certificate>
-        {
-            @Nullable
-            @Override
-            public X509Certificate fromJson( final JsonReader reader ) throws IOException
-            {
-                final String strValue = reader.nextString();
-                try
-                {
-                    final CertificateFactory certificateFactory = CertificateFactory.getInstance( "X.509" );
-                    try ( ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream( StringUtil.base64Decode( strValue ) ) )
-                    {
-                        return ( X509Certificate ) certificateFactory.generateCertificate( byteArrayInputStream );
-                    }
-                }
-                catch ( final Exception e )
-                {
-                    throw new IOException( "unable to parse x509certificate: " + e.getMessage() );
-                }
-            }
-
-
-            @Override
-            public void toJson( final JsonWriter writer, @Nullable final X509Certificate value ) throws IOException
-            {
-                if ( value == null )
-                {
-                    writer.nullValue();
-                }
-                else
-                {
-                    try
-                    {
-                        final byte[] encoded = value.getEncoded();
-                        writer.value( StringUtil.stripAllWhitespace( StringUtil.base64Encode( encoded ) ) );
-                    }
-                    catch ( final PwmInternalException | CertificateEncodingException e )
-                    {
-                        throw new IOException( "unable to json-encode certificate: " + e.getMessage() );
-                    }
-                }
-            }
-        }
-
-
-        private static class PasswordDataAdapter extends JsonAdapter<PasswordData>
-        {
-            @Nullable
-            @Override
-            public PasswordData fromJson( final JsonReader reader ) throws IOException
-            {
-                final String strValue = reader.nextString();
-                try
-                {
-                    return new PasswordData( strValue );
-                }
-                catch ( final PwmUnrecoverableException e )
-                {
-                    final String errorMsg = "error while deserializing password data: " + e.getMessage();
-                    LOGGER.error( () -> errorMsg );
-                    throw new IOException( errorMsg, e );
-                }
-            }
-
-            @Override
-            public void toJson( final JsonWriter writer, @Nullable final PasswordData value ) throws IOException
-            {
-                Objects.requireNonNull( value );
-                try
-                {
-                    writer.value( value.getStringValue() );
-                }
-                catch ( final PwmUnrecoverableException e )
-                {
-                    final String errorMsg = "error while serializing password data: " + e.getMessage();
-                    LOGGER.error( () -> errorMsg );
-                    throw new IOException( errorMsg, e );
-                }
-            }
-        }
-
-        private static class LongAdderTypeAdaptor extends JsonAdapter<LongAdder>
-        {
-            @Nullable
-            @Override
-            public LongAdder fromJson( final JsonReader reader ) throws IOException
-            {
-                final String strValue = reader.nextString();
-                final long longValue = Long.parseLong( strValue );
-                final LongAdder longAddr = new LongAdder();
-                longAddr.add( longValue );
-                return longAddr;
-            }
-
-            @Override
-            public void toJson( final JsonWriter writer, @Nullable final LongAdder value ) throws IOException
-            {
-                Objects.requireNonNull( value );
-                writer.value( value.longValue() );
-            }
-        }
     }
 
     private static class GsonPwmJsonServiceProvider implements PwmJsonServiceProvider
@@ -592,14 +373,6 @@ public class JsonUtil
             return getGson().fromJson( jsonString, type );
         }
 
-
-        @Override
-        public <T> T deserialize( final String json, final Class<T> classOfT, final Type... parameterizedTypes )
-        {
-            final TypeToken typeToken = TypeToken.getParameterized( classOfT, parameterizedTypes );
-            return getGson().fromJson( json, typeToken.getType() );
-        }
-
         @Override
         public <T> T deserialize( final String json, final Class<T> classOfT )
         {
@@ -607,19 +380,26 @@ public class JsonUtil
         }
 
         @Override
+        public <V> List<V> deserializeList( final String json, final Class<V> classOfV )
+        {
+            final Type type = Types.newParameterizedType( List.class, classOfV );
+            return List.copyOf( getGson().fromJson( json, type ) );
+        }
+
+        @Override
+        public <K, V> Map<K, V> deserializeMap( final String json, final Class<K> classOfK, final Class<V> classOfV )
+        {
+            final Type type = Types.newParameterizedType( Map.class, classOfK, classOfV );
+            return Map.copyOf( getGson().fromJson( json, type ) );
+        }
+
+
+        @Override
         public Map<String, String> deserializeStringMap( final String jsonString )
         {
             return Map.copyOf( getGson().fromJson( jsonString, new TypeToken<Map<String, String>>()
             {
             }.getType() ) );
-        }
-
-        @Override
-        public Map<String, Object> deserializeStringObjectMap( final String jsonString )
-        {
-            return getGson().fromJson( jsonString, new TypeToken<Map<String, Object>>()
-            {
-            }.getType() );
         }
 
         @Override
@@ -640,6 +420,21 @@ public class JsonUtil
         public String serializeMap( final Map object, final Flag... flags )
         {
             return getGson( flags ).toJson( object );
+        }
+
+
+        @Override
+        public <V> String serializeList( final List<V> object, final Class<V> parameterizedValue, final Flag... flags )
+        {
+            final Type type = Types.newParameterizedType( List.class, parameterizedValue );
+            return getGson( flags ).toJson( object, type );
+        }
+
+        @Override
+        public <K, V> String serializeMap( final Map<K, V> object, final Class<K> parameterizedKey, final Class<V> parameterizedValue, final Flag... flags )
+        {
+            final Type type = Types.newParameterizedType( Map.class, parameterizedKey, parameterizedValue );
+            return getGson( flags ).toJson( object, type );
         }
 
         @Override
@@ -816,7 +611,6 @@ public class JsonUtil
                     throw new JsonParseException( errorMsg, e );
                 }
             }
-
         }
 
         private static class PwmLdapVendorTypeAdaptor implements JsonSerializer<PwmLdapVendor>, JsonDeserializer<PwmLdapVendor>

@@ -37,7 +37,6 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -45,7 +44,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 
 public abstract class CommandServlet extends ControlledPwmServlet
 {
@@ -103,8 +101,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
         final String body = pwmRequest.readRequestBodyAsString();
         try
         {
-            final Map<String, Object> map = JsonUtil.deserializeStringObjectMap( body );
-            LOGGER.trace( () -> "CSP Report: " + JsonUtil.serializeMap( map, JsonUtil.Flag.PrettyPrint ) );
+            LOGGER.trace( () -> "CSP Report: " + body );
         }
         catch ( final Exception e )
         {

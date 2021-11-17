@@ -20,7 +20,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
@@ -82,9 +81,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    List<UserPermission> srcList = JsonUtil.deserialize( input, new TypeToken<List<UserPermission>>()
-                    {
-                    } );
+                    List<UserPermission> srcList = JsonUtil.deserializeList( input, UserPermission.class );
                     srcList = srcList == null ? Collections.emptyList() : srcList;
                     return new UserPermissionValue( Collections.unmodifiableList( srcList ) );
                 }

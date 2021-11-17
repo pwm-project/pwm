@@ -177,16 +177,16 @@ public class FormValue extends AbstractValue implements StoredValue
                 sb.append( " Multi-Value:" ).append( formRow.isMultivalue() );
                 sb.append( " Source:" ).append( formRow.getSource() );
                 sb.append( "\n" );
-                sb.append( " Label:" ).append( JsonUtil.serializeMap( formRow.getLabels() ) ).append( "\n" );
-                sb.append( " Description:" ).append( JsonUtil.serializeMap( formRow.getDescription() ) ).append( "\n" );
+                sb.append( " Label:" ).append( JsonUtil.serializeStringMap( formRow.getLabels() ) ).append( "\n" );
+                sb.append( " Description:" ).append( JsonUtil.serializeStringMap( formRow.getDescription() ) ).append( "\n" );
                 if ( formRow.getType() == FormConfiguration.Type.select && CollectionUtil.isEmpty( formRow.getSelectOptions() ) )
                 {
-                    sb.append( " Select Options: " ).append( JsonUtil.serializeMap( formRow.getSelectOptions() ) ).append( "\n" );
+                    sb.append( " Select Options: " ).append( JsonUtil.serializeStringMap( formRow.getSelectOptions() ) ).append( "\n" );
                 }
                 if ( StringUtil.notEmpty( formRow.getRegex() ) )
                 {
                     sb.append( " Regex:" ).append( formRow.getRegex() )
-                            .append( " Regex Error:" ).append( JsonUtil.serializeMap( formRow.getRegexErrors() ) );
+                            .append( " Regex Error:" ).append( JsonUtil.serializeStringMap( formRow.getRegexErrors() ) );
                 }
                 if ( formRow.getType() == FormConfiguration.Type.photo )
                 {
