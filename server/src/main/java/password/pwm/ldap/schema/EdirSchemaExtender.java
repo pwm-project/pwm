@@ -28,7 +28,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
@@ -246,9 +246,9 @@ public class EdirSchemaExtender implements SchemaExtender
                 if ( !defOptionals.equals( existingOptionals ) )
                 {
                     logActivity( "objectclass '" + schemaDefinition.getName()
-                            + "' optional attributes (" + JsonUtil.serializeCollection( defOptionals )
+                            + "' optional attributes (" + JsonFactory.get().serializeCollection( defOptionals )
                             + ") is not correct, correct optional attribute list is ("
-                            + JsonUtil.serializeCollection( existingOptionals ) + ")" );
+                            + JsonFactory.get().serializeCollection( existingOptionals ) + ")" );
                     checkPassed = false;
                 }
             }

@@ -24,7 +24,8 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.node.NodeService;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonProvider;
+import password.pwm.util.json.JsonFactory;
 
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -55,6 +56,6 @@ class ClusterInfoDebugGenerator implements AppItemGenerator
             debugOutput.put( "nodes", new ArrayList<>( nodeService.nodes() ) );
         }
 
-        outputStream.write( JsonUtil.serializeMap( debugOutput, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        outputStream.write( JsonFactory.get().serializeMap( debugOutput, JsonProvider.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }
 }

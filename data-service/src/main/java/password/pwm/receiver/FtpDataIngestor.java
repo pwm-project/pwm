@@ -25,7 +25,7 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPSClient;
 import password.pwm.PwmConstants;
 import password.pwm.bean.TelemetryPublishBean;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 
 import java.io.ByteArrayInputStream;
@@ -126,7 +126,7 @@ class FtpDataIngestor
                     byteArrayOutputStream.write( buffer, 0, len );
                 }
                 final String resultsStr = byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET.name() );
-                final TelemetryPublishBean bean = JsonUtil.deserialize( resultsStr, TelemetryPublishBean.class );
+                final TelemetryPublishBean bean = JsonFactory.get().deserialize( resultsStr, TelemetryPublishBean.class );
                 storage.store( bean );
             }
         }

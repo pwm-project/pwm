@@ -25,7 +25,7 @@ import password.pwm.PwmConstants;
 import password.pwm.svc.intruder.IntruderSystemService;
 import password.pwm.svc.intruder.PublicIntruderRecord;
 import password.pwm.util.java.ClosableIterator;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 
 import java.io.OutputStream;
 
@@ -47,7 +47,7 @@ class IntruderDataGenerator implements AppItemGenerator
         {
             while ( record.hasNext() )
             {
-                outputStream.write( JsonUtil.serialize( record.next() ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+                outputStream.write( JsonFactory.get().serialize( record.next() ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
             }
         }
     }

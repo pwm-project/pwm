@@ -47,7 +47,7 @@ import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.intruder.IntruderDomainService;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -209,7 +209,7 @@ public class CaptchaUtility
                         final String errorCode = element.getAsString();
                         errorCodes.add( errorCode );
                     }
-                    LOGGER.debug( pwmRequest, () -> "recaptcha error codes: " + JsonUtil.serializeCollection( errorCodes ) );
+                    LOGGER.debug( pwmRequest, () -> "recaptcha error codes: " + JsonFactory.get().serializeCollection( errorCodes ) );
                 }
             }
         }

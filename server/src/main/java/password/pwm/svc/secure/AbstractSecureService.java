@@ -32,7 +32,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.CopyingInputStream;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -173,7 +173,7 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
 
     public String encryptObjectToString( final Serializable serializableObject ) throws PwmUnrecoverableException
     {
-        final String jsonValue = JsonUtil.serialize( serializableObject );
+        final String jsonValue = JsonFactory.get().serialize( serializableObject );
         stats.increment( StatKey.encryptOperations );
         stats.increment( StatKey.encryptBytes, jsonValue.length() );
         return encryptToString( jsonValue );
@@ -181,7 +181,7 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
 
     public String encryptObjectToString( final Serializable serializableObject, final PwmSecurityKey securityKey ) throws PwmUnrecoverableException
     {
-        final String jsonValue = JsonUtil.serialize( serializableObject );
+        final String jsonValue = JsonFactory.get().serialize( serializableObject );
         stats.increment( StatKey.encryptOperations );
         stats.increment( StatKey.encryptBytes, jsonValue.length() );
         return encryptToString( jsonValue, securityKey );
@@ -213,7 +213,7 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
         final String decryptedValue = decryptStringValue( value );
         stats.increment( StatKey.decryptOperations );
         stats.increment( StatKey.decryptBytes, value.length() );
-        return JsonUtil.deserialize( decryptedValue, returnClass );
+        return JsonFactory.get().deserialize( decryptedValue, returnClass );
     }
 
     public <T extends Serializable> T decryptObject( final String value, final PwmSecurityKey securityKey, final Class<T> returnClass ) throws PwmUnrecoverableException
@@ -221,7 +221,7 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
         final String decryptedValue = decryptStringValue( value, securityKey );
         stats.increment( StatKey.decryptOperations );
         stats.increment( StatKey.decryptBytes, value.length() );
-        return JsonUtil.deserialize( decryptedValue, returnClass );
+        return JsonFactory.get().deserialize( decryptedValue, returnClass );
     }
 
     public String hash(

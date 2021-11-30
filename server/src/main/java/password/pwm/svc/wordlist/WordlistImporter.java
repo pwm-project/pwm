@@ -26,7 +26,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.ConditionalTaskExecutor;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.StatisticAverageBundle;
@@ -238,7 +238,7 @@ class WordlistImporter implements Runnable
 
             startTime = Instant.now();
 
-            getLogger().debug( rootWordlist.getSessionLabel(), () -> "beginning import: " + JsonUtil.serialize( rootWordlist.readWordlistStatus() ) );
+            getLogger().debug( rootWordlist.getSessionLabel(), () -> "beginning import: " + JsonFactory.get().serialize( rootWordlist.readWordlistStatus() ) );
             Instant lastTxnInstant = Instant.now();
 
             final long importMaxChars = rootWordlist.getConfiguration().getImportMaxChars();
@@ -372,7 +372,7 @@ class WordlistImporter implements Runnable
         completed = true;
         writeCurrentWordlistStatus();
 
-        getLogger().debug( rootWordlist.getSessionLabel(), () -> "final post-population status: " + JsonUtil.serialize( rootWordlist.readWordlistStatus() ) );
+        getLogger().debug( rootWordlist.getSessionLabel(), () -> "final post-population status: " + JsonFactory.get().serialize( rootWordlist.readWordlistStatus() ) );
     }
 
     private PwmLogger getLogger()
@@ -464,7 +464,7 @@ class WordlistImporter implements Runnable
         stats.put( DebugKey.DiskFreeSpace, StringUtil.formatDiskSize( wordlistBucket.spaceRemaining() ) );
         stats.put( DebugKey.ImportDuration, getImportDuration().asCompactString() );
         stats.put( DebugKey.ZipFile, zipFileReader.currentZipName() );
-        stats.put( DebugKey.WordTypes, JsonUtil.serializeMap( seenWordTypes ) );
+        stats.put( DebugKey.WordTypes, JsonFactory.get().serializeMap( seenWordTypes, WordType.class, LongAdder.class ) );
 
         if ( bytesSkipped > 0 )
         {

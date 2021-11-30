@@ -35,7 +35,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.util.ProgressInfo;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -338,7 +338,7 @@ public class PasswordChangeProgressChecker
                 }
                 final Percent pctComplete = Percent.of( duplicateValues + 1, checkResults.size() );
                 final ProgressRecord progressRecord = makeReplicaProgressRecord( pctComplete );
-                LOGGER.trace( () -> "read password replication sync status as: " + JsonUtil.serialize( progressRecord ) );
+                LOGGER.trace( () -> "read password replication sync status as: " + JsonFactory.get().serialize( progressRecord ) );
                 return Optional.of( progressRecord );
             }
         }

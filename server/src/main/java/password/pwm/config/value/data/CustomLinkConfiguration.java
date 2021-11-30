@@ -23,7 +23,7 @@ package password.pwm.config.value.data;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -66,7 +66,7 @@ public class CustomLinkConfiguration implements Serializable
         final StringBuilder sb = new StringBuilder();
 
         sb.append( "CustomLink: " );
-        sb.append( JsonUtil.serialize( this ) );
+        sb.append( JsonFactory.get().serialize( this ) );
 
         return sb.toString();
     }

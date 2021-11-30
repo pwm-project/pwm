@@ -35,7 +35,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.userhistory.LdapXmlUserHistory;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmRandom;
@@ -273,7 +273,7 @@ public class AuditRecordFactory
             outputString = macroRequest.expandMacros( outputString );
         }
 
-        final Map<String, String> recordFields = JsonUtil.deserializeStringMap( JsonUtil.serialize( auditRecord ) );
+        final Map<String, String> recordFields = JsonFactory.get().deserializeStringMap( JsonFactory.get().serialize( auditRecord ) );
         for ( final Map.Entry<String, String> entry : recordFields.entrySet() )
         {
             final String key = entry.getKey();

@@ -150,6 +150,11 @@ public class JavaHelper
         return readEnumFromString( enumClass, input ).orElse( defaultValue );
     }
 
+    public static <E extends Enum<E>> Optional<E> readEnumFromCaseIgnoreString( final Class<E> enumClass, final String input )
+    {
+        return JavaHelper.readEnumFromPredicate( enumClass, loopValue -> loopValue.name().equalsIgnoreCase( input ) );
+    }
+
     public static <E extends Enum<E>> Optional<E> readEnumFromPredicate( final Class<E> enumClass, final Predicate<E> match )
     {
         if ( match == null )
@@ -252,7 +257,8 @@ public class JavaHelper
 
     public static <E extends Enum<E>> boolean enumArrayContainsValue( final E[] enumArray, final E enumValue )
     {
-        return !( enumArray == null || enumArray.length == 0 ) && Arrays.asList( enumArray ).contains( enumValue );
+        return !( enumArray == null || enumArray.length == 0 )
+                && Arrays.asList( enumArray ).contains( enumValue );
     }
 
     public static void unhandledSwitchStatement( final Object switchParameter )

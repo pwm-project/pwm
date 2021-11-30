@@ -24,7 +24,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -64,7 +64,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    return new StringArrayValue( JsonUtil.deserializeStringList( input ) );
+                    return new StringArrayValue( JsonFactory.get().deserializeStringList( input ) );
                 }
             }
 

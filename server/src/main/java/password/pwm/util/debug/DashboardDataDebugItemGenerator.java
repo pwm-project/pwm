@@ -24,7 +24,8 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.http.ContextManager;
 import password.pwm.http.servlet.admin.AppDashboardData;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonProvider;
+import password.pwm.util.json.JsonFactory;
 
 import java.io.OutputStream;
 
@@ -47,6 +48,6 @@ class DashboardDataDebugItemGenerator implements DomainItemGenerator
                 debugItemInput.getLocale()
         );
 
-        outputStream.write( JsonUtil.serialize( appDashboardData, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        outputStream.write( JsonFactory.get().serialize( appDashboardData, JsonProvider.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }
 }

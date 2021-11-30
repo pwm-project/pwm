@@ -25,7 +25,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.i18n.Display;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -60,7 +60,7 @@ public class BooleanValue implements StoredValue
             @Override
             public BooleanValue fromJson( final String value )
             {
-                return BooleanValue.of( JsonUtil.deserialize( value, Boolean.class ) );
+                return BooleanValue.of( JsonFactory.get().deserialize( value, Boolean.class ) );
             }
 
             @Override

@@ -20,11 +20,10 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -59,15 +58,13 @@ public class OptionListValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    Set<String> srcList = JsonUtil.deserialize( input, new TypeToken<Set<String>>()
-                    {
-                    } );
-                    srcList = srcList == null ? Collections.emptySet() : srcList;
+                    List<String> srcList = JsonFactory.get().deserializeStringList( input );
+                    srcList = srcList == null ? Collections.emptyList() : srcList;
                     while ( srcList.contains( null ) )
                     {
                         srcList.remove( null );
                     }
-                    return new OptionListValue( Collections.unmodifiableSet( srcList ) );
+                    return new OptionListValue( Set.copyOf( srcList ) );
                 }
             }
 

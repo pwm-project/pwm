@@ -38,7 +38,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -279,7 +279,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
     @Override
     public String toString( )
     {
-        return "PwmPasswordPolicy" + ": " + JsonUtil.serialize( this );
+        return "PwmPasswordPolicy" + ": " + JsonFactory.get().serialize( this );
     }
 
     public ChaiPasswordPolicy getChaiPasswordPolicy( )

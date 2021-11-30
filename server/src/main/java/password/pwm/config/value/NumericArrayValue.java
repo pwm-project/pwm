@@ -23,7 +23,7 @@ package password.pwm.config.value;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -52,7 +52,7 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
             @Override
             public NumericArrayValue fromJson( final String value )
             {
-                final long[] longArray = JsonUtil.deserialize( value, long[].class );
+                final long[] longArray = JsonFactory.get().deserialize( value, long[].class );
                 final List<Long> list = Arrays.stream( longArray ).boxed().collect( Collectors.toList() );
                 return new NumericArrayValue( list );
             }

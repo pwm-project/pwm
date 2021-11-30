@@ -28,7 +28,7 @@ import password.pwm.svc.db.DatabaseAccessor;
 import password.pwm.svc.db.DatabaseException;
 import password.pwm.svc.db.DatabaseTable;
 import password.pwm.util.java.ClosableIterator;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -91,7 +91,7 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
                     final Optional<String> rawValueInDb = databaseAccessor.get( TABLE, dbKey );
                     rawValueInDb.ifPresent( s ->
                     {
-                        final StoredNodeData nodeDataInDb = JsonUtil.deserialize( s, StoredNodeData.class );
+                        final StoredNodeData nodeDataInDb = JsonFactory.get().deserialize( s, StoredNodeData.class );
                         returnList.put( nodeDataInDb.getInstanceID(), nodeDataInDb );
                     } );
                 }
@@ -111,7 +111,7 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
         {
             final DatabaseAccessor databaseAccessor = getDatabaseAccessor();
             final String key = localKeyForStoredNode( storedNodeData );
-            final String value = JsonUtil.serialize( storedNodeData );
+            final String value = JsonFactory.get().serialize( storedNodeData );
             databaseAccessor.put( TABLE, key, value );
         }
         catch ( final DatabaseException e )

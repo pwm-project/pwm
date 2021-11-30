@@ -65,7 +65,7 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -115,7 +115,7 @@ class PeopleSearchDataReader
     )
             throws PwmUnrecoverableException
     {
-        final CacheKey cacheKey = makeCacheKey( SearchResultBean.class.getSimpleName(), JsonUtil.serialize( searchRequestBean ) );
+        final CacheKey cacheKey = makeCacheKey( SearchResultBean.class.getSimpleName(), JsonFactory.get().serialize( searchRequestBean ) );
 
         {
             // try to serve from cache first
@@ -140,7 +140,7 @@ class PeopleSearchDataReader
         storeDataInCache( cacheKey, searchResultBean );
         LOGGER.trace( pwmRequest, () -> "returning " + searchResultBean.getSearchResults().size()
                 + " results for search request "
-                + JsonUtil.serialize( searchRequestBean ) );
+                + JsonFactory.get().serialize( searchRequestBean ) );
         return searchResultBean;
     }
 
@@ -299,7 +299,7 @@ class PeopleSearchDataReader
         final Map<String, String> linkMap;
         try
         {
-            linkMap = JsonUtil.deserializeStringMap( userLinksStr );
+            linkMap = JsonFactory.get().deserializeStringMap( userLinksStr );
         }
         catch ( final Exception e )
         {

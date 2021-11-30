@@ -114,7 +114,7 @@ public class AccountInformationServlet extends ControlledPwmServlet
                 pwmRequest.getPwmSession().getUserInfo(),
                 pwmRequest.getLocale()
         );
-        pwmRequest.outputJsonResult( RestResultBean.withData( accountInformationBean ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( accountInformationBean, AccountInformationBean.class ) );
         return ProcessStatus.Halt;
     }
 

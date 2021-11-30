@@ -48,7 +48,7 @@ import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.util.Validator;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -307,7 +307,7 @@ public class FormUtility
                 }
                 else
                 {
-                    final ErrorInformation errorInformation = JsonUtil.deserialize( cacheValue, ErrorInformation.class );
+                    final ErrorInformation errorInformation = JsonFactory.get().deserialize( cacheValue, ErrorInformation.class );
                     throw new PwmDataValidationException( errorInformation );
                 }
             }
@@ -397,7 +397,7 @@ public class FormUtility
         {
             if ( cacheService != null )
             {
-                final String jsonPayload = JsonUtil.serialize( e.getErrorInformation() );
+                final String jsonPayload = JsonFactory.get().serialize( e.getErrorInformation() );
                 cacheService.put( cacheKey, cachePolicy, jsonPayload );
             }
             throw new PwmDataValidationException( e.getErrorInformation() );
@@ -521,7 +521,7 @@ public class FormUtility
     {
         final boolean includeNulls = JavaHelper.enumArrayContainsValue( flags, Flag.ReturnEmptyValues );
         final List<String> formFieldNames = FormConfiguration.convertToListOfNames( formFields );
-        LOGGER.trace( sessionLabel, () -> "preparing to load form data from ldap for fields " + JsonUtil.serializeCollection( formFieldNames ) );
+        LOGGER.trace( sessionLabel, () -> "preparing to load form data from ldap for fields " + JsonFactory.get().serializeCollection( formFieldNames ) );
         final Map<String, List<String>> dataFromLdap = new LinkedHashMap<>();
         try
         {

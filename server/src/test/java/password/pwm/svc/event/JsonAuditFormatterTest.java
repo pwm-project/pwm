@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.TestHelper;
 
 public class JsonAuditFormatterTest
@@ -52,8 +52,8 @@ public class JsonAuditFormatterTest
                 + "\"sourceHost\":\"ws31222\""
                 + "}";
 
-        final UserAuditRecord auditRecord = JsonUtil.deserialize( jsonInput, AuditRecordData.class );
-        final String expectedOutput = PwmConstants.PWM_APP_NAME + " " + JsonUtil.serialize( auditRecord );
+        final UserAuditRecord auditRecord = JsonFactory.get().deserialize( jsonInput, AuditRecordData.class );
+        final String expectedOutput = PwmConstants.PWM_APP_NAME + " " + JsonFactory.get().serialize( auditRecord );
         final AuditFormatter auditFormatter = new JsonAuditFormatter();
 
         final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );

@@ -30,7 +30,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -67,7 +67,7 @@ public class PasswordValue implements StoredValue
             @Override
             public PasswordValue fromJson( final String value )
             {
-                final String strValue = JsonUtil.deserialize( value, String.class );
+                final String strValue = JsonFactory.get().deserialize( value, String.class );
                 if ( strValue != null && !strValue.isEmpty() )
                 {
                     try

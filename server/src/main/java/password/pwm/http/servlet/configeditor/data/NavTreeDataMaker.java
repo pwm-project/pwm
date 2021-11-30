@@ -37,7 +37,7 @@ import password.pwm.http.servlet.configeditor.DomainManageMode;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -85,7 +85,7 @@ public class NavTreeDataMaker
         NavTreeDataMaker.moveNavItemToTopOfList( PwmSettingCategory.TEMPLATES.toString(), navigationData );
         LOGGER.trace( () -> "generated " + navigationData.size()
                         + " navTreeItems for display menu with settings"
-                        + JsonUtil.serialize( navTreeSettings ),
+                        + JsonFactory.get().serialize( navTreeSettings ),
                 () -> TimeDuration.fromCurrent( startTime ) );
         return Collections.unmodifiableList( navigationData );
     }

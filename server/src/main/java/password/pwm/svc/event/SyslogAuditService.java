@@ -52,7 +52,7 @@ import password.pwm.health.HealthTopic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -157,7 +157,7 @@ public class SyslogAuditService
         @Override
         public String convertToDebugString( final String workItem )
         {
-            return JsonUtil.serialize( workItem );
+            return JsonFactory.get().serialize( workItem );
         }
     }
 
@@ -345,7 +345,7 @@ public class SyslogAuditService
 
         public String toString( )
         {
-            return JsonUtil.serialize( this );
+            return JsonFactory.get().serialize( this );
         }
     }
 

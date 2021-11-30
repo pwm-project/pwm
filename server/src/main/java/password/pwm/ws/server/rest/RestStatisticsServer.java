@@ -166,7 +166,7 @@ public class RestStatisticsServer extends RestServlet
                     .history( makeHistoryStatInfos( statisticsManager, days ) )
                     .labels( makeLabels( locale ) )
                     .build();
-            return RestResultBean.withData( jsonOutput );
+            return RestResultBean.withData( jsonOutput, JsonOutput.class );
         }
 
         private static List<StatValue> makeStatInfos( final StatisticsService statisticsManager, final String key )
@@ -313,7 +313,7 @@ public class RestStatisticsServer extends RestServlet
 
                 StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_STATISTICS );
 
-                final RestResultBean resultBean = RestResultBean.withData( jsonOutput );
+                final RestResultBean resultBean = RestResultBean.withData( jsonOutput, JsonOutput.class );
                 return resultBean;
             }
             catch ( final Exception e )

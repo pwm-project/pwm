@@ -31,7 +31,7 @@ import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StoredValueEncoder;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlDocument;
 import password.pwm.util.java.XmlElement;
@@ -72,7 +72,7 @@ public class PwmSettingTest
                 Assert.assertNotNull( storedValue.valueHash() );
                 if ( storedValue.toNativeObject() != null )
                 {
-                    JsonUtil.serialize( ( Serializable ) storedValue.toNativeObject() );
+                    JsonFactory.get().serialize( ( Serializable ) storedValue.toNativeObject() );
                 }
             }
         }

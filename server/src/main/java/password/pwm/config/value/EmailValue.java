@@ -20,12 +20,11 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -62,11 +61,7 @@ public class EmailValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    Map<String, EmailItemBean> srcList = JsonUtil.deserialize( input,
-                            new TypeToken<Map<String, EmailItemBean>>()
-                            {
-                            }
-                    );
+                    Map<String, EmailItemBean> srcList = JsonFactory.get().deserializeMap( input, String.class, EmailItemBean.class );
 
                     srcList = srcList == null ? Collections.emptyMap() : srcList;
                     srcList.remove( null );
@@ -89,7 +84,7 @@ public class EmailValue extends AbstractValue implements StoredValue
                         loopValueElement.getText().ifPresent( value ->
                         {
                             final String localeValue = loopValueElement.getAttributeValue( "locale" ).orElse( "" );
-                            values.put( localeValue, JsonUtil.deserialize( value, EmailItemBean.class ) );
+                            values.put( localeValue, JsonFactory.get().deserialize( value, EmailItemBean.class ) );
                         } );
                     }
                 }
@@ -111,7 +106,7 @@ public class EmailValue extends AbstractValue implements StoredValue
             {
                 valueElement.setAttribute( "locale", localeValue );
             }
-            valueElement.addText( JsonUtil.serialize( emailItemBean ) );
+            valueElement.addText( JsonFactory.get().serialize( emailItemBean ) );
             returnList.add( valueElement );
         }
         return returnList;

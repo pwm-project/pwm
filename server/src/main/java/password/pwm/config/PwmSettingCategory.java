@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -508,7 +509,8 @@ public enum PwmSettingCategory
 
         public static Set<PwmSettingCategory> readChildren( final PwmSettingCategory category )
         {
-            final Set<PwmSettingCategory> categories = Arrays.stream( PwmSettingCategory.values() )
+            final Set<PwmSettingCategory> categories = EnumSet.allOf( PwmSettingCategory.class )
+                    .stream()
                     .filter( ( loopCategory ) -> loopCategory.getParent() == category )
                     .collect( Collectors.toUnmodifiableSet() );
             return Collections.unmodifiableSet( CollectionUtil.copiedEnumSet( categories, PwmSettingCategory.class ) );
@@ -516,7 +518,8 @@ public enum PwmSettingCategory
 
         public static Set<PwmSetting> readSettings( final PwmSettingCategory category )
         {
-            final Set<PwmSetting> settings = Arrays.stream( PwmSetting.values() )
+            final Set<PwmSetting> settings = EnumSet.allOf( PwmSetting.class )
+                    .stream()
                     .filter( ( setting ) -> setting.getCategory() == category )
                     .collect( Collectors.toSet() );
             return Collections.unmodifiableSet( CollectionUtil.copiedEnumSet( settings, PwmSetting.class ) );

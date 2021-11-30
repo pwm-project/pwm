@@ -37,7 +37,7 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
@@ -201,7 +201,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
                         );
                     }
                     remoteLoginCookie.getAuthFlags().add( AuthenticationType.AUTH_FROM_REQ_COOKIE );
-                    LOGGER.debug( pwmRequest, () -> "logged in using encrypted request cookie = " + JsonUtil.serialize( remoteLoginCookie ) );
+                    LOGGER.debug( pwmRequest, () -> "logged in using encrypted request cookie = " + JsonFactory.get().serialize( remoteLoginCookie ) );
                 }
                 catch ( final Exception e )
                 {

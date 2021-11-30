@@ -83,7 +83,7 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -979,8 +979,8 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                     : "";
             LOGGER.trace( pwmRequest, () -> "entering forgotten password progress engine: "
                     + profileDebugMsg
-                    + "flags=" + JsonUtil.serialize( recoveryFlags ) + ", "
-                    + "progress=" + JsonUtil.serialize( progress ) );
+                    + "flags=" + JsonFactory.get().serialize( recoveryFlags ) + ", "
+                    + "progress=" + JsonFactory.get().serialize( progress ) );
         }
 
         if ( forgottenPasswordProfile == null )

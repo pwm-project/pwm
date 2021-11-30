@@ -31,7 +31,7 @@ import jetbrains.exodus.env.Store;
 import jetbrains.exodus.env.StoreConfig;
 import jetbrains.exodus.env.Transaction;
 import password.pwm.bean.TelemetryPublishBean;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 
 import java.io.File;
@@ -108,7 +108,7 @@ public class Storage
         environment.executeInTransaction( transaction ->
         {
             final ByteIterable k = StringBinding.stringToEntry( value.getInstanceHash() );
-            final ByteIterable v = StringBinding.stringToEntry( JsonUtil.serialize( value ) );
+            final ByteIterable v = StringBinding.stringToEntry( JsonFactory.get().serialize( value ) );
             store.put( transaction, k, v );
         } );
     }
@@ -124,7 +124,7 @@ public class Storage
                 final String string = StringBinding.entryToString( new ArrayByteIterable( v ) );
                 if ( StringUtil.notEmpty( string ) )
                 {
-                    return JsonUtil.deserialize( string, TelemetryPublishBean.class );
+                    return JsonFactory.get().deserialize( string, TelemetryPublishBean.class );
                 }
             }
             return null;

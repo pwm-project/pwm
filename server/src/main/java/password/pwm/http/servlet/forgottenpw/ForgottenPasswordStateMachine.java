@@ -72,7 +72,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -135,7 +135,7 @@ public class ForgottenPasswordStateMachine
     {
         this.forgottenPasswordBean = forgottenPasswordBean == null
                 ? new ForgottenPasswordBean()
-                : JsonUtil.cloneUsingJson( forgottenPasswordBean, ForgottenPasswordBean.class );
+                : JsonFactory.get().cloneUsingJson( forgottenPasswordBean, ForgottenPasswordBean.class );
     }
 
     public ForgottenPasswordBean getForgottenPasswordBean()

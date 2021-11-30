@@ -32,7 +32,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.ClosableIterator;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -188,7 +188,7 @@ public class ReportRecordLocalDBStorageService extends AbstractPwmService implem
         private void write( final UserReportRecord cacheBean )
                 throws LocalDBException
         {
-            final String jsonValue = JsonUtil.serialize( cacheBean );
+            final String jsonValue = JsonFactory.get().serialize( cacheBean );
             final String jsonKey = UserIdentity.create( cacheBean.getUserDN(), cacheBean.getLdapProfile(), cacheBean.getDomainID() ).toDelimitedKey();
             localDB.put( DB, jsonKey, jsonValue );
         }
@@ -202,7 +202,7 @@ public class ReportRecordLocalDBStorageService extends AbstractPwmService implem
             {
                 try
                 {
-                    return Optional.of( JsonUtil.deserialize( jsonValue.get(), UserReportRecord.class ) );
+                    return Optional.of( JsonFactory.get().deserialize( jsonValue.get(), UserReportRecord.class ) );
                 }
                 catch ( final JsonSyntaxException e )
                 {

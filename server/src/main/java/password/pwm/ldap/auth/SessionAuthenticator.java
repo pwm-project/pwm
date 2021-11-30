@@ -20,7 +20,6 @@
 
 package password.pwm.ldap.auth;
 
-import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiException;
@@ -52,7 +51,7 @@ import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -139,9 +138,7 @@ public class SessionAuthenticator
         {
             try
             {
-                final List<Integer> configuredNumbers = JsonUtil.deserialize( appProperty, new TypeToken<List<Integer>>()
-                {
-                } );
+                final List<Integer> configuredNumbers = JsonFactory.get().deserializeList( appProperty, Integer.class );
                 for ( final Integer errorCode : configuredNumbers )
                 {
                     final PwmError pwmError = PwmError.forErrorNumber( errorCode ).orElse( PwmError.ERROR_INTERNAL );

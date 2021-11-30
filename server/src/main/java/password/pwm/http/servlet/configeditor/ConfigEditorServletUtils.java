@@ -150,7 +150,7 @@ public class ConfigEditorServletUtils
 
             healthRecords.forEach( record ->
                     returnData.computeIfAbsent(
-                            record.getDomainID(), k -> new ArrayList<>() )
+                                    record.getDomainID(), k -> new ArrayList<>() )
                             .add( record.getDetail( locale, pwmRequest.getAppConfig() ) ) );
 
             LOGGER.debug( () -> "config health check done in ", () -> TimeDuration.fromCurrent( startTime ) );
@@ -306,7 +306,7 @@ public class ConfigEditorServletUtils
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, "unknown format type: " + e.getMessage(), new String[]
                         {
                                 "format",
-                                }
+                        }
                 ) );
             }
 

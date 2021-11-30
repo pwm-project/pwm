@@ -26,7 +26,7 @@
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
-<%@ page import="password.pwm.util.java.JsonUtil" %>
+<%@ page import="password.pwm.util.json.JsonFactory" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
@@ -99,7 +99,7 @@
 <pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_VAR['simpleRandomOptions'] = <%=JsonUtil.serializeCollection(questionTexts)%>;
+        PWM_VAR['simpleRandomOptions'] = <%=JsonFactory.get().serializeCollection(questionTexts)%>;
     });
 </script>
 </pwm:script>

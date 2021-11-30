@@ -20,7 +20,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -31,7 +30,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
@@ -80,9 +79,7 @@ public class NamedSecretValue implements StoredValue
             {
                 try
                 {
-                    final Map<String, NamedSecretData> values = JsonUtil.deserialize( value, new TypeToken<Map<String, NamedSecretData>>()
-                    {
-                    }.getType() );
+                    final Map<String, NamedSecretData> values = JsonFactory.get().deserializeMap( value, String.class, NamedSecretData.class );
                     final Map<String, NamedSecretData> linkedValues = new LinkedHashMap<>( values );
                     return new NamedSecretValue( linkedValues );
                 }

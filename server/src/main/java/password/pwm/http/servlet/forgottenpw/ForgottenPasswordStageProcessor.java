@@ -40,7 +40,7 @@ import password.pwm.ldap.UserInfo;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordUtility;
 
@@ -152,8 +152,8 @@ class ForgottenPasswordStageProcessor
                         : "";
                 LOGGER.trace( sessionLabel, () -> "entering forgotten password progress engine: "
                         + profileDebugMsg
-                        + "flags=" + JsonUtil.serialize( recoveryFlags ) + ", "
-                        + "progress=" + JsonUtil.serialize( progress ) );
+                        + "flags=" + JsonFactory.get().serialize( recoveryFlags ) + ", "
+                        + "progress=" + JsonFactory.get().serialize( progress ) );
             }
 
             if ( forgottenPasswordProfile == null )

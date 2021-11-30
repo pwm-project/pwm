@@ -55,7 +55,7 @@ import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -307,10 +307,10 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         }
 
         final ValidationResponseBean validationResponseBean = new ValidationResponseBean( userMessage, success );
-        final RestResultBean restResultBean = RestResultBean.withData( validationResponseBean );
+        final RestResultBean<ValidationResponseBean> restResultBean = RestResultBean.withData( validationResponseBean, ValidationResponseBean.class );
         LOGGER.trace( pwmRequest, () -> "completed rest validate response in "
                 + TimeDuration.compactFromCurrent( startTime )
-                + ", result=" + JsonUtil.serialize( restResultBean ) );
+                + ", result=" + JsonFactory.get().serialize( restResultBean ) );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }

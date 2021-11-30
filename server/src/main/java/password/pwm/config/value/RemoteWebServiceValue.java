@@ -27,7 +27,7 @@ import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -71,12 +71,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    List<RemoteWebServiceConfiguration> srcList = JsonUtil.deserialize( input,
-                            new TypeToken<List<RemoteWebServiceConfiguration>>()
-                            {
-                            }
-                    );
-
+                    List<RemoteWebServiceConfiguration> srcList = JsonFactory.get().deserializeList( input, RemoteWebServiceConfiguration.class );
                     srcList = srcList == null ? new ArrayList<>() : srcList;
                     srcList.removeIf( Objects::isNull );
                     return new RemoteWebServiceValue( Collections.unmodifiableList( srcList ) );
@@ -98,7 +93,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
                     final Optional<String> value = loopValueElement.getText();
                     if ( value.isPresent() )
                     {
-                        final RemoteWebServiceConfiguration parsedValue = JsonUtil.deserialize( value.get(), RemoteWebServiceConfiguration.class );
+                        final RemoteWebServiceConfiguration parsedValue = JsonFactory.get().deserialize( value.get(), RemoteWebServiceConfiguration.class );
                         final Optional<String> decodedValue = StoredValueEncoder.decode(
                                 parsedValue.getPassword(),
                                 StoredValueEncoder.Mode.ENCODED,
@@ -134,7 +129,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
             }
 
             final RemoteWebServiceConfiguration clonedValue = value.toBuilder().password( encodedValue ).build();
-            valueElement.addText( JsonUtil.serialize( clonedValue ) );
+            valueElement.addText( JsonFactory.get().serialize( clonedValue ) );
             returnList.add( valueElement );
         }
         return returnList;
@@ -173,8 +168,8 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
 
     public List<Map<String, Object>> toInfoMap( )
     {
-        final String originalJson = JsonUtil.serializeCollection( values );
-        final List<Map<String, Object>> tempObj = JsonUtil.deserialize( originalJson, new TypeToken<List<Map<String, Object>>>()
+        final String originalJson = JsonFactory.get().serializeCollection( values );
+        final List<Map<String, Object>> tempObj = JsonFactory.get().deserialize( originalJson, new TypeToken<List<Map<String, Object>>>()
         {
         } );
         for ( final Map<String, Object> mapObj : tempObj )
@@ -236,7 +231,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
     @Override
     public String toDebugString( final Locale locale )
     {
-        return JsonUtil.serializeCollection( this.makeDebugJsonObject( locale ) );
+        return JsonFactory.get().serializeCollection( this.makeDebugJsonObject( locale ) );
     }
 
 }

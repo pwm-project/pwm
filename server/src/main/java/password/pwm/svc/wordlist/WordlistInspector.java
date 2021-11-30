@@ -22,7 +22,7 @@ package password.pwm.svc.wordlist;
 
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -329,9 +329,9 @@ class WordlistInspector implements Runnable
             if ( !remoteInfo.equals( existingStatus.getRemoteInfo() ) )
             {
                 getLogger().debug( rootWordlist.getSessionLabel(), () -> "auto-import url remote info "
-                        + JsonUtil.serialize( remoteInfo )
+                        + JsonFactory.get().serialize( remoteInfo )
                         + " does not equal currently stored info "
-                        + JsonUtil.serialize( existingStatus.getRemoteInfo() )
+                        + JsonFactory.get().serialize( existingStatus.getRemoteInfo(), WordlistSourceInfo.class )
                         + ", will start auto-import" );
                 needsAutoImport = true;
             }

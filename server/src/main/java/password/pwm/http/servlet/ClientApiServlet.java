@@ -71,6 +71,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -80,6 +81,7 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 @WebServlet(
         name = "ClientApiServlet",
@@ -180,7 +182,7 @@ public class ClientApiServlet extends ControlledPwmServlet
                 pwmRequest.getPwmResponse().getHttpServletResponse(),
                 pageUrl
         );
-        final RestResultBean restResultBean = RestResultBean.withData( appData );
+        final RestResultBean<AppData> restResultBean = RestResultBean.withData( appData, AppData.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -188,7 +190,7 @@ public class ClientApiServlet extends ControlledPwmServlet
     @ActionHandler( action = "strings" )
     public ProcessStatus doGetStringsData( final PwmRequest pwmRequest
     )
-            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+            throws PwmUnrecoverableException, IOException, ServletException
     {
         final String bundleName = pwmRequest.readParameterAsString( "bundle" );
         final int maxCacheAgeSeconds = 60 * 5;
@@ -201,9 +203,9 @@ public class ClientApiServlet extends ControlledPwmServlet
 
         try
         {
-            final LinkedHashMap<String, String> displayData = new LinkedHashMap<>( makeDisplayData( pwmRequest.getPwmDomain(),
+            final Map<String, String> displayData = new LinkedHashMap<>( makeDisplayData( pwmRequest.getPwmDomain(),
                     pwmRequest, bundleName ) );
-            final RestResultBean restResultBean = RestResultBean.withData( displayData );
+            final RestResultBean<Map> restResultBean = RestResultBean.withData( displayData, Map.class );
             pwmRequest.outputJsonResult( restResultBean );
         }
         catch ( final Exception e )
@@ -227,7 +229,7 @@ public class ClientApiServlet extends ControlledPwmServlet
             final PublicHealthData jsonOutput = RestHealthServer.processGetHealthCheckData(
                     pwmRequest.getPwmDomain(),
                     pwmRequest.getLocale() );
-            final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
+            final RestResultBean restResultBean = RestResultBean.withData( jsonOutput, PublicHealthData.class );
             pwmRequest.outputJsonResult( restResultBean );
         }
         catch ( final Exception e )
@@ -247,7 +249,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         final PingResponse pingResponse = new PingResponse();
         pingResponse.setTime( Instant.now() );
         pingResponse.setRuntimeNonce( pwmRequest.getPwmApplication().getRuntimeNonce() );
-        pwmRequest.outputJsonResult( RestResultBean.withData( pingResponse ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( pingResponse, PingResponse.class ) );
         return ProcessStatus.Halt;
     }
 
@@ -383,23 +385,16 @@ public class ClientApiServlet extends ControlledPwmServlet
             }
         }
 
-        {
-            final List<String> epsTypes = new ArrayList<>();
-            for ( final EpsStatistic loopEpsType : EpsStatistic.values() )
-            {
-                epsTypes.add( loopEpsType.toString() );
-            }
-            settingMap.put( "epsTypes", epsTypes );
-        }
+        settingMap.put( "epsTypes", EnumSet.allOf( EpsStatistic.class )
+                .stream()
+                .map( EpsStatistic::toString )
+                .collect( Collectors.toList() ) );
 
-        {
-            final List<String> epsDurations = new ArrayList<>();
-            for ( final Statistic.EpsDuration loopEpsDuration : Statistic.EpsDuration.values() )
-            {
-                epsDurations.add( loopEpsDuration.toString() );
-            }
-            settingMap.put( "epsDurations", epsDurations );
-        }
+        settingMap.put( "epsDurations", EnumSet.allOf( Statistic.EpsDuration.class )
+                .stream()
+                .map( Statistic.EpsDuration::toString )
+                .collect( Collectors.toList() ) );
+
 
         {
             final Map<String, String> localeInfo = new LinkedHashMap<>();
@@ -491,7 +486,9 @@ public class ClientApiServlet extends ControlledPwmServlet
             jsonOutput.keyData = RestStatisticsServer.OutputVersion1.doKeyStat( statisticsManager, statKey );
         }
 
-        final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
+        final RestResultBean<RestStatisticsServer.OutputVersion1.JsonOutput> restResultBean = RestResultBean.withData(
+                jsonOutput,
+                RestStatisticsServer.OutputVersion1.JsonOutput.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }

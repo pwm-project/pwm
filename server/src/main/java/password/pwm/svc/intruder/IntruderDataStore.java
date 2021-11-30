@@ -29,7 +29,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
 import password.pwm.util.DataStore;
 import password.pwm.util.java.ClosableIterator;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -93,7 +93,7 @@ class IntruderDataStore implements IntruderRecordStore
 
         try
         {
-            return Optional.ofNullable( JsonUtil.deserialize( value.get(), IntruderRecord.class ) );
+            return Optional.ofNullable( JsonFactory.get().deserialize( value.get(), IntruderRecord.class ) );
         }
         catch ( final Exception e )
         {
@@ -116,7 +116,7 @@ class IntruderDataStore implements IntruderRecordStore
     public void write( final String key, final IntruderRecord record )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final String jsonRecord = JsonUtil.serialize( record );
+        final String jsonRecord = JsonFactory.get().serialize( record );
         try
         {
             dataStore.put( key, jsonRecord );

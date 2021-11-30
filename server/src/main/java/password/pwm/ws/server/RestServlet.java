@@ -46,7 +46,7 @@ import password.pwm.http.filter.RequestInitializationFilter;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
@@ -167,7 +167,7 @@ public abstract class RestServlet extends HttpServlet
        try
        {
            final RestAuthentication restAuthentication = new RestAuthenticationProcessor( pwmDomain, sessionLabel, req ).readRestAuthentication();
-           LOGGER.debug( sessionLabel, () -> "rest request authentication status: " + JsonUtil.serialize( restAuthentication ) );
+           LOGGER.debug( sessionLabel, () -> "rest request authentication status: " + JsonFactory.get().serialize( restAuthentication ) );
 
            final RestRequest restRequest = RestRequest.forRequest( pwmDomain, restAuthentication, sessionLabel, req );
 

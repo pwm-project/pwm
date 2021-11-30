@@ -18,18 +18,27 @@
  * limitations under the License.
  */
 
-package password.pwm.util.java;
+package password.pwm.util.json;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
+import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.servlet.configeditor.data.NavTreeDataMaker;
+import password.pwm.http.servlet.configeditor.data.NavTreeItem;
+import password.pwm.http.servlet.configeditor.data.NavTreeSettings;
 import password.pwm.ldap.PwmLdapVendor;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.PasswordData;
+import password.pwm.util.logging.PwmLogEvent;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.secure.X509Utils;
+import password.pwm.ws.server.RestResultBean;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -38,19 +47,31 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.LongAdder;
 
 
-public class JsonUtilTest
+public abstract class JsonProviderTest
 {
+    private JsonProvider instance;
+
+    protected abstract JsonProvider createInstance();
+
+    @Before
+    public void setUp()
+    {
+        instance = createInstance();
+    }
+
     @Test
     public void deserializeStringListTest()
     {
         final String jsonValue = "[\"value1\",\"value2\",\"value3\"]";
-        final List<String> list = JsonUtil.deserializeStringList( jsonValue );
+        final List<String> list = instance.deserializeStringList( jsonValue );
 
         Assert.assertNotNull( list );
         Assert.assertEquals( 3, list.size() );
@@ -66,7 +87,7 @@ public class JsonUtilTest
     public void deserializeStringMapTest()
     {
         final String jsonValue = "{\"key1\":\"value1\",\"key2\":\"value2\",\"key3\":\"value3\"}";
-        final Map<String, String> map = JsonUtil.deserializeStringMap( jsonValue );
+        final Map<String, String> map = instance.deserializeStringMap( jsonValue );
 
         Assert.assertNotNull( map );
         Assert.assertEquals( 3, map.size() );
@@ -82,7 +103,7 @@ public class JsonUtilTest
     public void deserializeMapTest()
     {
         final String jsonValue = "{\"key1\":\"value1\",\"key2\":\"value2\",\"key3\":\"value3\"}";
-        final Map<String, Object> map = JsonUtil.deserializeMap( jsonValue );
+        final Map<String, Object> map = instance.deserializeMap( jsonValue );
 
         Assert.assertNotNull( map );
         Assert.assertEquals( 3, map.size() );
@@ -97,8 +118,8 @@ public class JsonUtilTest
     @Test
     public void deserializeObjectTest()
     {
-        final String jsonValue = TestObject1.JSON_VALUE;
-        final TestObject1 testObject1 = JsonUtil.deserialize( jsonValue, TestObject1.class );
+        final String jsonValue = TestObject1.makeExpectedJsonValue( instance );
+        final TestObject1 testObject1 = instance.deserialize( jsonValue, TestObject1.class );
 
         Assert.assertNotNull( testObject1 );
         Assert.assertEquals( TestObject1.VALUE_STRING1, testObject1.getString1() );
@@ -112,13 +133,106 @@ public class JsonUtilTest
     }
 
     @Test
+    public void miscSerializationTests()
+    {
+        {
+            final String json = "[{\"type\":\"ldapQuery\",\"ldapProfileID\":\"all\",\"ldapQuery\":\"(cn=asmith)\"}]";
+            final List<UserPermission> userPermission = instance.deserializeList( json, UserPermission.class );
+
+            Assert.assertEquals( UserPermissionType.ldapQuery, userPermission.get( 0 ).getType() );
+        }
+
+        {
+            final Map<String, Integer> map = Map.of(
+                    "J", 1,
+                    "JJ", 2,
+                    "JJJ", 3
+            );
+
+            final String json = instance.serializeMap( new TreeMap<>( map ), String.class, Integer.class );
+            Assert.assertEquals( "{\"J\":1,\"JJ\":2,\"JJJ\":3}", json );
+        }
+    }
+
+    @Test
+    public void serializeNestedListMap()
+    {
+        {
+            final List<Map<String, Object>> srcObject = new ArrayList<>();
+            srcObject.add( Map.of( "key1", "value1" ) );
+            final String jsonOutput = instance.serializeCollection( srcObject );
+            Assert.assertEquals( "[{\"key1\":\"value1\"}]", jsonOutput );
+        }
+    }
+
+    @Test
+    public void deserializeNestedListMap()
+    {
+        {
+
+            final String srcJson = "[{\"key1\":\"value1\"}]";
+            //final List tempObj = instance.deserializeList( srcJson, List.class );
+
+        }
+
+    }
+
+    @Test
+    public void deserializeCollectionTest()
+    {
+        final String json = "[\"ListItem1\",\"ListItem2\",{\"key1\":\"value1\",\"key2\":\"value2\"}]";
+        final List<Object> list = instance.deserializeList( json, Object.class );
+
+        Assert.assertEquals( "ListItem1", list.get( 0 ) );
+        Assert.assertEquals( "ListItem2", list.get( 1 ) );
+        Assert.assertEquals( Map.of( "key1", "value1", "key2", "value2" ), list.get( 2 ) );
+    }
+
+    @Test
+    public void serializeNavTreeTest()
+            throws Exception
+    {
+        final List<NavTreeItem> navTreeItems = NavTreeDataMaker.makeNavTreeItems(
+                DomainID.DOMAIN_ID_DEFAULT,
+                StoredConfigurationFactory.newConfig(),
+                NavTreeSettings.builder().build() );
+
+        instance.serializeCollection( navTreeItems );
+    }
+
+    @Test
+    public void serializeRestResultBeanTest()
+    {
+        {
+            final String expectedJson = "{\"data\":{\"key1\":1,\"key2\":\"value2\"},\"error\":false,\"errorCode\":0}";
+            final Map<String, Object> data = new HashMap<>();
+            data.put( "key1", 1 );
+            data.put( "key2", "value2" );
+            final RestResultBean<Map> restResultBean = RestResultBean.withData( data, Map.class );
+            final String json = restResultBean.toJson( false );
+            Assert.assertEquals( expectedJson, json );
+        }
+
+    }
+
+    @Test
+    public void deserializeMap()
+    {
+        final String json = "{\"key1\":1,\"key2\":\"String2\",\"key3\":[\"ListValue1\",\"ListValue2\"]}";
+        final Map<String, Object> map = instance.deserializeMap( json,
+                String.class,
+                Object.class );
+        Assert.assertEquals( 1.0, map.get( "key1" ) );
+        Assert.assertEquals( "String2", map.get( "key2" ) );
+        Assert.assertEquals( List.of( "ListValue1", "ListValue2" ), map.get( "key3" ) );
+    }
+
+    @Test
     public void serializeObjectTest()
     {
-        final TestObject1 testObject1 = TestObject1.TEST_VALUE;
-
-        final String jsonValue = JsonUtil.serialize( testObject1 );
-
-        Assert.assertEquals( TestObject1.JSON_VALUE, jsonValue );
+        final TestObject1 testObject1 = TestObject1.newTestObject();
+        final String jsonValue = instance.serialize( testObject1 );
+        Assert.assertEquals( TestObject1.makeExpectedJsonValue( instance ), jsonValue );
     }
 
     @Test
@@ -139,9 +253,9 @@ public class JsonUtilTest
                     .build();
             srcList.add( actionConfiguration );
         }
-        final String json = JsonUtil.serializeCollection( srcList );
+        final String json = instance.serializeCollection( srcList );
 
-        final List<ActionConfiguration> deserializedList = JsonUtil.deserializeList( json, ActionConfiguration.class );
+        final List<ActionConfiguration> deserializedList = instance.deserializeList( json, ActionConfiguration.class );
 
         Assert.assertEquals( srcList, deserializedList );
     }
@@ -156,6 +270,8 @@ public class JsonUtilTest
         static final LongAdder VALUE_LONG_ADDER1;
         static final PasswordData VALUE_PASSWORD_DATA1;
         static final String VALUE_STRING1 = "stringValue1";
+        static final PwmLogEvent VALUE_LOG_EVENT1;
+        static final Locale VALUE_LOCALE1 = new Locale( "jp" );
 
         private static final String DATA_CERT1 = "MIIC1TCCAb2gAwIBAgIJAMIrQtIBUHNJMA0GCSqGSIb3DQEBBQUAMBoxGDAWBgNV"
                 + "BAMTD3d3dy5leGFtcGxlLmNvbTAeFw0yMTA5MDUyMTQ2NDlaFw0zMTA5MDMyMTQ2"
@@ -173,6 +289,7 @@ public class JsonUtilTest
                 + "QDcGP+kQTE0+FW4kP9/oTIjD2u2Jc4d0NcPa2hUDWyPS1OqcSPJYGngBmDo524Mv"
                 + "ye7akpMj/ywK4BEnZpl/1rO5pNMD7GIK8lST4OOycWs3vErybogF45JCp7enroTH"
                 + "UWSGBXG89MJR";
+
 
         static
         {
@@ -200,36 +317,59 @@ public class JsonUtilTest
                 throw new RuntimeException( e );
             }
 
+            {
+                final Throwable throwable = new RuntimeException( "test runtime exception" );
+
+                VALUE_LOG_EVENT1 = PwmLogEvent.createPwmLogEvent(
+                        Instant.parse( "2000-01-01T01:01:01Z" ),
+                        "topic",
+                        "message",
+                        SessionLabel.TEST_SESSION_LABEL,
+                        throwable,
+                        PwmLogLevel.TRACE
+                );
+            }
         }
 
-        static final String JSON_VALUE = "{"
-                + "\"certificate1\":\"" + DATA_CERT1 + "\"" + ","
-                + "\"date1\":\"" + VALUE_DATE1.toInstant().toString() + "\"" + ","
-                + "\"domainId1\":\"acme1\"" + ","
-                + "\"instant1\":\"" + VALUE_INSTANT1.toString() + "\"" + ","
-                + "\"ldapVendor1\":\"" + VALUE_LDAP_VENDOR1 + "\"" + ","
-                + "\"longAdder1\":9223372036854775807" + ","
-                + "\"passwordData1\":\"super-secret-password\"" + ","
-                + "\"string1\":\"" + VALUE_STRING1 + "\""
-                + "}";
+        static String makeExpectedJsonValue( final JsonProvider jsonProvider )
+        {
+            return "{"
+                    + "\"certificate1\":\"" + DATA_CERT1 + "\"" + ","
+                    + "\"date1\":\"" + VALUE_DATE1.toInstant().toString() + "\"" + ","
+                    + "\"domainId1\":\"acme1\"" + ","
+                    + "\"instant1\":\"" + VALUE_INSTANT1.toString() + "\"" + ","
+                    + "\"ldapVendor1\":\"" + VALUE_LDAP_VENDOR1 + "\"" + ","
+                    + "\"locale1\":\"" + VALUE_LOCALE1 + "\"" + ","
+                    + "\"logEvent1\":" + jsonProvider.serialize( VALUE_LOG_EVENT1, PwmLogEvent.class ) + ","
+                    + "\"longAdder1\":9223372036854775807" + ","
+                    + "\"passwordData1\":\"super-secret-password\"" + ","
+                    + "\"string1\":\"" + VALUE_STRING1 + "\""
+                    + "}";
+        }
 
 
-        static final TestObject1 TEST_VALUE = new TestObject1(
-                VALUE_X509_CERT1,
-                VALUE_DATE1,
-                VALUE_DOMAINID1,
-                VALUE_INSTANT1,
-                VALUE_LDAP_VENDOR1,
-                VALUE_LONG_ADDER1,
-                VALUE_PASSWORD_DATA1,
-                VALUE_STRING1
-        );
+        static TestObject1 newTestObject()
+        {
+            return new TestObject1(
+                    VALUE_X509_CERT1,
+                    VALUE_DATE1,
+                    VALUE_DOMAINID1,
+                    VALUE_INSTANT1,
+                    VALUE_LDAP_VENDOR1,
+                    VALUE_LOCALE1,
+                    VALUE_LONG_ADDER1,
+                    VALUE_PASSWORD_DATA1,
+                    VALUE_STRING1,
+                    VALUE_LOG_EVENT1 );
+        }
 
         private final X509Certificate certificate1;
         private final Date date1;
         private final DomainID domainId1;
         private final Instant instant1;
         private final PwmLdapVendor ldapVendor1;
+        private final Locale locale1;
+        private final PwmLogEvent logEvent1;
         private final LongAdder longAdder1;
         private final PasswordData passwordData1;
         private final String string1;
@@ -241,9 +381,11 @@ public class JsonUtilTest
                 final DomainID domainId1,
                 final Instant instant1,
                 final PwmLdapVendor ldapVendor1,
+                final Locale locale1,
                 final LongAdder longAdder1,
                 final PasswordData passwordData1,
-                final String string1
+                final String string1,
+                final PwmLogEvent logEvent1
         )
         {
             this.certificate1 = certificate1;
@@ -251,9 +393,11 @@ public class JsonUtilTest
             this.domainId1 = domainId1;
             this.instant1 = instant1;
             this.ldapVendor1 = ldapVendor1;
+            this.locale1 = locale1;
             this.longAdder1 = longAdder1;
             this.passwordData1 = passwordData1;
             this.string1 = string1;
+            this.logEvent1 = logEvent1;
         }
 
         public X509Certificate getCertificate1()
@@ -290,29 +434,22 @@ public class JsonUtilTest
         {
             return string1;
         }
-    }
 
-    @Test
-    public void deserializeUserPermissionTest()
-    {
+        public PwmLdapVendor getLdapVendor1()
         {
-            final String json = "[{\"type\":\"ldapQuery\",\"ldapProfileID\":\"all\",\"ldapQuery\":\"(cn=asmith)\"}]";
-
-            final List<UserPermission> userPermission = JsonUtil.deserializeList( json, UserPermission.class );
-
-            Assert.assertEquals( UserPermissionType.ldapQuery, userPermission.get( 0 ).getType() );
+            return ldapVendor1;
         }
 
+        public PwmLogEvent getLogEvent1()
         {
-            final Map<String, Integer> map = Map.of(
-                    "J", 1,
-                    "JJ", 2,
-                    "JJJ", 3
-            );
+            return logEvent1;
+        }
 
-            final String json = JsonUtil.serializeMap( new TreeMap<>( map ), String.class, Integer.class );
-            Assert.assertEquals( "{\"J\":1,\"JJ\":2,\"JJJ\":3}", json );
+        public Locale getLocale1()
+        {
+            return locale1;
         }
     }
+
 }
 

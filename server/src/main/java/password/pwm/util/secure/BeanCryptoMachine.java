@@ -27,7 +27,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.svc.secure.DomainSecureService;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -91,7 +91,7 @@ public class BeanCryptoMachine<T extends Serializable>
         try
         {
             final Class restoreClass = Class.forName( wrapper.getClassName() );
-            final Object bean = JsonUtil.deserialize( wrapper.getBean(), restoreClass );
+            final Object bean = JsonFactory.get().deserialize( wrapper.getBean(), restoreClass );
 
             this.key = key;
             return Optional.of( ( T ) bean );
@@ -113,7 +113,7 @@ public class BeanCryptoMachine<T extends Serializable>
         final DomainSecureService domainSecureService = pwmRequestContext.getPwmDomain().getSecureService();
         final PwmSecurityKey pwmSecurityKey = domainSecureService.appendedSecurityKey( key );
         final String className = bean.getClass().getName();
-        final String jsonBean = JsonUtil.serialize( bean );
+        final String jsonBean = JsonFactory.get().serialize( bean );
         final String payload = domainSecureService.encryptObjectToString( new Wrapper( Instant.now(), className, jsonBean ), pwmSecurityKey );
         return key + DELIMITER + payload;
     }

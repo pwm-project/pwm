@@ -37,6 +37,14 @@ import java.util.Map;
 @Builder( toBuilder = true )
 public class ActionConfiguration implements Serializable
 {
+    private String name;
+    private String description;
+
+    @Builder.Default
+    private List<ActionConfiguration.WebAction> webActions = Collections.emptyList();
+
+    @Builder.Default
+    private List<ActionConfiguration.LdapAction> ldapActions = Collections.emptyList();
 
     public enum WebMethod
     {
@@ -91,14 +99,6 @@ public class ActionConfiguration implements Serializable
         private String attributeValue = "";
     }
 
-    private String name;
-    private String description;
-
-    @Builder.Default
-    private List<ActionConfiguration.WebAction> webActions = Collections.emptyList();
-
-    @Builder.Default
-    private List<ActionConfiguration.LdapAction> ldapActions = Collections.emptyList();
 
     public void validate( ) throws PwmOperationalException
     {

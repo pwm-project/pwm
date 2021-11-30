@@ -90,6 +90,6 @@ public enum HttpHeader
 
     public static Optional<HttpHeader> forHttpHeader( final String header )
     {
-        return JavaHelper.readEnumFromPredicate( HttpHeader.class, loopHeader -> header.equalsIgnoreCase( loopHeader.getHttpName() ) );
+        return JavaHelper.readEnumFromCaseIgnoreString( HttpHeader.class, header );
     }
 }

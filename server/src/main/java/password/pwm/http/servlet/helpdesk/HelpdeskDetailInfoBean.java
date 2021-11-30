@@ -49,7 +49,7 @@ import password.pwm.ldap.ViewableUserInfoDisplayReader;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -235,7 +235,7 @@ public class HelpdeskDetailInfoBean implements Serializable
         if ( pwmRequest.getAppConfig().isDevDebugMode() )
         {
             LOGGER.trace( pwmRequest, () -> "completed assembly of detail data report for user " + userIdentity
-                    + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize( helpdeskDetailInfoBean ) );
+                    + " in " + timeDuration.asCompactString() + ", contents: " + JsonFactory.get().serialize( helpdeskDetailInfoBean ) );
         }
 
         return builder.build();

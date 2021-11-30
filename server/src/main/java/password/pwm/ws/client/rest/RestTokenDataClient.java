@@ -35,7 +35,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.token.TokenDestinationDisplayMasker;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -99,9 +99,9 @@ public class RestTokenDataClient implements RestClient
         }
 
 
-        final String jsonRequestData = JsonUtil.serializeMap( sendData );
+        final String jsonRequestData = JsonFactory.get().serializeMap( sendData );
         final String responseBody = RestClientHelper.makeOutboundRestWSCall( pwmDomain, locale, url, jsonRequestData );
-        return JsonUtil.deserialize( responseBody, TokenDestinationData.class );
+        return JsonFactory.get().deserialize( responseBody, TokenDestinationData.class );
     }
 
     public TokenDestinationData figureDestTokenDisplayString(

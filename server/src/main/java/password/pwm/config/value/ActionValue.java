@@ -30,10 +30,10 @@ import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.X509Utils;
@@ -58,7 +58,7 @@ public class ActionValue extends AbstractValue implements StoredValue
 
     public ActionValue( final List<ActionConfiguration> values )
     {
-        this.values = Collections.unmodifiableList( values );
+        this.values = List.copyOf( CollectionUtil.stripNulls( values ) );
     }
 
     public static StoredValueFactory factory( )
@@ -68,25 +68,9 @@ public class ActionValue extends AbstractValue implements StoredValue
             @Override
             public ActionValue fromJson( final String input )
             {
-                if ( input == null )
-                {
-                    return new ActionValue( Collections.emptyList() );
-                }
-                else
-                {
-                    List<ActionConfiguration> srcList = JsonUtil.deserialize( input,
-                            new TypeToken<List<ActionConfiguration>>()
-                            {
-                            }
-                    );
-
-                    srcList = srcList == null ? Collections.emptyList() : srcList;
-                    while ( srcList.contains( null ) )
-                    {
-                        srcList.remove( null );
-                    }
-                    return new ActionValue( Collections.unmodifiableList( srcList ) );
-                }
+                return input == null
+                        ? new ActionValue( Collections.emptyList() )
+                        : new ActionValue( JsonFactory.get().deserializeList( input, ActionConfiguration.class ) );
             }
 
             @Override
@@ -121,7 +105,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                             }
                             else
                             {
-                                final ActionConfiguration.ActionConfigurationOldVersion1 parsedAc = JsonUtil
+                                final ActionConfiguration.ActionConfigurationOldVersion1 parsedAc = JsonFactory.get()
                                         .deserialize( stringValue.get(), ActionConfiguration.ActionConfigurationOldVersion1.class );
                                 if ( parsedAc != null )
                                 {
@@ -138,7 +122,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                         }
                         else if ( syntaxVersion == 2 )
                         {
-                            final ActionConfiguration value = JsonUtil.deserialize( stringValue.get(), ActionConfiguration.class );
+                            final ActionConfiguration value = JsonFactory.get().deserialize( stringValue.get(), ActionConfiguration.class );
                             final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
                             for ( final ActionConfiguration.WebAction webAction : value.getWebActions() )
                             {
@@ -218,7 +202,7 @@ public class ActionValue extends AbstractValue implements StoredValue
 
             final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
 
-            valueElement.addText( JsonUtil.serialize( clonedAction ) );
+            valueElement.addText( JsonFactory.get().serialize( clonedAction ) );
             returnList.add( valueElement );
         }
         return returnList;
@@ -291,6 +275,7 @@ public class ActionValue extends AbstractValue implements StoredValue
         return output;
     }
 
+
     @Override
     public String toDebugString( final Locale locale )
     {
@@ -308,7 +293,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                 sb.append( "\n   WebServiceAction: " );
                 sb.append( "\n    method=" ).append( webAction.getMethod() );
                 sb.append( "\n    url=" ).append( webAction.getUrl() );
-                sb.append( "\n    headers=" ).append( JsonUtil.serializeMap( webAction.getHeaders() ) );
+                sb.append( "\n    headers=" ).append( JsonFactory.get().serializeMap( webAction.getHeaders() ) );
                 sb.append( "\n    username=" ).append( webAction.getUsername() );
                 sb.append( "\n    password=" ).append(
                         StringUtil.isEmpty( webAction.getPassword() )
@@ -341,7 +326,6 @@ public class ActionValue extends AbstractValue implements StoredValue
         return sb.toString();
     }
 
-
     /**
      * Convert to json map where the certificate values are replaced with debug info for display in the config editor.
      *
@@ -349,8 +333,8 @@ public class ActionValue extends AbstractValue implements StoredValue
      */
     public List<Map<String, Object>> toInfoMap( )
     {
-        final String originalJson = JsonUtil.serializeCollection( values );
-        final List<Map<String, Object>> tempObj = JsonUtil.deserialize( originalJson, new TypeToken<List<Map<String, Object>>>()
+        final String originalJson = JsonFactory.get().serializeCollection( values );
+        final List<Map<String, Object>> tempObj = JsonFactory.get().deserialize( originalJson, new TypeToken<List<Map<String, Object>>>()
         {
         } );
 
@@ -376,7 +360,6 @@ public class ActionValue extends AbstractValue implements StoredValue
             }
             actionConfigurationCounter++;
         }
-
 
         return tempObj;
     }

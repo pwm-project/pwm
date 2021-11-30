@@ -22,7 +22,8 @@ package password.pwm.util.cli.commands;
 
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.FileSystemUtility;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonProvider;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -47,7 +48,7 @@ public class LocalDBInfoCommand extends AbstractCliCommand
         {
             out( "---" + db.toString() + "---" );
             final Map<LocalDBUtility.StatsKey, Object> stats = LocalDBUtility.dbStats( localDB, db );
-            out( JsonUtil.serializeMap( stats, JsonUtil.Flag.PrettyPrint ) );
+            out( JsonFactory.get().serializeMap( stats, JsonProvider.Flag.PrettyPrint ) );
         }
         out( "completed LocalDBInfo in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
     }

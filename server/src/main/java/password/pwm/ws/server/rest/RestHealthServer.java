@@ -68,7 +68,7 @@ public class RestHealthServer extends RestServlet
         {
             final String resultString = restRequest.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus().toString() + "\n";
             StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_HEALTH );
-            return RestResultBean.withData( resultString );
+            return RestResultBean.withData( resultString, String.class );
         }
         catch ( final Exception e )
         {
@@ -84,7 +84,7 @@ public class RestHealthServer extends RestServlet
     {
         final PublicHealthData jsonOutput = processGetHealthCheckData( restRequest.getDomain(), restRequest.getLocale() );
         StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_HEALTH );
-        return RestResultBean.withData( jsonOutput );
+        return RestResultBean.withData( jsonOutput, PublicHealthData.class );
     }
 
     public static PublicHealthData processGetHealthCheckData(

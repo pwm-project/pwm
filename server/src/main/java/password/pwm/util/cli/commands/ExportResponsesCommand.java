@@ -30,7 +30,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.cli.CliParameters;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.ws.server.rest.RestChallengesServer;
 
@@ -100,7 +100,7 @@ public class ExportResponsesCommand extends AbstractCliCommand
                 outputData.helpdeskChallenges = responseSet.get().asHelpdeskChallengeBeans( true );
                 outputData.minimumRandoms = responseSet.get().getChallengeSet().minimumResponses();
                 outputData.username = identity.toDelimitedKey();
-                writer.write( JsonUtil.serialize( outputData ) );
+                writer.write( JsonFactory.get().serialize( outputData ) );
                 writer.write( systemRecordDelimiter );
             }
             else

@@ -54,7 +54,7 @@ import password.pwm.svc.otp.OtpService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.Validator;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -287,7 +287,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
         final OtpService otpService = pwmDomain.getOtpService();
 
         final String bodyString = pwmRequest.readRequestBodyAsString();
-        final Map<String, String> clientValues = JsonUtil.deserializeStringMap( bodyString );
+        final Map<String, String> clientValues = JsonFactory.get().deserializeStringMap( bodyString );
         final String code = Validator.sanitizeInputValue( pwmRequest.getAppConfig(), clientValues.get( "code" ), 1024 );
 
         try
@@ -299,9 +299,9 @@ public class SetupOtpServlet extends ControlledPwmServlet
                     code,
                     false
             );
-            final RestResultBean restResultBean = RestResultBean.withData( passed );
+            final RestResultBean restResultBean = RestResultBean.withData( passed, Boolean.class );
 
-            LOGGER.trace( pwmRequest, () -> "returning result for restValidateCode: " + JsonUtil.serialize( restResultBean ) );
+            LOGGER.trace( pwmRequest, () -> "returning result for restValidateCode: " + JsonFactory.get().serialize( restResultBean ) );
             pwmRequest.outputJsonResult( restResultBean );
         }
         catch ( final PwmOperationalException e )
@@ -362,7 +362,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             {
                 if ( pwmRequest.getAppConfig().isDevDebugMode() )
                 {
-                    LOGGER.trace( pwmRequest, () -> "testing against otp record: " + JsonUtil.serialize( otpBean.getOtpUserRecord() ) );
+                    LOGGER.trace( pwmRequest, () -> "testing against otp record: " + JsonFactory.get().serialize( otpBean.getOtpUserRecord() ) );
                 }
 
                 if ( otpService.validateToken(
@@ -454,7 +454,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
                 LOGGER.trace( pwmRequest, () -> "generated new otp record" );
                 if ( config.getAppConfig().isDevDebugMode() )
                 {
-                    LOGGER.trace( pwmRequest, () -> "newly generated otp record: " + JsonUtil.serialize( otpUserRecord ) );
+                    LOGGER.trace( pwmRequest, () -> "newly generated otp record: " + JsonFactory.get().serialize( otpUserRecord ) );
                 }
             }
             catch ( final Exception e )

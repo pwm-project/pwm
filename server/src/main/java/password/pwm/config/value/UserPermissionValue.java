@@ -28,7 +28,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.ldap.permission.UserPermissionUtility;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -81,7 +81,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    List<UserPermission> srcList = JsonUtil.deserializeList( input, UserPermission.class );
+                    List<UserPermission> srcList = JsonFactory.get().deserializeList( input, UserPermission.class );
                     srcList = srcList == null ? Collections.emptyList() : srcList;
                     return new UserPermissionValue( Collections.unmodifiableList( srcList ) );
                 }
@@ -103,7 +103,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                     {
                         if ( newType )
                         {
-                            final UserPermission userPermission = JsonUtil.deserialize( value.get(), UserPermission.class );
+                            final UserPermission userPermission = JsonFactory.get().deserialize( value.get(), UserPermission.class );
                             values.add( userPermission );
                         }
                         else
@@ -129,7 +129,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
         for ( final UserPermission value : values )
         {
             final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-            valueElement.addText( JsonUtil.serialize( value ) );
+            valueElement.addText( JsonFactory.get().serialize( value ) );
             returnList.add( valueElement );
         }
         return returnList;

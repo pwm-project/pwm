@@ -28,7 +28,7 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -61,7 +61,7 @@ public class StringValue extends AbstractValue implements StoredValue
             @Override
             public StringValue fromJson( final String input )
             {
-                final String newValue = JsonUtil.deserialize( input, String.class );
+                final String newValue = JsonFactory.get().deserialize( input, String.class );
                 return new StringValue( newValue );
             }
 

@@ -20,12 +20,11 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.CustomLinkConfiguration;
-import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -59,9 +58,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    List<CustomLinkConfiguration> srcList = JsonUtil.deserialize( input, new TypeToken<List<CustomLinkConfiguration>>()
-                    {
-                    } );
+                    List<CustomLinkConfiguration> srcList = JsonFactory.get().deserializeList( input, CustomLinkConfiguration.class );
                     srcList = srcList == null ? Collections.emptyList() : srcList;
                     while ( srcList.contains( null ) )
                     {
@@ -79,7 +76,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
                 final List<CustomLinkConfiguration> values = new ArrayList<>();
                 for ( final XmlElement loopValueElement  : valueElements )
                 {
-                    loopValueElement.getText().ifPresent( value -> values.add( JsonUtil.deserialize( value, CustomLinkConfiguration.class ) ) );
+                    loopValueElement.getText().ifPresent( value -> values.add( JsonFactory.get().deserialize( value, CustomLinkConfiguration.class ) ) );
                 }
                 return new CustomLinkValue( values );
             }
@@ -93,7 +90,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
         for ( final CustomLinkConfiguration value : values )
         {
             final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-            valueElement.addText( JsonUtil.serialize( value ) );
+            valueElement.addText( JsonFactory.get().serialize( value ) );
             returnList.add( valueElement );
         }
         return returnList;
@@ -140,7 +137,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
                 sb.append( "Link Name:" ).append( formRow.getName() ).append( "\n" );
                 sb.append( " Type:" ).append( formRow.getType() );
                 sb.append( "\n" );
-                sb.append( " Description:" ).append( JsonUtil.serializeMap( formRow.getLabels() ) ).append( "\n" );
+                sb.append( " Description:" ).append( JsonFactory.get().serializeMap( formRow.getLabels() ) ).append( "\n" );
                 sb.append( " New Window:" ).append( formRow.isCustomLinkNewWindow() ).append( "\n" );
                 sb.append( " Url:" ).append( formRow.getCustomLinkUrl() ).append( "\n" );
             }

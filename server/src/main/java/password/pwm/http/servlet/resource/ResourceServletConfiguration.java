@@ -20,7 +20,6 @@
 
 package password.pwm.http.servlet.resource;
 
-import com.google.gson.reflect.TypeToken;
 import lombok.Value;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -32,7 +31,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -41,7 +40,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -141,9 +139,7 @@ class ResourceServletConfiguration
         final String zipFileResourceParam = domainConfig.getAppConfig().readAppProperty( AppProperty.HTTP_RESOURCES_ZIP_FILES );
         if ( StringUtil.notEmpty( zipFileResourceParam ) )
         {
-            final List<ConfiguredZipFileResource> configuredZipFileResources = JsonUtil.deserialize( zipFileResourceParam, new TypeToken<ArrayList<ConfiguredZipFileResource>>()
-            {
-            } );
+            final List<ConfiguredZipFileResource> configuredZipFileResources = JsonFactory.get().deserializeList( zipFileResourceParam, ConfiguredZipFileResource.class );
             for ( final ConfiguredZipFileResource configuredZipFileResource : configuredZipFileResources )
             {
                 final Optional<File> webInfPath = pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager().locateWebInfFilePath();

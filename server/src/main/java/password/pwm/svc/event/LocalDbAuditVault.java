@@ -25,7 +25,7 @@ import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.TransactionSizeCalculator;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -148,7 +148,7 @@ public class LocalDbAuditVault implements AuditVault
     {
         try
         {
-            return JsonUtil.deserialize( input, AuditRecordData.class );
+            return JsonFactory.get().deserialize( input, AuditRecordData.class );
         }
         catch ( final Exception e )
         {
@@ -167,7 +167,7 @@ public class LocalDbAuditVault implements AuditVault
             return;
         }
 
-        final String jsonRecord = JsonUtil.serialize( record );
+        final String jsonRecord = JsonFactory.get().serialize( record );
         auditDB.addLast( jsonRecord );
 
         if ( auditDB.size() > settings.getMaxRecords() )
@@ -181,7 +181,7 @@ public class LocalDbAuditVault implements AuditVault
         if ( auditDB != null && !auditDB.isEmpty() )
         {
             final String stringFirstRecord = auditDB.getFirst();
-            final AuditRecordData firstRecord = JsonUtil.deserialize( stringFirstRecord, AuditRecordData.class );
+            final AuditRecordData firstRecord = JsonFactory.get().deserialize( stringFirstRecord, AuditRecordData.class );
             oldestRecord = firstRecord.getTimestamp();
         }
     }

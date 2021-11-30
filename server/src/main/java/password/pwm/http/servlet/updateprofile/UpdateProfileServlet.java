@@ -57,7 +57,7 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -196,7 +196,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        LOGGER.debug( pwmRequest, () -> "marking token as passed " + JsonUtil.serialize( tokenDestinationItem ) );
+        LOGGER.debug( pwmRequest, () -> "marking token as passed " + JsonFactory.get().serialize( tokenDestinationItem ) );
         updateProfileBean.getCompletedTokenFields().add( updateProfileBean.getCurrentTokenField() );
         updateProfileBean.setTokenSent( false );
         updateProfileBean.setCurrentTokenField( null );
@@ -248,7 +248,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         final ValidateResponse response = new ValidateResponse();
         response.setMessage( userMessage );
         response.setSuccess( success );
-        pwmRequest.outputJsonResult( RestResultBean.withData( response ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( response, ValidateResponse.class ) );
         return ProcessStatus.Halt;
     }
 

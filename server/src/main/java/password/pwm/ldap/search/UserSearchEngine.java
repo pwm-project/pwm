@@ -49,7 +49,7 @@ import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -378,7 +378,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
                             errors.add( e.getErrorInformation().getDetailedErrorMsg() );
                             if ( errors.size() >= ldapProfiles.size() )
                             {
-                                final String errorMsg = "all ldap profiles are unreachable; errors: " + JsonUtil.serializeCollection( errors );
+                                final String errorMsg = "all ldap profiles are unreachable; errors: " + JsonFactory.get().serializeCollection( errors );
                                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, errorMsg ) );
                             }
                         }

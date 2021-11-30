@@ -45,7 +45,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.localdb.LocalDB;
@@ -202,8 +202,8 @@ public class AuditService extends AbstractPwmService implements PwmService
 
         final String body;
         {
-            final String jsonRecord = JsonUtil.serialize( record );
-            final Map<String, Object> mapRecord = JsonUtil.deserializeMap( jsonRecord );
+            final String jsonRecord = JsonFactory.get().serialize( record );
+            final Map<String, Object> mapRecord = JsonFactory.get().deserializeMap( jsonRecord );
             body = StringUtil.mapToString( mapRecord, "=", "\n" );
         }
 
@@ -238,7 +238,7 @@ public class AuditService extends AbstractPwmService implements PwmService
     public void submit( final SessionLabel sessionLabel, final AuditRecord auditRecord )
             throws PwmUnrecoverableException
     {
-        final String jsonRecord = JsonUtil.serialize( auditRecord );
+        final String jsonRecord = JsonFactory.get().serialize( auditRecord );
 
         if ( status() != STATUS.OPEN )
         {
@@ -293,7 +293,8 @@ public class AuditService extends AbstractPwmService implements PwmService
                     }
                     else
                     {
-                        LOGGER.trace( sessionLabel, () -> "skipping update of user history, audit record does not have a perpetratorDN: " + JsonUtil.serialize( auditRecord ) );
+                        LOGGER.trace( sessionLabel, () -> "skipping update of user history, audit record does not have a perpetratorDN: "
+                                + JsonFactory.get().serialize( auditRecord ) );
                     }
                 }
             }

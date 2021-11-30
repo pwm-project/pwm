@@ -42,7 +42,7 @@ import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -88,7 +88,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
 
         LOGGER.trace( pwmRequest, () -> "processing oauth return request, useCase=" + oAuthUseCaseCase
                 + ", incoming oAuthRequestState="
-                + ( oAuthRequestState.isPresent() ? JsonUtil.serialize( oAuthRequestState.get() ) : "none" )
+                + ( oAuthRequestState.isPresent() ? JsonFactory.get().serialize( oAuthRequestState.get() ) : "none" )
         );
 
         // make sure it's okay to be processing this request.
@@ -344,7 +344,8 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
 
         final String nextUrl = pwmRequest.getBasePath() + PwmServletDefinition.ForgottenPassword.servletUrl();
         final String redirectUrl = PwmURL.appendAndEncodeUrlParameters( nextUrl, httpParams );
-        LOGGER.debug( pwmRequest, () -> "forgotten password oauth sequence complete, redirecting to forgotten password with result data: " + JsonUtil.serialize( results ) );
+        LOGGER.debug( pwmRequest, () -> "forgotten password oauth sequence complete, redirecting to forgotten password with result data: "
+                + JsonFactory.get().serialize( results ) );
         pwmRequest.getPwmResponse().sendRedirect( redirectUrl );
     }
 }

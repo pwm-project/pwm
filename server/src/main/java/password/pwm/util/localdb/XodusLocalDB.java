@@ -38,7 +38,7 @@ import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.java.ConditionalTaskExecutor;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -161,7 +161,7 @@ public class XodusLocalDB implements LocalDBProvider
 
         readOnly = parameters.containsKey( Parameter.readOnly ) && Boolean.parseBoolean( parameters.get( Parameter.readOnly ) );
 
-        LOGGER.trace( () -> "preparing to open with configuration " + JsonUtil.serializeMap( environmentConfig.getSettings() ) );
+        LOGGER.trace( () -> "preparing to open with configuration " + JsonFactory.get().serializeMap( environmentConfig.getSettings(), String.class, Object.class ) );
         environment = Environments.newInstance( dbDirectory.getAbsolutePath() + File.separator + FILE_SUB_PATH, environmentConfig );
 
         LOGGER.trace( () -> "environment open (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );

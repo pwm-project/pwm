@@ -42,7 +42,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
@@ -322,7 +322,7 @@ public class PwmSession implements Serializable
             return "exception generating PwmSession.toString(): " + e.getMessage();
         }
 
-        return "PwmSession instance: " + JsonUtil.serializeMap( debugData );
+        return "PwmSession instance: " + JsonFactory.get().serializeMap( debugData );
     }
 
     public boolean setLocale( final PwmRequest pwmRequest, final String localeString )

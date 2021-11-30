@@ -25,7 +25,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -62,7 +62,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
                 }
                 else
                 {
-                    Map<String, List<String>> srcMap = JsonUtil.deserialize( input, new TypeToken<Map<String, List<String>>>()
+                    Map<String, List<String>> srcMap = JsonFactory.get().deserialize( input, new TypeToken<Map<String, List<String>>>()
                     {
                     } );
                     srcMap = srcMap == null ? Collections.emptyMap() : new TreeMap<>( srcMap );

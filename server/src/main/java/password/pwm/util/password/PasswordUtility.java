@@ -85,7 +85,7 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -354,7 +354,7 @@ public class PasswordUtility
             final List<ActionConfiguration> actionConfigurations = changePasswordProfile.readSettingAsAction( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES );
             if ( !CollectionUtil.isEmpty( actionConfigurations ) )
             {
-                final LoginInfoBean clonedLoginInfoBean = JsonUtil.cloneUsingJson( pwmSession.getLoginInfoBean(), LoginInfoBean.class );
+                final LoginInfoBean clonedLoginInfoBean = JsonFactory.get().cloneUsingJson( pwmSession.getLoginInfoBean(), LoginInfoBean.class );
                 clonedLoginInfoBean.setUserCurrentPassword( newPassword );
 
                 final MacroRequest macroRequest = MacroRequest.forUser(
@@ -1103,7 +1103,7 @@ public class PasswordUtility
                         else
                         {
                             LOGGER.trace( () -> "cache hit!" );
-                            final ErrorInformation errorInformation = JsonUtil.deserialize( cachedValue, ErrorInformation.class );
+                            final ErrorInformation errorInformation = JsonFactory.get().deserialize( cachedValue, ErrorInformation.class );
                             throw new PwmDataValidationException( errorInformation );
                         }
                     }
@@ -1127,7 +1127,7 @@ public class PasswordUtility
                 pass = false;
                 if ( cacheService != null && cacheKey != null )
                 {
-                    final String jsonPayload = JsonUtil.serialize( e.getErrorInformation() );
+                    final String jsonPayload = JsonFactory.get().serialize( e.getErrorInformation() );
                     cacheService.put( cacheKey, cachePolicy, jsonPayload );
                 }
             }

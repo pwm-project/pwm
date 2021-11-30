@@ -34,7 +34,7 @@ import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -153,7 +153,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         // generate key
         try
         {
-            final String jsonValue = JsonUtil.serialize( this );
+            final String jsonValue = JsonFactory.get().serialize( this );
             final String localValue = CRYPO_HEADER + pwmApplication.getSecureService().encryptToString( jsonValue );
             this.obfuscatedValue = localValue;
             cacheService.put( cacheKey, CachePolicy.makePolicyWithExpiration( TimeDuration.DAY ), localValue );
@@ -167,7 +167,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
 
     public String toDelimitedKey( )
     {
-        return JsonUtil.serialize( this );
+        return JsonFactory.get().serialize( this );
     }
 
     public String toDisplayString( )
@@ -192,7 +192,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         {
             final String input = key.substring( CRYPO_HEADER.length() );
             final String jsonValue = pwmApplication.getSecureService().decryptStringValue( input );
-            return JsonUtil.deserialize( jsonValue, UserIdentity.class );
+            return JsonFactory.get().deserialize( jsonValue, UserIdentity.class );
         }
         catch ( final Exception e )
         {
@@ -207,7 +207,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
 
         try
         {
-            return JsonUtil.deserialize( key, UserIdentity.class );
+            return JsonFactory.get().deserialize( key, UserIdentity.class );
         }
         catch ( final Exception e )
         {

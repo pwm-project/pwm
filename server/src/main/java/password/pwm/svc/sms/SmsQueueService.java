@@ -50,7 +50,7 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -178,7 +178,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
 
             debugOutputMap.put( "to", workItem.getTo() );
 
-            return JsonUtil.serializeMap( debugOutputMap );
+            return JsonFactory.get().serializeMap( debugOutputMap );
         }
     }
 

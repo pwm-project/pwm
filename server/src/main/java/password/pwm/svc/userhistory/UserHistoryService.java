@@ -38,7 +38,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -186,7 +186,8 @@ public class UserHistoryService extends AbstractPwmService implements PwmService
             }
             else
             {
-                LOGGER.trace( sessionLabel, () -> "skipping update of user history, audit record does not have a perpetratorDN: " + JsonUtil.serialize( auditRecord ) );
+                LOGGER.trace( sessionLabel, () -> "skipping update of user history, audit record does not have a perpetratorDN: "
+                        + JsonFactory.get().serialize( auditRecord ) );
             }
         }
 

@@ -50,7 +50,7 @@ import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -181,7 +181,7 @@ public class TelemetryService extends AbstractPwmService implements PwmService
             {
                 final TelemetryPublishBean telemetryPublishBean = generatePublishableBean();
                 sender.publish( telemetryPublishBean );
-                LOGGER.trace( getSessionLabel(), () -> "sent telemetry data: " + JsonUtil.serialize( telemetryPublishBean ) );
+                LOGGER.trace( getSessionLabel(), () -> "sent telemetry data: " + JsonFactory.get().serialize( telemetryPublishBean ) );
             }
             catch ( final PwmException e )
             {

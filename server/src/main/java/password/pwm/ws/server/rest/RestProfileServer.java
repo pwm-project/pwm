@@ -151,7 +151,7 @@ public class RestProfileServer extends RestServlet
         final JsonProfileData outputData = new JsonProfileData();
         outputData.profile = profileData;
         outputData.formDefinition = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
-        final RestResultBean restResultBean = RestResultBean.withData( outputData );
+        final RestResultBean restResultBean = RestResultBean.withData( outputData, JsonProfileData.class );
         StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_PROFILE );
         return restResultBean;
     }

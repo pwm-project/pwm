@@ -104,7 +104,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
 
         if ( action.isPresent() && action.get() == ConfigManagerCertificateAction.certificateData )
         {
-            final RestResultBean restResultBean = RestResultBean.withData( certificateDebugDataItems );
+            final RestResultBean restResultBean = RestResultBean.withData( certificateDebugDataItems, List.class );
             pwmRequest.outputJsonResult( restResultBean );
             return;
         }

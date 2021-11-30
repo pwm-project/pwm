@@ -46,7 +46,7 @@ import password.pwm.util.java.AverageTracker;
 import password.pwm.util.java.BlockingThreadPool;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -536,7 +536,7 @@ public class ReportService extends AbstractPwmService implements PwmService
                         .build() );
                 writeReportStatus();
             }
-            LOGGER.debug( getSessionLabel(), () -> "update user cache process completed: " + JsonUtil.serialize( reportStatus ) );
+            LOGGER.debug( getSessionLabel(), () -> "update user cache process completed: " + JsonFactory.get().serialize( reportStatus ) );
         }
 
 
@@ -660,7 +660,7 @@ public class ReportService extends AbstractPwmService implements PwmService
                 restTime.pause();
 
                 initTempData();
-                LOGGER.debug( getSessionLabel(), () -> "report service initialized: " + JsonUtil.serialize( reportStatus.get() ) );
+                LOGGER.debug( getSessionLabel(), () -> "report service initialized: " + JsonFactory.get().serialize( reportStatus.get() ) );
             }
             catch ( final PwmUnrecoverableException e )
             {

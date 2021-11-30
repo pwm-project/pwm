@@ -57,7 +57,7 @@ import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -162,7 +162,7 @@ public class NewUserServlet extends ControlledPwmServlet
         if ( StringUtil.notEmpty( signedFormData ) )
         {
             final Map<String, String> jsonForm = RestFormSigningServer.readSignedFormValue( pwmDomain, signedFormData );
-            LOGGER.trace( () -> "detected signedForm parameter in request, will read and place in bean; keys=" + JsonUtil.serializeCollection( jsonForm.keySet() ) );
+            LOGGER.trace( () -> "detected signedForm parameter in request, will read and place in bean; keys=" + JsonFactory.get().serializeCollection( jsonForm.keySet() ) );
             newUserBean.setRemoteInputData( jsonForm );
         }
 
@@ -400,7 +400,7 @@ public class NewUserServlet extends ControlledPwmServlet
             final RestCheckPasswordServer.JsonOutput jsonData = RestCheckPasswordServer.JsonOutput.fromPasswordCheckInfo(
                     passwordCheckInfo );
 
-            final RestResultBean restResultBean = RestResultBean.withData( jsonData );
+            final RestResultBean restResultBean = RestResultBean.withData( jsonData, RestCheckPasswordServer.JsonOutput.class );
             pwmRequest.outputJsonResult( restResultBean );
         }
         catch ( final PwmOperationalException e )
@@ -558,7 +558,7 @@ public class NewUserServlet extends ControlledPwmServlet
             return ProcessStatus.Continue;
         }
 
-        LOGGER.debug( pwmRequest, () -> "marking token as passed " + JsonUtil.serialize( tokenDestinationItem ) );
+        LOGGER.debug( pwmRequest, () -> "marking token as passed " + JsonFactory.get().serialize( tokenDestinationItem ) );
         newUserBean.getCompletedTokenFields().add( newUserBean.getCurrentTokenField() );
         newUserBean.setTokenSent( false );
         newUserBean.setCurrentTokenField( null );
@@ -705,9 +705,9 @@ public class NewUserServlet extends ControlledPwmServlet
         outputMap.put( "percentComplete", percentComplete );
         outputMap.put( "complete", complete );
 
-        final RestResultBean restResultBean = RestResultBean.withData( outputMap );
+        final RestResultBean restResultBean = RestResultBean.withData( outputMap, Map.class );
 
-        LOGGER.trace( pwmRequest, () -> "returning result for restCheckProgress: " + JsonUtil.serialize( restResultBean ) );
+        LOGGER.trace( pwmRequest, () -> "returning result for restCheckProgress: " + JsonFactory.get().serialize( restResultBean ) );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }

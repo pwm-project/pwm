@@ -30,7 +30,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -63,7 +63,7 @@ public abstract class AbstractOtpOperator implements OtpOperator
             switch ( format )
             {
                 case PWM:
-                    value = JsonUtil.serialize( otpUserRecord );
+                    value = JsonFactory.get().serialize( otpUserRecord );
                     break;
                 case OTPURL:
                     value = OTPUrlUtil.composeOtpUrl( otpUserRecord );
@@ -133,7 +133,7 @@ public abstract class AbstractOtpOperator implements OtpOperator
         /* - PWM JSON */
         try
         {
-            otpconfig = JsonUtil.deserialize( value, OTPUserRecord.class );
+            otpconfig = JsonFactory.get().deserialize( value, OTPUserRecord.class );
             LOGGER.debug( () -> "detected JSON format - returning" );
             return otpconfig;
         }

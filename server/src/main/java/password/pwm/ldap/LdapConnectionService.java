@@ -20,7 +20,6 @@
 
 package password.pwm.ldap;
 
-import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
@@ -48,7 +47,7 @@ import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -328,7 +327,7 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
     public void setLastLdapFailure( final LdapProfile ldapProfile, final ErrorInformation errorInformation )
     {
         lastLdapErrors.put( ldapProfile.getIdentifier(), errorInformation );
-        final String jsonString = JsonUtil.serializeMap( lastLdapErrors );
+        final String jsonString = JsonFactory.get().serializeMap( lastLdapErrors );
         pwmDomain.getPwmApplication().writeAppAttribute( AppAttribute.LAST_LDAP_ERROR, jsonString );
     }
 
@@ -358,9 +357,7 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
                 lastLdapFailureStr = optionalLastLdapError.get();
                 if ( StringUtil.notEmpty( lastLdapFailureStr ) )
                 {
-                    final Map<String, ErrorInformation> fromJson = JsonUtil.deserialize( lastLdapFailureStr, new TypeToken<Map<String, ErrorInformation>>()
-                    {
-                    } );
+                    final Map<String, ErrorInformation> fromJson = JsonFactory.get().deserializeMap( lastLdapFailureStr, String.class, ErrorInformation.class );
                     final Map<String, ErrorInformation> returnMap = new HashMap<>( fromJson );
                     returnMap.keySet().retainAll( pwmDomain.getConfig().getLdapProfiles().keySet() );
                     return returnMap;

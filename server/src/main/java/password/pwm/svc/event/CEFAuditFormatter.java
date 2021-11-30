@@ -30,7 +30,7 @@ import password.pwm.config.AppConfig;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -96,8 +96,8 @@ public class CEFAuditFormatter implements AuditFormatter
     {
         final AppConfig domainConfig = pwmApplication.getConfig();
         final Settings settings = Settings.fromConfiguration( domainConfig );
-        final String auditRecordAsJson = JsonUtil.serialize( auditRecord );
-        final Map<String, Object> auditRecordMap = JsonUtil.deserializeMap( auditRecordAsJson );
+        final String auditRecordAsJson = JsonFactory.get().serialize( auditRecord );
+        final Map<String, Object> auditRecordMap = JsonFactory.get().deserializeMap( auditRecordAsJson );
 
         final Optional<String> srcHost = PwmApplication.deriveLocalServerHostname( pwmApplication.getConfig() );
 

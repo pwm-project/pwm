@@ -25,7 +25,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.Value;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.logging.PwmLogger;
 
@@ -56,7 +56,7 @@ class MemoryCacheStore implements CacheStore
             throws PwmUnrecoverableException
     {
         cacheStoreInfo.increment( DebugKey.storeCount );
-        final String jsonData = JsonUtil.serialize( data );
+        final String jsonData = JsonFactory.get().serialize( data );
         memoryStore.put( cacheKey, new CacheValueWrapper( cacheKey, expirationDate, jsonData ) );
     }
 
@@ -75,7 +75,7 @@ class MemoryCacheStore implements CacheStore
         }
 
         final T data = cacheLoader.read();
-        final String jsonIfiedData = JsonUtil.serialize( data );
+        final String jsonIfiedData = JsonFactory.get().serialize( data );
         cacheStoreInfo.increment( DebugKey.missCount );
         memoryStore.put( cacheKey, new CacheValueWrapper( cacheKey, expirationDate, jsonIfiedData ) );
         return data;
@@ -91,7 +91,7 @@ class MemoryCacheStore implements CacheStore
                 {
                     cacheStoreInfo.increment( DebugKey.hitCount );
                     final String jsonValue  = valueWrapper.getPayload();
-                    return JsonUtil.deserialize( jsonValue, classOfT );
+                    return JsonFactory.get().deserialize( jsonValue, classOfT );
                 }
             }
         }

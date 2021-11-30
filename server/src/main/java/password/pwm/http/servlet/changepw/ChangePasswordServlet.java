@@ -56,9 +56,9 @@ import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
@@ -352,8 +352,10 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             );
             passwordChangeProgress = checker.figureProgress( progressTracker );
         }
-        final RestResultBean restResultBean = RestResultBean.withData( passwordChangeProgress );
-        LOGGER.trace( pwmRequest, () -> "returning result for restCheckProgress: " + JsonUtil.serialize( restResultBean ) );
+        final RestResultBean<PasswordChangeProgressChecker.PasswordChangeProgress> restResultBean = RestResultBean.withData(
+                passwordChangeProgress,
+                PasswordChangeProgressChecker.PasswordChangeProgress.class );
+        LOGGER.trace( pwmRequest, () -> "returning result for restCheckProgress: " + JsonFactory.get().serialize( restResultBean ) );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -422,7 +424,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     private ProcessStatus processCheckPasswordAction( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final RestCheckPasswordServer.JsonInput jsonInput = JsonUtil.deserialize(
+        final RestCheckPasswordServer.JsonInput jsonInput = JsonFactory.get().deserialize(
                 pwmRequest.readRequestBodyAsString(),
                 RestCheckPasswordServer.JsonInput.class
         );
@@ -440,7 +442,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
         final RestCheckPasswordServer.JsonOutput checkResult = RestCheckPasswordServer.JsonOutput.fromPasswordCheckInfo( passwordCheckInfo );
 
-        final RestResultBean restResultBean = RestResultBean.withData( checkResult );
+        final RestResultBean restResultBean = RestResultBean.withData( checkResult, RestCheckPasswordServer.JsonOutput.class );
         pwmRequest.outputJsonResult( restResultBean );
 
         return ProcessStatus.Halt;
@@ -456,7 +458,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
         final RestRandomPasswordServer.JsonOutput jsonOutput = new RestRandomPasswordServer.JsonOutput();
         jsonOutput.setPassword( passwordData.getStringValue() );
-        final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
+        final RestResultBean<RestRandomPasswordServer.JsonOutput> restResultBean = RestResultBean.withData( jsonOutput, RestRandomPasswordServer.JsonOutput.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }

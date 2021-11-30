@@ -32,7 +32,7 @@ import password.pwm.util.ServletUtility;
 import password.pwm.util.Validator;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 
 import javax.servlet.http.Cookie;
@@ -112,7 +112,7 @@ public class PwmHttpRequestWrapper
     {
         final boolean bypassInputValidation = flags != null && Arrays.asList( flags ).contains( Flag.BypassValidation );
         final String bodyString = readRequestBodyAsString();
-        final Map<String, String> inputMap = JsonUtil.deserializeStringMap( bodyString );
+        final Map<String, String> inputMap = JsonFactory.get().deserializeStringMap( bodyString );
 
         final boolean trim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_TRIM ) );
         final boolean passwordTrim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_PASSWORD_TRIM ) );
@@ -148,7 +148,7 @@ public class PwmHttpRequestWrapper
     {
         final boolean bypassInputValidation = flags != null && Arrays.asList( flags ).contains( Flag.BypassValidation );
         final String bodyString = readRequestBodyAsString();
-        final Map<String, Object> inputMap = JsonUtil.deserializeMap( bodyString );
+        final Map<String, Object> inputMap = JsonFactory.get().deserializeMap( bodyString );
 
         final boolean trim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_TRIM ) );
         final boolean passwordTrim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_PASSWORD_TRIM ) );
@@ -538,7 +538,7 @@ public class PwmHttpRequestWrapper
         final String json = readRequestBodyAsString();
         try
         {
-            return JsonUtil.deserialize( json, classOfT );
+            return JsonFactory.get().deserialize( json, classOfT );
         }
         catch ( final Exception e )
         {

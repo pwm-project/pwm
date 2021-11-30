@@ -30,7 +30,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -290,7 +290,7 @@ public class PwmEnvironment
 
             try
             {
-                final List<String> jsonValues = JsonUtil.deserializeStringList( input );
+                final List<String> jsonValues = JsonFactory.get().deserializeStringList( input );
                 final Set<ApplicationFlag> returnFlags = CollectionUtil.readEnumSetFromStringCollection( ApplicationFlag.class, jsonValues );
                 return Collections.unmodifiableSet( returnFlags );
             }

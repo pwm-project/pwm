@@ -22,7 +22,7 @@ package password.pwm.bean;
 
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 
 import java.io.Serializable;
 
@@ -38,7 +38,7 @@ public class PasswordStatus implements Serializable
     @Override
     public String toString( )
     {
-        return JsonUtil.serialize( this );
+        return JsonFactory.get().serialize( this );
     }
 
     public boolean isEffectivelyExpired( )

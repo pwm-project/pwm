@@ -20,14 +20,13 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -63,9 +62,7 @@ public class FormValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    List<FormConfiguration> srcList = JsonUtil.deserialize( input, new TypeToken<List<FormConfiguration>>()
-                    {
-                    } );
+                    List<FormConfiguration> srcList = JsonFactory.get().deserializeList( input, FormConfiguration.class );
                     srcList = srcList == null ? Collections.emptyList() : srcList;
                     while ( srcList.contains( null ) )
                     {
@@ -94,7 +91,7 @@ public class FormValue extends AbstractValue implements StoredValue
                         }
                         else
                         {
-                            values.add( JsonUtil.deserialize( value.get(), FormConfiguration.class ) );
+                            values.add( JsonFactory.get().deserialize( value.get(), FormConfiguration.class ) );
                         }
                     }
                 }
@@ -110,7 +107,7 @@ public class FormValue extends AbstractValue implements StoredValue
         for ( final FormConfiguration value : values )
         {
             final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-            valueElement.addText( JsonUtil.serialize( value ) );
+            valueElement.addText( JsonFactory.get().serialize( value ) );
             returnList.add( valueElement );
         }
         return returnList;
@@ -177,16 +174,16 @@ public class FormValue extends AbstractValue implements StoredValue
                 sb.append( " Multi-Value:" ).append( formRow.isMultivalue() );
                 sb.append( " Source:" ).append( formRow.getSource() );
                 sb.append( "\n" );
-                sb.append( " Label:" ).append( JsonUtil.serializeStringMap( formRow.getLabels() ) ).append( "\n" );
-                sb.append( " Description:" ).append( JsonUtil.serializeStringMap( formRow.getDescription() ) ).append( "\n" );
+                sb.append( " Label:" ).append( JsonFactory.get().serializeStringMap( formRow.getLabels() ) ).append( "\n" );
+                sb.append( " Description:" ).append( JsonFactory.get().serializeStringMap( formRow.getDescription() ) ).append( "\n" );
                 if ( formRow.getType() == FormConfiguration.Type.select && CollectionUtil.isEmpty( formRow.getSelectOptions() ) )
                 {
-                    sb.append( " Select Options: " ).append( JsonUtil.serializeStringMap( formRow.getSelectOptions() ) ).append( "\n" );
+                    sb.append( " Select Options: " ).append( JsonFactory.get().serializeStringMap( formRow.getSelectOptions() ) ).append( "\n" );
                 }
                 if ( StringUtil.notEmpty( formRow.getRegex() ) )
                 {
                     sb.append( " Regex:" ).append( formRow.getRegex() )
-                            .append( " Regex Error:" ).append( JsonUtil.serializeStringMap( formRow.getRegexErrors() ) );
+                            .append( " Regex Error:" ).append( JsonFactory.get().serializeStringMap( formRow.getRegexErrors() ) );
                 }
                 if ( formRow.getType() == FormConfiguration.Type.photo )
                 {

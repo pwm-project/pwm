@@ -35,7 +35,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.cli.CliParameters;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.ws.server.rest.RestChallengesServer;
 
@@ -65,7 +65,7 @@ public class ImportResponsesCommand extends AbstractCliCommand
             {
                 counter++;
                 final RestChallengesServer.JsonChallengesData inputData;
-                inputData = JsonUtil.deserialize( line, RestChallengesServer.JsonChallengesData.class );
+                inputData = JsonFactory.get().deserialize( line, RestChallengesServer.JsonChallengesData.class );
 
                 final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( SessionLabel.CLI_SESSION_LABEL, inputData.username );
                 final PwmDomain pwmDomain = figureDomain( userIdentity, pwmApplication );

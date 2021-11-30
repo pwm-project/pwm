@@ -168,14 +168,14 @@ public class PwmSettingMetaDataReader
     }
 
     /**
-     * Not required for normal operation, but executing this gets all the enum values poopulated form XML source.  If run prior to users accessing the settings
+     * Not required for normal operation, but executing this gets all the enum values populated form XML source.  If run prior to users accessing the settings
      * module (particularly the config editor) it will increase the initial load performance significantly.  There are no side effects to calling this operation
      * other than cache population.
      */
     public static void initCache()
     {
         final Instant startTime = Instant.now();
-        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        for ( final PwmSetting pwmSetting : EnumSet.allOf( PwmSetting.class ) )
         {
             pwmSetting.getProperties();
             pwmSetting.getFlags();
@@ -190,7 +190,7 @@ public class PwmSettingMetaDataReader
             pwmSetting.getLDAPPermissionInfo();
             pwmSetting.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
         }
-        for ( final PwmSettingCategory pwmSettingCategory : PwmSettingCategory.values() )
+        for ( final PwmSettingCategory pwmSettingCategory : EnumSet.allOf( PwmSettingCategory.class ) )
         {
             pwmSettingCategory.getLabel( PwmConstants.DEFAULT_LOCALE );
             pwmSettingCategory.getDescription( PwmConstants.DEFAULT_LOCALE );

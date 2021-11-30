@@ -63,7 +63,8 @@ import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonProvider;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.LocalDBLogger;
@@ -377,11 +378,11 @@ public class AdminServlet extends ControlledPwmServlet
     private ProcessStatus processReportStatus( final PwmRequest pwmRequest )
             throws IOException
     {
-        final ReportStatusBean returnMap = ReportStatusBean.makeReportStatusData(
+        final ReportStatusBean reportStatusBean = ReportStatusBean.makeReportStatusData(
                 pwmRequest.getPwmApplication().getReportService(),
                 pwmRequest.getPwmSession().getSessionStateBean().getLocale()
         );
-        final RestResultBean restResultBean = RestResultBean.withData( returnMap );
+        final RestResultBean restResultBean = RestResultBean.withData( reportStatusBean, ReportStatusBean.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -397,7 +398,7 @@ public class AdminServlet extends ControlledPwmServlet
                 pwmRequest.getPwmSession().getSessionStateBean().getLocale()
         ) );
 
-        final RestResultBean restResultBean = RestResultBean.withData( returnMap );
+        final RestResultBean restResultBean = RestResultBean.withData( returnMap, Map.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -423,10 +424,10 @@ public class AdminServlet extends ControlledPwmServlet
             }
         }
 
-        final HashMap<String, Object> returnData = new HashMap<>();
+        final Map<String, Object> returnData = new HashMap<>();
         returnData.put( "users", reportData );
 
-        final RestResultBean restResultBean = RestResultBean.withData( returnData );
+        final RestResultBean restResultBean = RestResultBean.withData( returnData, Map.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -451,7 +452,7 @@ public class AdminServlet extends ControlledPwmServlet
                     pwmRequest.getLabel(),
                     userIdentity
             );
-            final String output = JsonUtil.serialize( userDebugData, JsonUtil.Flag.PrettyPrint );
+            final String output = JsonFactory.get().serialize( userDebugData, JsonProvider.Flag.PrettyPrint );
             pwmRequest.getPwmResponse().getOutputStream().write( output.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
         else
@@ -488,7 +489,7 @@ public class AdminServlet extends ControlledPwmServlet
 
         final HashMap<String, Object> resultData = new HashMap<>( Collections.singletonMap( "records", records ) );
 
-        final RestResultBean restResultBean = RestResultBean.withData( resultData );
+        final RestResultBean restResultBean = RestResultBean.withData( resultData, Map.class );
         LOGGER.debug( pwmRequest, () -> "output " + records.size() + " audit records." );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
@@ -500,7 +501,7 @@ public class AdminServlet extends ControlledPwmServlet
     {
         final int max = readMaxParameter( pwmRequest, 1000, 10 * 1000 );
 
-        final ArrayList<SessionStateInfoBean> gridData = new ArrayList<>();
+        final List<SessionStateInfoBean> gridData = new ArrayList<>();
         int counter = 0;
         final Iterator<SessionStateInfoBean> infos = pwmRequest.getPwmDomain().getSessionTrackService().getSessionInfoIterator();
         while ( counter < max && infos.hasNext() )
@@ -508,7 +509,7 @@ public class AdminServlet extends ControlledPwmServlet
             gridData.add( infos.next() );
             counter++;
         }
-        final RestResultBean restResultBean = RestResultBean.withData( gridData );
+        final RestResultBean restResultBean = RestResultBean.withData( gridData, List.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -534,7 +535,7 @@ public class AdminServlet extends ControlledPwmServlet
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInfo ) );
         }
 
-        final RestResultBean restResultBean = RestResultBean.withData( returnData );
+        final RestResultBean restResultBean = RestResultBean.withData( returnData, Map.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -686,7 +687,9 @@ public class AdminServlet extends ControlledPwmServlet
             final DisplayElement displayElement = new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string, "Status",
                     "Password Notification Feature is not enabled.  See setting: "
                             + PwmSetting.PW_EXPY_NOTIFY_ENABLE.toMenuLocationDebug( null, pwmRequest.getLocale() ) );
-            pwmRequest.outputJsonResult( RestResultBean.withData( new PwNotifyStatusBean( Collections.singletonList( displayElement ), false ) ) );
+            pwmRequest.outputJsonResult( RestResultBean.withData(
+                    new PwNotifyStatusBean( Collections.singletonList( displayElement ), false ),
+                    PwNotifyStatusBean.class ) );
             return ProcessStatus.Halt;
         }
 
@@ -738,7 +741,7 @@ public class AdminServlet extends ControlledPwmServlet
 
         final boolean startButtonEnabled = !pwNotifyService.isRunning() && canRunOnthisServer;
         final PwNotifyStatusBean pwNotifyStatusBean = new PwNotifyStatusBean( statusData, startButtonEnabled );
-        pwmRequest.outputJsonResult( RestResultBean.withData( pwNotifyStatusBean ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( pwNotifyStatusBean, PwNotifyStatusBean.class ) );
         return ProcessStatus.Halt;
     }
 
@@ -748,7 +751,7 @@ public class AdminServlet extends ControlledPwmServlet
     {
         final PwNotifyService pwNotifyService = pwmRequest.getPwmDomain().getPwNotifyService();
 
-        pwmRequest.outputJsonResult( RestResultBean.withData( pwNotifyService.debugLog() ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( pwNotifyService.debugLog(), String.class ) );
         return ProcessStatus.Halt;
     }
 
@@ -817,7 +820,7 @@ public class AdminServlet extends ControlledPwmServlet
         returnData.put( "display", logDisplayType );
         returnData.put( "size", searchResults.getReturnedEvents() );
         returnData.put( "duration", searchResults.getSearchTime() );
-        pwmRequest.outputJsonResult( RestResultBean.withData( returnData ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( returnData, Map.class ) );
 
         return ProcessStatus.Halt;
     }

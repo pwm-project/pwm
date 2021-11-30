@@ -25,7 +25,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -212,8 +212,8 @@ public class PrivateKeyValue extends AbstractValue
     {
         if ( privateKeyCertificate != null )
         {
-            return "PrivateKeyCertificate: key=" + JsonUtil.serializeMap( X509Utils.makeDebugInfoMap( privateKeyCertificate.getKey() ) )
-                    + ", certificates=" + JsonUtil.serializeCollection( X509Utils.makeDebugInfoMap( privateKeyCertificate.getCertificates() ) );
+            return "PrivateKeyCertificate: key=" + JsonFactory.get().serializeMap( X509Utils.makeDebugInfoMap( privateKeyCertificate.getKey() ) )
+                    + ", certificates=" + JsonFactory.get().serializeCollection( X509Utils.makeDebugInfoMap( privateKeyCertificate.getCertificates() ) );
         }
         return "";
     }

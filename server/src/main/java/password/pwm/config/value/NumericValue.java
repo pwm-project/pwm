@@ -24,7 +24,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingProperty;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -49,7 +49,7 @@ public class NumericValue extends AbstractValue implements StoredValue
             @Override
             public NumericValue fromJson( final String value )
             {
-                return new NumericValue( JsonUtil.deserialize( value, Long.class ) );
+                return new NumericValue( JsonFactory.get().deserialize( value, Long.class ) );
             }
 
             @Override

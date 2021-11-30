@@ -23,7 +23,8 @@ package password.pwm.util.debug;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonProvider;
+import password.pwm.util.json.JsonFactory;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -44,7 +45,7 @@ class RootFileSystemDebugItemGenerator implements AppItemGenerator
     public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
     {
         final Collection<RootFileSystemInfo> rootInfos = RootFileSystemInfo.forAllRootFileSystems();
-        outputStream.write( JsonUtil.serializeCollection( rootInfos, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        outputStream.write( JsonFactory.get().serializeCollection( rootInfos, JsonProvider.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }
 
     @Value

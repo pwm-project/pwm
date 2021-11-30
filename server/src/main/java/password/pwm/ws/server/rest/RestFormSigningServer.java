@@ -34,7 +34,7 @@ import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.svc.secure.DomainSecureService;
@@ -102,9 +102,9 @@ public class RestFormSigningServer extends RestServlet
                 final String signedValue = securityService.encryptObjectToString( signedFormData );
                 StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_SIGNING_FORM );
                 LOGGER.trace( () -> "processed request signing form for form with keys '"
-                        + JsonUtil.serializeCollection( inputFormData.keySet() )
+                        + JsonFactory.get().serializeCollection( inputFormData.keySet() )
                         + "' and timestamp " + signedFormData.getTimestamp().toString() );
-                return RestResultBean.withData( signedValue );
+                return RestResultBean.withData( signedValue, String.class );
             }
 
             throw PwmUnrecoverableException.newException( PwmError.ERROR_MISSING_PARAMETER, "unable to read form data for request" );

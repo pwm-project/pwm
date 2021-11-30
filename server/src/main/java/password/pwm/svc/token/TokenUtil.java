@@ -37,7 +37,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -94,7 +94,7 @@ public class TokenUtil
             effectiveItems.add( effectiveItem );
         }
 
-        LOGGER.trace( sessionLabel, () -> "calculated available token send destinations: " + JsonUtil.serializeCollection( effectiveItems ) );
+        LOGGER.trace( sessionLabel, () -> "calculated available token send destinations: " + JsonFactory.get().serializeCollection( effectiveItems ) );
 
         if ( tokenDestinations.isEmpty() )
         {

@@ -71,7 +71,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -437,7 +437,7 @@ class NewUserUtils
 
         final int attemptCountFinal = attemptCount;
         NewUserUtils.LOGGER.error( pwmRequest,
-                () -> "failed to generate new user DN after " + attemptCountFinal + " attempts, failed values: " + JsonUtil.serializeCollection(
+                () -> "failed to generate new user DN after " + attemptCountFinal + " attempts, failed values: " + JsonFactory.get().serializeCollection(
                         failedValues ) );
         throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE,
                 "unable to generate a unique DN value" ) );

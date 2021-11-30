@@ -30,7 +30,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.BufferedOutputStream;
@@ -63,7 +63,7 @@ public class JDBCDriverLoader
             throws DatabaseException
     {
         final Set<ClassLoaderStrategy> strategies = dbConfiguration.getClassLoaderStrategies();
-        LOGGER.trace( () -> "attempting to load jdbc driver using strategies: " + JsonUtil.serializeCollection( strategies ) );
+        LOGGER.trace( () -> "attempting to load jdbc driver using strategies: " + JsonFactory.get().serializeCollection( strategies ) );
         final List<String> errorMsgs = new ArrayList<>();
         for ( final ClassLoaderStrategy strategy : strategies )
         {
@@ -81,7 +81,7 @@ public class JDBCDriverLoader
                 errorMsgs.add( strategy + " error: " + e.getMessage() );
             }
         }
-        final String errorMsg = " unable to load database driver: " + JsonUtil.serializeCollection( errorMsgs );
+        final String errorMsg = " unable to load database driver: " + JsonFactory.get().serializeCollection( errorMsgs );
         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
         LOGGER.error( () -> errorMsg );
         throw new DatabaseException( errorInformation );

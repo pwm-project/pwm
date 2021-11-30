@@ -20,7 +20,6 @@
 
 package password.pwm.http.servlet.configguide;
 
-import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -68,7 +67,7 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaOperationResult;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
@@ -336,7 +335,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 .timestamp( Instant.now() )
                 .overall( HealthUtils.getMostSevereHealthStatus( records ).toString() )
                 .build();
-        final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
+        final RestResultBean restResultBean = RestResultBean.withData( jsonOutput, PublicHealthData.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -373,9 +372,9 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
         LOGGER.trace( pwmRequest, () -> "performed ldapBrowse operation in "
                 + TimeDuration.compactFromCurrent( startTime )
-                + ", result=" + JsonUtil.serialize( result ) );
+                + ", result=" + JsonFactory.get().serialize( result ) );
 
-        pwmRequest.outputJsonResult( RestResultBean.withData( result ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( result, LdapBrowser.LdapBrowseResult.class ) );
 
         return ProcessStatus.Halt;
     }
@@ -389,9 +388,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
 
         final String bodyString = pwmRequest.readRequestBodyAsString();
-        final Map<ConfigGuideFormField, String> incomingFormData = JsonUtil.deserialize( bodyString, new TypeToken<Map<ConfigGuideFormField, String>>()
-        {
-        } );
+        final Map<ConfigGuideFormField, String> incomingFormData = JsonFactory.get().deserializeMap( bodyString, ConfigGuideFormField.class, String.class );
 
         if ( incomingFormData != null )
         {
@@ -472,7 +469,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             }
             final HashMap<String, String> resultData = new HashMap<>();
             resultData.put( "serverRestart", "true" );
-            pwmRequest.outputJsonResult( RestResultBean.withData( resultData ) );
+            pwmRequest.outputJsonResult( RestResultBean.withData( resultData, Map.class ) );
             pwmRequest.invalidateSession();
         }
         else
@@ -498,7 +495,9 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         try
         {
             final SchemaOperationResult schemaOperationResult = ConfigGuideUtils.extendSchema( pwmRequest.getPwmDomain(), configGuideBean, true );
-            pwmRequest.outputJsonResult( RestResultBean.withData( schemaOperationResult.getOperationLog() ) );
+            pwmRequest.outputJsonResult( RestResultBean.withData(
+                    schemaOperationResult.getOperationLog(),
+                    String.class ) );
         }
         catch ( final Exception e )
         {
@@ -578,7 +577,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         returnMap.put( "syntax", pwmSetting.getSyntax().toString() );
 
         returnMap.put( "value", returnValue );
-        pwmRequest.outputJsonResult( RestResultBean.withData( returnMap ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( returnMap, Map.class ) );
 
         return ProcessStatus.Halt;
     }
@@ -611,7 +610,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             if ( pwmSetting == PwmSetting.CHALLENGE_RANDOM_CHALLENGES )
             {
-                configGuideBean.getFormData().put( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA, JsonUtil.serialize( (Serializable) storedValue.toNativeObject() ) );
+                configGuideBean.getFormData().put( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA, JsonFactory.get().serialize( (Serializable) storedValue.toNativeObject() ) );
             }
         }
         catch ( final Exception e )
@@ -624,7 +623,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         returnMap.put( "category", pwmSetting.getCategory().toString() );
         returnMap.put( "syntax", pwmSetting.getSyntax().toString() );
         returnMap.put( "isDefault", StoredConfigurationUtil.isDefaultValue( storedConfiguration, key ) );
-        pwmRequest.outputJsonResult( RestResultBean.withData( returnMap ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( returnMap, Map.class ) );
 
 
         return ProcessStatus.Halt;
@@ -645,7 +644,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 NavTreeSettings.forBasic()
         );
 
-        final RestResultBean restResultBean = RestResultBean.withData( settingData );
+        final RestResultBean restResultBean = RestResultBean.withData( settingData, SettingData.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }

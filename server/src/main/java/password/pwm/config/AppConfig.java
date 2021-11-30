@@ -47,6 +47,7 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -166,7 +167,7 @@ public class AppConfig implements SettingReader
     public Map<AppProperty, String> readAllNonDefaultAppProperties( )
     {
         final LinkedHashMap<AppProperty, String> nonDefaultProperties = new LinkedHashMap<>();
-        for ( final AppProperty loopProperty : AppProperty.values() )
+        for ( final AppProperty loopProperty : EnumSet.allOf( AppProperty.class ) )
         {
             final String configuredValue = readAppProperty( loopProperty );
             final String defaultValue = loopProperty.getDefaultValue();

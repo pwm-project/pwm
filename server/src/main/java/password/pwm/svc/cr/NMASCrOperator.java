@@ -78,7 +78,7 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -1024,7 +1024,7 @@ public class NMASCrOperator implements CrOperator
             debugInfo.put( "loginResultReady", Boolean.toString( this.loginResultReady ) );
             debugInfo.put( "idleTime", TimeDuration.fromCurrent( this.getLastActivityTimestamp() ).asCompactString() );
 
-            return "NMASSessionThread: " + JsonUtil.serialize( debugInfo );
+            return "NMASSessionThread: " + JsonFactory.get().serialize( debugInfo );
         }
     }
 

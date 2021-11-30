@@ -38,7 +38,7 @@ import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -102,7 +102,7 @@ public class RestFormDataClient
             httpHeaders.putAll( configuredHeaders );
         }
 
-        final String jsonRequestBody = JsonUtil.serialize( formDataRequestBean );
+        final String jsonRequestBody = JsonFactory.get().serialize( formDataRequestBean );
 
         final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder()
                 .method( HttpMethod.POST )
@@ -123,7 +123,7 @@ public class RestFormDataClient
                 LOGGER.error( () -> errorMsg );
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_UNREACHABLE, errorMsg ) );
             }
-            final FormDataResponseBean formDataResponseBean = JsonUtil.deserialize( responseBody, FormDataResponseBean.class );
+            final FormDataResponseBean formDataResponseBean = JsonFactory.get().deserialize( responseBody, FormDataResponseBean.class );
             return formDataResponseBean;
         }
         catch ( final PwmUnrecoverableException e )

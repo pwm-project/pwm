@@ -69,7 +69,7 @@ import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -248,8 +248,9 @@ public class PwmApplication
         installTime = fetchInstallDate( startupTime );
         LOGGER.debug( () -> "this application instance first installed on " + JavaHelper.toIsoDate( installTime ) );
 
-        LOGGER.debug( () -> "application environment flags: " + JsonUtil.serializeCollection( pwmEnvironment.getFlags() ) );
-        LOGGER.debug( () -> "application environment parameters: " + JsonUtil.serializeMap( pwmEnvironment.getParameters() ) );
+        LOGGER.debug( () -> "application environment flags: " + JsonFactory.get().serializeCollection( pwmEnvironment.getFlags() ) );
+        LOGGER.debug( () -> "application environment parameters: "
+                + JsonFactory.get().serializeMap( pwmEnvironment.getParameters(), PwmEnvironment.ApplicationParameter.class, String.class ) );
 
         pwmScheduler = new PwmScheduler( this );
 
@@ -319,7 +320,7 @@ public class PwmApplication
         try
         {
             final Map<PwmAboutProperty, String> infoMap = PwmAboutProperty.makeInfoBean( this );
-            LOGGER.trace( () ->  "application info: " + JsonUtil.serializeMap( infoMap ) );
+            LOGGER.trace( () ->  "application info: " + JsonFactory.get().serializeMap( infoMap, PwmAboutProperty.class, String.class ) );
         }
         catch ( final Exception e )
         {
@@ -661,7 +662,7 @@ public class PwmApplication
             final Optional<String> strValue = localDB.get( LocalDB.DB.PWM_META, appAttribute.getKey() );
             if ( strValue.isPresent() )
             {
-                return Optional.of( JsonUtil.deserialize( strValue.get(), returnClass ) );
+                return Optional.of( JsonFactory.get().deserialize( strValue.get(), returnClass ) );
             }
         }
         catch ( final Exception e )
@@ -694,7 +695,7 @@ public class PwmApplication
             }
             else
             {
-                final String jsonValue = JsonUtil.serialize( value );
+                final String jsonValue = JsonFactory.get().serialize( value );
                 localDB.put( LocalDB.DB.PWM_META, appAttribute.getKey(), jsonValue );
             }
         }

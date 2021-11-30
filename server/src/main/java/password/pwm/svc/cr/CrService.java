@@ -60,7 +60,7 @@ import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -172,7 +172,7 @@ public class CrService extends AbstractPwmService implements PwmService
 
                         LOGGER.debug( sessionLabel, () -> "using ldap c/r policy for user " + theUser.getEntryDN() + ": "
                                 + finalReturnSet.toString() );
-                        LOGGER.trace( sessionLabel, () -> "readUserChallengeProfile completed, result=" + JsonUtil.serialize( challengeProfile ),
+                        LOGGER.trace( sessionLabel, () -> "readUserChallengeProfile completed, result=" + JsonFactory.get().serialize( challengeProfile ),
                                 () -> TimeDuration.fromCurrent( methodStartTime ) );
 
                         return challengeProfile;
@@ -414,7 +414,7 @@ public class CrService extends AbstractPwmService implements PwmService
         final List<DataStorageMethod> readPreferences = config.getCrReadPreference();
 
         final String debugMsg = "will attempt to read the following storage methods: "
-                + JsonUtil.serializeCollection( readPreferences ) + " for response info for user " + theUser.getEntryDN();
+                + JsonFactory.get().serializeCollection( readPreferences ) + " for response info for user " + theUser.getEntryDN();
         LOGGER.debug( sessionLabel, () -> debugMsg );
 
         final String userGUID;
@@ -463,7 +463,7 @@ public class CrService extends AbstractPwmService implements PwmService
         final List<DataStorageMethod> readPreferences = config.getCrReadPreference();
 
         LOGGER.debug( sessionLabel, () -> "will attempt to read the following storage methods: "
-                + JsonUtil.serializeCollection( readPreferences ) + " for user " + theUser.getEntryDN() );
+                + JsonFactory.get().serializeCollection( readPreferences ) + " for user " + theUser.getEntryDN() );
 
         final String userGUID;
         if ( readPreferences.contains( DataStorageMethod.DB ) || readPreferences.contains( DataStorageMethod.LOCALDB ) )
@@ -513,7 +513,7 @@ public class CrService extends AbstractPwmService implements PwmService
         final List<DataStorageMethod> writeMethods = pwmDomain.getConfig().getCrWritePreference( );
 
         LOGGER.debug( sessionLabel, () -> "will attempt to write the following storage methods: "
-                + JsonUtil.serializeCollection( writeMethods ) + " for user " + theUser.getEntryDN() );
+                + JsonFactory.get().serializeCollection( writeMethods ) + " for user " + theUser.getEntryDN() );
 
 
         for ( final DataStorageMethod loopWriteMethod : writeMethods )
@@ -544,7 +544,7 @@ public class CrService extends AbstractPwmService implements PwmService
         if ( successes == 0 )
         {
             final String errorMsg = "response storage unsuccessful; attempts=" + attempts + ", successes=" + successes
-                    + ", detail=" + JsonUtil.serializeMap( errorMessages );
+                    + ", detail=" + JsonFactory.get().serializeMap( errorMessages, DataStorageMethod.class, String.class );
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, errorMsg );
             throw new PwmOperationalException( errorInfo );
         }
@@ -552,7 +552,7 @@ public class CrService extends AbstractPwmService implements PwmService
         if ( attempts != successes )
         {
             final String errorMsg = "response storage only partially successful; attempts=" + attempts + ", successes=" + successes
-                    + ", detail=" + JsonUtil.serializeMap( errorMessages );
+                    + ", detail=" + JsonFactory.get().serializeMap( errorMessages, DataStorageMethod.class, String.class );
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, errorMsg );
             throw new PwmOperationalException( errorInfo );
         }
@@ -574,7 +574,7 @@ public class CrService extends AbstractPwmService implements PwmService
         final List<DataStorageMethod> writeMethods = pwmDomain.getConfig().getCrWritePreference();
 
         LOGGER.debug( sessionLabel, () -> "will attempt to clear the following storage methods: "
-                + JsonUtil.serializeCollection( writeMethods ) + " for user " + theUser.getEntryDN()
+                + JsonFactory.get().serializeCollection( writeMethods ) + " for user " + theUser.getEntryDN()
                 + theUser.getEntryDN() + " guid=" + userGUID );
 
         for ( final DataStorageMethod loopWriteMethod : writeMethods )

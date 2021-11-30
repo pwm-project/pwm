@@ -53,7 +53,7 @@ import password.pwm.util.DataStore;
 import password.pwm.util.DataStoreFactory;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -308,7 +308,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
             final Map<String, Object> messageObj = new LinkedHashMap<>();
             messageObj.put( "type", recordType );
             messageObj.put( "subject", subject );
-            final String message = JsonUtil.serializeMap( messageObj );
+            final String message = JsonFactory.get().serializeMap( messageObj );
             AuditServiceClient.submitSystemEvent( pwmDomain.getPwmApplication(), sessionLabel, AuditEvent.INTRUDER_ATTEMPT, message );
 
             final SystemAuditRecord auditRecord = AuditRecordFactory.make( sessionLabel, pwmDomain ).createSystemAuditRecord( AuditEvent.INTRUDER_ATTEMPT, message );
@@ -340,7 +340,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
                     final Map<String, Object> messageObj = new LinkedHashMap<>();
                     messageObj.put( "type", recordType );
                     messageObj.put( "subject", subject );
-                    final String message = JsonUtil.serializeMap( messageObj );
+                    final String message = JsonFactory.get().serializeMap( messageObj );
                     AuditServiceClient.submitSystemEvent( pwmDomain.getPwmApplication(), sessionLabel, AuditEvent.INTRUDER_LOCK, message );
                 }
 
@@ -373,7 +373,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
 
             {
                 final long finalDelay = delayPenalty;
-                LOGGER.trace( sessionLabel, () -> "delaying response " + finalDelay + "ms due to intruder record: " + JsonUtil.serialize( intruderRecord ) );
+                LOGGER.trace( sessionLabel, () -> "delaying response " + finalDelay + "ms due to intruder record: " + JsonFactory.get().serialize( intruderRecord ) );
             }
 
             TimeDuration.of( delayPenalty, TimeDuration.Unit.MILLISECONDS ).pause();

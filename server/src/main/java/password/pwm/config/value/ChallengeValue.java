@@ -29,7 +29,7 @@ import password.pwm.config.value.data.ChallengeItemConfiguration;
 import password.pwm.util.i18n.LocaleComparators;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
@@ -81,7 +81,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    Map<String, List<ChallengeItemConfiguration>> srcMap = JsonUtil.deserialize( input,
+                    Map<String, List<ChallengeItemConfiguration>> srcMap = JsonFactory.get().deserialize( input,
                             new TypeToken<Map<String, List<ChallengeItemConfiguration>>>()
                             {
                             }
@@ -114,7 +114,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
                         }
                         else
                         {
-                            challengeItemBean = JsonUtil.deserialize( value, ChallengeItemConfiguration.class );
+                            challengeItemBean = JsonFactory.get().deserialize( value, ChallengeItemConfiguration.class );
                         }
                         if ( challengeItemBean != null )
                         {
@@ -141,7 +141,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
                 if ( value != null )
                 {
                     final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-                    valueElement.addText( JsonUtil.serialize( value ) );
+                    valueElement.addText( JsonFactory.get().serialize( value ) );
                     if ( locale != null && locale.length() > 0 )
                     {
                         valueElement.setAttribute( "locale", locale );

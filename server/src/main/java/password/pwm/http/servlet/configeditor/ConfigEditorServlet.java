@@ -81,9 +81,9 @@ import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.util.PasswordData;
 import password.pwm.util.SampleDataGenerator;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.RandomPasswordGenerator;
@@ -96,7 +96,6 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -243,7 +242,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     {
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final String bodyString = pwmRequest.readRequestBodyAsString();
-        final Map<String, String> requestMap = JsonUtil.deserializeStringMap( bodyString );
+        final Map<String, String> requestMap = JsonFactory.get().deserializeStringMap( bodyString );
         final PwmSetting pwmSetting = PwmSetting.forKey( requestMap.get( "setting" ) )
                 .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
         final String functionName = requestMap.get( "function" );
@@ -300,7 +299,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             readSettingResponse = ConfigEditorServletUtils.handleReadSetting( pwmRequest, storedConfig, key );
         }
 
-        pwmRequest.outputJsonResult( RestResultBean.withData( readSettingResponse ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( readSettingResponse, ReadSettingResponse.class ) );
         return ProcessStatus.Halt;
     }
 
@@ -339,7 +338,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final PwmLocaleBundle pwmLocaleBundle = PwmLocaleBundle.forKey( st.nextToken() )
                     .orElseThrow( () -> new IllegalArgumentException( "unknown locale bundle name" ) );
             final String keyName = st.nextToken();
-            final Map<String, String> valueMap = JsonUtil.deserializeStringMap( bodyString );
+            final Map<String, String> valueMap = JsonFactory.get().deserializeStringMap( bodyString );
             final Map<String, String> outputMap = new LinkedHashMap<>( valueMap );
 
             final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
@@ -367,7 +366,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
 
         ConfigurationCleaner.postProcessStoredConfig( modifier );
         configManagerBean.setStoredConfiguration( modifier.newStoredConfiguration() );
-        pwmRequest.outputJsonResult( RestResultBean.withData( readSettingResponse ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( readSettingResponse, ReadSettingResponse.class ) );
         return ProcessStatus.Halt;
     }
 
@@ -505,7 +504,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 try
                 {
                     final String bodyString = pwmRequest.readRequestBodyAsString();
-                    final String value = JsonUtil.deserialize( bodyString, String.class );
+                    final String value = JsonFactory.get().deserialize( bodyString, String.class );
                     modifier.writeConfigProperty( ConfigurationProperty.NOTES, value );
                     LOGGER.trace( () -> "updated notesText" );
                 }
@@ -546,7 +545,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
 
         final Map<String, String> returnObj = ConfigEditorServletUtils.outputChangeLogData( pwmRequest, configManagerBean );
-        final RestResultBean restResultBean = RestResultBean.withData( new LinkedHashMap<>( returnObj ) );
+        final RestResultBean restResultBean = RestResultBean.withData( returnObj, Map.class );
         pwmRequest.outputJsonResult( restResultBean );
 
         return ProcessStatus.Halt;
@@ -561,7 +560,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
 
         final Map<DomainID, List<String>> healthData = ConfigEditorServletUtils.configurationHealth( pwmRequest, configManagerBean );
-        final RestResultBean restResultBean = RestResultBean.withData( new LinkedHashMap<>( healthData ) );
+        final RestResultBean restResultBean = RestResultBean.withData( healthData, Map.class );
         pwmRequest.outputJsonResult( restResultBean );
 
         return ProcessStatus.Halt;
@@ -575,7 +574,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     {
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final String bodyData = pwmRequest.readRequestBodyAsString();
-        final Map<String, String> valueMap = JsonUtil.deserializeStringMap( bodyData );
+        final Map<String, String> valueMap = JsonFactory.get().deserializeStringMap( bodyData );
         final Locale locale = pwmRequest.getLocale();
         final RestResultBean restResultBean;
         final String searchTerm = valueMap.get( "search" );
@@ -606,7 +605,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 } );
 
 
-        restResultBean = RestResultBean.withData( returnData );
+        restResultBean = RestResultBean.withData( returnData, Map.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -631,7 +630,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 profileID,
                 true,
                 true );
-        final RestResultBean restResultBean = RestResultBean.withData( healthData );
+        final RestResultBean restResultBean = RestResultBean.withData( healthData, PublicHealthData.class );
 
         pwmRequest.outputJsonResult( restResultBean );
         LOGGER.debug( pwmRequest, () -> "completed restLdapHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
@@ -651,7 +650,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.LDAP_SERVER_URLS );
         final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus( pwmRequest.getPwmApplication(), config );
         final PublicHealthData healthData = HealthRecord.asHealthDataBean( config.getDomainConfigs().get( domainID ), pwmRequest.getLocale(), healthRecords );
-        final RestResultBean restResultBean = RestResultBean.withData( healthData );
+        final RestResultBean restResultBean = RestResultBean.withData( healthData, PublicHealthData.class );
         pwmRequest.outputJsonResult( restResultBean );
         LOGGER.debug( pwmRequest, () -> "completed restDatabaseHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return ProcessStatus.Halt;
@@ -697,7 +696,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             }
         }
 
-        final RestResultBean restResultBean = RestResultBean.withData( output.toString() );
+        final RestResultBean restResultBean = RestResultBean.withData( output.toString(), String.class );
         pwmRequest.outputJsonResult( restResultBean );
         LOGGER.debug( pwmRequest, () -> "completed restSmsHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return ProcessStatus.Halt;
@@ -752,7 +751,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             output.append( "smtp service is not configured." );
         }
 
-        final RestResultBean restResultBean = RestResultBean.withData( output.toString() );
+        final RestResultBean restResultBean = RestResultBean.withData( output.toString(), String.class );
         pwmRequest.outputJsonResult( restResultBean );
         LOGGER.debug( pwmRequest, () -> "completed restEmailHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return ProcessStatus.Halt;
@@ -821,7 +820,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 navTreeSettings );
 
         LOGGER.trace( pwmRequest, () -> "completed navigation tree data request in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
-        pwmRequest.outputJsonResult( RestResultBean.withData( new ArrayList<>( navigationData ) ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( navigationData, List.class ) );
         return ProcessStatus.Halt;
     }
 
@@ -842,7 +841,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 navTreeSettings
         );
 
-        final RestResultBean restResultBean = RestResultBean.withData( settingData );
+        final RestResultBean restResultBean = RestResultBean.withData( settingData, SettingData.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -855,14 +854,14 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final Map<String, String> inputMap = pwmRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
             if ( inputMap == null || !inputMap.containsKey( "input" ) )
             {
-                pwmRequest.outputJsonResult( RestResultBean.withData( "missing input" ) );
+                pwmRequest.outputJsonResult( RestResultBean.withData( "missing input", String.class ) );
                 return ProcessStatus.Halt;
             }
 
             final MacroRequest macroRequest = SampleDataGenerator.sampleMacroRequest( pwmRequest.getPwmDomain() );
             final String input = inputMap.get( "input" );
             final String output = macroRequest.expandMacros( input );
-            pwmRequest.outputJsonResult( RestResultBean.withData( output ) );
+            pwmRequest.outputJsonResult( RestResultBean.withData( output, String.class ) );
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -917,10 +916,10 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final LdapBrowser.LdapBrowseResult finalResult = result;
             LOGGER.trace( pwmRequest, () -> "performed ldapBrowse operation in "
                     + TimeDuration.fromCurrent( startTime ).asCompactString()
-                    + ", result=" + JsonUtil.serialize( finalResult ) );
+                    + ", result=" + JsonFactory.get().serialize( finalResult ) );
         }
 
-        pwmRequest.outputJsonResult( RestResultBean.withData( result ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( result, LdapBrowser.LdapBrowseResult.class ) );
         return ProcessStatus.Halt;
     }
 
@@ -993,13 +992,13 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     private ProcessStatus restRandomPassword( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final RestRandomPasswordServer.JsonInput jsonInput = JsonUtil.deserialize( pwmRequest.readRequestBodyAsString(), RestRandomPasswordServer.JsonInput.class );
+        final RestRandomPasswordServer.JsonInput jsonInput = JsonFactory.get().deserialize( pwmRequest.readRequestBodyAsString(), RestRandomPasswordServer.JsonInput.class );
         final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = RestRandomPasswordServer.jsonInputToRandomConfig( jsonInput, PwmPasswordPolicy.defaultPolicy() );
         final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), randomConfig, pwmRequest.getPwmDomain() );
         final RestRandomPasswordServer.JsonOutput outputMap = new RestRandomPasswordServer.JsonOutput();
         outputMap.setPassword( randomPassword.getStringValue() );
 
-        pwmRequest.outputJsonResult( RestResultBean.withData( outputMap ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( outputMap, RestRandomPasswordServer.JsonOutput.class ) );
 
         return ProcessStatus.Halt;
     }

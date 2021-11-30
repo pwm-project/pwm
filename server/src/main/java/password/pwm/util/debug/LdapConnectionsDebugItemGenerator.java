@@ -23,7 +23,8 @@ package password.pwm.util.debug;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.ldap.LdapConnectionService;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonProvider;
+import password.pwm.util.json.JsonFactory;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -44,7 +45,7 @@ class LdapConnectionsDebugItemGenerator implements DomainItemGenerator
         final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
         final List<LdapConnectionService.ConnectionInfo> connectionInfos = pwmDomain.getLdapConnectionService().getConnectionInfos();
         final Writer writer = new OutputStreamWriter( outputStream, PwmConstants.DEFAULT_CHARSET );
-        writer.write( JsonUtil.serializeCollection( connectionInfos, JsonUtil.Flag.PrettyPrint ) );
+        writer.write( JsonFactory.get().serializeCollection( connectionInfos, JsonProvider.Flag.PrettyPrint ) );
         writer.flush();
     }
 }

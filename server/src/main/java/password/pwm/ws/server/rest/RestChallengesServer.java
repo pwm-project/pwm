@@ -228,7 +228,7 @@ public class RestChallengesServer extends RestServlet
 
             // update statistics
             StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_CHALLENGES );
-            return RestResultBean.withData( jsonData );
+            return RestResultBean.withData( jsonData, JsonChallengesData.class );
         }
         catch ( final ChaiException e )
         {

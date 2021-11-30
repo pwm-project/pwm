@@ -27,7 +27,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.i18n.Message;
 import password.pwm.util.ServletUtility;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -55,7 +55,7 @@ public class TelemetryRestReceiver extends HttpServlet
         {
             resp.setHeader( "Content", "application/json" );
             final String input = ServletUtility.readRequestBodyAsString( req, 1024 * 1024 );
-            final TelemetryPublishBean telemetryPublishBean = JsonUtil.deserialize( input, TelemetryPublishBean.class );
+            final TelemetryPublishBean telemetryPublishBean = JsonFactory.get().deserialize( input, TelemetryPublishBean.class );
             final Storage storage = ContextManager.getContextManager( this.getServletContext() ).getApp().getStorage();
             storage.store( telemetryPublishBean );
             resp.getWriter().print( RestResultBean.forSuccessMessage( null, null, null, Message.Success_Unknown ).toJson( jsonPrettyPrint ) );

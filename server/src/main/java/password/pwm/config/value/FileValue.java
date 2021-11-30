@@ -29,7 +29,8 @@ import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonProvider;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
@@ -147,7 +148,7 @@ public class FileValue extends AbstractValue implements StoredValue
                     final Optional<XmlElement> loopFileInformation = loopValueElement.getChild( XML_ELEMENT_FILE_INFORMATION );
                     loopFileInformation.flatMap( XmlElement::getText ).ifPresent( loopFileInformationJson ->
                     {
-                        final FileInformation fileInformation = JsonUtil.deserialize( loopFileInformationJson,
+                        final FileInformation fileInformation = JsonFactory.get().deserialize( loopFileInformationJson,
                                 FileInformation.class );
 
                         final Optional<XmlElement> loopFileContentElement = loopValueElement.getChild( XML_ELEMENT_FILE_CONTENT );
@@ -188,7 +189,7 @@ public class FileValue extends AbstractValue implements StoredValue
             final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
 
             final XmlElement fileInformationElement = XmlFactory.getFactory().newElement( XML_ELEMENT_FILE_INFORMATION );
-            fileInformationElement.addText( JsonUtil.serialize( fileInformation ) );
+            fileInformationElement.addText( JsonFactory.get().serialize( fileInformation ) );
             valueElement.addContent( fileInformationElement );
 
             final XmlElement fileContentElement = XmlFactory.getFactory().newElement( XML_ELEMENT_FILE_CONTENT );
@@ -228,7 +229,7 @@ public class FileValue extends AbstractValue implements StoredValue
     )
     {
         final List<Map<String, Object>> output = asMetaData();
-        return JsonUtil.serialize( ( Serializable ) output, JsonUtil.Flag.PrettyPrint );
+        return JsonFactory.get().serialize( ( Serializable ) output, JsonProvider.Flag.PrettyPrint );
     }
 
     @Override
