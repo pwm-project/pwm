@@ -191,30 +191,11 @@ public class ActionValue extends AbstractValue implements StoredValue
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final ActionConfiguration value : values )
         {
-            final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
-            for ( final ActionConfiguration.WebAction webAction : value.getWebActions() )
-            {
-                if ( StringUtil.notEmpty( webAction.getPassword() ) )
-                {
-                    try
-                    {
-                        final String encodedValue = StoredValueEncoder.encode(
-                                webAction.getPassword(),
-                                xmlOutputProcessData.getStoredValueEncoderMode(),
-                                xmlOutputProcessData.getPwmSecurityKey() );
-                        clonedWebActions.add( webAction.toBuilder()
-                                .password( encodedValue )
-                                .build() );
-                    }
-                    catch ( final PwmOperationalException e )
-                    {
-                        LOGGER.warn( () -> "error encoding stored pw value: " + e.getMessage() );
-                    }
-                }
-            }
+            final List<ActionConfiguration.WebAction> clonedWebActions = encodePasswordInWebActions( value.getWebActions(), xmlOutputProcessData );
 
-            final ActionConfiguration clonedAction = value.toBuilder().webActions( clonedWebActions ).build();
-
+            final ActionConfiguration clonedAction = value.toBuilder()
+                    .webActions( clonedWebActions )
+                    .build();
 
             final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
 
@@ -224,10 +205,43 @@ public class ActionValue extends AbstractValue implements StoredValue
         return returnList;
     }
 
+    private static List<ActionConfiguration.WebAction> encodePasswordInWebActions(
+            final List<ActionConfiguration.WebAction> webActions,
+            final XmlOutputProcessData xmlOutputProcessData
+    )
+    {
+        final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
+        for ( final ActionConfiguration.WebAction webAction : webActions )
+        {
+            if ( StringUtil.notEmpty( webAction.getPassword() ) )
+            {
+                try
+                {
+                    final String encodedValue = StoredValueEncoder.encode(
+                            webAction.getPassword(),
+                            xmlOutputProcessData.getStoredValueEncoderMode(),
+                            xmlOutputProcessData.getPwmSecurityKey() );
+                    clonedWebActions.add( webAction.toBuilder()
+                            .password( encodedValue )
+                            .build() );
+                }
+                catch ( final PwmOperationalException e )
+                {
+                    LOGGER.warn( () -> "error encoding stored pw value: " + e.getMessage() );
+                }
+            }
+            else
+            {
+                clonedWebActions.add( webAction.toBuilder().build() );
+            }
+        }
+        return clonedWebActions;
+    }
+
     @Override
     public List<ActionConfiguration> toNativeObject( )
     {
-        return Collections.unmodifiableList( values );
+        return List.copyOf( values );
     }
 
     @Override
