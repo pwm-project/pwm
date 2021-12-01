@@ -294,7 +294,7 @@ RemoteWebServiceHandler.showOptionsDialog = function(keyName, iteration) {
                             });
                         }});
                     };
-                    PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.config.function.RemoteWebServiceCertImportFunction', dataHandler, value['name'])
+                    PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.http.servlet.configeditor.function.RemoteWebServiceCertImportFunction', dataHandler, value['name'])
                 });
             }
 

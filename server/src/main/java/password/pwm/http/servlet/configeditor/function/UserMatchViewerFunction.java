@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.config.function;
+package password.pwm.http.servlet.configeditor.function;
 
 import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.exception.ChaiUnavailableException;

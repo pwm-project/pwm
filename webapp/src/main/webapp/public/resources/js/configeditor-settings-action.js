@@ -524,7 +524,7 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
                     var extraData = {};
                     extraData.iteration = iteration;
                     extraData.webActionIter = webActionIter;
-                    PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.config.function.ActionCertImportFunction', dataHandler, JSON.stringify(extraData));
+                    PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.http.servlet.configeditor.function.ActionCertImportFunction', dataHandler, JSON.stringify(extraData));
                 });
             }
 

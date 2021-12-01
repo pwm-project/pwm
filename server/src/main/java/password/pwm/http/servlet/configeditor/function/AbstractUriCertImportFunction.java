@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.config.function;
+package password.pwm.http.servlet.configeditor.function;
 
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;

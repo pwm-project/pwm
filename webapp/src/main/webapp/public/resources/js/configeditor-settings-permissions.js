@@ -80,7 +80,7 @@ UserPermissionHandler.draw = function(keyName) {
             var html = PWM_CONFIG.convertListOfIdentitiesToHtml(data['data']);
             PWM_MAIN.showDialog({title:'Matches',text:html,dialogClass:'wide',showOk:false,showClose:true});
         };
-        PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.config.function.UserMatchViewerFunction', dataHandler, null)
+        PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.http.servlet.configeditor.function.UserMatchViewerFunction', dataHandler, null)
     });
 
     PWM_MAIN.addEventHandler('button-' + keyName + '-addPermission','click',function(){
