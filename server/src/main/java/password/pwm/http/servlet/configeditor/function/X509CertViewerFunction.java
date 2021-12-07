@@ -20,42 +20,49 @@
 
 package password.pwm.http.servlet.configeditor.function;
 
-import password.pwm.bean.UserIdentity;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.X509CertificateValue;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
-import password.pwm.i18n.Message;
-import password.pwm.svc.email.EmailServerUtil;
-import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.secure.X509Utils;
 
+import java.io.Serializable;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-public class SmtpCertImportFunction implements SettingUIFunction
+public class X509CertViewerFunction implements SettingUIFunction
 {
     @Override
-    public String provideFunction(
+    public Serializable provideFunction(
             final PwmRequest pwmRequest,
             final StoredConfigurationModifier modifier,
             final StoredConfigKey key,
             final String extraData
     )
-            throws PwmUnrecoverableException
+            throws Exception
     {
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final String profile = key.getProfileID();
-
-        final List<X509Certificate> certs = EmailServerUtil.readCertificates( pwmRequest.getAppConfig(), profile );
-        if ( !CollectionUtil.isEmpty( certs ) )
-        {
-            final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;
-            modifier.writeSetting( key, X509CertificateValue.fromX509( certs ), userIdentity );
-        }
-
-        return Message.getLocalizedMessage( pwmSession.getSessionStateBean().getLocale(), Message.Success_Unknown, pwmRequest.getDomainConfig() );
+        final List<Map<String, String>> certificateInfos = makeCertDebugMap( key, modifier );
+        return ( Serializable ) certificateInfos;
     }
 
+    /**
+     * Convert to json map where the certificate values are replaced with debug info for display in the config editor.
+     *
+     * @return a map suitable for json serialization
+     */
+    private static List<Map<String, String>> makeCertDebugMap(
+            final StoredConfigKey key,
+            final StoredConfigurationModifier modifier
+    )
+    {
+        final StoredValue storedValue = modifier.newStoredConfiguration().readStoredValue( key ).orElseThrow();
+        final List<X509Certificate> values = ( ( X509CertificateValue ) storedValue ).asX509Certificates();
+
+        return values.stream()
+                .map( cert -> X509Utils.makeDebugInfoMap( cert, X509Utils.DebugInfoFlag.IncludeCertificateDetail ) )
+                .collect( Collectors.toUnmodifiableList() );
+    }
 }

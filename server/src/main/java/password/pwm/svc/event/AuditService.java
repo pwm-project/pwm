@@ -203,7 +203,7 @@ public class AuditService extends AbstractPwmService implements PwmService
         final String body;
         {
             final String jsonRecord = JsonFactory.get().serialize( record );
-            final Map<String, Object> mapRecord = JsonFactory.get().deserializeMap( jsonRecord );
+            final Map<String, Object> mapRecord = JsonFactory.get().deserializeMap( jsonRecord, String.class, Object.class );
             body = StringUtil.mapToString( mapRecord, "=", "\n" );
         }
 

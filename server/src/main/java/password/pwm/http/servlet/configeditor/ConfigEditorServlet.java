@@ -33,7 +33,7 @@ import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingTemplate;
-import password.pwm.config.SettingUIFunction;
+import password.pwm.http.servlet.configeditor.function.SettingUIFunction;
 import password.pwm.config.profile.EmailServerProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.stored.ConfigSearchMachine;

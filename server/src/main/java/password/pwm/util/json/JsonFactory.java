@@ -22,15 +22,14 @@ package password.pwm.util.json;
 
 public class JsonFactory
 {
-
-    public enum Impl
+    public enum JsonImpl
     {
         gson( new GsonJsonServiceProvider() ),
         moshi( new MoshiJsonServiceProvider() ),;
 
         private final JsonProvider provider;
 
-        Impl( final JsonProvider provider )
+        JsonImpl( final JsonProvider provider )
         {
             this.provider = provider;
         }
@@ -47,11 +46,11 @@ public class JsonFactory
 
     public static JsonProvider get()
     {
-        return Impl.gson.getProvider();
+        return JsonImpl.moshi.getProvider();
     }
 
-    public static JsonProvider get( final Impl impl )
+    public static JsonProvider get( final JsonImpl jsonImpl )
     {
-        return impl.getProvider();
+        return jsonImpl.getProvider();
     }
 }

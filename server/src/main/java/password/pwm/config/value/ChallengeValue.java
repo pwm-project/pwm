@@ -20,7 +20,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -29,49 +28,54 @@ import password.pwm.config.value.data.ChallengeItemConfiguration;
 import password.pwm.util.i18n.LocaleComparators;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 public class ChallengeValue extends AbstractValue implements StoredValue
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ChallengeValue.class );
+
+    private static final Comparator<String> COMPARATOR = LocaleComparators.stringLocaleComparator( PwmConstants.DEFAULT_LOCALE, LocaleComparators.Flag.DefaultFirst );
 
     //locale str as key.
     private final Map<String, List<ChallengeItemConfiguration>> values;
 
     ChallengeValue( final Map<String, List<ChallengeItemConfiguration>> values )
     {
-        // values created via js, so need to be defensive and strip all nulls.
-        final Comparator<String> comparator = LocaleComparators.stringLocaleComparator( PwmConstants.DEFAULT_LOCALE, LocaleComparators.Flag.DefaultFirst );
-        final Map<String, List<ChallengeItemConfiguration>> sortedMap = new TreeMap<>( comparator );
-        sortedMap.putAll( CollectionUtil.stripNulls( values ).entrySet().stream()
-                .collect( Collectors.toUnmodifiableMap(
-                        Map.Entry::getKey,
-                        v -> CollectionUtil.stripNulls( v.getValue() )
-                ) ) );
-        this.values = Collections.unmodifiableMap( sortedMap );
+        if ( CollectionUtil.isEmpty( values ) )
+        {
+            this.values = Collections.emptyMap();
+        }
+        else
+        {
+            final SortedMap<String, List<ChallengeItemConfiguration>> tempMap = new TreeMap<>( COMPARATOR );
+            for ( final Map.Entry<String, List<ChallengeItemConfiguration>> entry : CollectionUtil.stripNulls( values ).entrySet() )
+            {
+                tempMap.put( entry.getKey(), List.copyOf( entry.getValue() ) );
+            }
+            this.values = Map.copyOf( tempMap );
+        }
     }
 
     public static StoredValueFactory factory( )
     {
         return new StoredValueFactory()
         {
-
             @Override
             public ChallengeValue fromJson( final String input )
             {
@@ -81,14 +85,24 @@ public class ChallengeValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    Map<String, List<ChallengeItemConfiguration>> srcMap = JsonFactory.get().deserialize( input,
-                            new TypeToken<Map<String, List<ChallengeItemConfiguration>>>()
+                    final Map<String, List> deserializeMap = JsonFactory.get().deserializeMap( input, String.class, List.class );
+                    final Map<String, List<ChallengeItemConfiguration>> values = new HashMap<>();
+                    for ( final Map.Entry<String, List> entry : deserializeMap.entrySet() )
+                    {
+                        if ( entry.getKey() != null && entry.getValue() != null )
+                        {
+                            final List<ChallengeItemConfiguration> newArrayList = new ArrayList<>();
+                            for ( final Object value : entry.getValue() )
                             {
+                                if ( value != null )
+                                {
+                                    newArrayList.add( ( ChallengeItemConfiguration ) value );
+                                }
                             }
-                    );
-                    srcMap = srcMap == null ? Collections.emptyMap() : new LinkedHashMap<>(
-                            srcMap );
-                    return new ChallengeValue( Collections.unmodifiableMap( srcMap ) );
+                            values.put( entry.getKey(), List.copyOf( newArrayList ) );
+                        }
+                    }
+                    return new ChallengeValue( Collections.unmodifiableMap( values ) );
                 }
             }
 

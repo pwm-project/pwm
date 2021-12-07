@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.config;
+package password.pwm.http.servlet.configeditor.function;
 
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -26,6 +26,9 @@ import password.pwm.http.PwmRequest;
 
 import java.io.Serializable;
 
+/**
+ * SettingUIFunction implementations can be invoked in the Configuration Editor UI and provide arbitrary, setting-specific functions.
+ */
 public interface SettingUIFunction
 {
     Serializable provideFunction(

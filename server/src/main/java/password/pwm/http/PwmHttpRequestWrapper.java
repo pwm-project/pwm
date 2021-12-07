@@ -148,7 +148,7 @@ public class PwmHttpRequestWrapper
     {
         final boolean bypassInputValidation = flags != null && Arrays.asList( flags ).contains( Flag.BypassValidation );
         final String bodyString = readRequestBodyAsString();
-        final Map<String, Object> inputMap = JsonFactory.get().deserializeMap( bodyString );
+        final Map<String, Object> inputMap = JsonFactory.get().deserializeMap( bodyString, String.class, Object.class );
 
         final boolean trim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_TRIM ) );
         final boolean passwordTrim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_PASSWORD_TRIM ) );

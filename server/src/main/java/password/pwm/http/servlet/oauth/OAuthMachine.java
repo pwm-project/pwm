@@ -491,7 +491,7 @@ public class OAuthMachine
     {
         try
         {
-            final Map<String, Object> bodyMap = JsonFactory.get().deserializeMap( bodyString );
+            final Map<String, Object> bodyMap = JsonFactory.get().deserializeMap( bodyString, String.class, Object.class );
             final List<String> attributeValues = StringUtil.splitAndTrim( attributeNames, "," );
 
             for ( final String attribute : attributeValues )

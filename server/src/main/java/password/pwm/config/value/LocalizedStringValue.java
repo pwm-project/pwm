@@ -20,20 +20,25 @@
 
 package password.pwm.config.value;
 
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
+import password.pwm.util.i18n.LocaleComparators;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.json.JsonFactory;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,9 +47,20 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
 {
     private final Map<String, String> value;
 
+    private static final Comparator<String> COMPARATOR = LocaleComparators.stringLocaleComparator( PwmConstants.DEFAULT_LOCALE, LocaleComparators.Flag.DefaultFirst );
+
     public LocalizedStringValue( final Map<String, String> values )
     {
-        this.value = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
+        if ( CollectionUtil.isEmpty( values ) )
+        {
+            this.value = Collections.emptyMap();
+        }
+        else
+        {
+            final SortedMap<String, String> tempMap = new TreeMap<>( COMPARATOR );
+            tempMap.putAll( CollectionUtil.stripNulls( values ) );
+            this.value = Map.copyOf( tempMap );
+        }
     }
 
     public static StoredValueFactory factory( )

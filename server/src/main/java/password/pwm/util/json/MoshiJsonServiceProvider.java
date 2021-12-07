@@ -20,7 +20,6 @@
 
 package password.pwm.util.json;
 
-import com.google.gson.reflect.TypeToken;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import com.squareup.moshi.Types;
@@ -68,14 +67,6 @@ class MoshiJsonServiceProvider implements JsonProvider
     }
 
     @Override
-    public Map<String, Object> deserializeMap( final String jsonString )
-    {
-        final Type type = Types.newParameterizedType( Map.class, String.class, Object.class );
-        final Map<String, String> deserializeMap = deserializeImpl( jsonString, type );
-        return Map.copyOf( CollectionUtil.stripNulls( deserializeMap ) );
-    }
-
-    @Override
     public <V> List<V> deserializeList( final String jsonString, final Class<V> classOfV )
     {
         final Type type = Types.newParameterizedType( List.class, classOfV );
@@ -95,14 +86,6 @@ class MoshiJsonServiceProvider implements JsonProvider
     {
         return deserializeImpl( jsonString, classOfT );
     }
-
-    @Override
-    public <T> T deserialize( final String jsonString, final TypeToken typeToken )
-    {
-        final Type type = Types.newParameterizedType( typeToken.getRawType() );
-        return deserializeImpl( jsonString, type );
-    }
-
 
     @Override
     public <T> String serialize( final T srcObject, final Class<T> classOfT, final Type type, final Flag... flags )
@@ -142,7 +125,7 @@ class MoshiJsonServiceProvider implements JsonProvider
     }
 
     @Override
-    public <V> String serializeStringMap( final V srcObject, final Flag... flags )
+    public String serializeStringMap( final Map<String, String> srcObject, final Flag... flags )
     {
         final Type moshiType = Types.newParameterizedType( Map.class, String.class, String.class );
         return serializeImpl( srcObject, moshiType, flags );
@@ -170,7 +153,7 @@ class MoshiJsonServiceProvider implements JsonProvider
         return jsonAdapter.toJson( object );
     }
 
-    private static Class unknownClassResolver( final Object srcObject )
+    static Class unknownClassResolver( final Object srcObject )
     {
         if ( srcObject instanceof List )
         {

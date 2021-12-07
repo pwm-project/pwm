@@ -117,7 +117,7 @@ public class PasswordChangeProgressChecker
     {
         private String key;
         private String label;
-        private BigDecimal percentComplete;
+        private float percentComplete;
         private boolean complete;
         private boolean show;
     }
@@ -227,9 +227,9 @@ public class PasswordChangeProgressChecker
 
         final Instant estimatedCompletion;
         {
-            final BigDecimal pctComplete = figureAverageProgress( progressRecords );
+            final float pctComplete = figureAverageProgress( progressRecords );
             LOGGER.trace( pwmSession, () -> "percent complete: " + pctComplete );
-            final ProgressInfo progressInfo = new ProgressInfo( tracker.beginTime, 100, pctComplete.longValue() );
+            final ProgressInfo progressInfo = new ProgressInfo( tracker.beginTime, 100, ( long ) pctComplete );
             final Instant actualEstimate = progressInfo.estimatedCompletion();
 
             if ( actualEstimate.isBefore( minCompletionTime ) )
@@ -248,7 +248,7 @@ public class PasswordChangeProgressChecker
         return estimatedCompletion;
     }
 
-    private BigDecimal figureAverageProgress( final Collection<ProgressRecord> progressRecords )
+    private float figureAverageProgress( final Collection<ProgressRecord> progressRecords )
     {
         int items = 0;
         BigDecimal sum = BigDecimal.ZERO;
@@ -256,20 +256,20 @@ public class PasswordChangeProgressChecker
         {
             for ( final ProgressRecord progress : progressRecords )
             {
-                if ( progress.percentComplete != null )
+                if ( progress.percentComplete != 0 )
                 {
                     items++;
-                    sum = sum.add( progress.percentComplete );
+                    sum = sum.add( new BigDecimal( progress.percentComplete ) );
                 }
             }
         }
 
         if ( items > 0 )
         {
-            return sum.divide( new BigDecimal( items ), MathContext.DECIMAL32 ).setScale( 2, RoundingMode.UP );
+            return sum.divide( new BigDecimal( items ), MathContext.DECIMAL32 ).setScale( 2, RoundingMode.UP ).floatValue();
         }
 
-        return Percent.ONE_HUNDRED.asBigDecimal( 2 );
+        return Percent.ONE_HUNDRED.asBigDecimal( 2 ).floatValue();
     }
 
 
@@ -365,7 +365,7 @@ public class PasswordChangeProgressChecker
         return ProgressRecord.builder()
                 .key( PROGRESS_KEY_REPLICATION )
                 .complete( pctComplete.isComplete() )
-                .percentComplete( pctComplete.asBigDecimal( 2 ) )
+                .percentComplete( pctComplete.asBigDecimal( 2 ).floatValue() )
                 .show( passwordSyncCheckMode == PasswordSyncCheckMode.ENABLED_SHOW )
                 .label( label )
                 .build();

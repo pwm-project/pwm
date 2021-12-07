@@ -21,8 +21,9 @@
 package password.pwm.util.json;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.stored.StoredConfigurationFactory;
@@ -42,10 +43,12 @@ import password.pwm.ws.server.RestResultBean;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -54,17 +57,22 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.LongAdder;
 
-
-public abstract class JsonProviderTest
+@RunWith( value = Parameterized.class )
+public class JsonProviderTest
 {
-    private JsonProvider instance;
+    private final JsonProvider instance;
 
-    protected abstract JsonProvider createInstance();
-
-    @Before
-    public void setUp()
+    public JsonProviderTest( final JsonProvider instance )
     {
-        instance = createInstance();
+        this.instance = instance;
+    }
+
+    @Parameterized.Parameters
+    public static Collection<JsonProvider> data()
+    {
+        return List.of(
+                JsonFactory.get( JsonFactory.JsonImpl.moshi ),
+                JsonFactory.get( JsonFactory.JsonImpl.gson ) );
     }
 
     @Test
@@ -103,7 +111,7 @@ public abstract class JsonProviderTest
     public void deserializeMapTest()
     {
         final String jsonValue = "{\"key1\":\"value1\",\"key2\":\"value2\",\"key3\":\"value3\"}";
-        final Map<String, Object> map = instance.deserializeMap( jsonValue );
+        final Map<String, Object> map = instance.deserializeMap( jsonValue, String.class, Object.class );
 
         Assert.assertNotNull( map );
         Assert.assertEquals( 3, map.size() );
@@ -262,6 +270,7 @@ public abstract class JsonProviderTest
 
     public static class TestObject1 implements Serializable
     {
+        static final BigDecimal VALUE_BIG_DECIMAL1 = new BigDecimal( "3.0404040400404040404040404040404" );
         static final X509Certificate VALUE_X509_CERT1;
         static final Date VALUE_DATE1 = Date.from( Instant.parse( "2000-01-01T01:01:01Z" ) );
         static final DomainID VALUE_DOMAINID1 = DomainID.create( "acme1" );

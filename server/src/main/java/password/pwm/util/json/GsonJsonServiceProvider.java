@@ -59,12 +59,6 @@ class GsonJsonServiceProvider implements JsonProvider
     }
 
     @Override
-    public <T> T deserialize( final String jsonString, final TypeToken typeToken )
-    {
-        return getGson().fromJson( jsonString, typeToken.getType() );
-    }
-
-    @Override
     public <T> T deserialize( final String jsonString, final Class<T> classOfT )
     {
         return getGson().fromJson( jsonString, classOfT );
@@ -80,10 +74,12 @@ class GsonJsonServiceProvider implements JsonProvider
     @Override
     public <K, V> Map<K, V> deserializeMap( final String jsonString, final Class<K> classOfK, final Class<V> classOfV )
     {
-        final Type type = Types.newParameterizedType( Map.class, classOfK, classOfV );
-        return Map.copyOf( getGson().fromJson( jsonString, type ) );
-    }
+        final Map<K, V> readMap = getGson().fromJson( jsonString, new TypeToken<Map<K, V>>()
+        {
+        }.getType() );
 
+        return Map.copyOf( CollectionUtil.stripNulls( readMap ) );
+    }
 
     @Override
     public Map<String, String> deserializeStringMap( final String jsonString )
@@ -103,22 +99,12 @@ class GsonJsonServiceProvider implements JsonProvider
         }.getType() );
 
         return List.copyOf( CollectionUtil.stripNulls( readList ) );
-
     }
-
-    @Override
-    public Map<String, Object> deserializeMap( final String jsonString )
-    {
-        return Map.copyOf( getGson().fromJson( jsonString, new TypeToken<Map<String, Object>>()
-        {
-        }.getType() ) );
-    }
-
 
     @Override
     public <T> String serialize( final T srcObject, final Flag... flags )
     {
-        return getGson( flags ).toJson( srcObject );
+        return getGson( flags ).toJson( srcObject, MoshiJsonServiceProvider.unknownClassResolver( srcObject ) );
     }
 
     @Override
@@ -135,7 +121,7 @@ class GsonJsonServiceProvider implements JsonProvider
     }
 
     @Override
-    public String serializeMap( final Map srcObject, final Flag... flags )
+    public <K, V> String serializeMap( final Map<K, V> srcObject, final Flag... flags )
     {
         return getGson( flags ).toJson( srcObject );
     }
@@ -149,19 +135,22 @@ class GsonJsonServiceProvider implements JsonProvider
     }
 
     @Override
-    public <V> String serializeStringMap( final V srcObject, final Flag... flags )
+    public String serializeStringMap( final Map<String, String> srcObject, final Flag... flags )
     {
         final Type type = new TypeToken<Map<String, String>>()
         {
         }.getType();
+
         return getGson( flags ).toJson( srcObject, type );
     }
-
-
 
     @Override
     public <V> String serializeCollection( final Collection<V> srcObject, final Flag... flags )
     {
-        return getGson( flags ).toJson( srcObject );
+        final Type type = new TypeToken<Collection<V>>()
+        {
+        }.getType();
+
+        return getGson( flags ).toJson( srcObject, type );
     }
 }

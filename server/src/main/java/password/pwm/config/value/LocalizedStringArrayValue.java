@@ -20,33 +20,51 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
+import password.pwm.util.i18n.LocaleComparators;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LocalizedStringArrayValue extends AbstractValue implements StoredValue
 {
+    private static final Comparator<String> COMPARATOR = LocaleComparators.stringLocaleComparator( PwmConstants.DEFAULT_LOCALE, LocaleComparators.Flag.DefaultFirst );
+
     private final Map<String, List<String>> values;
 
     public LocalizedStringArrayValue( final Map<String, List<String>> values )
     {
-        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
+        if ( CollectionUtil.isEmpty( values ) )
+        {
+            this.values = Collections.emptyMap();
+        }
+        else
+        {
+            final SortedMap<String, List<String>> tempMap = new TreeMap<>( COMPARATOR );
+            for ( final Map.Entry<String, List<String>> entry : CollectionUtil.stripNulls( values ).entrySet() )
+            {
+                tempMap.put( entry.getKey(), List.copyOf( entry.getValue() ) );
+            }
+            this.values = Map.copyOf( tempMap );
+        }
     }
 
     public static StoredValueFactory factory( )
@@ -62,11 +80,24 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
                 }
                 else
                 {
-                    Map<String, List<String>> srcMap = JsonFactory.get().deserialize( input, new TypeToken<Map<String, List<String>>>()
+                    final Map<String, List> deserializeMap = JsonFactory.get().deserializeMap( input, String.class, List.class );
+                    final Map<String, List<String>> values = new HashMap<>();
+                    for ( final Map.Entry<String, List> entry : deserializeMap.entrySet() )
                     {
-                    } );
-                    srcMap = srcMap == null ? Collections.emptyMap() : new TreeMap<>( srcMap );
-                    return new LocalizedStringArrayValue( Collections.unmodifiableMap( srcMap ) );
+                        if ( entry.getKey() != null && entry.getValue() != null )
+                        {
+                            final List<String> newArrayList = new ArrayList<>();
+                            for ( final Object value : entry.getValue() )
+                            {
+                                if ( value != null )
+                                {
+                                    newArrayList.add( value.toString() );
+                                }
+                            }
+                            values.put( entry.getKey(), List.copyOf( newArrayList ) );
+                        }
+                    }
+                    return new LocalizedStringArrayValue( Map.copyOf( values ) );
                 }
             }
 

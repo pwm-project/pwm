@@ -34,7 +34,6 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.ws.server.RestResultBean;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -366,29 +365,6 @@ class MoshiJsonAdaptors
 
         @Override
         public void toJson( final JsonWriter writer, @Nullable final Locale value ) throws IOException
-        {
-            if ( value == null )
-            {
-                writer.nullValue();
-                return;
-            }
-
-            writer.value( value.toString() );
-        }
-    }
-
-    private static class RestResultBeanTypeAdaptor extends JsonAdapter<RestResultBean>
-    {
-        @Nullable
-        @Override
-        public RestResultBean fromJson( final JsonReader reader ) throws IOException
-        {
-            final String strValue = reader.nextString();
-            return null;
-        }
-
-        @Override
-        public void toJson( final JsonWriter writer, @Nullable final RestResultBean value ) throws IOException
         {
             if ( value == null )
             {

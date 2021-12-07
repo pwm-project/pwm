@@ -22,7 +22,6 @@ package password.pwm.http.servlet.configeditor.function;
 
 import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.stored.StoredConfigurationUtil;

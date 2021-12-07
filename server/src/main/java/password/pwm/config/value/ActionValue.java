@@ -20,7 +20,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
@@ -36,16 +35,13 @@ import password.pwm.util.java.XmlFactory;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.X509Utils;
 
 import java.io.Serializable;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -338,44 +334,6 @@ public class ActionValue extends AbstractValue implements StoredValue
             }
         }
         return sb.toString();
-    }
-
-    /**
-     * Convert to json map where the certificate values are replaced with debug info for display in the config editor.
-     *
-     * @return a map suitable for json serialization for debug purposes
-     */
-    public List<Map<String, Object>> toInfoMap( )
-    {
-        final String originalJson = JsonFactory.get().serializeCollection( values );
-        final List<Map<String, Object>> tempObj = JsonFactory.get().deserialize( originalJson, new TypeToken<List<Map<String, Object>>>()
-        {
-        } );
-
-        int actionConfigurationCounter = 0;
-        for ( final ActionConfiguration actionConfiguration : values )
-        {
-            final Map actionConfigurationMap = tempObj.get( actionConfigurationCounter );
-            int webActionCounter = 0;
-            for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
-            {
-                final List webActionsList = (List) actionConfigurationMap.get( "webActions" );
-                if ( !CollectionUtil.isEmpty( webAction.getCertificates() ) )
-                {
-                    final Map webActionMap = (Map) webActionsList.get( webActionCounter );
-                    final List<Map<String, String>> certificateInfos = new ArrayList<>();
-                    for ( final X509Certificate certificate : webAction.getCertificates() )
-                    {
-                        certificateInfos.add( X509Utils.makeDebugInfoMap( certificate, X509Utils.DebugInfoFlag.IncludeCertificateDetail ) );
-                    }
-                    webActionMap.put( "certificateInfos", certificateInfos );
-                }
-                webActionCounter++;
-            }
-            actionConfigurationCounter++;
-        }
-
-        return tempObj;
     }
 
     public ActionConfiguration forName( final String name )

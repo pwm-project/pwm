@@ -20,8 +20,6 @@
 
 package password.pwm.util.json;
 
-import com.google.gson.reflect.TypeToken;
-
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
@@ -36,8 +34,6 @@ public interface JsonProvider
 
     <T> T deserialize( String jsonString, Class<T> classOfT );
 
-    <T> T deserialize( String jsonString, TypeToken typeToken );
-
     <V> List<V> deserializeList( String jsonString, Class<V> classOfV );
 
     <K, V> Map<K, V> deserializeMap( String jsonString, Class<K> classOfK, Class<V> classOfV );
@@ -45,8 +41,6 @@ public interface JsonProvider
     Map<String, String> deserializeStringMap( String jsonString );
 
     List<String> deserializeStringList( String jsonString );
-
-    Map<String, Object> deserializeMap( String jsonString );
 
     <T> String serialize( T srcObject, Flag... flags );
 
@@ -60,7 +54,7 @@ public interface JsonProvider
 
     <V> String serializeCollection( Collection<V> srcObject, Flag... flags );
 
-    <V> String serializeStringMap( V srcObject, Flag... flags );
+    String serializeStringMap( Map<String, String> srcObject, Flag... flags );
 
     default <T> T cloneUsingJson( final T srcObject, final Class<T> classOfT )
     {

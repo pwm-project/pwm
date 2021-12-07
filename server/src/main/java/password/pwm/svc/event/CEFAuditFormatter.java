@@ -97,7 +97,7 @@ public class CEFAuditFormatter implements AuditFormatter
         final AppConfig domainConfig = pwmApplication.getConfig();
         final Settings settings = Settings.fromConfiguration( domainConfig );
         final String auditRecordAsJson = JsonFactory.get().serialize( auditRecord );
-        final Map<String, Object> auditRecordMap = JsonFactory.get().deserializeMap( auditRecordAsJson );
+        final Map<String, Object> auditRecordMap = JsonFactory.get().deserializeMap( auditRecordAsJson, String.class, Object.class );
 
         final Optional<String> srcHost = PwmApplication.deriveLocalServerHostname( pwmApplication.getConfig() );
 

@@ -397,7 +397,7 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
     bodyText += '<td class="key">Success Status Codes</td><td><input type="text" class="configstringinput" style="width:300px" disabled id="input-' + inputID + '-successStatus' + '"/>';
     bodyText += '<button style="margin-left: 15px" id="button-' + inputID + '-successStatus"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button>';
     bodyText += '</td></tr>';
-    if (!PWM_MAIN.JSLibrary.isEmpty(value['certificateInfos'])) {
+    if (value['certificates']) {
         bodyText += '<tr><td class="key">Certificates</td><td><a id="button-' + inputID + '-certDetail">View Certificates</a></td>';
         bodyText += '</tr>';
     } else {
@@ -407,7 +407,7 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
     bodyText += '';
     bodyText += '</table>';
 
-    if (!PWM_MAIN.JSLibrary.isEmpty(value['certificateInfos'])) {
+    if (value['certificates']) {
         bodyText += '<button class="btn" id="button-' + inputID + '-clearCertificates"><span class="btn-icon pwm-icon pwm-icon-trash"></span>Clear Certificates</button>'
     } else {
         bodyText += '<button class="btn" id="button-' + inputID + '-importCertificates"><span class="btn-icon pwm-icon pwm-icon-download"></span>Import Certificates</button>'
@@ -479,32 +479,15 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
                     ActionHandler.write(keyName);
                 });
             }
-            if (!PWM_MAIN.JSLibrary.isEmpty(value['certificateInfos'])) {
+            if (value['certificates']) {
                 PWM_MAIN.addEventHandler('button-' + inputID + '-certDetail','click',function(){
-                    var bodyText = '';
-                    for (var i in value['certificateInfos']) {
-                        var certificate = value['certificateInfos'][i];
-                        bodyText += X509CertificateHandler.certificateToHtml(certificate,keyName,i);
-                    }
-                    var cancelFunction = function(){ ActionHandler.addOrEditWebAction(keyName,iteration,webActionIter); };
-                    var loadFunction = function(){
-                        for (var i in value['certificateInfos']) {
-                            var certificate = value['certificateInfos'][i];
-                            X509CertificateHandler.certHtmlActions(certificate,keyName,i);
-                        }
-                    };
-                    PWM_MAIN.showDialog({
-                        title:'Certificate Detail',
-                        dialogClass: 'wide',
-                        text:bodyText,
-                        okAction:cancelFunction,
-                        loadFunction:loadFunction
-                    });
+                    var extraData = JSON.stringify({iteration:iteration, webActionIter: webActionIter});
+                    PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.http.servlet.configeditor.function.ActionCertViewerFunction',
+                        ActionHandler.showCertificateViewerDialog, extraData)
                 });
                 PWM_MAIN.addEventHandler('button-' + inputID + '-clearCertificates','click',function() {
                     PWM_MAIN.showConfirmDialog({okAction:function(){
                             delete value['certificates'];
-                            delete value['certificateInfos'];
                             ActionHandler.write(keyName, function(){ ActionHandler.addOrEditWebAction(keyName,iteration,webActionIter)});
                         },cancelAction:function(){
                             ActionHandler.showActionsDialog(keyName,iteration);
@@ -517,7 +500,7 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
                         PWM_MAIN.showDialog({width:700,title: 'Results', text: msgBody, okAction: function () {
                                 PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
                                     PWM_VAR['clientSettingCache'][keyName] = resultValue;
-                                    ActionHandler.addOrEditWebAction(keyName,iteration,webActionIter)
+                                    ActidonHandler.addOrEditWebAction(keyName,iteration,webActionIter)
                                 });
                             }});
                     };
@@ -612,5 +595,25 @@ ActionHandler.addHeader = function(keyName, iteration, webActionIter) {
             ActionHandler.showHeadersDialog(keyName, iteration, webActionIter);
         }
     });
+};
 
+ActionHandler.showCertificateViewerDialog = function(data) {
+    var certInfos = data['data'];
+    var bodyText = '';
+    for (var i in certInfos) {
+        bodyText += X509CertificateHandler.certificateToHtml(certInfos[i],keyName,i);
+    }
+    var cancelFunction = function(){ ActionHandler.addOrEditWebAction(keyName,iteration); };
+    var loadFunction = function(){
+        for (var i in certInfos) {
+            X509CertificateHandler.certHtmlActions(certInfos[i],keyName,i);
+        }
+    };
+    PWM_MAIN.showDialog({
+        title:'Certificate Detail',
+        dialogClass: 'wide',
+        text:bodyText,
+        okAction:cancelFunction,
+        loadFunction:loadFunction
+    });
 };
