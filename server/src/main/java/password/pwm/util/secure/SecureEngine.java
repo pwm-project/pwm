@@ -87,7 +87,7 @@ public class SecureEngine
         try
         {
             final byte[] encrypted = encryptToBytes( value, key, blockAlgorithm );
-            return Arrays.asList( flags ).contains( Flag.URL_SAFE )
+            return JavaHelper.enumArrayContainsValue( flags, Flag.URL_SAFE )
                     ? StringUtil.base64Encode( encrypted, StringUtil.Base64Options.URL_SAFE, StringUtil.Base64Options.GZIP )
                     : StringUtil.base64Encode( encrypted );
         }
@@ -181,7 +181,7 @@ public class SecureEngine
                 return "";
             }
 
-            final byte[] decoded = Arrays.asList( flags ).contains( Flag.URL_SAFE )
+            final byte[] decoded = JavaHelper.enumArrayContainsValue( flags, Flag.URL_SAFE )
                     ? StringUtil.base64Decode( value, StringUtil.Base64Options.URL_SAFE, StringUtil.Base64Options.GZIP )
                     : StringUtil.base64Decode( value );
             return decryptBytes( decoded, key, blockAlgorithm );

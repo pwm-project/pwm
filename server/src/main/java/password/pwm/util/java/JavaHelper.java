@@ -252,7 +252,20 @@ public class JavaHelper
 
     public static <E extends Enum<E>> boolean enumArrayContainsValue( final E[] enumArray, final E enumValue )
     {
-        return !( enumArray == null || enumArray.length == 0 ) && Arrays.asList( enumArray ).contains( enumValue );
+        if ( enumArray == null || enumArray.length == 0 )
+        {
+            return false;
+        }
+
+        for ( final E loopValue : enumArray )
+        {
+            if ( loopValue == enumValue )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static void unhandledSwitchStatement( final Object switchParameter )

@@ -22,7 +22,10 @@ package password.pwm.util.java;
 
 import org.junit.Assert;
 import org.junit.Test;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.secure.PwmRandom;
+
+import java.io.IOException;
 
 public class StringUtilTest
 {
@@ -187,5 +190,71 @@ public class StringUtilTest
     {
         final String input = "dsad(dsadaasds)dsdasdad";
         Assert.assertEquals( "dsad%28dsadaasds%29dsdasdad", StringUtil.urlPathEncode( input ) );
+    }
+
+    @Test
+    public void base64Test() throws PwmUnrecoverableException, IOException
+    {
+        final int byteLength = 256;
+        final byte[] inputArray = new byte[byteLength];
+        byte nextByte = 0;
+        for ( int i = 0; i < byteLength; i++ )
+        {
+            inputArray[i] = nextByte;
+            nextByte += i;
+        }
+
+        {
+            final String expectedB64 = "AAABAwYKDxUcJC03Qk5baXiImau+0uf9FCxFX3qWs9HwEDFTdpq/5Qw0XYey3gs5aJjJ+y5il80EPHWv6iZjoeAgYaPm"
+                    + "Km+1/ESN1yJuuwlYqPlLnvJHnfRMpf9athNx0DCR81a6H4XsVL0nkv5r2Ui4KZsOgvdt5FzVT8pGw0HAQMFDxkrPVdxk7XcCjhupOMhZ634Sp"
+                    + "z3UbAWfOtZzEbBQ8ZM22n8lzHQdx3Iey3ko2Ik77qJXDcR8Ne+qZiPhoGAh46ZqL/W8hE0X4q57SRjouYteMgfdtIxlPxr207GQcFEzFvrfxa"
+                    + "yUfWdSPisZCPjp287Ct62knJWPioaDgQ==";
+
+            final String b64string = StringUtil.base64Encode( inputArray );
+            Assert.assertEquals( expectedB64, b64string );
+
+            final byte[] b64array = StringUtil.base64Decode( b64string );
+            Assert.assertArrayEquals( inputArray, b64array );
+        }
+
+        {
+            final String expectedB64 = "AAABAwYKDxUcJC03Qk5baXiImau-0uf9FCxFX3qWs9HwEDFTdpq_5Qw0XYey3gs5aJjJ-y5il80EPHWv6iZjoeAgYaPm"
+                    + "Km-1_ESN1yJuuwlYqPlLnvJHnfRMpf9athNx0DCR81a6H4XsVL0nkv5r2Ui4KZsOgvdt5FzVT8pGw0HAQMFDxkrPVdxk7XcCjhupOMhZ634Sp"
+                    + "z3UbAWfOtZzEbBQ8ZM22n8lzHQdx3Iey3ko2Ik77qJXDcR8Ne-qZiPhoGAh46ZqL_W8hE0X4q57SRjouYteMgfdtIxlPxr207GQcFEzFvrfxa"
+                    + "yUfWdSPisZCPjp287Ct62knJWPioaDgQ==";
+
+            final String b64string = StringUtil.base64Encode( inputArray, StringUtil.Base64Options.URL_SAFE );
+            Assert.assertEquals( expectedB64, b64string );
+
+            final byte[] b64array = StringUtil.base64Decode( b64string, StringUtil.Base64Options.URL_SAFE );
+            Assert.assertArrayEquals( inputArray, b64array );
+        }
+
+        {
+            final String expectedB64 = "H4sIAAAAAAAAAAEAAf_-AAABAwYKDxUcJC03Qk5baXiImau-0uf9FCxFX3qWs9HwEDFTdpq_5Qw0XYey3gs5aJjJ-y5il"
+                    + "80EPHWv6iZjoeAgYaPmKm-1_ESN1yJuuwlYqPlLnvJHnfRMpf9athNx0DCR81a6H4XsVL0nkv5r2Ui4KZsOgvdt5FzVT8pGw0HAQMFDxkrPVdx"
+                    + "k7XcCjhupOMhZ634Spz3UbAWfOtZzEbBQ8ZM22n8lzHQdx3Iey3ko2Ik77qJXDcR8Ne-qZiPhoGAh46ZqL_W8hE0X4q57SRjouYteMgfdtIxlP"
+                    + "xr207GQcFEzFvrfxayUfWdSPisZCPjp287Ct62knJWPioaDgR3bmXcAAQAA";
+
+
+            final String b64string = StringUtil.base64Encode( inputArray, StringUtil.Base64Options.URL_SAFE, StringUtil.Base64Options.GZIP );
+            Assert.assertEquals( expectedB64, b64string );
+
+            final byte[] b64array = StringUtil.base64Decode( b64string, StringUtil.Base64Options.URL_SAFE, StringUtil.Base64Options.GZIP );
+            Assert.assertArrayEquals( inputArray, b64array );
+        }
+
+        {
+            final String expectedB64 = "H4sIAAAAAAAAAAEAAf/+AAABAwYKDxUcJC03Qk5baXiImau+0uf9FCxFX3qWs9HwEDFTdpq/5Qw0XYey3gs5aJjJ+y5il"
+                    + "80EPHWv6iZjoeAgYaPmKm+1/ESN1yJuuwlYqPlLnvJHnfRMpf9athNx0DCR81a6H4XsVL0nkv5r2Ui4KZsOgvdt5FzVT8pGw0HAQMFDxkrPVdx"
+                    + "k7XcCjhupOMhZ634Spz3UbAWfOtZzEbBQ8ZM22n8lzHQdx3Iey3ko2Ik77qJXDcR8Ne+qZiPhoGAh46ZqL/W8hE0X4q57SRjouYteMgfdtIxlP"
+                    + "xr207GQcFEzFvrfxayUfWdSPisZCPjp287Ct62knJWPioaDgR3bmXcAAQAA";
+
+            final String b64string = StringUtil.base64Encode( inputArray, StringUtil.Base64Options.GZIP );
+            Assert.assertEquals( expectedB64, b64string );
+
+            final byte[] b64array = StringUtil.base64Decode( b64string, StringUtil.Base64Options.GZIP );
+            Assert.assertArrayEquals( inputArray, b64array );
+        }
     }
 }
