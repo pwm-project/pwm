@@ -171,6 +171,7 @@ public class StringUtilTest
     {
         final String original = PwmRandom.getInstance().alphaNumericString( 1024 * 1024 );
         final String linebreaks = StringUtil.insertRepeatedLineBreaks( original, 80 );
+        Assert.assertEquals( '\n', linebreaks.charAt( 80 ) );
         final String stripped = StringUtil.stripAllWhitespace( linebreaks );
         Assert.assertEquals( original, stripped );
     }
@@ -191,8 +192,92 @@ public class StringUtilTest
         Assert.assertEquals( "dsad%28dsadaasds%29dsdasdad", StringUtil.urlPathEncode( input ) );
     }
 
+    private static byte[] makeB64inputByteArray()
+    {
+        final int byteLength = 256;
+        final byte[] inputArray = new byte[byteLength];
+
+        byte nextByte = 0;
+        for ( int i = 0; i < byteLength; i++ )
+        {
+            inputArray[i] = nextByte;
+            nextByte += i;
+        }
+
+        return inputArray;
+    }
+
     @Test
-    public void base64EncodeTest() throws IOException
+    public void base64Test() throws Exception
+    {
+        final byte[] inputArray = makeB64inputByteArray();
+
+        final String expectedB64 = "AAABAwYKDxUcJC03Qk5baXiImau+0uf9FCxFX3qWs9HwEDFTdpq/5Qw0XYey3gs5aJjJ+y5il80EPHWv6iZjoeAgYaPm"
+                + "Km+1/ESN1yJuuwlYqPlLnvJHnfRMpf9athNx0DCR81a6H4XsVL0nkv5r2Ui4KZsOgvdt5FzVT8pGw0HAQMFDxkrPVdxk7XcCjhupOMhZ634Sp"
+                + "z3UbAWfOtZzEbBQ8ZM22n8lzHQdx3Iey3ko2Ik77qJXDcR8Ne+qZiPhoGAh46ZqL/W8hE0X4q57SRjouYteMgfdtIxlPxr207GQcFEzFvrfxa"
+                + "yUfWdSPisZCPjp287Ct62knJWPioaDgQ==";
+
+        final String b64string = StringUtil.base64Encode( inputArray );
+        Assert.assertEquals( expectedB64, b64string );
+
+        final byte[] b64array = StringUtil.base64Decode( b64string );
+        Assert.assertArrayEquals( inputArray, b64array );
+    }
+
+    @Test
+    public void base64TestUrlSafe() throws Exception
+    {
+        final byte[] inputArray = makeB64inputByteArray();
+
+        final String expectedB64 = "AAABAwYKDxUcJC03Qk5baXiImau-0uf9FCxFX3qWs9HwEDFTdpq_5Qw0XYey3gs5aJjJ-y5il80EPHWv6iZjoeAgYaPm"
+                + "Km-1_ESN1yJuuwlYqPlLnvJHnfRMpf9athNx0DCR81a6H4XsVL0nkv5r2Ui4KZsOgvdt5FzVT8pGw0HAQMFDxkrPVdxk7XcCjhupOMhZ634Sp"
+                + "z3UbAWfOtZzEbBQ8ZM22n8lzHQdx3Iey3ko2Ik77qJXDcR8Ne-qZiPhoGAh46ZqL_W8hE0X4q57SRjouYteMgfdtIxlPxr207GQcFEzFvrfxa"
+                + "yUfWdSPisZCPjp287Ct62knJWPioaDgQ==";
+
+        final String b64string = StringUtil.base64Encode( inputArray, StringUtil.Base64Options.URL_SAFE );
+        Assert.assertEquals( expectedB64, b64string );
+
+        final byte[] b64array = StringUtil.base64Decode( b64string, StringUtil.Base64Options.URL_SAFE );
+        Assert.assertArrayEquals( inputArray, b64array );
+    }
+
+    @Test
+    public void base64TestGzipAndUrlSafe() throws Exception
+    {
+        final byte[] inputArray = makeB64inputByteArray();
+
+        final String expectedB64 = "H4sIAAAAAAAA_wEAAf_-AAABAwYKDxUcJC03Qk5baXiImau-0uf9FCxFX3qWs9HwEDFTdpq_5Qw0XYey3gs5aJjJ-y5il"
+                + "80EPHWv6iZjoeAgYaPmKm-1_ESN1yJuuwlYqPlLnvJHnfRMpf9athNx0DCR81a6H4XsVL0nkv5r2Ui4KZsOgvdt5FzVT8pGw0HAQMFDxkrPVdx"
+                + "k7XcCjhupOMhZ634Spz3UbAWfOtZzEbBQ8ZM22n8lzHQdx3Iey3ko2Ik77qJXDcR8Ne-qZiPhoGAh46ZqL_W8hE0X4q57SRjouYteMgfdtIxlP"
+                + "xr207GQcFEzFvrfxayUfWdSPisZCPjp287Ct62knJWPioaDgR3bmXcAAQAA";
+
+
+        final String b64string = StringUtil.base64Encode( inputArray, StringUtil.Base64Options.URL_SAFE, StringUtil.Base64Options.GZIP );
+        Assert.assertEquals( expectedB64, b64string );
+
+        final byte[] b64array = StringUtil.base64Decode( b64string, StringUtil.Base64Options.URL_SAFE, StringUtil.Base64Options.GZIP );
+        Assert.assertArrayEquals( inputArray, b64array );
+    }
+
+    @Test
+    public void base64TestGzip() throws Exception
+    {
+        final byte[] inputArray = makeB64inputByteArray();
+
+        final String expectedB64 = "H4sIAAAAAAAA/wEAAf/+AAABAwYKDxUcJC03Qk5baXiImau+0uf9FCxFX3qWs9HwEDFTdpq/5Qw0XYey3gs5aJjJ+y5il"
+                + "80EPHWv6iZjoeAgYaPmKm+1/ESN1yJuuwlYqPlLnvJHnfRMpf9athNx0DCR81a6H4XsVL0nkv5r2Ui4KZsOgvdt5FzVT8pGw0HAQMFDxkrPVdx"
+                + "k7XcCjhupOMhZ634Spz3UbAWfOtZzEbBQ8ZM22n8lzHQdx3Iey3ko2Ik77qJXDcR8Ne+qZiPhoGAh46ZqL/W8hE0X4q57SRjouYteMgfdtIxlP"
+                + "xr207GQcFEzFvrfxayUfWdSPisZCPjp287Ct62knJWPioaDgR3bmXcAAQAA";
+
+        final String b64string = StringUtil.base64Encode( inputArray, StringUtil.Base64Options.GZIP );
+        Assert.assertEquals( expectedB64, b64string );
+
+        final byte[] b64array = StringUtil.base64Decode( b64string, StringUtil.Base64Options.GZIP );
+        Assert.assertArrayEquals( inputArray, b64array );
+    }
+
+    @Test
+    public void base32EncodeTest() throws IOException
     {
         final byte[] input = new byte[500];
         for ( int i = 0; i < 500; i++ )
@@ -200,20 +285,20 @@ public class StringUtilTest
             input[i] = 65;
         }
 
-        final String b64value = StringUtil.base32Encode( input );
+        final String b32value = StringUtil.base32Encode( input );
         final String expectedValue = "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
-                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
-                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
-                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
-                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
-                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
-                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
-                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
-                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
-                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
-                        + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
-                        + "IFAUCQKB";
+                + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
+                + "IFAUCQKB";
 
-        Assert.assertEquals( expectedValue, b64value );
+        Assert.assertEquals( expectedValue, b32value );
     }
 }

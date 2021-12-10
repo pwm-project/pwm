@@ -23,10 +23,8 @@ package password.pwm.util.json;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.squareup.moshi.Types;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.logging.PwmLogger;
 
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -35,8 +33,6 @@ import java.util.Map;
 
 class GsonJsonServiceProvider implements JsonProvider
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( GsonJsonServiceProvider.class );
-
     private static final Gson GENERIC_GSON = GsonJsonAdaptors.registerTypeAdapters( new GsonBuilder() )
             .disableHtmlEscaping()
             .create();
@@ -67,17 +63,16 @@ class GsonJsonServiceProvider implements JsonProvider
     @Override
     public <V> List<V> deserializeList( final String jsonString, final Class<V> classOfV )
     {
-        final Type type = Types.newParameterizedType( List.class, classOfV );
-        return List.copyOf( getGson().fromJson( jsonString, type ) );
+        final Type type = TypeToken.getParameterized( List.class, classOfV ).getType();
+        final List<V> readList = getGson().fromJson( jsonString, type );
+        return List.copyOf( CollectionUtil.stripNulls( readList ) );
     }
 
     @Override
     public <K, V> Map<K, V> deserializeMap( final String jsonString, final Class<K> classOfK, final Class<V> classOfV )
     {
-        final Map<K, V> readMap = getGson().fromJson( jsonString, new TypeToken<Map<K, V>>()
-        {
-        }.getType() );
-
+        final Type type = TypeToken.getParameterized( Map.class, classOfK, classOfV ).getType();
+        final Map<K, V> readMap = getGson().fromJson( jsonString, type );
         return Map.copyOf( CollectionUtil.stripNulls( readMap ) );
     }
 
@@ -116,7 +111,7 @@ class GsonJsonServiceProvider implements JsonProvider
     @Override
     public <T> String serialize( final T srcObject, final Class<T> classOfT, final Type type, final Flag... flags )
     {
-        final Type types = Types.newParameterizedType( classOfT, type );
+        final Type types = TypeToken.getParameterized( classOfT, type ).getType();
         return getGson( flags ).toJson( srcObject, types );
     }
 
@@ -130,7 +125,7 @@ class GsonJsonServiceProvider implements JsonProvider
     @Override
     public <K, V> String serializeMap( final Map<K, V> srcObject, final Class<K> parameterizedKey, final Class<V> parameterizedValue, final Flag... flags )
     {
-        final Type type = Types.newParameterizedType( Map.class, parameterizedKey, parameterizedValue );
+        final Type type = TypeToken.getParameterized( Map.class, parameterizedKey, parameterizedValue ).getType();
         return getGson( flags ).toJson( srcObject, type );
     }
 

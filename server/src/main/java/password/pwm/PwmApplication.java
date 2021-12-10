@@ -20,6 +20,7 @@
 
 package password.pwm;
 
+import lombok.Value;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
@@ -69,9 +70,9 @@ import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.logging.LocalDBLogger;
@@ -93,6 +94,7 @@ import java.security.KeyStore;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -307,7 +309,7 @@ public class PwmApplication
 
         getPwmScheduler().immediateExecuteRunnableInNewThread( UserAgentUtils::initializeCache, "initialize useragent cache" );
         getPwmScheduler().immediateExecuteRunnableInNewThread( PwmSettingMetaDataReader::initCache, "initialize PwmSetting cache" );
-        
+
         if ( Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
         {
             outputConfigurationToLog( this );
@@ -671,6 +673,91 @@ public class PwmApplication
         }
         return Optional.empty();
     }
+
+    public void writeLastLdapFailure( final DomainID domainID, final Map<String, ErrorInformation> errorInformationMap )
+    {
+        try
+        {
+            final StoredErrorRecords currentRecords = readLastLdapFailure();
+            final StoredErrorRecords updatedRecords = currentRecords.addDomainErrorMap( domainID, errorInformationMap );
+            writeAppAttribute( AppAttribute.LAST_LDAP_ERROR, JsonFactory.get().serialize( updatedRecords, StoredErrorRecords.class ) );
+        }
+        catch ( final Exception e )
+        {
+            LOGGER.error( () -> "unexpected error writing lastLdapFailure statuses: " + e.getMessage() );
+        }
+    }
+
+    public Map<String, ErrorInformation> readLastLdapFailure( final DomainID domainID )
+    {
+        return readLastLdapFailure().getRecords().getOrDefault( domainID, Collections.emptyMap() );
+    }
+
+    private StoredErrorRecords readLastLdapFailure()
+    {
+        try
+        {
+            final TimeDuration maxAge = TimeDuration.of(
+                    Long.parseLong( getConfig().readAppProperty( AppProperty.HEALTH_LDAP_ERROR_LIFETIME_MS ) ),
+                    TimeDuration.Unit.MILLISECONDS );
+            final Optional<String> optionalLastLdapError = readAppAttribute( AppAttribute.LAST_LDAP_ERROR, String.class );
+            if ( optionalLastLdapError.isPresent() )
+            {
+                final String lastLdapFailureStr = optionalLastLdapError.get();
+                final StoredErrorRecords records = JsonFactory.get().deserialize( lastLdapFailureStr, StoredErrorRecords.class );
+                return records.stripOutdatedLdapErrors( maxAge );
+            }
+        }
+        catch ( final Exception e )
+        {
+            LOGGER.error( () -> "unexpected error loading cached lastLdapFailure statuses: " + e.getMessage() );
+        }
+        return new StoredErrorRecords( Collections.emptyMap() );
+    }
+
+    @Value
+    private static class StoredErrorRecords
+    {
+        private final Map<DomainID, Map<String, ErrorInformation>> records;
+
+        StoredErrorRecords( final Map<DomainID, Map<String, ErrorInformation>> records )
+        {
+            this.records = records == null ? Collections.emptyMap() : Map.copyOf( records );
+        }
+
+        public Map<DomainID, Map<String, ErrorInformation>> getRecords()
+        {
+            // required because json deserialization can still set records == null
+            return records == null ? Collections.emptyMap() : Map.copyOf( records );
+        }
+
+        StoredErrorRecords addDomainErrorMap(
+                final DomainID domainID,
+                final Map<String, ErrorInformation> errorInformationMap )
+        {
+            final Map<DomainID, Map<String, ErrorInformation>> newRecords = new HashMap<>( getRecords() );
+            newRecords.put( domainID, Map.copyOf( errorInformationMap ) );
+            return new StoredErrorRecords( newRecords );
+        }
+
+        StoredErrorRecords stripOutdatedLdapErrors( final TimeDuration maxAge )
+        {
+            return new StoredErrorRecords( getRecords().entrySet().stream()
+                    // outer map
+                    .collect( Collectors.toUnmodifiableMap(
+                            Map.Entry::getKey,
+                            entry -> entry.getValue().entrySet().stream()
+
+                                    // keep outdated entries
+                                    .filter( innerEntry -> TimeDuration.fromCurrent( innerEntry.getValue().getDate() ).isShorterThan( maxAge ) )
+
+                                    // inner map
+                                    .collect( Collectors.toUnmodifiableMap(
+                                            Map.Entry::getKey,
+                                            Map.Entry::getValue ) ) ) ) );
+        }
+    }
+
 
     public void writeAppAttribute( final AppAttribute appAttribute, final Serializable value )
     {

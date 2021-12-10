@@ -46,7 +46,7 @@ public class JsonFactory
 
     public static JsonProvider get()
     {
-        return JsonImpl.moshi.getProvider();
+        return JsonImpl.gson.getProvider();
     }
 
     public static JsonProvider get( final JsonImpl jsonImpl )
