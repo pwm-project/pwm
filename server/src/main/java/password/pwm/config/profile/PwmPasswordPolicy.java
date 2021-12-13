@@ -22,7 +22,6 @@ package password.pwm.config.profile;
 
 import com.novell.ldapchai.ChaiPasswordPolicy;
 import com.novell.ldapchai.ChaiPasswordRule;
-import com.novell.ldapchai.util.StringHelper;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
@@ -348,8 +347,8 @@ public class PwmPasswordPolicy implements Profile, Serializable
                     case CharGroupsValues:
                         final String separator = ( rule == PwmPasswordRule.RegExMatch || rule == PwmPasswordRule.RegExNoMatch ) ? ";;;" : "\n";
                         final Set<String> combinedSet = new HashSet<>();
-                        combinedSet.addAll( StringHelper.tokenizeString( this.policyMap.get( rule.getKey() ), separator ) );
-                        combinedSet.addAll( StringHelper.tokenizeString( otherPolicy.policyMap.get( rule.getKey() ), separator ) );
+                        combinedSet.addAll( StringUtil.tokenizeString( this.policyMap.get( rule.getKey() ), separator ) );
+                        combinedSet.addAll( StringUtil.tokenizeString( otherPolicy.policyMap.get( rule.getKey() ), separator ) );
                         newPasswordPolicies.put( ruleKey, StringUtil.collectionToString( combinedSet, separator ) );
                         break;
 
@@ -396,8 +395,8 @@ public class PwmPasswordPolicy implements Profile, Serializable
                                 break;
 
                             case BOOLEAN:
-                                final boolean localValue = StringHelper.convertStrToBoolean( localValueString );
-                                final boolean otherValue = StringHelper.convertStrToBoolean( otherValueString );
+                                final boolean localValue = StringUtil.convertStrToBoolean( localValueString );
+                                final boolean otherValue = StringUtil.convertStrToBoolean( otherValueString );
 
                                 if ( rule.isPositiveBooleanMerge() )
                                 {
@@ -437,8 +436,8 @@ public class PwmPasswordPolicy implements Profile, Serializable
 
     protected static String mergeMin( final String value1, final String value2 )
     {
-        final int iValue1 = StringHelper.convertStrToInt( value1, 0 );
-        final int iValue2 = StringHelper.convertStrToInt( value2, 0 );
+        final int iValue1 = StringUtil.convertStrToInt( value1, 0 );
+        final int iValue2 = StringUtil.convertStrToInt( value2, 0 );
 
         // take the largest value
         return iValue1 > iValue2 ? value1 : value2;
@@ -446,8 +445,8 @@ public class PwmPasswordPolicy implements Profile, Serializable
 
     protected static String mergeMax( final String value1, final String value2 )
     {
-        final int iValue1 = StringHelper.convertStrToInt( value1, 0 );
-        final int iValue2 = StringHelper.convertStrToInt( value2, 0 );
+        final int iValue1 = StringUtil.convertStrToInt( value1, 0 );
+        final int iValue2 = StringUtil.convertStrToInt( value2, 0 );
 
         final String returnValue;
 

@@ -21,7 +21,6 @@
 package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.util.StringHelper;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
@@ -41,6 +40,7 @@ import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -158,7 +158,7 @@ public class ShortcutServlet extends AbstractPwmServlet
                 {
                     for ( final String loopValues : entry.getValue() )
                     {
-                        labelsFromHeader.addAll( StringHelper.tokenizeString( loopValues, "," ) );
+                        labelsFromHeader.addAll( StringUtil.tokenizeString( loopValues, "," ) );
                     }
                 }
             }
@@ -175,7 +175,7 @@ public class ShortcutServlet extends AbstractPwmServlet
 
         if ( !labelsFromHeader.isEmpty() )
         {
-            LOGGER.trace( () -> "detected the following labels from headers: " + StringHelper.stringCollectionToString( labelsFromHeader, "," ) );
+            LOGGER.trace( () -> "detected the following labels from headers: " + StringUtil.collectionToString( labelsFromHeader, "," ) );
             visibleItems.keySet().retainAll( labelsFromHeader );
         }
         else

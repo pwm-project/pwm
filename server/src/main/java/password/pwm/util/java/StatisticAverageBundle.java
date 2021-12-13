@@ -20,8 +20,6 @@
 
 package password.pwm.util.java;
 
-import com.novell.ldapchai.util.StringHelper;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -79,6 +77,6 @@ public class StatisticAverageBundle<K extends Enum<K>>
 
     public String debugString()
     {
-        return StringHelper.stringMapToString( debugStats(), null );
+        return StringUtil.mapToString( debugStats() );
     }
 }

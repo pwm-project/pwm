@@ -20,7 +20,6 @@
 
 package password.pwm.util.java;
 
-import com.novell.ldapchai.util.StringHelper;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.i18n.Display;
@@ -403,7 +402,7 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
             segments.add( sb.toString() );
         }
 
-        return StringHelper.stringCollectionToString( segments, ", " );
+        return StringUtil.collectionToString( segments, ", " );
     }
 
     public Instant getInstantAfter( final Instant specifiedDate )

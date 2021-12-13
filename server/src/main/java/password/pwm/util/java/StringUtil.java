@@ -36,6 +36,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
@@ -769,5 +770,36 @@ public abstract class StringUtil
     {
         return replaceAllChars( input,
                 character -> Optional.ofNullable( URL_PATH_ENCODING_REPLACEMENTS.getOrDefault( character, null ) ) );
+    }
+
+    /**
+     * Convert a string value to a boolean.  If the value is a common positive string
+     * value such as "1", "true", "y" or "yes" then TRUE is returned.  For any other
+     * value or null, FALSE is returned.
+     *
+     * @param string value to test
+     * @return true if the string resolves to a positive value.
+     */
+    public static boolean convertStrToBoolean( final String string )
+    {
+        return !( string == null || string.length() < 1 ) && ( "true".equalsIgnoreCase( string )
+                || "1".equalsIgnoreCase( string )
+                || "yes".equalsIgnoreCase( string )
+                || "y".equalsIgnoreCase( string )
+        );
+    }
+
+    public static List<String> tokenizeString(
+            final String inputString,
+            final String seperator
+    )
+    {
+        if ( inputString == null || inputString.length() < 1 )
+        {
+            return Collections.emptyList();
+        }
+
+        final List<String> values = new ArrayList<>( Arrays.asList( inputString.split( seperator ) ) );
+        return Collections.unmodifiableList( values );
     }
 }
