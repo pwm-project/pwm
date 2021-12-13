@@ -32,6 +32,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -85,8 +86,10 @@ public class ChallengeValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    final Map<String, List> deserializeMap = JsonFactory.get().deserializeMap( input, String.class, List.class );
-                    final Map<String, List<ChallengeItemConfiguration>> values = new HashMap<>();
+                    final JsonProvider jsonProvider = JsonFactory.get();
+                    final Map<String, List<ChallengeItemConfiguration>> returnValues = new HashMap<>();
+
+                    final Map<String, List> deserializeMap = jsonProvider.deserializeMap( input, String.class, List.class );
                     for ( final Map.Entry<String, List> entry : deserializeMap.entrySet() )
                     {
                         if ( entry.getKey() != null && entry.getValue() != null )
@@ -96,13 +99,15 @@ public class ChallengeValue extends AbstractValue implements StoredValue
                             {
                                 if ( value != null )
                                 {
-                                    newArrayList.add( ( ChallengeItemConfiguration ) value );
+                                    final String jsonValue = jsonProvider.serialize( value );
+                                    final ChallengeItemConfiguration challengeItemConfiguration = jsonProvider.deserialize( jsonValue, ChallengeItemConfiguration.class );
+                                    newArrayList.add( challengeItemConfiguration );
                                 }
                             }
-                            values.put( entry.getKey(), List.copyOf( newArrayList ) );
+                            returnValues.put( entry.getKey(), List.copyOf( newArrayList ) );
                         }
                     }
-                    return new ChallengeValue( Collections.unmodifiableMap( values ) );
+                    return new ChallengeValue( Collections.unmodifiableMap( returnValues ) );
                 }
             }
 
