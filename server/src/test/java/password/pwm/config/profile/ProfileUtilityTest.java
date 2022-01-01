@@ -39,7 +39,6 @@ public class ProfileUtilityTest
                 Assert.assertEquals( PwmSettingSyntax.PROFILE, profileSetting.getSyntax() );
                 Assert.assertFalse( profileSetting.getCategory().hasProfiles() );
                 Assert.assertEquals( pwmSettingCategory.getScope(), profileSetting.getCategory().getScope() );
-                System.out.println( "pwmSettingCategory " + pwmSettingCategory + " scope: " + pwmSettingCategory.getScope()  );
             }
         }
     }
