@@ -50,9 +50,13 @@ public class LoggedThrowable implements Serializable
 
         return new LoggedThrowable(
                 JavaHelper.readHostileExceptionMessage( t ),
-                t.getStackTrace() == null ? null : Arrays.stream( t.getStackTrace() ).map( LoggedStackTraceElement::fromStackTraceElement ).collect( Collectors.toList() ),
+                t.getStackTrace() == null ? null : Arrays.stream( t.getStackTrace() )
+                        .map( LoggedStackTraceElement::fromStackTraceElement )
+                        .collect( Collectors.toUnmodifiableList() ),
                 t.getCause() == null ? null : fromThrowable( t.getCause() ),
-                t.getSuppressed() == null ? null : Arrays.stream( t.getSuppressed() ).map( LoggedThrowable::fromThrowable ).collect( Collectors.toList() ) );
+                t.getSuppressed() == null ? null : Arrays.stream( t.getSuppressed() )
+                        .map( LoggedThrowable::fromThrowable )
+                        .collect( Collectors.toUnmodifiableList() ) );
     }
 
     @Value

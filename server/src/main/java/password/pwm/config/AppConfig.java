@@ -68,7 +68,7 @@ public class AppConfig implements SettingReader
     private final Map<DomainID, DomainConfig> domainConfigMap;
     private final Set<String> domainIDList;
 
-    private static final Supplier<AppConfig> DEFAULT_CONFIG = new LazySupplier<>( () -> makeDefaultConfig() );
+    private static final Supplier<AppConfig> DEFAULT_CONFIG = new LazySupplier<>( AppConfig::makeDefaultConfig );
 
     private static AppConfig makeDefaultConfig()
     {
@@ -330,7 +330,7 @@ public class AppConfig implements SettingReader
 
     public Map<String, EmailServerProfile> getEmailServerProfiles( )
     {
-        return settingReader.getProfileMap( ProfileDefinition.EmailServers, DomainID.systemId() );
+        return settingReader.getProfileMap( ProfileDefinition.EmailServers );
     }
 
     public CertificateMatchingMode readCertificateMatchingMode()

@@ -4360,7 +4360,7 @@
     <category hidden="false" scope="DOMAIN" key="CHANGE_PASSWORD_SETTINGS">
     </category>
     <category hidden="false" scope="DOMAIN" key="CHANGE_PASSWORD_PROFILE">
-        <profile setting="accountInfo.profile.list"/>
+        <profile setting="changePassword.profile.list"/>
     </category>
     <category hidden="false" scope="DOMAIN" key="ACCOUNT_INFO">
     </category>

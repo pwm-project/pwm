@@ -701,7 +701,7 @@ public class PwmApplication
                     Long.parseLong( getConfig().readAppProperty( AppProperty.HEALTH_LDAP_ERROR_LIFETIME_MS ) ),
                     TimeDuration.Unit.MILLISECONDS );
             final Optional<String> optionalLastLdapError = readAppAttribute( AppAttribute.LAST_LDAP_ERROR, String.class );
-            if ( optionalLastLdapError.isPresent() )
+            if ( optionalLastLdapError.isPresent() && !StringUtil.isEmpty( optionalLastLdapError.get() ) )
             {
                 final String lastLdapFailureStr = optionalLastLdapError.get();
                 final StoredErrorRecords records = JsonFactory.get().deserialize( lastLdapFailureStr, StoredErrorRecords.class );

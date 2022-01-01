@@ -27,6 +27,7 @@ import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileDefinition;
+import password.pwm.config.profile.ProfileUtility;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
@@ -56,6 +57,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -69,18 +72,22 @@ public class StoredSettingReader implements SettingReader
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( StoredSettingReader.class );
 
-    private final ProfileReader profileReader = new ProfileReader();
-
     private final StoredConfiguration storedConfiguration;
     private final String profileID;
     private final DomainID domainID;
+
     private final DataCache dataCache = new DataCache();
+    private final Map<ProfileDefinition, Map> profileCache;
 
     public StoredSettingReader( final StoredConfiguration storedConfiguration, final String profileID, final DomainID domainID )
     {
         this.storedConfiguration = Objects.requireNonNull( storedConfiguration );
         this.profileID = profileID;
         this.domainID = Objects.requireNonNull( domainID );
+        this.profileCache = profileID == null
+                ? ProfileReader.makeCacheMap( storedConfiguration, domainID )
+                : Collections.emptyMap();
+
     }
 
     private static class DataCache
@@ -220,45 +227,57 @@ public class StoredSettingReader implements SettingReader
     }
 
 
-    public <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition, final DomainID domainID )
+    public <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition )
     {
-        return profileReader.getProfileMap( profileDefinition, domainID );
+        if ( profileID != null )
+        {
+            throw new IllegalStateException( "can not read profile map from profiled setting reader" );
+        }
+        return profileCache.get( profileDefinition );
     }
 
 
-    private class ProfileReader
+    private static class ProfileReader
     {
-        private final Map<ProfileDefinition, Map> profileCache = new LinkedHashMap<>();
-
-        private <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition, final DomainID domainID )
+        public static Map<ProfileDefinition, Map> makeCacheMap(
+                final StoredConfiguration storedConfiguration,
+                final DomainID domainID
+        )
         {
-            return profileCache.computeIfAbsent( profileDefinition, ( p ) ->
-            {
-                final Map<String, T> returnMap = new LinkedHashMap<>();
-                final Map<String, Profile> profileMap = profileMap( profileDefinition, domainID );
-                for ( final Map.Entry<String, Profile> entry : profileMap.entrySet() )
-                {
-                    returnMap.put( entry.getKey(), ( T ) entry.getValue() );
-                }
-                return Collections.unmodifiableMap( returnMap );
-            } );
+            final Map<ProfileDefinition, Map<String, Profile>> returnMap = new EnumMap<>( ProfileDefinition.class );
+            returnMap.putAll( EnumSet.allOf( ProfileDefinition.class ).stream()
+                    .filter( profileDefinition -> domainID.inScope( profileDefinition.getCategory().getScope() ) )
+                    .collect( Collectors.toUnmodifiableMap(
+                            profileDefinition -> profileDefinition,
+                            profileDefinition -> profileMap( profileDefinition, storedConfiguration, domainID )
+                    ) ) );
+            return Collections.unmodifiableMap( returnMap );
         }
 
-        private Map<String, Profile> profileMap( final ProfileDefinition profileDefinition, final DomainID domainID )
+        private static <T extends Profile> Map<String, T> profileMap(
+                final ProfileDefinition profileDefinition,
+                final StoredConfiguration storedConfiguration,
+                final DomainID domainID
+        )
         {
             if ( profileDefinition.getProfileFactoryClass().isEmpty() )
             {
                 return Collections.emptyMap();
             }
 
-            return profileIDsForCategory( profileDefinition.getCategory() ).stream()
+            return ProfileUtility.profileIDsForCategory( storedConfiguration, domainID, profileDefinition.getCategory() ).stream()
                     .collect( Collectors.toUnmodifiableMap(
-                        profileID -> profileID,
-                        profileID -> newProfileForID( profileDefinition, domainID, profileID )
+                            profileID -> profileID,
+                            profileID -> newProfileForID( profileDefinition, storedConfiguration, domainID, profileID )
                     ) );
         }
 
-        private Profile newProfileForID( final ProfileDefinition profileDefinition, final DomainID domainID, final String profileID )
+        private static <T extends Profile> T newProfileForID(
+                final ProfileDefinition profileDefinition,
+                final StoredConfiguration storedConfiguration,
+                final DomainID domainID,
+                final String profileID
+        )
         {
             Objects.requireNonNull( profileDefinition );
             Objects.requireNonNull( profileID );
@@ -271,7 +290,7 @@ public class StoredSettingReader implements SettingReader
                 try
                 {
                     profileFactory = optionalProfileFactoryClass.get().getDeclaredConstructor().newInstance();
-                    return profileFactory.makeFromStoredConfiguration( storedConfiguration, domainID, profileID );
+                    return ( T ) profileFactory.makeFromStoredConfiguration( storedConfiguration, domainID, profileID );
                 }
                 catch ( final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
                 {
@@ -280,12 +299,6 @@ public class StoredSettingReader implements SettingReader
             }
 
             throw new IllegalStateException( "unable to create profile instance for " + profileDefinition + " ( profile factory class not defined )" );
-        }
-
-        public List<String> profileIDsForCategory( final PwmSettingCategory pwmSettingCategory )
-        {
-            final PwmSetting profileSetting = pwmSettingCategory.getProfileSetting().orElseThrow( IllegalStateException::new );
-            return StoredSettingReader.this.readSettingAsStringArray( profileSetting );
         }
     }
 

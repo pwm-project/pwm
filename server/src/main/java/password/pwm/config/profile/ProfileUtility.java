@@ -21,11 +21,16 @@
 package password.pwm.config.profile;
 
 import password.pwm.PwmDomain;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
+import password.pwm.config.stored.StoredConfigKey;
+import password.pwm.config.stored.StoredConfiguration;
+import password.pwm.config.stored.StoredConfigurationUtil;
+import password.pwm.config.value.StoredValue;
+import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -90,11 +95,11 @@ public class ProfileUtility
         return Optional.empty();
     }
 
-    public static List<String> profileIDsForCategory( final DomainConfig domainConfig, final PwmSettingCategory pwmSettingCategory )
+    public static List<String> profileIDsForCategory( final StoredConfiguration storedConfiguration, final DomainID domainID, final PwmSettingCategory pwmSettingCategory )
     {
         final PwmSetting profileSetting = pwmSettingCategory.getProfileSetting().orElseThrow( IllegalStateException::new );
-        return domainConfig.readSettingAsStringArray( profileSetting );
+        final StoredConfigKey key = StoredConfigKey.forSetting( profileSetting, null, domainID );
+        final StoredValue storedValue = StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
+        return ValueTypeConverter.valueToStringArray( storedValue );
     }
-
-
 }

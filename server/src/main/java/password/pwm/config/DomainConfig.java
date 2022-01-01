@@ -290,7 +290,7 @@ public class DomainConfig implements SettingReader
     {
         private final Supplier<Map<String, LdapProfile>> ldapProfilesSupplier = new LazySupplier<>( () ->
         {
-            final Map<String, LdapProfile> sourceMap = settingReader.getProfileMap( ProfileDefinition.LdapProfile, getDomainID() );
+            final Map<String, LdapProfile> sourceMap = settingReader.getProfileMap( ProfileDefinition.LdapProfile );
 
             return Collections.unmodifiableMap(
                     sourceMap.entrySet()
@@ -367,7 +367,7 @@ public class DomainConfig implements SettingReader
 
     public <T extends Profile> Map<String, T> getProfileMap( final ProfileDefinition profileDefinition )
     {
-        return settingReader.getProfileMap( profileDefinition, getDomainID()  );
+        return settingReader.getProfileMap( profileDefinition );
     }
 
     public StoredConfiguration getStoredConfiguration( )
@@ -380,7 +380,7 @@ public class DomainConfig implements SettingReader
         if ( readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE_PUBLIC ) )
         {
             final String profileID = readSettingAsString( PwmSetting.PEOPLE_SEARCH_PUBLIC_PROFILE );
-            final Map<String, PeopleSearchProfile> profiles = settingReader.getProfileMap( ProfileDefinition.PeopleSearchPublic, getDomainID() );
+            final Map<String, PeopleSearchProfile> profiles = settingReader.getProfileMap( ProfileDefinition.PeopleSearchPublic );
             return Optional.ofNullable( profiles.get( profileID ) );
         }
         return Optional.empty();
