@@ -20,18 +20,18 @@
 
 package password.pwm.config.value;
 
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlDocument;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
-import password.pwm.util.json.JsonProvider;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.XmlDocument;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
@@ -119,10 +119,10 @@ public abstract class AbstractValue implements StoredValue
                     .storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN )
                     .build();
             final List<XmlElement> xmlValues = storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, xmlOutputProcessData );
-            final XmlDocument document = XmlFactory.getFactory().newDocument( "root" );
-            document.getRootElement().addContent( xmlValues );
+            final XmlDocument document = XmlChai.getFactory().newDocument( "root" );
+            document.getRootElement().attachElement( xmlValues );
             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            XmlFactory.getFactory().outputDocument( document, byteArrayOutputStream );
+            XmlChai.getFactory().output( document, byteArrayOutputStream );
             final byte[] bytesToHash = byteArrayOutputStream.toByteArray();
             return SecureEngine.hash( bytesToHash, PwmHashAlgorithm.SHA512 );
 

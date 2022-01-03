@@ -20,13 +20,13 @@
 
 package password.pwm.config;
 
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
 import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
-import password.pwm.util.java.XmlElement;
 import password.pwm.util.macro.MacroRequest;
 
 import java.util.ArrayList;
@@ -425,7 +425,7 @@ public enum PwmSettingCategory
                 final Optional<XmlElement> profileElement = categoryElement.getChild( "profile" );
                 if ( profileElement.isPresent() )
                 {
-                    final Optional<String> settingKey = profileElement.get().getAttributeValue( "setting" );
+                    final Optional<String> settingKey = profileElement.get().getAttribute( "setting" );
                     if ( settingKey.isPresent() )
                     {
                         return PwmSetting.forKey( settingKey.get() );
@@ -447,7 +447,7 @@ public enum PwmSettingCategory
         private static int readLevel( final PwmSettingCategory category )
         {
             final XmlElement settingElement = PwmSettingXml.readCategoryXml( category );
-            return settingElement.getAttributeValue( PwmSettingXml.XML_ELEMENT_LEVEL )
+            return settingElement.getAttribute( PwmSettingXml.XML_ELEMENT_LEVEL )
                     .map( ( value ) -> JavaHelper.silentParseInt( value, 0 ) )
                     .orElse( 0 );
         }
@@ -474,7 +474,7 @@ public enum PwmSettingCategory
             while ( nextCategory != null )
             {
                 final XmlElement settingElement = PwmSettingXml.readCategoryXml( category );
-                final Optional<String> attributeValue = settingElement.getAttributeValue( attribute );
+                final Optional<String> attributeValue = settingElement.getAttribute( attribute );
                 if ( attributeValue.isPresent() )
                 {
                     return attributeValue.get();

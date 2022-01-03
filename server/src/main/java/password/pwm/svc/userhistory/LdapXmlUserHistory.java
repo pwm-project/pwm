@@ -25,6 +25,11 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.ConfigObjectRecord;
 import lombok.Value;
+import org.jrivard.xmlchai.AccessMode;
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlDocument;
+import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
@@ -42,9 +47,6 @@ import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.XmlDocument;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
@@ -258,7 +260,7 @@ public class LdapXmlUserHistory implements UserHistoryStore
 
         public String toXml( )
         {
-            final XmlFactory xmlFactory = XmlFactory.getFactory();
+            final XmlFactory xmlFactory = XmlChai.getFactory();
             final XmlDocument doc = xmlFactory.newDocument( XML_NODE_ROOT );
 
             for ( final StoredEvent loopEvent : records )
@@ -278,15 +280,15 @@ public class LdapXmlUserHistory implements UserHistoryStore
                     }
                     if ( loopEvent.getMessage() != null )
                     {
-                        hrElement.addText( loopEvent.getMessage() );
+                        hrElement.setText( loopEvent.getMessage() );
                     }
-                    doc.getRootElement().addContent( hrElement );
+                    doc.getRootElement().attachElement( hrElement );
                 }
             }
 
             try ( ByteArrayOutputStream outputStream = new ByteArrayOutputStream() )
             {
-                xmlFactory.outputDocument( doc,  outputStream, XmlFactory.OutputFlag.Compact );
+                xmlFactory.output( doc,  outputStream, XmlFactory.OutputFlag.Compact );
                 return outputStream.toString( PwmConstants.DEFAULT_CHARSET );
             }
             catch ( final IOException e )
@@ -306,21 +308,21 @@ public class LdapXmlUserHistory implements UserHistoryStore
 
             try ( InputStream inputStream = new ByteArrayInputStream( input.getBytes( PwmConstants.DEFAULT_CHARSET ) ) )
             {
-                final XmlFactory xmlFactory = XmlFactory.getFactory();
-                final XmlDocument xmlDocument = xmlFactory.parseXml( inputStream );
+                final XmlFactory xmlFactory = XmlChai.getFactory();
+                final XmlDocument xmlDocument = xmlFactory.parse( inputStream, AccessMode.IMMUTABLE );
                 final XmlElement rootElement = xmlDocument.getRootElement();
 
                 for ( final XmlElement hrElement : rootElement.getChildren( XML_NODE_RECORD ) )
                 {
-                    hrElement.getAttributeValue( XML_ATTR_TIMESTAMP ).ifPresent( ( timeStampStr ->
+                    hrElement.getAttribute( XML_ATTR_TIMESTAMP ).ifPresent( ( timeStampStr ->
                     {
                         final long timeStamp = Long.parseLong( timeStampStr );
-                        hrElement.getAttributeValue( XML_ATTR_TRANSACTION )
+                        hrElement.getAttribute( XML_ATTR_TRANSACTION )
                                 .flatMap( AuditEvent::forKey )
                                 .ifPresent( ( eventCode ) ->
                         {
-                            final String srcAddr = hrElement.getAttributeValue( XML_ATTR_SRC_IP ).orElse( "" );
-                            final String srcHost = hrElement.getAttributeValue( XML_ATTR_SRC_HOST ).orElse( "" );
+                            final String srcAddr = hrElement.getAttribute( XML_ATTR_SRC_IP ).orElse( "" );
+                            final String srcHost = hrElement.getAttribute( XML_ATTR_SRC_HOST ).orElse( "" );
                             final String message = hrElement.getText().orElse( "" );
                             final StoredEvent storedEvent = new StoredEvent( eventCode, timeStamp, message, srcAddr, srcHost );
                             returnHistory.addEvent( storedEvent );
@@ -328,7 +330,7 @@ public class LdapXmlUserHistory implements UserHistoryStore
                     } ) );
                 }
             }
-            catch ( final PwmUnrecoverableException | IOException e )
+            catch ( final IOException e )
             {
                 LOGGER.error( () -> "error parsing user event history record: " + e.getMessage() );
             }

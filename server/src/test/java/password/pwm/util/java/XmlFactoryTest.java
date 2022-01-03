@@ -20,9 +20,12 @@
 
 package password.pwm.util.java;
 
+import org.jrivard.xmlchai.AccessMode;
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlDocument;
+import org.jrivard.xmlchai.XmlElement;
 import org.junit.Assert;
 import org.junit.Test;
-import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.InputStream;
 import java.util.List;
@@ -32,10 +35,10 @@ public class XmlFactoryTest
 {
     @Test
     public void testLoadXml()
-            throws PwmUnrecoverableException
+            throws Exception
     {
         final InputStream xmlFactoryTestXmlFile = this.getClass().getResourceAsStream( "XmlFactoryTest.xml" );
-        final XmlDocument xmlDocument = XmlFactory.getFactory().parseXml( xmlFactoryTestXmlFile );
+        final XmlDocument xmlDocument = XmlChai.getFactory().parse( xmlFactoryTestXmlFile, AccessMode.IMMUTABLE );
         Assert.assertEquals( "PwmConfiguration", xmlDocument.getRootElement().getName() );
         final Optional<XmlElement> configIsEditable = xmlDocument.evaluateXpathToElement( "//property[@key='configIsEditable']" );
         Assert.assertTrue( configIsEditable.isPresent() );

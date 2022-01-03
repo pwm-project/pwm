@@ -20,6 +20,8 @@
 
 package password.pwm.config.value;
 
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
@@ -30,8 +32,6 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -81,7 +81,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                 final List<ActionConfiguration> values = new ArrayList<>();
 
                 final boolean oldType = PwmSettingSyntax.STRING_ARRAY.toString().equals(
-                        settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX ).orElse( "" ) );
+                        settingElement.getAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX ).orElse( "" ) );
                 final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 for ( final XmlElement loopValueElement : valueElements )
                 {
@@ -92,7 +92,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                         {
                             if ( oldType )
                             {
-                                if ( loopValueElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE ).isEmpty() )
+                                if ( loopValueElement.getAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE ).isEmpty() )
                                 {
                                     final ActionConfiguration.ActionConfigurationOldVersion1 oldVersion1 = ActionConfiguration.ActionConfigurationOldVersion1
                                             .parseOldConfigString( stringValue.get() );
@@ -177,9 +177,9 @@ public class ActionValue extends AbstractValue implements StoredValue
                     .webActions( clonedWebActions )
                     .build();
 
-            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
 
-            valueElement.addText( JsonFactory.get().serialize( clonedAction ) );
+            valueElement.setText( JsonFactory.get().serialize( clonedAction ) );
             returnList.add( valueElement );
         }
         return returnList;
@@ -356,7 +356,7 @@ public class ActionValue extends AbstractValue implements StoredValue
 
     private static int figureCurrentStoredSyntax( final XmlElement settingElement )
     {
-        final Optional<String> storedSyntaxVersionString = settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION );
+        final Optional<String> storedSyntaxVersionString = settingElement.getAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION );
         if ( storedSyntaxVersionString.isPresent() )
         {
             try

@@ -20,13 +20,13 @@
 
 package password.pwm.config.value;
 
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.CustomLinkConfiguration;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.json.JsonFactory;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -89,8 +89,8 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final CustomLinkConfiguration value : values )
         {
-            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-            valueElement.addText( JsonFactory.get().serialize( value ) );
+            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            valueElement.setText( JsonFactory.get().serialize( value ) );
             returnList.add( valueElement );
         }
         return returnList;

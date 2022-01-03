@@ -21,6 +21,8 @@
 package password.pwm.config.value;
 
 import lombok.Value;
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -30,8 +32,6 @@ import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.json.JsonFactory;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -160,8 +160,8 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-        valueElement.addText( JsonFactory.get().serialize( value ) );
+        final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+        valueElement.setText( JsonFactory.get().serialize( value ) );
         return Collections.singletonList( valueElement );
     }
 

@@ -20,16 +20,16 @@
 
 package password.pwm.config.value;
 
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -77,13 +77,13 @@ public class FormValue extends AbstractValue implements StoredValue
                     throws PwmOperationalException
             {
                 final boolean oldType = PwmSettingSyntax.LOCALIZED_STRING_ARRAY.toString().equals(
-                        settingElement.getAttributeValue( "syntax" ).orElse( "" ) );
+                        settingElement.getAttribute( "syntax" ).orElse( "" ) );
                 final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final List<FormConfiguration> values = new ArrayList<>();
                 for ( final XmlElement loopValueElement  : valueElements )
                 {
                     final Optional<String> value = loopValueElement.getText();
-                    if ( value.isPresent() && loopValueElement.getAttributeValue( "locale" ).isEmpty() )
+                    if ( value.isPresent() && loopValueElement.getAttribute( "locale" ).isEmpty() )
                     {
                         if ( oldType )
                         {
@@ -106,8 +106,8 @@ public class FormValue extends AbstractValue implements StoredValue
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final FormConfiguration value : values )
         {
-            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-            valueElement.addText( JsonFactory.get().serialize( value ) );
+            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            valueElement.setText( JsonFactory.get().serialize( value ) );
             returnList.add( valueElement );
         }
         return returnList;

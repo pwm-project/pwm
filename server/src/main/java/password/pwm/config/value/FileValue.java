@@ -23,18 +23,18 @@ package password.pwm.config.value;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
-import password.pwm.util.json.JsonProvider;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -179,32 +179,35 @@ public class FileValue extends AbstractValue implements StoredValue
     }
 
     @Override
-    public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
+    public List<XmlElement> toXmlValues(
+            final String valueElementName,
+            final XmlOutputProcessData xmlOutputProcessData
+    )
     {
         final List<XmlElement> returnList = new ArrayList<>();
         for ( final Map.Entry<FileInformation, FileContent> entry : this.values.entrySet() )
         {
             final FileValue.FileInformation fileInformation = entry.getKey();
             final FileContent fileContent = entry.getValue();
-            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
 
-            final XmlElement fileInformationElement = XmlFactory.getFactory().newElement( XML_ELEMENT_FILE_INFORMATION );
-            fileInformationElement.addText( JsonFactory.get().serialize( fileInformation ) );
-            valueElement.addContent( fileInformationElement );
+            final XmlElement fileInformationElement = XmlChai.getFactory().newElement( XML_ELEMENT_FILE_INFORMATION );
+            fileInformationElement.setText( JsonFactory.get().serialize( fileInformation ) );
+            valueElement.attachElement( fileInformationElement );
 
-            final XmlElement fileContentElement = XmlFactory.getFactory().newElement( XML_ELEMENT_FILE_CONTENT );
+            final XmlElement fileContentElement = XmlChai.getFactory().newElement( XML_ELEMENT_FILE_CONTENT );
 
             try
             {
                 final String encodedLineBreaks = StringUtil.insertRepeatedLineBreaks(
                         fileContent.toEncodedString(), PwmConstants.XML_OUTPUT_LINE_WRAP_LENGTH );
-                fileContentElement.addText( encodedLineBreaks );
+                fileContentElement.setText( encodedLineBreaks );
             }
             catch ( final IOException e )
             {
                 LOGGER.error( () -> "unexpected error writing setting to xml, IO error during base64 encoding: " + e.getMessage() );
             }
-            valueElement.addContent( fileContentElement );
+            valueElement.attachElement( fileContentElement );
 
             returnList.add( valueElement );
         }

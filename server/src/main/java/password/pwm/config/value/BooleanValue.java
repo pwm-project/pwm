@@ -20,14 +20,14 @@
 
 package password.pwm.config.value;
 
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.i18n.Display;
 import password.pwm.util.json.JsonFactory;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.Serializable;
@@ -90,8 +90,8 @@ public class BooleanValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-        valueElement.addText( String.valueOf( value ) );
+        final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+        valueElement.setText( String.valueOf( value ) );
         return Collections.singletonList( valueElement );
     }
 

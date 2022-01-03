@@ -20,6 +20,8 @@
 
 package password.pwm.config.value;
 
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -29,8 +31,6 @@ import password.pwm.util.i18n.LocaleComparators;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.json.JsonProvider;
 import password.pwm.util.logging.PwmLogger;
@@ -120,10 +120,10 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             {
                 final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                 final Map<String, List<ChallengeItemConfiguration>> values = new TreeMap<>();
-                final boolean oldStyle = "LOCALIZED_STRING_ARRAY".equals( settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX ).orElse( "" ) );
+                final boolean oldStyle = "LOCALIZED_STRING_ARRAY".equals( settingElement.getAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX ).orElse( "" ) );
                 for ( final XmlElement loopValueElement : valueElements )
                 {
-                    final String localeString = loopValueElement.getAttributeValue( "locale" ).orElse( "" );
+                    final String localeString = loopValueElement.getAttribute( "locale" ).orElse( "" );
                     loopValueElement.getText().ifPresent( value ->
                     {
                         final ChallengeItemConfiguration challengeItemBean;
@@ -159,8 +159,8 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             {
                 if ( value != null )
                 {
-                    final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-                    valueElement.addText( JsonFactory.get().serialize( value ) );
+                    final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+                    valueElement.setText( JsonFactory.get().serialize( value ) );
                     if ( locale != null && locale.length() > 0 )
                     {
                         valueElement.setAttribute( "locale", locale );

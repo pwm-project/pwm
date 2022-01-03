@@ -20,14 +20,14 @@
 
 package password.pwm.config.value;
 
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.i18n.LocaleComparators;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -109,7 +109,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
                 final Map<String, List<String>> values = new TreeMap<>();
                 for ( final XmlElement loopValueElement  : valueElements )
                 {
-                    final String localeString = loopValueElement.getAttributeValue( "locale" ).orElse( "" );
+                    final String localeString = loopValueElement.getAttribute( "locale" ).orElse( "" );
                     loopValueElement.getText().ifPresent( value -> values.computeIfAbsent( localeString, s -> new ArrayList<>() ).add( value ) );
                 }
 
@@ -127,8 +127,8 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
             final String locale = entry.getKey();
             for ( final String value : entry.getValue() )
             {
-                final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-                valueElement.addText( value );
+                final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+                valueElement.setText( value );
                 if ( locale != null && locale.length() > 0 )
                 {
                     valueElement.setAttribute( "locale", locale );

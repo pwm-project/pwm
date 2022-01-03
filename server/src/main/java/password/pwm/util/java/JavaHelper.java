@@ -679,7 +679,14 @@ public class JavaHelper
         {
             gzipOutputStream.write( bytes );
             gzipOutputStream.close();
-            return byteArrayOutputStream.toByteArray();
+            final byte[] byteOutput = byteArrayOutputStream.toByteArray();
+            if ( byteOutput.length > 9 )
+            {
+                // revert fix for https://bugs.openjdk.java.net/browse/JDK-8244706 in JDK16+.
+                // this is incorrect behavior, but effectively harmless and preserves backwards xpat.
+                byteOutput[9] = 0;
+            }
+            return byteOutput;
         }
     }
 
