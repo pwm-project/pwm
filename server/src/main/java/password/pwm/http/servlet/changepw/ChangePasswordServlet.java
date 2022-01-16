@@ -199,9 +199,9 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         }
 
         final PasswordData password1 = pwmRequest.readParameterAsPassword( "password1" )
-                .orElseThrow( () -> new NoSuchElementException( "missing password1 field" ) );
+                .orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_FIELD_REQUIRED, "missing password1 field" ) );
         final PasswordData password2 = pwmRequest.readParameterAsPassword( "password2" )
-                .orElseThrow( () -> new NoSuchElementException( "missing password2 field" ) );
+                .orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_FIELD_REQUIRED, "missing password2 field" ) );
 
         // check the password meets the requirements
         try

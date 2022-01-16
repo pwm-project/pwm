@@ -161,7 +161,7 @@ public class HelpdeskDetailInfoBean implements Serializable
                     pwmRequest.getLocale(),
                     macroRequest
             );
-            builder.passwordRequirements( Collections.unmodifiableList( requirementLines ) );
+            builder.passwordRequirements( requirementLines );
         }
 
         if ( ( userInfo.getPasswordPolicy() != null )
@@ -188,7 +188,7 @@ public class HelpdeskDetailInfoBean implements Serializable
 
         {
             final ResponseInfoBean responseInfoBean = userInfo.getResponseInfoBean();
-            if (  responseInfoBean.getHelpdeskCrMap() != null )
+            if ( responseInfoBean != null && responseInfoBean.getHelpdeskCrMap() != null )
             {
                 final List<DisplayElement> responseDisplay = new ArrayList<>();
                 int counter = 0;
@@ -204,7 +204,6 @@ public class HelpdeskDetailInfoBean implements Serializable
                 }
                 builder.helpdeskResponses = responseDisplay;
             }
-
         }
 
         builder.userDisplayName( HelpdeskCardInfoBean.figureDisplayName( helpdeskProfile, macroRequest ) );

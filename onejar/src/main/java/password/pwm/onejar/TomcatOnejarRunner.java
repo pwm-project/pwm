@@ -117,7 +117,7 @@ public class TomcatOnejarRunner
         {
             tomcat.setConnector( makeConnector( onejarConfig, tlsProperties ) );
             tomcat.start();
-            out( "tomcat started", startTime );
+            out( "tomcat started, listening on port " + onejarConfig.getPort(), startTime );
         }
         catch ( final Exception e )
         {
