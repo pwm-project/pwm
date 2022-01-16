@@ -13,8 +13,8 @@
     <packaging>jar</packaging>
 
     <properties>
-        <node.version>v14.17.2</node.version>
-        <npm.version>6.14.13</npm.version>
+        <node.version>v14.18.3</node.version>
+        <npm.version>6.14.15</npm.version>
     </properties>
 
     <name>PWM Password Self Service: Angular Client JAR</name>
@@ -94,7 +94,7 @@
                     <nodeVersion>${node.version}</nodeVersion>
                     <npmVersion>${npm.version}</npmVersion>
                     <workingDirectory>angular/</workingDirectory>
-                    <installDirectory>${settings.localRepository}/frontend-maven-plugin/node-${node.version}</installDirectory>
+                    <installDirectory>.node</installDirectory>
                 </configuration>
                 <executions>
                     <execution>
