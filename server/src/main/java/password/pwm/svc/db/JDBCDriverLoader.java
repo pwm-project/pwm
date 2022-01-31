@@ -33,15 +33,14 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.sql.Driver;
@@ -237,7 +236,7 @@ public class JDBCDriverLoader
                     LOGGER.trace( () -> "created temp file " + tempFile.getAbsolutePath() );
                 }
 
-                try ( FileOutputStream fos = new FileOutputStream( tempFile ) )
+                try ( OutputStream fos = Files.newOutputStream( tempFile.toPath() ) )
                 {
                     JavaHelper.copy( jdbcDriverBytes.newByteArrayInputStream(), fos );
                     fos.close();
@@ -388,9 +387,10 @@ public class JDBCDriverLoader
             if ( !tempFile.exists() )
             {
                 LOGGER.debug( () -> "creating temp jar file " + tempFile.getAbsolutePath() );
-                final OutputStream fos = new BufferedOutputStream( new FileOutputStream( tempFile ) );
-                JavaHelper.copy( jarBytes.newByteArrayInputStream(), fos );
-                fos.close();
+                try ( OutputStream fos = Files.newOutputStream( tempFile.toPath() ) )
+                {
+                    JavaHelper.copy( jarBytes.newByteArrayInputStream(), fos );
+                }
             }
             else
             {

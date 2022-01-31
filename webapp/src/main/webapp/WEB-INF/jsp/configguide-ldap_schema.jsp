@@ -42,7 +42,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%
     final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);
-    final PwmSettingTemplateSet templateSet =  ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().get(ConfigGuideForm.DOMAIN_ID);
+    final PwmSettingTemplateSet templateSet =  ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSets().get(ConfigGuideForm.DOMAIN_ID);
     final boolean builtinExtenderAvailable = templateSet.contains(PwmSettingTemplate.NOVL) || templateSet.contains(PwmSettingTemplate.NOVL_IDM);
     boolean existingSchemaGood = false;
     String schemaActivityLog = "";

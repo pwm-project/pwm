@@ -207,7 +207,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "uploadConfig" )
-    private ProcessStatus restUploadConfig( final PwmRequest pwmRequest )
+    public ProcessStatus restUploadConfig( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException
     {
         ConfigGuideUtils.restUploadConfig( pwmRequest );
@@ -215,7 +215,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "useConfiguredCerts" )
-    private ProcessStatus restUseConfiguredCerts(
+    public ProcessStatus restUseConfiguredCerts(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException
@@ -229,7 +229,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "ldapHealth" )
-    private ProcessStatus restLdapHealth(
+    public ProcessStatus restLdapHealth(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -341,7 +341,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "browseLdap" )
-    private ProcessStatus restBrowseLdap(
+    public ProcessStatus restBrowseLdap(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -380,7 +380,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "updateForm" )
-    private ProcessStatus restUpdateForm(
+    public ProcessStatus restUpdateForm(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -401,7 +401,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "gotoStep" )
-    private ProcessStatus restGotoStep( final PwmRequest pwmRequest )
+    public ProcessStatus restGotoStep( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException
     {
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
@@ -487,7 +487,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "extendSchema" )
-    private ProcessStatus restExtendSchema( final PwmRequest pwmRequest )
+    public ProcessStatus restExtendSchema( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
@@ -510,7 +510,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "uploadJDBCDriver" )
-    private ProcessStatus restUploadJDBCDriver( final PwmRequest pwmRequest )
+    public ProcessStatus restUploadJDBCDriver( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException
     {
         try
@@ -533,7 +533,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "skipGuide" )
-    private ProcessStatus restSkipGuide( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException
+    public ProcessStatus restSkipGuide( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException
     {
         final Map<String, String> inputJson = pwmRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
         final String password = inputJson.get( "password" );
@@ -556,7 +556,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "readSetting" )
-    private ProcessStatus restReadSetting( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException
+    public ProcessStatus restReadSetting( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException
     {
         final String profileID = "default";
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
@@ -583,7 +583,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "writeSetting" )
-    private ProcessStatus restWriteSetting( final PwmRequest pwmRequest )
+    public ProcessStatus restWriteSetting( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException
     {
         final String profileID = "default";
@@ -630,7 +630,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "settingData" )
-    private ProcessStatus restSettingData( final PwmRequest pwmRequest )
+    public ProcessStatus restSettingData( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );

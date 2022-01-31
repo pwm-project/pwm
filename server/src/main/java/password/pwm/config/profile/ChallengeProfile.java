@@ -269,11 +269,11 @@ public class ChallengeProfile implements Profile, Serializable
 
     public boolean hasChallenges()
     {
-        return !getChallengeSet().map( ChallengeSet::getChallenges ).orElse( Collections.emptyList() ).isEmpty();
+        return !getChallengeSet().map( ChallengeSet::getChallenges ).orElseGet( Collections::emptyList ).isEmpty();
     }
 
     public boolean hasHelpdeskChallenges()
     {
-        return !getHelpdeskChallengeSet().map( ChallengeSet::getChallenges ).orElse( Collections.emptyList() ).isEmpty();
+        return !getHelpdeskChallengeSet().map( ChallengeSet::getChallenges ).orElseGet( Collections::emptyList ).isEmpty();
     }
 }

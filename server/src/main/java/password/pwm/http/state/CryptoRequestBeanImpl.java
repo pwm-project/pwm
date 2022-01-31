@@ -25,11 +25,12 @@ import password.pwm.bean.FormNonce;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.PwmSessionBean;
-import password.pwm.util.logging.PwmLogger;
 import password.pwm.svc.secure.DomainSecureService;
+import password.pwm.util.logging.PwmLogger;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class CryptoRequestBeanImpl implements SessionBeanProvider
 {
@@ -37,30 +38,57 @@ public class CryptoRequestBeanImpl implements SessionBeanProvider
     private static String attrName = "ssi_cache_map";
 
     @Override
-    public <E extends PwmSessionBean> E getSessionBean( final PwmRequest pwmRequest, final Class<E> theClass ) throws PwmUnrecoverableException
+    public <E extends PwmSessionBean> E getSessionBean( final PwmRequest pwmRequest, final Class<E> theClass )
+            throws PwmUnrecoverableException
     {
         final Map<Class<E>, E> cachedMap = getBeanMap( pwmRequest );
-        if ( cachedMap.containsKey( theClass ) )
+
         {
-            return cachedMap.get( theClass );
+            final E cachedValue = cachedMap.get( theClass );
+            if ( cachedValue != null )
+            {
+                return cachedValue;
+            }
         }
 
-        final String submittedPwmFormID = pwmRequest.readParameterAsString( PwmConstants.PARAM_FORM_ID );
-        if ( submittedPwmFormID != null && submittedPwmFormID.length() > 0 )
         {
-            final FormNonce formNonce = pwmRequest.getPwmDomain().getSecureService().decryptObject(
-                    submittedPwmFormID,
-                    FormNonce.class
-            );
-            final DomainSecureService domainSecureService = pwmRequest.getPwmDomain().getSecureService();
-            final E bean = domainSecureService.decryptObject( formNonce.getPayload(), theClass );
-            cachedMap.put( theClass, bean );
-            return bean;
+            final Optional<E> requestSessionBean = readSessionBeanFromRequest( pwmRequest, theClass );
+            if ( requestSessionBean.isPresent() )
+            {
+                cachedMap.put( theClass, requestSessionBean.get() );
+                return requestSessionBean.get();
+            }
         }
-        final String sessionGuid = pwmRequest.getPwmSession().getLoginInfoBean().getGuid();
-        final E newBean = SessionStateService.newBean( sessionGuid, theClass );
+
+        final E newBean = makeNewBean( pwmRequest, theClass );
         cachedMap.put( theClass, newBean );
         return newBean;
+    }
+
+    private static <E extends PwmSessionBean> E makeNewBean( final PwmRequest pwmRequest, final Class<E> theClass )
+            throws PwmUnrecoverableException
+    {
+        final String sessionGuid = pwmRequest.getPwmSession().getLoginInfoBean().getGuid();
+        return SessionStateService.newBean( sessionGuid, theClass );
+    }
+
+    private static <E extends PwmSessionBean> Optional<E> readSessionBeanFromRequest( final PwmRequest pwmRequest, final Class<E> theClass )
+            throws PwmUnrecoverableException
+    {
+        final String submittedPwmFormID = pwmRequest.readParameterAsString( PwmConstants.PARAM_FORM_ID );
+
+        if ( submittedPwmFormID.isEmpty() )
+        {
+            return Optional.empty();
+        }
+
+
+        final FormNonce formNonce = pwmRequest.getPwmDomain().getSecureService().decryptObject(
+                submittedPwmFormID,
+                FormNonce.class
+        );
+        final DomainSecureService domainSecureService = pwmRequest.getPwmDomain().getSecureService();
+        return Optional.of( domainSecureService.decryptObject( formNonce.getPayload(), theClass ) );
     }
 
     @Override

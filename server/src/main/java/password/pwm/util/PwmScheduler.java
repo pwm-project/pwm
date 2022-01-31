@@ -160,7 +160,7 @@ public class PwmScheduler
         }
 
 
-        final List<Future<?>> futures = new ArrayList<>();
+        final List<Future<?>> futures = new ArrayList<>( runnableList.size() );
         for ( final Callable<?> callable : runnableList )
         {
             futures.add( this.immediateExecuteCallableInNewThread( () ->

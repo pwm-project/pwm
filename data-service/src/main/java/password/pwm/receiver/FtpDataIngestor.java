@@ -142,7 +142,7 @@ class FtpDataIngestor
     {
         final String pathname = settings.getSetting( Settings.Setting.ftpReadPath );
         final FTPFile[] files = ftpClient.listFiles( pathname );
-        final List<String> returnFiles = new ArrayList<>();
+        final List<String> returnFiles = new ArrayList<>( files.length );
         for ( final FTPFile ftpFile : files )
         {
             final String name = ftpFile.getName();

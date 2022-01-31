@@ -44,7 +44,6 @@ import java.util.Set;
 
 public enum PwmValue
 {
-
     cspNonce( new CspNonceOutput() ),
     homeURL( new HomeUrlOutput() ),
     passwordFieldType( new PasswordFieldTypeOutput() ),
@@ -154,8 +153,7 @@ public enum PwmValue
                 try
                 {
                     final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
-                    final String expandedScript = macroRequest.expandMacros( customScript );
-                    return expandedScript;
+                    return macroRequest.expandMacros( customScript );
                 }
                 catch ( final Exception e )
                 {
@@ -177,8 +175,7 @@ public enum PwmValue
             {
                 String name = jspPage.getClass().getSimpleName();
                 name = name.replaceAll( "_002d", "-" );
-                name = name.replaceAll( "_", "." );
-                return name;
+                return name.replaceAll( "_", "." );
             }
             return "";
         }
@@ -215,13 +212,11 @@ public enum PwmValue
                 {
                     output += "<span id=\"icon-configModeHelp\" class=\"btn-icon pwm-icon pwm-icon-question-circle\"></span>";
                 }
-                output += LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_ConfigModeActive", pwmRequest.getDomainConfig(), Admin.class, fieldNames );
-                return output;
+                return output + LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_ConfigModeActive", pwmRequest.getDomainConfig(), Admin.class, fieldNames );
             }
             else if ( pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
             {
                 return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_AdminUser", pwmRequest.getDomainConfig(), Admin.class, fieldNames );
-
             }
 
             return "";

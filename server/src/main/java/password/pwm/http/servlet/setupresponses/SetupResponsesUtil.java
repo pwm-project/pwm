@@ -260,7 +260,6 @@ public class SetupResponsesUtil
     )
     {
         boolean useSimple = true;
-        final Map<String, Challenge> indexedChallenges = new LinkedHashMap<>();
 
         int minRandom = minRandomSetup;
 
@@ -296,6 +295,7 @@ public class SetupResponsesUtil
             }
         }
 
+        final Map<String, Challenge> indexedChallenges = new LinkedHashMap<>( challengeSet.getChallenges().size() );
         {
             int index = 0;
             for ( final Challenge loopChallenge : challengeSet.getChallenges() )

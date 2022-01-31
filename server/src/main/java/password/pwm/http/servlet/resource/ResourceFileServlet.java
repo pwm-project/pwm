@@ -37,7 +37,6 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -78,12 +77,11 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
 
     @Override
     protected void doGet( final HttpServletRequest req, final HttpServletResponse resp )
-            throws ServletException, IOException
+            throws IOException
     {
-        PwmRequest pwmRequest = null;
         try
         {
-            pwmRequest = PwmRequest.forRequest( req, resp );
+            final PwmRequest pwmRequest = PwmRequest.forRequest( req, resp );
             processAction( pwmRequest );
             return;
         }
@@ -208,7 +206,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
                 return Optional.empty();
             }
 
-            return Optional.of( resolvedFile.get() );
+            return resolvedFile;
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -236,14 +234,14 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             {
                 debugText.append( ", gzip" );
             }
-            debugText.append( ")" );
+            debugText.append( ')' );
             return debugText.toString();
         }
 
         if ( fromCache || acceptsGzip )
         {
             final StringBuilder debugText = new StringBuilder();
-            debugText.append( "(" );
+            debugText.append( '(' );
             if ( fromCache )
             {
                 debugText.append( "cached" );
@@ -256,7 +254,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
             {
                 debugText.append( "gzip" );
             }
-            debugText.append( ")" );
+            debugText.append( ')' );
             return debugText.toString();
         }
         else

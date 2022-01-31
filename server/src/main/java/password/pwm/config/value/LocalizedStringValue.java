@@ -59,7 +59,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
         {
             final SortedMap<String, String> tempMap = new TreeMap<>( COMPARATOR );
             tempMap.putAll( CollectionUtil.stripNulls( values ) );
-            this.value = Map.copyOf( tempMap );
+            this.value = Collections.unmodifiableMap( tempMap );
         }
     }
 
@@ -100,7 +100,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( value.size() );
         for ( final Map.Entry<String, String> entry : value.entrySet() )
         {
             final String locale = entry.getKey();
@@ -119,7 +119,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
     @Override
     public Map<String, String> toNativeObject( )
     {
-        return Collections.unmodifiableMap( value );
+        return value;
     }
 
     @Override
@@ -155,9 +155,9 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
             final String localeKey = entry.getKey();
             if ( value.size() > 1 )
             {
-                sb.append( "Locale: " ).append( LocaleHelper.debugLabel( LocaleHelper.parseLocaleString( localeKey ) ) ).append( "\n" );
+                sb.append( "Locale: " ).append( LocaleHelper.debugLabel( LocaleHelper.parseLocaleString( localeKey ) ) ).append( '\n' );
             }
-            sb.append( " " ).append( entry.getValue() ).append( "\n" );
+            sb.append( ' ' ).append( entry.getValue() ).append( '\n' );
         }
         return sb.toString();
     }

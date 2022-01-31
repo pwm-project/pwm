@@ -25,6 +25,7 @@ import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.logging.PwmLogger;
@@ -176,9 +177,8 @@ public class PasswordData implements Serializable
         }
         catch ( final PwmUnrecoverableException e )
         {
-            e.printStackTrace();
+            throw PwmInternalException.fromPwmException( e );
         }
-        return super.equals( obj );
     }
 
     public static PasswordData forStringValue( final String input )

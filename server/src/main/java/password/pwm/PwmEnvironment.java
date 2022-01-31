@@ -30,12 +30,14 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -129,8 +131,8 @@ public class PwmEnvironment
                         + this.toString();
                 returnValues.add( value );
                 returnValues.add( value.toUpperCase() );
-                returnValues.add( value.replace( ".", "_" ) );
-                returnValues.add( value.toUpperCase().replace( ".", "_" ) );
+                returnValues.add( value.replace( '.', '_' ) );
+                returnValues.add( value.toUpperCase().replace( '.', '_' ) );
             }
             {
                 // java property format <app>.<paramName> like pwm.applicationFlag
@@ -139,8 +141,8 @@ public class PwmEnvironment
                         + this.toString();
                 returnValues.add( value );
                 returnValues.add( value.toUpperCase() );
-                returnValues.add( value.replace( ".", "_" ) );
-                returnValues.add( value.toUpperCase().replace( ".", "_" ) );
+                returnValues.add( value.replace( '.', '_' ) );
+                returnValues.add( value.toUpperCase().replace( '.', '_' ) );
             }
 
             return Collections.unmodifiableList( returnValues );
@@ -173,7 +175,6 @@ public class PwmEnvironment
     public PwmEnvironment makeRuntimeInstance(
             final AppConfig appConfig
     )
-            throws PwmUnrecoverableException
     {
         return this.toBuilder()
                 .applicationMode( PwmApplicationMode.READ_ONLY )
@@ -323,14 +324,14 @@ public class PwmEnvironment
             }
 
             final Properties propValues = new Properties();
-            try ( FileInputStream fileInputStream = new FileInputStream( input ) )
+            try ( InputStream fileInputStream = Files.newInputStream( Path.of( input ) ) )
             {
                 propValues.load( fileInputStream );
             }
             catch ( final Exception e )
             {
                 LOGGER.warn( () -> "error reading properties file '" + input + "' specified by environment setting "
-                        + EnvironmentParameter.applicationParamFile.toString() + ", error: " + e.getMessage() );
+                        + EnvironmentParameter.applicationParamFile + ", error: " + e.getMessage() );
             }
 
             try
@@ -338,22 +339,22 @@ public class PwmEnvironment
                 final Map<ApplicationParameter, String> returnParams = new EnumMap<>( ApplicationParameter.class );
                 for ( final Object key : propValues.keySet() )
                 {
-
-                    final ApplicationParameter param = ApplicationParameter.forString( key.toString() );
+                    final String keyString = key.toString();
+                    final ApplicationParameter param = ApplicationParameter.forString( keyString );
                     if ( param != null )
                     {
-                        returnParams.put( param, propValues.getProperty( key.toString() ) );
+                        returnParams.put( param, propValues.getProperty( keyString ) );
                     }
                     else
                     {
-                        LOGGER.warn( () -> "unknown " + EnvironmentParameter.applicationParamFile.toString() + " value: " + input );
+                        LOGGER.warn( () -> "unknown " + EnvironmentParameter.applicationParamFile + " value: " + input );
                     }
                 }
                 return Collections.unmodifiableMap( returnParams );
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( () -> "unable to parse jason value of " + EnvironmentParameter.applicationParamFile.toString() + ", error: " + e.getMessage() );
+                LOGGER.warn( () -> "unable to parse jason value of " + EnvironmentParameter.applicationParamFile + ", error: " + e.getMessage() );
             }
 
             return Collections.emptyMap();

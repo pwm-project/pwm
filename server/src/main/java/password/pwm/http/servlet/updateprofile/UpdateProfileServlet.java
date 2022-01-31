@@ -153,7 +153,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "enterCode" )
-    ProcessStatus handleEnterCodeRequest(
+    public ProcessStatus handleEnterCodeRequest(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ServletException, IOException
@@ -212,7 +212,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "validate" )
-    ProcessStatus restValidateForm(
+    public ProcessStatus restValidateForm(
             final PwmRequest pwmRequest
     )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
@@ -253,7 +253,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "reset" )
-    private ProcessStatus processReset( final PwmRequest pwmRequest )
+    public ProcessStatus processReset( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
         final ResetAction resetType = pwmRequest.readParameterAsEnum( PwmConstants.PARAM_RESET_TYPE, ResetAction.class ).orElse( ResetAction.exitProfileUpdate );
@@ -284,7 +284,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
 
 
     @ActionHandler( action = "agree" )
-    ProcessStatus handleAgreeRequest( final PwmRequest pwmRequest )
+    public ProcessStatus handleAgreeRequest( final PwmRequest pwmRequest )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
         LOGGER.debug( pwmRequest, () -> "user accepted agreement" );
@@ -306,7 +306,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "confirm" )
-    ProcessStatus handleConfirmRequest( final PwmRequest pwmRequest )
+    public ProcessStatus handleConfirmRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
         final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
@@ -316,7 +316,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "updateProfile" )
-    ProcessStatus handleUpdateProfileRequest(
+    public ProcessStatus handleUpdateProfileRequest(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException

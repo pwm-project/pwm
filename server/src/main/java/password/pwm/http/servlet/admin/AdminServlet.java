@@ -180,7 +180,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "viewLogWindow" )
-    private ProcessStatus processViewLogWindow(
+    public ProcessStatus processViewLogWindow(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException
@@ -190,7 +190,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "downloadAuditLogCsv" )
-    private ProcessStatus downloadAuditLogCsv(
+    public ProcessStatus downloadAuditLogCsv(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
@@ -220,7 +220,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "downloadUserReportCsv" )
-    private ProcessStatus downloadUserReportCsv(
+    public ProcessStatus downloadUserReportCsv(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
@@ -251,7 +251,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "downloadUserSummaryCsv" )
-    private ProcessStatus downloadUserSummaryCsv(
+    public ProcessStatus downloadUserSummaryCsv(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
@@ -282,7 +282,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "downloadStatisticsLogCsv" )
-    private ProcessStatus downloadStatisticsLogCsv( final PwmRequest pwmRequest )
+    public ProcessStatus downloadStatisticsLogCsv( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
@@ -311,7 +311,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "downloadSessionsCsv" )
-    private ProcessStatus downloadSessionsCsv( final PwmRequest pwmRequest )
+    public ProcessStatus downloadSessionsCsv( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
@@ -339,7 +339,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "clearIntruderTable" )
-    private ProcessStatus processClearIntruderTable(
+    public ProcessStatus processClearIntruderTable(
             final PwmRequest pwmRequest
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
@@ -358,7 +358,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "reportCommand" )
-    private ProcessStatus processReportCommand( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException
+    public ProcessStatus processReportCommand( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException
     {
         final ReportService.ReportCommand reportCommand = JavaHelper.readEnumFromString(
                 ReportService.ReportCommand.class,
@@ -375,7 +375,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "reportStatus" )
-    private ProcessStatus processReportStatus( final PwmRequest pwmRequest )
+    public ProcessStatus processReportStatus( final PwmRequest pwmRequest )
             throws IOException
     {
         final ReportStatusBean reportStatusBean = ReportStatusBean.makeReportStatusData(
@@ -388,7 +388,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "reportSummary" )
-    private ProcessStatus processReportSummary( final PwmRequest pwmRequest )
+    public ProcessStatus processReportSummary( final PwmRequest pwmRequest )
             throws IOException
     {
         final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
@@ -433,7 +433,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "downloadUserDebug" )
-    private ProcessStatus processDownloadUserDebug( final PwmRequest pwmRequest )
+    public ProcessStatus processDownloadUserDebug( final PwmRequest pwmRequest )
 
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
@@ -464,7 +464,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "auditData" )
-    private ProcessStatus restAuditDataHandler( final PwmRequest pwmRequest )
+    public ProcessStatus restAuditDataHandler( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException
     {
         final Instant startTime = Instant.now();
@@ -496,7 +496,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "sessionData" )
-    private ProcessStatus restSessionDataHandler( final PwmRequest pwmRequest )
+    public ProcessStatus restSessionDataHandler( final PwmRequest pwmRequest )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException
     {
         final int max = readMaxParameter( pwmRequest, 1000, 10 * 1000 );
@@ -515,7 +515,7 @@ public class AdminServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "intruderData" )
-    private ProcessStatus restIntruderDataHandler( final PwmRequest pwmRequest )
+    public ProcessStatus restIntruderDataHandler( final PwmRequest pwmRequest )
             throws  PwmUnrecoverableException, IOException
     {
         final int max = readMaxParameter( pwmRequest, 1000, 10 * 1000 );

@@ -373,7 +373,7 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "validate" )
-    private ProcessStatus restValidateForm(
+    public ProcessStatus restValidateForm(
             final PwmRequest pwmRequest
     )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
@@ -475,7 +475,7 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "enterCode" )
-    private ProcessStatus handleEnterCodeRequest( final PwmRequest pwmRequest )
+    public ProcessStatus handleEnterCodeRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
         final NewUserBean newUserBean = getNewUserBean( pwmRequest );
@@ -574,7 +574,7 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "enterRemoteResponse" )
-    private ProcessStatus processEnterRemoteResponse( final PwmRequest pwmRequest )
+    public ProcessStatus processEnterRemoteResponse( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException
     {
         final String prefix = "remote-";
@@ -608,7 +608,7 @@ public class NewUserServlet extends ControlledPwmServlet
 
 
     @ActionHandler( action = "profileChoice" )
-    private ProcessStatus handleProfileChoiceRequest( final PwmRequest pwmRequest )
+    public ProcessStatus handleProfileChoiceRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
         final Set<String> profileIDs = pwmRequest.getDomainConfig().getNewUserProfiles().keySet();
@@ -629,7 +629,7 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "processForm" )
-    private ProcessStatus handleProcessFormRequest( final PwmRequest pwmRequest )
+    public ProcessStatus handleProcessFormRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
         final NewUserBean newUserBean = getNewUserBean( pwmRequest );
@@ -666,9 +666,8 @@ public class NewUserServlet extends ControlledPwmServlet
         return ProcessStatus.Continue;
     }
 
-
     @ActionHandler( action = "checkProgress" )
-    private ProcessStatus restCheckProgress(
+    public ProcessStatus restCheckProgress(
             final PwmRequest pwmRequest
     )
             throws IOException, ServletException, PwmUnrecoverableException
@@ -713,7 +712,7 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "agree" )
-    private ProcessStatus handleAgree(
+    public ProcessStatus handleAgree(
             final PwmRequest pwmRequest
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
@@ -727,7 +726,7 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "reset" )
-    private ProcessStatus handleReset(
+    public ProcessStatus handleReset(
             final PwmRequest pwmRequest
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
@@ -739,7 +738,7 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "complete" )
-    private ProcessStatus handleComplete(
+    public ProcessStatus handleComplete(
             final PwmRequest pwmRequest
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
@@ -869,7 +868,7 @@ public class NewUserServlet extends ControlledPwmServlet
 
         {
             final boolean showBack = !newUserBean.isUrlSpecifiedProfile()
-                    && pwmRequest.getDomainConfig().getNewUserProfiles().keySet().size() > 1;
+                    && pwmRequest.getDomainConfig().getNewUserProfiles().size() > 1;
             pwmRequest.setAttribute( PwmRequestAttribute.NewUser_FormShowBackButton, showBack );
         }
 

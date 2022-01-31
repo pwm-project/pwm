@@ -103,7 +103,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final RemoteWebServiceConfiguration value : values )
         {
             final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
@@ -145,7 +145,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
             }
         }
 
-        final Set<String> seenNames = new HashSet<>();
+        final Set<String> seenNames = new HashSet<>( values.size() );
         for ( final RemoteWebServiceConfiguration item : values )
         {
             if ( seenNames.contains( item.getName().toLowerCase() ) )

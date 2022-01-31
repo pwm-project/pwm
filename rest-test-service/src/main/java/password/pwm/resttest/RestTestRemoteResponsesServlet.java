@@ -60,7 +60,7 @@ public class RestTestRemoteResponsesServlet extends HttpServlet
         if ( requestData.getUserResponses() != null
             && requestData.getUserResponses().size() > 0
             && requestData.getUserResponses().containsKey( "id1" )
-            && requestData.getUserResponses().get( "id1" ).equalsIgnoreCase( "answer1" ) )
+            && "answer1".equalsIgnoreCase( requestData.getUserResponses().get( "id1" ) ) )
         {
             correct = true;
         }

@@ -126,7 +126,6 @@ public class PrivateKeyValue extends AbstractValue
                             catch ( final PwmUnrecoverableException e )
                             {
                                 LOGGER.error( () -> "error reading privateKey for setting: '" + pwmSetting.getKey() + "': " + e.getMessage(), e );
-                                e.printStackTrace();
                             }
                         }
                     }

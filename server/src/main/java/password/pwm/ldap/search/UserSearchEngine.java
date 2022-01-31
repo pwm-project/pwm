@@ -49,10 +49,10 @@ import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
@@ -292,7 +292,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
                 sessionLabel
         );
         final boolean resultsExceeded = searchResults.size() > maxResults;
-        final Map<UserIdentity, Map<String, String>> returnData = new LinkedHashMap<>();
+        final Map<UserIdentity, Map<String, String>> returnData = new LinkedHashMap<>( Math.min( maxResults, searchResults.size() ) );
         for ( final Map.Entry<UserIdentity, Map<String, String>> entry : searchResults.entrySet() )
         {
             final UserIdentity loopUser = entry.getKey();
@@ -392,8 +392,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
         }
 
         final Map<UserIdentity, Map<String, String>> resultsMap = new LinkedHashMap<>( executeSearchJobs( searchJobs ) );
-        final Map<UserIdentity, Map<String, String>> returnMap = trimOrderedMap( resultsMap, maxResults );
-        return Collections.unmodifiableMap( returnMap );
+        return trimOrderedMap( resultsMap, maxResults );
     }
 
 
@@ -447,7 +446,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
                 ? pwmDomain.getProxyChaiProvider( sessionLabel, ldapProfile.getIdentifier() )
                 : searchConfiguration.getChaiProvider();
 
-        final List<UserSearchJob> returnMap = new ArrayList<>();
+        final List<UserSearchJob> returnMap = new ArrayList<>( searchContexts.size() );
         for ( final String loopContext : searchContexts )
         {
             final UserSearchJobParameters userSearchJobParameters = UserSearchJobParameters.builder()
@@ -488,11 +487,11 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
                 multiSearchFilter.append( "(&" );
                 for ( final String queryPart : searchConfiguration.getUsername().split( " " ) )
                 {
-                    multiSearchFilter.append( "(" );
+                    multiSearchFilter.append( '(' );
                     multiSearchFilter.append( inputSearchFilter.replace( PwmConstants.VALUE_REPLACEMENT_USERNAME, queryPart ) );
-                    multiSearchFilter.append( ")" );
+                    multiSearchFilter.append( ')' );
                 }
-                multiSearchFilter.append( ")" );
+                multiSearchFilter.append( ')' );
                 searchFilter = multiSearchFilter.toString();
             }
             else
@@ -503,7 +502,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
         else if ( searchConfiguration.getGroupDN() != null )
         {
             final String groupAttr = ldapProfile.readSettingAsString( PwmSetting.LDAP_USER_GROUP_ATTRIBUTE );
-            searchFilter = "(" + groupAttr + "=" + searchConfiguration.getGroupDN() + ")";
+            searchFilter = '(' + groupAttr + '=' + searchConfiguration.getGroupDN() + ')';
         }
         else if ( searchConfiguration.getFormValues() != null )
         {
@@ -566,7 +565,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
         }
 
         //if supplied user name starts with username attr assume its the full dn and skip the search
-        final Set<String> namingAttributes = new HashSet<>();
+        final Set<String> namingAttributes = new HashSet<>( pwmDomain.getConfig().getLdapProfiles().size() );
         for ( final LdapProfile ldapProfile : pwmDomain.getConfig().getLdapProfiles().values() )
         {
             final String usernameAttribute = ldapProfile.readSettingAsString( PwmSetting.LDAP_NAMING_ATTRIBUTE );

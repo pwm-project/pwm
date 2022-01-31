@@ -58,11 +58,12 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @WebServlet(
         urlPatterns = {
@@ -347,11 +348,13 @@ public class RestChallengesServer extends RestServlet
 
     private static List<ChallengeBean> challengesToBeans( final List<Challenge> challenges )
     {
-        final List<ChallengeBean> returnList = new ArrayList<>();
-        for ( final Challenge challenge : challenges )
+        if ( challenges == null )
         {
-            returnList.add( challenge.asChallengeBean() );
+            return Collections.emptyList();
         }
-        return returnList;
+
+        return challenges.stream()
+                .map( Challenge::asChallengeBean )
+                .collect( Collectors.toUnmodifiableList() );
     }
 }

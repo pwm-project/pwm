@@ -201,6 +201,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
         final PwmSecurityKey pwmSecurityKey = pwmRequest.getDomainConfig().getSecurityKey();
         final String keyHash = pwmSecurityKey.keyHash( pwmRequest.getPwmDomain().getSecureService() );
         final String userGuid = pwmRequest.getPwmSession().getLoginInfoBean().getGuid();
-        return new PwmSecurityKey( keyHash + userGuid );
+        final String keyData = keyHash + pwmRequest.getPwmDomain().getSecureService().ephemeralHmac( userGuid );
+        return new PwmSecurityKey( keyData );
     }
 }

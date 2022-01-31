@@ -232,7 +232,7 @@ public class PwmSettingMetaDataReader
 
         private static Map<String, String> readOptions( final PwmSetting pwmSetting )
         {
-            final Map<String, String> returnList = new LinkedHashMap<>();
+            final Map<String, String> returnData = new LinkedHashMap<>();
             final XmlElement settingElement = PwmSettingXml.readSettingXml( pwmSetting );
             final Optional<XmlElement> optionsElement = settingElement.getChild( PwmSettingXml.XML_ELEMENT_OPTIONS );
             if ( optionsElement.isPresent() )
@@ -245,11 +245,11 @@ public class PwmSettingMetaDataReader
                         final String value = optionElement.getAttribute( PwmSettingXml.XML_ELEMENT_VALUE )
                                 .orElseThrow( () -> new IllegalStateException( "option element is missing 'value' attribute for key " + pwmSetting.getKey() ) );
 
-                        optionElement.getText().ifPresent( textValue ->  returnList.put( value, textValue ) );
+                        optionElement.getText().ifPresent( textValue ->  returnData.put( value, textValue ) );
                     }
                 }
             }
-            return Collections.unmodifiableMap( returnList );
+            return Collections.unmodifiableMap( returnData );
         }
 
         private static Collection<LDAPPermissionInfo> readLdapPermissionInfo( final PwmSetting pwmSetting )

@@ -31,6 +31,7 @@ import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.PwmScheduler;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -43,14 +44,17 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 public class StatisticsService extends AbstractPwmService implements PwmService
 {
@@ -93,10 +97,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
 
     public StatisticsService( )
     {
-        for ( final EpsKey epsKey : EpsKey.allKeys() )
-        {
-            epsMeterMap.put( epsKey, new EventRateMeter( epsKey.getEpsDuration().getTimeDuration() ) );
-        }
+        EpsKey.allKeys().forEach( epsKey -> epsMeterMap.put( epsKey, new EventRateMeter( epsKey.getEpsDuration().getTimeDuration() ) ) );
     }
 
     public void incrementValue( final Statistic statistic )
@@ -145,7 +146,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
             return statsCurrent;
         }
 
-        if ( currentDailyKey.toString().equals( key ) )
+        if ( Objects.equals( currentDailyKey.toString(), key ) )
         {
             return statsDaily;
         }
@@ -204,8 +205,8 @@ public class StatisticsService extends AbstractPwmService implements PwmService
 
         for ( final Statistic m : Statistic.values() )
         {
-            sb.append( m.toString() );
-            sb.append( "=" );
+            sb.append( m );
+            sb.append( '=' );
             sb.append( statsCurrent.getStatistic( m ) );
             sb.append( ", " );
         }
@@ -299,15 +300,11 @@ public class StatisticsService extends AbstractPwmService implements PwmService
 
     public Map<String, String> dailyStatisticsAsLabelValueMap()
     {
-        final Map<String, String> emailValues = new LinkedHashMap<>();
-        for ( final Statistic statistic : Statistic.values() )
-        {
-            final String key = statistic.getLabel( PwmConstants.DEFAULT_LOCALE );
-            final String value = statsDaily.getStatistic( statistic );
-            emailValues.put( key, value );
-        }
-
-        return Collections.unmodifiableMap( emailValues );
+        return Collections.unmodifiableMap( EnumSet.allOf( Statistic.class ).stream()
+                .collect( CollectionUtil.collectorToLinkedMap(
+                        statistic -> statistic.getLabel( PwmConstants.DEFAULT_LOCALE ),
+                        statistic -> statsDaily.getStatistic( statistic )
+                ) ) );
     }
 
     private void resetDailyStats( )
@@ -339,8 +336,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
     {
         return Collections.emptyList();
     }
-
-
+    
     private class NightlyTask extends TimerTask
     {
         @Override
@@ -387,14 +383,14 @@ public class StatisticsService extends AbstractPwmService implements PwmService
 
         if ( includeHeader )
         {
-            final List<String> headers = new ArrayList<>();
+            final List<String> headers = Statistic.asSet().stream()
+                    .map( stat -> stat.getLabel( locale ) )
+                    .collect( Collectors.toList() );
+
             headers.add( "KEY" );
             headers.add( "YEAR" );
             headers.add( "DAY" );
-            for ( final Statistic stat : Statistic.values() )
-            {
-                headers.add( stat.getLabel( locale ) );
-            }
+
             csvPrinter.printRecord( headers );
         }
 
@@ -404,14 +400,17 @@ public class StatisticsService extends AbstractPwmService implements PwmService
         {
             counter++;
             final StatisticsBundle bundle = statsManger.getStatBundleForKey( loopKey.toString() );
-            final List<String> lineOutput = new ArrayList<>();
+
+            final List<String> lineOutput = new ArrayList<>( Statistic.asSet().size() );
+
             lineOutput.add( loopKey.toString() );
             lineOutput.add( String.valueOf( loopKey.getYear() ) );
             lineOutput.add( String.valueOf( loopKey.getDay() ) );
-            for ( final Statistic stat : Statistic.values() )
-            {
-                lineOutput.add( bundle.getStatistic( stat ) );
-            }
+
+            lineOutput.addAll( EnumSet.allOf( Statistic.class ).stream()
+                    .map( bundle::getStatistic )
+                    .collect( Collectors.toList() ) );
+
             csvPrinter.printRecord( lineOutput );
         }
 

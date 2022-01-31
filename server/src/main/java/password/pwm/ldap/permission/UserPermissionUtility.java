@@ -98,7 +98,7 @@ public class UserPermissionUtility
     {
         return userPermission.getLdapProfileID() == null
                 || userPermission.getLdapProfileID().isEmpty()
-                || userPermission.getLdapProfileID().equals( PwmConstants.PROFILE_ID_ALL )
+                || PwmConstants.PROFILE_ID_ALL.equals( userPermission.getLdapProfileID() )
                 || userIdentity.getLdapProfileID().equals( userPermission.getLdapProfileID() );
     }
 
@@ -190,7 +190,7 @@ public class UserPermissionUtility
     {
         if ( userPermission.getLdapProfileID() != null
                 && !userPermission.getLdapProfileID().isEmpty()
-                && !userPermission.getLdapProfileID().equals( PwmConstants.PROFILE_ID_ALL ) )
+                && !PwmConstants.PROFILE_ID_ALL.equals( userPermission.getLdapProfileID() ) )
         {
             return Optional.of( userPermission.getLdapProfileID() );
         }

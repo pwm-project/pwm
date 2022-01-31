@@ -38,9 +38,9 @@ import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.java.ConditionalTaskExecutor;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayOutputStream;
@@ -53,7 +53,7 @@ import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -98,7 +98,7 @@ public class XodusLocalDB implements LocalDBProvider
 
     private LocalDB.Status status = LocalDB.Status.NEW;
 
-    private final Map<LocalDB.DB, Store> cachedStoreObjects = new HashMap<>();
+    private final Map<LocalDB.DB, Store> cachedStoreObjects = new EnumMap<>( LocalDB.DB.class );
 
     private final ConditionalTaskExecutor outputLogExecutor = ConditionalTaskExecutor.forPeriodicTask(
             this::outputStats,
@@ -330,7 +330,6 @@ public class XodusLocalDB implements LocalDBProvider
             }
             catch ( final Exception e )
             {
-                e.printStackTrace();
                 throw e;
             }
         }

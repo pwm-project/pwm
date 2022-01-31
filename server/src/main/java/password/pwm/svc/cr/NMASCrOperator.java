@@ -400,7 +400,7 @@ public class NMASCrOperator implements CrOperator
         {
             return null;
         }
-        final List<Challenge> challenges = new ArrayList<>();
+        final List<Challenge> challenges = new ArrayList<>( questions.size() );
         for ( final String question : questions )
         {
             challenges.add( new ChaiChallenge( true, question, 1, 256, true, 0, false ) );
@@ -413,7 +413,7 @@ public class NMASCrOperator implements CrOperator
         final XPath xpath = XPathFactory.newInstance().newXPath();
         final XPathExpression challengesExpr = xpath.compile( "/Challenges/Challenge/text()" );
         final NodeList challenges = ( NodeList ) challengesExpr.evaluate( doc, XPathConstants.NODESET );
-        final List<String> res = new ArrayList<>();
+        final List<String> res = new ArrayList<>( challenges.getLength() );
         for ( int i = 0; i < challenges.getLength(); ++i )
         {
             final String question = challenges.item( i ).getTextContent();
@@ -733,6 +733,7 @@ public class NMASCrOperator implements CrOperator
             }
 
             @Override
+            @SuppressFBWarnings( "CCNE_COMPARE_CLASS_EQUALS_NAME" )
             public void handle( final Callback[] callbacks ) throws UnsupportedCallbackException
             {
                 LOGGER.trace( () -> "entering ChalRespCallbackHandler.handle()" );
@@ -814,6 +815,7 @@ public class NMASCrOperator implements CrOperator
         NEW, BIND, COMPLETED, ABORTED,
     }
 
+    @SuppressFBWarnings( "STS_SPURIOUS_THREAD_STATES" )
     private class NMASSessionThread extends Thread
     {
         private volatile Instant lastActivityTimestamp = Instant.now();

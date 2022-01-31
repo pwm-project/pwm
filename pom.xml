@@ -347,6 +347,15 @@
                     <includeTests>false</includeTests>
                     <effort>max</effort>
                     <timeout>1200000</timeout>
+                    <!--
+                    <plugins>
+                        <plugin>
+                            <groupId>com.mebigfatguy.sb-contrib</groupId>
+                            <artifactId>sb-contrib</artifactId>
+                            <version>7.4.7</version>
+                        </plugin>
+                    </plugins>
+                    -->
                 </configuration>
                 <executions>
                     <execution>

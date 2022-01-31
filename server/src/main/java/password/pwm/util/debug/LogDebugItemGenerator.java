@@ -60,7 +60,7 @@ class LogDebugItemGenerator implements AppItemGenerator
         final LocalDBSearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents( searchParameters );
         final CountingOutputStream countingOutputStream = new CountingOutputStream( outputStream );
 
-        final Writer writer = new OutputStreamWriter( countingOutputStream, PwmConstants.DEFAULT_CHARSET );
+        try ( Writer writer = new OutputStreamWriter( countingOutputStream, PwmConstants.DEFAULT_CHARSET ) )
         {
             while ( searchResults.hasNext() && countingOutputStream.getByteCount() < maxByteCount )
             {
@@ -70,10 +70,9 @@ class LogDebugItemGenerator implements AppItemGenerator
                 writer.write( "\n" );
             }
 
+            // do not close writer because underlying stream should not be closed.
+            writer.flush();
         }
-
-        // do not close writer because underlying stream should not be closed.
-        writer.flush();
     }
 
     @Override

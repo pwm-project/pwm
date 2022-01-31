@@ -377,68 +377,56 @@ class NewUserUtils
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
         final MacroRequest macroRequest = createMacroMachineForNewUser( pwmRequest.getPwmDomain(), newUserProfile, pwmRequest.getLabel(), formValues, null );
         final List<String> configuredNames = newUserProfile.readSettingAsStringArray( PwmSetting.NEWUSER_USERNAME_DEFINITION );
-        final List<String> failedValues = new ArrayList<>();
 
         final String configuredContext = newUserProfile.readSettingAsString( PwmSetting.NEWUSER_CONTEXT );
         final String expandedContext = macroRequest.expandMacros( configuredContext );
 
 
-        if ( configuredNames == null || configuredNames.isEmpty() || configuredNames.iterator().next().isEmpty() )
+        if ( configuredNames == null || configuredNames.isEmpty() || configuredNames.get( 0 ).isEmpty() )
         {
             final String namingAttribute = newUserProfile.getLdapProfile( pwmRequest.getPwmDomain().getConfig() ).readSettingAsString( PwmSetting.LDAP_NAMING_ATTRIBUTE );
-            String namingValue = null;
-            for ( final String formKey : formValues.getFormData().keySet() )
-            {
-                if ( formKey.equals( namingAttribute ) )
-                {
-                    namingValue = formValues.getFormData().get( formKey );
-                }
-            }
-            if ( namingValue == null || namingValue.isEmpty() )
+            final Optional<String> namingValue = formValues.getFormData().keySet().stream()
+                    .filter( formKey -> formKey.equals( namingAttribute ) )
+                    .findFirst();
+
+            if ( namingValue.isEmpty() )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE,
                         "username definition not set, and naming attribute is not present in form" ) );
             }
-            final String escapedName = StringUtil.escapeLdapDN( namingValue );
+
+            final String escapedName = StringUtil.escapeLdapDN( namingValue.get() );
             final String generatedDN = namingAttribute + "=" + escapedName + "," + expandedContext;
             NewUserUtils.LOGGER.debug( pwmRequest, () -> "generated dn for new user: " + generatedDN );
             return generatedDN;
         }
 
-        int attemptCount = 0;
-        final String generatedDN;
-        while ( attemptCount < configuredNames.size() )
+        final List<String> failedValues = new ArrayList<>( configuredNames.size() );
+        for ( final String configuredName : configuredNames )
         {
-            final String expandedName;
+            final String expandedName = macroRequest.expandMacros( configuredName );
             {
-                {
-                    final String configuredName = configuredNames.get( attemptCount );
-                    expandedName = macroRequest.expandMacros( configuredName );
-                }
-
                 if ( !testIfEntryNameExists( pwmRequest, expandedName ) )
                 {
                     NewUserUtils.LOGGER.trace( pwmRequest, () -> "generated entry name for new user is unique: " + expandedName );
                     final String namingAttribute = newUserProfile.getLdapProfile( pwmRequest.getPwmDomain().getConfig() ).readSettingAsString( PwmSetting.LDAP_NAMING_ATTRIBUTE );
                     final String escapedName = StringUtil.escapeLdapDN( expandedName );
-                    generatedDN = namingAttribute + "=" + escapedName + "," + expandedContext;
+                    final String generatedDN = namingAttribute + "=" + escapedName + "," + expandedContext;
                     NewUserUtils.LOGGER.debug( pwmRequest, () -> "generated dn for new user: " + generatedDN );
                     return generatedDN;
                 }
-                else
-                {
-                    failedValues.add( expandedName );
-                }
+
+                failedValues.add( expandedName );
             }
 
             NewUserUtils.LOGGER.debug( pwmRequest, () -> "generated entry name for new user is not unique, will try again" );
-            attemptCount++;
         }
 
-        final int attemptCountFinal = attemptCount;
         NewUserUtils.LOGGER.error( pwmRequest,
-                () -> "failed to generate new user DN after " + attemptCountFinal + " attempts, failed values: " + JsonFactory.get().serializeCollection(
-                        failedValues ) );
+                () -> "failed to generate new user DN after " + configuredNames.size()
+                        + " attempts, failed values: "
+                        + JsonFactory.get().serializeCollection( failedValues ) );
+
         throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE,
                 "unable to generate a unique DN value" ) );
     }
@@ -498,21 +486,21 @@ class NewUserUtils
             final NewUserProfile newUserProfile,
             final NewUserForm newUserForm
     )
-        throws PwmUnrecoverableException
+            throws PwmUnrecoverableException
 
     {
         final Map<String, String> formValues = newUserForm.getFormData();
 
         final String emailAddressAttribute = newUserProfile.getLdapProfile( pwmDomain.getConfig() ).readSettingAsString(
-            PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE );
+                PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE );
 
         final String usernameAttribute = newUserProfile.getLdapProfile( pwmDomain.getConfig() ).readSettingAsString( PwmSetting.LDAP_USERNAME_ATTRIBUTE );
 
         return UserInfoBean.builder()
-            .userEmailAddress( formValues.get( emailAddressAttribute ) )
-            .username( formValues.get( usernameAttribute ) )
-            .attributes( formValues )
-            .build();
+                .userEmailAddress( formValues.get( emailAddressAttribute ) )
+                .username( formValues.get( usernameAttribute ) )
+                .attributes( formValues )
+                .build();
     }
 
     static MacroRequest createMacroMachineForNewUser(

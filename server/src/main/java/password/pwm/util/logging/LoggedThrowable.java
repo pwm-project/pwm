@@ -89,7 +89,7 @@ public class LoggedThrowable implements Serializable
         DeserializedThrowable( final LoggedThrowable loggedThrowable )
         {
             this.loggedThrowable = loggedThrowable;
-            this.setStackTrace( getStackTrace() );
+            super.setStackTrace( getStackTrace() );
             if ( loggedThrowable.getSuppressedExceptions() != null )
             {
                 loggedThrowable.getSuppressedExceptions().forEach( e -> this.addSuppressed( e.toThrowable() ) );

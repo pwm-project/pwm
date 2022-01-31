@@ -199,7 +199,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "confirmResponses" )
-    private ProcessStatus processConfirmResponses( final PwmRequest pwmRequest )
+    public ProcessStatus processConfirmResponses( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
         final SetupResponsesBean setupResponsesBean = getSetupResponseBean( pwmRequest );
@@ -208,7 +208,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "changeResponses" )
-    private ProcessStatus processChangeResponses( final PwmRequest pwmRequest )
+    public ProcessStatus processChangeResponses( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
         final SetupResponsesBean setupResponsesBean = getSetupResponseBean( pwmRequest );
@@ -220,7 +220,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "clearExisting" )
-    private ProcessStatus handleClearExisting(
+    public ProcessStatus handleClearExisting(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException
@@ -256,7 +256,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "skip" )
-    private ProcessStatus handleSkip(
+    public ProcessStatus handleSkip(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException
@@ -276,7 +276,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "validateResponses" )
-    private ProcessStatus restValidateResponses(
+    public ProcessStatus restValidateResponses(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -316,7 +316,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "setHelpdeskResponses" )
-    private ProcessStatus processSetHelpdeskResponses( final PwmRequest pwmRequest )
+    public ProcessStatus processSetHelpdeskResponses( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
         setupResponses( pwmRequest, ResponseMode.helpdesk );
@@ -324,7 +324,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "setResponses" )
-    private ProcessStatus processSetResponses( final PwmRequest pwmRequest )
+    public ProcessStatus processSetResponses( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
         setupResponses( pwmRequest, ResponseMode.user );
@@ -498,7 +498,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         {
             final SetupResponsesBean.SetupData userSetupData = challengeProfile.getChallengeSet()
                     .map( challengeSet -> SetupResponsesUtil.populateSetupData( challengeSet, challengeProfile.getMinRandomSetup() ) )
-                    .orElse( new SetupResponsesBean.SetupData() );
+                    .orElseGet( SetupResponsesBean.SetupData::new );
 
             setupResponsesBean.getChallengeData().put( ResponseMode.user, userSetupData );
         }
@@ -506,7 +506,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         {
             final SetupResponsesBean.SetupData helpdeskSetupData = challengeProfile.getHelpdeskChallengeSet()
                     .map( challengeSet -> SetupResponsesUtil.populateSetupData( challengeSet, challengeProfile.getMinHelpdeskRandomsSetup() ) )
-                    .orElse( new SetupResponsesBean.SetupData() );
+                    .orElseGet( SetupResponsesBean.SetupData::new );
             setupResponsesBean.getChallengeData().put( ResponseMode.helpdesk, helpdeskSetupData );
         }
 

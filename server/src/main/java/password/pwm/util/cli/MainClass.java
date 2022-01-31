@@ -78,7 +78,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -87,6 +86,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MainClass
 {
@@ -96,47 +98,39 @@ public class MainClass
 
     private static MainOptions mainOptions;
 
-    public static final Map<String, CliCommand> COMMANDS;
+    public static final Map<String, CliCommand> COMMANDS = Map.copyOf(
+            new TreeMap<>( Stream.of(
+                    new LocalDBInfoCommand(),
+                    new ExportLogsCommand(),
+                    new UserReportCommand(),
+                    new ExportLocalDBCommand(),
+                    new ImportLocalDBCommand(),
+                    new ExportAuditCommand(),
+                    new ConfigUnlockCommand(),
+                    new ConfigLockCommand(),
+                    new ConfigSetPasswordCommand(),
+                    new ExportStatsCommand(),
+                    new ExportResponsesCommand(),
+                    new ClearResponsesCommand(),
+                    new ImportResponsesCommand(),
+                    new TokenInfoCommand(),
+                    new ConfigNewCommand(),
+                    new VersionCommand(),
+                    new LdapSchemaExtendCommand(),
+                    new ConfigDeleteCommand(),
+                    new ResponseStatsCommand(),
+                    new ImportHttpsKeyStoreCommand(),
+                    new ExportHttpsKeyStoreCommand(),
+                    new ExportHttpsTomcatConfigCommand(),
+                    new ShellCommand(),
+                    new ConfigResetHttpsCommand(),
+                    new HelpCommand(),
+                    new ImportPropertyConfigCommand(),
+                    new ResetInstanceIDCommand(),
+                    new ExportWordlistCommand() ).collect( Collectors.toMap(
+                    command -> command.getCliParameters().commandName,
+                    Function.identity() ) ) ) );
 
-    static
-    {
-        final List<CliCommand> commandList = new ArrayList<>();
-        commandList.add( new LocalDBInfoCommand() );
-        commandList.add( new ExportLogsCommand() );
-        commandList.add( new UserReportCommand() );
-        commandList.add( new ExportLocalDBCommand() );
-        commandList.add( new ImportLocalDBCommand() );
-        commandList.add( new ExportAuditCommand() );
-        commandList.add( new ConfigUnlockCommand() );
-        commandList.add( new ConfigLockCommand() );
-        commandList.add( new ConfigSetPasswordCommand() );
-        commandList.add( new ExportStatsCommand() );
-        commandList.add( new ExportResponsesCommand() );
-        commandList.add( new ClearResponsesCommand() );
-        commandList.add( new ImportResponsesCommand() );
-        commandList.add( new TokenInfoCommand() );
-        commandList.add( new ConfigNewCommand() );
-        commandList.add( new VersionCommand() );
-        commandList.add( new LdapSchemaExtendCommand() );
-        commandList.add( new ConfigDeleteCommand() );
-        commandList.add( new ResponseStatsCommand() );
-        commandList.add( new ImportHttpsKeyStoreCommand() );
-        commandList.add( new ExportHttpsKeyStoreCommand() );
-        commandList.add( new ExportHttpsTomcatConfigCommand() );
-        commandList.add( new ShellCommand() );
-        commandList.add( new ConfigResetHttpsCommand() );
-        commandList.add( new HelpCommand() );
-        commandList.add( new ImportPropertyConfigCommand() );
-        commandList.add( new ResetInstanceIDCommand() );
-        commandList.add( new ExportWordlistCommand() );
-
-        final Map<String, CliCommand> sortedMap = new TreeMap<>();
-        for ( final CliCommand command : commandList )
-        {
-            sortedMap.put( command.getCliParameters().commandName, command );
-        }
-        COMMANDS = Collections.unmodifiableMap( sortedMap );
-    }
 
     public static String helpTextFromCommands( final Collection<CliCommand> commands )
     {
@@ -148,20 +142,20 @@ public class MainClass
             {
                 for ( final CliParameters.Option option : command.getCliParameters().options )
                 {
-                    output.append( " " );
+                    output.append( ' ' );
                     if ( option.isOptional() )
                     {
-                        output.append( "<" ).append( option.getName() ).append( ">" );
+                        output.append( '<' ).append( option.getName() ).append( '>' );
                     }
                     else
                     {
-                        output.append( "[" ).append( option.getName() ).append( "]" );
+                        output.append( '[' ).append( option.getName() ).append( ']' );
                     }
                 }
             }
-            output.append( "\n" );
+            output.append( '\n' );
             output.append( "       " ).append( command.getCliParameters().description );
-            output.append( "\n" );
+            output.append( '\n' );
         }
         return output.toString();
     }
@@ -170,12 +164,12 @@ public class MainClass
     {
         final StringBuilder output = new StringBuilder();
         output.append( helpTextFromCommands( COMMANDS.values() ) );
-        output.append( "\n" );
+        output.append( '\n' );
         output.append( "options:\n" );
         output.append( " -force                force operations skipping any confirmation\n" );
         output.append( " -debugLevel=x         set the debug level where x is TRACE, DEBUG, INFO, ERROR, WARN or FATAL\n" );
         output.append( " -applicationPath=x    set the application path, default is current path\n" );
-        output.append( "\n" );
+        output.append( '\n' );
         output.append( "usage: \n" );
         output.append( " command[.bat/.sh] <options> CommandName <command options>" );
 
@@ -274,8 +268,7 @@ public class MainClass
                                 {
                                     throw ( CliException ) e;
                                 }
-                                throw new CliException( "cannot access file for option '" + option.getName() + "', " + e.getMessage() );
-
+                                throw new CliException( "cannot access file for option '" + option.getName() + "', " + e.getMessage(), e );
                             }
                             break;
 
@@ -295,7 +288,7 @@ public class MainClass
                                 {
                                     throw ( CliException ) e;
                                 }
-                                throw new CliException( "cannot access file for option '" + option.getName() + "', " + e.getMessage() );
+                                throw new CliException( "cannot access file for option '" + option.getName() + "', " + e.getMessage(), e );
                             }
                             break;
 
@@ -348,7 +341,7 @@ public class MainClass
             }
             if ( !commandExceuted )
             {
-                out( "unknown command '" + workingArgs.iterator().next() + "'" );
+                out( "unknown command '" + workingArgs.get( 0 ) + "'" );
                 out( "use 'help' for command list" );
             }
         }
@@ -398,7 +391,6 @@ public class MainClass
             catch ( final Exception e )
             {
                 out( "error closing operating environment: " + e.getMessage() );
-                e.printStackTrace();
             }
         }
         if ( cliEnvironment.getLocalDB() != null )

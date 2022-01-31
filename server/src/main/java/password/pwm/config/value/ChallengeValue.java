@@ -69,7 +69,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             {
                 tempMap.put( entry.getKey(), List.copyOf( entry.getValue() ) );
             }
-            this.values = Map.copyOf( tempMap );
+            this.values = Collections.unmodifiableMap( tempMap );
         }
     }
 
@@ -291,7 +291,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
         {
             final String localeKey = entry.getKey();
             final List<ChallengeItemConfiguration> challengeItems = entry.getValue();
-            sb.append( "Locale: " ).append( LocaleHelper.debugLabel( LocaleHelper.parseLocaleString( localeKey ) ) ).append( "\n" );
+            sb.append( "Locale: " ).append( LocaleHelper.debugLabel( LocaleHelper.parseLocaleString( localeKey ) ) ).append( '\n' );
             for ( final ChallengeItemConfiguration challengeItemBean : challengeItems )
             {
                 sb.append( " ChallengeItem: [AdminDefined: " ).append( challengeItemBean.isAdminDefined() );
@@ -300,7 +300,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
                 sb.append( " MaxQuestionCharsInAnswer:" ).append( challengeItemBean.getMaxQuestionCharsInAnswer() );
                 sb.append( " EnforceWordlist:" ).append( challengeItemBean.isEnforceWordlist() );
                 sb.append( "]\n" );
-                sb.append( "  Text:" ).append( challengeItemBean.getText() ).append( "\n" );
+                sb.append( "  Text:" ).append( challengeItemBean.getText() ).append( '\n' );
             }
         }
         return sb.toString();

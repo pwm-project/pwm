@@ -72,7 +72,7 @@ public class TokenUtil
     )
             throws PwmUnrecoverableException
     {
-        if ( tokenSendMethod == null || tokenSendMethod.equals( MessageSendMethod.NONE ) )
+        if ( tokenSendMethod == null || tokenSendMethod == MessageSendMethod.NONE )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_MISSING_CONTACT, "no token send methods configured in profile" );
         }
@@ -87,7 +87,7 @@ public class TokenUtil
                     .collect( Collectors.toList() );
         }
 
-        final List<TokenDestinationItem> effectiveItems = new ArrayList<>(  );
+        final List<TokenDestinationItem> effectiveItems = new ArrayList<>( tokenDestinations.size() );
         for ( final TokenDestinationItem item : tokenDestinations )
         {
             final TokenDestinationItem effectiveItem = invokeExternalTokenDestRestClient( pwmDomain, sessionLabel, locale, userInfo.getUserIdentity(), item );

@@ -46,9 +46,9 @@ import password.pwm.http.filter.RequestInitializationFilter;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
@@ -236,13 +236,13 @@ public abstract class RestServlet extends HttpServlet
         return locale;
     }
 
-    private RestResultBean invokeWebService( final RestRequest restRequest ) throws IOException, PwmUnrecoverableException
+    private RestResultBean invokeWebService( final RestRequest restRequest )
+            throws IOException, PwmUnrecoverableException
     {
         final Method interestedMethod = discoverMethodForAction( this.getClass(), restRequest );
 
         if ( interestedMethod != null )
         {
-            interestedMethod.setAccessible( true );
             try
             {
                 return ( RestResultBean ) interestedMethod.invoke( this, restRequest );
@@ -341,11 +341,11 @@ public abstract class RestServlet extends HttpServlet
         {
             errorMsg = "HTTP method unavailable";
         }
-        else if ( !reqAccept.isPresent() && !anyMatch.isAcceptMatch() )
+        else if ( reqAccept.isEmpty() && !anyMatch.isAcceptMatch() )
         {
             errorMsg = HttpHeader.Accept.getHttpName() + " header is required";
         }
-        else if ( !reqContent.isPresent() && !anyMatch.isContentMatch() )
+        else if ( reqContent.isEmpty() && !anyMatch.isContentMatch() )
         {
             errorMsg = HttpHeader.ContentType.getHttpName() + " header is required";
         }

@@ -28,6 +28,7 @@ import password.pwm.util.java.CollectionUtil;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,7 +56,7 @@ class MoshiJsonServiceProvider implements JsonProvider
     {
         final Type type = Types.newParameterizedType( Map.class, String.class, String.class );
         final Map<String, String> deserializeMap = deserializeImpl( jsonString, type );
-        return Map.copyOf( CollectionUtil.stripNulls( deserializeMap ) );
+        return Collections.unmodifiableMap( CollectionUtil.stripNulls( deserializeMap ) );
     }
 
     @Override
@@ -79,7 +80,7 @@ class MoshiJsonServiceProvider implements JsonProvider
     {
         final Type type = Types.newParameterizedType( Map.class, classOfK, classOfV );
         final Map<K, V> deserializeMap = deserializeImpl( jsonString, type );
-        return Map.copyOf( CollectionUtil.stripNulls( deserializeMap ) );    }
+        return Collections.unmodifiableMap( CollectionUtil.stripNulls( deserializeMap ) );    }
 
     @Override
     public <T> T deserialize( final String jsonString, final Class<T> classOfT )
@@ -142,7 +143,7 @@ class MoshiJsonServiceProvider implements JsonProvider
         }
         catch ( final IOException e )
         {
-            throw new RuntimeException( e.getMessage() );
+            throw new RuntimeException( e.getMessage(), e );
         }
     }
 

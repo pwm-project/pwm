@@ -73,7 +73,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -208,7 +207,7 @@ public class RequestInitializationFilter implements Filter
             }
             catch ( final PwmUnrecoverableException pwmUnrecoverableException )
             {
-                pwmUnrecoverableException.printStackTrace();
+                LOGGER.debug( () -> "error initializing http request for " + PwmConstants.PWM_APP_NAME + ": " + e.getMessage() );
             }
             return;
         }
@@ -264,7 +263,7 @@ public class RequestInitializationFilter implements Filter
             }
             catch ( final PwmUnrecoverableException pwmUnrecoverableException )
             {
-                pwmUnrecoverableException.printStackTrace();
+                LOGGER.debug( () -> "error initializing http request for " + PwmConstants.PWM_APP_NAME + ": " + e.getMessage() );
             }
             return;
         }
@@ -732,11 +731,9 @@ public class RequestInitializationFilter implements Filter
         final List<String> requiredHeaders = pwmRequest.getAppConfig().readSettingAsStringArray( PwmSetting.IP_PERMITTED_RANGE );
         if ( requiredHeaders != null && !requiredHeaders.isEmpty() )
         {
-            boolean match = false;
             final String requestAddress = pwmRequest.getHttpServletRequest().getRemoteAddr();
-            for ( int i = 0; i < requiredHeaders.size() && !match; i++ )
+            for ( final String ipMatchString : requiredHeaders )
             {
-                final String ipMatchString = requiredHeaders.get( i );
                 try
                 {
                     final IPMatcher ipMatcher = new IPMatcher( ipMatchString );
@@ -744,7 +741,8 @@ public class RequestInitializationFilter implements Filter
                     {
                         if ( ipMatcher.match( requestAddress ) )
                         {
-                            match = true;
+                            return;
+
                         }
                     }
                     catch ( final IPMatcher.IPMatcherException e )
@@ -757,12 +755,10 @@ public class RequestInitializationFilter implements Filter
                     LOGGER.error( () -> "error parsing permitted address range '" + ipMatchString + "', error: " + e );
                 }
             }
-            if ( !match )
-            {
-                final String errorMsg = "request network address '" + requestAddress + "' does not match any configured permitted source address";
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, errorMsg );
-                throw new PwmUnrecoverableException( errorInformation );
-            }
+
+            final String errorMsg = "request network address '" + requestAddress + "' does not match any configured permitted source address";
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, errorMsg );
+            throw new PwmUnrecoverableException( errorInformation );
         }
     }
 
@@ -868,20 +864,18 @@ public class RequestInitializationFilter implements Filter
         }
     }
 
+    private static final List<HttpHeader> DEBUG_HEADERS = List.of( HttpHeader.Referer, HttpHeader.Origin );
+
     private static String makeHeaderDebugStr( final PwmRequest pwmRequest )
     {
-        final Map<String, String> values = new LinkedHashMap<>();
-        for ( final HttpHeader header : new HttpHeader[]
-                {
-                        HttpHeader.Referer,
-                        HttpHeader.Origin,
-                }
-        )
-        {
-            values.put( header.getHttpName(), pwmRequest.readHeaderValueAsString( header ) );
-        }
+        final Map<String, String> values = DEBUG_HEADERS.stream().collect( Collectors.toMap(
+                HttpHeader::getHttpName,
+                pwmRequest::readHeaderValueAsString
+        ) );
+
         values.put( "target", pwmRequest.getHttpServletRequest().getRequestURL().toString() );
         values.put( "siteUrl", pwmRequest.getPwmDomain().getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL ) );
+
         return StringUtil.mapToString( values );
     }
 

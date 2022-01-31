@@ -197,9 +197,10 @@ public class CrService extends AbstractPwmService implements PwmService
 
     private static ChallengeSet applyPwmPolicyToNmasChallenges( final ChallengeSet challengeSet, final DomainConfig domainConfig ) throws PwmUnrecoverableException
     {
-        final List<Challenge> newChallenges = new ArrayList<>();
         final boolean applyWordlist = domainConfig.readSettingAsBoolean( PwmSetting.EDIRECTORY_CR_APPLY_WORDLIST );
         final int questionsInAnswer = ( int ) domainConfig.readSettingAsLong( PwmSetting.EDIRECTORY_CR_MAX_QUESTION_CHARS_IN__ANSWER );
+
+        final List<Challenge> newChallenges = new ArrayList<>( challengeSet.getChallenges().size() );
         for ( final Challenge challenge : challengeSet.getChallenges() )
         {
             newChallenges.add( new ChaiChallenge(

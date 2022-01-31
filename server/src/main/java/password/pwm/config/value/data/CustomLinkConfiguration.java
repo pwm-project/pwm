@@ -37,7 +37,6 @@ import java.util.Map;
 @EqualsAndHashCode( callSuper = false )
 public class CustomLinkConfiguration implements Serializable
 {
-
     public enum Type
     {
         text, url, select, checkbox, customLink

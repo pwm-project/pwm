@@ -213,7 +213,7 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
         if ( this.equals( DAY ) || this.isLongerThan( DAY ) )
         {
             sb.append( fractionalTimeDetail.getDays() );
-            sb.append( "d" );
+            sb.append( 'd' );
         }
 
         if ( this.equals( HOUR ) || this.isLongerThan( HOUR ) )
@@ -222,10 +222,10 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
             {
                 if ( sb.length() > 0 )
                 {
-                    sb.append( ":" );
+                    sb.append( ':' );
                 }
                 sb.append( fractionalTimeDetail.getHours() );
-                sb.append( "h" );
+                sb.append( 'h' );
             }
         }
 
@@ -235,10 +235,10 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
             {
                 if ( sb.length() > 0 )
                 {
-                    sb.append( ":" );
+                    sb.append( ':' );
                 }
                 sb.append( fractionalTimeDetail.getMinutes() );
-                sb.append( "m" );
+                sb.append( 'm' );
             }
         }
 
@@ -249,10 +249,10 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
             {
                 if ( sb.length() > 0 )
                 {
-                    sb.append( ":" );
+                    sb.append( ':' );
                 }
                 sb.append( fractionalTimeDetail.getSeconds() );
-                sb.append( "s" );
+                sb.append( 's' );
             }
         }
 
@@ -263,7 +263,7 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
             {
                 if ( sb.length() > 0 )
                 {
-                    sb.append( ":" );
+                    sb.append( ':' );
                 }
                 sb.append( ms );
                 sb.append( "ms" );
@@ -273,7 +273,7 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
         if ( sb.length() == 0 )
         {
             sb.append( 0 );
-            sb.append( "s" );
+            sb.append( 's' );
         }
 
         return sb.toString();
@@ -391,7 +391,7 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
                 sb.append( fractionalTimeDetail.seconds );
             }
 
-            sb.append( " " );
+            sb.append( ' ' );
             sb.append( ms == 1000
                     ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Second, null )
                     : LocaleHelper.getLocalizedMessage( locale, Display.Display_Seconds, null )

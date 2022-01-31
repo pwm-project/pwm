@@ -203,6 +203,7 @@ public class PwmSettingTest
             Assert.assertFalse( seenKeys.contains( pwmSetting.getKey() ) );
             seenKeys.add( pwmSetting.getKey() );
         }
+        Assert.assertEquals( seenKeys.size(), PwmSetting.values().length );
     }
 
     @Test

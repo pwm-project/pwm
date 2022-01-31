@@ -208,9 +208,8 @@ public class LocalDbAuditVault implements AuditVault
         public void run( )
         {
             long startTime = System.currentTimeMillis();
-            while ( trim( transactionSizeCalculator.getTransactionSize() )
-                    && status == PwmService.STATUS.OPEN
-                    )
+            while ( status == PwmService.STATUS.OPEN
+                    && trim( transactionSizeCalculator.getTransactionSize() ) )
             {
                 final long executeTime = System.currentTimeMillis() - startTime;
                 transactionSizeCalculator.recordLastTransactionDuration( executeTime );

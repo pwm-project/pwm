@@ -31,4 +31,19 @@ public class PwmInternalException extends RuntimeException
     {
         super( message );
     }
+
+    public static PwmInternalException fromPwmException( final String message, final Exception pwmException )
+    {
+        return new PwmInternalException( message + ": " + pwmException.getMessage(), pwmException );
+    }
+
+    public static PwmInternalException fromPwmException( final Exception pwmException )
+    {
+        return new PwmInternalException( pwmException );
+    }
+
+    public PwmInternalException( final Throwable cause )
+    {
+        super( cause );
+    }
 }

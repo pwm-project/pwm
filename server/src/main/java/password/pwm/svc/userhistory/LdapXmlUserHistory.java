@@ -250,7 +250,7 @@ public class LdapXmlUserHistory implements UserHistoryStore
 
         public List<UserAuditRecord> asAuditRecords( final AuditRecordFactory auditRecordFactory, final UserInfo userInfoBean )
         {
-            final List<UserAuditRecord> returnList = new ArrayList<>();
+            final List<UserAuditRecord> returnList = new ArrayList<>( records.size() );
             for ( final StoredEvent loopEvent : records )
             {
                 returnList.add( auditRecordFactory.fromStoredRecord( loopEvent, userInfoBean ) );

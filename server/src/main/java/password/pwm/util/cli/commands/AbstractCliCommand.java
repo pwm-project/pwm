@@ -44,12 +44,12 @@ public abstract class AbstractCliCommand implements CliCommand
             try
             {
                 cliEnvironment.getDebugWriter().append( out );
-                cliEnvironment.getDebugWriter().append( "\n" );
+                cliEnvironment.getDebugWriter().append( '\n' );
                 cliEnvironment.getDebugWriter().flush();
             }
             catch ( final IOException e )
             {
-                e.printStackTrace();
+                throw new RuntimeException( "error writing debug output", e );
             }
         }
     }
@@ -61,18 +61,18 @@ public abstract class AbstractCliCommand implements CliCommand
     )
     {
         this.cliEnvironment = cliEnvironment;
-
         try
         {
             doCommand();
         }
         catch ( final Exception e )
         {
-            e.printStackTrace();
+            throw new RuntimeException( e );
         }
     }
 
     boolean promptForContinue( final String msg )
+            throws IOException
     {
         if ( cliEnvironment.getMainOptions().isForceFlag() )
         {

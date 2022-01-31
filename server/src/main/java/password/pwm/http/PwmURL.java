@@ -128,7 +128,6 @@ public class PwmURL
             final String contextPath,
             final AppConfig appConfig
     )
-            throws PwmUnrecoverableException
     {
         return new PwmURL( uri, contextPath, appConfig );
     }
@@ -339,9 +338,9 @@ public class PwmURL
                     ? ""
                     : StringUtil.urlEncode( value );
 
-            output.append( output.length() > 0 ? "&" : "" );
+            output.append( output.length() > 0 ? '&' : "" );
             output.append( paramName );
-            output.append( "=" );
+            output.append( '=' );
             output.append( encodedValue );
         }
 

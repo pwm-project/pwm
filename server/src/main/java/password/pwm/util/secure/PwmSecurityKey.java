@@ -31,7 +31,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 public class PwmSecurityKey
@@ -45,7 +45,7 @@ public class PwmSecurityKey
     }
 
     private final byte[] keyData;
-    private final Map<Type, SecretKey> keyCache = new HashMap<>();
+    private final Map<Type, SecretKey> keyCache = new EnumMap<>( Type.class );
 
     public PwmSecurityKey( final byte[] keyData )
     {
@@ -71,11 +71,14 @@ public class PwmSecurityKey
     SecretKey getKey( final Type keyType )
             throws PwmUnrecoverableException
     {
-        if ( !keyCache.containsKey( keyType ) )
+        final SecretKey theKey = keyCache.get( keyType );
+        if ( theKey == null )
         {
-            keyCache.put( keyType, getKeyImpl( keyType ) );
+            final SecretKey newKey = getKeyImpl( keyType );
+            keyCache.put( keyType, newKey );
+            return newKey;
         }
-        return keyCache.get( keyType );
+        return theKey;
     }
 
     private SecretKey getKeyImpl( final Type keyType )

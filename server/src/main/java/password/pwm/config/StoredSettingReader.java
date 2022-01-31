@@ -20,7 +20,6 @@
 
 package password.pwm.config;
 
-import password.pwm.AppProperty;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
@@ -41,17 +40,15 @@ import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.config.value.data.UserPermission;
-import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmRandom;
-import password.pwm.util.secure.PwmSecurityKey;
 
 import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
@@ -59,13 +56,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class StoredSettingReader implements SettingReader
@@ -76,7 +73,6 @@ public class StoredSettingReader implements SettingReader
     private final String profileID;
     private final DomainID domainID;
 
-    private final DataCache dataCache = new DataCache();
     private final Map<ProfileDefinition, Map> profileCache;
 
     public StoredSettingReader( final StoredConfiguration storedConfiguration, final String profileID, final DomainID domainID )
@@ -87,12 +83,6 @@ public class StoredSettingReader implements SettingReader
         this.profileCache = profileID == null
                 ? ProfileReader.makeCacheMap( storedConfiguration, domainID )
                 : Collections.emptyMap();
-
-    }
-
-    private static class DataCache
-    {
-        private final Map<String, Map<Locale, String>> customText = new LinkedHashMap<>();
     }
 
     @Override
@@ -171,6 +161,7 @@ public class StoredSettingReader implements SettingReader
         return ValueTypeConverter.valueToLong( readSetting( setting ) );
     }
 
+    @Override
     public String readSettingAsLocalizedString( final PwmSetting setting, final Locale locale )
     {
         return ValueTypeConverter.valueToLocalizedString( readSetting( setting ), locale );
@@ -247,7 +238,7 @@ public class StoredSettingReader implements SettingReader
             final Map<ProfileDefinition, Map<String, Profile>> returnMap = new EnumMap<>( ProfileDefinition.class );
             returnMap.putAll( EnumSet.allOf( ProfileDefinition.class ).stream()
                     .filter( profileDefinition -> domainID.inScope( profileDefinition.getCategory().getScope() ) )
-                    .collect( Collectors.toUnmodifiableMap(
+                    .collect( CollectionUtil.collectorToLinkedMap(
                             profileDefinition -> profileDefinition,
                             profileDefinition -> profileMap( profileDefinition, storedConfiguration, domainID )
                     ) ) );
@@ -266,8 +257,8 @@ public class StoredSettingReader implements SettingReader
             }
 
             return ProfileUtility.profileIDsForCategory( storedConfiguration, domainID, profileDefinition.getCategory() ).stream()
-                    .collect( Collectors.toUnmodifiableMap(
-                            profileID -> profileID,
+                    .collect( CollectionUtil.collectorToLinkedMap(
+                            Function.identity(),
                             profileID -> newProfileForID( profileDefinition, storedConfiguration, domainID, profileID )
                     ) );
         }
@@ -347,65 +338,17 @@ public class StoredSettingReader implements SettingReader
         return StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
     }
 
-    public Map<Locale, String> readLocalizedBundle( final PwmLocaleBundle className, final String keyName )
+    public Optional<Map<Locale, String>> readLocalizedBundle( final PwmLocaleBundle className, final String keyName )
     {
-        final String key = className + "-" + keyName;
-        if ( dataCache.customText.containsKey( key ) )
-        {
-            return dataCache.customText.get( key );
-        }
-
         final Map<String, String> storedValue = storedConfiguration.readLocaleBundleMap( className, keyName, domainID );
         if ( storedValue == null || storedValue.isEmpty() )
         {
-            dataCache.customText.put( key, null );
-            return null;
+            return Optional.empty();
         }
 
-        final Map<Locale, String> localizedMap = new LinkedHashMap<>();
-        for ( final Map.Entry<String, String> entry : storedValue.entrySet() )
-        {
-            final String localeKey = entry.getKey();
-            localizedMap.put( LocaleHelper.parseLocaleString( localeKey ), entry.getValue() );
-        }
-
-        dataCache.customText.put( key, localizedMap );
-        return localizedMap;
-    }
-
-    public PwmSecurityKey readSecurityKey( final PwmSetting pwmSetting, final AppConfig appConfig )
-            throws PwmUnrecoverableException
-    {
-        final PasswordData configValue = readSettingAsPassword( pwmSetting );
-
-        if ( configValue == null || configValue.getStringValue().isEmpty() )
-        {
-            final String errorMsg = "Security Key value is not configured, will generate temp value for use by runtime instance";
-            final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-            LOGGER.warn( errorInfo::toDebugStr );
-            return new PwmSecurityKey( PwmRandom.getInstance().alphaNumericString( 1024 ) );
-        }
-        else
-        {
-            final int minSecurityKeyLength = Integer.parseInt( appConfig.readAppProperty( AppProperty.SECURITY_CONFIG_MIN_SECURITY_KEY_LENGTH ) );
-            if ( configValue.getStringValue().length() < minSecurityKeyLength )
-            {
-                final String errorMsg = "Security Key must be greater than 32 characters in length";
-                final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-                throw new PwmUnrecoverableException( errorInfo );
-            }
-
-            try
-            {
-                return new PwmSecurityKey( configValue.getStringValue() );
-            }
-            catch ( final Exception e )
-            {
-                final String errorMsg = "unexpected error generating Security Key crypto: " + e.getMessage();
-                final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-                LOGGER.error( errorInfo::toDebugStr, e );
-                throw new PwmUnrecoverableException( errorInfo );
-            }
-        }
+        return Optional.of( storedValue.entrySet().stream().collect( Collectors.toUnmodifiableMap(
+                entry -> LocaleHelper.parseLocaleString( entry.getKey() ),
+                Map.Entry::getValue
+        ) ) );
     }
 }

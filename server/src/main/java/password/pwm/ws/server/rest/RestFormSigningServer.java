@@ -72,7 +72,7 @@ public class RestFormSigningServer extends RestServlet
     }
 
     @RestMethodHandler( method = HttpMethod.POST, produces = HttpContentType.json, consumes = HttpContentType.json )
-    private RestResultBean handleRestJsonPostRequest( final RestRequest restRequest )
+    public RestResultBean handleRestJsonPostRequest( final RestRequest restRequest )
             throws IOException, PwmUnrecoverableException
     {
         final Map<String, String> inputFormData = restRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
@@ -80,7 +80,7 @@ public class RestFormSigningServer extends RestServlet
     }
 
     @RestMethodHandler( method = HttpMethod.POST, produces = HttpContentType.json, consumes = HttpContentType.form )
-    private RestResultBean handleRestFormPostRequest( final RestRequest restRequest )
+    public RestResultBean handleRestFormPostRequest( final RestRequest restRequest )
             throws IOException, PwmUnrecoverableException
     {
         final Map<String, String> inputFormData = restRequest.readParametersAsMap();

@@ -25,11 +25,10 @@ import lombok.Value;
 import password.pwm.config.value.data.FormConfiguration;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Value
 @Builder
@@ -60,12 +59,9 @@ public class PresentableFormRow implements Serializable
 
     public static List<PresentableFormRow> fromFormConfigurations( final List<FormConfiguration> formConfigurations, final Locale locale )
     {
-        final List<PresentableFormRow> formRows = new ArrayList<>();
-        for ( final FormConfiguration formConfiguration : formConfigurations )
-        {
-            formRows.add( PresentableFormRow.fromFormConfiguration( formConfiguration, locale ) );
-        }
-        return Collections.unmodifiableList( formRows );
+        return formConfigurations.stream()
+                .map( formConfiguration -> PresentableFormRow.fromFormConfiguration( formConfiguration, locale ) )
+                .collect( Collectors.toUnmodifiableList() );
     }
 }
 

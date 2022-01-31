@@ -235,7 +235,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "executeSettingFunction" )
-    private ProcessStatus restExecuteSettingFunction(
+    public ProcessStatus restExecuteSettingFunction(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -280,7 +280,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "readSetting" )
-    private ProcessStatus restReadSetting(
+    public ProcessStatus restReadSetting(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -318,7 +318,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "writeSetting" )
-    private ProcessStatus restWriteSetting(
+    public ProcessStatus restWriteSetting(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -371,7 +371,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "resetSetting" )
-    private ProcessStatus restResetSetting(
+    public ProcessStatus restResetSetting(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -408,7 +408,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "setConfigurationPassword" )
-    private ProcessStatus restSetConfigurationPassword(
+    public ProcessStatus restSetConfigurationPassword(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -438,7 +438,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "finishEditing" )
-    private ProcessStatus restFinishEditing( final PwmRequest pwmRequest )
+    public ProcessStatus restFinishEditing( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
@@ -477,7 +477,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "cancelEditing" )
-    private ProcessStatus restCancelEditing(
+    public ProcessStatus restCancelEditing(
             final PwmRequest pwmRequest
     )
             throws IOException, ServletException, PwmUnrecoverableException
@@ -489,7 +489,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "setOption" )
-    private ProcessStatus setOptions(
+    public ProcessStatus setOptions(
             final PwmRequest pwmRequest
 
     )
@@ -537,7 +537,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "readChangeLog" )
-    private ProcessStatus restReadChangeLog(
+    public ProcessStatus restReadChangeLog(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -552,7 +552,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "readWarnings" )
-    private ProcessStatus restReadWarnings(
+    public ProcessStatus restReadWarnings(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -567,7 +567,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "search" )
-    private ProcessStatus restSearchSettings(
+    public ProcessStatus restSearchSettings(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -611,7 +611,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "ldapHealthCheck" )
-    private ProcessStatus restLdapHealthCheck(
+    public ProcessStatus restLdapHealthCheck(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -638,7 +638,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "databaseHealthCheck" )
-    private ProcessStatus restDatabaseHealthCheck(
+    public ProcessStatus restDatabaseHealthCheck(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -657,7 +657,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "smsHealthCheck" )
-    private ProcessStatus restSmsHealthCheck(
+    public ProcessStatus restSmsHealthCheck(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -703,7 +703,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "emailHealthCheck" )
-    private ProcessStatus restEmailHealthCheck(
+    public ProcessStatus restEmailHealthCheck(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -758,7 +758,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "uploadFile" )
-    private ProcessStatus doUploadFile(
+    public ProcessStatus doUploadFile(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException
@@ -801,7 +801,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "menuTreeData" )
-    private ProcessStatus restMenuTreeData(
+    public ProcessStatus restMenuTreeData(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
@@ -825,7 +825,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "settingData" )
-    private ProcessStatus restConfigSettingData( final PwmRequest pwmRequest )
+    public ProcessStatus restConfigSettingData( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
@@ -847,7 +847,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "testMacro" )
-    private ProcessStatus restTestMacro( final PwmRequest pwmRequest ) throws IOException, ServletException, PwmUnrecoverableException
+    public ProcessStatus restTestMacro( final PwmRequest pwmRequest ) throws IOException, ServletException, PwmUnrecoverableException
     {
         try
         {
@@ -872,7 +872,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "browseLdap" )
-    private ProcessStatus restBrowseLdap( final PwmRequest pwmRequest )
+    public ProcessStatus restBrowseLdap( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
@@ -924,7 +924,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "copyProfile" )
-    private ProcessStatus restCopyProfile( final PwmRequest pwmRequest )
+    public ProcessStatus restCopyProfile( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
@@ -962,7 +962,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "copyDomain" )
-    private ProcessStatus restCopyDomain( final PwmRequest pwmRequest )
+    public ProcessStatus restCopyDomain( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
@@ -989,7 +989,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "randomPassword" )
-    private ProcessStatus restRandomPassword( final PwmRequest pwmRequest )
+    public ProcessStatus restRandomPassword( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
         final RestRandomPasswordServer.JsonInput jsonInput = JsonFactory.get().deserialize( pwmRequest.readRequestBodyAsString(), RestRandomPasswordServer.JsonInput.class );

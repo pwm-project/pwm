@@ -143,7 +143,6 @@ public class HttpEventManager implements
             LOGGER.fatal( () -> "error initializing context: " + e, e );
             System.err.println( "error initializing context: " + e );
             System.out.println( "error initializing context: " + e );
-            e.printStackTrace();
         }
     }
 

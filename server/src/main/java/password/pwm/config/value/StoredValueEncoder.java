@@ -66,7 +66,7 @@ public abstract class StoredValueEncoder
 
         public String getPrefix()
         {
-            return prefixes.iterator().next();
+            return prefixes.get( 0 );
         }
 
         public SecureOutputEngine getSecureOutputEngine()

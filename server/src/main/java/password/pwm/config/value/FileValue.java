@@ -131,7 +131,7 @@ public class FileValue extends AbstractValue implements StoredValue
 
     public FileValue( final Map<FileInformation, FileContent> values )
     {
-        this.values = values == null ? Collections.emptyMap() : Map.copyOf( values );
+        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
     }
 
     public static StoredValueFactory factory( )
@@ -184,7 +184,7 @@ public class FileValue extends AbstractValue implements StoredValue
             final XmlOutputProcessData xmlOutputProcessData
     )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final Map.Entry<FileInformation, FileContent> entry : this.values.entrySet() )
         {
             final FileValue.FileInformation fileInformation = entry.getKey();
@@ -243,7 +243,7 @@ public class FileValue extends AbstractValue implements StoredValue
 
     List<Map<String, Object>> asMetaData( )
     {
-        final List<Map<String, Object>> output = new ArrayList<>();
+        final List<Map<String, Object>> output = new ArrayList<>( values.size() );
         for ( final Map.Entry<FileInformation, FileContent> entry : this.values.entrySet() )
         {
             final FileValue.FileInformation fileInformation = entry.getKey();

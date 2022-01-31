@@ -37,9 +37,9 @@ import password.pwm.http.servlet.configeditor.DomainManageMode;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
@@ -48,6 +48,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
@@ -186,7 +187,7 @@ public class NavTreeDataMaker
                 {
                     final ResourceBundle defaultBundle = ResourceBundle.getBundle( bundle.getTheClass().getName(), locale );
                     final String localeKeyString = PwmConstants.DEFAULT_LOCALE.toString().equals( locale.toString() ) ? "" : locale.toString();
-                    if ( storedBundle.containsKey( localeKeyString ) )
+
                     {
                         final String value = storedBundle.get( localeKeyString );
                         if ( value != null && !value.equals( defaultBundle.getString( key ) ) )
@@ -212,7 +213,7 @@ public class NavTreeDataMaker
         return PwmSettingCategory.sortedValues().stream()
                 .filter( loopCategory -> categoryMatcher( domainId, loopCategory, null, storedConfiguration, navTreeSettings ) )
                 .flatMap( loopCategory -> navTreeItemsForCategory( loopCategory, domainId, storedConfiguration, navTreeSettings ).stream() )
-                        .collect( Collectors.toUnmodifiableList() );
+                .collect( Collectors.toUnmodifiableList() );
 
     }
 
@@ -234,7 +235,7 @@ public class NavTreeDataMaker
         final List<String> profiles = StoredConfigurationUtil.profilesForCategory( domainId, loopCategory, storedConfiguration );
         if ( loopCategory.isTopLevelProfile() )
         {
-            final List<NavTreeItem> navigationData = new ArrayList<>();
+            final List<NavTreeItem> navigationData = new ArrayList<>( profiles.size() );
 
             // edit profile option
             navigationData.add( navTreeItemForCategory( loopCategory, locale, null ) );
@@ -415,22 +416,15 @@ public class NavTreeDataMaker
 
     private static void moveNavItemToTopOfList( final String categoryID, final List<NavTreeItem> navigationData )
     {
+        // put templates on top
+        final Optional<NavTreeItem> templateEntry = navigationData.stream()
+                .filter( entry -> categoryID.equals( entry.getId() ) )
+                .findFirst();
+
+        if ( templateEntry.isPresent() )
         {
-            // put templates on top
-            NavTreeItem templateEntry = null;
-            for ( final NavTreeItem entry : navigationData )
-            {
-                if ( categoryID.equals( entry.getId() ) )
-                {
-                    templateEntry = entry;
-                }
-            }
-            if ( templateEntry != null )
-            {
-                navigationData.remove( templateEntry );
-                navigationData.add( 0, templateEntry );
-            }
+            navigationData.remove( templateEntry.get() );
+            navigationData.add( 0, templateEntry.get() );
         }
     }
-
 }

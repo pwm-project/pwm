@@ -250,17 +250,19 @@ public class CaptchaUtility
             throws PwmUnrecoverableException
     {
         String cookieValue = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAPTCHA_SKIP_COOKIE );
-        if ( cookieValue == null || cookieValue.trim().length() < 1 )
+        if ( StringUtil.isTrimEmpty( cookieValue ) )
         {
             return null;
         }
 
-        if ( cookieValue.equals( COOKIE_SKIP_INSTANCE_VALUE ) )
+        cookieValue = cookieValue.trim();
+
+        if ( COOKIE_SKIP_INSTANCE_VALUE.equals( cookieValue ) )
         {
             cookieValue = pwmRequest.getPwmApplication().getInstanceID();
         }
 
-        return cookieValue != null && cookieValue.trim().length() > 0 ? cookieValue : null;
+        return cookieValue;
     }
 
     private static boolean checkRequestForCaptchaSkipCookie( final PwmRequest pwmRequest )

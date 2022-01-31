@@ -182,7 +182,6 @@ public class Storage
             }
             catch ( final Exception e )
             {
-                e.printStackTrace();
                 throw e;
             }
         }

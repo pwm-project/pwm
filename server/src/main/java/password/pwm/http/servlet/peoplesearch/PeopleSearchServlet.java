@@ -112,7 +112,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
             throws PwmUnrecoverableException, IOException, ServletException;
 
     @ActionHandler( action = "clientData" )
-    private ProcessStatus restLoadClientData(
+    public ProcessStatus restLoadClientData(
             final PwmRequest pwmRequest
 
     )
@@ -133,7 +133,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "search" )
-    private ProcessStatus restSearchRequest(
+    public ProcessStatus restSearchRequest(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException
@@ -155,7 +155,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "orgChartData" )
-    private ProcessStatus restOrgChartData(
+    public ProcessStatus restOrgChartData(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException, ServletException
@@ -206,7 +206,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "detail" )
-    private ProcessStatus restUserDetailRequest(
+    public ProcessStatus restUserDetailRequest(
             final PwmRequest pwmRequest
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException
@@ -226,7 +226,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "photo" )
-    private ProcessStatus processUserPhotoImageRequest( final PwmRequest pwmRequest )
+    public ProcessStatus processUserPhotoImageRequest( final PwmRequest pwmRequest )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
         final String userKey = pwmRequest.readParameterAsString( PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation );
@@ -260,7 +260,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "exportOrgChart" )
-    private ProcessStatus processExportOrgChartRequest( final PwmRequest pwmRequest )
+    public ProcessStatus processExportOrgChartRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException
     {
         final String userKey = pwmRequest.readParameterAsString( PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation );
@@ -292,7 +292,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "mailtoLinks" )
-    private ProcessStatus processMailtoLinksRequest( final PwmRequest pwmRequest )
+    public ProcessStatus processMailtoLinksRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException
     {
         final String userKey = pwmRequest.readParameterAsString( PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation );

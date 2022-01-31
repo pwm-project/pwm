@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class PwmSettingXml
 {
     public static final String SETTING_XML_FILENAME = ( PwmSetting.class.getPackage().getName()
-            + "." + PwmSetting.class.getSimpleName() ).replace( ".", "/" ) + ".xml";
+            + "." + PwmSetting.class.getSimpleName() ).replace( '.', '/' ) + ".xml";
 
     static final String XML_ELEMENT_LDAP_PERMISSION = "ldapPermission";
     static final String XML_ELEMENT_EXAMPLE = "example";
@@ -61,8 +61,6 @@ public class PwmSettingXml
     static final String XML_ELEMENT_OPTIONS = "options";
     static final String XML_ELEMENT_SCOPE = "scope";
 
-
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSettingXml.class );
 
     private static final LazySoftReference<XmlDocument> XML_DOC_CACHE = new LazySoftReference<>( PwmSettingXml::readXml );
@@ -80,7 +78,7 @@ public class PwmSettingXml
         }
         catch ( final IOException e )
         {
-            throw new IllegalStateException( "error parsing " + SETTING_XML_FILENAME + ": " + e.getMessage() );
+            throw new IllegalStateException( "error parsing " + SETTING_XML_FILENAME + ": " + e.getMessage(), e );
         }
     }
 

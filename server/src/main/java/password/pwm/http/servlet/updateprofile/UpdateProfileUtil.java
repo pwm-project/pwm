@@ -212,7 +212,7 @@ public class UpdateProfileUtil
     {
 
         final List<FormConfiguration> form = updateProfileProfile.readSettingAsForm( PwmSetting.UPDATE_PROFILE_FORM );
-        final Map<FormConfiguration, String> formValueMap = new LinkedHashMap<>();
+        final Map<FormConfiguration, String> formValueMap = new LinkedHashMap<>( form.size() );
         for ( final FormConfiguration formConfiguration : form )
         {
             formValueMap.put(
@@ -272,9 +272,10 @@ public class UpdateProfileUtil
                 {
                     iter.remove();
                 }
-                else if ( updateData.containsKey( attrName ) )
+
+                final String updateValue = updateData.get( attrName );
+                if ( updateValue != null )
                 {
-                    final String updateValue = updateData.get( attrName );
                     final String ldapValue = ldapData.get( attrName );
                     if ( StringUtil.nullSafeEqualsIgnoreCase( updateValue, ldapValue ) )
                     {

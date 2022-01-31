@@ -97,10 +97,12 @@ public class ConfigEditorServletUtils
             return Optional.empty();
         }
 
-        if ( fileUploads.containsKey( PwmConstants.PARAM_FILE_UPLOAD ) )
         {
             final PwmRequest.FileUploadItem uploadItem = fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD );
-            return Optional.of( FileValue.newFileValue( uploadItem.getName(), uploadItem.getType(), uploadItem.getContent() ) );
+            if ( uploadItem != null )
+            {
+                return Optional.of( FileValue.newFileValue( uploadItem.getName(), uploadItem.getType(), uploadItem.getContent() ) );
+            }
         }
 
         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "no file found in upload" );
@@ -120,12 +122,10 @@ public class ConfigEditorServletUtils
                 pwmRequest.getPwmDomain().getConfig().getStoredConfiguration(),
                 configManagerBean.getStoredConfiguration() );
 
-        final Map<String, String> changeLogMap = StoredConfigurationUtil.makeDebugMap(
+        return StoredConfigurationUtil.makeDebugMap(
                 configManagerBean.getStoredConfiguration(),
                 changedKeys,
                 locale );
-
-        return changeLogMap;
     }
 
     static Map<DomainID, List<String>> configurationHealth(

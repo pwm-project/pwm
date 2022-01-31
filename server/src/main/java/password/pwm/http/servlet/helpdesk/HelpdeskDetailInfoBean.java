@@ -90,7 +90,7 @@ public class HelpdeskDetailInfoBean implements Serializable
     private Set<StandardButton> enabledButtons;
 
     private HelpdeskVerificationOptionsBean verificationOptions;
-    
+
     public enum StandardButton
     {
         back,
@@ -103,7 +103,7 @@ public class HelpdeskDetailInfoBean implements Serializable
         deleteUser,
     }
 
-     static HelpdeskDetailInfoBean makeHelpdeskDetailInfo(
+    static HelpdeskDetailInfoBean makeHelpdeskDetailInfo(
             final PwmRequest pwmRequest,
             final HelpdeskProfile helpdeskProfile,
             final UserIdentity userIdentity
@@ -188,21 +188,25 @@ public class HelpdeskDetailInfoBean implements Serializable
 
         {
             final ResponseInfoBean responseInfoBean = userInfo.getResponseInfoBean();
-            if ( responseInfoBean != null && responseInfoBean.getHelpdeskCrMap() != null )
+            if ( responseInfoBean != null )
             {
-                final List<DisplayElement> responseDisplay = new ArrayList<>();
-                int counter = 0;
-                for ( final Map.Entry<Challenge, String> entry : responseInfoBean.getHelpdeskCrMap().entrySet() )
+                final Map<Challenge, String> helpdeskCrMap = responseInfoBean.getHelpdeskCrMap();
+                if ( helpdeskCrMap != null )
                 {
-                    counter++;
-                    responseDisplay.add( new DisplayElement(
-                            "item_" + counter,
-                            DisplayElement.Type.string,
-                            entry.getKey().getChallengeText(),
-                            entry.getValue()
-                    ) );
+                    final List<DisplayElement> responseDisplay = new ArrayList<>(  helpdeskCrMap.size() );
+                    int counter = 0;
+                    for ( final Map.Entry<Challenge, String> entry : helpdeskCrMap.entrySet() )
+                    {
+                        counter++;
+                        responseDisplay.add( new DisplayElement(
+                                "item_" + counter,
+                                DisplayElement.Type.string,
+                                entry.getKey().getChallengeText(),
+                                entry.getValue()
+                        ) );
+                    }
+                    builder.helpdeskResponses = responseDisplay;
                 }
-                builder.helpdeskResponses = responseDisplay;
             }
         }
 

@@ -24,6 +24,7 @@ import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.CollectionUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -33,12 +34,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 
 public class UserSearchResults implements Serializable
 {
     private final Map<String, String> headerAttributeMap;
     private final Map<UserIdentity, Map<String, String>> results;
-    private boolean sizeExceeded;
+    private final boolean sizeExceeded;
 
     public UserSearchResults( final Map<String, String> headerAttributeMap, final Map<UserIdentity, Map<String, String>> results, final boolean sizeExceeded )
     {
@@ -53,46 +55,22 @@ public class UserSearchResults implements Serializable
             final Map<String, String> headerAttributeMap
     )
     {
-        if ( headerAttributeMap == null || headerAttributeMap.isEmpty() || results == null )
+        if ( CollectionUtil.isEmpty( headerAttributeMap ) || CollectionUtil.isEmpty( results ) )
         {
             return results;
         }
 
         final String sortAttribute = headerAttributeMap.keySet().iterator().next();
-        final Comparator<UserIdentity> comparator = new Comparator<UserIdentity>()
-        {
-            @Override
-            public int compare( final UserIdentity o1, final UserIdentity o2 )
-            {
-                final String s1 = getSortValueByIdentity( o1 );
-                final String s2 = getSortValueByIdentity( o2 );
-                return s1.compareTo( s2 );
-            }
 
-            private String getSortValueByIdentity( final UserIdentity userIdentity )
-            {
-                final Map<String, String> valueMap = results.get( userIdentity );
-                if ( valueMap != null )
-                {
-                    final String sortValue = valueMap.get( sortAttribute );
-                    if ( sortValue != null )
-                    {
-                        return sortValue;
-                    }
-                }
-                return "";
-            }
-        };
+        final UserIdentitySearchResultComparator comparator
+                = new UserIdentitySearchResultComparator( results, sortAttribute );
 
-        final List<UserIdentity> identitySortMap = new ArrayList<>( results.keySet() );
-        identitySortMap.sort( comparator );
-
-        final Map<UserIdentity, Map<String, String>> sortedResults = new LinkedHashMap<>();
-        for ( final UserIdentity userIdentity : identitySortMap )
-        {
-            sortedResults.put( userIdentity, results.get( userIdentity ) );
-        }
-        return sortedResults;
+        return Collections.unmodifiableMap( results.keySet().stream()
+                .sorted( comparator )
+                .collect( CollectionUtil.collectorToLinkedMap(
+                        Function.identity(),
+                        results::get
+                ) ) );
     }
 
     public Map<String, String> getHeaderAttributeMap( )
@@ -110,16 +88,19 @@ public class UserSearchResults implements Serializable
         return sizeExceeded;
     }
 
-    public List<Map<String, Object>> resultsAsJsonOutput( final PwmDomain pwmDomain, final UserIdentity ignoreUser )
+    public List<Map<String, Object>> resultsAsJsonOutput(
+            final PwmDomain pwmDomain,
+            final UserIdentity ignoreUser
+    )
             throws PwmUnrecoverableException
     {
-        final List<Map<String, Object>> outputList = new ArrayList<>();
+        final List<Map<String, Object>> outputList = new ArrayList<>( this.getResults().size() );
         int idCounter = 0;
         for ( final UserIdentity userIdentity : this.getResults().keySet() )
         {
             if ( ignoreUser == null || !ignoreUser.equals( userIdentity ) )
             {
-                final Map<String, Object> rowMap = new LinkedHashMap<>();
+                final Map<String, Object> rowMap = new LinkedHashMap<>( this.getHeaderAttributeMap().size() );
                 for ( final String attribute : this.getHeaderAttributeMap().keySet() )
                 {
                     rowMap.put( attribute, this.getResults().get( userIdentity ).get( attribute ) );
@@ -135,11 +116,46 @@ public class UserSearchResults implements Serializable
 
     public static Map<String, String> fromFormConfiguration( final List<FormConfiguration> formItems, final Locale locale )
     {
-        final Map<String, String> results = new LinkedHashMap<>();
-        for ( final FormConfiguration formItem : formItems )
+        return Collections.unmodifiableMap( formItems.stream().collect( CollectionUtil.collectorToLinkedMap(
+                FormConfiguration::getName,
+                formItem -> formItem.getLabel( locale )
+        ) ) );
+    }
+
+    private static class UserIdentitySearchResultComparator implements Comparator<UserIdentity>, Serializable
+    {
+        private final Map<UserIdentity, Map<String, String>> results;
+        private final String sortAttribute;
+
+        UserIdentitySearchResultComparator(
+                final Map<UserIdentity, Map<String, String>> results,
+                final String sortAttribute
+        )
         {
-            results.put( formItem.getName(), formItem.getLabel( locale ) );
+            this.results = results;
+            this.sortAttribute = sortAttribute;
         }
-        return results;
+
+        @Override
+        public int compare( final UserIdentity o1, final UserIdentity o2 )
+        {
+            final String s1 = getSortValueByIdentity( o1 );
+            final String s2 = getSortValueByIdentity( o2 );
+            return s1.compareTo( s2 );
+        }
+
+        private String getSortValueByIdentity( final UserIdentity userIdentity )
+        {
+            final Map<String, String> valueMap = results.get( userIdentity );
+            if ( valueMap != null )
+            {
+                final String sortValue = valueMap.get( sortAttribute );
+                if ( sortValue != null )
+                {
+                    return sortValue;
+                }
+            }
+            return "";
+        }
     }
 }

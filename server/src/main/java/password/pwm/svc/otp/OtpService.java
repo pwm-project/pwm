@@ -161,11 +161,10 @@ public class OtpService extends AbstractPwmService implements PwmService
     }
 
     private List<String> createRawRecoveryCodes( final int numRecoveryCodes, final SessionLabel sessionLabel )
-            throws PwmUnrecoverableException
     {
         final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmDomain.getPwmApplication(), sessionLabel );
         final String configuredTokenMacro = settings.getRecoveryTokenMacro();
-        final List<String> recoveryCodes = new ArrayList<>();
+        final List<String> recoveryCodes = new ArrayList<>( numRecoveryCodes );
         while ( recoveryCodes.size() < numRecoveryCodes )
         {
             final String code = macroRequest.expandMacros( configuredTokenMacro );
@@ -204,12 +203,12 @@ public class OtpService extends AbstractPwmService implements PwmService
             default:
                 JavaHelper.unhandledSwitchStatement( settings.getOtpType() );
         }
+
         final List<String> rawRecoveryCodes;
         if ( settings.getOtpStorageFormat().supportsRecoveryCodes() )
         {
             final int recoveryCodesCount = ( int ) otpProfile.readSettingAsLong( PwmSetting.OTP_RECOVERY_CODES );
             rawRecoveryCodes = createRawRecoveryCodes( recoveryCodesCount, sessionLabel );
-            final List<OTPUserRecord.RecoveryCode> recoveryCodeList = new ArrayList<>();
             final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
             if ( settings.getOtpStorageFormat().supportsHashedRecoveryCodes() )
             {
@@ -227,6 +226,9 @@ public class OtpService extends AbstractPwmService implements PwmService
                 recoveryInfo.setHashMethod( null );
             }
             otpUserRecord.setRecoveryInfo( recoveryInfo );
+
+
+            final List<OTPUserRecord.RecoveryCode> recoveryCodeList = new ArrayList<>( rawRecoveryCodes.size() );
             for ( final String rawCode : rawRecoveryCodes )
             {
                 final String hashedCode;

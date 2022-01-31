@@ -44,12 +44,13 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -148,7 +149,6 @@ public class ConfigurationReader
                         }
                 );
                 this.configMode = PwmApplicationMode.ERROR;
-                e.printStackTrace();
                 throw new PwmUnrecoverableException( errorInformation, e );
             }
 
@@ -313,7 +313,9 @@ public class ConfigurationReader
         LOGGER.info( sessionLabel, () -> "beginning write to configuration file " + tempWriteFile );
         saveInProgress = true;
 
-        try ( FileOutputStream fileOutputStream = new FileOutputStream( tempWriteFile, false ) )
+        try ( OutputStream fileOutputStream = Files.newOutputStream( tempWriteFile.toPath(),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING ) )
         {
             StoredConfigurationFactory.output( storedConfiguration, fileOutputStream );
         }
@@ -343,7 +345,9 @@ public class ConfigurationReader
             final String backupFilePath = backupDirectory.getAbsolutePath() + File.separatorChar + configFileName + "-backup";
             final File backupFile = new File( backupFilePath );
             FileSystemUtility.rotateBackups( backupFile, backupRotations );
-            try ( FileOutputStream fileOutputStream = new FileOutputStream( backupFile, false ) )
+            try ( OutputStream fileOutputStream = Files.newOutputStream( backupFile.toPath(),
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING ) )
             {
                 StoredConfigurationFactory.output( storedConfiguration, fileOutputStream );
             }

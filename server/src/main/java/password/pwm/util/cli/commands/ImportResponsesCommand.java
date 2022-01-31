@@ -23,8 +23,8 @@ package password.pwm.util.cli.commands;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChallengeSet;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
@@ -35,14 +35,14 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.cli.CliParameters;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.ws.server.rest.RestChallengesServer;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.util.Collections;
 
 public class ImportResponsesCommand extends AbstractCliCommand
@@ -54,7 +54,8 @@ public class ImportResponsesCommand extends AbstractCliCommand
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
         final File inputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
-        try ( BufferedReader reader = new BufferedReader( new InputStreamReader( new FileInputStream( inputFile ), PwmConstants.DEFAULT_CHARSET.toString() ) ) )
+        try ( BufferedReader reader = new BufferedReader( new InputStreamReader( Files.newInputStream( inputFile.toPath() ),
+                PwmConstants.DEFAULT_CHARSET.toString() ) ) )
         {
             out( "importing stored responses from " + inputFile.getAbsolutePath() + "...." );
 

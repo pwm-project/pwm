@@ -86,7 +86,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final CustomLinkConfiguration value : values )
         {
             final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
@@ -99,7 +99,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
     @Override
     public List<CustomLinkConfiguration> toNativeObject( )
     {
-        return Collections.unmodifiableList( values );
+        return values;
     }
 
     @Override
@@ -113,7 +113,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
             }
         }
 
-        final Set<String> seenNames = new HashSet<>();
+        final Set<String> seenNames = new HashSet<>( values.size() );
         for ( final CustomLinkConfiguration loopConfig : values )
         {
             if ( seenNames.contains( loopConfig.getName().toLowerCase() ) )
@@ -134,12 +134,12 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
             final StringBuilder sb = new StringBuilder();
             for ( final CustomLinkConfiguration formRow : values )
             {
-                sb.append( "Link Name:" ).append( formRow.getName() ).append( "\n" );
+                sb.append( "Link Name:" ).append( formRow.getName() ).append( '\n' );
                 sb.append( " Type:" ).append( formRow.getType() );
-                sb.append( "\n" );
-                sb.append( " Description:" ).append( JsonFactory.get().serializeMap( formRow.getLabels() ) ).append( "\n" );
-                sb.append( " New Window:" ).append( formRow.isCustomLinkNewWindow() ).append( "\n" );
-                sb.append( " Url:" ).append( formRow.getCustomLinkUrl() ).append( "\n" );
+                sb.append( '\n' );
+                sb.append( " Description:" ).append( JsonFactory.get().serializeMap( formRow.getLabels() ) ).append( '\n' );
+                sb.append( " New Window:" ).append( formRow.isCustomLinkNewWindow() ).append( '\n' );
+                sb.append( " Url:" ).append( formRow.getCustomLinkUrl() ).append( '\n' );
             }
             return sb.toString();
         }

@@ -30,6 +30,7 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -253,7 +254,7 @@ public class PwmSession implements Serializable
             sb.append( "unauthenticate session from " ).append( ssBean.getSrcAddress() );
             if ( getUserInfo().getUserIdentity() != null )
             {
-                sb.append( " (" ).append( getUserInfo().getUserIdentity() ).append( ")" );
+                sb.append( " (" ).append( getUserInfo().getUserIdentity() ).append( ')' );
             }
 
             // mark the session state bean as no longer being authenticated
@@ -312,7 +313,9 @@ public class PwmSession implements Serializable
                 debugData.put( "needsNewPW", getUserInfo().isRequiresNewPassword() );
                 debugData.put( "needsNewCR", getUserInfo().isRequiresResponseConfig() );
                 debugData.put( "needsNewProfile", getUserInfo().isRequiresUpdateProfile() );
-                debugData.put( "hasCRPolicy", getUserInfo().getChallengeProfile() != null && getUserInfo().getChallengeProfile().getChallengeSet() != null );
+
+                final ChallengeProfile challengeProfile = getUserInfo().getChallengeProfile();
+                debugData.put( "hasCRPolicy", challengeProfile != null && challengeProfile.getChallengeSet().isPresent() );
             }
             debugData.put( "locale", getSessionStateBean().getLocale() );
             debugData.put( "theme", getSessionStateBean().getTheme() );

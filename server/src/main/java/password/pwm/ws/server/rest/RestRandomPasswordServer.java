@@ -243,10 +243,11 @@ public class RestRandomPasswordServer extends RestServlet
         }
         if ( jsonInput.getChars() != null )
         {
-            final List<String> charValues = new ArrayList<>();
-            for ( int i = 0; i < jsonInput.getChars().length(); i++ )
+            final String inputChars = jsonInput.getChars();
+            final List<String> charValues = new ArrayList<>( inputChars.length() );
+            for ( int i = 0; i < inputChars.length(); i++ )
             {
-                charValues.add( String.valueOf( jsonInput.getChars().charAt( i ) ) );
+                charValues.add( String.valueOf( inputChars.charAt( i ) ) );
             }
             randomConfigBuilder.seedlistPhrases( charValues );
         }

@@ -123,8 +123,7 @@ public class RestFormDataClient
                 LOGGER.error( () -> errorMsg );
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_UNREACHABLE, errorMsg ) );
             }
-            final FormDataResponseBean formDataResponseBean = JsonFactory.get().deserialize( responseBody, FormDataResponseBean.class );
-            return formDataResponseBean;
+            return JsonFactory.get().deserialize( responseBody, FormDataResponseBean.class );
         }
         catch ( final PwmUnrecoverableException e )
         {

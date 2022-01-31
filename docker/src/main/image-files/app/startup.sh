@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 #Docker container startup script
 
 mkdir -p /config/logs

@@ -124,7 +124,7 @@ public class TelemetryService extends AbstractPwmService implements PwmService
         }
 
         lastPublishTime = pwmApplication.readAppAttribute( AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, Instant.class )
-                .orElse( pwmApplication.getInstallTime() );
+                .orElseGet( pwmApplication::getInstallTime );
         LOGGER.trace( getSessionLabel(), () -> "last publish time was " + JavaHelper.toIsoDate( lastPublishTime ) );
 
         executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, TelemetryService.class );

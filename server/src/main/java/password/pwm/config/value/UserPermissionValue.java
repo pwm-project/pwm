@@ -125,7 +125,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final UserPermission value : values )
         {
             final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
@@ -138,13 +138,13 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
     @Override
     public List<UserPermission> toNativeObject( )
     {
-        return Collections.unmodifiableList( values );
+        return List.copyOf( values );
     }
 
     @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
-        final List<String> returnObj = new ArrayList<>();
+        final List<String> returnObj = new ArrayList<>( values.size() );
         for ( final UserPermission userPermission : values )
         {
             try
@@ -183,7 +183,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                 sb.append( userPermission.debugString() );
                 if ( iterator.hasNext() )
                 {
-                    sb.append( "\n" );
+                    sb.append( '\n' );
                 }
             }
             return sb.toString();

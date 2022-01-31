@@ -146,7 +146,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
         StoredConfigData getStoredConfigData()
         {
             final String createTime = readCreateTime();
-            final Optional<Instant> modifyTime = readModifyTime();
+            final Instant modifyTime = readModifyTime().orElseGet( Instant::now );
 
             // define the parallelized the readers
             final List<Supplier<List<StoredConfigData.ValueAndMetaCarrier>>> suppliers = new ArrayList<>();
@@ -161,7 +161,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             final Instant startStoredConfigDataBuild = Instant.now();
             final StoredConfigData storedConfigData = StoredConfigData.builder()
                     .createTime( createTime )
-                    .modifyTime( modifyTime.orElse( Instant.now() ) )
+                    .modifyTime( modifyTime )
                     .metaDatas( StoredConfigData.carrierAsMetaDataMap( values ) )
                     .storedValues( StoredConfigData.carrierAsStoredValueMap( values ) )
                     .build();
@@ -337,7 +337,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                                 }
                                 if ( !bundleMap.isEmpty() )
                                 {
-                                    final DomainID domainID = readDomainIDForNonSystemDomainElement( xmlElement ).orElse( DomainID.systemId() );
+                                    final DomainID domainID = readDomainIDForNonSystemDomainElement( xmlElement ).orElseGet( DomainID::systemId );
                                     final StoredConfigKey storedConfigKey = StoredConfigKey.forLocaleBundle( pwmLocaleBundle.get(), key.get(), domainID );
                                     final StoredValue storedValue = new LocalizedStringValue( bundleMap );
                                     final ValueMetaData metaData = readMetaDataFromXmlElement( storedConfigKey, xmlElement ).orElse( null );
@@ -518,7 +518,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
             StoredConfigurationUtil.allPossibleSettingKeysForConfiguration( storedConfiguration )
                     .stream()
-                    .filter( ( key ) -> StoredConfigKey.RecordType.SETTING.equals( key.getRecordType() ) )
+                    .filter( ( key ) -> StoredConfigKey.RecordType.SETTING == key.getRecordType() )
                     .filter( ( key ) -> !key.toPwmSetting().getFlags().contains( PwmSettingFlag.Deprecated ) )
                     .sorted()
                     .forEachOrdered( xmlSettingWriter );

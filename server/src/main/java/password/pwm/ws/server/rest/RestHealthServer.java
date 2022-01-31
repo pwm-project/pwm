@@ -61,7 +61,7 @@ public class RestHealthServer extends RestServlet
     }
 
     @RestMethodHandler( method = HttpMethod.GET, produces = HttpContentType.plain )
-    private RestResultBean doPwmHealthPlainGet( final RestRequest restRequest )
+    public RestResultBean doPwmHealthPlainGet( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
         try
@@ -79,7 +79,7 @@ public class RestHealthServer extends RestServlet
     }
 
     @RestMethodHandler( method = HttpMethod.GET, consumes = HttpContentType.json, produces = HttpContentType.json )
-    private RestResultBean doPwmHealthJsonGet( final RestRequest restRequest )
+    public RestResultBean doPwmHealthJsonGet( final RestRequest restRequest )
             throws PwmUnrecoverableException, IOException
     {
         final PublicHealthData jsonOutput = processGetHealthCheckData( restRequest.getDomain(), restRequest.getLocale() );

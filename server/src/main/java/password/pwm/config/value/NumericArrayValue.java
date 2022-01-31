@@ -78,7 +78,7 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final Long value : this.values )
         {
             final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
@@ -106,12 +106,12 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
         if ( !CollectionUtil.isEmpty( values ) )
         {
             final StringBuilder sb = new StringBuilder();
-            for ( final Iterator valueIterator = values.iterator(); valueIterator.hasNext(); )
+            for ( final Iterator<Long> valueIterator = values.iterator(); valueIterator.hasNext(); )
             {
                 sb.append( valueIterator.next() );
                 if ( valueIterator.hasNext() )
                 {
-                    sb.append( "\n" );
+                    sb.append( '\n' );
                 }
             }
             return sb.toString();

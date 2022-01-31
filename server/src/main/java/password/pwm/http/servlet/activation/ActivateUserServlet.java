@@ -289,7 +289,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "tokenChoice" )
-    private ProcessStatus processTokenChoice( final PwmRequest pwmRequest )
+    public ProcessStatus processTokenChoice( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
         final UserInfo userInfo = userInfo( pwmRequest );
@@ -432,7 +432,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
                 final boolean autoSelect = Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.ACTIVATE_USER_TOKEN_AUTO_SELECT_DEST ) );
                 if ( tokenDestinationItems.size() == 1 && autoSelect )
                 {
-                    activateUserBean.setTokenDestination( tokenDestinationItems.iterator().next() );
+                    activateUserBean.setTokenDestination( tokenDestinationItems.get( 0 ) );
                 }
                 else
                 {

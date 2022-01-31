@@ -128,7 +128,7 @@ public class LoginServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "login" )
-    private ProcessStatus processLogin( final PwmRequest pwmRequest )
+    public ProcessStatus processLogin( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, ServletException, IOException, ChaiUnavailableException
     {
         final boolean passwordOnly = passwordOnly( pwmRequest );
@@ -150,7 +150,7 @@ public class LoginServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "restLogin" )
-    private ProcessStatus processRestLogin( final PwmRequest pwmRequest )
+    public ProcessStatus processRestLogin( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, ServletException, IOException, ChaiUnavailableException
     {
         final boolean passwordOnly = passwordOnly( pwmRequest );
@@ -187,7 +187,7 @@ public class LoginServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "receiveUrl" )
-    private ProcessStatus processReceiveUrl( final PwmRequest pwmRequest )
+    public ProcessStatus processReceiveUrl( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException
     {
         final String encryptedNextUrl = pwmRequest.readParameterAsString( PwmConstants.PARAM_POST_LOGIN_URL );

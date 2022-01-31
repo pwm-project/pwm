@@ -97,7 +97,7 @@ class IntruderRecordManagerImpl implements IntruderRecordManager
             throw new IllegalArgumentException( "subject is required value" );
         }
 
-        IntruderRecord record = readIntruderRecord( subject ).orElse( new IntruderRecord( domainID, recordType, subject ) );
+        IntruderRecord record = readIntruderRecord( subject ).orElseGet( () -> new IntruderRecord( domainID, recordType, subject ) );
 
         final TimeDuration age = TimeDuration.fromCurrent( record.getTimeStamp() );
         if ( age.isLongerThan( settings.getCheckDuration() ) )

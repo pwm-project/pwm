@@ -29,12 +29,12 @@ import password.pwm.util.java.StringUtil;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -1306,7 +1306,7 @@ public enum PwmSetting
 
 
     private static final Map<String, PwmSetting> KEY_MAP = Arrays.stream( values() )
-            .collect( Collectors.toUnmodifiableMap( PwmSetting::getKey, pwmSetting -> pwmSetting ) );
+            .collect( Collectors.toUnmodifiableMap( PwmSetting::getKey, Function.identity() ) );
 
     private static final Comparator<PwmSetting> MENU_LOCATION_COMPARATOR = Comparator.comparing(
             pwmSetting -> pwmSetting.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ),
@@ -1371,15 +1371,13 @@ public enum PwmSetting
 
     public Map<String, String> getDefaultValueDebugStrings( final Locale locale )
     {
-        final Map<String, String> returnObj = new LinkedHashMap<>();
-        for ( final TemplateSetReference<StoredValue> templateSetReference : this.getDefaultValue() )
-        {
-            returnObj.put(
-                    StringUtil.join( templateSetReference.getSettingTemplates(), "," ),
-                    ( templateSetReference.getReference() ).toDebugString( locale )
-            );
-        }
-        return Map.copyOf( returnObj );
+        return this.getDefaultValue()
+                .stream()
+                .collect( Collectors.toUnmodifiableMap(
+                        templateSetReference -> StringUtil.join( templateSetReference.getSettingTemplates(), "," ),
+                        templateSetReference -> ( templateSetReference.getReference() ).toDebugString( locale ),
+                        ( key1, key2 ) -> key1
+                ) );
     }
 
     public Map<PwmSettingProperty, String> getProperties( )
@@ -1477,7 +1475,7 @@ public enum PwmSetting
 
             if ( templateSetReferences.size() == 1 )
             {
-                return templateSetReferences.iterator().next().getReference();
+                return templateSetReferences.get( 0 ).getReference();
             }
 
             for ( int matchCountExamSize = templateSetReferences.size(); matchCountExamSize > 0; matchCountExamSize-- )
@@ -1494,7 +1492,7 @@ public enum PwmSetting
                 }
             }
 
-            return templateSetReferences.iterator().next().getReference();
+            return templateSetReferences.get( 0 ).getReference();
         }
     }
 }

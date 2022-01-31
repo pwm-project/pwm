@@ -315,7 +315,7 @@ public class DatabaseService extends AbstractPwmService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        final Map<String, String> debugProperties = new LinkedHashMap<>();
+        final Map<String, String> debugProperties = new LinkedHashMap<>( debugInfo.size() );
         for ( final Map.Entry<DatabaseAboutProperty, String> entry : debugInfo.entrySet() )
         {
             final DatabaseAboutProperty databaseAboutProperty = entry.getKey();

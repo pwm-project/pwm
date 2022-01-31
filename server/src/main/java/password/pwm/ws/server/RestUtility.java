@@ -103,7 +103,7 @@ public class RestUtility
         final String effectiveUsername;
         if ( username.contains( "|" ) )
         {
-            final int pipeIndex = username.indexOf( "|" );
+            final int pipeIndex = username.indexOf( '|' );
             ldapProfileID = username.substring( 0, pipeIndex );
             effectiveUsername = username.substring( pipeIndex + 1 );
         }

@@ -85,11 +85,11 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
                 final StoredValue storedValue;
                 if (
                         StoredConfigKey.RecordType.SETTING.equals( key.getRecordType() )
-                                && key.toPwmSetting().getSyntax().equals( PwmSettingSyntax.FILE )
+                                && key.toPwmSetting().getSyntax() == PwmSettingSyntax.FILE
                 )
                 {
                     final SerializedFileValue tempValue = JsonFactory.get().deserialize( serializedValue.getValueData(), SerializedFileValue.class );
-                    final Map<FileValue.FileInformation, FileValue.FileContent> unstrippedMap = new HashMap<>();
+                    final Map<FileValue.FileInformation, FileValue.FileContent> unstrippedMap = new HashMap<>( tempValue.getFileInformation().size() );
 
                     for ( final Map.Entry<String, FileValue.FileInformation> entry : tempValue.getFileInformation().entrySet() )
                     {
@@ -116,7 +116,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
             }
         }
 
-        final Map<StoredConfigKey, ValueMetaData> valueMetaDataMap = new HashMap<>();
+        final Map<StoredConfigKey, ValueMetaData> valueMetaDataMap = new HashMap<>( intermediateRepresentation.serializedMetaValues.size() );
         for ( final SerializedMetaValue serializedMetaValue : intermediateRepresentation.serializedMetaValues )
         {
             valueMetaDataMap.put( serializedMetaValue.getKey(), serializedMetaValue.getValueMetaData() );
@@ -240,12 +240,12 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
                 final StoredValue value;
                 if (
                         StoredConfigKey.RecordType.SETTING.equals( key.getRecordType() )
-                                && key.toPwmSetting().getSyntax().equals( PwmSettingSyntax.FILE )
+                                && key.toPwmSetting().getSyntax() == PwmSettingSyntax.FILE
                 )
                 {
                     final StoredValue fileValue = storedValue.get();
-                    final Map<FileValue.FileInformation, FileValue.FileContent> strippedValues = new HashMap<>( );
                     final Map<FileValue.FileInformation, FileValue.FileContent> values = ( Map ) fileValue.toNativeObject();
+                    final Map<FileValue.FileInformation, FileValue.FileContent> strippedValues = new HashMap<>( values.size() );
                     for ( final Map.Entry<FileValue.FileInformation, FileValue.FileContent> entry : values.entrySet() )
                     {
                         final FileValue.FileInformation info = entry.getKey();

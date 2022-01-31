@@ -298,7 +298,7 @@ public class SecureEngine
                 ( ( Buffer ) byteBuffer ).clear();
             }
 
-            return JavaHelper.byteArrayToHexString( messageDigest.digest() );
+            return JavaHelper.binaryArrayToHex( messageDigest.digest() );
 
         }
         catch ( final NoSuchAlgorithmException | IOException e )
@@ -328,7 +328,7 @@ public class SecureEngine
     )
             throws PwmUnrecoverableException
     {
-        return JavaHelper.byteArrayToHexString( computeHashToBytes( is, algorithm ) );
+        return JavaHelper.binaryArrayToHex( computeHashToBytes( is, algorithm ) );
     }
 
     public static String hmac(
@@ -338,7 +338,7 @@ public class SecureEngine
     )
             throws PwmUnrecoverableException
     {
-        return JavaHelper.byteArrayToHexString( computeHmacToBytes( hmacAlgorithm, pwmSecurityKey, input.getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
+        return JavaHelper.binaryArrayToHex( computeHmacToBytes( hmacAlgorithm, pwmSecurityKey, input.getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
     }
 
     public static String computeHmacToString(
@@ -348,7 +348,7 @@ public class SecureEngine
     )
             throws PwmUnrecoverableException
     {
-        return JavaHelper.byteArrayToHexString( computeHmacToBytes( hmacAlgorithm, pwmSecurityKey, input.getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
+        return JavaHelper.binaryArrayToHex( computeHmacToBytes( hmacAlgorithm, pwmSecurityKey, input.getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
     }
 
     public static byte[] computeHmacToBytes(

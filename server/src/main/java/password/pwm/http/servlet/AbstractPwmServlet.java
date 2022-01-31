@@ -54,8 +54,6 @@ import java.util.function.Supplier;
 
 public abstract class AbstractPwmServlet extends HttpServlet implements PwmServlet
 {
-
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( AbstractPwmServlet.class );
 
     @Override
@@ -143,7 +141,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 }
                 catch ( final Exception e3 )
                 {
-                    e3.printStackTrace();
+                    LOGGER.warn( () -> "unhandled error: " + e3.getMessage(), e );
                 }
                 throw new ServletException( e );
             }
@@ -300,11 +298,13 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
 
     public String servletUriRemainder( final PwmRequest pwmRequest, final String command ) throws PwmUnrecoverableException
     {
+        final String basePath = pwmRequest.getBasePath();
         String uri = pwmRequest.getURLwithoutQueryString();
-        if ( uri.startsWith( pwmRequest.getBasePath() ) )
+        if ( uri.startsWith( basePath ) )
         {
-            uri = uri.substring( pwmRequest.getBasePath().length() );
+            uri = uri.substring( basePath.length() );
         }
+
         for ( final String servletUri : getServletDefinition().urlPatterns() )
         {
             if ( uri.startsWith( servletUri ) )

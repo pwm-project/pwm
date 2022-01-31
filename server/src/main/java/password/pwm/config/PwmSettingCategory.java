@@ -317,10 +317,10 @@ public enum PwmSettingCategory
             final Locale locale
     )
     {
-        return toMenuLocationDebug( this, profileID, locale );
+        return toMenuLocationDebugImpl( this, profileID, locale );
     }
 
-    private static String toMenuLocationDebug(
+    private static String toMenuLocationDebugImpl(
             final PwmSettingCategory category,
             final String profileID,
             final Locale locale
@@ -328,7 +328,7 @@ public enum PwmSettingCategory
     {
         final String parentValue = category.getParent() == null
                 ? ""
-                : toMenuLocationDebug( category.getParent(), profileID, locale );
+                : toMenuLocationDebugImpl( category.getParent(), profileID, locale );
 
         final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
         final StringBuilder sb = new StringBuilder();

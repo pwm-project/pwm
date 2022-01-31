@@ -57,7 +57,7 @@ public class LicenseInfoReader
                 {
                     final XmlDocument document = factory.parse( attributionInputStream, AccessMode.IMMUTABLE );
                     final XmlElement rootElement = document.getRootElement();
-                    final XmlElement dependenciesElement = rootElement.getChildren( "dependencies" ).iterator().next();
+                    final XmlElement dependenciesElement = rootElement.getChildren( "dependencies" ).get( 0 );
 
                     for ( final XmlElement dependency : dependenciesElement.getChildren( "dependency" ) )
                     {
@@ -88,7 +88,7 @@ public class LicenseInfoReader
 
         final List<LicenseInfo> licenseInfos = dependency.getChild( "licenses" )
                 .map( LicenseInfoReader::readLicenses )
-                .orElse( Collections.emptyList() );
+                .orElseGet( Collections::emptyList );
 
         return new DependencyInfo( projectUrl, name, artifactId, version, type, licenseInfos );
     }

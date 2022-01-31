@@ -53,9 +53,9 @@ import password.pwm.util.DataStore;
 import password.pwm.util.DataStoreFactory;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
 import password.pwm.util.logging.PwmLogger;
@@ -64,7 +64,8 @@ import password.pwm.util.secure.PwmRandom;
 
 import java.net.InetAddress;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -78,16 +79,13 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
 
     private PwmDomain pwmDomain;
 
-    private final Map<IntruderRecordType, IntruderRecordManager> recordManagers = new HashMap<>();
+    private final Map<IntruderRecordType, IntruderRecordManager> recordManagers = new EnumMap<>( IntruderRecordType.class );
     private IntruderSettings intruderSettings;
     private ServiceInfoBean serviceInfo = ServiceInfoBean.builder().build();
 
     public IntruderDomainService( )
     {
-        for ( final IntruderRecordType recordType : IntruderRecordType.values() )
-        {
-            recordManagers.put( recordType, new StubRecordManager() );
-        }
+        EnumSet.allOf( IntruderRecordType.class ).forEach( recordType -> recordManagers.put( recordType, new StubRecordManager() ) );
     }
 
     @Override

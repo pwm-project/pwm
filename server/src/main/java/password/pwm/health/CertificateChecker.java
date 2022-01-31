@@ -136,9 +136,12 @@ public class CertificateChecker implements HealthSupplier
             final TimeDuration warnDuration
     )
     {
-        if ( certificates != null )
+        if ( certificates == null )
         {
-            final List<HealthRecord> returnList = new ArrayList<>();
+            return Collections.emptyList();
+        }
+
+            final List<HealthRecord> returnList = new ArrayList<>( certificates.size() );
             for ( final X509Certificate certificate : certificates )
             {
                 try
@@ -159,8 +162,6 @@ public class CertificateChecker implements HealthSupplier
                 }
             }
             return Collections.unmodifiableList( returnList );
-        }
-        return Collections.emptyList();
     }
 
     public static void checkCertificate( final X509Certificate certificate, final TimeDuration warnDuration )

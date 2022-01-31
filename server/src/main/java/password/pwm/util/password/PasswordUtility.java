@@ -37,6 +37,7 @@ import com.nulabinc.zxcvbn.Zxcvbn;
 import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionLabel;
@@ -538,14 +539,15 @@ public class PasswordUtility
         final ChaiUser proxiedUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
 
         // mark the event log
+        final LocalSessionStateBean sessionStateBean = pwmRequest.getPwmSession().getSessionStateBean();
         {
             final HelpdeskAuditRecord auditRecord = AuditRecordFactory.make( pwmRequest ).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_SET_PASSWORD,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     null,
                     userIdentity,
-                    pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress(),
-                    pwmRequest.getPwmSession().getSessionStateBean().getSrcHostname()
+                    sessionStateBean.getSrcAddress(),
+                    sessionStateBean.getSrcHostname()
             );
             AuditServiceClient.submit( pwmRequest, auditRecord );
         }
@@ -597,8 +599,8 @@ public class PasswordUtility
                     pwmRequest.getUserInfoIfLoggedIn(),
                     null,
                     userIdentity,
-                    pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress(),
-                    pwmRequest.getPwmSession().getSessionStateBean().getSrcHostname()
+                    sessionStateBean.getSrcAddress(),
+                    sessionStateBean.getSrcHostname()
             );
             AuditServiceClient.submit( pwmRequest, auditRecord );
         }
@@ -667,7 +669,6 @@ public class PasswordUtility
             catch ( final ChaiUnavailableException e )
             {
                 LOGGER.error( sessionLabel, () -> "unreachable server during replica password sync check" );
-                e.printStackTrace();
             }
             finally
             {

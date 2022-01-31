@@ -176,7 +176,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "selectPage" )
-    protected ProcessStatus handleSelectPageRequest(
+    public ProcessStatus handleSelectPageRequest(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException
@@ -195,7 +195,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "update" )
-    protected ProcessStatus handleUpdateRequest(
+    public ProcessStatus handleUpdateRequest(
             final PwmRequest pwmRequest
 
     )
@@ -293,7 +293,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "search" )
-    protected ProcessStatus handleSearchRequest(
+    public ProcessStatus handleSearchRequest(
             final PwmRequest pwmRequest
     )
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
@@ -329,7 +329,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
                 final Set<String> involvedAttrs = new HashSet<>();
                 for ( final FormConfiguration formItem : guestUpdateForm )
                 {
-                    if ( !formItem.getName().equalsIgnoreCase( HTTP_PARAM_EXPIRATION_DATE ) )
+                    if ( !HTTP_PARAM_EXPIRATION_DATE.equalsIgnoreCase( formItem.getName() ) )
                     {
                         involvedAttrs.add( formItem.getName() );
                     }
@@ -398,7 +398,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "create" )
-    private ProcessStatus handleCreateRequest(
+    public ProcessStatus handleCreateRequest(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
@@ -638,7 +638,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
         final GuestRegistrationBean guestRegistrationBean = getBean( pwmRequest );
         calculateFutureDateFlags( pwmRequest, guestRegistrationBean );
         final List<FormConfiguration> guestUpdateForm = pwmRequest.getDomainConfig().readSettingAsForm( PwmSetting.GUEST_UPDATE_FORM );
-        final Map<FormConfiguration, String> formValueMap = new LinkedHashMap<>();
+        final Map<FormConfiguration, String> formValueMap = new LinkedHashMap<>( guestUpdateForm.size() );
         for ( final FormConfiguration formConfiguration : guestUpdateForm )
         {
             final String value = guestRegistrationBean.getFormValues().get( formConfiguration.getName() );

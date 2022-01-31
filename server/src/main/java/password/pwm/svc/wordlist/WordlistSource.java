@@ -251,7 +251,7 @@ class WordlistSource
         }
 
         bytes = zipInputStream.getByteCount();
-        hash = JavaHelper.byteArrayToHexString( zipInputStream.getHash() );
+        hash = JavaHelper.binaryArrayToHex( zipInputStream.getHash() );
         lines = zipInputStream.getLineCount();
 
         if ( cancelFlag.getAsBoolean() )

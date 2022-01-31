@@ -51,8 +51,9 @@ public class MBeanUtility
             final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
             final ObjectName name = figureMBeanName( pwmApplication );
             final Map<PwmAboutProperty, String> aboutMap = PwmAboutProperty.makeInfoBean( pwmApplication );
-            final Map<String, String> outputMap = new HashMap<>(  );
-            final AttributeList attributeList = new AttributeList(  );
+
+            final Map<String, String> outputMap = new HashMap<>( aboutMap.size() );
+            final AttributeList attributeList = new AttributeList( aboutMap.size() );
             for ( final Map.Entry<PwmAboutProperty, String> entry : aboutMap.entrySet() )
             {
                 outputMap.put( entry.getKey().name(), entry.getValue() );

@@ -22,12 +22,14 @@ package password.pwm.svc.report;
 
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmApplication;
 import password.pwm.config.SettingReader;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
+import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
@@ -76,11 +78,12 @@ public class ReportCsvUtility
         outputToCsv( outputStream, includeHeader, locale, config );
     }
 
+    @SuppressFBWarnings( "PSC_PRESIZE_COLLECTIONS" )
     public void outputToCsv( final OutputStream outputStream, final boolean includeHeader, final Locale locale, final SettingReader config )
-            throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+            throws IOException
     {
         final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
-        final Class localeClass = password.pwm.i18n.Admin.class;
+        final Class<? extends PwmDisplayBundle> localeClass = password.pwm.i18n.Admin.class;
         if ( includeHeader )
         {
             final List<String> headerRow = new ArrayList<>();
@@ -125,6 +128,7 @@ public class ReportCsvUtility
         csvPrinter.flush();
     }
 
+    @SuppressFBWarnings( {"CE_CLASS_ENVY", "PSC_PRESIZE_COLLECTIONS"} )
     private void outputRecordRow(
             final SettingReader config,
             final Locale locale,

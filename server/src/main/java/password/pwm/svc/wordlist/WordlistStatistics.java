@@ -25,7 +25,8 @@ import password.pwm.util.java.StatisticAverageBundle;
 import password.pwm.util.java.StatisticCounterBundle;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.LongAdder;
@@ -33,7 +34,7 @@ import java.util.concurrent.atomic.LongAdder;
 @Value
 class WordlistStatistics
 {
-    private final Map<WordType, LongAdder> wordTypeHits = new HashMap<>(  );
+    private final Map<WordType, LongAdder> wordTypeHits = new EnumMap<>( WordType.class );
     private final StatisticCounterBundle<CounterStat> counterStats = new StatisticCounterBundle<>( CounterStat.class );
     private final StatisticAverageBundle<AverageStat> averageStats = new StatisticAverageBundle<>( AverageStat.class );
 
@@ -57,10 +58,7 @@ class WordlistStatistics
 
     WordlistStatistics()
     {
-        for ( final WordType wordType : WordType.values() )
-        {
-            wordTypeHits.put( wordType, new LongAdder() );
-        }
+        EnumSet.allOf( WordType.class ).forEach( wordType -> wordTypeHits.put( wordType, new LongAdder() ) );
     }
 
     Map<String, String> asDebugMap()

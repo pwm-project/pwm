@@ -76,6 +76,23 @@ public class AppDashboardData implements Serializable
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( AppDashboardData.class );
 
+    private static final List<PwmAboutProperty> INTERESTED_ABOUT_PROPERTIES = Arrays.asList(
+            PwmAboutProperty.java_vmName,
+            PwmAboutProperty.java_vmVendor,
+            PwmAboutProperty.java_vmVersion,
+            PwmAboutProperty.java_runtimeVersion,
+            PwmAboutProperty.java_vmLocation,
+            PwmAboutProperty.java_appServerInfo,
+            PwmAboutProperty.java_osName,
+            PwmAboutProperty.java_osVersion,
+            PwmAboutProperty.java_osArch,
+            PwmAboutProperty.java_memoryFree,
+            PwmAboutProperty.java_memoryAllocated,
+            PwmAboutProperty.java_memoryMax,
+            PwmAboutProperty.java_threadCount
+    );
+
+
     @Value
     public static class ServiceData implements Serializable, Comparable<ServiceData>
     {
@@ -454,27 +471,11 @@ public class AppDashboardData implements Serializable
     )
     {
         final Map<PwmAboutProperty, String> aboutMap = PwmAboutProperty.makeInfoBean( pwmDomain.getPwmApplication() );
-        final List<DisplayElement> javaInfo = new ArrayList<>();
+        final List<DisplayElement> javaInfo = new ArrayList<>( INTERESTED_ABOUT_PROPERTIES.size() );
         final String notApplicable = Display.getLocalizedMessage( locale, Display.Value_NotApplicable, pwmDomain.getConfig() );
 
         {
-            final List<PwmAboutProperty> interestedProperties = Arrays.asList(
-                    PwmAboutProperty.java_vmName,
-                    PwmAboutProperty.java_vmVendor,
-                    PwmAboutProperty.java_vmVersion,
-                    PwmAboutProperty.java_runtimeVersion,
-                    PwmAboutProperty.java_vmLocation,
-                    PwmAboutProperty.java_appServerInfo,
-                    PwmAboutProperty.java_osName,
-                    PwmAboutProperty.java_osVersion,
-                    PwmAboutProperty.java_osArch,
-                    PwmAboutProperty.java_memoryFree,
-                    PwmAboutProperty.java_memoryAllocated,
-                    PwmAboutProperty.java_memoryMax,
-                    PwmAboutProperty.java_threadCount
-            );
-
-            for ( final PwmAboutProperty property : interestedProperties )
+            for ( final PwmAboutProperty property : INTERESTED_ABOUT_PROPERTIES )
             {
                 javaInfo.add( new DisplayElement(
                         property.name(),

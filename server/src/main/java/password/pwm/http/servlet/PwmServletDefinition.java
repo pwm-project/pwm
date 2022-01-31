@@ -22,6 +22,7 @@ package password.pwm.http.servlet;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ActivateUserBean;
 import password.pwm.http.bean.AdminBean;
@@ -131,17 +132,19 @@ public enum PwmServletDefinition
             final String[] definedPatterns = getWebServletAnnotation( pwmServletClass ).urlPatterns();
             if ( definedPatterns == null || definedPatterns.length < 1 )
             {
-                throw new IllegalStateException( "no url patterns are defined for servlet " + this.name() );
+                throw new PwmInternalException( "no url patterns are defined for servlet "  + this.getClass().getSimpleName()
+                        + " value " + this.name() );
             }
             this.patterns = List.of( definedPatterns );
         }
         catch ( final Exception e )
         {
-            throw new IllegalStateException( "error initializing PwmServletInfo value " + this.toString() + ", error: " + e.getMessage() );
+            throw new PwmInternalException( "error initializing " + this.getClass().getSimpleName()
+                    + " value " + this.name() + ", error: " + e.getMessage(), e );
         }
 
         final String firstPattern = patterns.iterator().next();
-        final int lastSlash = firstPattern.lastIndexOf( "/" );
+        final int lastSlash = firstPattern.lastIndexOf( '/' );
         servletUrl = firstPattern.substring( lastSlash + 1 );
     }
 
@@ -157,7 +160,7 @@ public enum PwmServletDefinition
 
     public String servletUrl( )
     {
-        return patterns.iterator().next();
+        return patterns.get( 0 );
     }
 
     public Class<? extends PwmServlet> getPwmServletClass( )

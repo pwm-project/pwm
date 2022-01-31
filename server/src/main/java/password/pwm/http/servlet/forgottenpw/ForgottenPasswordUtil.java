@@ -55,6 +55,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestContext;
+import password.pwm.http.PwmSession;
 import password.pwm.http.auth.HttpAuthRecord;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.i18n.Message;
@@ -521,12 +522,13 @@ public class ForgottenPasswordUtil
         finally
         {
             ForgottenPasswordServlet.clearForgottenPasswordBean( pwmRequest );
+            final PwmSession pwmSession = pwmRequest.getPwmSession();
 
             // the user should not be authenticated, this is a safety method
-            pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
+            pwmSession.unauthenticateUser( pwmRequest );
 
             // the password set flag should not have been set, this is a safety method
-            pwmRequest.getPwmSession().getSessionStateBean().setPasswordModified( false );
+            pwmSession.getSessionStateBean().setPasswordModified( false );
         }
     }
 
@@ -538,7 +540,7 @@ public class ForgottenPasswordUtil
 
         final List<Challenge> challengeList;
         {
-            final String firstProfile = pwmRequestContext.getDomainConfig().getChallengeProfileIDs().iterator().next();
+            final String firstProfile = pwmRequestContext.getDomainConfig().getChallengeProfileIDs().get( 0 );
             final ChallengeSet challengeSet = pwmRequestContext.getDomainConfig().getChallengeProfile( firstProfile, PwmConstants.DEFAULT_LOCALE ).getChallengeSet()
                     .orElseThrow( () -> new PwmUnrecoverableException( PwmError.ERROR_NO_CHALLENGES.toInfo() ) );
             challengeList = new ArrayList<>( challengeSet.getRequiredChallenges() );
@@ -548,7 +550,7 @@ public class ForgottenPasswordUtil
             }
         }
 
-        final List<FormConfiguration> formData = new ArrayList<>(  );
+        final List<FormConfiguration> formData = new ArrayList<>( challengeList.size() );
         {
             int counter = 0;
             for ( final Challenge challenge: challengeList )

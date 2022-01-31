@@ -41,7 +41,7 @@ public class JsonAuditFormatter implements AuditFormatter
         String jsonValue = "";
         final StringBuilder message = new StringBuilder();
         message.append( PwmConstants.PWM_APP_NAME );
-        message.append( " " );
+        message.append( ' ' );
 
         jsonValue = JsonFactory.get().serialize( auditRecord );
 

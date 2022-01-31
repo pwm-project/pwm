@@ -219,7 +219,7 @@ public class NamedSecretValue implements StoredValue
             final NamedSecretData existingData = entry.getValue();
             sb.append( "Named password '" ).append( entry.getKey() ).append( "' with usage for " );
             sb.append( StringUtil.collectionToString( existingData.getUsage(), "," ) );
-            sb.append( "\n" );
+            sb.append( '\n' );
 
         }
         return sb.toString();

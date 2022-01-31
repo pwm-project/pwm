@@ -38,6 +38,7 @@ import password.pwm.util.macro.MacroRequest;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class CEFAuditFormatter implements AuditFormatter
@@ -131,7 +132,7 @@ public class CEFAuditFormatter implements AuditFormatter
         }
 
         final int cefLength = CEFAuditFormatter.CEF_EXTENSION_SEPARATOR.length();
-        if ( cefOutput.substring( cefOutput.length() - cefLength ).equals( CEFAuditFormatter.CEF_EXTENSION_SEPARATOR ) )
+        if ( Objects.equals( cefOutput.substring( cefOutput.length() - cefLength ), CEFAuditFormatter.CEF_EXTENSION_SEPARATOR ) )
         {
             cefOutput.replace( cefOutput.length() - cefLength, cefOutput.length(), "" );
         }
@@ -185,9 +186,9 @@ public class CEFAuditFormatter implements AuditFormatter
         if ( StringUtil.notEmpty( value ) && StringUtil.notEmpty( name ) )
         {
             final String outputValue = trimCEFValue( name, escapeCEFValue( value ), settings );
-            cefOutput.append( " " );
+            cefOutput.append( ' ' );
             cefOutput.append( name );
-            cefOutput.append( "=" );
+            cefOutput.append( '=' );
             cefOutput.append( outputValue );
         }
     }

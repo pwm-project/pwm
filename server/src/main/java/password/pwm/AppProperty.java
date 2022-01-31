@@ -399,14 +399,16 @@ public enum AppProperty
     ALLOW_MACRO_IN_REGEX_SETTING                    ( "password.policy.allowMacroInRegexSetting" ),;
 
     public static final String VALUE_SEPARATOR = ";;;";
+
     private static final String DESCRIPTION_SUFFIX = "_description";
 
     private final String key;
-    private String defaultValue;
+    private final String defaultValue;
 
     AppProperty( final String key )
     {
         this.key = key;
+        this.defaultValue = readAppPropertiesBundle( key );
     }
 
     public String getKey( )
@@ -416,10 +418,6 @@ public enum AppProperty
 
     public String getDefaultValue( )
     {
-        if ( defaultValue == null )
-        {
-            defaultValue = readAppPropertiesBundle( this.getKey() );
-        }
         return defaultValue;
     }
 

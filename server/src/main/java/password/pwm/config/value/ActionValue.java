@@ -59,116 +59,134 @@ public class ActionValue extends AbstractValue implements StoredValue
 
     public static StoredValueFactory factory( )
     {
-        return new StoredValueFactory()
+        return new ActionStoredValueFactory();
+    }
+
+    private static class ActionStoredValueFactory implements StoredValueFactory
+    {
+        @Override
+        public ActionValue fromJson( final String input )
         {
-            @Override
-            public ActionValue fromJson( final String input )
-            {
-                return input == null
-                        ? new ActionValue( Collections.emptyList() )
-                        : new ActionValue( JsonFactory.get().deserializeList( input, ActionConfiguration.class ) );
-            }
+            return input == null
+                    ? new ActionValue( Collections.emptyList() )
+                    : new ActionValue( List.copyOf( JsonFactory.get().deserializeList( input, ActionConfiguration.class ) ) );
+        }
 
-            @Override
-            public ActionValue fromXmlElement(
-                    final PwmSetting pwmSetting,
-                    final XmlElement settingElement,
-                    final PwmSecurityKey pwmSecurityKey
-            )
-                    throws PwmOperationalException
-            {
-                final int syntaxVersion = figureCurrentStoredSyntax( settingElement );
-                final List<ActionConfiguration> values = new ArrayList<>();
+        @Override
+        public ActionValue fromXmlElement(
+                final PwmSetting pwmSetting,
+                final XmlElement settingElement,
+                final PwmSecurityKey pwmSecurityKey
+        )
+                throws PwmOperationalException
+        {
+            final int syntaxVersion = figureCurrentStoredSyntax( settingElement );
+            final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
 
-                final boolean oldType = PwmSettingSyntax.STRING_ARRAY.toString().equals(
-                        settingElement.getAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX ).orElse( "" ) );
-                final List<XmlElement> valueElements = settingElement.getChildren( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
-                for ( final XmlElement loopValueElement : valueElements )
+            final List<ActionConfiguration> values = new ArrayList<>( valueElements.size() );
+            for ( final XmlElement loopValueElement : valueElements )
+            {
+                final Optional<String> stringValue = loopValueElement.getText();
+                if ( stringValue.isPresent() )
                 {
-                    final Optional<String> stringValue = loopValueElement.getText();
-                    if ( stringValue.isPresent() )
+                    if ( syntaxVersion < 2 )
                     {
-                        if ( syntaxVersion < 2 )
-                        {
-                            if ( oldType )
-                            {
-                                if ( loopValueElement.getAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE ).isEmpty() )
-                                {
-                                    final ActionConfiguration.ActionConfigurationOldVersion1 oldVersion1 = ActionConfiguration.ActionConfigurationOldVersion1
-                                            .parseOldConfigString( stringValue.get() );
-                                    values.add( convertOldVersion1Values( oldVersion1 ) );
-                                }
-                            }
-                            else
-                            {
-                                final ActionConfiguration.ActionConfigurationOldVersion1 parsedAc = JsonFactory.get()
-                                        .deserialize( stringValue.get(), ActionConfiguration.ActionConfigurationOldVersion1.class );
-                                if ( parsedAc != null )
-                                {
-                                    final Optional<String> decodedValue = StoredValueEncoder.decode(
-                                            parsedAc.getPassword(),
-                                            StoredValueEncoder.Mode.ENCODED,
-                                            pwmSecurityKey );
-                                    decodedValue.ifPresent( s ->
-                                    {
-                                        values.add( convertOldVersion1Values( parsedAc.toBuilder().password( s ).build() ) );
-                                    } );
-                                }
-                            }
-                        }
-                        else if ( syntaxVersion == 2 )
-                        {
-                            final ActionConfiguration value = JsonFactory.get().deserialize( stringValue.get(), ActionConfiguration.class );
-                            final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
-                            for ( final ActionConfiguration.WebAction webAction : value.getWebActions() )
-                            {
-                                // add success status if empty list
-                                final List<Integer> successStatus = CollectionUtil.isEmpty( webAction.getSuccessStatus() )
-                                        ? Collections.singletonList( 200 )
-                                        : webAction.getSuccessStatus();
-
-                                // decrypt pw
-                                try
-                                {
-
-
-                                    final Optional<String> decodedValue = StoredValueEncoder.decode(
-                                            webAction.getPassword(),
-                                            StoredValueEncoder.Mode.ENCODED,
-                                            pwmSecurityKey );
-                                    decodedValue.ifPresent( s ->
-                                    {
-                                        clonedWebActions.add( webAction.toBuilder()
-                                                .password( s )
-                                                .successStatus( successStatus )
-                                                .build() );
-                                    } );
-                                }
-                                catch ( final PwmOperationalException e )
-                                {
-                                    LOGGER.warn( () -> "error decoding stored pw value on setting '" + pwmSetting.getKey() + "': " + e.getMessage() );
-                                }
-                            }
-
-                            final ActionConfiguration clonedAction = value.toBuilder().webActions( clonedWebActions ).build();
-                            values.add( clonedAction );
-                        }
-                        else
-                        {
-                            throw new IllegalStateException( "unexpected syntax type " + syntaxVersion );
-                        }
+                        parseV1configurationValue( pwmSecurityKey, loopValueElement, stringValue.get() ).ifPresent( values::add );
+                    }
+                    else if ( syntaxVersion == 2 )
+                    {
+                        parseV2configurationValue( pwmSetting, pwmSecurityKey, stringValue.get() ).ifPresent( values::add );
+                    }
+                    else
+                    {
+                        throw new IllegalStateException( "unexpected syntax type " + syntaxVersion );
                     }
                 }
-
-                return new ActionValue( values );
             }
-        };
+
+            return new ActionValue( values );
+        }
+
+        private Optional<ActionConfiguration> parseV1configurationValue( final PwmSecurityKey pwmSecurityKey, final XmlElement loopValueElement, final String stringValue )
+                throws PwmOperationalException
+        {
+            final XmlElement settingElement = loopValueElement.parent().orElseThrow();
+            final boolean oldType = PwmSettingSyntax.STRING_ARRAY.toString().equals(
+                    settingElement.getAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX ).orElse( "" ) );
+
+            if ( oldType )
+            {
+                if ( loopValueElement.getAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE ).isEmpty() )
+                {
+                    final ActionConfiguration.ActionConfigurationOldVersion1 oldVersion1 = ActionConfiguration.ActionConfigurationOldVersion1
+                            .parseOldConfigString( stringValue );
+                    return Optional.of( convertOldVersion1Values( oldVersion1 ) );
+                }
+            }
+            else
+            {
+                final ActionConfiguration.ActionConfigurationOldVersion1 parsedAc = JsonFactory.get()
+                        .deserialize( stringValue, ActionConfiguration.ActionConfigurationOldVersion1.class );
+                if ( parsedAc != null )
+                {
+                    final Optional<String> decodedValue = StoredValueEncoder.decode(
+                            parsedAc.getPassword(),
+                            StoredValueEncoder.Mode.ENCODED,
+                            pwmSecurityKey );
+
+                    if ( decodedValue.isPresent() )
+                    {
+                        return Optional.of( convertOldVersion1Values( parsedAc.toBuilder().password( decodedValue.get() ).build() ) );
+                    }
+                }
+            }
+
+            return Optional.empty();
+        }
+
+        private Optional<ActionConfiguration> parseV2configurationValue( final PwmSetting pwmSetting, final PwmSecurityKey pwmSecurityKey, final String stringValue )
+        {
+            final ActionConfiguration value = JsonFactory.get().deserialize( stringValue, ActionConfiguration.class );
+            final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>( value.getWebActions().size() );
+
+            for ( final ActionConfiguration.WebAction webAction : value.getWebActions() )
+            {
+                // add success status if empty list
+                final List<Integer> successStatus = CollectionUtil.isEmpty( webAction.getSuccessStatus() )
+                        ? Collections.singletonList( 200 )
+                        : webAction.getSuccessStatus();
+
+                // decrypt pw
+                try
+                {
+                    final Optional<String> decodedValue = StoredValueEncoder.decode(
+                            webAction.getPassword(),
+                            StoredValueEncoder.Mode.ENCODED,
+                            pwmSecurityKey );
+                    decodedValue.ifPresent( s ->
+                    {
+                        clonedWebActions.add( webAction.toBuilder()
+                                .password( s )
+                                .successStatus( successStatus )
+                                .build() );
+                    } );
+                }
+                catch ( final PwmOperationalException e )
+                {
+                    LOGGER.warn( () -> "error decoding stored pw value on setting '" + pwmSetting.getKey() + "': " + e.getMessage() );
+                }
+            }
+
+            return Optional.of( value.toBuilder().webActions( clonedWebActions ).build() );
+        }
+
+
     }
 
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final ActionConfiguration value : values )
         {
             final List<ActionConfiguration.WebAction> clonedWebActions = encodePasswordInWebActions( value.getWebActions(), xmlOutputProcessData );
@@ -190,7 +208,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             final XmlOutputProcessData xmlOutputProcessData
     )
     {
-        final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
+        final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>( webActions.size() );
         for ( final ActionConfiguration.WebAction webAction : webActions )
         {
             if ( StringUtil.notEmpty( webAction.getPassword() ) )
@@ -235,14 +253,16 @@ public class ActionValue extends AbstractValue implements StoredValue
             }
         }
 
-        final Set<String> seenNames = new HashSet<>();
-        for ( final ActionConfiguration actionConfiguration : values )
         {
-            if ( seenNames.contains( actionConfiguration.getName().toLowerCase() ) )
+            final Set<String> seenNames = new HashSet<>( values.size() );
+            for ( final ActionConfiguration actionConfiguration : values )
             {
-                return Collections.singletonList( "each action name must be unique: " + actionConfiguration.getName() );
+                if ( seenNames.contains( actionConfiguration.getName().toLowerCase() ) )
+                {
+                    return Collections.singletonList( "each action name must be unique: " + actionConfiguration.getName() );
+                }
+                seenNames.add( actionConfiguration.getName().toLowerCase() );
             }
-            seenNames.add( actionConfiguration.getName().toLowerCase() );
         }
 
 
@@ -264,10 +284,10 @@ public class ActionValue extends AbstractValue implements StoredValue
     @Override
     public Serializable toDebugJsonObject( final Locale locale )
     {
-        final ArrayList<ActionConfiguration> output = new ArrayList<>();
+        final ArrayList<ActionConfiguration> output = new ArrayList<>( values.size() );
         for ( final ActionConfiguration actionConfiguration : values )
         {
-            final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>();
+            final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>( actionConfiguration.getWebActions().size() );
             for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
             {
                 final String debugPwdValue = StringUtil.notEmpty( webAction.getPassword() )
@@ -330,7 +350,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             counter++;
             if ( counter != values.size() )
             {
-                sb.append( "\n" );
+                sb.append( '\n' );
             }
         }
         return sb.toString();

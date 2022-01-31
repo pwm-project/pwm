@@ -46,13 +46,13 @@ public class CurrentUrlTag extends TagSupport
         {
             try
             {
-                pageContext.getOut().write( "errorGeneratingPwmFormID" );
+                pageContext.getOut().write( "errorGeneratingCurrentURL" );
             }
             catch ( final IOException e1 )
             {
                 /* ignore */
             }
-            LOGGER.error( () -> "error during pwmFormIDTag output of pwmFormID: " + e.getMessage() );
+            LOGGER.error( () -> "error during CurrentUrl output: " + e.getMessage() );
         }
         return EVAL_PAGE;
     }

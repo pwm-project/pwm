@@ -53,6 +53,7 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -128,11 +129,11 @@ public class LocaleHelper
         {
             final PwmLocaleBundle pwmLocaleBundle = PwmLocaleBundle.forKey( bundleClass.getName() )
                     .orElseThrow( () -> new IllegalStateException( "unknown locale bundle name '" + bundleClass.getName() + "'" ) );
-            final Map<Locale, String> configuredBundle = config.readLocalizedBundle( pwmLocaleBundle, key );
-            if ( configuredBundle != null )
+            final Optional<Map<Locale, String>> configuredBundle = config.readLocalizedBundle( pwmLocaleBundle, key );
+            if ( configuredBundle.isPresent() )
             {
-                final Locale resolvedLocale = localeResolver( locale, configuredBundle.keySet() );
-                returnValue = configuredBundle.get( resolvedLocale );
+                final Locale resolvedLocale = localeResolver( locale, configuredBundle.get().keySet() );
+                returnValue = configuredBundle.get().get( resolvedLocale );
             }
         }
 
@@ -285,12 +286,11 @@ public class LocaleHelper
                 ? PwmConstants.DEFAULT_LOCALE
                 : desiredLocale;
 
-        final Map<Locale, String> localeMap = new LinkedHashMap<>();
-        for ( final Map.Entry<String, String> entry : inputMap.entrySet() )
-        {
-            final String localeStringKey = entry.getKey();
-            localeMap.put( parseLocaleString( localeStringKey ), entry.getValue() );
-        }
+        final Map<Locale, String> localeMap = inputMap.entrySet().stream()
+                .collect( Collectors.toMap(
+                        entry -> parseLocaleString( entry.getKey() ),
+                        Map.Entry::getValue
+                ) );
 
         final Locale selectedLocale = localeResolver( locale, localeMap.keySet() );
         return localeMap.get( selectedLocale );
@@ -434,7 +434,7 @@ public class LocaleHelper
     {
         return locale == null
                 ? ""
-                : locale.toString().replace( "_", "-" );
+                : locale.toString().replace( '_', '-' );
     }
 
     public static List<Locale> highLightedLocales()
@@ -446,22 +446,19 @@ public class LocaleHelper
 
     static List<Locale> knownBuiltInLocales( )
     {
-        final List<Locale> knownLocales = new ArrayList<>();
-
         final StringArrayValue stringArrayValue = ( StringArrayValue ) PwmSetting.KNOWN_LOCALES.getDefaultValue( PwmSettingTemplateSet.getDefault() );
         final List<String> rawValues = stringArrayValue.toNativeObject();
+
         final Map<String, String> localeFlagMap = StringUtil.convertStringListToNameValuePair( rawValues, "::" );
-        for ( final String rawValue : localeFlagMap.keySet() )
-        {
-            knownLocales.add( LocaleHelper.parseLocaleString( rawValue ) );
-        }
 
-        final Map<String, Locale> returnMap = new TreeMap<>();
+        final List<Locale> knownLocales = localeFlagMap.keySet().stream()
+                .map( LocaleHelper::parseLocaleString )
+                .collect( Collectors.toList() );
 
-        for ( final Locale locale : knownLocales )
-        {
-            returnMap.put( locale.getDisplayName(), locale );
-        }
+        final Map<String, Locale> returnMap = new TreeMap<>( knownLocales.stream().collect( Collectors.toMap(
+                Locale::getDisplayName,
+                Function.identity() ) ) );
+
         return new ArrayList<>( returnMap.values() );
     }
 
@@ -488,7 +485,7 @@ public class LocaleHelper
 
     public static Map<String, String> localeMapToStringMap( final Map<Locale, String> localeStringMap )
     {
-        final Map<String, String> returnMap = new LinkedHashMap<>();
+        final Map<String, String> returnMap = new LinkedHashMap<>( localeStringMap.size() );
         for ( final Map.Entry<Locale, String> entry : localeStringMap.entrySet() )
         {
             returnMap.put( LocaleHelper.getBrowserLocaleString( entry.getKey() ), entry.getValue() );

@@ -97,7 +97,7 @@ public class EdirSchemaExtender implements SchemaExtender
     private void execute( final boolean readOnly ) throws PwmUnrecoverableException
     {
         activityLog.delete( 0, activityLog.length() );
-        logActivity( "connecting to " + schemaEntry.getChaiProvider().getChaiConfiguration().bindURLsAsList().iterator().next() );
+        logActivity( "connecting to " + schemaEntry.getChaiProvider().getChaiConfiguration().bindURLsAsList().get( 0 ) );
         stateMap.clear();
         try
         {
@@ -255,7 +255,7 @@ public class EdirSchemaExtender implements SchemaExtender
         }
         catch ( final IOException e )
         {
-            e.printStackTrace();
+            LOGGER.error( () -> "error checking schema extension: " + e.getMessage() );
         }
 
         return checkPassed;
@@ -351,7 +351,7 @@ public class EdirSchemaExtender implements SchemaExtender
     private void logActivity( final CharSequence charSequence )
     {
         LOGGER.info( () -> charSequence );
-        activityLog.append( charSequence ).append( "\n" );
+        activityLog.append( charSequence ).append( '\n' );
     }
 
     private String getActivityLog( )

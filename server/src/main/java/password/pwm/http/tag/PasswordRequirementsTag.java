@@ -384,7 +384,7 @@ public class PasswordRequirementsTag extends TagSupport
                 final StringBuilder fieldValue = new StringBuilder();
                 for ( final String loopValue : setValue )
                 {
-                    fieldValue.append( " " );
+                    fieldValue.append( ' ' );
 
                     final String expandedValue = policyValues.getMacroRequest().expandMacros( loopValue );
                     fieldValue.append( StringUtil.escapeHtml( expandedValue ) );
@@ -443,28 +443,30 @@ public class PasswordRequirementsTag extends TagSupport
         public List<String> generate( final PolicyValues policyValues )
         {
             final int value = policyValues.getRuleHelper().readIntValue( PwmPasswordRule.MinimumLifetime );
-            if ( value > 0 )
+
+            if ( value <= 0 )
             {
-                final int secondsPerDay = 60 * 60 * 24;
-
-                final String durationStr;
-                if ( value % secondsPerDay == 0 )
-                {
-                    final int valueAsDays = value / ( 60 * 60 * 24 );
-                    final Display key = valueAsDays <= 1 ? Display.Display_Day : Display.Display_Days;
-                    durationStr = valueAsDays + " " + LocaleHelper.getLocalizedMessage( policyValues.getLocale(), key, policyValues.getConfig() );
-                }
-                else
-                {
-                    final int valueAsHours = value / ( 60 * 60 );
-                    final Display key = valueAsHours <= 1 ? Display.Display_Hour : Display.Display_Hours;
-                    durationStr = valueAsHours + " " + LocaleHelper.getLocalizedMessage( policyValues.getLocale(), key, policyValues.getConfig() );
-                }
-
-                final String userMsg = Message.getLocalizedMessage( policyValues.getLocale(), Message.Requirement_MinimumFrequency, policyValues.getConfig(), durationStr );
-                return Collections.singletonList( userMsg );
+                return Collections.emptyList();
             }
-            return Collections.emptyList();
+
+            final int secondsPerDay = 60 * 60 * 24;
+
+            final String durationStr;
+            if ( value % secondsPerDay == 0 )
+            {
+                final int valueAsDays = value / ( 60 * 60 * 24 );
+                final Display key = valueAsDays <= 1 ? Display.Display_Day : Display.Display_Days;
+                durationStr = valueAsDays + " " + LocaleHelper.getLocalizedMessage( policyValues.getLocale(), key, policyValues.getConfig() );
+            }
+            else
+            {
+                final int valueAsHours = value / ( 60 * 60 );
+                final Display key = valueAsHours <= 1 ? Display.Display_Hour : Display.Display_Hours;
+                durationStr = valueAsHours + " " + LocaleHelper.getLocalizedMessage( policyValues.getLocale(), key, policyValues.getConfig() );
+            }
+
+            final String userMsg = Message.getLocalizedMessage( policyValues.getLocale(), Message.Requirement_MinimumFrequency, policyValues.getConfig(), durationStr );
+            return Collections.singletonList( userMsg );
         }
     }
 
@@ -576,7 +578,7 @@ public class PasswordRequirementsTag extends TagSupport
             pwmSession.getSessionManager().getMacroMachine( );
 
             final PwmPasswordPolicy passwordPolicy;
-            if ( getForm() != null && getForm().equalsIgnoreCase( "newuser" ) )
+            if ( getForm() != null && "newuser".equalsIgnoreCase( getForm() ) )
             {
                 final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
                 passwordPolicy = newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() );

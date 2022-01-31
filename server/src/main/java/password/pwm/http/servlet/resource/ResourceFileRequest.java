@@ -39,10 +39,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.InputStream;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,11 +51,10 @@ import java.util.zip.ZipFile;
 class ResourceFileRequest
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ResourceFileRequest.class );
-
     private static final Map<String, String> WEB_JAR_VERSION_MAP = Map.copyOf( new WebJarAssetLocator().getWebJars() );
 
     /** Contains a list of all resources (files) found inside the resources folder of all JARs in the WAR's classpath. **/
-    private static final Collection<String> WEB_JAR_ASSET_LIST = Collections.unmodifiableCollection( new ArrayList<>( new WebJarAssetLocator().listAssets() ) );
+    private static final Collection<String> WEB_JAR_ASSET_LIST = List.copyOf( new WebJarAssetLocator().listAssets() );
 
     private final DomainConfig domainConfig;
     private final HttpServletRequest httpServletRequest;
@@ -192,7 +189,7 @@ class ResourceFileRequest
         // parse out the session key...
         if ( effectiveUri.contains( ";" ) )
         {
-            effectiveUri = effectiveUri.substring( 0, effectiveUri.indexOf( ";" ) );
+            effectiveUri = effectiveUri.substring( 0, effectiveUri.indexOf( ';' ) );
         }
 
         if ( domainConfig.getAppConfig().isMultiDomain() )
@@ -342,7 +339,7 @@ class ResourceFileRequest
                 final String webJarName;
                 final String webJarPath;
                 {
-                    final int slashIndex = remainingPath.indexOf( "/" );
+                    final int slashIndex = remainingPath.indexOf( '/' );
                     if ( slashIndex < 0 )
                     {
                         return Optional.empty();

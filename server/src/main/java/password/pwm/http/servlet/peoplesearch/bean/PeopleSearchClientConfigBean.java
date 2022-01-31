@@ -62,8 +62,9 @@ public class PeopleSearchClientConfigBean implements Serializable
     {
         final Locale locale = pwmRequest.getLocale();
 
-        final Map<String, String> searchColumns = new LinkedHashMap<>();
         final List<FormConfiguration> searchForm = peopleSearchConfiguration.getSearchResultForm();
+
+        final Map<String, String> searchColumns = new LinkedHashMap<>( searchForm.size() );
         for ( final FormConfiguration formConfiguration : searchForm )
         {
             searchColumns.put( formConfiguration.getName(),

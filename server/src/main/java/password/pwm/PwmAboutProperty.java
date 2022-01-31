@@ -195,7 +195,7 @@ public enum PwmAboutProperty
         {
             final PwmAboutProperty aboutProperty = entry.getKey();
             final String value = entry.getValue();
-            outputProps.put( aboutProperty.toString().replace( "_", "." ), value );
+            outputProps.put( aboutProperty.toString().replace( '_', '.' ), value );
         }
         return Collections.unmodifiableMap( outputProps );
     }

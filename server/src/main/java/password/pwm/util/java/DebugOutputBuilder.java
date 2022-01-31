@@ -29,9 +29,9 @@ public class DebugOutputBuilder
     public void appendLine( final CharSequence charSequence )
     {
         stringBuilder.append( JavaHelper.toIsoDate( Instant.now() ) );
-        stringBuilder.append( " " );
+        stringBuilder.append( ' ' );
         stringBuilder.append( charSequence );
-        stringBuilder.append( "\n" );
+        stringBuilder.append( '\n' );
     }
 
     public String toString()

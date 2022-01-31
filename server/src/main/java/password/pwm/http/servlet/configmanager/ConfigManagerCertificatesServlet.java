@@ -161,7 +161,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
             return Collections.emptyList();
         }
 
-        final List<CertificateDebugDataItem> certificateDebugDataItems = new ArrayList<>();
+        final List<CertificateDebugDataItem> certificateDebugDataItems = new ArrayList<>( certificates.size() );
         for ( final X509Certificate certificate : certificates )
         {
             final CertificateDebugDataItem certificateDebugDataItem = makeItem( setting, profileId, certificate );

@@ -58,7 +58,6 @@ import java.util.Objects;
 
 public class PwmPasswordRuleValidator
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmPasswordRuleValidator.class );
 
     private final SessionLabel sessionLabel;
@@ -121,7 +120,7 @@ public class PwmPasswordRuleValidator
 
         if ( !errorResults.isEmpty() )
         {
-            throw new PwmDataValidationException( errorResults.iterator().next() );
+            throw new PwmDataValidationException( errorResults.get( 0 ) );
         }
 
         if ( user != null && !JavaHelper.enumArrayContainsValue( flags, Flag.BypassLdapRuleCheck ) )
@@ -153,7 +152,7 @@ public class PwmPasswordRuleValidator
 
         if ( !errorResults.isEmpty() )
         {
-            throw new PwmDataValidationException( errorResults.iterator().next() );
+            throw new PwmDataValidationException( errorResults.get( 0 ) );
         }
 
         return true;

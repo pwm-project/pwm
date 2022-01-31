@@ -130,7 +130,7 @@ class MemoryCacheStore implements CacheStore
     @Override
     public List<CacheDebugItem> getCacheDebugItems( )
     {
-        final List<CacheDebugItem> items = new ArrayList<>();
+        final List<CacheDebugItem> items = new ArrayList<>( memoryStore.asMap().size() );
         for ( final Map.Entry<CacheKey, CacheValueWrapper> entry : memoryStore.asMap().entrySet() )
         {
             final CacheKey cacheKey = entry.getKey();

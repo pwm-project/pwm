@@ -20,6 +20,7 @@
 
 package password.pwm.svc.event;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -319,6 +320,8 @@ public class AuditService extends AbstractPwmService implements PwmService
     }
 
 
+
+    @SuppressFBWarnings( "PSC_PRESIZE_COLLECTIONS" )
     public int outputVaultToCsv( final OutputStream outputStream, final Locale locale, final boolean includeHeader )
             throws IOException
     {
@@ -362,7 +365,7 @@ public class AuditService extends AbstractPwmService implements PwmService
             lineOutput.add( loopRecord.getMessage() == null ? "" : loopRecord.getMessage() );
             if ( loopRecord instanceof SystemAuditRecord )
             {
-                lineOutput.add( ( ( SystemAuditRecord ) loopRecord ).getInstance() );
+                lineOutput.add( loopRecord.getInstance() );
             }
             if ( loopRecord instanceof UserAuditRecord )
             {

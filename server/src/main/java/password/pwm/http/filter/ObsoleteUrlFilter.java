@@ -43,7 +43,8 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( ObsoleteUrlFilter.class );
 
-    private static final Map<String, String> STATIC_REDIRECTS = Map.of( PwmConstants.URL_PREFIX_PRIVATE, PwmConstants.URL_PREFIX_PRIVATE + "/" );
+    private static final Map<String, String> STATIC_REDIRECTS = Map.of(
+            PwmConstants.URL_PREFIX_PRIVATE, PwmConstants.URL_PREFIX_PRIVATE + "/" );
 
     @Override
     void processFilter( final PwmApplicationMode mode, final PwmRequest pwmRequest, final PwmFilterChain filterChain )

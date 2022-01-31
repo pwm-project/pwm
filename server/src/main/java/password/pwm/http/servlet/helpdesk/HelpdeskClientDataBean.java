@@ -83,7 +83,7 @@ public class HelpdeskClientDataBean implements Serializable
         {
             // search page
             final List<FormConfiguration> searchForm = helpdeskProfile.readSettingAsForm( PwmSetting.HELPDESK_SEARCH_RESULT_FORM );
-            final Map<String, String> searchColumns = new LinkedHashMap<>();
+            final Map<String, String> searchColumns = new LinkedHashMap<>( searchForm.size() );
             for ( final FormConfiguration formConfiguration : searchForm )
             {
                 searchColumns.put( formConfiguration.getName(), formConfiguration.getLabel( locale ) );
@@ -101,7 +101,7 @@ public class HelpdeskClientDataBean implements Serializable
         {
             // actions
             final List<ActionConfiguration> actionConfigurations = helpdeskProfile.readSettingAsAction( PwmSetting.HELPDESK_ACTIONS );
-            final Map<String, HelpdeskClientDataBean.ActionInformation> actions = new LinkedHashMap<>();
+            final Map<String, HelpdeskClientDataBean.ActionInformation> actions = new LinkedHashMap<>( actionConfigurations.size() );
             for ( final ActionConfiguration actionConfiguration : actionConfigurations )
             {
                 final HelpdeskClientDataBean.ActionInformation actionInformation = new HelpdeskClientDataBean.ActionInformation(

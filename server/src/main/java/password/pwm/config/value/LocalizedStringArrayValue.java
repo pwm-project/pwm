@@ -34,8 +34,8 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -63,7 +63,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
             {
                 tempMap.put( entry.getKey(), List.copyOf( entry.getValue() ) );
             }
-            this.values = Map.copyOf( tempMap );
+            this.values = Collections.unmodifiableMap( tempMap );
         }
     }
 
@@ -81,7 +81,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
                 else
                 {
                     final Map<String, List> deserializeMap = JsonFactory.get().deserializeMap( input, String.class, List.class );
-                    final Map<String, List<String>> values = new HashMap<>();
+                    final Map<String, List<String>> values = new LinkedHashMap<>( deserializeMap.size() );
                     for ( final Map.Entry<String, List> entry : deserializeMap.entrySet() )
                     {
                         if ( entry.getKey() != null && entry.getValue() != null )
@@ -97,7 +97,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
                             values.put( entry.getKey(), List.copyOf( newArrayList ) );
                         }
                     }
-                    return new LocalizedStringArrayValue( Map.copyOf( values ) );
+                    return new LocalizedStringArrayValue( Collections.unmodifiableMap( values ) );
                 }
             }
 
@@ -142,7 +142,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
     @Override
     public Map<String, List<String>> toNativeObject( )
     {
-        return Collections.unmodifiableMap( values );
+        return values;
     }
 
     @Override
@@ -189,14 +189,14 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
             final String localeKey = entry.getKey();
             if ( !values.get( localeKey ).isEmpty() )
             {
-                sb.append( "Locale: " ).append( LocaleHelper.debugLabel( LocaleHelper.parseLocaleString( localeKey ) ) ).append( "\n" );
+                sb.append( "Locale: " ).append( LocaleHelper.debugLabel( LocaleHelper.parseLocaleString( localeKey ) ) ).append( '\n' );
                 for ( final Iterator<String> iterator = entry.getValue().iterator(); iterator.hasNext(); )
                 {
                     final String value = iterator.next();
                     sb.append( "  " ).append( value );
                     if ( iterator.hasNext() )
                     {
-                        sb.append( "\n" );
+                        sb.append( '\n' );
                     }
                 }
             }

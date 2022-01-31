@@ -24,6 +24,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.i18n.PwmLocaleBundle;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.Percent;
 import password.pwm.util.logging.PwmLogger;
 
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Function;
 
 @Value
 @Builder
@@ -57,12 +59,10 @@ public class LocaleStats
 
     public static Map<PwmLocaleBundle, LocaleStats> getAllLocaleStats()
     {
-        final Map<PwmLocaleBundle, LocaleStats> returnMap = new LinkedHashMap<>(  );
-        for ( final PwmLocaleBundle pwmLocaleBundle : PwmLocaleBundle.allValues() )
-        {
-            returnMap.put( pwmLocaleBundle, createLocaleStatsForBundle( pwmLocaleBundle ) );
-        }
-        return Collections.unmodifiableMap( returnMap );
+        return Collections.unmodifiableMap( PwmLocaleBundle.allValues().stream().collect( CollectionUtil.collectorToLinkedMap(
+                Function.identity(),
+                LocaleStats::createLocaleStatsForBundle
+        ) ) );
     }
 
 
@@ -150,9 +150,9 @@ public class LocaleStats
         int missingSlots = 0;
         int presentSlots = 0;
 
-        final Map<Locale, Integer> perLocaleMissingLocalizations = new LinkedHashMap<>( );
-        final Map<Locale, Integer> perLocalePresentLocalizations = new LinkedHashMap<>( );
-        final Map<Locale, String> perLocalePercentLocalizations = new LinkedHashMap<>();
+        final Map<Locale, Integer> perLocaleMissingLocalizations = new LinkedHashMap<>( knownLocales.size() );
+        final Map<Locale, Integer> perLocalePresentLocalizations = new LinkedHashMap<>( knownLocales.size() );
+        final Map<Locale, String> perLocalePercentLocalizations = new LinkedHashMap<>( knownLocales.size() );
 
         for ( final Locale locale : knownLocales )
         {

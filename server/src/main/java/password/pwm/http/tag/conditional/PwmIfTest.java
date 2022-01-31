@@ -38,6 +38,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.PwmService;
+import password.pwm.svc.otp.OTPUserRecord;
 import password.pwm.util.java.StringUtil;
 
 import java.util.Collections;
@@ -290,14 +291,9 @@ public enum PwmIfTest
             {
                 return false;
             }
-            if ( pwmRequest.getPwmSession().getUserInfo().getOtpUserRecord() != null )
-            {
-                if ( pwmRequest.getPwmSession().getUserInfo().getOtpUserRecord().getTimestamp() != null )
-                {
-                    return true;
-                }
-            }
-            return false;
+
+            final OTPUserRecord otpUserRecord = pwmRequest.getPwmSession().getUserInfo().getOtpUserRecord();
+            return otpUserRecord != null && otpUserRecord.getTimestamp() != null;
         }
     }
 

@@ -51,6 +51,9 @@ import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
+import password.pwm.svc.cr.CrService;
+import password.pwm.svc.otp.OTPUserRecord;
+import password.pwm.svc.otp.OtpService;
 import password.pwm.svc.pwnotify.PwNotifyUserStatus;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
@@ -59,15 +62,13 @@ import password.pwm.util.java.CachingProxyWrapper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.svc.cr.CrService;
-import password.pwm.svc.otp.OtpService;
-import password.pwm.svc.otp.OTPUserRecord;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.PwmPasswordRuleValidator;
 
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -523,7 +524,7 @@ public class UserInfoReader implements UserInfo
         }
         catch ( final PwmUnrecoverableException e )
         {
-            e.printStackTrace();
+            LOGGER.debug( sessionLabel, () -> "unexpected error checking user attribute profile status: " + e.getMessage() );
         }
 
         return false;
@@ -649,7 +650,7 @@ public class UserInfoReader implements UserInfo
     @Override
     public Map<ProfileDefinition, String> getProfileIDs( ) throws PwmUnrecoverableException
     {
-        final Map<ProfileDefinition, String> returnMap = new HashMap<>();
+        final Map<ProfileDefinition, String> returnMap = new EnumMap<>( ProfileDefinition.class );
         for ( final ProfileDefinition profileDefinition : ProfileDefinition.values() )
         {
             if ( profileDefinition.isAuthenticated() )
@@ -829,7 +830,7 @@ public class UserInfoReader implements UserInfo
         }
 
         // build result data from cache
-        final Map<String, List<String>> returnMap = new HashMap<>();
+        final Map<String, List<String>> returnMap = new HashMap<>( attributes.size() );
         for ( final String attribute : attributes )
         {
             final List<String> cachedValue = cacheMap.get( attribute );

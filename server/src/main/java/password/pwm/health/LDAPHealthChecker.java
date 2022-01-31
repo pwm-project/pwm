@@ -152,7 +152,7 @@ public class LDAPHealthChecker implements HealthSupplier
         if ( config.getLdapProfiles() != null && !config.getLdapProfiles().isEmpty() )
         {
             final List<String> urls = config.getLdapProfiles().values().iterator().next().readSettingAsStringArray( PwmSetting.LDAP_SERVER_URLS );
-            if ( urls != null && !urls.isEmpty() && StringUtil.notEmpty( urls.iterator().next() ) )
+            if ( urls != null && !urls.isEmpty() && StringUtil.notEmpty( urls.get( 0 ) ) )
             {
                 returnRecords.addAll( checkVendorSameness( sessionLabel, pwmDomain ) );
 
@@ -575,7 +575,7 @@ public class LDAPHealthChecker implements HealthSupplier
                         errorString.append( " - " );
                         errorString.append( pwmError.getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, pwmDomain.getConfig() ) );
                     }
-                    errorString.append( ")" );
+                    errorString.append( ')' );
                 }
                 returnRecords.add( HealthRecord.forMessage(
                         pwmDomain.getDomainID(),
@@ -721,9 +721,10 @@ public class LDAPHealthChecker implements HealthSupplier
     private List<HealthRecord> checkVendorSameness( final SessionLabel sessionLabel, final PwmDomain pwmDomain )
     {
         final Map<HealthService.HealthMonitorFlag, Serializable> healthProperties = pwmDomain.getPwmApplication().getHealthMonitor().getHealthProperties();
-        if ( healthProperties.containsKey( HealthService.HealthMonitorFlag.LdapVendorSameCheck ) )
+        final List<HealthRecord> cachedRecords = ( List<HealthRecord> ) healthProperties.get( HealthService.HealthMonitorFlag.LdapVendorSameCheck );
+        if ( cachedRecords != null )
         {
-            return ( List<HealthRecord> ) healthProperties.get( HealthService.HealthMonitorFlag.LdapVendorSameCheck );
+            return cachedRecords;
         }
 
         LOGGER.trace( sessionLabel, () -> "beginning check for replica vendor sameness" );
@@ -762,7 +763,7 @@ public class LDAPHealthChecker implements HealthSupplier
             {
                 final Map.Entry<String, DirectoryVendor> entry = iterator.next();
                 final String key = entry.getKey();
-                vendorMsg.append( key ).append( "=" ).append( entry.getValue().toString() );
+                vendorMsg.append( key ).append( '=' ).append( entry.getValue() );
                 if ( iterator.hasNext() )
                 {
                     vendorMsg.append( ", " );
@@ -797,10 +798,10 @@ public class LDAPHealthChecker implements HealthSupplier
         if ( pwmDomain.getPwmApplication().getHealthMonitor() != null )
         {
             final Map<HealthService.HealthMonitorFlag, Serializable> healthProperties = pwmDomain.getPwmApplication().getHealthMonitor().getHealthProperties();
-            if ( healthProperties.containsKey( HealthService.HealthMonitorFlag.AdPasswordPolicyApiCheck ) )
+            final List<HealthRecord> cachedRecords = ( List<HealthRecord> ) healthProperties.get( HealthService.HealthMonitorFlag.AdPasswordPolicyApiCheck );
+            if ( cachedRecords != null )
             {
-                final List<HealthRecord> healthRecords = ( List<HealthRecord> ) healthProperties.get( HealthService.HealthMonitorFlag.AdPasswordPolicyApiCheck );
-                return healthRecords;
+                return cachedRecords;
             }
         }
 
@@ -1081,7 +1082,9 @@ public class LDAPHealthChecker implements HealthSupplier
         final List<String> ldapProfilesToCheck = new ArrayList<>();
         {
             final String configuredLdapProfileID = userPermission.getLdapProfileID();
-            if ( configuredLdapProfileID == null || configuredLdapProfileID.isEmpty() || configuredLdapProfileID.equals( PwmConstants.PROFILE_ID_ALL ) )
+            if ( configuredLdapProfileID == null
+                    || configuredLdapProfileID.isEmpty()
+                    || PwmConstants.PROFILE_ID_ALL.equals( configuredLdapProfileID ) )
             {
                 ldapProfilesToCheck.addAll( config.getLdapProfiles().keySet() );
             }

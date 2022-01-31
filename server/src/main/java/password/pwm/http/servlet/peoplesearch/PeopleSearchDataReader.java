@@ -183,7 +183,7 @@ class PeopleSearchDataReader
             final List<UserIdentity> parentIdentities = readUserDNAttributeValues( userIdentity, peopleSearchConfiguration.getOrgChartParentAttr( userIdentity ) );
             if ( parentIdentities != null && !parentIdentities.isEmpty() )
             {
-                final UserIdentity parentIdentity = parentIdentities.iterator().next();
+                final UserIdentity parentIdentity = parentIdentities.get( 0 );
                 orgChartData.setParent( makeOrgChartReferenceForIdentity( parentIdentity ) );
             }
         }
@@ -306,7 +306,7 @@ class PeopleSearchDataReader
             LOGGER.warn( pwmRequest, () -> "error de-serializing configured app property json for detail links: " + e.getMessage() );
             return Collections.emptyList();
         }
-        final List<LinkReferenceBean> returnList = new ArrayList<>();
+        final List<LinkReferenceBean> returnList = new ArrayList<>( linkMap.size() );
         final MacroRequest macroRequest = getMacroMachine( actorIdentity );
         for ( final Map.Entry<String, String> entry : linkMap.entrySet() )
         {
@@ -657,7 +657,7 @@ class PeopleSearchDataReader
         filter.append( "(&" );
         for ( final String objectClass : defaultObjectClasses )
         {
-            filter.append( "(objectClass=" ).append( objectClass ).append( ")" );
+            filter.append( "(objectClass=" ).append( objectClass ).append( ')' );
         }
 
         // open OR clause for attributes
@@ -665,14 +665,14 @@ class PeopleSearchDataReader
 
         for ( final String searchAttribute : searchAttributes )
         {
-            filter.append( "(" ).append( searchAttribute ).append( "=*" ).append( PwmConstants.VALUE_REPLACEMENT_USERNAME ).append( "*)" );
+            filter.append( '(' ).append( searchAttribute ).append( "=*" ).append( PwmConstants.VALUE_REPLACEMENT_USERNAME ).append( "*)" );
         }
 
         // close OR clause
-        filter.append( ")" );
+        filter.append( ')' );
 
         // close AND clause
-        filter.append( ")" );
+        filter.append( ')' );
         return filter.toString();
     }
 

@@ -20,6 +20,7 @@
 
 package password.pwm.http;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -56,7 +57,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -209,6 +209,7 @@ public class ContextManager implements Serializable
         throw new PwmUnrecoverableException( errorInformation );
     }
 
+    @SuppressFBWarnings( "MDM_SETDEFAULTLOCALE" )
     public void initialize( )
     {
         final Instant startTime = Instant.now();
@@ -460,7 +461,7 @@ public class ContextManager implements Serializable
                         final PropertyConfigurationImporter importer = new PropertyConfigurationImporter();
 
                         final StoredConfiguration storedConfiguration;
-                        try ( InputStream fileInputStream = new FileInputStream( silentPropertiesFile ) )
+                        try ( InputStream fileInputStream = Files.newInputStream( silentPropertiesFile.toPath() ) )
                         {
                             storedConfiguration = importer.readConfiguration( fileInputStream );
                         }
@@ -782,7 +783,7 @@ public class ContextManager implements Serializable
         }
     }
 
-    private void reInitialize() throws PwmException
+    private void reInitialize()
     {
         initialize();
     }

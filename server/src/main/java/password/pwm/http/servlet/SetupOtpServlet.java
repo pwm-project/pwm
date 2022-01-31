@@ -243,7 +243,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
 
 
     @ActionHandler( action = "skip" )
-    private ProcessStatus handleSkipRequest(
+    public ProcessStatus handleSkipRequest(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
@@ -261,7 +261,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "complete" )
-    private ProcessStatus handleComplete(
+    public ProcessStatus handleComplete(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
@@ -275,7 +275,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "restValidateCode" )
-    private ProcessStatus handleRestValidateCode(
+    public ProcessStatus handleRestValidateCode(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
@@ -316,7 +316,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "clearOtp" )
-    private ProcessStatus handleClearOtpSecret(
+    public ProcessStatus handleClearOtpSecret(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
@@ -344,7 +344,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "testOtpSecret" )
-    private ProcessStatus handleTestOtpSecret(
+    public ProcessStatus handleTestOtpSecret(
             final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
@@ -467,7 +467,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "toggleSeen" )
-    private ProcessStatus processToggleSeen( final PwmRequest pwmRequest )
+    public ProcessStatus processToggleSeen( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
         final SetupOtpBean otpBean = getSetupOtpBean( pwmRequest );

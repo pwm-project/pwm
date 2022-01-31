@@ -182,7 +182,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
         {
             if ( sb.length() > 0 )
             {
-                sb.append( "," );
+                sb.append( ',' );
             }
             sb.append( domain );
         }
@@ -190,7 +190,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
         {
             if ( sb.length() > 0 )
             {
-                sb.append( "," );
+                sb.append( ',' );
             }
             sb.append( username );
         }
@@ -233,7 +233,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
         final StringBuilder sb = new StringBuilder();
         if ( includeTimeStamp )
         {
-            sb.append( this.getTimestamp().toString() );
+            sb.append( this.getTimestamp() );
             sb.append( ", " );
         }
         sb.append( StringUtil.padRight( getLevel().toString(), 5, ' ' ) );

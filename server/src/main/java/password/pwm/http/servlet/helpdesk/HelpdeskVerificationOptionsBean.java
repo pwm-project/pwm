@@ -46,8 +46,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -173,7 +173,8 @@ public class HelpdeskVerificationOptionsBean implements Serializable
 
         final Map<VerificationMethodValue.EnabledState, Collection<IdentityVerificationMethod>> verificationMethodsMap;
         {
-            final Map<VerificationMethodValue.EnabledState, Collection<IdentityVerificationMethod>> returnMap = new HashMap<>();
+            final Map<VerificationMethodValue.EnabledState, Collection<IdentityVerificationMethod>> returnMap
+                    = new EnumMap<>( VerificationMethodValue.EnabledState.class );
             {
                 final Set<IdentityVerificationMethod> optionalMethods = CollectionUtil.copiedEnumSet(
                         helpdeskProfile.readOptionalVerificationMethods(),

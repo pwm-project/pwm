@@ -34,7 +34,7 @@ import java.io.File;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -186,7 +186,7 @@ public class LocalDBFactory
 
     private static Map<LocalDBProvider.Parameter, String> makeParameterMap( final AppConfig appConfig, final boolean readOnly )
     {
-        final Map<LocalDBProvider.Parameter, String> parameters = new HashMap<>();
+        final Map<LocalDBProvider.Parameter, String> parameters = new EnumMap<>( LocalDBProvider.Parameter.class );
         if ( readOnly )
         {
             parameters.put( LocalDBProvider.Parameter.readOnly, Boolean.TRUE.toString() );

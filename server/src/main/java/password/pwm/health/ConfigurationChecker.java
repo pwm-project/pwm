@@ -106,7 +106,7 @@ public class ConfigurationChecker implements HealthSupplier
             return Collections.emptyList();
         }
 
-        final List<Supplier<List<HealthRecord>>> suppliers = new ArrayList<>();
+        final List<Supplier<List<HealthRecord>>> suppliers = new ArrayList<>( pwmApplication.domains().size() + 1 );
         suppliers.add( () -> checkAppMode( pwmApplication ) );
         for ( final PwmDomain domain : pwmApplication.domains().values() )
         {

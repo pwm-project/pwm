@@ -103,7 +103,7 @@ public class FormValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final FormConfiguration value : values )
         {
             final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
@@ -116,7 +116,7 @@ public class FormValue extends AbstractValue implements StoredValue
     @Override
     public List<FormConfiguration> toNativeObject( )
     {
-        return Collections.unmodifiableList( values );
+        return values;
     }
 
     @Override
@@ -130,7 +130,7 @@ public class FormValue extends AbstractValue implements StoredValue
             }
         }
 
-        final Set<String> seenNames = new HashSet<>();
+        final Set<String> seenNames = new HashSet<>( values.size() );
         for ( final FormConfiguration loopConfig : values )
         {
             if ( seenNames.contains( loopConfig.getName().toLowerCase() ) )
@@ -158,45 +158,43 @@ public class FormValue extends AbstractValue implements StoredValue
     @Override
     public String toDebugString( final Locale locale )
     {
-        if ( !CollectionUtil.isEmpty( values ) )
-        {
-            final StringBuilder sb = new StringBuilder();
-            for ( final FormConfiguration formRow : values )
-            {
-                sb.append( "FormItem Name:" ).append( formRow.getName() ).append( "\n" );
-                sb.append( " Type:" ).append( formRow.getType() );
-                sb.append( " Min:" ).append( formRow.getMinimumLength() );
-                sb.append( " Max:" ).append( formRow.getMaximumLength() );
-                sb.append( " ReadOnly:" ).append( formRow.isReadonly() );
-                sb.append( " Required:" ).append( formRow.isRequired() );
-                sb.append( " Confirm:" ).append( formRow.isConfirmationRequired() );
-                sb.append( " Unique:" ).append( formRow.isUnique() );
-                sb.append( " Multi-Value:" ).append( formRow.isMultivalue() );
-                sb.append( " Source:" ).append( formRow.getSource() );
-                sb.append( "\n" );
-                sb.append( " Label:" ).append( JsonFactory.get().serializeStringMap( formRow.getLabels() ) ).append( "\n" );
-                sb.append( " Description:" ).append( JsonFactory.get().serializeStringMap( formRow.getDescription() ) ).append( "\n" );
-                if ( formRow.getType() == FormConfiguration.Type.select && CollectionUtil.isEmpty( formRow.getSelectOptions() ) )
-                {
-                    sb.append( " Select Options: " ).append( JsonFactory.get().serializeStringMap( formRow.getSelectOptions() ) ).append( "\n" );
-                }
-                if ( StringUtil.notEmpty( formRow.getRegex() ) )
-                {
-                    sb.append( " Regex:" ).append( formRow.getRegex() )
-                            .append( " Regex Error:" ).append( JsonFactory.get().serializeStringMap( formRow.getRegexErrors() ) );
-                }
-                if ( formRow.getType() == FormConfiguration.Type.photo )
-                {
-                    sb.append( " MimeTypes: " ).append( StringUtil.collectionToString( formRow.getMimeTypes() ) ).append( "\n" );
-                    sb.append( " MaxSize: " ).append( formRow.getMaximumSize() ).append( "\n" );
-                }
-            }
-            return sb.toString();
-        }
-        else
+        if ( CollectionUtil.isEmpty( values ) )
         {
             return "";
         }
-    }
 
+        final StringBuilder sb = new StringBuilder();
+        for ( final FormConfiguration formRow : values )
+        {
+            sb.append( "FormItem Name:" ).append( formRow.getName() ).append( '\n' );
+            sb.append( " Type:" ).append( formRow.getType() );
+            sb.append( " Min:" ).append( formRow.getMinimumLength() );
+            sb.append( " Max:" ).append( formRow.getMaximumLength() );
+            sb.append( " ReadOnly:" ).append( formRow.isReadonly() );
+            sb.append( " Required:" ).append( formRow.isRequired() );
+            sb.append( " Confirm:" ).append( formRow.isConfirmationRequired() );
+            sb.append( " Unique:" ).append( formRow.isUnique() );
+            sb.append( " Multi-Value:" ).append( formRow.isMultivalue() );
+            sb.append( " Source:" ).append( formRow.getSource() );
+            sb.append( '\n' );
+            sb.append( " Label:" ).append( JsonFactory.get().serializeStringMap( formRow.getLabels() ) ).append( '\n' );
+            sb.append( " Description:" ).append( JsonFactory.get().serializeStringMap( formRow.getDescription() ) ).append( '\n' );
+            if ( formRow.getType() == FormConfiguration.Type.select && CollectionUtil.isEmpty( formRow.getSelectOptions() ) )
+            {
+                sb.append( " Select Options: " ).append( JsonFactory.get().serializeStringMap( formRow.getSelectOptions() ) ).append( '\n' );
+            }
+            if ( StringUtil.notEmpty( formRow.getRegex() ) )
+            {
+                sb.append( " Regex:" ).append( formRow.getRegex() )
+                        .append( " Regex Error:" ).append( JsonFactory.get().serializeStringMap( formRow.getRegexErrors() ) );
+            }
+            if ( formRow.getType() == FormConfiguration.Type.photo )
+            {
+                sb.append( " MimeTypes: " ).append( StringUtil.collectionToString( formRow.getMimeTypes() ) ).append( '\n' );
+                sb.append( " MaxSize: " ).append( formRow.getMaximumSize() ).append( '\n' );
+            }
+        }
+
+        return sb.toString();
+    }
 }

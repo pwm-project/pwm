@@ -32,6 +32,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SelectableContextMode;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.config.profile.ChangePasswordProfile;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -397,12 +398,12 @@ public class ClientApiServlet extends ControlledPwmServlet
 
 
         {
-            final Map<String, String> localeInfo = new LinkedHashMap<>();
-            final Map<String, String> localeDisplayNames = new LinkedHashMap<>();
-            final Map<String, String> localeFlags = new LinkedHashMap<>();
-
             final List<Locale> knownLocales = new ArrayList<>( pwmRequest.getAppConfig().getKnownLocales() );
             knownLocales.sort( LocaleComparators.localeComparator( ) );
+
+            final Map<String, String> localeInfo = new LinkedHashMap<>( knownLocales.size() );
+            final Map<String, String> localeDisplayNames = new LinkedHashMap<>( knownLocales.size() );
+            final Map<String, String> localeFlags = new LinkedHashMap<>( knownLocales.size() );
 
             for ( final Locale locale : knownLocales )
             {
@@ -420,10 +421,13 @@ public class ClientApiServlet extends ControlledPwmServlet
 
         if ( pwmDomain.getConfig().readSettingAsEnum( PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE, SelectableContextMode.class ) != SelectableContextMode.NONE )
         {
-            final Map<String, Map<String, String>> ldapProfiles = new LinkedHashMap<>();
-            for ( final String ldapProfile : pwmDomain.getConfig().getLdapProfiles().keySet() )
+            final Map<String, LdapProfile> configuredProfiles = pwmDomain.getConfig().getLdapProfiles();
+
+            final Map<String, Map<String, String>> ldapProfiles = new LinkedHashMap<>( configuredProfiles.size() );
+            for ( final Map.Entry<String, LdapProfile> entry : configuredProfiles.entrySet() )
             {
-                final Map<String, String> contexts = pwmDomain.getConfig().getLdapProfiles().get( ldapProfile ).getSelectableContexts( pwmRequest.getLabel(), pwmDomain );
+                final String ldapProfile = entry.getKey();
+                final Map<String, String> contexts = entry.getValue().getSelectableContexts( pwmRequest.getLabel(), pwmDomain );
                 ldapProfiles.put( ldapProfile, contexts );
             }
             settingMap.put( "ldapProfiles", ldapProfiles );
@@ -464,7 +468,7 @@ public class ClientApiServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "statistics" )
-    private ProcessStatus restStatisticsHandler( final PwmRequest pwmRequest )
+    public ProcessStatus restStatisticsHandler( final PwmRequest pwmRequest )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException
     {
         precheckPublicHealthAndStats( pwmRequest );
@@ -494,7 +498,7 @@ public class ClientApiServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "cspReport" )
-    private ProcessStatus restCspReportHandler( final PwmRequest pwmRequest )
+    public ProcessStatus restCspReportHandler( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException
     {
         if ( !Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.LOGGING_LOG_CSP_REPORT ) ) )

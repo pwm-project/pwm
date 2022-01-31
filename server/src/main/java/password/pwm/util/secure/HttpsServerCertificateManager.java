@@ -149,7 +149,7 @@ public class HttpsServerCertificateManager
                     final String value = aliasEnum.next();
                     allAliases.add( value );
                 }
-                effectiveAlias = allAliases.size() == 1 ? allAliases.iterator().next() : alias;
+                effectiveAlias = allAliases.size() == 1 ? allAliases.get( 0 ) : alias;
             }
 
             final KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection( charPassword );

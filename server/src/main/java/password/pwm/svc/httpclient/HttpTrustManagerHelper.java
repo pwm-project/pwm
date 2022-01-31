@@ -123,18 +123,18 @@ class HttpTrustManagerHelper
 
         if ( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates == type )
         {
-            value.append( "=" );
+            value.append( '=' );
             for ( final Iterator<X509Certificate> iterator = pwmHttpClientConfiguration.getCertificates().iterator(); iterator.hasNext(); )
             {
                 final X509Certificate certificate = iterator.next();
                 value.append( X509Utils.hash( certificate, PwmHashAlgorithm.SHA1 ) );
                 if ( iterator.hasNext() )
                 {
-                    value.append( "," );
+                    value.append( ',' );
                 }
             }
         }
-        value.append( "]" );
+        value.append( ']' );
         return value.toString();
     }
 }

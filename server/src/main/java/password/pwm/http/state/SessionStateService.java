@@ -198,7 +198,7 @@ public class SessionStateService extends AbstractPwmService implements PwmServic
         }
         catch ( final ReflectiveOperationException e )
         {
-            e.printStackTrace();
+            LOGGER.warn( () -> "unexpected reflective error reading session bean: " + e.getMessage(), e );
         }
         return false;
     }

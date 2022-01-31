@@ -37,6 +37,7 @@ import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestWebServer;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,7 +48,7 @@ public class RestServletTest
 {
 
     @Test
-    public void testActionHandlerReturnTypes() throws IllegalAccessException, InstantiationException
+    public void testActionHandlerReturnTypes()
     {
         final Set<Class<? extends RestServlet>> classMap = getClasses();
 
@@ -106,9 +107,35 @@ public class RestServletTest
                     {
                         Assert.fail( "duplicate " + RestMethodHandler.class + " assertions on class " + restServlet.getName() );
                     }
+
+                    if ( !Modifier.isPublic( method.getModifiers() ) )
+                    {
+                        Assert.fail( "duplicate " + RestMethodHandler.class + " assertions on class " + restServlet.getName() );
+                    }
                     seenHandlers.add( methodHandler );
                 }
 
+            }
+        }
+    }
+
+    @Test
+    public void testRestMethodHandlersPublicAccess()
+    {
+        final Set<Class<? extends RestServlet>> classMap = getClasses();
+
+        for ( final Class<? extends RestServlet> restServlet : classMap )
+        {
+            for ( final Method method : JavaHelper.getAllMethodsForClass( restServlet ) )
+            {
+                final RestMethodHandler methodHandler = method.getAnnotation( RestMethodHandler.class );
+                if ( methodHandler != null )
+                {
+                    if ( !Modifier.isPublic( method.getModifiers() ) )
+                    {
+                        Assert.fail( "method " + method + " must be public" );
+                    }
+                }
             }
         }
     }

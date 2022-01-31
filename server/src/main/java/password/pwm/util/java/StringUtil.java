@@ -347,7 +347,7 @@ public abstract class StringUtil
             }
             catch ( final IOException e )
             {
-                throw new PwmInternalException( "unexpected error during base64 decoding: " + e, e );
+                throw PwmInternalException.fromPwmException( "unexpected error during base64 decoding: " + e, e );
             }
         }
         else

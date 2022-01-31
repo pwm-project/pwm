@@ -78,7 +78,7 @@ public class HelpdeskServletUtil
 
         for ( final String objectClass : defaultObjectClasses )
         {
-            filter.append( "(objectClass=" ).append( objectClass ).append( ")" );
+            filter.append( "(objectClass=" ).append( objectClass ).append( ')' );
         }
 
         // open OR clause for attributes
@@ -89,15 +89,19 @@ public class HelpdeskServletUtil
             if ( formConfiguration != null && formConfiguration.getName() != null )
             {
                 final String searchAttribute = formConfiguration.getName();
-                filter.append( "(" ).append( searchAttribute ).append( "=*" ).append( PwmConstants.VALUE_REPLACEMENT_USERNAME ).append( "*)" );
+                filter.append( '(' )
+                        .append( searchAttribute )
+                        .append( "=*" )
+                        .append( PwmConstants.VALUE_REPLACEMENT_USERNAME )
+                        .append( "*)" );
             }
         }
 
         // close OR clause
-        filter.append( ")" );
+        filter.append( ')' );
 
         // close AND clause
-        filter.append( ")" );
+        filter.append( ')' );
         return filter.toString();
     }
 
@@ -125,7 +129,7 @@ public class HelpdeskServletUtil
 
         for ( final String objectClass : defaultObjectClasses )
         {
-            filter.append( "(objectClass=" ).append( objectClass ).append( ")" );
+            filter.append( "(objectClass=" ).append( objectClass ).append( ')' );
         }
 
         // open AND clause for attributes
@@ -139,32 +143,27 @@ public class HelpdeskServletUtil
                 final String value = attributesInSearchRequest.get( searchAttribute );
                 if ( StringUtil.notEmpty( value ) )
                 {
-                    filter.append( "(" ).append( searchAttribute ).append( "=" );
+                    filter.append( '(' ).append( searchAttribute ).append( '=' );
 
-                    switch ( formConfiguration.getType() )
+                    if ( formConfiguration.getType() == FormConfiguration.Type.select )
                     {
-                        case select:
-                        {
-                            // value is specified by admin, so wildcards are not required
-                            filter.append( "%" ).append( searchAttribute ).append( "%)" );
-                        }
-                        break;
+                        // value is specified by admin, so wildcards are not required
+                        filter.append( '%' ).append( searchAttribute ).append( "%)" );
+                    }
+                    else
 
-                        default:
-                        {
-                            filter.append( "*%" ).append( searchAttribute ).append( "%*)" );
-                        }
-                        break;
+                    {
+                        filter.append( "*%" ).append( searchAttribute ).append( "%*)" );
                     }
                 }
             }
         }
 
         // close OR clause
-        filter.append( ")" );
+        filter.append( ')' );
 
         // close AND clause
-        filter.append( ")" );
+        filter.append( ')' );
         return filter.toString();
     }
 
@@ -364,13 +363,11 @@ public class HelpdeskServletUtil
                 pwmRequest.getPwmSession().getLoginInfoBean()
         );
 
-        /*
         if ( targetUserIdentity != null )
         {
             final UserInfo targetUserInfo = getTargetUserInfo( pwmRequest, helpdeskProfile, targetUserIdentity );
             return macroRequest.toBuilder().targetUserInfo( targetUserInfo ).build();
         }
-         */
 
         return macroRequest;
     }

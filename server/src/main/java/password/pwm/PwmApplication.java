@@ -85,11 +85,12 @@ import password.pwm.util.secure.PwmRandom;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.URI;
+import java.nio.file.Files;
 import java.security.KeyStore;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -525,7 +526,7 @@ public class PwmApplication
                 }
             }
 
-            try ( FileOutputStream fileOutputStream = new FileOutputStream( keyStoreFile ) )
+            try ( OutputStream fileOutputStream = Files.newOutputStream( keyStoreFile.toPath() ) )
             {
                 fileOutputStream.write( outputContents.toByteArray() );
             }
@@ -562,28 +563,30 @@ public class PwmApplication
                 }
             }
 
-            final ByteArrayOutputStream outputContents = new ByteArrayOutputStream();
-            try ( FileInputStream fileInputStream = new FileInputStream( tomcatOutputFile ) )
+            try ( ByteArrayOutputStream outputContents = new ByteArrayOutputStream() )
             {
-                ExportHttpsTomcatConfigCommand.TomcatConfigWriter.writeOutputFile(
-                        pwmDomain.getConfig(),
-                        fileInputStream,
-                        outputContents
-                );
-            }
-
-            if ( tomcatOutputFile.exists() )
-            {
-                LOGGER.trace( () -> "deleting existing tomcat configuration file " + tomcatOutputFile.getAbsolutePath() );
-                if ( tomcatOutputFile.delete() )
+                try ( InputStream fileInputStream = Files.newInputStream( tomcatOutputFile.toPath() ) )
                 {
-                    LOGGER.trace( () -> "deleted existing tomcat configuration file: " + tomcatOutputFile.getAbsolutePath() );
+                    ExportHttpsTomcatConfigCommand.TomcatConfigWriter.writeOutputFile(
+                            pwmDomain.getConfig(),
+                            fileInputStream,
+                            outputContents
+                    );
                 }
-            }
 
-            try ( FileOutputStream fileOutputStream = new FileOutputStream( tomcatOutputFile ) )
-            {
-                fileOutputStream.write( outputContents.toByteArray() );
+                if ( tomcatOutputFile.exists() )
+                {
+                    LOGGER.trace( () -> "deleting existing tomcat configuration file " + tomcatOutputFile.getAbsolutePath() );
+                    if ( tomcatOutputFile.delete() )
+                    {
+                        LOGGER.trace( () -> "deleted existing tomcat configuration file: " + tomcatOutputFile.getAbsolutePath() );
+                    }
+                }
+
+                try ( OutputStream fileOutputStream = Files.newOutputStream( tomcatOutputFile.toPath() ) )
+                {
+                    fileOutputStream.write( outputContents.toByteArray() );
+                }
             }
 
             LOGGER.info( () -> "successfully wrote tomcat configuration to file " + tomcatOutputFile.getAbsolutePath() );
@@ -728,7 +731,7 @@ public class PwmApplication
         public Map<DomainID, Map<String, ErrorInformation>> getRecords()
         {
             // required because json deserialization can still set records == null
-            return records == null ? Collections.emptyMap() : Map.copyOf( records );
+            return records == null ? Collections.emptyMap() : records;
         }
 
         StoredErrorRecords addDomainErrorMap(

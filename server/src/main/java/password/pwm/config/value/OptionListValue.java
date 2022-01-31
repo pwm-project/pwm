@@ -86,7 +86,7 @@ public class OptionListValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final String value : values )
         {
             final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
@@ -117,7 +117,7 @@ public class OptionListValue extends AbstractValue implements StoredValue
             sb.append( valueIterator.next() );
             if ( valueIterator.hasNext() )
             {
-                sb.append( "\n" );
+                sb.append( '\n' );
             }
         }
         return sb.toString();

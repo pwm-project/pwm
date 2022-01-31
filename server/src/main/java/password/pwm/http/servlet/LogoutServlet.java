@@ -214,10 +214,12 @@ public class LogoutServlet extends ControlledPwmServlet
 
             final String urlParameter = pwmRequest.readParameterAsString( PARAM_URL );
             final URI uri = URI.create( urlParameter );
+            final String basePath = pwmRequest.getBasePath();
+
             String path = uri.getPath();
-            if ( path != null && path.startsWith( pwmRequest.getBasePath() ) )
+            if ( path != null && path.startsWith( basePath ) )
             {
-                path = path.substring( pwmRequest.getBasePath().length() );
+                path = path.substring( basePath.length() );
 
             }
             PwmServletDefinition matchedServlet = null;
@@ -244,7 +246,7 @@ public class LogoutServlet extends ControlledPwmServlet
             {
                 final PwmServletDefinition finalMatchedServlet = matchedServlet;
                 LOGGER.trace( pwmRequest, () -> "matched next url to servlet definition " + finalMatchedServlet.toString() );
-                return Optional.of( pwmRequest.getBasePath() + matchedServlet.servletUrl() );
+                return Optional.of( basePath + matchedServlet.servletUrl() );
             }
             else
             {
