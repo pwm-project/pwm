@@ -169,9 +169,11 @@ public class StringUtilTest
     @Test
     public void whitespaceInsertAndStripTest()
     {
+        final String lineSeparator = System.lineSeparator();
+
         final String original = PwmRandom.getInstance().alphaNumericString( 1024 * 1024 );
         final String linebreaks = StringUtil.insertRepeatedLineBreaks( original, 80 );
-        Assert.assertEquals( '\n', linebreaks.charAt( 80 ) );
+        Assert.assertEquals( lineSeparator, linebreaks.substring( 80, 80 + lineSeparator.length() ) );
         final String stripped = StringUtil.stripAllWhitespace( linebreaks );
         Assert.assertEquals( original, stripped );
     }
