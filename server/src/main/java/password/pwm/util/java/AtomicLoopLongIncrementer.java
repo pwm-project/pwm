@@ -62,12 +62,12 @@ public class AtomicLoopLongIncrementer
     {
         return incrementer.getAndUpdate( operand ->
         {
-            operand++;
-            if ( operand >= ceiling )
+            long localOperand = operand + 1;
+            if ( localOperand >= ceiling )
             {
-                operand = floor;
+                localOperand = floor;
             }
-            return operand;
+            return localOperand;
         } );
     }
 

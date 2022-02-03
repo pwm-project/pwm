@@ -20,7 +20,7 @@
 
 package password.pwm.util.java;
 
-import com.novell.ldapchai.util.StringHelper;
+import com.novell.ldapchai.util.internal.StringHelper;
 
 import java.util.Arrays;
 import java.util.Collections;

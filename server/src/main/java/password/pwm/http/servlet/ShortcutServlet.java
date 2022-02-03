@@ -21,7 +21,7 @@
 package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.util.StringHelper;
+import com.novell.ldapchai.util.internal.StringHelper;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
@@ -36,8 +36,8 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ShortcutsBean;
-import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.permission.UserPermissionType;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;

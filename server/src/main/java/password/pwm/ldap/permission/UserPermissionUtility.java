@@ -20,7 +20,7 @@
 
 package password.pwm.ldap.permission;
 
-import com.novell.ldapchai.util.StringHelper;
+import com.novell.ldapchai.util.internal.StringHelper;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;

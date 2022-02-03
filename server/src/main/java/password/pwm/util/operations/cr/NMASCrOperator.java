@@ -55,6 +55,7 @@ import com.novell.security.nmas.lcm.registry.GenLCMRegistry;
 import com.novell.security.nmas.lcm.registry.LCMRegistry;
 import com.novell.security.nmas.lcm.registry.LCMRegistryException;
 import com.novell.security.nmas.ui.GenLcmUI;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -919,6 +920,7 @@ public class NMASCrOperator implements CrOperator
             }
         }
 
+        @SuppressFBWarnings( "DCN_NULLPOINTER_EXCEPTION" )
         private void doLoginSequence( )
         {
             if ( loginState == NMASThreadState.ABORTED || loginState == NMASThreadState.COMPLETED )

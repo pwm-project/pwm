@@ -25,7 +25,7 @@
 
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideForm" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
-<%@ page import="com.novell.ldapchai.util.StringHelper" %>
+<%@ page import="com.novell.ldapchai.util.internal.StringHelper" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 

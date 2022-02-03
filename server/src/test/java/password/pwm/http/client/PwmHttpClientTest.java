@@ -89,6 +89,8 @@ public class PwmHttpClientTest
         final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
         final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest, null );
 
+        System.out.println( response.toString() );
+
         // Verify the response
         final int responseStatusCode = response.getStatusCode();
         Assert.assertEquals( responseStatusCode, 200 );

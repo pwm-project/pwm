@@ -20,7 +20,7 @@
 
 package password.pwm.config;
 
-import com.novell.ldapchai.util.StringHelper;
+import com.novell.ldapchai.util.internal.StringHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;

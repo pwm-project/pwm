@@ -20,6 +20,7 @@
 
 package password.pwm.util.localdb;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.java.StatisticCounterBundle;
@@ -106,6 +107,7 @@ public class LocalDBAdaptor implements LocalDB
         return Collections.unmodifiableMap( debugValues );
     }
 
+    @SuppressFBWarnings( "DCN_NULLPOINTER_EXCEPTION" )
     @Override
     @WriteOperation
     public void putAll( final DB db, final Map<String, String> keyValueMap ) throws LocalDBException
@@ -174,6 +176,7 @@ public class LocalDBAdaptor implements LocalDB
         return result;
     }
 
+    @SuppressFBWarnings( "DCN_NULLPOINTER_EXCEPTION" )
     @Override
     @WriteOperation
     public void removeAll( final DB db, final Collection<String> keys ) throws LocalDBException

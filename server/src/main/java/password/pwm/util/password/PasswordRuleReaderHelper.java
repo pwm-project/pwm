@@ -22,7 +22,7 @@ package password.pwm.util.password;
 
 import com.novell.ldapchai.ChaiPasswordRule;
 import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
-import com.novell.ldapchai.util.StringHelper;
+import com.novell.ldapchai.util.internal.StringHelper;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;

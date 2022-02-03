@@ -32,7 +32,7 @@
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.*" %>
 <%@ page import="password.pwm.util.macro.MacroRequest" %>
-<%@ page import="com.novell.ldapchai.util.StringHelper" %>
+<%@ page import="com.novell.ldapchai.util.internal.StringHelper" %>
 <%@ page import="password.pwm.AppProperty" %>
 <%@ page import="password.pwm.config.PwmSettingStats" %>
 

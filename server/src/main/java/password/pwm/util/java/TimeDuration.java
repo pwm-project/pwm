@@ -20,7 +20,7 @@
 
 package password.pwm.util.java;
 
-import com.novell.ldapchai.util.StringHelper;
+import com.novell.ldapchai.util.internal.StringHelper;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.i18n.Display;
