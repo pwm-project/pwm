@@ -25,19 +25,17 @@ import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplateSet;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ChallengeValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.data.ChallengeItemConfiguration;
-import password.pwm.error.PwmOperationalException;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.Percent;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Value
 @Builder
@@ -49,25 +47,22 @@ public class ConfigLocaleStats
     private Map<Locale, Integer> descriptionMissingLocalizations;
 
     public static ConfigLocaleStats getConfigLocaleStats( )
-            throws PwmUnrecoverableException, PwmOperationalException
     {
 
         final List<Locale> knownLocales = LocaleHelper.knownBuiltInLocales();
 
-        final List<Locale> defaultChallenges = new ArrayList<>();
-        final Map<Locale, String> descriptionPercentLocalizations = new LinkedHashMap<>();
-        final Map<Locale, Integer> descriptionPresentLocalizations = new LinkedHashMap<>();
-        final Map<Locale, Integer> descriptionMissingLocalizations = new LinkedHashMap<>();
+        final Map<Locale, String> descriptionPercentLocalizations = new LinkedHashMap<>( knownLocales.size() );
+        final Map<Locale, Integer> descriptionPresentLocalizations = new LinkedHashMap<>( knownLocales.size() );
+        final Map<Locale, Integer> descriptionMissingLocalizations = new LinkedHashMap<>( knownLocales.size() );
 
+        final List<Locale> defaultChallenges;
         {
             final StoredValue storedValue = PwmSetting.CHALLENGE_RANDOM_CHALLENGES.getDefaultValue( PwmSettingTemplateSet.getDefault() );
             final Map<String, List<ChallengeItemConfiguration>> value = ( ( ChallengeValue ) storedValue ).toNativeObject();
 
-            for ( final String localeStr : value.keySet() )
-            {
-                final Locale loopLocale = LocaleHelper.parseLocaleString( localeStr );
-                defaultChallenges.add( loopLocale );
-            }
+            defaultChallenges = value.keySet().stream()
+                    .map( LocaleHelper::parseLocaleString )
+                    .collect( Collectors.toUnmodifiableList() );
         }
 
         for ( final Locale locale : knownLocales  )
@@ -109,7 +104,7 @@ public class ConfigLocaleStats
         }
 
         return ConfigLocaleStats.builder()
-                .defaultChallenges( Collections.unmodifiableList( defaultChallenges ) )
+                .defaultChallenges( defaultChallenges )
                 .descriptionPercentLocalizations( Collections.unmodifiableMap( descriptionPercentLocalizations ) )
                 .descriptionPresentLocalizations( Collections.unmodifiableMap( descriptionPresentLocalizations ) )
                 .descriptionMissingLocalizations( Collections.unmodifiableMap( descriptionMissingLocalizations ) )

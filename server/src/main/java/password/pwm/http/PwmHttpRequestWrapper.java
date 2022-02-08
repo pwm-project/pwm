@@ -32,7 +32,7 @@ import password.pwm.util.ServletUtility;
 import password.pwm.util.Validator;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 
 import javax.servlet.http.Cookie;
@@ -112,7 +112,7 @@ public class PwmHttpRequestWrapper
     {
         final boolean bypassInputValidation = flags != null && Arrays.asList( flags ).contains( Flag.BypassValidation );
         final String bodyString = readRequestBodyAsString();
-        final Map<String, String> inputMap = JsonUtil.deserializeStringMap( bodyString );
+        final Map<String, String> inputMap = JsonFactory.get().deserializeStringMap( bodyString );
 
         final boolean trim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_TRIM ) );
         final boolean passwordTrim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_PASSWORD_TRIM ) );
@@ -148,7 +148,7 @@ public class PwmHttpRequestWrapper
     {
         final boolean bypassInputValidation = flags != null && Arrays.asList( flags ).contains( Flag.BypassValidation );
         final String bodyString = readRequestBodyAsString();
-        final Map<String, Object> inputMap = JsonUtil.deserializeMap( bodyString );
+        final Map<String, Object> inputMap = JsonFactory.get().deserializeMap( bodyString, String.class, Object.class );
 
         final boolean trim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_TRIM ) );
         final boolean passwordTrim = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.SECURITY_INPUT_PASSWORD_TRIM ) );
@@ -216,7 +216,7 @@ public class PwmHttpRequestWrapper
             return "";
         }
 
-        return results.iterator().next();
+        return results.get( 0 );
     }
 
     public String readParameterAsString( final String name, final String valueIfNotPresent )
@@ -247,11 +247,11 @@ public class PwmHttpRequestWrapper
         return strValue != null && Boolean.parseBoolean( strValue );
     }
 
-    public <E extends Enum<E>> E readParameterAsEnum( final String name, final Class<E> enumClass, final E defaultValue )
+    public <E extends Enum<E>> Optional<E> readParameterAsEnum( final String name, final Class<E> enumClass )
             throws PwmUnrecoverableException
     {
         final String value = readParameterAsString( name, Flag.BypassValidation );
-        return JavaHelper.readEnumFromString( enumClass, defaultValue, value );
+        return JavaHelper.readEnumFromString( enumClass, value );
     }
 
     public int readParameterAsInt( final String name, final int defaultValue )
@@ -284,7 +284,7 @@ public class PwmHttpRequestWrapper
             return Collections.emptyList();
         }
 
-        final List<String> resultSet = new ArrayList<>();
+        final List<String> result = new ArrayList<>();
         for ( final String rawValue : rawValues )
         {
             final String decodedValue = decodeStringToDefaultCharSet( rawValue );
@@ -294,11 +294,11 @@ public class PwmHttpRequestWrapper
 
             if ( sanitizedValue.length() > 0 )
             {
-                resultSet.add( trim ? sanitizedValue.trim() : sanitizedValue );
+                result.add( trim ? sanitizedValue.trim() : sanitizedValue );
             }
         }
 
-        return Collections.unmodifiableList( resultSet );
+        return Collections.unmodifiableList( result );
     }
 
     public String readHeaderValueAsString( final HttpHeader headerName )
@@ -370,8 +370,10 @@ public class PwmHttpRequestWrapper
     public Map<String, String> readParametersAsMap( )
             throws PwmUnrecoverableException
     {
-        final Map<String, String> returnObj = new HashMap<>();
-        for ( final String paramName : parameterNames() )
+        final List<String> parameterNames = parameterNames();
+
+        final Map<String, String> returnObj = new HashMap<>( parameterNames.size() );
+        for ( final String paramName : parameterNames )
         {
             final String paramValue = readParameterAsString( paramName );
             returnObj.put( paramName, paramValue );
@@ -383,8 +385,12 @@ public class PwmHttpRequestWrapper
             throws PwmUnrecoverableException
     {
         final int maxLength = Integer.parseInt( appConfig.readAppProperty( AppProperty.HTTP_PARAM_MAX_READ_LENGTH ) );
-        final Map<String, List<String>> returnObj = new HashMap<>();
-        for ( final String paramName : parameterNames() )
+
+        final List<String> parameterNames = parameterNames();
+
+        final Map<String, List<String>> returnObj = new HashMap<>( parameterNames.size() );
+
+        for ( final String paramName : parameterNames )
         {
             final List<String> values = readParameterAsStrings( paramName, maxLength );
             returnObj.put( paramName, values );
@@ -449,7 +455,6 @@ public class PwmHttpRequestWrapper
             final Collection<String> stripValues
     )
     {
-        final String lineSeparator = "\n";
 
         final StringBuilder sb = new StringBuilder();
         for ( final Map.Entry<String, List<String>> entry : input.entrySet() )
@@ -457,7 +462,7 @@ public class PwmHttpRequestWrapper
             final String paramName = entry.getKey();
             for ( final String paramValue : entry.getValue() )
             {
-                sb.append( "  " ).append( paramName ).append( "=" );
+                sb.append( "  " ).append( paramName ).append( '=' );
 
                 final boolean strip = stripValues.stream()
                         .anyMatch( ( stripValue ) -> paramName.toLowerCase().contains( stripValue.toLowerCase() ) );
@@ -468,17 +473,18 @@ public class PwmHttpRequestWrapper
                 }
                 else
                 {
-                    sb.append( "'" );
+                    sb.append( '\'' );
                     sb.append( paramValue );
-                    sb.append( "'" );
+                    sb.append( '\'' );
                 }
 
-                sb.append( lineSeparator );
+                sb.append( '\n' );
             }
         }
 
         if ( sb.length() > 0 )
         {
+            final String lineSeparator = "\n";
             if ( lineSeparator.equals( sb.substring( sb.length() - lineSeparator.length(), sb.length() ) ) )
             {
                 sb.delete( sb.length() - lineSeparator.length(), sb.length() );
@@ -503,7 +509,7 @@ public class PwmHttpRequestWrapper
         {
             sb.append( "\n " );
             sb.append( debugHttpHeaders() );
-            sb.append( "\n" );
+            sb.append( '\n' );
             sb.append( " parameters:" );
         }
 
@@ -512,7 +518,7 @@ public class PwmHttpRequestWrapper
             sb.append( " (no params)" );
             if ( extraText != null )
             {
-                sb.append( " " );
+                sb.append( ' ' );
                 sb.append( extraText );
             }
         }
@@ -520,10 +526,10 @@ public class PwmHttpRequestWrapper
         {
             if ( extraText != null )
             {
-                sb.append( " " );
+                sb.append( ' ' );
                 sb.append( extraText );
             }
-            sb.append( "\n" );
+            sb.append( '\n' );
 
             sb.append( debugOutputMapToString( this.readMultiParametersAsMap(), HTTP_PARAM_DEBUG_STRIP_VALUES ) );
         }
@@ -538,7 +544,7 @@ public class PwmHttpRequestWrapper
         final String json = readRequestBodyAsString();
         try
         {
-            return JsonUtil.deserialize( json, classOfT );
+            return JsonFactory.get().deserialize( json, classOfT );
         }
         catch ( final Exception e )
         {

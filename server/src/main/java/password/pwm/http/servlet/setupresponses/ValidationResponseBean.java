@@ -18,21 +18,16 @@
  * limitations under the License.
  */
 
-package password.pwm.config;
 
-import password.pwm.config.stored.StoredConfigKey;
-import password.pwm.config.stored.StoredConfigurationModifier;
-import password.pwm.http.PwmRequest;
+package password.pwm.http.servlet.setupresponses;
+
+import lombok.Value;
 
 import java.io.Serializable;
 
-public interface SettingUIFunction
+@Value
+public class ValidationResponseBean implements Serializable
 {
-    Serializable provideFunction(
-            PwmRequest pwmRequest,
-            StoredConfigurationModifier modifier,
-            StoredConfigKey key,
-            String extraData
-    )
-            throws Exception;
+    private String message;
+    private boolean success;
 }

@@ -29,7 +29,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.secure.SecureService;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -97,13 +97,13 @@ class IntruderRecordManagerImpl implements IntruderRecordManager
             throw new IllegalArgumentException( "subject is required value" );
         }
 
-        IntruderRecord record = readIntruderRecord( subject ).orElse( new IntruderRecord( domainID, recordType, subject ) );
+        IntruderRecord record = readIntruderRecord( subject ).orElseGet( () -> new IntruderRecord( domainID, recordType, subject ) );
 
         final TimeDuration age = TimeDuration.fromCurrent( record.getTimeStamp() );
         if ( age.isLongerThan( settings.getCheckDuration() ) )
         {
             final IntruderRecord finalRecord = record;
-            LOGGER.debug( () -> "re-setting existing outdated record=" + JsonUtil.serialize( finalRecord ) + " (" + age.asCompactString() + ")" );
+            LOGGER.debug( () -> "re-setting existing outdated record=" + JsonFactory.get().serialize( finalRecord ) + " (" + age.asCompactString() + ")" );
             record = new IntruderRecord( domainID, recordType, subject );
         }
 
@@ -171,7 +171,7 @@ class IntruderRecordManagerImpl implements IntruderRecordManager
         }
         catch ( final PwmException e )
         {
-            LOGGER.warn( () -> "unexpected error attempting to write intruder record " + JsonUtil.serialize( intruderRecord ) + ", error: " + e.getMessage() );
+            LOGGER.warn( () -> "unexpected error attempting to write intruder record " + JsonFactory.get().serialize( intruderRecord ) + ", error: " + e.getMessage() );
         }
     }
 

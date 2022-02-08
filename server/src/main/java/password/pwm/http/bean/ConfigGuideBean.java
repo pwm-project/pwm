@@ -48,9 +48,9 @@ public class ConfigGuideBean extends PwmSessionBean
     private FileValue databaseDriver = null;
 
     @Override
-    public Type getType( )
+    public BeanType getBeanType( )
     {
-        return Type.PUBLIC;
+        return BeanType.PUBLIC;
     }
 
     @Override

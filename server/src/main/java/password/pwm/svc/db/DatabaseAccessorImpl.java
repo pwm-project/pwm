@@ -21,7 +21,7 @@
 package password.pwm.svc.db;
 
 import password.pwm.util.java.ClosableIterator;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -475,7 +475,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             return;
         }
 
-        LOGGER.trace( () -> "accessor #" + accessorNumber + " begin operation: " + JsonUtil.serialize( debugInfo ) );
+        LOGGER.trace( () -> "accessor #" + accessorNumber + " begin operation: " + JsonFactory.get().serialize( debugInfo ) );
     }
 
     private void traceResult(
@@ -488,7 +488,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             return;
         }
 
-        final Map<String, String> map = JsonUtil.deserializeStringMap( JsonUtil.serialize( debugInfo ) );
+        final Map<String, String> map = JsonFactory.get().deserializeStringMap( JsonFactory.get().serialize( debugInfo ) );
         map.put( "duration", TimeDuration.fromCurrent( debugInfo.getStartTime() ).asCompactString() );
         if ( result != null )
         {

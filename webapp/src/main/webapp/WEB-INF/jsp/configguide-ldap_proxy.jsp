@@ -32,7 +32,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% final ConfigGuideBean configGuideBean = JspUtility.getSessionBean(pageContext, ConfigGuideBean.class);%>
-<% final boolean isAD = ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSet().get(ConfigGuideForm.DOMAIN_ID).contains(PwmSettingTemplate.AD); %>
+<% final boolean isAD = ConfigGuideForm.generateStoredConfig(configGuideBean).getTemplateSets().get(ConfigGuideForm.DOMAIN_ID).contains(PwmSettingTemplate.AD); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>

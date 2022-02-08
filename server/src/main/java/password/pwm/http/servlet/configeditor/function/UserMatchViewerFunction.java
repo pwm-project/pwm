@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.config.function;
+package password.pwm.http.servlet.configeditor.function;
 
 import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
@@ -32,7 +32,6 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.SettingUIFunction;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;

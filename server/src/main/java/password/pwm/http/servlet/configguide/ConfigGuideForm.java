@@ -273,6 +273,6 @@ public class ConfigGuideForm
             throws PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = generateStoredConfig( configGuideBean );
-        return pwmSetting.getExample( storedConfiguration.getTemplateSet().get( ConfigGuideForm.DOMAIN_ID ) );
+        return pwmSetting.getExample( storedConfiguration.getTemplateSets().get( ConfigGuideForm.DOMAIN_ID ) );
     }
 }

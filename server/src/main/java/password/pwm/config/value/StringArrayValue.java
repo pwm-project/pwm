@@ -20,14 +20,14 @@
 
 package password.pwm.config.value;
 
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue
     {
         final List<String> copiedValues = new ArrayList<>( values == null ? Collections.emptyList() : values );
         copiedValues.removeAll( Collections.singleton( null ) );
-        this.values = Collections.unmodifiableList( copiedValues );
+        this.values = List.copyOf( copiedValues );
     }
 
     public static StoredValueFactory factory( )
@@ -64,7 +64,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    return new StringArrayValue( JsonUtil.deserializeStringList( input ) );
+                    return new StringArrayValue( JsonFactory.get().deserializeStringList( input ) );
                 }
             }
 
@@ -89,11 +89,11 @@ public class StringArrayValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final String value : this.values )
         {
-            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-            valueElement.addText( value );
+            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            valueElement.setText( value );
             returnList.add( valueElement );
         }
         return returnList;
@@ -140,7 +140,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue
                 sb.append( valueIterator.next() );
                 if ( valueIterator.hasNext() )
                 {
-                    sb.append( "\n" );
+                    sb.append( '\n' );
                 }
             }
             return sb.toString();

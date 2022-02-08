@@ -49,7 +49,8 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.math.RoundingMode;
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -276,7 +277,7 @@ public class LocalDBUtility
         private long transactionCharCounter;
 
         private final Instant startTime = Instant.now();
-        final Map<LocalDB.DB, Map<String, String>> transactionMap = new HashMap<>();
+        final Map<LocalDB.DB, Map<String, String>> transactionMap = new EnumMap<>( LocalDB.DB.class );
         private final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.MINUTE );
         private final AverageTracker charsPerTransactionAverageTracker = new AverageTracker( 50 );
         private final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
@@ -431,10 +432,8 @@ public class LocalDBUtility
         long storedChars = 0;
         final long totalChars = 0;
 
-        LocalDB.LocalDBIterator<Map.Entry<String, String>> iter = null;
-        try
+        try ( LocalDB.LocalDBIterator<Map.Entry<String, String>> iter = localDB.iterator( db ) )
         {
-            iter = localDB.iterator( db );
             while ( iter.hasNext() )
             {
                 final Map.Entry<String, String> entry = iter.next();
@@ -450,20 +449,13 @@ public class LocalDBUtility
         {
             LOGGER.error( () -> "error while examining LocalDB: " + e.getMessage() );
         }
-        finally
-        {
-            if ( iter != null )
-            {
-                iter.close();
-            }
-        }
 
         final int avgValueLength = totalValues == 0 ? 0 : ( int ) ( totalChars / totalValues );
-        final Map<StatsKey, Object> returnObj = new LinkedHashMap<>();
+        final Map<StatsKey, Object> returnObj = new EnumMap<>( StatsKey.class );
         returnObj.put( StatsKey.TOTAL_VALUES, totalValues );
         returnObj.put( StatsKey.STORED_CHARS, storedChars );
         returnObj.put( StatsKey.AVG_VALUE_LENGTH, avgValueLength );
-        return returnObj;
+        return Collections.unmodifiableMap( returnObj );
     }
 
     public enum StatsKey

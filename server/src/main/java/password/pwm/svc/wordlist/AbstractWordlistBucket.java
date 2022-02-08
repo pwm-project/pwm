@@ -59,31 +59,31 @@ public abstract class AbstractWordlistBucket implements WordlistBucket
         {
             case SEEDLIST:
             {
-                final Map<String, String> returnSet = new TreeMap<>();
+                final Map<String, String> returnData = new TreeMap<>();
                 for ( final String word : words )
                 {
                     if ( StringUtil.notEmpty( word ) )
                     {
                         final long nextLong = valueIncrementer.next();
                         final String nextKey = seedlistLongToKey( nextLong );
-                        returnSet.put( nextKey, word );
+                        returnData.put( nextKey, word );
                     }
                 }
-                return Collections.unmodifiableMap( returnSet );
+                return Collections.unmodifiableMap( returnData );
             }
 
             case WORDLIST:
             {
-                final Map<String, String> returnSet = new TreeMap<>();
+                final Map<String, String> returnData = new TreeMap<>();
                 for ( final String word : words )
                 {
                     if ( StringUtil.notEmpty( word ) )
                     {
                         valueIncrementer.next();
-                        returnSet.put( word, "" );
+                        returnData.put( word, "" );
                     }
                 }
-                return returnSet;
+                return returnData;
             }
 
             default:

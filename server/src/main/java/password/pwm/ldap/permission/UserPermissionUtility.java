@@ -20,7 +20,6 @@
 
 package password.pwm.ldap.permission;
 
-import com.novell.ldapchai.util.StringHelper;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
@@ -98,7 +97,7 @@ public class UserPermissionUtility
     {
         return userPermission.getLdapProfileID() == null
                 || userPermission.getLdapProfileID().isEmpty()
-                || userPermission.getLdapProfileID().equals( PwmConstants.PROFILE_ID_ALL )
+                || PwmConstants.PROFILE_ID_ALL.equals( userPermission.getLdapProfileID() )
                 || userIdentity.getLdapProfileID().equals( userPermission.getLdapProfileID() );
     }
 
@@ -190,7 +189,7 @@ public class UserPermissionUtility
     {
         if ( userPermission.getLdapProfileID() != null
                 && !userPermission.getLdapProfileID().isEmpty()
-                && !userPermission.getLdapProfileID().equals( PwmConstants.PROFILE_ID_ALL ) )
+                && !PwmConstants.PROFILE_ID_ALL.equals( userPermission.getLdapProfileID() ) )
         {
             return Optional.of( userPermission.getLdapProfileID() );
         }
@@ -288,7 +287,7 @@ public class UserPermissionUtility
 
     public static boolean isAllProfiles( final String profile )
     {
-        return StringHelper.isEmpty( profile ) || PwmConstants.PROFILE_ID_ALL.equalsIgnoreCase( profile );
+        return StringUtil.isEmpty( profile ) || PwmConstants.PROFILE_ID_ALL.equalsIgnoreCase( profile );
     }
 
 

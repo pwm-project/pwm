@@ -20,7 +20,7 @@
 
 package password.pwm.util.debug;
 
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogger;
@@ -43,7 +43,7 @@ class LogJsonItemGenerator implements AppItemGenerator
     public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
     {
         final Instant startTime = Instant.now();
-        final Function<PwmLogEvent, String> logEventFormatter = JsonUtil::serialize;
+        final Function<PwmLogEvent, String> logEventFormatter = JsonFactory.get()::serialize;
 
         LogDebugItemGenerator.outputLogs( debugItemInput.getPwmApplication(), outputStream, logEventFormatter );
         LOGGER.trace( () -> "debug json output completed in ", () -> TimeDuration.fromCurrent( startTime ) );

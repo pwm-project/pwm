@@ -30,9 +30,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -65,7 +68,7 @@ public class CollectionUtil
 
         return input.entrySet().stream()
                 .filter( e -> e.getKey() != null && e.getValue() != null )
-                .collect( Collectors.toUnmodifiableMap( Map.Entry::getKey, Map.Entry::getValue ) );
+                .collect( collectorToLinkedMap( Map.Entry::getKey, Map.Entry::getValue ) );
     }
 
     public static <K extends Enum<K>, V> EnumMap<K, V> copiedEnumMap( final Map<K, V> source, final Class<K> classOfT )
@@ -89,16 +92,17 @@ public class CollectionUtil
 
     public static <E extends Enum<E>> Set<E> readEnumSetFromStringCollection( final Class<E> enumClass, final Collection<String> inputs )
     {
-        final Set<E> returnList = EnumSet.noneOf( enumClass );
-        for ( final String input : inputs )
+        if ( inputs == null )
         {
-            final E item = JavaHelper.readEnumFromString( enumClass, null, input );
-            if ( item != null )
-            {
-                returnList.add( item );
-            }
+            return Collections.emptySet();
         }
-        return Collections.unmodifiableSet( returnList );
+
+        final Set<E> set = inputs.stream()
+                .map( input -> JavaHelper.readEnumFromString( enumClass, input ) )
+                .flatMap( Optional::stream )
+                .collect( Collectors.toSet() );
+
+        return Collections.unmodifiableSet( copiedEnumSet( set, enumClass ) );
     }
 
     public static <E extends Enum<E>> Set<E> enumSetFromArray( final E[] arrayValues )
@@ -150,5 +154,21 @@ public class CollectionUtil
             returnMap.putAll( loopMap );
         }
         return Collections.unmodifiableMap( returnMap );
+    }
+
+    public static <T, K, U> Collector<T, ?, Map<K, U>> collectorToLinkedMap(
+            final Function<? super T, ? extends K> keyMapper,
+            final Function<? super T, ? extends U> valueMapper
+    )
+    {
+        return Collectors.toMap(
+                keyMapper,
+                valueMapper,
+                ( key1, key2 ) ->
+                {
+                    throw new IllegalStateException( "Duplicate key " + key1 );
+                },
+                LinkedHashMap::new
+        );
     }
 }

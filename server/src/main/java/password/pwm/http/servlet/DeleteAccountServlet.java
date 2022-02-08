@@ -158,7 +158,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "reset" )
-    private ProcessStatus handleResetRequest(
+    public ProcessStatus handleResetRequest(
             final PwmRequest pwmRequest
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
@@ -169,7 +169,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "agree" )
-    private ProcessStatus handleAgreeRequest(
+    public ProcessStatus handleAgreeRequest(
             final PwmRequest pwmRequest
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
@@ -193,7 +193,7 @@ public class DeleteAccountServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "delete" )
-    private ProcessStatus handleDeleteRequest(
+    public ProcessStatus handleDeleteRequest(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException, ChaiUnavailableException

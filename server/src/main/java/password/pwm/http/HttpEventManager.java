@@ -20,7 +20,6 @@
 
 package password.pwm.http;
 
-import com.novell.ldapchai.util.StringHelper;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
@@ -28,6 +27,7 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -143,7 +143,6 @@ public class HttpEventManager implements
             LOGGER.fatal( () -> "error initializing context: " + e, e );
             System.err.println( "error initializing context: " + e );
             System.out.println( "error initializing context: " + e );
-            e.printStackTrace();
         }
     }
 
@@ -186,7 +185,7 @@ public class HttpEventManager implements
         }
         final TimeDuration avgReqDuration =  sessionStateBean.getAvgRequestDuration().getAverageAsDuration();
         debugItems.put( "avgRequestDuration", avgReqDuration.asCompactString() );
-        return StringHelper.stringMapToString( debugItems, "," );
+        return StringUtil.mapToString( debugItems );
     }
 
     @Override

@@ -34,7 +34,7 @@ import password.pwm.http.servlet.command.CommandServlet;
 import password.pwm.i18n.Message;
 import password.pwm.util.Validator;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -241,7 +241,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
     public void writeEncryptedCookie( final String cookieName, final Serializable cookieValue, final int seconds, final PwmCookiePath path )
             throws PwmUnrecoverableException
     {
-        final String jsonValue = JsonUtil.serialize( cookieValue );
+        final String jsonValue = JsonFactory.get().serialize( cookieValue );
         final PwmSecurityKey pwmSecurityKey = pwmRequest.getPwmSession().getSecurityKey( pwmRequest );
         final String encryptedValue = pwmRequest.getPwmDomain().getSecureService().encryptToString( jsonValue, pwmSecurityKey );
         writeCookie( cookieName, encryptedValue, seconds, path, PwmHttpResponseWrapper.Flag.BypassSanitation );
@@ -298,8 +298,8 @@ public class PwmResponse extends PwmHttpResponseWrapper
         // http "other" redirect
         final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
         resp.setStatus( redirectType.getCode() );
-        resp.setHeader( HttpHeader.Location.getHttpName(), effectiveUrl.toString() );
-        LOGGER.trace( pwmRequest, () -> "sending " + redirectType.getCode() + " redirect to " + effectiveUrl.toString() );
+        resp.setHeader( HttpHeader.Location.getHttpName(), effectiveUrl );
+        LOGGER.trace( pwmRequest, () -> "sending " + redirectType.getCode() + " redirect to " + effectiveUrl );
     }
 
     private void preCommitActions( )

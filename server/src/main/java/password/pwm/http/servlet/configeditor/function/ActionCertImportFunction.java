@@ -18,9 +18,8 @@
  * limitations under the License.
  */
 
-package password.pwm.config.function;
+package password.pwm.http.servlet.configeditor.function;
 
-import com.google.gson.reflect.TypeToken;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigKey;
@@ -34,7 +33,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
@@ -54,10 +53,7 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final Map<String, Integer> extraDataMap = JsonUtil.deserialize( extraData, new TypeToken<Map<String, Integer>>()
-        {
-        } );
-
+        final Map<String, Integer> extraDataMap = JsonFactory.get().deserializeMap( extraData, String.class, Integer.class );
         final PwmSetting pwmSetting = key.toPwmSetting();
 
         final StoredValue actionValue = StoredConfigurationUtil.getValueOrDefault( modifier.newStoredConfiguration(), key );
@@ -99,9 +95,7 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final Map<String, Integer> extraDataMap = JsonUtil.deserialize( extraData, new TypeToken<Map<String, Integer>>()
-        {
-        } );
+        final Map<String, Integer> extraDataMap = JsonFactory.get().deserializeMap( extraData, String.class, Integer.class );
 
         final StoredValue actionValue = StoredConfigurationUtil.getValueOrDefault( modifier.newStoredConfiguration(), key );
         final List<ActionConfiguration> actionConfigurations = ValueTypeConverter.valueToAction( key.toPwmSetting(), actionValue );

@@ -50,7 +50,7 @@ class ConfigurationDebugTextItemGenerator implements AppItemGenerator
                 + PwmConstants.SERVLET_VERSION + "\n" );
         writer.write( "Timestamp: " + JavaHelper.toIsoDate( storedConfiguration.modifyTime() ) + "\n" );
         writer.write( "This file is " + PwmConstants.DEFAULT_CHARSET.displayName() + " encoded\n" );
-        writer.write( "\n" );
+        writer.write( '\n' );
 
         CollectionUtil.iteratorToStream( storedConfiguration.keys() )
                 .filter( k -> k.isRecordType( StoredConfigKey.RecordType.SETTING ) )
@@ -59,10 +59,10 @@ class ConfigurationDebugTextItemGenerator implements AppItemGenerator
                     final String key = storedConfigKey.toPwmSetting().toMenuLocationDebug( storedConfigKey.getProfileID(), locale );
                     final String value = storedConfiguration.readStoredValue( storedConfigKey ).orElseThrow().toDebugString( locale );
                     writer.write( ">> Setting > " + key );
-                    writer.write( "\n" );
+                    writer.write( '\n' );
                     writer.write( value );
-                    writer.write( "\n" );
-                    writer.write( "\n" );
+                    writer.write( '\n' );
+                    writer.write( '\n' );
                 } );
 
         outputStream.write( writer.toString().getBytes( PwmConstants.DEFAULT_CHARSET ) );

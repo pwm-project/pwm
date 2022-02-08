@@ -20,33 +20,51 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
+import password.pwm.util.i18n.LocaleComparators;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LocalizedStringArrayValue extends AbstractValue implements StoredValue
 {
+    private static final Comparator<String> COMPARATOR = LocaleComparators.stringLocaleComparator( PwmConstants.DEFAULT_LOCALE, LocaleComparators.Flag.DefaultFirst );
+
     private final Map<String, List<String>> values;
 
     public LocalizedStringArrayValue( final Map<String, List<String>> values )
     {
-        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
+        if ( CollectionUtil.isEmpty( values ) )
+        {
+            this.values = Collections.emptyMap();
+        }
+        else
+        {
+            final SortedMap<String, List<String>> tempMap = new TreeMap<>( COMPARATOR );
+            for ( final Map.Entry<String, List<String>> entry : CollectionUtil.stripNulls( values ).entrySet() )
+            {
+                tempMap.put( entry.getKey(), List.copyOf( entry.getValue() ) );
+            }
+            this.values = Collections.unmodifiableMap( tempMap );
+        }
     }
 
     public static StoredValueFactory factory( )
@@ -62,11 +80,24 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
                 }
                 else
                 {
-                    Map<String, List<String>> srcMap = JsonUtil.deserialize( input, new TypeToken<Map<String, List<String>>>()
+                    final Map<String, List> deserializeMap = JsonFactory.get().deserializeMap( input, String.class, List.class );
+                    final Map<String, List<String>> values = new LinkedHashMap<>( deserializeMap.size() );
+                    for ( final Map.Entry<String, List> entry : deserializeMap.entrySet() )
                     {
-                    } );
-                    srcMap = srcMap == null ? Collections.emptyMap() : new TreeMap<>( srcMap );
-                    return new LocalizedStringArrayValue( Collections.unmodifiableMap( srcMap ) );
+                        if ( entry.getKey() != null && entry.getValue() != null )
+                        {
+                            final List<String> newArrayList = new ArrayList<>();
+                            for ( final Object value : entry.getValue() )
+                            {
+                                if ( value != null )
+                                {
+                                    newArrayList.add( value.toString() );
+                                }
+                            }
+                            values.put( entry.getKey(), List.copyOf( newArrayList ) );
+                        }
+                    }
+                    return new LocalizedStringArrayValue( Collections.unmodifiableMap( values ) );
                 }
             }
 
@@ -78,7 +109,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
                 final Map<String, List<String>> values = new TreeMap<>();
                 for ( final XmlElement loopValueElement  : valueElements )
                 {
-                    final String localeString = loopValueElement.getAttributeValue( "locale" ).orElse( "" );
+                    final String localeString = loopValueElement.getAttribute( "locale" ).orElse( "" );
                     loopValueElement.getText().ifPresent( value -> values.computeIfAbsent( localeString, s -> new ArrayList<>() ).add( value ) );
                 }
 
@@ -96,8 +127,8 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
             final String locale = entry.getKey();
             for ( final String value : entry.getValue() )
             {
-                final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-                valueElement.addText( value );
+                final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+                valueElement.setText( value );
                 if ( locale != null && locale.length() > 0 )
                 {
                     valueElement.setAttribute( "locale", locale );
@@ -111,7 +142,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
     @Override
     public Map<String, List<String>> toNativeObject( )
     {
-        return Collections.unmodifiableMap( values );
+        return values;
     }
 
     @Override
@@ -158,14 +189,14 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
             final String localeKey = entry.getKey();
             if ( !values.get( localeKey ).isEmpty() )
             {
-                sb.append( "Locale: " ).append( LocaleHelper.debugLabel( LocaleHelper.parseLocaleString( localeKey ) ) ).append( "\n" );
+                sb.append( "Locale: " ).append( LocaleHelper.debugLabel( LocaleHelper.parseLocaleString( localeKey ) ) ).append( '\n' );
                 for ( final Iterator<String> iterator = entry.getValue().iterator(); iterator.hasNext(); )
                 {
                     final String value = iterator.next();
                     sb.append( "  " ).append( value );
                     if ( iterator.hasNext() )
                     {
-                        sb.append( "\n" );
+                        sb.append( '\n' );
                     }
                 }
             }

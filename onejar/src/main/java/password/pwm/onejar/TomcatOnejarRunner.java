@@ -117,7 +117,7 @@ public class TomcatOnejarRunner
         {
             tomcat.setConnector( makeConnector( onejarConfig, tlsProperties ) );
             tomcat.start();
-            out( "tomcat started", startTime );
+            out( "tomcat started, listening on port " + onejarConfig.getPort(), startTime );
         }
         catch ( final Exception e )
         {
@@ -197,7 +197,7 @@ public class TomcatOnejarRunner
                 // Class not from JAR
                 return "version missing, not running inside jar";
             }
-            final String manifestPath = classPath.substring( 0, classPath.lastIndexOf( "!" ) + 1 )
+            final String manifestPath = classPath.substring( 0, classPath.lastIndexOf( '!' ) + 1 )
                     + "/META-INF/MANIFEST.MF";
             final Manifest manifest = new Manifest( new URL( manifestPath ).openStream() );
             final Attributes attr = manifest.getMainAttributes();

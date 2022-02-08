@@ -18,9 +18,8 @@
  * limitations under the License.
  */
 
-package password.pwm.util.java;
+package password.pwm.util.json;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -29,17 +28,18 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import com.google.gson.reflect.TypeToken;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.PwmLdapVendor;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.PwmDateFormat;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
@@ -47,105 +47,24 @@ import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.LongAdder;
 
-public class JsonUtil
+class GsonJsonAdaptors
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( JsonUtil.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( GsonJsonAdaptors.class );
 
-    public enum Flag
+    static GsonBuilder registerTypeAdapters( final GsonBuilder gsonBuilder )
     {
-        PrettyPrint,
-        HtmlEscape,
-    }
-
-    private static final Gson GENERIC_GSON = registerTypeAdapters( new GsonBuilder() )
-            .disableHtmlEscaping()
-            .create();
-
-    private static Gson getGson( final Flag... flags )
-    {
-        if ( flags == null || flags.length == 0 )
-        {
-            return GENERIC_GSON;
-        }
-
-        final GsonBuilder gsonBuilder = registerTypeAdapters( new GsonBuilder() );
-
-        if ( !JavaHelper.enumArrayContainsValue( flags, Flag.HtmlEscape ) )
-        {
-            gsonBuilder.disableHtmlEscaping();
-        }
-
-        if ( JavaHelper.enumArrayContainsValue( flags, Flag.PrettyPrint ) )
-        {
-            gsonBuilder.setPrettyPrinting();
-        }
-
-        return gsonBuilder.create();
-    }
-
-    public static <T> T deserialize( final String jsonString, final TypeToken typeToken )
-    {
-        return JsonUtil.getGson().fromJson( jsonString, typeToken.getType() );
-    }
-
-    public static <T> T deserialize( final String jsonString, final Type type )
-    {
-        return JsonUtil.getGson().fromJson( jsonString, type );
-    }
-
-    public static List<String> deserializeStringList( final String jsonString )
-    {
-        return JsonUtil.getGson().fromJson( jsonString, new TypeToken<List<Object>>()
-        {
-        }.getType() );
-    }
-
-    public static Map<String, String> deserializeStringMap( final String jsonString )
-    {
-        return JsonUtil.getGson().fromJson( jsonString, new TypeToken<Map<String, String>>()
-        {
-        }.getType() );
-    }
-
-    public static Map<String, Object> deserializeStringObjectMap( final String jsonString )
-    {
-        return JsonUtil.getGson().fromJson( jsonString, new TypeToken<Map<String, Object>>()
-        {
-        }.getType() );
-    }
-
-    public static Map<String, Object> deserializeMap( final String jsonString )
-    {
-        return JsonUtil.getGson().fromJson( jsonString, new TypeToken<Map<String, Object>>()
-        {
-        }.getType() );
-    }
-
-    public static <T> T deserialize( final String json, final Class<T> classOfT )
-    {
-        return JsonUtil.getGson().fromJson( json, classOfT );
-    }
-
-    public static String serialize( final Serializable object, final Flag... flags )
-    {
-        return JsonUtil.getGson( flags ).toJson( object );
-    }
-
-    public static String serializeMap( final Map object, final Flag... flags )
-    {
-        return JsonUtil.getGson( flags ).toJson( object );
-    }
-
-    public static String serializeCollection( final Collection object, final Flag... flags )
-    {
-        return JsonUtil.getGson( flags ).toJson( object );
+        gsonBuilder.registerTypeAdapter( Date.class, new DateTypeAdapter() );
+        gsonBuilder.registerTypeAdapter( Instant.class, new InstantTypeAdapter() );
+        gsonBuilder.registerTypeHierarchyAdapter( X509Certificate.class, new X509CertificateAdapter() );
+        gsonBuilder.registerTypeAdapter( PasswordData.class, new PasswordDataTypeAdapter() );
+        gsonBuilder.registerTypeAdapter( PwmLdapVendorTypeAdaptor.class, new PwmLdapVendorTypeAdaptor() );
+        gsonBuilder.registerTypeAdapter( DomainID.class, new DomainIDTypeAdaptor() );
+        gsonBuilder.registerTypeAdapter( LongAdder.class, new LongAdderTypeAdaptor() );
+        return gsonBuilder;
     }
 
     /**
@@ -155,7 +74,7 @@ public class JsonUtil
      */
     private static class X509CertificateAdapter implements JsonSerializer<X509Certificate>, JsonDeserializer<X509Certificate>
     {
-        private X509CertificateAdapter( )
+        private X509CertificateAdapter()
         {
         }
 
@@ -164,9 +83,9 @@ public class JsonUtil
         {
             try
             {
-                return new JsonPrimitive( StringUtil.base64Encode( cert.getEncoded() ) );
+                return new JsonPrimitive( StringUtil.stripAllWhitespace( StringUtil.base64Encode( cert.getEncoded() ) ) );
             }
-            catch ( final PwmUnrecoverableException | CertificateEncodingException e )
+            catch ( final PwmInternalException | CertificateEncodingException e )
             {
                 throw new IllegalStateException( "unable to json-encode certificate: " + e.getMessage() );
             }
@@ -190,7 +109,7 @@ public class JsonUtil
     }
 
     /**
-     * GsonSerializer that stores dates in ISO 8601 format, with a deserialier that also reads local-platform format reading.
+     * GsonSerializer that stores dates in ISO 8601 format, with a deserializer that also reads local-platform format reading.
      */
     private static class DateTypeAdapter implements JsonSerializer<Date>, JsonDeserializer<Date>
     {
@@ -206,7 +125,7 @@ public class JsonUtil
             return gsonDateFormat;
         }
 
-        private DateTypeAdapter( )
+        private DateTypeAdapter()
         {
         }
 
@@ -242,11 +161,11 @@ public class JsonUtil
     }
 
     /**
-     * GsonSerializer that stores instants in ISO 8601 format, with a deserialier that also reads local-platform format reading.
+     * GsonSerializer that stores instants in ISO 8601 format, with a deserializer that also reads local-platform format reading.
      */
     private static class InstantTypeAdapter implements JsonSerializer<Instant>, JsonDeserializer<Instant>
     {
-        private InstantTypeAdapter( )
+        private InstantTypeAdapter()
         {
         }
 
@@ -267,39 +186,6 @@ public class JsonUtil
             {
                 LOGGER.debug( () -> "unable to parse stored json Instant.class timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage() );
                 throw new JsonParseException( e );
-            }
-        }
-    }
-
-    private static class ByteArrayToBase64TypeAdapter implements JsonSerializer<byte[]>, JsonDeserializer<byte[]>
-    {
-        @Override
-        public byte[] deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
-        {
-            try
-            {
-                return StringUtil.base64Decode( json.getAsString() );
-            }
-            catch ( final IOException e )
-            {
-                final String errorMsg = "io stream error while de-serializing byte array: " + e.getMessage();
-                LOGGER.error( () -> errorMsg );
-                throw new JsonParseException( errorMsg, e );
-            }
-        }
-
-        @Override
-        public JsonElement serialize( final byte[] src, final Type typeOfSrc, final JsonSerializationContext context )
-        {
-            try
-            {
-                return new JsonPrimitive( StringUtil.base64Encode( src, StringUtil.Base64Options.GZIP ) );
-            }
-            catch ( final PwmUnrecoverableException e )
-            {
-                final String errorMsg = "error while JSON serializing byte array: " + e.getMessage();
-                LOGGER.error( () -> errorMsg );
-                throw new JsonParseException( errorMsg, e );
             }
         }
     }
@@ -335,7 +221,6 @@ public class JsonUtil
                 throw new JsonParseException( errorMsg, e );
             }
         }
-
     }
 
     private static class PwmLdapVendorTypeAdaptor implements JsonSerializer<PwmLdapVendor>, JsonDeserializer<PwmLdapVendor>
@@ -389,24 +274,5 @@ public class JsonUtil
         {
             return new JsonPrimitive( src.longValue() );
         }
-    }
-
-    private static GsonBuilder registerTypeAdapters( final GsonBuilder gsonBuilder )
-    {
-        gsonBuilder.registerTypeAdapter( Date.class, new DateTypeAdapter() );
-        gsonBuilder.registerTypeAdapter( Instant.class, new InstantTypeAdapter() );
-        gsonBuilder.registerTypeAdapter( X509Certificate.class, new X509CertificateAdapter() );
-        gsonBuilder.registerTypeAdapter( byte[].class, new ByteArrayToBase64TypeAdapter() );
-        gsonBuilder.registerTypeAdapter( PasswordData.class, new PasswordDataTypeAdapter() );
-        gsonBuilder.registerTypeAdapter( PwmLdapVendorTypeAdaptor.class, new PwmLdapVendorTypeAdaptor() );
-        gsonBuilder.registerTypeAdapter( DomainID.class, new DomainIDTypeAdaptor() );
-        gsonBuilder.registerTypeAdapter( LongAdder.class, new LongAdderTypeAdaptor() );
-        return gsonBuilder;
-    }
-
-    public static <T> T cloneUsingJson( final Serializable srcObject, final Class<T> classOfT )
-    {
-        final String asJson = JsonUtil.serialize( srcObject );
-        return JsonUtil.deserialize( asJson, classOfT );
     }
 }

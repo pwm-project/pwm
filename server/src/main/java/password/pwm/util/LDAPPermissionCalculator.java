@@ -334,7 +334,7 @@ public class LDAPPermissionCalculator implements Serializable
                 if ( ValueTypeConverter.valueToBoolean( readValue( PwmSetting.HELPDESK_USE_PROXY, profile ) ) )
                 {
                     final Collection<LDAPPermissionInfo> configuredRecords = pwmSetting.getLDAPPermissionInfo();
-                    final Collection<LDAPPermissionInfo> returnRecords = new ArrayList<>();
+                    final Collection<LDAPPermissionInfo> returnRecords = new ArrayList<>( configuredRecords.size() );
                     for ( final LDAPPermissionInfo ldapPermissionInfo : configuredRecords )
                     {
                         returnRecords.add( new LDAPPermissionInfo( ldapPermissionInfo.getAccess(), LDAPPermissionInfo.Actor.proxy ) );
@@ -460,7 +460,7 @@ public class LDAPPermissionCalculator implements Serializable
 
         final List<PermissionRecord> permissionRecords = new ArrayList<>();
 
-        final PwmSettingTemplateSet templateSet = domainConfig.getStoredConfiguration().getTemplateSet().get( domainConfig.getDomainID() );
+        final PwmSettingTemplateSet templateSet = domainConfig.getStoredConfiguration().getTemplateSets().get( domainConfig.getDomainID() );
 
         {
             // edir specific attributes

@@ -109,12 +109,12 @@ interface PwmHttpClientMessage
             final StringBuilder msg = new StringBuilder();
             for ( final Map.Entry<String, String> headerEntry : headers.entrySet() )
             {
-                msg.append( "\n" );
+                msg.append( '\n' );
                 final Optional<HttpHeader> httpHeader = HttpHeader.forHttpHeader( headerEntry.getKey() );
                 if ( httpHeader.isPresent() )
                 {
                     final boolean sensitive = httpHeader.get().isSensitive();
-                    msg.append( "  header: " ).append( httpHeader.get().getHttpName() ).append( "=" );
+                    msg.append( "  header: " ).append( httpHeader.get().getHttpName() ).append( '=' );
 
                     if ( sensitive )
                     {
@@ -129,7 +129,7 @@ interface PwmHttpClientMessage
                 {
                     // We encountered a header name that doesn't have a corresponding enum in HttpHeader,
                     // so we can't check the sensitive flag.
-                    msg.append( "  header: " ).append( headerEntry.getKey() ).append( "=" ).append( headerEntry.getValue() );
+                    msg.append( "  header: " ).append( headerEntry.getKey() ).append( '=' ).append( headerEntry.getValue() );
                 }
             }
             return msg.toString();
@@ -167,7 +167,7 @@ interface PwmHttpClientMessage
             }
             else
             {
-                msg.append( "[" ).append( body.length() ).append( " chars] " );
+                msg.append( '[' ).append( body.length() ).append( " chars] " );
 
                 final boolean alwaysOutput = pwmApplication.getConfig().readBooleanAppProperty( AppProperty.HTTP_CLIENT_ALWAYS_LOG_ENTITIES );
                 if ( alwaysOutput || !pwmHttpClientConfiguration.isMaskBodyDebugOutput() )

@@ -43,7 +43,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -90,7 +90,7 @@ public class EmailService extends AbstractPwmService implements PwmService
             throws PwmException
     {
         this.emailServiceSettings = EmailServiceSettings.fromConfiguration( this.getPwmApplication().getConfig() );
-        LOGGER.trace( () -> "initializing with settings: " + JsonUtil.serialize( emailServiceSettings ) );
+        LOGGER.trace( () -> "initializing with settings: " + JsonFactory.get().serialize( emailServiceSettings ) );
 
         final List<EmailServer> servers;
         try
@@ -117,7 +117,7 @@ public class EmailService extends AbstractPwmService implements PwmService
 
         }
 
-        LOGGER.debug( () -> "starting with settings: " + JsonUtil.serialize( emailServiceSettings ) );
+        LOGGER.debug( () -> "starting with settings: " + JsonFactory.get().serialize( emailServiceSettings ) );
 
         final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
                 .maxEvents( emailServiceSettings.getQueueMaxItems() )

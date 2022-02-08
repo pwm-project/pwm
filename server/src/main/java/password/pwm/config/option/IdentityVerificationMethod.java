@@ -34,7 +34,8 @@ public enum IdentityVerificationMethod implements Serializable, ConfigurationOpt
     TOKEN( true, Display.Field_VerificationMethodToken, Display.Description_VerificationMethodToken ),
     OTP( true, Display.Field_VerificationMethodOTP, Display.Description_VerificationMethodOTP ),
     REMOTE_RESPONSES( false, Display.Field_VerificationMethodRemoteResponses, Display.Description_VerificationMethodRemoteResponses ),
-    OAUTH( true, Display.Field_VerificationMethodOAuth, Display.Description_VerificationMethodOAuth ),;
+    OAUTH( true, Display.Field_VerificationMethodOAuth, Display.Description_VerificationMethodOAuth ),
+    NAAF( false, Display.Value_Deprecated, Display.Value_Deprecated ),;
 
     private final transient boolean userSelectable;
     private final transient Display labelKey;

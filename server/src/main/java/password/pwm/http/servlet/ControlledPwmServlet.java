@@ -93,7 +93,6 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             final Method interestedMethod = actionMethodCache.get( action.get() );
             if ( interestedMethod != null )
             {
-                interestedMethod.setAccessible( true );
                 return ( ProcessStatus ) interestedMethod.invoke( this, pwmRequest );
             }
         }

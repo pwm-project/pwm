@@ -74,8 +74,9 @@ public class EmailServiceSettings implements Serializable
             return Collections.emptySet();
         }
 
-        final Set<Integer> returnData = new HashSet<>();
-        for ( final String loopString : rawAppProp.split( "," ) )
+        final String[] split = rawAppProp.split( "," );
+        final Set<Integer> returnData = new HashSet<>( split.length );
+        for ( final String loopString : split )
         {
             final Integer loopInt = Integer.parseInt( loopString );
             returnData.add( loopInt );

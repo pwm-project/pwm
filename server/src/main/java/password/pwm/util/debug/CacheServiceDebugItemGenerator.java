@@ -23,7 +23,8 @@ package password.pwm.util.debug;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.svc.cache.CacheService;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonProvider;
+import password.pwm.util.json.JsonFactory;
 
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -45,6 +46,6 @@ class CacheServiceDebugItemGenerator implements AppItemGenerator
         final CacheService cacheService = pwmApplication.getCacheService();
 
         final Map<String, Serializable> debugOutput = new LinkedHashMap<>( cacheService.debugInfo() );
-        outputStream.write( JsonUtil.serializeMap( debugOutput, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        outputStream.write( JsonFactory.get().serializeMap( debugOutput, JsonProvider.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }
 }

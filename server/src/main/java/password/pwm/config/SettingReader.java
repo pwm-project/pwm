@@ -30,6 +30,7 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public interface SettingReader
@@ -52,10 +53,13 @@ public interface SettingReader
 
     List<UserPermission> readSettingAsUserPermission( PwmSetting pwmSetting );
 
+    List<String> readSettingAsLocalizedStringArray( PwmSetting setting, Locale locale );
+
     String readSettingAsString( PwmSetting setting );
+
+    String readSettingAsLocalizedString( PwmSetting setting, Locale locale );
 
     PasswordData readSettingAsPassword( PwmSetting setting );
 
-    Map<Locale, String> readLocalizedBundle( PwmLocaleBundle className, String keyName );
-
+    Optional<Map<Locale, String>> readLocalizedBundle( PwmLocaleBundle className, String keyName );
 }

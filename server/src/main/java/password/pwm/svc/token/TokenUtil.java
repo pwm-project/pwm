@@ -37,7 +37,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -72,7 +72,7 @@ public class TokenUtil
     )
             throws PwmUnrecoverableException
     {
-        if ( tokenSendMethod == null || tokenSendMethod.equals( MessageSendMethod.NONE ) )
+        if ( tokenSendMethod == null || tokenSendMethod == MessageSendMethod.NONE )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_MISSING_CONTACT, "no token send methods configured in profile" );
         }
@@ -87,14 +87,14 @@ public class TokenUtil
                     .collect( Collectors.toList() );
         }
 
-        final List<TokenDestinationItem> effectiveItems = new ArrayList<>(  );
+        final List<TokenDestinationItem> effectiveItems = new ArrayList<>( tokenDestinations.size() );
         for ( final TokenDestinationItem item : tokenDestinations )
         {
             final TokenDestinationItem effectiveItem = invokeExternalTokenDestRestClient( pwmDomain, sessionLabel, locale, userInfo.getUserIdentity(), item );
             effectiveItems.add( effectiveItem );
         }
 
-        LOGGER.trace( sessionLabel, () -> "calculated available token send destinations: " + JsonUtil.serializeCollection( effectiveItems ) );
+        LOGGER.trace( sessionLabel, () -> "calculated available token send destinations: " + JsonFactory.get().serializeCollection( effectiveItems ) );
 
         if ( tokenDestinations.isEmpty() )
         {

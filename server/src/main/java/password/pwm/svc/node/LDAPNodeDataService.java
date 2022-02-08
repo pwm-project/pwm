@@ -30,7 +30,7 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -81,7 +81,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
                 if ( value.startsWith( VALUE_PREFIX ) )
                 {
                     final String rawValue = value.substring( VALUE_PREFIX.length() );
-                    final StoredNodeData storedNodeData = JsonUtil.deserialize( rawValue, StoredNodeData.class );
+                    final StoredNodeData storedNodeData = JsonFactory.get().deserialize( rawValue, StoredNodeData.class );
                     returnData.put( storedNodeData.getInstanceID(),  storedNodeData );
                 }
             }
@@ -103,13 +103,13 @@ class LDAPNodeDataService implements NodeDataServiceProvider
 
         final LDAPHelper ldapHelper = LDAPHelper.createLDAPHelper( nodeService, pwmDomain );
 
-        final String newRawValue = VALUE_PREFIX + JsonUtil.serialize( storedNodeData );
+        final String newRawValue = VALUE_PREFIX + JsonFactory.get().serialize( storedNodeData );
 
         try
         {
             if ( removeNode != null )
             {
-                final String oldRawValue = VALUE_PREFIX + JsonUtil.serialize( removeNode );
+                final String oldRawValue = VALUE_PREFIX + JsonFactory.get().serialize( removeNode );
                 ldapHelper.getChaiUser().replaceAttribute( ldapHelper.getAttr(), oldRawValue, newRawValue );
             }
             else
@@ -146,7 +146,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
 
                 try
                 {
-                    final String oldRawValue = VALUE_PREFIX + JsonUtil.serialize( storedNodeData );
+                    final String oldRawValue = VALUE_PREFIX + JsonFactory.get().serialize( storedNodeData );
                     ldapHelper.getChaiUser().deleteAttribute( ldapHelper.getAttr(), oldRawValue );
                     nodesPurged++;
                 }

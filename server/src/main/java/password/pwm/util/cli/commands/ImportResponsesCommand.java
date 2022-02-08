@@ -23,24 +23,26 @@ package password.pwm.util.cli.commands;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChallengeSet;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.cli.CliParameters;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.ws.server.rest.RestChallengesServer;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.util.Collections;
 
 public class ImportResponsesCommand extends AbstractCliCommand
@@ -52,7 +54,8 @@ public class ImportResponsesCommand extends AbstractCliCommand
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
         final File inputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
-        try ( BufferedReader reader = new BufferedReader( new InputStreamReader( new FileInputStream( inputFile ), PwmConstants.DEFAULT_CHARSET.toString() ) ) )
+        try ( BufferedReader reader = new BufferedReader( new InputStreamReader( Files.newInputStream( inputFile.toPath() ),
+                PwmConstants.DEFAULT_CHARSET.toString() ) ) )
         {
             out( "importing stored responses from " + inputFile.getAbsolutePath() + "...." );
 
@@ -63,7 +66,7 @@ public class ImportResponsesCommand extends AbstractCliCommand
             {
                 counter++;
                 final RestChallengesServer.JsonChallengesData inputData;
-                inputData = JsonUtil.deserialize( line, RestChallengesServer.JsonChallengesData.class );
+                inputData = JsonFactory.get().deserialize( line, RestChallengesServer.JsonChallengesData.class );
 
                 final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( SessionLabel.CLI_SESSION_LABEL, inputData.username );
                 final PwmDomain pwmDomain = figureDomain( userIdentity, pwmApplication );
@@ -75,7 +78,8 @@ public class ImportResponsesCommand extends AbstractCliCommand
                     {
                         final ChallengeProfile challengeProfile = pwmDomain.getCrService().readUserChallengeProfile(
                                 null, userIdentity, user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE );
-                        final ChallengeSet challengeSet = challengeProfile.getChallengeSet();
+                        final ChallengeSet challengeSet = challengeProfile.getChallengeSet()
+                                .orElseThrow( () -> new PwmUnrecoverableException( PwmError.ERROR_NO_CHALLENGES.toInfo() ) );
                         final String userGuid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, null, userIdentity, false );
                         final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean( PwmConstants.DEFAULT_LOCALE, challengeSet.getIdentifier() );
                         pwmDomain.getCrService().writeResponses( null, userIdentity, user, userGuid, responseInfoBean );

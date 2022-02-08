@@ -30,7 +30,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 
 import java.util.Optional;
@@ -47,7 +47,7 @@ public class RestUtility
     {
         try
         {
-            final T jsonData = JsonUtil.deserialize( restRequest.readRequestBodyAsString(), classOfT );
+            final T jsonData = JsonFactory.get().deserialize( restRequest.readRequestBodyAsString(), classOfT );
             if ( jsonData == null && !JavaHelper.enumArrayContainsValue( flags, Flag.AllowNullReturn ) )
             {
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_REST_INVOCATION_ERROR, "missing json body" );
@@ -103,7 +103,7 @@ public class RestUtility
         final String effectiveUsername;
         if ( username.contains( "|" ) )
         {
-            final int pipeIndex = username.indexOf( "|" );
+            final int pipeIndex = username.indexOf( '|' );
             ldapProfileID = username.substring( 0, pipeIndex );
             effectiveUsername = username.substring( pipeIndex + 1 );
         }

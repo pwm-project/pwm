@@ -125,7 +125,7 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
         userSearchEngine.log( PwmLogLevel.TRACE, userSearchJobParameters.getSessionLabel(), userSearchJobParameters.getSearchID(), userSearchJobParameters.getJobId(),
                 "found " + results.size() + " results in " + searchDuration.asCompactString() + "; " + debugInfo );
 
-        final Map<UserIdentity, Map<String, String>> returnMap = new LinkedHashMap<>();
+        final Map<UserIdentity, Map<String, String>> returnMap = new LinkedHashMap<>( results.size() );
         for ( final Map.Entry<String, Map<String, String>> entry : results.entrySet() )
         {
             final String userDN = entry.getKey();

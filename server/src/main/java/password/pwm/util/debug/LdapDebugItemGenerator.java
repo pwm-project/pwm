@@ -22,7 +22,8 @@ package password.pwm.util.debug;
 
 import password.pwm.PwmConstants;
 import password.pwm.ldap.LdapDebugDataGenerator;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonProvider;
+import password.pwm.util.json.JsonFactory;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -47,7 +48,7 @@ class LdapDebugItemGenerator implements DomainItemGenerator
                 debugItemInput.getLocale()
         );
         final Writer writer = new OutputStreamWriter( outputStream, PwmConstants.DEFAULT_CHARSET );
-        writer.write( JsonUtil.serializeCollection( ldapDebugInfos, JsonUtil.Flag.PrettyPrint ) );
+        writer.write( JsonFactory.get().serializeCollection( ldapDebugInfos, JsonProvider.Flag.PrettyPrint ) );
         writer.flush();
     }
 }

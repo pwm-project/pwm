@@ -28,7 +28,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
@@ -97,7 +97,7 @@ public class EdirSchemaExtender implements SchemaExtender
     private void execute( final boolean readOnly ) throws PwmUnrecoverableException
     {
         activityLog.delete( 0, activityLog.length() );
-        logActivity( "connecting to " + schemaEntry.getChaiProvider().getChaiConfiguration().bindURLsAsList().iterator().next() );
+        logActivity( "connecting to " + schemaEntry.getChaiProvider().getChaiConfiguration().bindURLsAsList().get( 0 ) );
         stateMap.clear();
         try
         {
@@ -246,16 +246,16 @@ public class EdirSchemaExtender implements SchemaExtender
                 if ( !defOptionals.equals( existingOptionals ) )
                 {
                     logActivity( "objectclass '" + schemaDefinition.getName()
-                            + "' optional attributes (" + JsonUtil.serializeCollection( defOptionals )
+                            + "' optional attributes (" + JsonFactory.get().serializeCollection( defOptionals )
                             + ") is not correct, correct optional attribute list is ("
-                            + JsonUtil.serializeCollection( existingOptionals ) + ")" );
+                            + JsonFactory.get().serializeCollection( existingOptionals ) + ")" );
                     checkPassed = false;
                 }
             }
         }
         catch ( final IOException e )
         {
-            e.printStackTrace();
+            LOGGER.error( () -> "error checking schema extension: " + e.getMessage() );
         }
 
         return checkPassed;
@@ -351,7 +351,7 @@ public class EdirSchemaExtender implements SchemaExtender
     private void logActivity( final CharSequence charSequence )
     {
         LOGGER.info( () -> charSequence );
-        activityLog.append( charSequence ).append( "\n" );
+        activityLog.append( charSequence ).append( '\n' );
     }
 
     private String getActivityLog( )

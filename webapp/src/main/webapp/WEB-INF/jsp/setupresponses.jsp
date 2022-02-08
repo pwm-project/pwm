@@ -25,10 +25,10 @@
 
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="password.pwm.http.servlet.setupresponses.ResponseMode" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SetupResponsesBean responseBean = (SetupResponsesBean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.ModuleBean); %>
 <% final boolean allowSkip = JspUtility.getBooleanAttribute( pageContext, PwmRequestAttribute.SetupResponses_AllowSkip ); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
@@ -43,7 +43,6 @@
         <form action="<pwm:current-url/>" method="post" name="form-setupResponses" enctype="application/x-www-form-urlencoded" id="form-setupResponses" class="pwm-form" autocomplete="off">
             <%@ include file="fragment/message.jsp" %>
             <div id="pwm-setupResponsesDiv">
-            <% request.setAttribute("setupData",responseBean.getResponseData()); %>
             <jsp:include page="fragment/setupresponses-form.jsp"/>
             </div>
             <div class="buttonbar">
@@ -71,7 +70,7 @@
 </form>
 <pwm:script>
     <script type="text/javascript">
-        PWM_GLOBAL['responseMode'] = "user";
+        PWM_GLOBAL['responseMode'] = "<%=ResponseMode.user%>";
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_RESPONSES.startupResponsesPage();
         });

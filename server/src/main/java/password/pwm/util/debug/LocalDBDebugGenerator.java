@@ -22,7 +22,8 @@ package password.pwm.util.debug;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonProvider;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
 
 import java.io.OutputStream;
@@ -43,6 +44,6 @@ class LocalDBDebugGenerator implements AppItemGenerator
         final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
         final LocalDB localDB = pwmApplication.getLocalDB();
         final Map<String, Serializable> serializableMap = localDB.debugInfo();
-        outputStream.write( JsonUtil.serializeMap( serializableMap, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        outputStream.write( JsonFactory.get().serializeMap( serializableMap, JsonProvider.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }
 }

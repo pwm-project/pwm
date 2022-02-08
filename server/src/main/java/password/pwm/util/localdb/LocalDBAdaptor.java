@@ -120,10 +120,6 @@ public class LocalDBAdaptor implements LocalDB
                 ParameterValidator.validateKeyValue( loopKey );
                 ParameterValidator.validateValueValue( loopValue );
             }
-            catch ( final NullPointerException e )
-            {
-                throw new NullPointerException( e.getMessage() + " for transaction record: '" + loopKey + "'" );
-            }
             catch ( final IllegalArgumentException e )
             {
                 throw new IllegalArgumentException( e.getMessage() + " for transaction record: '" + loopKey + "'" );
@@ -184,10 +180,6 @@ public class LocalDBAdaptor implements LocalDB
             try
             {
                 ParameterValidator.validateValueValue( loopKey );
-            }
-            catch ( final NullPointerException e )
-            {
-                throw new NullPointerException( e.getMessage() + " for transaction record: '" + loopKey + "'" );
             }
             catch ( final IllegalArgumentException e )
             {

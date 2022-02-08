@@ -33,7 +33,7 @@ import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -114,7 +114,7 @@ public class ApplianceStatusChecker implements HealthSupplier
 
         LOGGER.debug( () -> "response from /sspr/appliance-update-status: " + jsonString );
 
-        final UpdateStatus updateStatus = JsonUtil.deserialize( jsonString, UpdateStatus.class );
+        final UpdateStatus updateStatus = JsonFactory.get().deserialize( jsonString, UpdateStatus.class );
 
         if ( updateStatus.pendingInstallation )
         {

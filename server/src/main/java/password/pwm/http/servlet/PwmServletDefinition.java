@@ -22,6 +22,7 @@ package password.pwm.http.servlet;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ActivateUserBean;
 import password.pwm.http.bean.AdminBean;
@@ -58,6 +59,7 @@ import password.pwm.http.servlet.newuser.NewUserServlet;
 import password.pwm.http.servlet.oauth.OAuthConsumerServlet;
 import password.pwm.http.servlet.peoplesearch.PrivatePeopleSearchServlet;
 import password.pwm.http.servlet.peoplesearch.PublicPeopleSearchServlet;
+import password.pwm.http.servlet.setupresponses.SetupResponsesServlet;
 import password.pwm.http.servlet.updateprofile.UpdateProfileServlet;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
@@ -80,7 +82,7 @@ public enum PwmServletDefinition
 
     AccountInformation( AccountInformationServlet.class, null ),
     PrivateChangePassword( PrivateChangePasswordServlet.class, ChangePasswordBean.class, Flag.RequiresUserPasswordAndBind ),
-    SetupResponses( password.pwm.http.servlet.SetupResponsesServlet.class, SetupResponsesBean.class, Flag.RequiresUserPasswordAndBind ),
+    SetupResponses( SetupResponsesServlet.class, SetupResponsesBean.class, Flag.RequiresUserPasswordAndBind ),
     UpdateProfile( UpdateProfileServlet.class, UpdateProfileBean.class, Flag.RequiresUserPasswordAndBind ),
     SetupOtp( password.pwm.http.servlet.SetupOtpServlet.class, SetupOtpBean.class, Flag.RequiresUserPasswordAndBind ),
     Helpdesk( password.pwm.http.servlet.helpdesk.HelpdeskServlet.class, null ),
@@ -138,17 +140,19 @@ public enum PwmServletDefinition
             final String[] definedPatterns = getWebServletAnnotation( pwmServletClass ).urlPatterns();
             if ( definedPatterns == null || definedPatterns.length < 1 )
             {
-                throw new IllegalStateException( "no url patterns are defined for servlet " + this.name() );
+                throw new PwmInternalException( "no url patterns are defined for servlet "  + this.getClass().getSimpleName()
+                        + " value " + this.name() );
             }
             this.patterns = List.of( definedPatterns );
         }
         catch ( final Exception e )
         {
-            throw new IllegalStateException( "error initializing PwmServletInfo value " + this.toString() + ", error: " + e.getMessage() );
+            throw new PwmInternalException( "error initializing " + this.getClass().getSimpleName()
+                    + " value " + this.name() + ", error: " + e.getMessage(), e );
         }
 
         final String firstPattern = patterns.iterator().next();
-        final int lastSlash = firstPattern.lastIndexOf( "/" );
+        final int lastSlash = firstPattern.lastIndexOf( '/' );
         servletUrl = firstPattern.substring( lastSlash + 1 );
     }
 
@@ -164,7 +168,7 @@ public enum PwmServletDefinition
 
     public String servletUrl( )
     {
-        return patterns.iterator().next();
+        return patterns.get( 0 );
     }
 
     public Class<? extends PwmServlet> getPwmServletClass( )

@@ -22,7 +22,7 @@ package password.pwm.svc.stats;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
@@ -68,16 +68,16 @@ public class StatisticsBundle
             final AverageBean averageBean = avgMap.get( epsStatistic );
             if ( !averageBean.isZero() )
             {
-                outputMap.put( epsStatistic.name(), JsonUtil.serialize( averageBean ) );
+                outputMap.put( epsStatistic.name(), JsonFactory.get().serialize( averageBean ) );
             }
         }
 
-        return JsonUtil.serializeMap( outputMap );
+        return JsonFactory.get().serializeMap( outputMap );
     }
 
     public static StatisticsBundle input( final String inputString )
     {
-        final Map<String, String> loadedMap = JsonUtil.deserializeStringMap( inputString );
+        final Map<String, String> loadedMap = JsonFactory.get().deserializeStringMap( inputString );
         final StatisticsBundle bundle = new StatisticsBundle();
 
         for ( final Statistic loopStat : Statistic.values() )
@@ -97,7 +97,7 @@ public class StatisticsBundle
             final String value = loadedMap.get( loopStat.name() );
             if ( StringUtil.notEmpty( value ) )
             {
-                final AverageBean avgBean = JsonUtil.deserialize( value, AverageBean.class );
+                final AverageBean avgBean = JsonFactory.get().deserialize( value, AverageBean.class );
                 bundle.avgMap.put( loopStat, avgBean );
             }
         }

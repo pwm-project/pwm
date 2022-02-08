@@ -42,7 +42,7 @@ public interface StoredConfiguration
 
     Optional<String> readConfigProperty( ConfigurationProperty propertyName );
 
-    Map<DomainID, PwmSettingTemplateSet> getTemplateSet();
+    Map<DomainID, PwmSettingTemplateSet> getTemplateSets();
 
     Optional<ValueMetaData> readSettingMetadata( StoredConfigKey storedConfigKey );
 

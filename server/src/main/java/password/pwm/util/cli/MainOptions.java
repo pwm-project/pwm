@@ -142,7 +142,7 @@ public class MainOptions implements Serializable
                             applicationPath = new File( pathStr );
                         }
                     }
-                    else if ( arg.equals( OPT_FORCE ) )
+                    else if ( OPT_FORCE.equals( arg ) )
                     {
                         forceFlag = true;
                     }
@@ -179,7 +179,7 @@ public class MainOptions implements Serializable
             try
             {
                 debugWriter.append( out );
-                debugWriter.append( "\n" );
+                debugWriter.append( '\n' );
                 debugWriter.flush();
             }
             catch ( final IOException e )

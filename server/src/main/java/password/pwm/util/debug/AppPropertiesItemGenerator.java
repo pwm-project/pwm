@@ -24,7 +24,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.AppConfig;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 
 import java.io.OutputStream;
 import java.util.Properties;
@@ -49,6 +49,6 @@ class AppPropertiesItemGenerator implements AppItemGenerator
             outputProps.put( appProperty.getKey(), config.readAppProperty( appProperty ) );
         }
 
-        outputStream.write( JsonUtil.serializeMap( outputProps ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        outputStream.write( JsonFactory.get().serializeMap( outputProps ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }
 }

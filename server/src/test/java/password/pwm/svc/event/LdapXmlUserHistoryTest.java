@@ -20,6 +20,11 @@
 
 package password.pwm.svc.event;
 
+import org.jrivard.xmlchai.AccessMode;
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlDocument;
+import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,13 +33,8 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.userhistory.LdapXmlUserHistory;
 import password.pwm.util.SampleDataGenerator;
-import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.XmlDocument;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
 import password.pwm.util.localdb.TestHelper;
 
 import java.time.Instant;
@@ -85,7 +85,7 @@ public class LdapXmlUserHistoryTest
     }
 
     @Test
-    public void outputTest() throws PwmUnrecoverableException
+    public void outputTest() throws Exception
     {
         final LdapXmlUserHistory.StoredHistory storedHistory = new LdapXmlUserHistory.StoredHistory();
         storedHistory.addEvent( LdapXmlUserHistory.StoredEvent.fromAuditRecord( AuditRecordData.builder()
@@ -95,15 +95,15 @@ public class LdapXmlUserHistoryTest
                 .build() ) );
 
         final String xmlValue = storedHistory.toXml();
-        final XmlFactory xmlFactory = XmlFactory.getFactory();
+        final XmlFactory xmlFactory = XmlChai.getFactory();
 
-        final XmlDocument xmlDocument = xmlFactory.parseXml( StringUtil.stringToInputStream( xmlValue ) );
+        final XmlDocument xmlDocument = xmlFactory.parseString( xmlValue, AccessMode.IMMUTABLE );
         final Optional<XmlElement> optionalRecordElement = xmlDocument.evaluateXpathToElement( "/history/record" );
         Assert.assertTrue( optionalRecordElement.isPresent() );
         optionalRecordElement.ifPresent( xmlElement ->
         {
-            Assert.assertEquals( "EventLog_ChangePassword", xmlElement.getAttributeValue( "eventCode" ).orElseThrow() );
-            Assert.assertEquals( "1582824390000", xmlElement.getAttributeValue( "timestamp" ).orElseThrow() );
+            Assert.assertEquals( "EventLog_ChangePassword", xmlElement.getAttribute( "eventCode" ).orElseThrow() );
+            Assert.assertEquals( "1582824390000", xmlElement.getAttribute( "timestamp" ).orElseThrow() );
         } );
     }
 }

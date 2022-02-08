@@ -24,7 +24,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.io.IOUtils;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -42,7 +41,7 @@ public class RestTestExternalTokenDestinationServlet extends HttpServlet
 
     @Override
     protected void doPost( final HttpServletRequest req, final HttpServletResponse resp )
-            throws ServletException, IOException
+            throws IOException
     {
         System.out.println( "--External Token Destination--" );
         final InputStream inputStream = req.getInputStream();

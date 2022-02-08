@@ -20,7 +20,7 @@
 
 package password.pwm.ldap.schema;
 
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ public class SchemaDefinition implements Serializable
         for ( final String key : Collections.list( resourceBundle.getKeys() ) )
         {
             final String value = resourceBundle.getString( key );
-            final SchemaDefinition schemaDefinition = JsonUtil.deserialize( value, SchemaDefinition.class );
+            final SchemaDefinition schemaDefinition = JsonFactory.get().deserialize( value, SchemaDefinition.class );
             returnObj.put( key, schemaDefinition );
         }
         return new ArrayList<>( returnObj.values() );

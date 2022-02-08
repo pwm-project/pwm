@@ -110,8 +110,7 @@ public class RestRandomPasswordServer extends RestServlet
         try
         {
             final JsonOutput jsonOutput = doOperation( restRequest, jsonInput );
-            final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
-            return restResultBean;
+            return RestResultBean.withData( jsonOutput, JsonOutput.class );
         }
         catch ( final PwmException e )
         {
@@ -153,7 +152,7 @@ public class RestRandomPasswordServer extends RestServlet
         try
         {
             final JsonOutput jsonOutput = doOperation( restRequest, jsonInput );
-            return RestResultBean.withData( jsonOutput.getPassword() );
+            return RestResultBean.withData( jsonOutput.getPassword(), String.class );
         }
         catch ( final Exception e )
         {
@@ -174,7 +173,7 @@ public class RestRandomPasswordServer extends RestServlet
         try
         {
             final JsonOutput jsonOutput = doOperation( restRequest, jsonInput );
-            return RestResultBean.withData( jsonOutput );
+            return RestResultBean.withData( jsonOutput, JsonOutput.class );
         }
         catch ( final PwmException e )
         {
@@ -244,10 +243,11 @@ public class RestRandomPasswordServer extends RestServlet
         }
         if ( jsonInput.getChars() != null )
         {
-            final List<String> charValues = new ArrayList<>();
-            for ( int i = 0; i < jsonInput.getChars().length(); i++ )
+            final String inputChars = jsonInput.getChars();
+            final List<String> charValues = new ArrayList<>( inputChars.length() );
+            for ( int i = 0; i < inputChars.length(); i++ )
             {
-                charValues.add( String.valueOf( jsonInput.getChars().charAt( i ) ) );
+                charValues.add( String.valueOf( inputChars.charAt( i ) ) );
             }
             randomConfigBuilder.seedlistPhrases( charValues );
         }

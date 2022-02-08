@@ -41,6 +41,7 @@ import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -53,11 +54,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
 
 public class LdapBrowser
 {
     public static final String PARAM_DN = "dn";
     public static final String PARAM_PROFILE = "profile";
+
+    private static final String ATTR_SUBORDINATE_COUNT = "subordinateCount";
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapBrowser.class );
     private final StoredConfiguration storedConfiguration;
@@ -211,64 +215,81 @@ public class LdapBrowser
             throws ChaiUnavailableException, PwmUnrecoverableException, ChaiOperationException
     {
 
-        final HashMap<String, DnType> returnMap = new HashMap<>();
         final ChaiProvider chaiProvider = getChaiProvider( domainID, profile );
+
         if ( StringUtil.isEmpty( dn ) && chaiProvider.getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY )
         {
-            final Set<String> adRootDNList = adRootDNList( domainID, profile );
-            for ( final String rootDN : adRootDNList )
-            {
-                returnMap.put( rootDN, DnType.navigable );
-            }
+            return Collections.unmodifiableMap( adRootDNList( domainID, profile ).stream().collect( CollectionUtil.collectorToLinkedMap(
+                    Function.identity(),
+                    rootDN -> DnType.navigable
+            ) ) );
         }
-        else
+
+        final Map<String, Map<String, List<String>>> results = doLdapSearch( dn, chaiProvider );
+
+        final HashMap<String, DnType> returnMap = new HashMap<>( results.size() );
+        for ( final Map.Entry<String, Map<String, List<String>>> entry : results.entrySet() )
         {
+            final String resultDN = entry.getKey();
+            final Map<String, List<String>> attributeResults = entry.getValue();
 
-            final Map<String, Map<String, List<String>>> results;
-            {
-                final SearchHelper searchHelper = new SearchHelper();
-                searchHelper.setFilter( "(objectclass=*)" );
-                searchHelper.setMaxResults( getMaxSizeLimit() );
-                searchHelper.setAttributes( "subordinateCount" );
-                searchHelper.setSearchScope( SearchScope.ONE );
-                results = chaiProvider.searchMultiValues( dn, searchHelper );
-            }
-
-            for ( final Map.Entry<String, Map<String, List<String>>> entry : results.entrySet() )
-            {
-                final String resultDN = entry.getKey();
-                final Map<String, List<String>> attributeResults = entry.getValue();
-                boolean hasSubs = false;
-                if ( attributeResults.containsKey( "subordinateCount" ) )
-                {
-                    // only eDir actually returns this operational attribute
-                    final int subordinateCount = Integer.parseInt( attributeResults.get( "subordinateCount" ).iterator().next() );
-                    hasSubs = subordinateCount > 0;
-                }
-                else
-                {
-                    final SearchHelper searchHelper = new SearchHelper();
-                    searchHelper.setFilter( "(objectclass=*)" );
-                    searchHelper.setMaxResults( 1 );
-                    searchHelper.setAttributes( Collections.emptyList() );
-                    searchHelper.setSearchScope( SearchScope.ONE );
-                    try
-                    {
-                        final Map<String, Map<String, String>> subSearchResults = chaiProvider.search( resultDN, searchHelper );
-                        hasSubs = !subSearchResults.isEmpty();
-                    }
-                    catch ( final Exception e )
-                    {
-                        LOGGER.debug( sessionLabel, () -> "error during subordinate entry count of " + dn + ", error: " + e.getMessage() );
-                    }
-                }
-                returnMap.put( resultDN, hasSubs ? DnType.navigable : DnType.selectable );
-            }
+            final DnType dnType = dnHasSubordinates( dn, chaiProvider, resultDN, attributeResults );
+            returnMap.put( resultDN, dnType );
         }
         return Collections.unmodifiableMap( returnMap );
     }
 
-    private Set<String> adRootDNList( final DomainID domainID, final String profile ) throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
+    private DnType dnHasSubordinates(
+            final String dn,
+            final ChaiProvider chaiProvider,
+            final String resultDN,
+            final Map<String, List<String>> attributeResults
+    )
+    {
+        if ( attributeResults.containsKey( ATTR_SUBORDINATE_COUNT ) )
+        {
+            // only eDir actually returns this operational attribute
+            final int subordinateCount = Integer.parseInt( attributeResults.get( ATTR_SUBORDINATE_COUNT ).get( 0 ) );
+            return subordinateCount > 0 ? DnType.navigable : DnType.selectable;
+        }
+        else
+        {
+            final SearchHelper searchHelper = new SearchHelper();
+            searchHelper.setFilter( "(objectclass=*)" );
+            searchHelper.setMaxResults( 1 );
+            searchHelper.setAttributes( Collections.emptyList() );
+            searchHelper.setSearchScope( SearchScope.ONE );
+            try
+            {
+                final Map<String, Map<String, String>> subSearchResults = chaiProvider.search( resultDN, searchHelper );
+                return !subSearchResults.isEmpty() ? DnType.navigable : DnType.selectable;
+            }
+            catch ( final Exception e )
+            {
+                LOGGER.debug( sessionLabel, () -> "error during subordinate entry count of " + dn + ", error: " + e.getMessage() );
+            }
+        }
+        return DnType.selectable;
+    }
+
+    private Map<String, Map<String, List<String>>> doLdapSearch(
+            final String dn, final ChaiProvider chaiProvider
+    )
+            throws ChaiUnavailableException, ChaiOperationException
+    {
+        final Map<String, Map<String, List<String>>> results;
+
+        final SearchHelper searchHelper = new SearchHelper();
+        searchHelper.setFilter( "(objectclass=*)" );
+        searchHelper.setMaxResults( getMaxSizeLimit() );
+        searchHelper.setAttributes( ATTR_SUBORDINATE_COUNT );
+        searchHelper.setSearchScope( SearchScope.ONE );
+
+        return chaiProvider.searchMultiValues( dn, searchHelper );
+    }
+
+    private Set<String> adRootDNList( final DomainID domainID, final String profile )
+            throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
     {
         final ChaiProvider chaiProvider = getChaiProvider( domainID, profile );
         final Set<String> adRootValues = new HashSet<>();
@@ -282,9 +303,9 @@ public class LdapBrowser
 
     private static String entryNameFromDN( final String dn )
     {
-        int start = dn.indexOf( "=" );
+        int start = dn.indexOf( '=' );
         start = start == -1 ? 0 : start + 1;
-        int end = dn.indexOf( "," );
+        int end = dn.indexOf( ',' );
         if ( end == -1 )
         {
             end = dn.length();

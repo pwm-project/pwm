@@ -29,7 +29,7 @@ import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
@@ -148,6 +148,6 @@ public class ReportSettings implements Serializable
     String getSettingsHash( )
             throws PwmUnrecoverableException
     {
-        return SecureEngine.hash( JsonUtil.serialize( this ), PwmHashAlgorithm.SHA512 );
+        return SecureEngine.hash( JsonFactory.get().serialize( this ), PwmHashAlgorithm.SHA512 );
     }
 }

@@ -25,7 +25,7 @@ import lombok.Value;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -87,6 +87,6 @@ public class TokenPayload implements Serializable
             debugMap.put( "user", getUserIdentity().toDisplayString() );
         }
         debugMap.put( "guid", getGuid() );
-        return JsonUtil.serializeMap( debugMap );
+        return JsonFactory.get().serializeMap( debugMap );
     }
 }

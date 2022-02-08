@@ -65,7 +65,7 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -115,7 +115,7 @@ class PeopleSearchDataReader
     )
             throws PwmUnrecoverableException
     {
-        final CacheKey cacheKey = makeCacheKey( SearchResultBean.class.getSimpleName(), JsonUtil.serialize( searchRequestBean ) );
+        final CacheKey cacheKey = makeCacheKey( SearchResultBean.class.getSimpleName(), JsonFactory.get().serialize( searchRequestBean ) );
 
         {
             // try to serve from cache first
@@ -140,7 +140,7 @@ class PeopleSearchDataReader
         storeDataInCache( cacheKey, searchResultBean );
         LOGGER.trace( pwmRequest, () -> "returning " + searchResultBean.getSearchResults().size()
                 + " results for search request "
-                + JsonUtil.serialize( searchRequestBean ) );
+                + JsonFactory.get().serialize( searchRequestBean ) );
         return searchResultBean;
     }
 
@@ -183,7 +183,7 @@ class PeopleSearchDataReader
             final List<UserIdentity> parentIdentities = readUserDNAttributeValues( userIdentity, peopleSearchConfiguration.getOrgChartParentAttr( userIdentity ) );
             if ( parentIdentities != null && !parentIdentities.isEmpty() )
             {
-                final UserIdentity parentIdentity = parentIdentities.iterator().next();
+                final UserIdentity parentIdentity = parentIdentities.get( 0 );
                 orgChartData.setParent( makeOrgChartReferenceForIdentity( parentIdentity ) );
             }
         }
@@ -299,14 +299,14 @@ class PeopleSearchDataReader
         final Map<String, String> linkMap;
         try
         {
-            linkMap = JsonUtil.deserializeStringMap( userLinksStr );
+            linkMap = JsonFactory.get().deserializeStringMap( userLinksStr );
         }
         catch ( final Exception e )
         {
             LOGGER.warn( pwmRequest, () -> "error de-serializing configured app property json for detail links: " + e.getMessage() );
             return Collections.emptyList();
         }
-        final List<LinkReferenceBean> returnList = new ArrayList<>();
+        final List<LinkReferenceBean> returnList = new ArrayList<>( linkMap.size() );
         final MacroRequest macroRequest = getMacroMachine( actorIdentity );
         for ( final Map.Entry<String, String> entry : linkMap.entrySet() )
         {
@@ -657,7 +657,7 @@ class PeopleSearchDataReader
         filter.append( "(&" );
         for ( final String objectClass : defaultObjectClasses )
         {
-            filter.append( "(objectClass=" ).append( objectClass ).append( ")" );
+            filter.append( "(objectClass=" ).append( objectClass ).append( ')' );
         }
 
         // open OR clause for attributes
@@ -665,14 +665,14 @@ class PeopleSearchDataReader
 
         for ( final String searchAttribute : searchAttributes )
         {
-            filter.append( "(" ).append( searchAttribute ).append( "=*" ).append( PwmConstants.VALUE_REPLACEMENT_USERNAME ).append( "*)" );
+            filter.append( '(' ).append( searchAttribute ).append( "=*" ).append( PwmConstants.VALUE_REPLACEMENT_USERNAME ).append( "*)" );
         }
 
         // close OR clause
-        filter.append( ")" );
+        filter.append( ')' );
 
         // close AND clause
-        filter.append( ")" );
+        filter.append( ')' );
         return filter.toString();
     }
 

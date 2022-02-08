@@ -56,7 +56,7 @@ public class SettingDataMaker
             throws PwmUnrecoverableException
     {
         final Instant startGenerateTime = Instant.now();
-        final PwmSettingTemplateSet templateSet = storedConfiguration.getTemplateSet().get( domainID );
+        final PwmSettingTemplateSet templateSet = storedConfiguration.getTemplateSets().get( domainID );
 
         final Map<String, SettingInfo> settingMap;
         {

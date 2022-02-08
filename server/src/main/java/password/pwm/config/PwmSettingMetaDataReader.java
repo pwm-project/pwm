@@ -20,6 +20,7 @@
 
 package password.pwm.config;
 
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.StoredValue;
@@ -30,7 +31,6 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.java.XmlElement;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
@@ -168,14 +168,14 @@ public class PwmSettingMetaDataReader
     }
 
     /**
-     * Not required for normal operation, but executing this gets all the enum values poopulated form XML source.  If run prior to users accessing the settings
+     * Not required for normal operation, but executing this gets all the enum values populated form XML source.  If run prior to users accessing the settings
      * module (particularly the config editor) it will increase the initial load performance significantly.  There are no side effects to calling this operation
      * other than cache population.
      */
     public static void initCache()
     {
         final Instant startTime = Instant.now();
-        for ( final PwmSetting pwmSetting : PwmSetting.values() )
+        for ( final PwmSetting pwmSetting : EnumSet.allOf( PwmSetting.class ) )
         {
             pwmSetting.getProperties();
             pwmSetting.getFlags();
@@ -190,7 +190,7 @@ public class PwmSettingMetaDataReader
             pwmSetting.getLDAPPermissionInfo();
             pwmSetting.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
         }
-        for ( final PwmSettingCategory pwmSettingCategory : PwmSettingCategory.values() )
+        for ( final PwmSettingCategory pwmSettingCategory : EnumSet.allOf( PwmSettingCategory.class ) )
         {
             pwmSettingCategory.getLabel( PwmConstants.DEFAULT_LOCALE );
             pwmSettingCategory.getDescription( PwmConstants.DEFAULT_LOCALE );
@@ -232,7 +232,7 @@ public class PwmSettingMetaDataReader
 
         private static Map<String, String> readOptions( final PwmSetting pwmSetting )
         {
-            final Map<String, String> returnList = new LinkedHashMap<>();
+            final Map<String, String> returnData = new LinkedHashMap<>();
             final XmlElement settingElement = PwmSettingXml.readSettingXml( pwmSetting );
             final Optional<XmlElement> optionsElement = settingElement.getChild( PwmSettingXml.XML_ELEMENT_OPTIONS );
             if ( optionsElement.isPresent() )
@@ -242,14 +242,14 @@ public class PwmSettingMetaDataReader
                 {
                     for ( final XmlElement optionElement : optionElements )
                     {
-                        final String value = optionElement.getAttributeValue( PwmSettingXml.XML_ELEMENT_VALUE )
+                        final String value = optionElement.getAttribute( PwmSettingXml.XML_ELEMENT_VALUE )
                                 .orElseThrow( () -> new IllegalStateException( "option element is missing 'value' attribute for key " + pwmSetting.getKey() ) );
 
-                        optionElement.getText().ifPresent( textValue ->  returnList.put( value, textValue ) );
+                        optionElement.getText().ifPresent( textValue ->  returnData.put( value, textValue ) );
                     }
                 }
             }
-            return Collections.unmodifiableMap( returnList );
+            return Collections.unmodifiableMap( returnData );
         }
 
         private static Collection<LDAPPermissionInfo> readLdapPermissionInfo( final PwmSetting pwmSetting )
@@ -263,11 +263,11 @@ public class PwmSettingMetaDataReader
                 {
                     final Optional<LDAPPermissionInfo.Actor> actor = JavaHelper.readEnumFromString(
                             LDAPPermissionInfo.Actor.class,
-                            permissionElement.getAttributeValue( PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACTOR ).orElse( "" )
+                            permissionElement.getAttribute( PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACTOR ).orElse( "" )
                     );
                     final Optional<LDAPPermissionInfo.Access> type = JavaHelper.readEnumFromString(
                             LDAPPermissionInfo.Access.class,
-                            permissionElement.getAttributeValue( PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACCESS ).orElse( "" )
+                            permissionElement.getAttribute( PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACCESS ).orElse( "" )
                     );
                     if ( actor.isPresent() && type.isPresent() )
                     {
@@ -313,7 +313,7 @@ public class PwmSettingMetaDataReader
                 {
                     for ( final XmlElement propertyElement : propertyElements )
                     {
-                        final String keyAttribute = propertyElement.getAttributeValue( PwmSettingXml.XML_ATTRIBUTE_KEY )
+                        final String keyAttribute = propertyElement.getAttribute( PwmSettingXml.XML_ATTRIBUTE_KEY )
                                 .orElseThrow( () -> new IllegalStateException( "property element is missing 'key' attribute for value " + pwmSetting.getKey() ) );
 
                         final PwmSettingProperty property = JavaHelper.readEnumFromString( PwmSettingProperty.class, keyAttribute )
@@ -355,21 +355,21 @@ public class PwmSettingMetaDataReader
         private static boolean readRequired( final PwmSetting pwmSetting )
         {
             final XmlElement settingElement = PwmSettingXml.readSettingXml( pwmSetting );
-            final String requiredAttribute = settingElement.getAttributeValue( PwmSettingXml.XML_ELEMENT_REQUIRED ).orElse( "" );
+            final String requiredAttribute = settingElement.getAttribute( PwmSettingXml.XML_ELEMENT_REQUIRED ).orElse( "" );
             return "true".equalsIgnoreCase( requiredAttribute );
         }
 
         private static boolean readHidden( final PwmSetting pwmSetting )
         {
             final XmlElement settingElement = PwmSettingXml.readSettingXml( pwmSetting );
-            final String requiredAttribute = settingElement.getAttributeValue( PwmSettingXml.XML_ELEMENT_HIDDEN ).orElse( "" );
+            final String requiredAttribute = settingElement.getAttribute( PwmSettingXml.XML_ELEMENT_HIDDEN ).orElse( "" );
             return "true".equalsIgnoreCase( requiredAttribute ) || pwmSetting.getCategory().isHidden();
         }
 
         private static int readLevel( final PwmSetting pwmSetting )
         {
             final XmlElement settingElement = PwmSettingXml.readSettingXml( pwmSetting );
-            final String levelAttribute = settingElement.getAttributeValue( PwmSettingXml.XML_ELEMENT_LEVEL ).orElse( "" );
+            final String levelAttribute = settingElement.getAttribute( PwmSettingXml.XML_ELEMENT_LEVEL ).orElse( "" );
             return JavaHelper.silentParseInt( levelAttribute, 0 );
         }
 

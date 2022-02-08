@@ -36,7 +36,7 @@ import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -184,7 +184,7 @@ class WordlistSource
 
         final Map<HttpHeader, String> finalReturnResponses =  Collections.unmodifiableMap( returnResponses );
         pwmLogger.debug( sessionLabel, () -> "read remote header info for " + this.getWordlistSourceType() + " wordlist: "
-                + JsonUtil.serializeMap( finalReturnResponses ), () -> TimeDuration.fromCurrent( startTime ) );
+                + JsonFactory.get().serializeMap( finalReturnResponses ), () -> TimeDuration.fromCurrent( startTime ) );
         return finalReturnResponses;
     }
 
@@ -251,7 +251,7 @@ class WordlistSource
         }
 
         bytes = zipInputStream.getByteCount();
-        hash = JavaHelper.byteArrayToHexString( zipInputStream.getHash() );
+        hash = JavaHelper.binaryArrayToHex( zipInputStream.getHash() );
         lines = zipInputStream.getLineCount();
 
         if ( cancelFlag.getAsBoolean() )
@@ -263,7 +263,7 @@ class WordlistSource
 
         pwmLogger.debug( sessionLabel, () -> processIdLabel( processId ) + "completed read of data for " + this.getWordlistSourceType()
                 + " wordlist " + StringUtil.formatDiskSizeforDebug( bytes )
-                + ", " + JsonUtil.serialize( wordlistSourceInfo )
+                + ", " + JsonFactory.get().serialize( wordlistSourceInfo )
                 + " (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
 
         return wordlistSourceInfo;

@@ -20,9 +20,10 @@
 
 package password.pwm.svc.event;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import org.graylog2.syslog4j.SyslogIF;
 import org.graylog2.syslog4j.impl.AbstractSyslogConfigIF;
 import org.graylog2.syslog4j.impl.AbstractSyslogWriter;
@@ -52,8 +53,8 @@ import password.pwm.health.HealthTopic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
@@ -64,7 +65,6 @@ import password.pwm.util.secure.PwmTrustManager;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509TrustManager;
-import java.io.Serializable;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
@@ -83,11 +83,9 @@ public class SyslogAuditService
 
     private SyslogIF syslogInstance = null;
     private ErrorInformation lastError = null;
-    private List<X509Certificate> certificates = null;
-    private WorkQueueProcessor<String> workQueueProcessor;
 
-    private List<SyslogIF> syslogInstances = new ArrayList<>();
-
+    private final List<SyslogIF> syslogInstances;
+    private final WorkQueueProcessor<String> workQueueProcessor;
     private final AppConfig appConfig;
     private final PwmApplication pwmApplication;
     private final AuditFormatter auditFormatter;
@@ -98,42 +96,18 @@ public class SyslogAuditService
     {
         this.pwmApplication = pwmApplication;
         this.appConfig = pwmApplication.getConfig();
-        this.certificates = appConfig.readSettingAsCertificate( PwmSetting.AUDIT_SYSLOG_CERTIFICATES );
 
-        final List<String> syslogConfigStringArray = appConfig.readSettingAsStringArray( PwmSetting.AUDIT_SYSLOG_SERVERS );
-        try
-        {
-            for ( final String entry : syslogConfigStringArray )
-            {
-                final SyslogConfig syslogCfg = SyslogConfig.fromConfigString( entry );
-                final SyslogIF syslogInstance = makeSyslogInstance( syslogCfg );
-                syslogInstances.add( syslogInstance );
-            }
-            LOGGER.trace( () -> "queued service running for syslog entries" );
-        }
-        catch ( final IllegalArgumentException e )
-        {
-            LOGGER.error( () -> "error parsing syslog configuration for  syslogConfigStrings ERROR: " + e.getMessage() );
-        }
+        this.syslogInstances = makeSyslogIFs( appConfig );
+        this.auditFormatter = makeAuditFormatter( appConfig );
+        this.workQueueProcessor = makeWorkQueueProcessor( pwmApplication, appConfig );
+    }
 
-        {
-            final SyslogOutputFormat syslogOutputFormat = appConfig.readSettingAsEnum( PwmSetting.AUDIT_SYSLOG_OUTPUT_FORMAT, SyslogOutputFormat.class );
-            switch ( syslogOutputFormat )
-            {
-                case JSON:
-                    auditFormatter = new JsonAuditFormatter();
-                    break;
-
-                case CEF:
-                    auditFormatter = new CEFAuditFormatter();
-                    break;
-
-                default:
-                    JavaHelper.unhandledSwitchStatement( syslogOutputFormat );
-                    throw new IllegalStateException();
-            }
-        }
-
+    private WorkQueueProcessor<String> makeWorkQueueProcessor(
+            final PwmApplication pwmApplication,
+            final AppConfig appConfig
+    )
+            throws LocalDBException
+    {
         final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
                 .maxEvents( Integer.parseInt( appConfig.readAppProperty( AppProperty.QUEUE_SYSLOG_MAX_COUNT ) ) )
                 .retryDiscardAge( TimeDuration.of( Long.parseLong( appConfig.readAppProperty( AppProperty.QUEUE_SYSLOG_MAX_AGE_MS ) ), TimeDuration.Unit.MILLISECONDS ) )
@@ -143,7 +117,49 @@ public class SyslogAuditService
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(
                 pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE );
 
-        workQueueProcessor = new WorkQueueProcessor<>( pwmApplication, localDBStoredQueue, settings, new SyslogItemProcessor(), this.getClass() );
+        return new WorkQueueProcessor<>( pwmApplication, localDBStoredQueue, settings, new SyslogItemProcessor(), this.getClass() );
+    }
+
+    private static AuditFormatter makeAuditFormatter( final AppConfig appConfig )
+    {
+        final SyslogOutputFormat syslogOutputFormat = appConfig.readSettingAsEnum( PwmSetting.AUDIT_SYSLOG_OUTPUT_FORMAT, SyslogOutputFormat.class );
+        switch ( syslogOutputFormat )
+        {
+            case JSON:
+                return new JsonAuditFormatter();
+
+            case CEF:
+                return new CEFAuditFormatter();
+
+            default:
+                JavaHelper.unhandledSwitchStatement( syslogOutputFormat );
+                throw new IllegalStateException();
+        }
+    }
+
+    private static List<SyslogIF> makeSyslogIFs(
+            final AppConfig appConfig
+    )
+    {
+        final List<String> syslogConfigStringArray = appConfig.readSettingAsStringArray( PwmSetting.AUDIT_SYSLOG_SERVERS );
+        final List<SyslogIF> returnData = new ArrayList<>( syslogConfigStringArray.size() );
+        final List<X509Certificate> certificates = appConfig.readSettingAsCertificate( PwmSetting.AUDIT_SYSLOG_CERTIFICATES );
+
+        try
+        {
+            for ( final String entry : syslogConfigStringArray )
+            {
+                final SyslogConfig syslogCfg = SyslogConfig.fromConfigString( entry );
+                final SyslogIF syslogInstance = makeSyslogInstance( appConfig, certificates, syslogCfg );
+                returnData.add( syslogInstance );
+            }
+            LOGGER.trace( () -> "queued service running for syslog entries" );
+        }
+        catch ( final IllegalArgumentException e )
+        {
+            LOGGER.error( () -> "error parsing syslog configuration for  syslogConfigStrings ERROR: " + e.getMessage() );
+        }
+        return List.copyOf( returnData );
     }
 
     private class SyslogItemProcessor implements WorkQueueProcessor.ItemProcessor<String>
@@ -157,12 +173,16 @@ public class SyslogAuditService
         @Override
         public String convertToDebugString( final String workItem )
         {
-            return JsonUtil.serialize( workItem );
+            return JsonFactory.get().serialize( workItem );
         }
     }
 
 
-    private SyslogIF makeSyslogInstance( final SyslogConfig syslogConfig )
+    private static SyslogIF makeSyslogInstance(
+            final AppConfig appConfig,
+            final List<X509Certificate> certificates,
+            final SyslogConfig syslogConfig
+    )
     {
         final AbstractSyslogConfigIF syslogConfigIF;
         final AbstractNetSyslog syslogInstance;
@@ -174,7 +194,7 @@ public class SyslogAuditService
             {
                 syslogConfigIF = new SSLTCPNetSyslogConfig();
                 ( ( SSLTCPNetSyslogConfig ) syslogConfigIF ).setBackLogHandlers( Collections.singletonList( new NullSyslogBackLogHandler() ) );
-                syslogInstance = new LocalTrustSSLTCPNetSyslog();
+                syslogInstance = new LocalTrustSSLTCPNetSyslog( appConfig, certificates );
             }
             break;
 
@@ -277,7 +297,7 @@ public class SyslogAuditService
                         }
                 );
                 lastError = errorInformation;
-                LOGGER.error( () -> errorInformation.toDebugStr() );
+                LOGGER.error( errorInformation::toDebugStr );
             }
         }
         return WorkQueueProcessor.ProcessResult.RETRY;
@@ -294,9 +314,9 @@ public class SyslogAuditService
         syslogInstance = null;
     }
 
-    @Getter
+    @Value
     @AllArgsConstructor( access = AccessLevel.PRIVATE )
-    public static class SyslogConfig implements Serializable
+    public static class SyslogConfig
     {
         public enum Protocol
         {
@@ -345,7 +365,7 @@ public class SyslogAuditService
 
         public String toString( )
         {
-            return JsonUtil.serialize( this );
+            return JsonFactory.get().serialize( this );
         }
     }
 
@@ -354,12 +374,22 @@ public class SyslogAuditService
         return workQueueProcessor.queueSize();
     }
 
-    private class LocalTrustSyslogWriterClass extends SSLTCPNetSyslogWriter
+    @SuppressFBWarnings( "SE_BAD_FIELD" )
+    private static class LocalTrustSyslogWriterClass extends SSLTCPNetSyslogWriter
     {
-        private LocalTrustSyslogWriterClass( )
+        private final AppConfig appConfig;
+        private final List<X509Certificate> certificates;
+
+        LocalTrustSyslogWriterClass(
+                final AppConfig appConfig,
+                final List<X509Certificate> certificates
+        )
         {
             super();
+            this.appConfig = appConfig;
+            this.certificates = certificates;
         }
+
 
         @Override
         protected SocketFactory obtainSocketFactory( )
@@ -386,14 +416,26 @@ public class SyslogAuditService
         }
     }
 
-    private class LocalTrustSSLTCPNetSyslog extends SSLTCPNetSyslog
+    @SuppressFBWarnings( "SE_BAD_FIELD" )
+    private static class LocalTrustSSLTCPNetSyslog extends SSLTCPNetSyslog
     {
+        private final AppConfig appConfig;
+        private final List<X509Certificate> certificates;
 
+        LocalTrustSSLTCPNetSyslog(
+                final AppConfig appConfig,
+                final List<X509Certificate> certificates
+        )
+        {
+            super();
+            this.appConfig = appConfig;
+            this.certificates = certificates;
+        }
 
         @Override
         public AbstractSyslogWriter createWriter( )
         {
-            final LocalTrustSyslogWriterClass newClass = new LocalTrustSyslogWriterClass();
+            final LocalTrustSyslogWriterClass newClass = new LocalTrustSyslogWriterClass( appConfig, certificates );
             newClass.initialize( this );
             return newClass;
         }

@@ -284,7 +284,7 @@ public class ConfigurationCleaner
             final StoredConfiguration inputConfig = modifier.newStoredConfiguration();
             CollectionUtil.iteratorToStream( inputConfig.keys() )
                     .filter( ( key ) -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
-                    .filter( key -> !valueIsDefault( key, inputConfig, inputConfig.getTemplateSet().get( key.getDomainID() ) ) )
+                    .filter( key -> !valueIsDefault( key, inputConfig, inputConfig.getTemplateSets().get( key.getDomainID() ) ) )
                     .forEach( ( key ) -> removeDefaultValue( key, inputConfig, modifier ) );
         }
 

@@ -32,6 +32,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SelectableContextMode;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.config.profile.ChangePasswordProfile;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -71,6 +72,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -80,6 +82,7 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 @WebServlet(
         name = "ClientApiServlet",
@@ -180,7 +183,7 @@ public class ClientApiServlet extends ControlledPwmServlet
                 pwmRequest.getPwmResponse().getHttpServletResponse(),
                 pageUrl
         );
-        final RestResultBean restResultBean = RestResultBean.withData( appData );
+        final RestResultBean<AppData> restResultBean = RestResultBean.withData( appData, AppData.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -188,7 +191,7 @@ public class ClientApiServlet extends ControlledPwmServlet
     @ActionHandler( action = "strings" )
     public ProcessStatus doGetStringsData( final PwmRequest pwmRequest
     )
-            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+            throws PwmUnrecoverableException, IOException, ServletException
     {
         final String bundleName = pwmRequest.readParameterAsString( "bundle" );
         final int maxCacheAgeSeconds = 60 * 5;
@@ -201,9 +204,9 @@ public class ClientApiServlet extends ControlledPwmServlet
 
         try
         {
-            final LinkedHashMap<String, String> displayData = new LinkedHashMap<>( makeDisplayData( pwmRequest.getPwmDomain(),
+            final Map<String, String> displayData = new LinkedHashMap<>( makeDisplayData( pwmRequest.getPwmDomain(),
                     pwmRequest, bundleName ) );
-            final RestResultBean restResultBean = RestResultBean.withData( displayData );
+            final RestResultBean<Map> restResultBean = RestResultBean.withData( displayData, Map.class );
             pwmRequest.outputJsonResult( restResultBean );
         }
         catch ( final Exception e )
@@ -227,7 +230,7 @@ public class ClientApiServlet extends ControlledPwmServlet
             final PublicHealthData jsonOutput = RestHealthServer.processGetHealthCheckData(
                     pwmRequest.getPwmDomain(),
                     pwmRequest.getLocale() );
-            final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
+            final RestResultBean restResultBean = RestResultBean.withData( jsonOutput, PublicHealthData.class );
             pwmRequest.outputJsonResult( restResultBean );
         }
         catch ( final Exception e )
@@ -247,7 +250,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         final PingResponse pingResponse = new PingResponse();
         pingResponse.setTime( Instant.now() );
         pingResponse.setRuntimeNonce( pwmRequest.getPwmApplication().getRuntimeNonce() );
-        pwmRequest.outputJsonResult( RestResultBean.withData( pingResponse ) );
+        pwmRequest.outputJsonResult( RestResultBean.withData( pingResponse, PingResponse.class ) );
         return ProcessStatus.Halt;
     }
 
@@ -383,31 +386,24 @@ public class ClientApiServlet extends ControlledPwmServlet
             }
         }
 
-        {
-            final List<String> epsTypes = new ArrayList<>();
-            for ( final EpsStatistic loopEpsType : EpsStatistic.values() )
-            {
-                epsTypes.add( loopEpsType.toString() );
-            }
-            settingMap.put( "epsTypes", epsTypes );
-        }
+        settingMap.put( "epsTypes", EnumSet.allOf( EpsStatistic.class )
+                .stream()
+                .map( EpsStatistic::toString )
+                .collect( Collectors.toList() ) );
+
+        settingMap.put( "epsDurations", EnumSet.allOf( Statistic.EpsDuration.class )
+                .stream()
+                .map( Statistic.EpsDuration::toString )
+                .collect( Collectors.toList() ) );
+
 
         {
-            final List<String> epsDurations = new ArrayList<>();
-            for ( final Statistic.EpsDuration loopEpsDuration : Statistic.EpsDuration.values() )
-            {
-                epsDurations.add( loopEpsDuration.toString() );
-            }
-            settingMap.put( "epsDurations", epsDurations );
-        }
-
-        {
-            final Map<String, String> localeInfo = new LinkedHashMap<>();
-            final Map<String, String> localeDisplayNames = new LinkedHashMap<>();
-            final Map<String, String> localeFlags = new LinkedHashMap<>();
-
             final List<Locale> knownLocales = new ArrayList<>( pwmRequest.getAppConfig().getKnownLocales() );
             knownLocales.sort( LocaleComparators.localeComparator( ) );
+
+            final Map<String, String> localeInfo = new LinkedHashMap<>( knownLocales.size() );
+            final Map<String, String> localeDisplayNames = new LinkedHashMap<>( knownLocales.size() );
+            final Map<String, String> localeFlags = new LinkedHashMap<>( knownLocales.size() );
 
             for ( final Locale locale : knownLocales )
             {
@@ -425,10 +421,13 @@ public class ClientApiServlet extends ControlledPwmServlet
 
         if ( pwmDomain.getConfig().readSettingAsEnum( PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE, SelectableContextMode.class ) != SelectableContextMode.NONE )
         {
-            final Map<String, Map<String, String>> ldapProfiles = new LinkedHashMap<>();
-            for ( final String ldapProfile : pwmDomain.getConfig().getLdapProfiles().keySet() )
+            final Map<String, LdapProfile> configuredProfiles = pwmDomain.getConfig().getLdapProfiles();
+
+            final Map<String, Map<String, String>> ldapProfiles = new LinkedHashMap<>( configuredProfiles.size() );
+            for ( final Map.Entry<String, LdapProfile> entry : configuredProfiles.entrySet() )
             {
-                final Map<String, String> contexts = pwmDomain.getConfig().getLdapProfiles().get( ldapProfile ).getSelectableContexts( pwmRequest.getLabel(), pwmDomain );
+                final String ldapProfile = entry.getKey();
+                final Map<String, String> contexts = entry.getValue().getSelectableContexts( pwmRequest.getLabel(), pwmDomain );
                 ldapProfiles.put( ldapProfile, contexts );
             }
             settingMap.put( "ldapProfiles", ldapProfiles );
@@ -469,7 +468,7 @@ public class ClientApiServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "statistics" )
-    private ProcessStatus restStatisticsHandler( final PwmRequest pwmRequest )
+    public ProcessStatus restStatisticsHandler( final PwmRequest pwmRequest )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException
     {
         precheckPublicHealthAndStats( pwmRequest );
@@ -491,13 +490,15 @@ public class ClientApiServlet extends ControlledPwmServlet
             jsonOutput.keyData = RestStatisticsServer.OutputVersion1.doKeyStat( statisticsManager, statKey );
         }
 
-        final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
+        final RestResultBean<RestStatisticsServer.OutputVersion1.JsonOutput> restResultBean = RestResultBean.withData(
+                jsonOutput,
+                RestStatisticsServer.OutputVersion1.JsonOutput.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
 
     @ActionHandler( action = "cspReport" )
-    private ProcessStatus restCspReportHandler( final PwmRequest pwmRequest )
+    public ProcessStatus restCspReportHandler( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException
     {
         if ( !Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.LOGGING_LOG_CSP_REPORT ) ) )

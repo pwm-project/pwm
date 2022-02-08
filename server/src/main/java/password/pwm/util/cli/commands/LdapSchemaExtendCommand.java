@@ -29,7 +29,8 @@ import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonProvider;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmTrustManager;
 import password.pwm.util.secure.X509Utils;
 
@@ -127,7 +128,7 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
         {
             out( "ldaps certificates from: " + url );
             final List<X509Certificate> certificateList = X509Utils.readRemoteCertificates( new URI ( url ), cliEnvironment.getConfig() );
-            out( JsonUtil.serializeCollection( X509Utils.makeDebugInfoMap( certificateList ), JsonUtil.Flag.PrettyPrint ) );
+            out( JsonFactory.get().serializeCollection( X509Utils.makeDebugInfoMap( certificateList ), JsonProvider.Flag.PrettyPrint ) );
             return certificateList;
         }
         return Collections.emptyList();

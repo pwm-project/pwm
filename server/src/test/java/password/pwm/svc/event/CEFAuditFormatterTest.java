@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.TestHelper;
 
 import java.util.Locale;
@@ -53,7 +53,7 @@ public class CEFAuditFormatterTest
                 + "\"timestamp\":\"2000-01-01T00:00:00Z\",\"message\":\"message pipe|Escape, slash\\\\Escape, equal=Escape, \\nsecondLine\","
                 + "\"xdasTaxonomy\":\"XDAS_AE_CREATE_SESSION\",\"xdasOutcome\":\"XDAS_OUT_SUCCESS\"}";
 
-        final UserAuditRecord auditRecord = JsonUtil.deserialize( jsonInput, AuditRecordData.class );
+        final UserAuditRecord auditRecord = JsonFactory.get().deserialize( jsonInput, AuditRecordData.class );
 
         final String appName = PwmConstants.PWM_APP_NAME;
         final String versionData = PwmConstants.SERVLET_VERSION;

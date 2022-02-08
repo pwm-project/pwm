@@ -95,7 +95,6 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
     {
         avgFlushLatency,
         avgFlushCount,
-
     }
 
     private boolean hasShownReadError = false;
@@ -242,9 +241,11 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
     public void close( )
     {
         final Instant startTime = Instant.now();
+        int flushedEvents = 0;
         if ( status() != STATUS.CLOSED )
         {
             LOGGER.trace( () -> "LocalDBLogger closing" );
+            flushedEvents += tempMemoryEventQueue.size();
             if ( cleanerService != null )
             {
                 cleanerService.shutdown();
@@ -254,7 +255,8 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
         }
         setStatus( STATUS.CLOSED );
 
-        LOGGER.trace( () -> "LocalDBLogger close completed", () -> TimeDuration.fromCurrent( startTime ) );
+        final int finalFlushedEvents = flushedEvents;
+        LOGGER.trace( () -> "LocalDBLogger close completed (flushed during close: " + finalFlushedEvents + ")", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     public int getStoredEventCount( )
@@ -459,7 +461,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
         }
 
         Instant eldestEntry = Instant.now();
-        final List<String> localBuffer = new ArrayList<>();
+        final List<String> localBuffer = new ArrayList<>( Math.min( tempMemoryEventQueue.size(), settings.getMaxBufferSize() ) );
         while ( localBuffer.size() < ( settings.getMaxBufferSize() ) - 1 && !tempMemoryEventQueue.isEmpty() )
         {
             final PwmLogEvent pwmLogEvent = tempMemoryEventQueue.poll();

@@ -33,7 +33,7 @@ import password.pwm.http.HttpMethod;
 import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -55,7 +55,7 @@ public class HttpTelemetrySender implements TelemetrySender
     {
         this.pwmApplication = pwmDomain;
         this.sessionLabel = sessionLabel;
-        settings = JsonUtil.deserialize( initString, HttpTelemetrySender.Settings.class );
+        settings = JsonFactory.get().deserialize( initString, HttpTelemetrySender.Settings.class );
     }
 
     @Override
@@ -66,7 +66,7 @@ public class HttpTelemetrySender implements TelemetrySender
                 .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous )
                 .build();
         final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
-        final String body = JsonUtil.serialize( statsPublishBean );
+        final String body = JsonFactory.get().serialize( statsPublishBean );
         final Map<String, String> headers = new HashMap<>();
         headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
         headers.put( HttpHeader.Accept.getHttpName(), PwmConstants.AcceptValue.json.getHeaderValue() );

@@ -20,15 +20,14 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -62,15 +61,11 @@ public class EmailValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    Map<String, EmailItemBean> srcList = JsonUtil.deserialize( input,
-                            new TypeToken<Map<String, EmailItemBean>>()
-                            {
-                            }
-                    );
+                    Map<String, EmailItemBean> srcMap = JsonFactory.get().deserializeMap( input, String.class, EmailItemBean.class );
 
-                    srcList = srcList == null ? Collections.emptyMap() : srcList;
-                    srcList.remove( null );
-                    return new EmailValue( Collections.unmodifiableMap( srcList ) );
+                    srcMap = srcMap == null ? Collections.emptyMap() : srcMap;
+                    srcMap.remove( null );
+                    return new EmailValue( Collections.unmodifiableMap( srcMap ) );
                 }
             }
 
@@ -88,8 +83,8 @@ public class EmailValue extends AbstractValue implements StoredValue
                     {
                         loopValueElement.getText().ifPresent( value ->
                         {
-                            final String localeValue = loopValueElement.getAttributeValue( "locale" ).orElse( "" );
-                            values.put( localeValue, JsonUtil.deserialize( value, EmailItemBean.class ) );
+                            final String localeValue = loopValueElement.getAttribute( "locale" ).orElse( "" );
+                            values.put( localeValue, JsonFactory.get().deserialize( value, EmailItemBean.class ) );
                         } );
                     }
                 }
@@ -101,17 +96,17 @@ public class EmailValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final Map.Entry<String, EmailItemBean> entry : values.entrySet() )
         {
             final String localeValue = entry.getKey();
             final EmailItemBean emailItemBean = entry.getValue();
-            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
             if ( localeValue.length() > 0 )
             {
                 valueElement.setAttribute( "locale", localeValue );
             }
-            valueElement.addText( JsonUtil.serialize( emailItemBean ) );
+            valueElement.setText( JsonFactory.get().serialize( emailItemBean ) );
             returnList.add( valueElement );
         }
         return returnList;
@@ -185,11 +180,11 @@ public class EmailValue extends AbstractValue implements StoredValue
             final String localeKey = entry.getKey();
             final EmailItemBean emailItemBean = entry.getValue();
             sb.append( "EmailItem " ).append( LocaleHelper.debugLabel( LocaleHelper.parseLocaleString( localeKey ) ) ).append( ": \n" );
-            sb.append( "  To:" ).append( emailItemBean.getTo() ).append( "\n" );
-            sb.append( "From:" ).append( emailItemBean.getFrom() ).append( "\n" );
-            sb.append( "Subj:" ).append( emailItemBean.getSubject() ).append( "\n" );
-            sb.append( "Body:" ).append( emailItemBean.getBodyPlain() ).append( "\n" );
-            sb.append( "Html:" ).append( emailItemBean.getBodyHtml() ).append( "\n" );
+            sb.append( "  To:" ).append( emailItemBean.getTo() ).append( '\n' );
+            sb.append( "From:" ).append( emailItemBean.getFrom() ).append( '\n' );
+            sb.append( "Subj:" ).append( emailItemBean.getSubject() ).append( '\n' );
+            sb.append( "Body:" ).append( emailItemBean.getBodyPlain() ).append( '\n' );
+            sb.append( "Html:" ).append( emailItemBean.getBodyHtml() ).append( '\n' );
         }
         return sb.toString();
     }

@@ -64,14 +64,7 @@ public class UserAgentUtils
 
         static Optional<BrowserType> forBrowserCapName( final String browserCapName )
         {
-            for ( final BrowserType browserType : BrowserType.values() )
-            {
-                if ( browserType.browserCapName.equalsIgnoreCase( browserCapName ) )
-                {
-                    return Optional.of( browserType );
-                }
-            }
-            return Optional.empty();
+            return JavaHelper.readEnumFromPredicate( BrowserType.class, browserType -> browserType.browserCapName.equalsIgnoreCase( browserCapName ) );
         }
     }
 

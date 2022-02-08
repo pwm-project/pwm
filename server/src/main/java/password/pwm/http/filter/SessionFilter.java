@@ -370,17 +370,15 @@ public class SessionFilter extends AbstractPwmFilter
             if ( requestedLocale != null && requestedLocale.length() > 0 )
             {
                 LOGGER.debug( pwmRequest, () -> "detected locale request parameter " + localeParamName + " with value " + requestedLocale );
-                if ( pwmRequest.getPwmSession().setLocale( pwmRequest, requestedLocale ) )
+                if ( cookieAgeSeconds > 0
+                        && pwmRequest.getPwmSession().setLocale( pwmRequest, requestedLocale ) )
                 {
-                    if ( cookieAgeSeconds > 0 )
-                    {
-                        pwmRequest.getPwmResponse().writeCookie(
-                                localeCookieName,
-                                requestedLocale,
-                                cookieAgeSeconds,
-                                PwmCookiePath.Domain
-                        );
-                    }
+                    pwmRequest.getPwmResponse().writeCookie(
+                            localeCookieName,
+                            requestedLocale,
+                            cookieAgeSeconds,
+                            PwmCookiePath.Domain
+                    );
                 }
             }
             return ProcessStatus.Continue;
@@ -546,11 +544,6 @@ public class SessionFilter extends AbstractPwmFilter
             pwmRequest.getPwmResponse().sendRedirect( pwmRequest.getHttpServletRequest().getRequestURI() );
             return ProcessStatus.Halt;
         }
-    }
-
-    @Override
-    public void destroy( )
-    {
     }
 
     private static void checkUrlAgainstWhitelist(

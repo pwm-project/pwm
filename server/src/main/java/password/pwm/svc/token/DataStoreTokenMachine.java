@@ -28,7 +28,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
 import password.pwm.util.DataStore;
 import password.pwm.util.java.ClosableIterator;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -117,12 +117,12 @@ public class DataStoreTokenMachine implements TokenMachine
         final Instant issueDate = theToken.getIssueTime();
         if ( issueDate == null )
         {
-            LOGGER.error( () -> "retrieved token has no issueDate, marking as purgable: " + JsonUtil.serialize( theToken ) );
+            LOGGER.error( () -> "retrieved token has no issueDate, marking as purgable: " + JsonFactory.get().serialize( theToken ) );
             return true;
         }
         if ( theToken.getExpiration() == null )
         {
-            LOGGER.error( () -> "retrieved token has no expiration, marking as purgable: " + JsonUtil.serialize( theToken ) );
+            LOGGER.error( () -> "retrieved token has no expiration, marking as purgable: " + JsonFactory.get().serialize( theToken ) );
             return true;
         }
         return theToken.getExpiration().isBefore( Instant.now() );

@@ -72,7 +72,6 @@ public class PwmDomain
 
     private final PwmApplication pwmApplication;
     private final DomainID domainID;
-    private final SessionLabel sessionLabel;
 
     private final PwmServiceManager pwmServiceManager;
 
@@ -80,8 +79,8 @@ public class PwmDomain
     {
         this.pwmApplication = Objects.requireNonNull( pwmApplication );
         this.domainID = Objects.requireNonNull( domainID );
-        this.sessionLabel = SessionLabel.builder().domain( domainID.stringValue() ).build();
 
+        final SessionLabel sessionLabel = SessionLabel.builder().domain( domainID.stringValue() ).build();
         this.pwmServiceManager = new PwmServiceManager( sessionLabel, pwmApplication, domainID, PwmServiceEnum.forScope( PwmSettingScope.DOMAIN ) );
     }
 
@@ -209,7 +208,7 @@ public class PwmDomain
 
     public TokenService getTokenService()
     {
-        return pwmApplication.getTokenService();
+        return ( TokenService ) pwmServiceManager.getService( PwmServiceEnum.TokenService );
     }
 
     public SharedHistoryService getSharedHistoryManager()

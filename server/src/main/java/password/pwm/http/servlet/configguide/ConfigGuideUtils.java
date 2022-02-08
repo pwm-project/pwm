@@ -31,7 +31,7 @@ import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.function.UserMatchViewerFunction;
+import password.pwm.http.servlet.configeditor.function.UserMatchViewerFunction;
 import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigKey;

@@ -97,11 +97,6 @@ public class ChecksumInputStream extends InputStream
         throw new IOException( "operation not supported" );
     }
 
-    @Override
-    public boolean markSupported( )
-    {
-        return false;
-    }
 
     public String checksum( )
     {

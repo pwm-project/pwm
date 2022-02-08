@@ -20,6 +20,8 @@
 
 package password.pwm.config.value;
 
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -29,8 +31,6 @@ import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -111,12 +111,12 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( b64certificates.size() );
         for ( final String b64value : b64certificates )
         {
-            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
+            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
             final String splitValue = StringUtil.insertRepeatedLineBreaks( b64value, PwmConstants.XML_OUTPUT_LINE_WRAP_LENGTH );
-            valueElement.addText( splitValue );
+            valueElement.setText( splitValue );
 
             returnList.add( valueElement );
         }
@@ -147,18 +147,18 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
         final int counter = 0;
         for ( final X509Certificate cert : certs.get() )
         {
-            sb.append( "Certificate " ).append( counter ).append( "\n" );
-            sb.append( " Subject: " ).append( cert.getSubjectDN().toString() ).append( "\n" );
-            sb.append( " Serial: " ).append( X509Utils.hexSerial( cert ) ).append( "\n" );
-            sb.append( " Issuer: " ).append( cert.getIssuerDN().toString() ).append( "\n" );
-            sb.append( " IssueDate: " ).append( JavaHelper.toIsoDate( cert.getNotBefore() ) ).append( "\n" );
-            sb.append( " ExpireDate: " ).append( JavaHelper.toIsoDate( cert.getNotAfter() ) ).append( "\n" );
+            sb.append( "Certificate " ).append( counter ).append( '\n' );
+            sb.append( " Subject: " ).append( cert.getSubjectDN().toString() ).append( '\n' );
+            sb.append( " Serial: " ).append( X509Utils.hexSerial( cert ) ).append( '\n' );
+            sb.append( " Issuer: " ).append( cert.getIssuerDN().toString() ).append( '\n' );
+            sb.append( " IssueDate: " ).append( JavaHelper.toIsoDate( cert.getNotBefore() ) ).append( '\n' );
+            sb.append( " ExpireDate: " ).append( JavaHelper.toIsoDate( cert.getNotAfter() ) ).append( '\n' );
             try
             {
                 sb.append( " MD5 Hash: " ).append( SecureEngine.hash( new ByteArrayInputStream( cert.getEncoded() ),
-                        PwmHashAlgorithm.MD5 ) ).append( "\n" );
+                        PwmHashAlgorithm.MD5 ) ).append( '\n' );
                 sb.append( " SHA1 Hash: " ).append( SecureEngine.hash( new ByteArrayInputStream( cert.getEncoded() ),
-                        PwmHashAlgorithm.SHA1 ) ).append( "\n" );
+                        PwmHashAlgorithm.SHA1 ) ).append( '\n' );
             }
             catch ( final PwmUnrecoverableException | CertificateEncodingException e )
             {
@@ -181,18 +181,14 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
             return Collections.emptyList();
         }
 
-        final List<Map<String, String>> list = new ArrayList<>();
-        for ( final X509Certificate cert : certs.get() )
-        {
-            final X509Utils.DebugInfoFlag[] flags = includeDetail
-                    ? new X509Utils.DebugInfoFlag[]
-                    {
-                            X509Utils.DebugInfoFlag.IncludeCertificateDetail,
-                            }
-                    : null;
-            list.add( X509Utils.makeDebugInfoMap( cert, flags ) );
-        }
-        return Collections.unmodifiableList( list );
+        final X509Utils.DebugInfoFlag[] flags = includeDetail
+                ? new X509Utils.DebugInfoFlag[]
+                {
+                        X509Utils.DebugInfoFlag.IncludeCertificateDetail,
+                }
+                : null;
+
+        return certs.get().stream().map( cert -> X509Utils.makeDebugInfoMap( cert, flags ) ).collect( Collectors.toUnmodifiableList() );
     }
 
 }

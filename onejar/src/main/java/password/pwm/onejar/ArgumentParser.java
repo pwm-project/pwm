@@ -35,7 +35,7 @@ import java.net.ServerSocket;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -123,7 +123,7 @@ public class ArgumentParser
             throw new ArgumentParserException( "unable to read properties input file: " + e.getMessage() );
         }
 
-        final Map<Argument, String> map = new HashMap<>();
+        final Map<Argument, String> map = new EnumMap<>( Argument.class );
         for ( final Option option : Argument.asOptionMap().values() )
         {
             if ( option.hasArg() )
@@ -141,7 +141,7 @@ public class ArgumentParser
 
     static Map<Argument, String> mapFromCommandLine( final CommandLine commandLine )
     {
-        final Map<Argument, String> map = new HashMap<>();
+        final Map<Argument, String> map = new EnumMap<>( Argument.class );
         for ( final Option option : Argument.asOptionMap().values() )
         {
             if ( option.hasArg() )
@@ -341,7 +341,7 @@ public class ArgumentParser
         {
             throw new ArgumentParserException( "not running from war, war option must be specified" );
         }
-        final String warPath = classPath.substring( 0, classPath.lastIndexOf( "!" ) + 1 )
+        final String warPath = classPath.substring( 0, classPath.lastIndexOf( '!' ) + 1 )
                 + "/" + Resource.defaultWarFileName.getValue();
         return new URL( warPath ).openStream();
     }

@@ -29,21 +29,44 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmCookiePath;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmSession;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.EnumSet;
-import java.util.Set;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
 
 public abstract class HttpAuthenticationUtilities
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HttpAuthenticationUtilities.class );
 
-    private static final Set<AuthenticationMethod> IGNORED_AUTH_METHODS = EnumSet.noneOf( AuthenticationMethod.class );
+    private static final Map<AuthenticationMethod, PwmHttpFilterAuthenticationProvider> VALID_AUTH_METHODS = initAuthMethods();
 
+    private static Map<AuthenticationMethod, PwmHttpFilterAuthenticationProvider> initAuthMethods()
+    {
+        final EnumMap<AuthenticationMethod, PwmHttpFilterAuthenticationProvider> methods
+                = new EnumMap<>( AuthenticationMethod.class );
+        for ( final AuthenticationMethod method : AuthenticationMethod.values() )
+        {
+            try
+            {
+                final String className = method.getClassName();
+                final Class<?> clazz = Class.forName( className );
+                final PwmHttpFilterAuthenticationProvider filter =
+                        ( PwmHttpFilterAuthenticationProvider ) clazz.getDeclaredConstructor().newInstance();
+                methods.put( method, filter );
+            }
+            catch ( final Throwable e )
+            {
+                LOGGER.trace( () -> "could not load authentication class '" + method + "', will ignore (error: " + e.getMessage() + ")" );
+            }
+        }
+        return Collections.unmodifiableMap( methods );
+    }
 
     public static ProcessStatus attemptAuthenticationMethods( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException
@@ -53,65 +76,50 @@ public abstract class HttpAuthenticationUtilities
             return ProcessStatus.Continue;
         }
 
-        for ( final AuthenticationMethod authenticationMethod : AuthenticationMethod.values() )
+        for ( final Map.Entry<AuthenticationMethod, PwmHttpFilterAuthenticationProvider> entry : VALID_AUTH_METHODS.entrySet() )
         {
-            if ( !IGNORED_AUTH_METHODS.contains( authenticationMethod ) )
+            final AuthenticationMethod authenticationMethod = entry.getKey();
+            final PwmHttpFilterAuthenticationProvider filterAuthenticationProvider = entry.getValue();
+
+            if ( filterAuthenticationProvider != null )
             {
-                PwmHttpFilterAuthenticationProvider filterAuthenticationProvider = null;
                 try
                 {
-                    final String className = authenticationMethod.getClassName();
-                    final Class<?> clazz = Class.forName( className );
-                    final Object newInstance = clazz.getDeclaredConstructor().newInstance();
-                    filterAuthenticationProvider = ( PwmHttpFilterAuthenticationProvider ) newInstance;
+                    filterAuthenticationProvider.attemptAuthentication( pwmRequest );
+
+                    if ( pwmRequest.isAuthenticated() )
+                    {
+                        LOGGER.trace( pwmRequest, () -> "authentication provided by method " + authenticationMethod.name() );
+                    }
+
+                    if ( filterAuthenticationProvider.hasRedirectedResponse() )
+                    {
+                        LOGGER.trace( pwmRequest, () -> "authentication provider " + authenticationMethod.name()
+                                + " has issued a redirect, halting authentication process" );
+                        return ProcessStatus.Halt;
+                    }
+
+                    if ( pwmRequest.isAuthenticated() )
+                    {
+                        return ProcessStatus.Continue;
+                    }
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.trace( () -> "could not load authentication class '" + authenticationMethod + "', will ignore (error: " + e.getMessage() + ")" );
-                    IGNORED_AUTH_METHODS.add( authenticationMethod );
-                }
-
-                if ( filterAuthenticationProvider != null )
-                {
-                    try
+                    final ErrorInformation errorInformation;
+                    if ( e instanceof PwmException )
                     {
-                        filterAuthenticationProvider.attemptAuthentication( pwmRequest );
-
-                        if ( pwmRequest.isAuthenticated() )
-                        {
-                            LOGGER.trace( pwmRequest, () -> "authentication provided by method " + authenticationMethod.name() );
-                        }
-
-                        if ( filterAuthenticationProvider.hasRedirectedResponse() )
-                        {
-                            LOGGER.trace( pwmRequest, () -> "authentication provider " + authenticationMethod.name()
-                                    + " has issued a redirect, halting authentication process" );
-                            return ProcessStatus.Halt;
-                        }
-
-                        if ( pwmRequest.isAuthenticated() )
-                        {
-                            return ProcessStatus.Continue;
-                        }
-
+                        final String errorMsg = "error during " + authenticationMethod + " authentication attempt: " + e.getMessage();
+                        errorInformation = new ErrorInformation( ( ( PwmException ) e ).getError(), errorMsg );
+                        LOGGER.error( pwmRequest, errorInformation );
                     }
-                    catch ( final Exception e )
+                    else
                     {
-                        final ErrorInformation errorInformation;
-                        if ( e instanceof PwmException )
-                        {
-                            final String errorMsg = "error during " + authenticationMethod + " authentication attempt: " + e.getMessage();
-                            errorInformation = new ErrorInformation( ( ( PwmException ) e ).getError(), errorMsg );
-                            LOGGER.error( pwmRequest, errorInformation );
-                        }
-                        else
-                        {
-                            errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
-                            LOGGER.error( pwmRequest.getLabel(), errorInformation, e );
-                        }
-                        pwmRequest.respondWithError( errorInformation );
-                        return ProcessStatus.Halt;
+                        errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
+                        LOGGER.error( pwmRequest.getLabel(), errorInformation, e );
                     }
+                    pwmRequest.respondWithError( errorInformation );
+                    return ProcessStatus.Halt;
                 }
             }
         }
@@ -120,17 +128,18 @@ public abstract class HttpAuthenticationUtilities
 
     public static void handleAuthenticationCookie( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        if ( !pwmRequest.isAuthenticated() || pwmRequest.getPwmSession().getLoginInfoBean().getType() != AuthenticationType.AUTHENTICATED )
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        if ( !pwmRequest.isAuthenticated() || pwmSession.getLoginInfoBean().getType() != AuthenticationType.AUTHENTICATED )
         {
             return;
         }
 
-        if ( pwmRequest.getPwmSession().getLoginInfoBean().isLoginFlag( LoginInfoBean.LoginFlag.authRecordSet ) )
+        if ( pwmSession.getLoginInfoBean().isLoginFlag( LoginInfoBean.LoginFlag.authRecordSet ) )
         {
             return;
         }
 
-        pwmRequest.getPwmSession().getLoginInfoBean().setFlag( LoginInfoBean.LoginFlag.authRecordSet );
+        pwmSession.getLoginInfoBean().setFlag( LoginInfoBean.LoginFlag.authRecordSet );
 
         final String cookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_NAME );
         if ( cookieName == null || cookieName.isEmpty() )
@@ -146,8 +155,8 @@ public abstract class HttpAuthenticationUtilities
             return;
         }
 
-        final Instant authTime = pwmRequest.getPwmSession().getLoginInfoBean().getAuthTime();
-        final String userGuid = pwmRequest.getPwmSession().getUserInfo().getUserGuid();
+        final Instant authTime = pwmSession.getLoginInfoBean().getAuthTime();
+        final String userGuid = pwmSession.getUserInfo().getUserGuid();
         final HttpAuthRecord httpAuthRecord = new HttpAuthRecord( authTime, userGuid );
 
         try

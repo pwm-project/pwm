@@ -44,21 +44,21 @@ public class JarMain
     {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append( PwmConstants.PWM_APP_NAME ).append( " v" ).append( PwmConstants.BUILD_VERSION ).append( "\n" );
-        sb.append( "\n" );
+        sb.append( PwmConstants.PWM_APP_NAME ).append( " v" ).append( PwmConstants.BUILD_VERSION ).append( '\n' );
+        sb.append( '\n' );
         sb.append( "Build Information: \n" );
 
         for ( final Map.Entry<String, String> entry : PwmConstants.BUILD_MANIFEST.entrySet() )
         {
             sb.append( entry.getKey() );
-            sb.append( "=" );
+            sb.append( '=' );
             sb.append( entry.getValue() );
-            sb.append( "\n" );
+            sb.append( '\n' );
         }
 
-        sb.append( "\n" );
-        sb.append( "Reference URL: " + PwmConstants.PWM_URL_HOME + "\n" );
-        sb.append( "\n" );
+        sb.append( '\n' );
+        sb.append( "Reference URL: " + PwmConstants.PWM_URL_HOME + '\n' );
+        sb.append( '\n' );
         sb.append( "source files are included inside jar archive" );
 
         return sb.toString();

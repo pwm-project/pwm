@@ -38,6 +38,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -726,7 +727,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
         private boolean developerDebug = false;
         private static final int DEBUG_MAX_ROWS = 50;
         private static final int DEBUG_MAX_WIDTH = 120;
-        private static final List<LocalDB.DB> DEBUG_IGNORED_DB = List.of( LocalDB.DB.EVENTLOG_EVENTS );
+        private static final Set<LocalDB.DB> DEBUG_IGNORED_DB = Set.of( LocalDB.DB.EVENTLOG_EVENTS );
 
         private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -885,8 +886,8 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
                 return Collections.emptyList();
             }
 
-            final List<String> removalKeys = new ArrayList<>();
-            final List<String> removedValues = new ArrayList<>();
+            final List<String> removalKeys = new ArrayList<>( removalCount );
+            final List<String> removedValues = new ArrayList<>( removalCount );
             Position loopPosition = forward ? headPosition : tailPosition;
             int removedPositions = 0;
             while ( removedPositions < removalCount )
@@ -993,7 +994,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
 
             final Iterator<String> valueIterator = values.iterator();
 
-            final Map<String, String> keyValueMap = new HashMap<>();
+            final Map<String, String> keyValueMap = new HashMap<>( values.size() );
             Position loopPosition = forward ? headPosition : tailPosition;
 
             if ( internalSize() == 0 )
@@ -1096,7 +1097,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
                 {
                     sb.append( input );
                     sb.append( "  tailPosition=" ).append( tailPosition ).append( ", headPosition=" ).append( headPosition ).append( ", db=" ).append( db );
-                    sb.append( ", size=" ).append( internalSize() ).append( "\n" );
+                    sb.append( ", size=" ).append( internalSize() ).append( '\n' );
 
                     try ( LocalDB.LocalDBIterator<Map.Entry<String, String>> localDBIterator = localDB.iterator( db ) )
                     {
@@ -1109,7 +1110,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
                             value = value == null ? "" : value;
                             value = value.length() < DEBUG_MAX_WIDTH ? value : value.substring( 0, DEBUG_MAX_WIDTH ) + "...";
                             final String row = key + " " + value;
-                            sb.append( row ).append( "\n" );
+                            sb.append( row ).append( '\n' );
                             rowCount++;
                         }
                     }
@@ -1160,7 +1161,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
                         TimeDuration.SECONDS_10 );
 
                 // trim the top.
-                while ( !headPosition.equals( tailPosition ) && localDB.get( db, headPosition.key() ) == null )
+                while ( !headPosition.equals( tailPosition ) && localDB.get( db, headPosition.key() ).isPresent() )
                 {
                     examinedRecords.incrementAndGet();
                     conditionalTaskExecutor.conditionallyExecuteTask();
@@ -1170,7 +1171,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
                 localDB.put( db, KEY_HEAD_POSITION, headPosition.key() );
 
                 // trim the bottom.
-                while ( !headPosition.equals( tailPosition ) && localDB.get( db, tailPosition.toString() ) == null )
+                while ( !headPosition.equals( tailPosition ) && localDB.get( db, tailPosition.toString() ).isPresent() )
                 {
                     examinedRecords.incrementAndGet();
                     conditionalTaskExecutor.conditionallyExecuteTask();

@@ -43,6 +43,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Supplier;
 
 public class IdleTimeoutCalculator
 {
@@ -66,7 +67,7 @@ public class IdleTimeoutCalculator
             {
                 final long configGuideIdleTimeout = Long.parseLong( domainConfig.readAppProperty( AppProperty.CONFIG_GUIDE_IDLE_TIMEOUT ) );
                 results.add( new MaxIdleTimeoutResult(
-                        "Configuration Guide Idle Timeout",
+                        () -> "Configuration Guide Idle Timeout",
                         TimeDuration.of( configGuideIdleTimeout, TimeDuration.Unit.SECONDS ) ) );
             }
 
@@ -148,7 +149,7 @@ public class IdleTimeoutCalculator
         {
             final long configEditorIdleTimeout = Long.parseLong( domainConfig.readAppProperty( AppProperty.CONFIG_EDITOR_IDLE_TIMEOUT ) );
             results.add( new MaxIdleTimeoutResult(
-                    "Config Editor Idle Timeout",
+                    () -> "Config Editor Idle Timeout",
                     TimeDuration.of( configEditorIdleTimeout, TimeDuration.Unit.SECONDS ) ) );
         }
 
@@ -158,7 +159,7 @@ public class IdleTimeoutCalculator
     @Value
     static class MaxIdleTimeoutResult implements Comparable<MaxIdleTimeoutResult>
     {
-        private final String reason;
+        private final Supplier<String> reason;
         private final TimeDuration idleTimeout;
 
         @Override
@@ -167,9 +168,9 @@ public class IdleTimeoutCalculator
             return this.idleTimeout.compareTo( o.getIdleTimeout() );
         }
 
-        static String reasonFor( final PwmSetting pwmSetting, final String profileID )
+        static Supplier<String> reasonFor( final PwmSetting pwmSetting, final String profileID )
         {
-            return "Setting " + pwmSetting.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE );
+            return () -> "Setting " + pwmSetting.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE );
         }
     }
 

@@ -20,7 +20,6 @@
 
 package password.pwm.util.password;
 
-import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
@@ -44,7 +43,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.ws.client.rest.RestClientHelper;
@@ -59,7 +58,6 @@ import java.util.Objects;
 
 public class PwmPasswordRuleValidator
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmPasswordRuleValidator.class );
 
     private final SessionLabel sessionLabel;
@@ -122,7 +120,7 @@ public class PwmPasswordRuleValidator
 
         if ( !errorResults.isEmpty() )
         {
-            throw new PwmDataValidationException( errorResults.iterator().next() );
+            throw new PwmDataValidationException( errorResults.get( 0 ) );
         }
 
         if ( user != null && !JavaHelper.enumArrayContainsValue( flags, Flag.BypassLdapRuleCheck ) )
@@ -154,7 +152,7 @@ public class PwmPasswordRuleValidator
 
         if ( !errorResults.isEmpty() )
         {
-            throw new PwmDataValidationException( errorResults.iterator().next() );
+            throw new PwmDataValidationException( errorResults.get( 0 ) );
         }
 
         return true;
@@ -259,16 +257,14 @@ public class PwmPasswordRuleValidator
             sendData.put( "userInfo", publicUserInfoBean );
         }
 
-        final String jsonRequestBody = JsonUtil.serializeMap( sendData );
+        final String jsonRequestBody = JsonFactory.get().serializeMap( sendData );
         try
         {
             final String responseBody = RestClientHelper.makeOutboundRestWSCall( pwmDomain, locale, restURL,
                     jsonRequestBody );
-            final Map<String, Object> responseMap = JsonUtil.deserialize( responseBody,
-                    new TypeToken<Map<String, Object>>()
-                    {
-                    }
-            );
+            final Map<String, Object> responseMap = JsonFactory.get().deserializeMap( responseBody,
+                    String.class,
+                    Object.class );
             if ( responseMap.containsKey( REST_RESPONSE_KEY_ERROR ) && Boolean.parseBoolean( responseMap.get(
                     REST_RESPONSE_KEY_ERROR ).toString() ) )
             {

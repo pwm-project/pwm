@@ -29,7 +29,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.db.DatabaseException;
 import password.pwm.svc.db.DatabaseTable;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 
 import java.util.Optional;
@@ -76,7 +76,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, e.getMessage() ) );
         }
 
-        return rawDbValue.map( s -> JsonUtil.deserialize( s, PwNotifyUserStatus.class ) );
+        return rawDbValue.map( s -> JsonFactory.get().deserialize( s, PwNotifyUserStatus.class ) );
     }
 
     @Override
@@ -94,7 +94,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
             throw new PwmUnrecoverableException( PwmError.ERROR_MISSING_GUID );
         }
 
-        final String rawDbValue = JsonUtil.serialize( pwNotifyUserStatus );
+        final String rawDbValue = JsonFactory.get().serialize( pwNotifyUserStatus );
         try
         {
             pwmDomain.getPwmApplication().getDatabaseAccessor().put( TABLE, guid, rawDbValue );
@@ -114,7 +114,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
             final Optional<String> strValue = pwmDomain.getPwmApplication().getDatabaseService().getAccessor().get( DatabaseTable.PW_NOTIFY, DB_STATE_STRING );
             if ( strValue.isPresent() )
             {
-                return JsonUtil.deserialize( strValue.get(), PwNotifyStoredJobState.class );
+                return JsonFactory.get().deserialize( strValue.get(), PwNotifyStoredJobState.class );
             }
             return new PwNotifyStoredJobState( null, null, null, null, false );
         }
@@ -130,7 +130,7 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
     {
         try
         {
-            final String strValue = JsonUtil.serialize( pwNotifyStoredJobState );
+            final String strValue = JsonFactory.get().serialize( pwNotifyStoredJobState );
             pwmDomain.getPwmApplication().getDatabaseService().getAccessor().put( DatabaseTable.PW_NOTIFY, DB_STATE_STRING, strValue );
         }
         catch ( final DatabaseException e )

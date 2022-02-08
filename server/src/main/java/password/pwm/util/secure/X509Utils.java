@@ -280,9 +280,9 @@ public class X509Utils
         sb.append( "Certificates: " );
         for ( final X509Certificate x509Certificate : x509Certificates )
         {
-            sb.append( "[" );
+            sb.append( '[' );
             sb.append( makeDebugText( x509Certificate ) );
-            sb.append( "]" );
+            sb.append( ']' );
 
         }
         return sb.toString();

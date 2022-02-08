@@ -20,7 +20,6 @@
 
 package password.pwm.util.java;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
@@ -66,81 +65,21 @@ import java.util.zip.GZIPOutputStream;
 
 public class JavaHelper
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( JavaHelper.class );
+
+    private static final char[] HEX_CHAR_ARRAY = "0123456789ABCDEF".toCharArray();
 
     private JavaHelper( )
     {
     }
 
-    /**
-     * Convert a byte[] array to readable string format. This makes the "hex" readable.
-     *
-     * @param in byte[] buffer to convert to string format
-     * @return result String buffer in String format
-     */
-    @SuppressFBWarnings( "ICAST_QUESTIONABLE_UNSIGNED_RIGHT_SHIFT" )
-    public static String byteArrayToHexString( final byte[] in )
-    {
-        final String[] pseudo =
-                {
-                        "0",
-                        "1",
-                        "2",
-                        "3",
-                        "4",
-                        "5",
-                        "6",
-                        "7",
-                        "8",
-                        "9",
-                        "A",
-                        "B",
-                        "C",
-                        "D",
-                        "E",
-                        "F",
-                        };
-
-        if ( in == null || in.length <= 0 )
-        {
-            return "";
-        }
-
-        final StringBuilder out = new StringBuilder( in.length * 2 );
-
-        for ( final byte b : in )
-        {
-            // strip off high nibble
-            byte ch = ( byte ) ( b & 0xF0 );
-
-            // shift the bits down
-            ch = ( byte ) ( ch >>> 4 );
-
-            // must do this is high order bit is on!
-            ch = ( byte ) ( ch & 0x0F );
-
-            // convert the nibble to a String Character
-            out.append( pseudo[( int ) ch] );
-
-            // strip off low nibble
-            ch = ( byte ) ( b & 0x0F );
-
-            // convert the nibble to a String Character
-            out.append( pseudo[( int ) ch] );
-        }
-
-        return out.toString();
-    }
-
     public static String binaryArrayToHex( final byte[] buf )
     {
-        final char[] hexChars = "0123456789ABCDEF".toCharArray();
         final char[] chars = new char[2 * buf.length];
         for ( int i = 0; i < buf.length; ++i )
         {
-            chars[2 * i] = hexChars[( buf[i] & 0xF0 ) >>> 4];
-            chars[2 * i + 1] = hexChars[buf[i] & 0x0F];
+            chars[2 * i] = HEX_CHAR_ARRAY[( buf[i] & 0xF0 ) >>> 4];
+            chars[2 * i + 1] = HEX_CHAR_ARRAY[buf[i] & 0x0F];
         }
         return new String( chars );
     }
@@ -148,6 +87,11 @@ public class JavaHelper
     public static <E extends Enum<E>> E readEnumFromString( final Class<E> enumClass, final E defaultValue, final String input )
     {
         return readEnumFromString( enumClass, input ).orElse( defaultValue );
+    }
+
+    public static <E extends Enum<E>> Optional<E> readEnumFromCaseIgnoreString( final Class<E> enumClass, final String input )
+    {
+        return JavaHelper.readEnumFromPredicate( enumClass, loopValue -> loopValue.name().equalsIgnoreCase( input ) );
     }
 
     public static <E extends Enum<E>> Optional<E> readEnumFromPredicate( final Class<E> enumClass, final Predicate<E> match )
@@ -252,7 +196,20 @@ public class JavaHelper
 
     public static <E extends Enum<E>> boolean enumArrayContainsValue( final E[] enumArray, final E enumValue )
     {
-        return !( enumArray == null || enumArray.length == 0 ) && Arrays.asList( enumArray ).contains( enumValue );
+        if ( enumArray == null || enumArray.length == 0 )
+        {
+            return false;
+        }
+
+        for ( final E loopValue : enumArray )
+        {
+            if ( loopValue == enumValue )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static void unhandledSwitchStatement( final Object switchParameter )
@@ -441,7 +398,7 @@ public class JavaHelper
         for (; counter < threadInfo.getStackTrace().length && counter < maxFrames; counter++ )
         {
             final StackTraceElement ste = threadInfo.getStackTrace()[ counter ];
-            sb.append( "\tat " ).append( ste.toString() );
+            sb.append( "\tat " ).append( ste );
             sb.append( '\n' );
             if ( counter == 0 && threadInfo.getLockInfo() != null )
             {
@@ -661,7 +618,14 @@ public class JavaHelper
         {
             gzipOutputStream.write( bytes );
             gzipOutputStream.close();
-            return byteArrayOutputStream.toByteArray();
+            final byte[] byteOutput = byteArrayOutputStream.toByteArray();
+            if ( byteOutput.length > 9 )
+            {
+                // revert fix for https://bugs.openjdk.java.net/browse/JDK-8244706 in JDK16+.
+                // this is incorrect behavior, but effectively harmless and preserves backwards xpat.
+                byteOutput[9] = 0;
+            }
+            return byteOutput;
         }
     }
 

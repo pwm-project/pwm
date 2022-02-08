@@ -38,6 +38,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.RecoveryAction;
 import password.pwm.config.option.SelectableContextMode;
+import password.pwm.config.profile.AbstractProfile;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
@@ -72,9 +73,9 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
@@ -91,6 +92,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class ForgottenPasswordStateMachine
 {
@@ -135,7 +137,7 @@ public class ForgottenPasswordStateMachine
     {
         this.forgottenPasswordBean = forgottenPasswordBean == null
                 ? new ForgottenPasswordBean()
-                : JsonUtil.cloneUsingJson( forgottenPasswordBean, ForgottenPasswordBean.class );
+                : JsonFactory.get().cloneUsingJson( forgottenPasswordBean, ForgottenPasswordBean.class );
     }
 
     public ForgottenPasswordBean getForgottenPasswordBean()
@@ -394,12 +396,11 @@ public class ForgottenPasswordStateMachine
                     forgottenPasswordStateMachine.getRequestContext(),
                     forgottenPasswordStateMachine.getForgottenPasswordBean() );
 
-            final Map<String, String> selectOptions = new LinkedHashMap<>();
-
-            for ( final TokenDestinationItem item : tokenDestinationItems )
-            {
-                selectOptions.put( item.getId(), item.longDisplay( pwmRequestContext.getLocale(), pwmRequestContext.getDomainConfig() ) );
-            }
+            final Map<String, String> selectOptions = tokenDestinationItems.stream()
+                    .collect( Collectors.toUnmodifiableMap(
+                            TokenDestinationItem::getId,
+                            item -> item.longDisplay( pwmRequestContext.getLocale(), pwmRequestContext.getDomainConfig() )
+                    ) );
 
             final PresentableFormRow formRow = PresentableFormRow.builder()
                     .name( PwmConstants.PARAM_TOKEN )
@@ -711,7 +712,7 @@ public class ForgottenPasswordStateMachine
             {
                 final PwmRequestContext pwmRequestContext = forgottenPasswordStateMachine.getRequestContext();
                 final ChallengeSetBean challengeSetBean = forgottenPasswordStateMachine.getForgottenPasswordBean().getPresentableChallengeSet();
-                final List<PresentableFormRow> formRows = new ArrayList<>();
+                final List<PresentableFormRow> formRows = new ArrayList<>( challengeSetBean.getChallenges().size() );
 
                 int loopCounter = 0;
                 for ( final ChallengeBean challengeBean : challengeSetBean.getChallenges() )
@@ -747,7 +748,7 @@ public class ForgottenPasswordStateMachine
 
                 if ( forgottenPasswordBean.isBogusUser() )
                 {
-                    final FormConfiguration formConfiguration = forgottenPasswordBean.getAttributeForm().iterator().next();
+                    final FormConfiguration formConfiguration = forgottenPasswordBean.getAttributeForm().get( 0 );
 
                     if ( forgottenPasswordBean.getUserSearchValues() != null )
                     {
@@ -1065,11 +1066,12 @@ public class ForgottenPasswordStateMachine
 
             if ( selectableContextMode == SelectableContextMode.SHOW_PROFILE && pwmRequestContext.getDomainConfig().getLdapProfiles().size() > 1 )
             {
-                final Map<String, String> profileSelectValues = new LinkedHashMap<>();
-                for ( final LdapProfile ldapProfile : pwmRequestContext.getDomainConfig().getLdapProfiles().values() )
-                {
-                    profileSelectValues.put( ldapProfile.getIdentifier(), ldapProfile.getDisplayName( pwmRequestContext.getLocale() ) );
-                }
+
+                final Map<String, String> profileSelectValues = pwmRequestContext.getDomainConfig().getLdapProfiles().values().stream()
+                        .collect( Collectors.toUnmodifiableMap(
+                                AbstractProfile::getIdentifier,
+                                ldapProfile -> ldapProfile.getDisplayName( pwmRequestContext.getLocale() ) ) );
+
                 final Map<String, String> labelLocaleMap = LocaleHelper.localeMapToStringMap(
                         LocaleHelper.getUniqueLocalizations( pwmRequestContext.getDomainConfig(), Display.class, "Field_Profile", pwmRequestContext.getLocale() ) );
                 final FormConfiguration formConfiguration = FormConfiguration.builder()

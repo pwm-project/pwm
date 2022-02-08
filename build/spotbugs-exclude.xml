@@ -31,4 +31,40 @@
         <!-- https://github.com/spotbugs/spotbugs/issues/756 -->
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
     </Match>
+    <Match>
+        <!-- overly aggressive check added in 4.4.1 -->
+        <Bug pattern="MS_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <!-- overly aggressive check added in 4.4.1 -->
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <!-- overly aggressive check added in 4.4.1 -->
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <!-- triggered by lombok hashcode autogen -->
+        <Method name="hashCode" />
+        <Bug pattern="USBR_UNNECESSARY_STORE_BEFORE_RETURN" />
+    </Match>
+    <Match>
+        <!-- triggered by lombok equals autogen -->
+        <Method name="equals" />
+        <Bug pattern="CC_CYCLOMATIC_COMPLEXITY" />
+    </Match>
+    <Match>
+        <!-- triggered by lombok @Data autogen -->
+        <Bug pattern="FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY" />
+    </Match>
+    <Match>
+        <!-- triggered by lombok @Builder autogen -->
+        <Bug pattern="MRC_METHOD_RETURNS_CONSTANT" />
+    </Match>
+
+
+
+
+
+
 </FindBugsFilter>

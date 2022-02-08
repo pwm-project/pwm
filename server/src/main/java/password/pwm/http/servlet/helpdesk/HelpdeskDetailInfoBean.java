@@ -49,7 +49,7 @@ import password.pwm.ldap.ViewableUserInfoDisplayReader;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -90,7 +90,7 @@ public class HelpdeskDetailInfoBean implements Serializable
     private Set<StandardButton> enabledButtons;
 
     private HelpdeskVerificationOptionsBean verificationOptions;
-    
+
     public enum StandardButton
     {
         back,
@@ -103,7 +103,7 @@ public class HelpdeskDetailInfoBean implements Serializable
         deleteUser,
     }
 
-     static HelpdeskDetailInfoBean makeHelpdeskDetailInfo(
+    static HelpdeskDetailInfoBean makeHelpdeskDetailInfo(
             final PwmRequest pwmRequest,
             final HelpdeskProfile helpdeskProfile,
             final UserIdentity userIdentity
@@ -161,7 +161,7 @@ public class HelpdeskDetailInfoBean implements Serializable
                     pwmRequest.getLocale(),
                     macroRequest
             );
-            builder.passwordRequirements( Collections.unmodifiableList( requirementLines ) );
+            builder.passwordRequirements( requirementLines );
         }
 
         if ( ( userInfo.getPasswordPolicy() != null )
@@ -188,23 +188,26 @@ public class HelpdeskDetailInfoBean implements Serializable
 
         {
             final ResponseInfoBean responseInfoBean = userInfo.getResponseInfoBean();
-            if ( responseInfoBean != null && responseInfoBean.getHelpdeskCrMap() != null )
+            if ( responseInfoBean != null )
             {
-                final List<DisplayElement> responseDisplay = new ArrayList<>();
-                int counter = 0;
-                for ( final Map.Entry<Challenge, String> entry : responseInfoBean.getHelpdeskCrMap().entrySet() )
+                final Map<Challenge, String> helpdeskCrMap = responseInfoBean.getHelpdeskCrMap();
+                if ( helpdeskCrMap != null )
                 {
-                    counter++;
-                    responseDisplay.add( new DisplayElement(
-                            "item_" + counter,
-                            DisplayElement.Type.string,
-                            entry.getKey().getChallengeText(),
-                            entry.getValue()
-                    ) );
+                    final List<DisplayElement> responseDisplay = new ArrayList<>(  helpdeskCrMap.size() );
+                    int counter = 0;
+                    for ( final Map.Entry<Challenge, String> entry : helpdeskCrMap.entrySet() )
+                    {
+                        counter++;
+                        responseDisplay.add( new DisplayElement(
+                                "item_" + counter,
+                                DisplayElement.Type.string,
+                                entry.getKey().getChallengeText(),
+                                entry.getValue()
+                        ) );
+                    }
+                    builder.helpdeskResponses = responseDisplay;
                 }
-                builder.helpdeskResponses = responseDisplay;
             }
-
         }
 
         builder.userDisplayName( HelpdeskCardInfoBean.figureDisplayName( helpdeskProfile, macroRequest ) );
@@ -235,7 +238,7 @@ public class HelpdeskDetailInfoBean implements Serializable
         if ( pwmRequest.getAppConfig().isDevDebugMode() )
         {
             LOGGER.trace( pwmRequest, () -> "completed assembly of detail data report for user " + userIdentity
-                    + " in " + timeDuration.asCompactString() + ", contents: " + JsonUtil.serialize( helpdeskDetailInfoBean ) );
+                    + " in " + timeDuration.asCompactString() + ", contents: " + JsonFactory.get().serialize( helpdeskDetailInfoBean ) );
         }
 
         return builder.build();

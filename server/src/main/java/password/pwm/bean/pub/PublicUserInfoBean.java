@@ -24,7 +24,6 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.config.DomainConfig;
-import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.tag.PasswordRequirementsTag;
 import password.pwm.ldap.UserInfo;
@@ -33,7 +32,6 @@ import password.pwm.util.macro.MacroRequest;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -100,11 +98,7 @@ public class PublicUserInfoBean implements Serializable
         publicUserInfoBean.requiresInteraction = userInfoBean.isRequiresInteraction();
         publicUserInfoBean.language = userInfoBean.getLanguage();
 
-        publicUserInfoBean.passwordPolicy = new HashMap<>();
-        for ( final PwmPasswordRule rule : PwmPasswordRule.values() )
-        {
-            publicUserInfoBean.passwordPolicy.put( rule.name(), userInfoBean.getPasswordPolicy().getValue( rule ) );
-        }
+        publicUserInfoBean.passwordPolicy = Collections.unmodifiableMap( userInfoBean.getPasswordPolicy().getPolicyMap() );
 
         publicUserInfoBean.passwordRules = PasswordRequirementsTag.getPasswordRequirementsStrings(
                 userInfoBean.getPasswordPolicy(),

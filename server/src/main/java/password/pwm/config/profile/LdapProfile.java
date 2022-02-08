@@ -69,7 +69,7 @@ public class LdapProfile extends AbstractProfile implements Profile
     {
         final List<String> rawValues = readSettingAsStringArray( PwmSetting.LDAP_LOGIN_CONTEXTS );
         final Map<String, String> configuredValues = StringUtil.convertStringListToNameValuePair( rawValues, ":::" );
-        final Map<String, String> canonicalValues = new LinkedHashMap<>();
+        final Map<String, String> canonicalValues = new LinkedHashMap<>( configuredValues.size() );
         for ( final Map.Entry<String, String> entry : configuredValues.entrySet() )
         {
             final String dn = entry.getKey();
@@ -87,7 +87,7 @@ public class LdapProfile extends AbstractProfile implements Profile
             throws PwmUnrecoverableException
     {
         final List<String> rawValues = readSettingAsStringArray( PwmSetting.LDAP_CONTEXTLESS_ROOT );
-        final List<String> canonicalValues = new ArrayList<>();
+        final List<String> canonicalValues = new ArrayList<>( rawValues.size() );
         for ( final String dn : rawValues )
         {
             final String canonicalDN = readCanonicalDN( sessionLabel, pwmDomain, dn );

@@ -25,8 +25,8 @@ import password.pwm.util.java.CollectionUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,7 +44,7 @@ public class PwmSettingTemplateSet implements Serializable
                 .map( PwmSettingTemplate::getType )
                 .collect( Collectors.toSet() );
 
-        workingSet.addAll( Arrays.stream( PwmSettingTemplate.Type.values() )
+        workingSet.addAll( EnumSet.allOf( PwmSettingTemplate.Type.class ).stream()
                 .filter( type -> !seenTypes.contains( type ) )
                 .map( PwmSettingTemplate.Type::getDefaultValue )
                 .collect( Collectors.toSet( ) ) );
@@ -75,7 +75,7 @@ public class PwmSettingTemplateSet implements Serializable
     {
         final List<PwmSettingTemplateSet> templateSets = new ArrayList<>();
 
-        for ( final PwmSettingTemplate template : PwmSettingTemplate.values() )
+        for ( final PwmSettingTemplate template : EnumSet.allOf( PwmSettingTemplate.class ) )
         {
             final PwmSettingTemplateSet templateSet = new PwmSettingTemplateSet( Collections.singleton( template ) );
             templateSets.add( templateSet );

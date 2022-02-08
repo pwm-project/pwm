@@ -205,6 +205,7 @@ public enum AppProperty
     HEALTH_CERTIFICATE_WARN_SECONDS                 ( "health.certificate.warnSeconds" ),
     HEALTH_DB_CAUTION_DURATION_MS                   ( "health.database.cautionDurationMS" ),
     HEALTH_LDAP_CAUTION_DURATION_MS                 ( "health.ldap.cautionDurationMS" ),
+    HEALTH_LDAP_ERROR_LIFETIME_MS                   ( "health.ldap.errorLifetimeMS" ),
     HEALTH_LDAP_PROXY_WARN_PW_EXPIRE_SECONDS        ( "health.ldap.proxy.pwExpireWarnSeconds" ),
     HEALTH_LDAP_USER_SEARCH_TERM                    ( "health.ldap.userSearch.searchTerm" ),
     HEALTH_LDAP_USER_SEARCH_WARN_MS                 ( "health.ldap.userSearch.warnMS" ),
@@ -346,6 +347,7 @@ public enum AppProperty
     SECURITY_CONFIG_MIN_SECURITY_KEY_LENGTH         ( "security.config.minSecurityKeyLength" ),
     SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG            ( "security.defaultEphemeralBlockAlg" ),
     SECURITY_DEFAULT_EPHEMERAL_HASH_ALG             ( "security.defaultEphemeralHashAlg" ),
+    SECURITY_DEFAULT_EPHEMERAL_HMAC_ALG             ( "security.defaultEphemeralHmacAlg" ),
     SEEDLIST_BUILTIN_PATH                           ( "seedlist.builtin.path" ),
     SMTP_IO_CONNECT_TIMEOUT                         ( "smtp.io.connectTimeoutMs" ),
     SMTP_IO_READ_TIMEOUT                            ( "smtp.io.readTimeoutMs" ),
@@ -397,14 +399,16 @@ public enum AppProperty
     ALLOW_MACRO_IN_REGEX_SETTING                    ( "password.policy.allowMacroInRegexSetting" ),;
 
     public static final String VALUE_SEPARATOR = ";;;";
+
     private static final String DESCRIPTION_SUFFIX = "_description";
 
     private final String key;
-    private String defaultValue;
+    private final String defaultValue;
 
     AppProperty( final String key )
     {
         this.key = key;
+        this.defaultValue = readAppPropertiesBundle( key );
     }
 
     public String getKey( )
@@ -414,10 +418,6 @@ public enum AppProperty
 
     public String getDefaultValue( )
     {
-        if ( defaultValue == null )
-        {
-            defaultValue = readAppPropertiesBundle( this.getKey() );
-        }
         return defaultValue;
     }
 

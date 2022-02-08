@@ -79,7 +79,7 @@ public class OTPPamUtil
                         }
                         else if ( option.matches( "^HOTP_COUNTER\\s+\\d+$" ) )
                         {
-                            final String countStr = option.substring( option.indexOf( " " ) + 1 );
+                            final String countStr = option.substring( option.indexOf( ' ' ) + 1 );
                             otp.setType( OTPUserRecord.Type.HOTP );
                             otp.setAttemptCount( Long.parseLong( countStr ) );
                         }
@@ -135,8 +135,8 @@ public class OTPPamUtil
         final OTPUserRecord.Type type = otp.getType();
         final List<OTPUserRecord.RecoveryCode> recoveryCodes = otp.getRecoveryCodes();
         final StringBuilder pamData = new StringBuilder();
-        pamData.append( secret ).append( "\n" );
-        if ( OTPUserRecord.Type.HOTP.equals( type ) )
+        pamData.append( secret ).append( '\n' );
+        if ( OTPUserRecord.Type.HOTP == type )
         {
             pamData.append( String.format( "\" HOTP_COUNTER %d%n", otp.getAttemptCount() ) );
         }
@@ -151,7 +151,7 @@ public class OTPPamUtil
             {
                 if ( !code.isUsed() )
                 {
-                    pamData.append( code.getHashCode() ).append( "\n" );
+                    pamData.append( code.getHashCode() ).append( '\n' );
                 }
             }
         }

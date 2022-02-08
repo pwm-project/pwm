@@ -30,7 +30,7 @@ import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -167,7 +167,7 @@ public class WordlistConfiguration implements Serializable
     {
         try
         {
-            return SecureEngine.hash( JsonUtil.serialize( WordlistConfiguration.this ), HASH_ALGORITHM );
+            return SecureEngine.hash( JsonFactory.get().serialize( WordlistConfiguration.this ), HASH_ALGORITHM );
         }
         catch ( final PwmUnrecoverableException e )
         {

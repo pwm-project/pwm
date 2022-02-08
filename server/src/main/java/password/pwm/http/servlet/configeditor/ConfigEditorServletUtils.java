@@ -32,10 +32,8 @@ import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.stored.ValueMetaData;
-import password.pwm.config.value.ActionValue;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.PrivateKeyValue;
-import password.pwm.config.value.RemoteWebServiceValue;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -99,10 +97,12 @@ public class ConfigEditorServletUtils
             return Optional.empty();
         }
 
-        if ( fileUploads.containsKey( PwmConstants.PARAM_FILE_UPLOAD ) )
         {
             final PwmRequest.FileUploadItem uploadItem = fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD );
-            return Optional.of( FileValue.newFileValue( uploadItem.getName(), uploadItem.getType(), uploadItem.getContent() ) );
+            if ( uploadItem != null )
+            {
+                return Optional.of( FileValue.newFileValue( uploadItem.getName(), uploadItem.getType(), uploadItem.getContent() ) );
+            }
         }
 
         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "no file found in upload" );
@@ -122,12 +122,10 @@ public class ConfigEditorServletUtils
                 pwmRequest.getPwmDomain().getConfig().getStoredConfiguration(),
                 configManagerBean.getStoredConfiguration() );
 
-        final Map<String, String> changeLogMap = StoredConfigurationUtil.makeDebugMap(
+        return StoredConfigurationUtil.makeDebugMap(
                 configManagerBean.getStoredConfiguration(),
                 changedKeys,
                 locale );
-
-        return changeLogMap;
     }
 
     static Map<DomainID, List<String>> configurationHealth(
@@ -150,7 +148,7 @@ public class ConfigEditorServletUtils
 
             healthRecords.forEach( record ->
                     returnData.computeIfAbsent(
-                            record.getDomainID(), k -> new ArrayList<>() )
+                                    record.getDomainID(), k -> new ArrayList<>() )
                             .add( record.getDetail( locale, pwmRequest.getAppConfig() ) ) );
 
             LOGGER.debug( () -> "config health check done in ", () -> TimeDuration.fromCurrent( startTime ) );
@@ -247,14 +245,6 @@ public class ConfigEditorServletUtils
                 returnValue = ( ( PrivateKeyValue ) StoredConfigurationUtil.getValueOrDefault( storedConfig, key ) ).toInfoMap( true );
                 break;
 
-            case ACTION:
-                returnValue = ( ( ActionValue ) StoredConfigurationUtil.getValueOrDefault( storedConfig, key ) ).toInfoMap();
-                break;
-
-            case REMOTE_WEB_SERVICE:
-                returnValue = ( ( RemoteWebServiceValue ) StoredConfigurationUtil.getValueOrDefault( storedConfig, key ) ).toInfoMap();
-                break;
-
             case FILE:
                 returnValue = ( ( FileValue ) StoredConfigurationUtil.getValueOrDefault( storedConfig, key ) ).toInfoMap();
                 break;
@@ -306,7 +296,7 @@ public class ConfigEditorServletUtils
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, "unknown format type: " + e.getMessage(), new String[]
                         {
                                 "format",
-                                }
+                        }
                 ) );
             }
 

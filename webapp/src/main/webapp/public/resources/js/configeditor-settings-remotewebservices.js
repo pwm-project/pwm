@@ -70,7 +70,7 @@ RemoteWebServiceHandler.redraw = function(keyName) {
     var rowCount = PWM_MAIN.JSLibrary.itemCount(resultValue);
     var maxRowCount = PWM_SETTINGS['settings'][keyName]['properties']['Maximum'];
     if (maxRowCount > 0 && rowCount < maxRowCount) {
-        html += '<br/><button class="btn" id="button-' + keyName + '-addValue"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Action</button>';
+        html += '<br/><button class="btn" id="button-' + keyName + '-addValue"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Service</button>';
     }
 
     parentDivElement.innerHTML = html;
@@ -191,7 +191,7 @@ RemoteWebServiceHandler.showOptionsDialog = function(keyName, iteration) {
     if (showBody) {
         bodyText += '<tr><td class="key">Body</td><td><textarea style="max-width:400px; height:100px; max-height:100px" class="configStringInput" id="input-' + inputID + '-body' + '"/>' + value['body'] + '</textarea></td></tr>';
     }
-    if (!PWM_MAIN.JSLibrary.isEmpty(value['certificateInfos'])) {
+    if (value['certificates']) {
         bodyText += '<tr><td class="key">Certificates</td><td><a id="button-' + inputID + '-certDetail">View Certificates</a></td>';
         bodyText += '</tr>';
     } else {
@@ -202,7 +202,7 @@ RemoteWebServiceHandler.showOptionsDialog = function(keyName, iteration) {
 
     bodyText += '</table>';
 
-    if (!PWM_MAIN.JSLibrary.isEmpty(value['certificateInfos'])) {
+    if (value['certificates']) {
         bodyText += '<button class="btn" id="button-' + inputID + '-clearCertificates"><span class="btn-icon pwm-icon pwm-icon-trash"></span>Clear Certificates</button>'
     } else {
         bodyText += '<button class="btn" id="button-' + inputID + '-importCertificates"><span class="btn-icon pwm-icon pwm-icon-download"></span>Import Certificates</button>'
@@ -252,27 +252,12 @@ RemoteWebServiceHandler.showOptionsDialog = function(keyName, iteration) {
                 value['body'] = PWM_MAIN.getObject('input-' + inputID + '-body').value;
                 RemoteWebServiceHandler.write(keyName);
             });
-            if (!PWM_MAIN.JSLibrary.isEmpty(value['certificateInfos'])) {
+            if (value['certificates']) {
                 PWM_MAIN.addEventHandler('button-' + inputID + '-certDetail','click',function(){
-                    var bodyText = '';
-                    for (var i in value['certificateInfos']) {
-                        var certificate = value['certificateInfos'][i];
-                        bodyText += X509CertificateHandler.certificateToHtml(certificate,keyName,i);
-                    }
-                    var cancelFunction = function(){ RemoteWebServiceHandler.showOptionsDialog(keyName,iteration); };
-                    var loadFunction = function(){
-                        for (var i in value['certificateInfos']) {
-                            var certificate = value['certificateInfos'][i];
-                            X509CertificateHandler.certHtmlActions(certificate,keyName,i);
-                        }
-                    };
-                    PWM_MAIN.showDialog({
-                        title:'Certificate Detail',
-                        dialogClass: 'wide',
-                        text:bodyText,
-                        okAction:cancelFunction,
-                        loadFunction:loadFunction
-                    });
+                    var extraData = JSON.stringify({iteration:iteration});
+                    PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.http.servlet.configeditor.function.RemoteWebServiceCertViewerFunction',
+                        ActionHandler.showCertificateViewerDialog, extraData)
+
                 });
                 PWM_MAIN.addEventHandler('button-' + inputID + '-clearCertificates','click',function() {
                     PWM_MAIN.showConfirmDialog({okAction:function(){
@@ -294,7 +279,7 @@ RemoteWebServiceHandler.showOptionsDialog = function(keyName, iteration) {
                             });
                         }});
                     };
-                    PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.config.function.RemoteWebServiceCertImportFunction', dataHandler, value['name'])
+                    PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.http.servlet.configeditor.function.RemoteWebServiceCertImportFunction', dataHandler, value['name'])
                 });
             }
 

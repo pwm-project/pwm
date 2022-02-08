@@ -101,13 +101,13 @@ public class ErrorInformation implements Serializable
     {
         final StringBuilder sb = new StringBuilder();
         sb.append( error.getErrorCode() );
-        sb.append( " " );
-        sb.append( error.toString() );
+        sb.append( ' ' );
+        sb.append( error );
         if ( detailedErrorMsg != null && detailedErrorMsg.length() > 0 )
         {
             sb.append( " (" );
             sb.append( detailedErrorMsg );
-            sb.append( ( ")" ) );
+            sb.append( ')' );
         }
 
         if ( fieldValues != null && fieldValues.length > 0 )

@@ -20,8 +20,11 @@
 
 package password.pwm.config;
 
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class PwmSettingStats
 {
@@ -34,33 +37,21 @@ public class PwmSettingStats
 
     public static Map<SettingStat, Object> getStats( )
     {
-        final Map<SettingStat, Object> returnObj = new LinkedHashMap<>();
-        {
-            returnObj.put( SettingStat.Total, PwmSetting.values().length );
-        }
-        {
-            int hasProfile = 0;
-            for ( final PwmSetting pwmSetting : PwmSetting.values() )
-            {
-                if ( pwmSetting.getCategory().hasProfiles() )
-                {
-                    hasProfile++;
-                }
-            }
-            returnObj.put( SettingStat.hasProfile, hasProfile );
-        }
-        {
-            final Map<PwmSettingSyntax, Integer> syntaxCounts = new LinkedHashMap<>();
-            for ( final PwmSettingSyntax syntax : PwmSettingSyntax.values() )
-            {
-                syntaxCounts.put( syntax, 0 );
-            }
-            for ( final PwmSetting pwmSetting : PwmSetting.values() )
-            {
-                syntaxCounts.put( pwmSetting.getSyntax(), syntaxCounts.get( pwmSetting.getSyntax() ) + 1 );
-            }
-            returnObj.put( SettingStat.syntaxCounts, syntaxCounts );
-        }
-        return returnObj;
+        final Map<SettingStat, Object> returnObj = new LinkedHashMap<>( SettingStat.values().length );
+
+        returnObj.put( SettingStat.Total, PwmSetting.values().length );
+
+        returnObj.put( SettingStat.hasProfile, EnumSet.allOf( PwmSetting.class ).stream()
+                .filter( pwmSetting -> pwmSetting.getCategory().hasProfiles() )
+                .count() );
+
+        final Map<PwmSettingSyntax, Integer> syntaxCounts = Arrays.stream( PwmSettingSyntax.values() )
+                .collect( Collectors.toMap( syntax -> syntax, syntax -> 0 ) );
+
+        Arrays.stream( PwmSetting.values() ).forEach(
+                pwmSetting -> syntaxCounts.compute( pwmSetting.getSyntax(), ( pwmSettingSyntax, integer ) -> integer == null ? 0 : integer + 1 ) );
+
+        returnObj.put( SettingStat.syntaxCounts, syntaxCounts );
+        return Map.copyOf( returnObj );
     }
 }

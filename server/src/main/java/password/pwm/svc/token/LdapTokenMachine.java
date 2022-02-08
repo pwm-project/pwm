@@ -22,7 +22,6 @@ package password.pwm.svc.token;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
-import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -36,20 +35,17 @@ import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 class LdapTokenMachine implements TokenMachine
 {
     private static final String KEY_VALUE_DELIMITER = " ";
 
-    private PwmDomain pwmDomain;
-    private String tokenAttribute;
-    private TokenService tokenService;
+    private final PwmDomain pwmDomain;
+    private final String tokenAttribute;
+    private final TokenService tokenService;
 
     LdapTokenMachine( final TokenService tokenService, final PwmDomain pwmDomain )
-            throws PwmOperationalException
     {
         this.tokenService = tokenService;
         this.pwmDomain = pwmDomain;
@@ -68,21 +64,9 @@ class LdapTokenMachine implements TokenMachine
 
     @Override
     public Optional<TokenPayload> retrieveToken( final SessionLabel sessionLabel, final TokenKey tokenKey )
-            throws PwmOperationalException, PwmUnrecoverableException
+            throws PwmOperationalException
     {
-        final String searchFilter;
-        {
-            final String storedHash = tokenKey.getStoredHash();
-            final SearchHelper tempSearchHelper = new SearchHelper();
-            final Map<String, String> filterAttributes = new HashMap<>();
-            for ( final String loopStr : pwmDomain.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES ) )
-            {
-                filterAttributes.put( "objectClass", loopStr );
-            }
-            filterAttributes.put( tokenAttribute, storedHash + "*" );
-            tempSearchHelper.setFilterAnd( filterAttributes );
-            searchFilter = tempSearchHelper.getFilter();
-        }
+        final String searchFilter = makeLdapSearchFilter( pwmDomain, tokenKey, tokenAttribute );
 
         try
         {
@@ -124,6 +108,28 @@ class LdapTokenMachine implements TokenMachine
             throw new PwmOperationalException( errorInformation );
         }
         return Optional.empty();
+    }
+
+    private static String makeLdapSearchFilter(
+            final PwmDomain pwmDomain,
+            final TokenKey tokenKey,
+            final String tokenAttribute
+    )
+    {
+        final String storedHash = tokenKey.getStoredHash();
+        final StringBuilder searchFilter = new StringBuilder();
+
+        searchFilter.append( "(&" );
+
+        for ( final String loopStr : pwmDomain.getConfig().readSettingAsStringArray( PwmSetting.DEFAULT_OBJECT_CLASSES ) )
+        {
+            searchFilter.append( "(objectClass=" ).append( loopStr ).append( ')' );
+        }
+
+        searchFilter.append( '(' ).append( tokenAttribute ).append( '=' ).append( storedHash ).append( "*)" );
+        searchFilter.append( ')' );
+
+        return searchFilter.toString();
     }
 
     @Override

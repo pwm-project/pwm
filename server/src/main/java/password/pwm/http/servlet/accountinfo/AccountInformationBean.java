@@ -135,7 +135,7 @@ public class AccountInformationBean implements Serializable
             LOGGER.debug( sessionLabel, () -> "error reading audit data for user: " + e.getMessage() );
         }
 
-        final List<ActivityRecord> returnData = new ArrayList<>();
+        final List<ActivityRecord> returnData = new ArrayList<>( auditRecords.size() );
         for ( final UserAuditRecord userAuditRecord : auditRecords )
         {
             returnData.add( new ActivityRecord(

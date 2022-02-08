@@ -44,7 +44,7 @@ import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -87,11 +87,12 @@ public class OAuthMachine
         if ( requestStateStr != null )
         {
             final String stateJson = pwmRequest.getPwmDomain().getSecureService().decryptStringValue( requestStateStr );
-            final OAuthState oAuthState = JsonUtil.deserialize( stateJson, OAuthState.class );
+            final OAuthState oAuthState = JsonFactory.get().deserialize( stateJson, OAuthState.class );
             if ( oAuthState != null )
             {
                 final boolean sessionMatch = oAuthState.getSessionID().equals( pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey() );
-                LOGGER.trace( pwmRequest, () -> "read state while parsing oauth consumer request with match=" + sessionMatch + ", " + JsonUtil.serialize( oAuthState ) );
+                LOGGER.trace( pwmRequest, () -> "read state while parsing oauth consumer request with match=" + sessionMatch + ", "
+                        + JsonFactory.get().serialize( oAuthState ) );
                 return Optional.of( new OAuthRequestState( oAuthState, sessionMatch ) );
             }
         }
@@ -429,7 +430,7 @@ public class OAuthMachine
                 + oAuthState.getStateID() + " with the next destination URL set to " + oAuthState.getNextUrl() );
 
 
-        final String jsonValue = JsonUtil.serialize( oAuthState );
+        final String jsonValue = JsonFactory.get().serialize( oAuthState );
         return pwmRequest.getPwmDomain().getSecureService().encryptToString( jsonValue );
     }
 
@@ -466,14 +467,14 @@ public class OAuthMachine
             listWrapper.add( dataPayload );
 
             requestPayload = new HashMap<>();
-            requestPayload.put( "data", JsonUtil.serializeCollection( listWrapper ) );
+            requestPayload.put( "data", JsonFactory.get().serializeCollection( listWrapper ) );
         }
 
         LOGGER.debug( sessionLabel, () -> "preparing to send username to OAuth /sign endpoint for future injection to /grant redirect" );
         final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth pre-inject username signing service", settings, signUrl, requestPayload, null );
 
         final String resultBody = restResults.getBody();
-        final Map<String, String> resultBodyMap = JsonUtil.deserializeStringMap( resultBody );
+        final Map<String, String> resultBodyMap = JsonFactory.get().deserializeStringMap( resultBody );
         final String data = resultBodyMap.get( "data" );
         if ( StringUtil.isEmpty( data ) )
         {
@@ -490,7 +491,7 @@ public class OAuthMachine
     {
         try
         {
-            final Map<String, Object> bodyMap = JsonUtil.deserializeMap( bodyString );
+            final Map<String, Object> bodyMap = JsonFactory.get().deserializeMap( bodyString, String.class, Object.class );
             final List<String> attributeValues = StringUtil.splitAndTrim( attributeNames, "," );
 
             for ( final String attribute : attributeValues )

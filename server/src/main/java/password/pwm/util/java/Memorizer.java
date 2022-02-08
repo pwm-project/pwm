@@ -102,11 +102,6 @@ public class Memorizer implements InvocationHandler
         }
     }
 
-    public void outputStats()
-    {
-        System.out.println( stats.debugString() );
-    }
-
     private Object realInvoke( final Method method, final Object[] args )
     throws Throwable
     {

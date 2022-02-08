@@ -20,8 +20,8 @@
 
 package password.pwm.config;
 
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.XmlElement;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -64,7 +64,7 @@ public enum PwmSettingTemplate
     public boolean isHidden( )
     {
         final XmlElement templateElement = readTemplateElement( this );
-        final Optional<String> requiredAttribute = templateElement.getAttributeValue( "hidden" );
+        final Optional<String> requiredAttribute = templateElement.getAttribute( "hidden" );
         return requiredAttribute.isPresent() && "true".equalsIgnoreCase( requiredAttribute.get() );
     }
 

@@ -28,11 +28,10 @@ import password.pwm.config.option.TLSVersion;
 import password.pwm.util.cli.CliParameters;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -47,8 +46,8 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
         final File sourceFile = ( File ) cliEnvironment.getOptions().get( "sourceFile" );
         final File outputFile = ( File ) cliEnvironment.getOptions().get( "outputFile" );
         try (
-                FileInputStream fileInputStream = new FileInputStream( sourceFile );
-                FileOutputStream fileOutputStream = new FileOutputStream( outputFile )
+                InputStream fileInputStream = Files.newInputStream( sourceFile.toPath() );
+                OutputStream fileOutputStream = Files.newOutputStream( outputFile.toPath() )
         )
         {
             TomcatConfigWriter.writeOutputFile(
@@ -133,7 +132,7 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
             for ( final Iterator<TLSVersion> versionIterator = tlsVersions.iterator(); versionIterator.hasNext(); )
             {
                 final TLSVersion tlsVersion = versionIterator.next();
-                output.append( "+" ).append( tlsVersion.getTomcatValueName() );
+                output.append( '+' ).append( tlsVersion.getTomcatValueName() );
                 if ( versionIterator.hasNext() )
                 {
                     output.append( ", " );

@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.config.function;
+package password.pwm.http.servlet.configeditor.function;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
@@ -28,42 +28,21 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JavaHelper;
 
 import java.net.URI;
 
-public class OAuthCertImportFunction extends AbstractUriCertImportFunction
+public class SMSGatewayCertImportFunction extends AbstractUriCertImportFunction
 {
-
-
     @Override
     String getUri( final StoredConfigurationModifier modifier, final StoredConfigKey key, final String extraData )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final PwmSetting pwmSetting = key.toPwmSetting();
-
         final String uriString;
         final String menuDebugLocation;
 
-        final PwmSetting urlCertSetting;
-        switch ( pwmSetting )
-        {
-            case OAUTH_ID_CERTIFICATE:
-                urlCertSetting = PwmSetting.OAUTH_ID_CODERESOLVE_URL;
-                break;
-
-            case RECOVERY_OAUTH_ID_CERTIFICATE:
-                urlCertSetting = PwmSetting.RECOVERY_OAUTH_ID_CODERESOLVE_URL;
-                break;
-
-            default:
-                JavaHelper.unhandledSwitchStatement( pwmSetting );
-                return null;
-        }
-
-        final StoredConfigKey oauthCertKey = StoredConfigKey.forSetting( urlCertSetting, key.getProfileID(), key.getDomainID() );
-        uriString = ( String ) modifier.newStoredConfiguration().readStoredValue( oauthCertKey ).orElseThrow().toNativeObject();
-        menuDebugLocation = urlCertSetting.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
+        final var urlSettingKey = StoredConfigKey.forSetting( PwmSetting.SMS_GATEWAY_URL, key.getProfileID(), key.getDomainID() );
+        uriString = ( String ) modifier.newStoredConfiguration().readStoredValue( urlSettingKey ).orElseThrow().toNativeObject();
+        menuDebugLocation = PwmSetting.SMS_GATEWAY_URL.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
 
         if ( uriString.isEmpty() )
         {

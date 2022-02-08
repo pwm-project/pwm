@@ -45,7 +45,7 @@ public class SearchAttributeBean implements Serializable
             final List<FormConfiguration> formConfigurations
     )
     {
-        final List<SearchAttributeBean> returnList = new ArrayList<>( );
+        final List<SearchAttributeBean> returnList = new ArrayList<>( formConfigurations.size() );
         for ( final FormConfiguration formConfiguration : formConfigurations )
         {
             final String attribute = formConfiguration.getName();

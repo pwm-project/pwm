@@ -32,7 +32,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.java.FileSystemUtility;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -125,7 +125,7 @@ public class LocalDBLoggerExtendedTest
     public void testBulkAddEvents() throws InterruptedException
     {
         out( "starting bulk add...  " );
-        out( "settings=" + JsonUtil.serialize( settings ) );
+        out( "settings=" + JsonFactory.get().serialize( settings ) );
         startTime = Instant.now();
         final Timer timer = new Timer();
 
@@ -149,8 +149,8 @@ public class LocalDBLoggerExtendedTest
         threadPoolExecutor.awaitTermination( 1, TimeUnit.DAYS );
         timer.cancel();
         out( "bulk operations completed" );
-        out( "settings=" + JsonUtil.serialize( settings ) );
-        out( " results=" + JsonUtil.serialize( makeResults() ) );
+        out( "settings=" + JsonFactory.get().serialize( settings ) );
+        out( " results=" + JsonFactory.get().serialize( makeResults() ) );
         outputDebugInfo();
     }
 

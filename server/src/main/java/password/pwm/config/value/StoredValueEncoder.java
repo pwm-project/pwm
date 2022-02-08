@@ -25,7 +25,7 @@ import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmBlockAlgorithm;
@@ -66,7 +66,7 @@ public abstract class StoredValueEncoder
 
         public String getPrefix()
         {
-            return prefixes.iterator().next();
+            return prefixes.get( 0 );
         }
 
         public SecureOutputEngine getSecureOutputEngine()
@@ -221,7 +221,7 @@ public abstract class StoredValueEncoder
                 {
                     final String salt = PwmRandom.getInstance().alphaNumericString( 32 );
                     final StoredPwData storedPwData = new StoredPwData( salt, rawValue );
-                    final String jsonData = JsonUtil.serialize( storedPwData );
+                    final String jsonData = JsonFactory.get().serialize( storedPwData );
                     final String encryptedValue = SecureEngine.encryptToString( jsonData, pwmSecurityKey, PwmBlockAlgorithm.CONFIG );
                     return Mode.ENCODED.getPrefix() + encryptedValue;
                 }
@@ -243,7 +243,7 @@ public abstract class StoredValueEncoder
             {
                 final String pwValueSuffix = input.getValue( );
                 final String decryptedValue = SecureEngine.decryptStringValue( pwValueSuffix, pwmSecurityKey, PwmBlockAlgorithm.CONFIG );
-                final StoredPwData storedPwData = JsonUtil.deserialize( decryptedValue, StoredPwData.class );
+                final StoredPwData storedPwData = JsonFactory.get().deserialize( decryptedValue, StoredPwData.class );
                 return storedPwData.getValue();
             }
             catch ( final Exception e )

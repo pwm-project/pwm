@@ -26,13 +26,10 @@ import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Message;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.logging.PwmLogger;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
-import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -387,25 +384,6 @@ public enum PwmPasswordRule
             ChaiPasswordRule.RuleType.BOOLEAN,
             "true",
             false ),;
-
-    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmPasswordRule.class );
-
-    static
-    {
-        try
-        {
-            final Set<String> keys = new HashSet<>();
-            for ( final PwmSetting setting : PwmSetting.values() )
-            {
-                keys.add( setting.getKey() );
-            }
-            assert keys.size() == PwmSetting.values().length;
-        }
-        catch ( final Throwable t )
-        {
-            LOGGER.fatal( () -> "error initializing PwmPasswordRule class: " + t.getMessage(), t );
-        }
-    }
 
     private final ChaiPasswordRule chaiPasswordRule;
     private final PwmSetting pwmSetting;

@@ -127,7 +127,7 @@ public enum GuideStep
         {
             try
             {
-                final PwmSettingTemplateSet templates = ConfigGuideForm.generateStoredConfig( configGuideBean ).getTemplateSet().get( ConfigGuideForm.DOMAIN_ID );
+                final PwmSettingTemplateSet templates = ConfigGuideForm.generateStoredConfig( configGuideBean ).getTemplateSets().get( ConfigGuideForm.DOMAIN_ID );
                 return templates.contains( PwmSettingTemplate.LDAP );
             }
             catch ( final PwmUnrecoverableException e )
@@ -144,7 +144,7 @@ public enum GuideStep
         {
             try
             {
-                final PwmSettingTemplateSet templates = ConfigGuideForm.generateStoredConfig( configGuideBean ).getTemplateSet().get( ConfigGuideForm.DOMAIN_ID );
+                final PwmSettingTemplateSet templates = ConfigGuideForm.generateStoredConfig( configGuideBean ).getTemplateSets().get( ConfigGuideForm.DOMAIN_ID );
                 return templates.contains( PwmSettingTemplate.DB );
             }
             catch ( final PwmUnrecoverableException e )

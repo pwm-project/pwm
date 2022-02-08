@@ -20,21 +20,25 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
+import password.pwm.util.i18n.LocaleComparators;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
+import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,9 +47,20 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
 {
     private final Map<String, String> value;
 
+    private static final Comparator<String> COMPARATOR = LocaleComparators.stringLocaleComparator( PwmConstants.DEFAULT_LOCALE, LocaleComparators.Flag.DefaultFirst );
+
     public LocalizedStringValue( final Map<String, String> values )
     {
-        this.value = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
+        if ( CollectionUtil.isEmpty( values ) )
+        {
+            this.value = Collections.emptyMap();
+        }
+        else
+        {
+            final SortedMap<String, String> tempMap = new TreeMap<>( COMPARATOR );
+            tempMap.putAll( CollectionUtil.stripNulls( values ) );
+            this.value = Collections.unmodifiableMap( tempMap );
+        }
     }
 
     public static StoredValueFactory factory( )
@@ -61,9 +76,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    Map<String, String> srcMap = JsonUtil.deserialize( input, new TypeToken<Map<String, String>>()
-                    {
-                    } );
+                    Map<String, String> srcMap = JsonFactory.get().deserializeStringMap( input );
                     srcMap = srcMap == null ? Collections.emptyMap() : new TreeMap<>( srcMap );
                     return new LocalizedStringValue( Collections.unmodifiableMap( srcMap ) );
                 }
@@ -76,7 +89,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
                 final Map<String, String> values = new TreeMap<>();
                 for ( final XmlElement loopValueElement : elements )
                 {
-                    final String localeString = loopValueElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE ).orElse( "" );
+                    final String localeString = loopValueElement.getAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_LOCALE ).orElse( "" );
                     loopValueElement.getText().ifPresent( value -> values.put( localeString, value ) );
                 }
                 return new LocalizedStringValue( values );
@@ -87,13 +100,13 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( value.size() );
         for ( final Map.Entry<String, String> entry : value.entrySet() )
         {
             final String locale = entry.getKey();
             final String loopValue = entry.getValue();
-            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-            valueElement.addText( loopValue );
+            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            valueElement.setText( loopValue );
             if ( locale != null && locale.length() > 0 )
             {
                 valueElement.setAttribute( "locale", locale );
@@ -106,7 +119,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
     @Override
     public Map<String, String> toNativeObject( )
     {
-        return Collections.unmodifiableMap( value );
+        return value;
     }
 
     @Override
@@ -142,9 +155,9 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
             final String localeKey = entry.getKey();
             if ( value.size() > 1 )
             {
-                sb.append( "Locale: " ).append( LocaleHelper.debugLabel( LocaleHelper.parseLocaleString( localeKey ) ) ).append( "\n" );
+                sb.append( "Locale: " ).append( LocaleHelper.debugLabel( LocaleHelper.parseLocaleString( localeKey ) ) ).append( '\n' );
             }
-            sb.append( " " ).append( entry.getValue() ).append( "\n" );
+            sb.append( ' ' ).append( entry.getValue() ).append( '\n' );
         }
         return sb.toString();
     }

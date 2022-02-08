@@ -38,7 +38,7 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -145,7 +145,8 @@ public class DatabaseService extends AbstractPwmService implements PwmService
 
                 final Connection connection = openConnection( dbConfiguration );
                 updateDebugProperties( connection );
-                LOGGER.debug( () -> "established initial connection to " + dbConfiguration.getConnectionString() + ", properties: " + JsonUtil.serializeMap( this.debugInfo ) );
+                LOGGER.debug( () -> "established initial connection to " + dbConfiguration.getConnectionString() + ", properties: "
+                        + JsonFactory.get().serializeMap( this.debugInfo ) );
 
                 for ( final DatabaseTable table : DatabaseTable.values() )
                 {
@@ -245,7 +246,7 @@ public class DatabaseService extends AbstractPwmService implements PwmService
             final Map<String, String> tempMap = new HashMap<>();
             tempMap.put( "date", JavaHelper.toIsoDate( Instant.now() ) );
             final DatabaseAccessor accessor = getAccessor();
-            accessor.put( DatabaseTable.PWM_META, KEY_TEST, JsonUtil.serializeMap( tempMap ) );
+            accessor.put( DatabaseTable.PWM_META, KEY_TEST, JsonFactory.get().serializeMap( tempMap ) );
         }
         catch ( final PwmException e )
         {
@@ -314,7 +315,7 @@ public class DatabaseService extends AbstractPwmService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        final Map<String, String> debugProperties = new LinkedHashMap<>();
+        final Map<String, String> debugProperties = new LinkedHashMap<>( debugInfo.size() );
         for ( final Map.Entry<DatabaseAboutProperty, String> entry : debugInfo.entrySet() )
         {
             final DatabaseAboutProperty databaseAboutProperty = entry.getKey();

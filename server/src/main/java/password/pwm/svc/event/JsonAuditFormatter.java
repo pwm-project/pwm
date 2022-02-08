@@ -25,7 +25,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.AppConfig;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 
 public class JsonAuditFormatter implements AuditFormatter
 {
@@ -41,9 +41,9 @@ public class JsonAuditFormatter implements AuditFormatter
         String jsonValue = "";
         final StringBuilder message = new StringBuilder();
         message.append( PwmConstants.PWM_APP_NAME );
-        message.append( " " );
+        message.append( ' ' );
 
-        jsonValue = JsonUtil.serialize( auditRecord );
+        jsonValue = JsonFactory.get().serialize( auditRecord );
 
         if ( message.length() + jsonValue.length() <= maxLength )
         {
@@ -61,7 +61,7 @@ public class JsonAuditFormatter implements AuditFormatter
             copiedRecord.message( "" );
             copiedRecord.narrative( "" );
             final int shortenedMessageLength = message.length()
-                    + JsonUtil.serialize( copiedRecord.build() ).length()
+                    + JsonFactory.get().serialize( copiedRecord.build() ).length()
                     + truncateMessage.length();
             final int maxMessageAndNarrativeLength = maxLength - ( shortenedMessageLength + ( truncateMessage.length() * 2 ) );
             int maxMessageLength = inputRecord.getMessage().length();
@@ -85,7 +85,7 @@ public class JsonAuditFormatter implements AuditFormatter
                     ? inputRecord.getNarrative().substring( 0, maxNarrativeLength ) + truncateMessage
                     : inputRecord.getNarrative() );
 
-            message.append( JsonUtil.serialize( copiedRecord.build() ) );
+            message.append( JsonFactory.get().serialize( copiedRecord.build() ) );
         }
 
         return message.toString();

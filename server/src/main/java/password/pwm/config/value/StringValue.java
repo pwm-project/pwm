@@ -20,6 +20,8 @@
 
 package password.pwm.config.value;
 
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
@@ -28,10 +30,8 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.Collections;
@@ -61,7 +61,7 @@ public class StringValue extends AbstractValue implements StoredValue
             @Override
             public StringValue fromJson( final String input )
             {
-                final String newValue = JsonUtil.deserialize( input, String.class );
+                final String newValue = JsonFactory.get().deserialize( input, String.class );
                 return new StringValue( newValue );
             }
 
@@ -78,8 +78,8 @@ public class StringValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-        valueElement.addText( value );
+        final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+        valueElement.setText( value );
         return Collections.singletonList( valueElement );
     }
 
@@ -124,13 +124,13 @@ public class StringValue extends AbstractValue implements StoredValue
         {
             final String lCaseValue = value.toLowerCase( PwmConstants.DEFAULT_LOCALE );
             final List<String> reservedWords = DomainID.DOMAIN_RESERVED_WORDS;
-            final boolean contains = reservedWords.stream()
+            final Optional<String> reservedWordMatch = reservedWords.stream()
                     .map( String::toLowerCase )
-                    .anyMatch( lCaseValue::contains );
-            if ( contains )
+                    .filter( lCaseValue::contains )
+                    .findFirst();
+            if ( reservedWordMatch.isPresent() )
             {
-                return Collections.singletonList( "Domain ID is reserved word: '" + value + "'" );
-
+                return Collections.singletonList( "contains reserved word '" + reservedWordMatch.get() + "'" );
             }
         }
 

@@ -37,6 +37,7 @@ import com.nulabinc.zxcvbn.Zxcvbn;
 import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionLabel;
@@ -85,7 +86,7 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -354,7 +355,7 @@ public class PasswordUtility
             final List<ActionConfiguration> actionConfigurations = changePasswordProfile.readSettingAsAction( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES );
             if ( !CollectionUtil.isEmpty( actionConfigurations ) )
             {
-                final LoginInfoBean clonedLoginInfoBean = JsonUtil.cloneUsingJson( pwmSession.getLoginInfoBean(), LoginInfoBean.class );
+                final LoginInfoBean clonedLoginInfoBean = JsonFactory.get().cloneUsingJson( pwmSession.getLoginInfoBean(), LoginInfoBean.class );
                 clonedLoginInfoBean.setUserCurrentPassword( newPassword );
 
                 final MacroRequest macroRequest = MacroRequest.forUser(
@@ -538,14 +539,15 @@ public class PasswordUtility
         final ChaiUser proxiedUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
 
         // mark the event log
+        final LocalSessionStateBean sessionStateBean = pwmRequest.getPwmSession().getSessionStateBean();
         {
             final HelpdeskAuditRecord auditRecord = AuditRecordFactory.make( pwmRequest ).createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_SET_PASSWORD,
                     pwmRequest.getUserInfoIfLoggedIn(),
                     null,
                     userIdentity,
-                    pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress(),
-                    pwmRequest.getPwmSession().getSessionStateBean().getSrcHostname()
+                    sessionStateBean.getSrcAddress(),
+                    sessionStateBean.getSrcHostname()
             );
             AuditServiceClient.submit( pwmRequest, auditRecord );
         }
@@ -597,8 +599,8 @@ public class PasswordUtility
                     pwmRequest.getUserInfoIfLoggedIn(),
                     null,
                     userIdentity,
-                    pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress(),
-                    pwmRequest.getPwmSession().getSessionStateBean().getSrcHostname()
+                    sessionStateBean.getSrcAddress(),
+                    sessionStateBean.getSrcHostname()
             );
             AuditServiceClient.submit( pwmRequest, auditRecord );
         }
@@ -667,7 +669,6 @@ public class PasswordUtility
             catch ( final ChaiUnavailableException e )
             {
                 LOGGER.error( sessionLabel, () -> "unreachable server during replica password sync check" );
-                e.printStackTrace();
             }
             finally
             {
@@ -1103,7 +1104,7 @@ public class PasswordUtility
                         else
                         {
                             LOGGER.trace( () -> "cache hit!" );
-                            final ErrorInformation errorInformation = JsonUtil.deserialize( cachedValue, ErrorInformation.class );
+                            final ErrorInformation errorInformation = JsonFactory.get().deserialize( cachedValue, ErrorInformation.class );
                             throw new PwmDataValidationException( errorInformation );
                         }
                     }
@@ -1127,7 +1128,7 @@ public class PasswordUtility
                 pass = false;
                 if ( cacheService != null && cacheKey != null )
                 {
-                    final String jsonPayload = JsonUtil.serialize( e.getErrorInformation() );
+                    final String jsonPayload = JsonFactory.get().serialize( e.getErrorInformation() );
                     cacheService.put( cacheKey, cachePolicy, jsonPayload );
                 }
             }

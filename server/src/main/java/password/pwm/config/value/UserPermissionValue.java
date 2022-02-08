@@ -20,7 +20,8 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
@@ -29,9 +30,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.ldap.permission.UserPermissionUtility;
-import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -82,9 +81,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    List<UserPermission> srcList = JsonUtil.deserialize( input, new TypeToken<List<UserPermission>>()
-                    {
-                    } );
+                    List<UserPermission> srcList = JsonFactory.get().deserializeList( input, UserPermission.class );
                     srcList = srcList == null ? Collections.emptyList() : srcList;
                     return new UserPermissionValue( Collections.unmodifiableList( srcList ) );
                 }
@@ -94,7 +91,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
             public UserPermissionValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
                     throws PwmOperationalException
             {
-                final boolean newType = "2".equals( settingElement.getAttributeValue( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION )
+                final boolean newType = "2".equals( settingElement.getAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION )
                                 .orElse( "" ) );
 
                 final List<XmlElement> valueElements = settingElement.getChildren( "value" );
@@ -106,7 +103,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                     {
                         if ( newType )
                         {
-                            final UserPermission userPermission = JsonUtil.deserialize( value.get(), UserPermission.class );
+                            final UserPermission userPermission = JsonFactory.get().deserialize( value.get(), UserPermission.class );
                             values.add( userPermission );
                         }
                         else
@@ -128,11 +125,11 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final UserPermission value : values )
         {
-            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-            valueElement.addText( JsonUtil.serialize( value ) );
+            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            valueElement.setText( JsonFactory.get().serialize( value ) );
             returnList.add( valueElement );
         }
         return returnList;
@@ -141,13 +138,13 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
     @Override
     public List<UserPermission> toNativeObject( )
     {
-        return Collections.unmodifiableList( values );
+        return List.copyOf( values );
     }
 
     @Override
     public List<String> validateValue( final PwmSetting pwmSetting )
     {
-        final List<String> returnObj = new ArrayList<>();
+        final List<String> returnObj = new ArrayList<>( values.size() );
         for ( final UserPermission userPermission : values )
         {
             try
@@ -186,7 +183,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                 sb.append( userPermission.debugString() );
                 if ( iterator.hasNext() )
                 {
-                    sb.append( "\n" );
+                    sb.append( '\n' );
                 }
             }
             return sb.toString();

@@ -37,7 +37,8 @@ import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.ConditionalTaskExecutor;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonProvider;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.svc.cr.CrService;
 
@@ -71,7 +72,7 @@ public class ResponseStatsCommand extends AbstractCliCommand
         out( "beginning output to " + outputFile.getAbsolutePath() );
         try ( FileOutputStream fileOutputStream = new FileOutputStream( outputFile, true ) )
         {
-            fileOutputStream.write( JsonUtil.serialize( responseStats, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+            fileOutputStream.write( JsonFactory.get().serialize( responseStats, JsonProvider.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
         out( "completed writing stats output in " + TimeDuration.fromCurrent( startTime ).asLongString() );
     }

@@ -25,8 +25,12 @@
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
-<%@ page import="password.pwm.http.servlet.SetupResponsesServlet" %>
+<%@ page import="password.pwm.http.servlet.setupresponses.SetupResponsesServlet" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.http.servlet.setupresponses.SetupResponsesUtil" %>
+<%@ page import="password.pwm.http.servlet.setupresponses.ResponseMode" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -41,33 +45,34 @@
     </jsp:include>
     <div id="centerbody">
         <h1 id="page-content-title"><pwm:display key="Title_ConfirmResponses" displayIfMissing="true"/></h1>
-        <p><pwm:display key="Display_ConfirmResponses"/></p>
         <%@ include file="fragment/message.jsp" %>
+        <% if ( SetupResponsesUtil.hasChallenges( JspUtility.getPwmRequest( pageContext ), ResponseMode.user ) ) { %>
         <br/>
+        <p><pwm:display key="Display_ConfirmResponses"/></p>
         <%
-            for (final Challenge loopChallenge : responseBean.getResponseData().getResponseMap().keySet()) {
-                final String responseText = responseBean.getResponseData().getResponseMap().get(loopChallenge);
+            final Map<Challenge, String> responseMap = responseBean.getChallengeData().get( ResponseMode.user ).getResponseMap();
+            for (final Map.Entry<Challenge, String> entry : responseMap.entrySet() ) {
         %>
-        <h2><%= StringUtil.escapeHtml(loopChallenge.getChallengeText()) %>
-        </h2>
-
+        <h2><%= StringUtil.escapeHtml(entry.getKey().getChallengeText()) %></h2>
         <p>
             <span class="pwm-icon pwm-icon-chevron-circle-right"></span>
-            <%= StringUtil.escapeHtml(responseText) %>
+            <%= StringUtil.escapeHtml(entry.getValue()) %>
         </p>
         <% } %>
+        <% } %>
+        <% if ( SetupResponsesUtil.hasChallenges( JspUtility.getPwmRequest( pageContext ), ResponseMode.helpdesk ) ) { %>
         <br/>
+        <p><pwm:display key="Display_ConfirmHelpdeskResponses"/></p>
         <%
-            for (final Challenge loopChallenge : responseBean.getHelpdeskResponseData().getResponseMap().keySet()) {
-                final String responseText = responseBean.getHelpdeskResponseData().getResponseMap().get(loopChallenge);
+            final Map<Challenge, String> responseMap = responseBean.getChallengeData().get( ResponseMode.helpdesk ).getResponseMap();
+            for (final Map.Entry<Challenge, String> entry : responseMap.entrySet() ) {
         %>
-        <h2><%= StringUtil.escapeHtml(loopChallenge.getChallengeText()) %>
-        </h2>
-
+        <h2><%= StringUtil.escapeHtml(entry.getKey().getChallengeText()) %></h2>
         <p>
             <span class="pwm-icon pwm-icon-chevron-circle-right"></span>
-            <%= StringUtil.escapeHtml(responseText) %>
+            <%= StringUtil.escapeHtml(entry.getValue()) %>
         </p>
+        <% } %>
         <% } %>
         <br/>
         <div class="buttonbar">

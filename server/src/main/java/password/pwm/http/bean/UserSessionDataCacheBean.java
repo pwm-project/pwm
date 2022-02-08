@@ -23,12 +23,13 @@ package password.pwm.http.bean;
 import password.pwm.Permission;
 
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Map;
 
 public class UserSessionDataCacheBean implements Serializable
 {
-    private Map<Permission, Permission.PermissionStatus> permissions = new HashMap<>();
+    private final Map<Permission, Permission.PermissionStatus> permissions = new EnumMap<>( Permission.class );
 
     public void clearPermissions( )
     {
@@ -51,11 +52,12 @@ public class UserSessionDataCacheBean implements Serializable
 
     public Map<Permission, Permission.PermissionStatus> getPermissions( )
     {
-        return permissions;
+        return Collections.unmodifiableMap( permissions );
     }
 
     public void setPermissions( final Map<Permission, Permission.PermissionStatus> permissions )
     {
-        this.permissions = permissions;
+        this.permissions.clear();
+        this.permissions.putAll( permissions );
     }
 }

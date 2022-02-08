@@ -35,7 +35,7 @@ import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.bean.ForgottenPasswordStage;
 import password.pwm.http.servlet.forgottenpw.ForgottenPasswordStateMachine;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.BeanCryptoMachine;
@@ -152,7 +152,7 @@ public class RestForgottenPasswordServer extends RestServlet
         }
 
         final RestResultBean restResultBean = RestResultBean.fromErrorWithData( restRequest, errorInformation, jsonResponse );
-        LOGGER.trace( restRequest.getSessionLabel(), () -> "Sending Response State: " + JsonUtil.serialize( restResultBean ) );
+        LOGGER.trace( restRequest.getSessionLabel(), () -> "Sending Response State: " + JsonFactory.get().serialize( restResultBean ) );
         return restResultBean;
     }
 

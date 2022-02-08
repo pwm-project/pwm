@@ -26,7 +26,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.UserInfo;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
@@ -53,7 +53,7 @@ public class AuditServiceClient
             catch ( final PwmUnrecoverableException e )
             {
                 LOGGER.error( sessionLabel, () -> "unexpected error submitting audit event: '"
-                        + JsonUtil.serialize( auditRecord ) + "' , error: " + e.getMessage(), e );
+                        + JsonFactory.get().serialize( auditRecord ) + "' , error: " + e.getMessage(), e );
             }
         }
     }

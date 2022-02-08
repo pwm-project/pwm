@@ -34,7 +34,7 @@ import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.db.DatabaseException;
 import password.pwm.svc.db.DatabaseService;
 import password.pwm.svc.db.DatabaseTable;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -108,7 +108,7 @@ class DatabaseUserHistory implements UserHistoryStore
         {
             return new StoredHistory();
         }
-        return JsonUtil.deserialize( str.get(), StoredHistory.class );
+        return JsonFactory.get().deserialize( str.get(), StoredHistory.class );
     }
 
     private void writeStoredHistory( final String guid, final StoredHistory storedHistory ) throws DatabaseException, PwmUnrecoverableException
@@ -117,7 +117,7 @@ class DatabaseUserHistory implements UserHistoryStore
         {
             return;
         }
-        final String str = JsonUtil.serialize( storedHistory );
+        final String str = JsonFactory.get().serialize( storedHistory );
         databaseService.getAccessor().put( TABLE, guid, str );
     }
 

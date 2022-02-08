@@ -66,7 +66,7 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.DataStore;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -262,7 +262,7 @@ public class TokenService extends AbstractPwmService implements PwmService
                 AuditEvent.TOKEN_ISSUED,
                 tokenPayload.getUserIdentity(),
                 sessionLabel,
-                JsonUtil.serialize( tokenPayload )
+                JsonFactory.get().serialize( tokenPayload )
         );
 
         stats.increment( StatsKey.tokensIssued );
@@ -302,7 +302,7 @@ public class TokenService extends AbstractPwmService implements PwmService
                 AuditEvent.TOKEN_CLAIMED,
                 tokenPayload.getUserIdentity(),
                 sessionLabel,
-                JsonUtil.serialize( tokenPayload )
+                JsonFactory.get().serialize( tokenPayload )
         );
         AuditServiceClient.submit( pwmDomain.getPwmApplication(), sessionLabel, auditRecord );
 
@@ -521,7 +521,7 @@ public class TokenService extends AbstractPwmService implements PwmService
             }
         }
 
-        if ( domainConfig.readSettingAsBoolean( PwmSetting.CHALLENGE_ENABLE ) )
+        if ( domainConfig.readSettingAsBoolean( PwmSetting.SETUP_RESPONSE_ENABLE ) )
         {
             for ( final ForgottenPasswordProfile forgottenPasswordProfile : domainConfig.getForgottenPasswordProfiles().values() )
             {
@@ -538,7 +538,7 @@ public class TokenService extends AbstractPwmService implements PwmService
     String toEncryptedString( final TokenPayload tokenPayload )
             throws PwmUnrecoverableException, PwmOperationalException
     {
-        final String jsonPayload = JsonUtil.serialize( tokenPayload );
+        final String jsonPayload = JsonFactory.get().serialize( tokenPayload );
         return pwmDomain.getSecureService().encryptToString( jsonPayload );
     }
 
@@ -549,7 +549,7 @@ public class TokenService extends AbstractPwmService implements PwmService
         try
         {
             final String decryptedString = pwmDomain.getSecureService().decryptStringValue( deWhiteSpacedToken );
-            return JsonUtil.deserialize( decryptedString, TokenPayload.class );
+            return JsonFactory.get().deserialize( decryptedString, TokenPayload.class );
         }
         catch ( final PwmUnrecoverableException e )
         {

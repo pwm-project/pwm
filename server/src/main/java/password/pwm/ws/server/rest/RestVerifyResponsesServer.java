@@ -34,7 +34,7 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.i18n.Message;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestMethodHandler;
@@ -133,7 +133,7 @@ public class RestVerifyResponsesServer extends RestServlet
 
             LOGGER.debug( restRequest.getSessionLabel(), () -> "completed /verifyresponses REST service in "
                     + TimeDuration.compactFromCurrent( startTime )
-                    + ", response: " + JsonUtil.serialize( restResultBean ) );
+                    + ", response: " + JsonFactory.get().serialize( restResultBean ) );
 
             return restResultBean;
 

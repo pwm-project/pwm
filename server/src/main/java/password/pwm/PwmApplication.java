@@ -20,6 +20,7 @@
 
 package password.pwm;
 
+import lombok.Value;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SmsItemBean;
@@ -59,7 +60,6 @@ import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.stats.StatisticsService;
-import password.pwm.svc.token.TokenService;
 import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.SharedHistoryService;
 import password.pwm.svc.wordlist.WordlistService;
@@ -70,9 +70,9 @@ import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.logging.LocalDBLogger;
@@ -85,15 +85,17 @@ import password.pwm.util.secure.PwmRandom;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.URI;
+import java.nio.file.Files;
 import java.security.KeyStore;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -249,8 +251,9 @@ public class PwmApplication
         installTime = fetchInstallDate( startupTime );
         LOGGER.debug( () -> "this application instance first installed on " + JavaHelper.toIsoDate( installTime ) );
 
-        LOGGER.debug( () -> "application environment flags: " + JsonUtil.serializeCollection( pwmEnvironment.getFlags() ) );
-        LOGGER.debug( () -> "application environment parameters: " + JsonUtil.serializeMap( pwmEnvironment.getParameters() ) );
+        LOGGER.debug( () -> "application environment flags: " + JsonFactory.get().serializeCollection( pwmEnvironment.getFlags() ) );
+        LOGGER.debug( () -> "application environment parameters: "
+                + JsonFactory.get().serializeMap( pwmEnvironment.getParameters(), PwmEnvironment.ApplicationParameter.class, String.class ) );
 
         pwmScheduler = new PwmScheduler( this );
 
@@ -307,7 +310,7 @@ public class PwmApplication
 
         getPwmScheduler().immediateExecuteRunnableInNewThread( UserAgentUtils::initializeCache, "initialize useragent cache" );
         getPwmScheduler().immediateExecuteRunnableInNewThread( PwmSettingMetaDataReader::initCache, "initialize PwmSetting cache" );
-        
+
         if ( Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
         {
             outputConfigurationToLog( this );
@@ -320,7 +323,7 @@ public class PwmApplication
         try
         {
             final Map<PwmAboutProperty, String> infoMap = PwmAboutProperty.makeInfoBean( this );
-            LOGGER.trace( () ->  "application info: " + JsonUtil.serializeMap( infoMap ) );
+            LOGGER.trace( () ->  "application info: " + JsonFactory.get().serializeMap( infoMap, PwmAboutProperty.class, String.class ) );
         }
         catch ( final Exception e )
         {
@@ -523,7 +526,7 @@ public class PwmApplication
                 }
             }
 
-            try ( FileOutputStream fileOutputStream = new FileOutputStream( keyStoreFile ) )
+            try ( OutputStream fileOutputStream = Files.newOutputStream( keyStoreFile.toPath() ) )
             {
                 fileOutputStream.write( outputContents.toByteArray() );
             }
@@ -560,28 +563,30 @@ public class PwmApplication
                 }
             }
 
-            final ByteArrayOutputStream outputContents = new ByteArrayOutputStream();
-            try ( FileInputStream fileInputStream = new FileInputStream( tomcatOutputFile ) )
+            try ( ByteArrayOutputStream outputContents = new ByteArrayOutputStream() )
             {
-                ExportHttpsTomcatConfigCommand.TomcatConfigWriter.writeOutputFile(
-                        pwmDomain.getConfig(),
-                        fileInputStream,
-                        outputContents
-                );
-            }
-
-            if ( tomcatOutputFile.exists() )
-            {
-                LOGGER.trace( () -> "deleting existing tomcat configuration file " + tomcatOutputFile.getAbsolutePath() );
-                if ( tomcatOutputFile.delete() )
+                try ( InputStream fileInputStream = Files.newInputStream( tomcatOutputFile.toPath() ) )
                 {
-                    LOGGER.trace( () -> "deleted existing tomcat configuration file: " + tomcatOutputFile.getAbsolutePath() );
+                    ExportHttpsTomcatConfigCommand.TomcatConfigWriter.writeOutputFile(
+                            pwmDomain.getConfig(),
+                            fileInputStream,
+                            outputContents
+                    );
                 }
-            }
 
-            try ( FileOutputStream fileOutputStream = new FileOutputStream( tomcatOutputFile ) )
-            {
-                fileOutputStream.write( outputContents.toByteArray() );
+                if ( tomcatOutputFile.exists() )
+                {
+                    LOGGER.trace( () -> "deleting existing tomcat configuration file " + tomcatOutputFile.getAbsolutePath() );
+                    if ( tomcatOutputFile.delete() )
+                    {
+                        LOGGER.trace( () -> "deleted existing tomcat configuration file: " + tomcatOutputFile.getAbsolutePath() );
+                    }
+                }
+
+                try ( OutputStream fileOutputStream = Files.newOutputStream( tomcatOutputFile.toPath() ) )
+                {
+                    fileOutputStream.write( outputContents.toByteArray() );
+                }
             }
 
             LOGGER.info( () -> "successfully wrote tomcat configuration to file " + tomcatOutputFile.getAbsolutePath() );
@@ -662,7 +667,7 @@ public class PwmApplication
             final Optional<String> strValue = localDB.get( LocalDB.DB.PWM_META, appAttribute.getKey() );
             if ( strValue.isPresent() )
             {
-                return Optional.of( JsonUtil.deserialize( strValue.get(), returnClass ) );
+                return Optional.of( JsonFactory.get().deserialize( strValue.get(), returnClass ) );
             }
         }
         catch ( final Exception e )
@@ -671,6 +676,91 @@ public class PwmApplication
         }
         return Optional.empty();
     }
+
+    public void writeLastLdapFailure( final DomainID domainID, final Map<String, ErrorInformation> errorInformationMap )
+    {
+        try
+        {
+            final StoredErrorRecords currentRecords = readLastLdapFailure();
+            final StoredErrorRecords updatedRecords = currentRecords.addDomainErrorMap( domainID, errorInformationMap );
+            writeAppAttribute( AppAttribute.LAST_LDAP_ERROR, JsonFactory.get().serialize( updatedRecords, StoredErrorRecords.class ) );
+        }
+        catch ( final Exception e )
+        {
+            LOGGER.error( () -> "unexpected error writing lastLdapFailure statuses: " + e.getMessage() );
+        }
+    }
+
+    public Map<String, ErrorInformation> readLastLdapFailure( final DomainID domainID )
+    {
+        return readLastLdapFailure().getRecords().getOrDefault( domainID, Collections.emptyMap() );
+    }
+
+    private StoredErrorRecords readLastLdapFailure()
+    {
+        try
+        {
+            final TimeDuration maxAge = TimeDuration.of(
+                    Long.parseLong( getConfig().readAppProperty( AppProperty.HEALTH_LDAP_ERROR_LIFETIME_MS ) ),
+                    TimeDuration.Unit.MILLISECONDS );
+            final Optional<String> optionalLastLdapError = readAppAttribute( AppAttribute.LAST_LDAP_ERROR, String.class );
+            if ( optionalLastLdapError.isPresent() && !StringUtil.isEmpty( optionalLastLdapError.get() ) )
+            {
+                final String lastLdapFailureStr = optionalLastLdapError.get();
+                final StoredErrorRecords records = JsonFactory.get().deserialize( lastLdapFailureStr, StoredErrorRecords.class );
+                return records.stripOutdatedLdapErrors( maxAge );
+            }
+        }
+        catch ( final Exception e )
+        {
+            LOGGER.error( () -> "unexpected error loading cached lastLdapFailure statuses: " + e.getMessage() );
+        }
+        return new StoredErrorRecords( Collections.emptyMap() );
+    }
+
+    @Value
+    private static class StoredErrorRecords
+    {
+        private final Map<DomainID, Map<String, ErrorInformation>> records;
+
+        StoredErrorRecords( final Map<DomainID, Map<String, ErrorInformation>> records )
+        {
+            this.records = records == null ? Collections.emptyMap() : Map.copyOf( records );
+        }
+
+        public Map<DomainID, Map<String, ErrorInformation>> getRecords()
+        {
+            // required because json deserialization can still set records == null
+            return records == null ? Collections.emptyMap() : records;
+        }
+
+        StoredErrorRecords addDomainErrorMap(
+                final DomainID domainID,
+                final Map<String, ErrorInformation> errorInformationMap )
+        {
+            final Map<DomainID, Map<String, ErrorInformation>> newRecords = new HashMap<>( getRecords() );
+            newRecords.put( domainID, Map.copyOf( errorInformationMap ) );
+            return new StoredErrorRecords( newRecords );
+        }
+
+        StoredErrorRecords stripOutdatedLdapErrors( final TimeDuration maxAge )
+        {
+            return new StoredErrorRecords( getRecords().entrySet().stream()
+                    // outer map
+                    .collect( Collectors.toUnmodifiableMap(
+                            Map.Entry::getKey,
+                            entry -> entry.getValue().entrySet().stream()
+
+                                    // keep outdated entries
+                                    .filter( innerEntry -> TimeDuration.fromCurrent( innerEntry.getValue().getDate() ).isShorterThan( maxAge ) )
+
+                                    // inner map
+                                    .collect( Collectors.toUnmodifiableMap(
+                                            Map.Entry::getKey,
+                                            Map.Entry::getValue ) ) ) ) );
+        }
+    }
+
 
     public void writeAppAttribute( final AppAttribute appAttribute, final Serializable value )
     {
@@ -695,7 +785,7 @@ public class PwmApplication
             }
             else
             {
-                final String jsonValue = JsonUtil.serialize( value );
+                final String jsonValue = JsonFactory.get().serialize( value );
                 localDB.put( LocalDB.DB.PWM_META, appAttribute.getKey(), jsonValue );
             }
         }
@@ -874,11 +964,6 @@ public class PwmApplication
     public ErrorInformation getLastLocalDBFailure( )
     {
         return lastLocalDBFailure;
-    }
-
-    public TokenService getTokenService( )
-    {
-        return ( TokenService ) pwmServiceManager.getService( PwmServiceEnum.TokenService );
     }
 
     public SessionTrackService getSessionTrackService( )

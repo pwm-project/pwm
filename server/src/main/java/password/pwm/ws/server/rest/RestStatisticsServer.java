@@ -57,11 +57,13 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @WebServlet(
         urlPatterns = {
@@ -166,21 +168,18 @@ public class RestStatisticsServer extends RestServlet
                     .history( makeHistoryStatInfos( statisticsManager, days ) )
                     .labels( makeLabels( locale ) )
                     .build();
-            return RestResultBean.withData( jsonOutput );
+            return RestResultBean.withData( jsonOutput, JsonOutput.class );
         }
 
         private static List<StatValue> makeStatInfos( final StatisticsService statisticsManager, final String key )
         {
-            final Map<String, StatValue> output = new TreeMap<>();
-            for ( final Statistic statistic : Statistic.values() )
-            {
-                final StatisticsBundle bundle = statisticsManager.getStatBundleForKey( key );
-                final String value = bundle.getStatistic( statistic );
-                final StatValue statValue = new StatValue( statistic.name(), value );
-                output.put( statistic.name(), statValue );
-            }
+            final Map<String, StatValue> output = EnumSet.allOf( Statistic.class ).stream()
+                    .collect( Collectors.toMap(
+                            Enum::name,
+                            stat -> new StatValue( stat.name(), statisticsManager.getStatBundleForKey( key ).getStatistic( stat ) )
+                    ) );
 
-            return List.copyOf( output.values() );
+            return List.copyOf( new TreeMap<>( output ).values() );
         }
 
         private static List<HistoryData> makeHistoryStatInfos(
@@ -188,7 +187,7 @@ public class RestStatisticsServer extends RestServlet
                 final int days
         )
         {
-            final List<HistoryData> outerOutput = new ArrayList<>();
+            final List<HistoryData> outerOutput = new ArrayList<>( days );
 
             DailyKey dailyKey = DailyKey.forToday();
 
@@ -313,8 +312,7 @@ public class RestStatisticsServer extends RestServlet
 
                 StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_STATISTICS );
 
-                final RestResultBean resultBean = RestResultBean.withData( jsonOutput );
-                return resultBean;
+                return RestResultBean.withData( jsonOutput, JsonOutput.class );
             }
             catch ( final Exception e )
             {
@@ -329,8 +327,7 @@ public class RestStatisticsServer extends RestServlet
             final Statistic statistic = Statistic.valueOf( statName );
             final int historyDays = StringUtil.convertStrToInt( days, 30 );
 
-            final Map<String, Object> results = new HashMap<>( statisticsManager.getStatHistory( statistic, historyDays ) );
-            return results;
+            return new HashMap<>( statisticsManager.getStatHistory( statistic, historyDays ) );
         }
 
         public static Map<String, Object> doKeyStat( final StatisticsService statisticsManager, final String statKey )

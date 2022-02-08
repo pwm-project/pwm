@@ -26,18 +26,22 @@
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
-<%@ page import="password.pwm.util.java.JsonUtil" %>
+<%@ page import="password.pwm.util.json.JsonFactory" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
+<%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="com.novell.ldapchai.cr.ChallengeSet" %>
 
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final SetupResponsesBean.SetupData setupData = (SetupResponsesBean.SetupData)request.getAttribute("setupData");
+    final SetupResponsesBean.SetupData setupData = (SetupResponsesBean.SetupData) JspUtility.getPwmRequest( pageContext ).getAttribute( PwmRequestAttribute.SetupResponses_SetupData );
+    final ChallengeSet challengeSet = (ChallengeSet) JspUtility.getPwmRequest( pageContext ).getAttribute( PwmRequestAttribute.SetupResponses_ChallengeSet );
 %>
 <%-------------------------------- display fields for REQUIRED challenges ----------------------------------------------%>
-<% if (!setupData.getChallengeSet().getRequiredChallenges().isEmpty()) { %>
+<% if (!challengeSet.getRequiredChallenges().isEmpty()) { %>
 <p><pwm:display key="Display_SetupRequiredResponses"/></p>
 <%
     for (final String indexKey : setupData.getIndexedChallenges().keySet()) {
@@ -72,7 +76,7 @@
         }
     }
 %>
-<p><pwm:display key="Display_SetupRandomResponses" value1="<%= String.valueOf(setupData.getChallengeSet().getMinRandomRequired()) %>"/></p>
+<p><pwm:display key="Display_SetupRandomResponses" value1="<%= String.valueOf(challengeSet.getMinRandomRequired()) %>"/></p>
 <% for (int index = 0; index < setupData.getMinRandomSetup(); index++) { %>
 <h2>
     <select name="PwmResponse_Q_Random_<%=index%>" id="PwmResponse_Q_Random_<%=index%>" style="width:70%" <pwm:autofocus/> class="simpleModeResponseSelection"
@@ -95,14 +99,14 @@
 <pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_VAR['simpleRandomOptions'] = <%=JsonUtil.serializeCollection(questionTexts)%>;
+        PWM_VAR['simpleRandomOptions'] = <%=JsonFactory.get().serializeCollection(questionTexts)%>;
     });
 </script>
 </pwm:script>
 <% } else { %>
 <%---------------------- display fields for pwmRandom challenges using non-SIMPLE mode ----------------------------------------%>
-<% if (!setupData.getChallengeSet().getRandomChallenges().isEmpty()) { %>
-<p><pwm:display key="Display_SetupRandomResponses" value1="<%= String.valueOf(setupData.getChallengeSet().getMinRandomRequired()) %>"/></p>
+<% if (!challengeSet.getRandomChallenges().isEmpty()) { %>
+<p><pwm:display key="Display_SetupRandomResponses" value1="<%= String.valueOf(challengeSet.getMinRandomRequired()) %>"/></p>
 <%
     for (final String indexKey : setupData.getIndexedChallenges().keySet()) {
         final Challenge challenge = setupData.getIndexedChallenges().get(indexKey);

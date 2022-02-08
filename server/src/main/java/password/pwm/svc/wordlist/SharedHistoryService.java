@@ -378,10 +378,9 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
             LOGGER.debug( getSessionLabel(), () -> "beginning wordDB reduce operation, examining " + initialSize
                     + " words for entries older than " + settings.getMaxAge().asCompactString() );
 
-            LocalDB.LocalDBIterator<Map.Entry<String, String>> keyIterator = null;
-            try
+
+            try ( LocalDB.LocalDBIterator<Map.Entry<String, String>> keyIterator = localDB.iterator( WORDS_DB ) )
             {
-                keyIterator = localDB.iterator( WORDS_DB );
                 while ( status() == STATUS.OPEN && keyIterator.hasNext() )
                 {
                     final Map.Entry<String, String> entry = keyIterator.next();
@@ -405,20 +404,6 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
                     {
                         localOldestEntry = timeStamp < localOldestEntry ? timeStamp : localOldestEntry;
                     }
-                }
-            }
-            finally
-            {
-                try
-                {
-                    if ( keyIterator != null )
-                    {
-                        keyIterator.close();
-                    }
-                }
-                catch ( final Exception e )
-                {
-                    LOGGER.warn( getSessionLabel(), () -> "error returning LocalDB iterator: " + e.getMessage() );
                 }
             }
 

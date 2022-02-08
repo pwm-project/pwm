@@ -87,6 +87,7 @@ public enum Display implements PwmDisplayBundle
     Display_CheckingResponses,
     Display_CommunicationError,
     Display_ConfirmResponses,
+    Display_ConfirmHelpdeskResponses,
     Display_Day,
     Display_Days,
     Display_ErrorBody,
@@ -268,6 +269,7 @@ public enum Display implements PwmDisplayBundle
     Long_Title_UserEventHistory,
     Long_Title_UserInformation,
     Title_AnsweredQuestions,
+    Title_AnsweredHelpdeskQuestions,
     Title_ActivateUser,
     Title_Admin,
     Title_Application,
@@ -319,7 +321,9 @@ public enum Display implements PwmDisplayBundle
     Value_True,
     Value_NotApplicable,
     Value_Default,
-    Placeholder_Search,;
+    Placeholder_Search,
+
+    Value_Deprecated,;
 
     public static String getLocalizedMessage( final Locale locale, final Display key, final SettingReader config )
     {

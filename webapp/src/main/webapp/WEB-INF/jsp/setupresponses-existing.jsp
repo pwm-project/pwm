@@ -42,7 +42,7 @@
     <div id="centerbody">
         <h1 id="page-content-title"><pwm:display key="Title_ConfirmResponses" displayIfMissing="true"/></h1>
         <p>
-            <% if (responseInfoBean != null && responseInfoBean.getTimestamp() != null) { %>
+            <% if (responseInfoBean.getTimestamp() != null) { %>
             <pwm:display key="Display_WarnExistingResponseTime" value1="@ResponseSetupTime@"/>
             <% } else { %>
             <pwm:display key="Display_WarnExistingResponse"/>
@@ -50,9 +50,17 @@
         </p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
+        <% if (responseInfoBean.getCrMap() != null && !responseInfoBean.getCrMap().isEmpty() ) { %>
         <h2><pwm:display key="Title_AnsweredQuestions"/></h2>
         <% for (final Challenge loopChallenge : responseInfoBean.getCrMap().keySet()) { %>
-                <p><%= StringUtil.escapeHtml(loopChallenge.getChallengeText()) %></p>
+        <p><%= StringUtil.escapeHtml(loopChallenge.getChallengeText()) %></p>
+        <% } %>
+        <% } %>
+        <% if (responseInfoBean.getHelpdeskCrMap() != null && !responseInfoBean.getHelpdeskCrMap().isEmpty() ) { %>
+        <h2><pwm:display key="Title_AnsweredHelpdeskQuestions"/></h2>
+        <% for (final Challenge loopChallenge : responseInfoBean.getHelpdeskCrMap().keySet()) { %>
+        <p><%= StringUtil.escapeHtml(loopChallenge.getChallengeText()) %></p>
+        <% } %>
         <% } %>
         <br/>
         <div class="buttonbar">

@@ -30,18 +30,17 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.sql.Driver;
@@ -63,7 +62,7 @@ public class JDBCDriverLoader
             throws DatabaseException
     {
         final Set<ClassLoaderStrategy> strategies = dbConfiguration.getClassLoaderStrategies();
-        LOGGER.trace( () -> "attempting to load jdbc driver using strategies: " + JsonUtil.serializeCollection( strategies ) );
+        LOGGER.trace( () -> "attempting to load jdbc driver using strategies: " + JsonFactory.get().serializeCollection( strategies ) );
         final List<String> errorMsgs = new ArrayList<>();
         for ( final ClassLoaderStrategy strategy : strategies )
         {
@@ -81,7 +80,7 @@ public class JDBCDriverLoader
                 errorMsgs.add( strategy + " error: " + e.getMessage() );
             }
         }
-        final String errorMsg = " unable to load database driver: " + JsonUtil.serializeCollection( errorMsgs );
+        final String errorMsg = " unable to load database driver: " + JsonFactory.get().serializeCollection( errorMsgs );
         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
         LOGGER.error( () -> errorMsg );
         throw new DatabaseException( errorInformation );
@@ -237,7 +236,7 @@ public class JDBCDriverLoader
                     LOGGER.trace( () -> "created temp file " + tempFile.getAbsolutePath() );
                 }
 
-                try ( FileOutputStream fos = new FileOutputStream( tempFile ) )
+                try ( OutputStream fos = Files.newOutputStream( tempFile.toPath() ) )
                 {
                     JavaHelper.copy( jdbcDriverBytes.newByteArrayInputStream(), fos );
                     fos.close();
@@ -388,9 +387,10 @@ public class JDBCDriverLoader
             if ( !tempFile.exists() )
             {
                 LOGGER.debug( () -> "creating temp jar file " + tempFile.getAbsolutePath() );
-                final OutputStream fos = new BufferedOutputStream( new FileOutputStream( tempFile ) );
-                JavaHelper.copy( jarBytes.newByteArrayInputStream(), fos );
-                fos.close();
+                try ( OutputStream fos = Files.newOutputStream( tempFile.toPath() ) )
+                {
+                    JavaHelper.copy( jarBytes.newByteArrayInputStream(), fos );
+                }
             }
             else
             {

@@ -20,12 +20,12 @@
 
 package password.pwm.config.value;
 
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -52,7 +52,7 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
             @Override
             public NumericArrayValue fromJson( final String value )
             {
-                final long[] longArray = JsonUtil.deserialize( value, long[].class );
+                final long[] longArray = JsonFactory.get().deserialize( value, long[].class );
                 final List<Long> list = Arrays.stream( longArray ).boxed().collect( Collectors.toList() );
                 return new NumericArrayValue( list );
             }
@@ -78,11 +78,11 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final Long value : this.values )
         {
-            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-            valueElement.addText( String.valueOf( value ) );
+            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            valueElement.setText( String.valueOf( value ) );
             returnList.add( valueElement );
         }
         return returnList;
@@ -106,12 +106,12 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
         if ( !CollectionUtil.isEmpty( values ) )
         {
             final StringBuilder sb = new StringBuilder();
-            for ( final Iterator valueIterator = values.iterator(); valueIterator.hasNext(); )
+            for ( final Iterator<Long> valueIterator = values.iterator(); valueIterator.hasNext(); )
             {
                 sb.append( valueIterator.next() );
                 if ( valueIterator.hasNext() )
                 {
-                    sb.append( "\n" );
+                    sb.append( '\n' );
                 }
             }
             return sb.toString();

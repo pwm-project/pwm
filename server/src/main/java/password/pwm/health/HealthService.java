@@ -140,7 +140,7 @@ public class HealthService extends AbstractPwmService implements PwmService
         {
             return null;
         }
-        final HealthData healthData = this.healthData;
+
         return healthData != null ? healthData.getTimeStamp() : Instant.ofEpochMilli( 0 );
     }
 

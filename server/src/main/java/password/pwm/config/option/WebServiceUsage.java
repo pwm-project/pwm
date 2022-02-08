@@ -59,10 +59,8 @@ public enum WebServiceUsage
 
     public static Set<WebServiceUsage> forType( final RestAuthenticationType type )
     {
-        return Collections.unmodifiableSet(
-                Arrays.stream( WebServiceUsage.values() )
-                        .filter( webServiceUsage -> webServiceUsage.getTypes().contains( type ) )
-                        .collect( Collectors.toSet() )
-        );
+        return EnumSet.allOf( WebServiceUsage.class ).stream()
+                .filter( webServiceUsage -> webServiceUsage.getTypes().contains( type ) )
+                .collect( Collectors.toUnmodifiableSet() );
     }
 }

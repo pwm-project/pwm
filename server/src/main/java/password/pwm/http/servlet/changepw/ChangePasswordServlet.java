@@ -56,9 +56,9 @@ import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
@@ -140,13 +140,14 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "reset" )
-    ProcessStatus processResetAction( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
+    public ProcessStatus processResetAction( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
     {
 
-        if ( pwmRequest.getPwmSession().getLoginInfoBean().getAuthFlags().contains( AuthenticationType.AUTH_FROM_PUBLIC_MODULE ) )
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        if ( pwmSession.getLoginInfoBean().getAuthFlags().contains( AuthenticationType.AUTH_FROM_PUBLIC_MODULE ) )
         {
             // Must have gotten here from the "Forgotten Password" link.  Better clear out the temporary authentication
-            pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
+            pwmSession.unauthenticateUser( pwmRequest );
         }
 
         pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, ChangePasswordBean.class );
@@ -187,7 +188,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "change" )
-    ProcessStatus processChangeAction( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException, ChaiUnavailableException
+    public ProcessStatus processChangeAction( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException, ChaiUnavailableException
     {
         final ChangePasswordBean changePasswordBean = getBean( pwmRequest );
 
@@ -199,9 +200,9 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         }
 
         final PasswordData password1 = pwmRequest.readParameterAsPassword( "password1" )
-                .orElseThrow( () -> new NoSuchElementException( "missing password1 field" ) );
+                .orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_FIELD_REQUIRED, "missing password1 field" ) );
         final PasswordData password2 = pwmRequest.readParameterAsPassword( "password2" )
-                .orElseThrow( () -> new NoSuchElementException( "missing password2 field" ) );
+                .orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_FIELD_REQUIRED, "missing password2 field" ) );
 
         // check the password meets the requirements
         try
@@ -244,7 +245,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "agree" )
-    ProcessStatus processAgreeAction( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException, ChaiUnavailableException
+    public ProcessStatus processAgreeAction( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException, ChaiUnavailableException
     {
         final ChangePasswordBean changePasswordBean = getBean( pwmRequest );
 
@@ -265,13 +266,14 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "form" )
-    ProcessStatus processFormAction( final PwmRequest pwmRequest )
+    public ProcessStatus processFormAction( final PwmRequest pwmRequest )
             throws ServletException, PwmUnrecoverableException, IOException, ChaiUnavailableException
     {
         final ChangePasswordBean changePasswordBean = getBean( pwmRequest );
-        final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
-        final UserInfo userInfo = pwmRequest.getPwmSession().getUserInfo();
-        final LoginInfoBean loginBean = pwmRequest.getPwmSession().getLoginInfoBean();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final UserInfo userInfo = pwmSession.getUserInfo();
+        final LoginInfoBean loginBean = pwmSession.getLoginInfoBean();
 
         final PasswordData currentPassword = pwmRequest.readParameterAsPassword( "currentPassword" )
                 .orElseThrow( () -> new NoSuchElementException( "missing currentPassword field" ) );
@@ -314,13 +316,13 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                     pwmRequest, formItem, ssBean.getLocale() );
 
             ChangePasswordServletUtil.validateParamsAgainstLDAP( formValues, pwmRequest,
-                    pwmRequest.getPwmSession().getSessionManager().getActor( ) );
+                    pwmSession.getSessionManager().getActor( ) );
 
             changePasswordBean.setFormPassed( true );
         }
         catch ( final PwmOperationalException e )
         {
-            IntruderServiceClient.markAddressAndSession( pwmRequest.getPwmDomain(), pwmRequest.getPwmSession() );
+            IntruderServiceClient.markAddressAndSession( pwmRequest.getPwmDomain(), pwmSession );
             IntruderServiceClient.markUserIdentity( pwmRequest, userInfo.getUserIdentity() );
             LOGGER.debug( pwmRequest, e.getErrorInformation() );
             setLastError( pwmRequest, e.getErrorInformation() );
@@ -331,7 +333,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "checkProgress" )
-    ProcessStatus processCheckProgressAction( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
+    public ProcessStatus processCheckProgressAction( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
     {
         final ChangePasswordBean changePasswordBean = getBean( pwmRequest );
 
@@ -352,8 +354,10 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             );
             passwordChangeProgress = checker.figureProgress( progressTracker );
         }
-        final RestResultBean restResultBean = RestResultBean.withData( passwordChangeProgress );
-        LOGGER.trace( pwmRequest, () -> "returning result for restCheckProgress: " + JsonUtil.serialize( restResultBean ) );
+        final RestResultBean<PasswordChangeProgressChecker.PasswordChangeProgress> restResultBean = RestResultBean.withData(
+                passwordChangeProgress,
+                PasswordChangeProgressChecker.PasswordChangeProgress.class );
+        LOGGER.trace( pwmRequest, () -> "returning result for restCheckProgress: " + JsonFactory.get().serialize( restResultBean ) );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -419,20 +423,21 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "checkPassword" )
-    private ProcessStatus processCheckPasswordAction( final PwmRequest pwmRequest )
+    public ProcessStatus processCheckPasswordAction( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final RestCheckPasswordServer.JsonInput jsonInput = JsonUtil.deserialize(
+        final RestCheckPasswordServer.JsonInput jsonInput = JsonFactory.get().deserialize(
                 pwmRequest.readRequestBodyAsString(),
                 RestCheckPasswordServer.JsonInput.class
         );
 
-        final UserInfo userInfo = pwmRequest.getPwmSession().getUserInfo();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final UserInfo userInfo = pwmSession.getUserInfo();
         final PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
                 pwmRequest.getPwmRequestContext(),
-                pwmRequest.getPwmSession().getSessionManager().getActor(),
+                pwmSession.getSessionManager().getActor(),
                 userInfo,
-                pwmRequest.getPwmSession().getLoginInfoBean(),
+                pwmSession.getLoginInfoBean(),
                 PasswordData.forStringValue( jsonInput.getPassword1() ),
                 PasswordData.forStringValue( jsonInput.getPassword2() )
         );
@@ -440,14 +445,14 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
         final RestCheckPasswordServer.JsonOutput checkResult = RestCheckPasswordServer.JsonOutput.fromPasswordCheckInfo( passwordCheckInfo );
 
-        final RestResultBean restResultBean = RestResultBean.withData( checkResult );
+        final RestResultBean restResultBean = RestResultBean.withData( checkResult, RestCheckPasswordServer.JsonOutput.class );
         pwmRequest.outputJsonResult( restResultBean );
 
         return ProcessStatus.Halt;
     }
 
     @ActionHandler( action = "randomPassword" )
-    private ProcessStatus processRandomPasswordAction( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException, ChaiUnavailableException
+    public ProcessStatus processRandomPasswordAction( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
         final PasswordData passwordData = RandomPasswordGenerator.createRandomPassword(
                 pwmRequest.getLabel(),
@@ -456,7 +461,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
         final RestRandomPasswordServer.JsonOutput jsonOutput = new RestRandomPasswordServer.JsonOutput();
         jsonOutput.setPassword( passwordData.getStringValue() );
-        final RestResultBean restResultBean = RestResultBean.withData( jsonOutput );
+        final RestResultBean<RestRandomPasswordServer.JsonOutput> restResultBean = RestResultBean.withData( jsonOutput, RestRandomPasswordServer.JsonOutput.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }

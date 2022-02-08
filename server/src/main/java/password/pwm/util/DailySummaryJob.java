@@ -154,11 +154,11 @@ public class DailySummaryJob implements Runnable
                 final String key = entry.getKey();
                 final String value = entry.getValue();
                 htmlBody.append( key ).append( ": " ).append( value ).append( "<br/>" );
-                textBody.append( key ).append( ": " ).append( value ).append( "\n" );
+                textBody.append( key ).append( ": " ).append( value ).append( '\n' );
             }
         }
 
-        textBody.append( "\n" );
+        textBody.append( '\n' );
         htmlBody.append( "<br/>" );
 
         {
@@ -204,12 +204,12 @@ public class DailySummaryJob implements Runnable
                             pwmDomain.getConfig() ) + ": " + record.getTopic( PwmConstants.DEFAULT_LOCALE,
                             pwmDomain.getConfig() ) + " - " + stripHtmlTags(
                             record.getDetail( PwmConstants.DEFAULT_LOCALE, pwmDomain.getConfig() ) ), wrapLineLength );
-                    textBody.append( wrappedLine ).append( "\n" );
+                    textBody.append( wrappedLine ).append( '\n' );
                 }
             }
         }
 
-        textBody.append( "\n" );
+        textBody.append( '\n' );
         htmlBody.append( "<br/>" );
 
         if ( settings.isReportingEnableDailyJob() )
@@ -227,9 +227,9 @@ public class DailySummaryJob implements Runnable
                 textBody.append( record.getLabel() ).append( ": " ).append( record.getCount() );
                 if ( record.getPct() != null && !record.getPct().isEmpty() )
                 {
-                    textBody.append( " (" ).append( record.getPct() ).append( ")" );
+                    textBody.append( " (" ).append( record.getPct() ).append( ')' );
                 }
-                textBody.append( "\n" );
+                textBody.append( '\n' );
             }
 
             htmlBody.append( "<h2>Directory Report Summary</h2>" );
@@ -247,7 +247,7 @@ public class DailySummaryJob implements Runnable
             */
         }
 
-        textBody.append( "\n" );
+        textBody.append( '\n' );
         htmlBody.append( "<br/>" );
 
         if ( dailyStatistics != null && !dailyStatistics.isEmpty() )
@@ -261,7 +261,7 @@ public class DailySummaryJob implements Runnable
             for ( final String key : sortedStats.keySet() )
             {
                 final String value = dailyStatistics.get( key );
-                textBody.append( key ).append( ": " ).append( value ).append( "\n" );
+                textBody.append( key ).append( ": " ).append( value ).append( '\n' );
                 htmlBody.append( "<tr><td class='key'>" ).append( key ).append( "</td><td>" ).append( value ).append( "</td></tr>" );
             }
             htmlBody.append( "</table>" );
@@ -306,9 +306,8 @@ public class DailySummaryJob implements Runnable
 
     private static String wrapText( final String input, final int length )
     {
-        String output = WordUtils.wrap( input, length );
-        output = output.replace( "\n", "\n   " );
-        return output;
+        final String output = WordUtils.wrap( input, length );
+        return output.replace( "\n", "\n   " );
     }
 
     private static String htmlHeader()

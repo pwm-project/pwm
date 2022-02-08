@@ -278,7 +278,7 @@
     <setting hidden="false" key="accountInfo.queryMatch" level="2" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="display.passwordHistory" level="1" required="true">
@@ -445,7 +445,7 @@
     <setting hidden="false" key="password.allowChange.queryMatch" level="2" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="logoutAfterPasswordChange" level="1" required="true">
@@ -541,7 +541,7 @@
     <setting hidden="false" key="ldap.serverCerts" level="0" required="true">
         <default/>
         <properties>
-            <property key="Cert_ImportHandler">password.pwm.config.function.LdapCertImportFunction</property>
+            <property key="Cert_ImportHandler">password.pwm.http.servlet.configeditor.function.LdapCertImportFunction</property>
         </properties>
     </setting>
     <setting hidden="false" key="ldap.proxy.username" level="0" required="false">
@@ -791,7 +791,7 @@
     <setting hidden="false" key="email.smtp.serverCerts" level="0" required="true">
         <default/>
         <properties>
-            <property key="Cert_ImportHandler">password.pwm.config.function.SmtpCertImportFunction</property>
+            <property key="Cert_ImportHandler">password.pwm.http.servlet.configeditor.function.SmtpCertImportFunction</property>
         </properties>
     </setting>
     <setting hidden="false" key="email.smtp.username" level="1">
@@ -990,7 +990,7 @@
     <setting hidden="false" key="sms.gatewayCertificates" level="1">
         <default/>
         <properties>
-            <property key="Cert_ImportHandler">password.pwm.config.function.SMSGatewayCertImportFunction</property>
+            <property key="Cert_ImportHandler">password.pwm.http.servlet.configeditor.function.SMSGatewayCertImportFunction</property>
         </properties>
     </setting>
     <setting hidden="false" key="sms.gatewayPassword" level="1">
@@ -1151,7 +1151,7 @@
     <setting hidden="false" key="password.policy.queryMatch" level="1">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="password.policy.source" level="1" required="true">
@@ -1789,7 +1789,7 @@
     <setting hidden="false" key="audit.syslog.certificates" level="1" required="false">
         <default/>
         <properties>
-            <property key="Cert_ImportHandler">password.pwm.config.function.SyslogCertImportFunction</property>
+            <property key="Cert_ImportHandler">password.pwm.http.servlet.configeditor.function.SyslogCertImportFunction</property>
         </properties>
     </setting>
     <setting hidden="false" key="audit.syslog.outputFormat" level="1">
@@ -1943,7 +1943,7 @@
     <setting hidden="false" key="otp.secret.allowSetup.queryMatch" level="1" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="otp.secret.identifier" level="2" required="true">
@@ -2120,301 +2120,315 @@
             <value>true</value>
         </default>
     </setting>
+    <setting hidden="true" key="setupResponses.profile.list" level="1" required="false">
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <properties>
+            <property key="Minimum">1</property>
+        </properties>
+        <default>
+            <value>default</value>
+        </default>
+    </setting>
     <setting hidden="false" key="challenge.forceSetup" level="1" required="true">
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting hidden="true" key="challenge.helpdesk.forceSetup" level="1" required="true">
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting hidden="false" key="challenge.randomChallenges" level="1">
         <default>
-            <value><![CDATA[{"text":"What is the name of the main character in your favorite book?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"What is the name of your favorite teacher?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"What is the name of your favorite pet?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"What was the name of your childhood best friend?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"What was your favorite show as a child?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"Who is your favorite author?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"What is your favorite food?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"What is your partner's nickname?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"What is your favorite team?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"What street did you grow up on?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"What city / town were you born in?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"What is your favorite vehicle?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"If you could meet someone from history, who would it be?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"What is your least favorite film of all time?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"Who was your least favorite teacher?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value><![CDATA[{"text":"What food do you dislike the most?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"Com es diu el personatge principal del seu llibre preferit?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"Com es diu el seu mestre preferit?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"Com es diu la seva mascota preferida?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"Com es deia el seu millor amic de la infància?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"Quin era seu programa televisiu preferit en la infància?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"Quin és el seu escriptor preferit?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"Quin és el seu menjar preferit?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"Quin sobrenom té la seva parella?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"Quin és el seu equip preferit?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"En quin carrer va créixer?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"En quin poble o en quina ciutat va néixer?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"Quin és el seu vehicle preferit?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"Si pogués conèixer un personatge històric, qui triaria?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"Quina és la pel·lícula que menys li ha agradat de totes les que ha vist?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"Com es deia el mestre que menys li agradava?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ca"><![CDATA[{"text":"Quin és el menjar que menys li agrada?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvad hedder hovedpersonen i din yndlingsbog?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvad hedder din yndlingslærer?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvad er navnet på dit yndlingskæledyr?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvad hed din bedste barndomsven?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvad var dit yndlingsshow som barn?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvem er din yndlingsforfatter?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvad er din livret?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvad er din partners kaldenavn?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvad er dit yndlingshold?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvad var navnet på din barndomsgade?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvilken by er du født i?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvad er dit yndlingskøretøj?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvis du kunne møde en historisk person, hvem skulle det så være?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvilken film kan du mindst lide?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvilken lærer kunne du mindst lide?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="da"><![CDATA[{"text":"Hvilken fødevare bryder du dig mindst om?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Wie heißt die Hauptperson in Ihrem Lieblingsbuch?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Wie heißt Ihr Lieblingslehrer?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Wie heißt Ihr Lieblingshaustier?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Wie hieß Ihr bester Freund/Ihre beste Freundin aus der Kindheit?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Welche Sendung haben Sie als Kind am liebsten angeschaut?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Wie heißt Ihr Lieblingsautor?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Was essen Sie am liebsten?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Wie lautet der Kosename Ihres Partners?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Welches ist Ihre Lieblingsmannschaft?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"In welcher Straße haben Sie als Kind gewohnt?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Wie lautet Ihr Geburtsort?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Welches ist Ihr bevorzugtes Fahrzeug?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Welche historische Persönlichkeit würden Sie gerne kennenlernen?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Wie heißt der schlechteste Film, den Sie je gesehen haben?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Wie hieß der Lehrer, den Sie am wenigsten mochten?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="de"><![CDATA[{"text":"Was essen Sie überhaupt nicht gerne?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿Cuál es el nombre del personaje principal de su libro favorito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿Cuál es el nombre de su profesor favorito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿Cuál es el nombre de su mascota favorita?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿Cómo se llamaba su mejor amigo del colegio?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿Cuál era su programa de televisión favorito cuando era niño?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿Quién es su autor favorito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿Cuál es su comida favorita?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿Cuál es el apodo de su pareja?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿Cuál es su equipo favorito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿Cuál es el nombre de la calle en la que se crió?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿En qué ciudad nació?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿Cuál es su vehículo favorito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"Si pudiera conocer a algún personaje histórico, ¿quién sería?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿Cuál es la película que menos le gusta?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿Quién era el profesor que menos le gustaba?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="es"><![CDATA[{"text":"¿Cuál es la comida que menos le gusta?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"What is the name of the main character in your favourite book?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"What is the name of your favourite teacher?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"What is the name of your favourite pet?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"What was the name of your childhood best friend?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"What was your favourite show as a child?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"Who is your favourite author?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"What is your favourite food?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"What is your partner's nickname?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"What is your favourite team?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"What street did you grow up on?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"What city/town were you born in?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"What is your favourite vehicle?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"If you could meet someone from history, who would it be?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"What is your least favourite film of all time?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"Who was your least favourite teacher?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="en_CA"><![CDATA[{"text":"What food do you dislike the most?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Comment s'appelle le héros de votre livre préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Comment s'appelle votre professeur préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Quel est le nom de votre animal préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Comment s'appelle votre meilleur ami d'enfance?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Quelle était votre émission préférée lorsque vous étiez enfant?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Qui est votre auteur préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Quel est votre plat préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Quel est le surnom de votre partenaire?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Quelle est votre équipe préférée?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Dans quelle rue avez-vous grandi?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Quelle est votre ville de naissance?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Quel est votre véhicule préféré?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Si vous pouviez rencontrer un personnage historique, qui voudriez-vous rencontrer?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Quel film avez-vous toujours détesté?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Qui est le professeur que vous avez le plus détesté?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr_CA"><![CDATA[{"text":"Quel plat détestez-vous le plus?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Comment s'appelle le héros de votre livre préféré ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Comment s'appelle votre professeur préféré ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel est le nom de votre animal préféré ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Comment s'appelle votre meilleur ami d'enfance ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quelle était votre émission préférée lorsque vous étiez enfant ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Qui est votre auteur préféré ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel est votre plat préféré ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel est le surnom de votre partenaire ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quelle est votre équipe préférée ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Dans quelle rue avez-vous grandi ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quelle est votre ville de naissance ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel est votre véhicule préféré ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Si vous pouviez rencontrer un personnage historique, qui voudriez-vous rencontrer ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel film avez-vous toujours détesté ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Qui est le professeur que vous avez le plus détesté ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="fr"><![CDATA[{"text":"Quel plat détestez-vous le plus ?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"מהו שם הדמות הראשית בספר האהוב עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"מהו שם המורה האהוב/ה עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"מהו שם חיית המחמד האהובה עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"מה היה שמו של חבר הילדות הטוב ביותר שלך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"מה היתה תוכנית הטלוויזיה האהובה עליך בילדותך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"מי הסופר האהוב עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"מהו המאכל האהוב עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"מהו הכינוי של בת/בן הזוג שלך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"מהו שם הקבוצה האהובה עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"באיזה רחוב גדלת?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"באיזו עיר נולדת?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"מהו הרכב האהוב עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"אם היית יכול לפגוש דמות מההיסטוריה, את מי היית רוצה לפגוש?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"מהו שם הסרט הכי פחות אהוב עליך בכל הזמנים?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"מי היה המורה הכי פחות אהוב/ה עליך?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="iw"><![CDATA[{"text":"מהו המאכל שאתה הכי לא אוהב?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"Come si chiama il protagonista del tuo libro preferito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"Come si chiama il tuo insegnante preferito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"Come si chiama il tuo animale domestico preferito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"Come si chiamava il tuo miglior amico dell'infanzia?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"Qual era il tuo programma preferito da bambino?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"Qual è il tuo autore preferito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"Qual è il tuo cibo preferito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"Qual è il soprannome del/della tuo/a partner?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"Qual è la tua squadra del cuore?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"In quale via sei cresciuto/a?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"In quale città sei nato/a?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"Qual è il tuo mezzo di trasporto preferito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"Se potessi incontrare un personaggio storico, chi sceglieresti?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"Qual è il film che ti è piaciuto di meno in assoluto?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"Quale insegnante amavi di meno?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="it"><![CDATA[{"text":"Qual è il cibo che odi di più?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"お気に入りの本の主人公の名前は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"お気に入りの先生の名前は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"お気に入りのペットの名前は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"子供の頃の親友の名前は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"子供の頃好きだったテレビ番組は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"好きな作家は誰ですか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"好きな食べ物は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"パートナーのニックネームは何ですか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"好きなチームは何ですか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"あなたが育った通りの名前は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"あなたが生まれた市町村区の名前は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"お気に入りの車は何ですか」?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"歴史上の人物に会えるとしたら、誰に会いたいですか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"これまでに見た中で嫌いな映画は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"嫌いな先生は誰でしたか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ja"><![CDATA[{"text":"一番嫌いな食べ物は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat is de naam van de hoofdpersoon in uw favoriete boek?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat is de naam van uw favoriete leraar?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat is de naam van uw favoriete huisdier?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat is de naam van uw beste jeugdvriend?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat was uw favoriete tv-programma als kind?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wie is uw favoriete schrijver?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete eten?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat is de bijnaam van uw partner?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete voetbalteam?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"In welke straat bent u opgegroeid?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"In welke stad of in welk dorp bent u geboren?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete voertuig?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Als u een bekende persoon uit het verleden zou kunnen ontmoeten, wie zou dat dan zijn?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wat is uw minst favoriete film aller tijden?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Wie was uw minst favoriete leraar?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="nl"><![CDATA[{"text":"Welk eten vindt u het minst lekker?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Jak nazywa się główny bohater Twojej ulubionej książki?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Jak nazywa się Twój ulubiony nauczyciel?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Jak nazywa się Twój ulubiony zwierzak?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Jak miał na imię Twój najlepszy kolega z dzieciństwa?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Jaki był Twój ulubiony program telewizyjny w dzieciństwie?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Kto jest Twoim ulubionym pisarzem?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Co jest Twoją ulubioną potrawą?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Jak brzmi przydomek Twojego partnera?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Jaka jest Twoja ulubiona drużyna?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Na jakiej ulicy dorastałeś(-aś)?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Jakie miasto jest miejscem Twojego urodzenia?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Jaki jest Twój ulubiony pojazd?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Gdyby było możliwe spotkanie jakiejś historycznej postaci, kto by nią był?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Jaki jest Twój ulubiony film wszechczasów?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Kto był Twoim najmniej lubianym nauczycielem?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pl"><![CDATA[{"text":"Jakiej potrawy najbardziej nie lubisz?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Qual é o nome do personagem principal do seu livro favorito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Qual é o nome do seu professor favorito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Qual é o nome do seu animal de estimação favorito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Qual era o nome do seu melhor amigo de infância?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Qual era seu programa de TV favorito quando criança?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Quem é seu autor favorito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Qual é seu prato favorito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Qual é o apelido de seu(sua) companheiro(a)?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Qual é seu time favorito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Em que rua você cresceu?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Em que cidade você nasceu?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Qual é seu carro favorito?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Se você pudesse conhecer um personagem histórico, quem seria?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Qual é o filme de que você menos gostou até hoje?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Qual era o professor de quem você menos gostava?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="pt_BR"><![CDATA[{"text":"Qual é o prato de que você menos gosta?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Имя главного персонажа в вашей любимой книге.","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Имя вашего любимого учителя.","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Имя вашего любимого домашнего животного.","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Имя вашего лучшего друга детства.","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Ваше любимое шоу в детстве.","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Ваш любимый автор.","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Ваша любимая еда.","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Как вы называете своего партнера?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Ваша любимая команда.","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Улица, на которой вы выросли.","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Город (населенный пункт), в котором вы родились.","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Ваш любимый автомобиль.","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"С кем из исторических персонажей вы бы хотели встретиться?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Самый нелюбимый вами фильм за все время.","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Ваш самый нелюбимый учитель.","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="ru"><![CDATA[{"text":"Еда, которая вам не нравится больше всего.","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Vad heter huvudpersonen i din favoritbok?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Vad heter din favoritlärare?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Vad heter ditt favorithusdjur?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Vad hette din bästa kompis när du var barn?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Vilket var ditt favoritprogram på TV när du var liten?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Vem är din favoritförfattare?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Vilken är din favoriträtt?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Vad är din partners smeknamn?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Vilket lag håller du på?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Vad hette gatan där du växte upp?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"I vilken stad är du född?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Vilket är ditt favoritfordon?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Om du kunde träffa en historisk person, vem skulle du välja?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Vilken film tycker du är historiens sämsta?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Vilken lärare tyckte du sämst om?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="sv"><![CDATA[{"text":"Vilken mat tycker du sämst om?","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"在您最喜爱的书中，主人公叫什么名字？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"您最喜欢的老师叫什么名字？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"您最喜爱的宠物叫什么名字？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"您儿时的好友叫什么名字？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"孩提时代，您最喜欢的节目是什么？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"您最喜欢的作者是谁？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"您最爱吃的食物是什么？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"您伴侣的绰号是什么？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"您最喜爱的球队是什么？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"您在哪条街道长大？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"您出生在哪个城市/城镇？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"您最喜欢的交通工具是什么？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"如果您可以穿越历史邂逅某个人物，此人会是谁？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"一直以来，您最不喜欢的电影是什么？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"您最不喜欢的老师是谁？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_CN"><![CDATA[{"text":"您最不爱吃哪种食物？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您最喜愛的書籍主角姓名？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您最喜愛的老師姓名？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您最喜愛的寵物名字？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您兒時摯友的姓名？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您小時候最喜歡的節目？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您最喜愛的作家？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您最喜愛的食物？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您伴侶的綽號？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您最喜愛的運動隊伍？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您在哪條街上長大的？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您出生的城市/城鎮？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您最喜愛的交通工具？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"若您可以與歷史人物見面，會是哪一位歷史人物？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您最不喜愛的電影？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您最不喜愛的老師？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
-            <value locale="zh_TW"><![CDATA[{"text":"您最討厭的食物？","minLength":4,"maxLength":200,"adminDefined":true,enforceWordlist:true,maxQuestionCharsInAnswer:3}]]></value>
+            <value><![CDATA[{"text":"What is the name of the main character in your favorite book?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"What is the name of your favorite teacher?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"What is the name of your favorite pet?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"What was the name of your childhood best friend?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"What was your favorite show as a child?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"Who is your favorite author?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"What is your favorite food?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"What is your partner's nickname?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"What is your favorite team?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"What street did you grow up on?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"What city / town were you born in?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"What is your favorite vehicle?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"If you could meet someone from history, who would it be?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"What is your least favorite film of all time?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"Who was your least favorite teacher?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value><![CDATA[{"text":"What food do you dislike the most?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"Com es diu el personatge principal del seu llibre preferit?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"Com es diu el seu mestre preferit?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"Com es diu la seva mascota preferida?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"Com es deia el seu millor amic de la infància?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"Quin era seu programa televisiu preferit en la infància?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"Quin és el seu escriptor preferit?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"Quin és el seu menjar preferit?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"Quin sobrenom té la seva parella?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"Quin és el seu equip preferit?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"En quin carrer va créixer?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"En quin poble o en quina ciutat va néixer?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"Quin és el seu vehicle preferit?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"Si pogués conèixer un personatge històric, qui triaria?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"Quina és la pel·lícula que menys li ha agradat de totes les que ha vist?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"Com es deia el mestre que menys li agradava?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ca"><![CDATA[{"text":"Quin és el menjar que menys li agrada?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvad hedder hovedpersonen i din yndlingsbog?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvad hedder din yndlingslærer?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvad er navnet på dit yndlingskæledyr?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvad hed din bedste barndomsven?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvad var dit yndlingsshow som barn?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvem er din yndlingsforfatter?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvad er din livret?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvad er din partners kaldenavn?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvad er dit yndlingshold?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvad var navnet på din barndomsgade?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvilken by er du født i?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvad er dit yndlingskøretøj?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvis du kunne møde en historisk person, hvem skulle det så være?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvilken film kan du mindst lide?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvilken lærer kunne du mindst lide?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="da"><![CDATA[{"text":"Hvilken fødevare bryder du dig mindst om?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Wie heißt die Hauptperson in Ihrem Lieblingsbuch?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Wie heißt Ihr Lieblingslehrer?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Wie heißt Ihr Lieblingshaustier?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Wie hieß Ihr bester Freund/Ihre beste Freundin aus der Kindheit?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Welche Sendung haben Sie als Kind am liebsten angeschaut?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Wie heißt Ihr Lieblingsautor?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Was essen Sie am liebsten?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Wie lautet der Kosename Ihres Partners?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Welches ist Ihre Lieblingsmannschaft?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"In welcher Straße haben Sie als Kind gewohnt?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Wie lautet Ihr Geburtsort?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Welches ist Ihr bevorzugtes Fahrzeug?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Welche historische Persönlichkeit würden Sie gerne kennenlernen?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Wie heißt der schlechteste Film, den Sie je gesehen haben?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Wie hieß der Lehrer, den Sie am wenigsten mochten?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="de"><![CDATA[{"text":"Was essen Sie überhaupt nicht gerne?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿Cuál es el nombre del personaje principal de su libro favorito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿Cuál es el nombre de su profesor favorito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿Cuál es el nombre de su mascota favorita?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿Cómo se llamaba su mejor amigo del colegio?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿Cuál era su programa de televisión favorito cuando era niño?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿Quién es su autor favorito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿Cuál es su comida favorita?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿Cuál es el apodo de su pareja?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿Cuál es su equipo favorito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿Cuál es el nombre de la calle en la que se crió?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿En qué ciudad nació?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿Cuál es su vehículo favorito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"Si pudiera conocer a algún personaje histórico, ¿quién sería?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿Cuál es la película que menos le gusta?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿Quién era el profesor que menos le gustaba?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="es"><![CDATA[{"text":"¿Cuál es la comida que menos le gusta?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is the name of the main character in your favourite book?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is the name of your favourite teacher?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is the name of your favourite pet?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What was the name of your childhood best friend?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What was your favourite show as a child?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"Who is your favourite author?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is your favourite food?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is your partner's nickname?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is your favourite team?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What street did you grow up on?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What city/town were you born in?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is your favourite vehicle?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"If you could meet someone from history, who would it be?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What is your least favourite film of all time?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"Who was your least favourite teacher?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="en_CA"><![CDATA[{"text":"What food do you dislike the most?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Comment s'appelle le héros de votre livre préféré?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Comment s'appelle votre professeur préféré?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quel est le nom de votre animal préféré?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Comment s'appelle votre meilleur ami d'enfance?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quelle était votre émission préférée lorsque vous étiez enfant?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Qui est votre auteur préféré?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quel est votre plat préféré?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quel est le surnom de votre partenaire?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quelle est votre équipe préférée?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Dans quelle rue avez-vous grandi?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quelle est votre ville de naissance?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quel est votre véhicule préféré?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Si vous pouviez rencontrer un personnage historique, qui voudriez-vous rencontrer?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quel film avez-vous toujours détesté?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Qui est le professeur que vous avez le plus détesté?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr_CA"><![CDATA[{"text":"Quel plat détestez-vous le plus?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Comment s'appelle le héros de votre livre préféré ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Comment s'appelle votre professeur préféré ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est le nom de votre animal préféré ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Comment s'appelle votre meilleur ami d'enfance ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quelle était votre émission préférée lorsque vous étiez enfant ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Qui est votre auteur préféré ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est votre plat préféré ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est le surnom de votre partenaire ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quelle est votre équipe préférée ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Dans quelle rue avez-vous grandi ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quelle est votre ville de naissance ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est votre véhicule préféré ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Si vous pouviez rencontrer un personnage historique, qui voudriez-vous rencontrer ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel film avez-vous toujours détesté ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Qui est le professeur que vous avez le plus détesté ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel plat détestez-vous le plus ?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו שם הדמות הראשית בספר האהוב עליך?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו שם המורה האהוב/ה עליך?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו שם חיית המחמד האהובה עליך?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מה היה שמו של חבר הילדות הטוב ביותר שלך?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מה היתה תוכנית הטלוויזיה האהובה עליך בילדותך?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מי הסופר האהוב עליך?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו המאכל האהוב עליך?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו הכינוי של בת/בן הזוג שלך?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו שם הקבוצה האהובה עליך?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"באיזה רחוב גדלת?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"באיזו עיר נולדת?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו הרכב האהוב עליך?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"אם היית יכול לפגוש דמות מההיסטוריה, את מי היית רוצה לפגוש?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו שם הסרט הכי פחות אהוב עליך בכל הזמנים?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מי היה המורה הכי פחות אהוב/ה עליך?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="iw"><![CDATA[{"text":"מהו המאכל שאתה הכי לא אוהב?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"Come si chiama il protagonista del tuo libro preferito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"Come si chiama il tuo insegnante preferito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"Come si chiama il tuo animale domestico preferito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"Come si chiamava il tuo miglior amico dell'infanzia?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"Qual era il tuo programma preferito da bambino?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"Qual è il tuo autore preferito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"Qual è il tuo cibo preferito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"Qual è il soprannome del/della tuo/a partner?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"Qual è la tua squadra del cuore?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"In quale via sei cresciuto/a?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"In quale città sei nato/a?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"Qual è il tuo mezzo di trasporto preferito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"Se potessi incontrare un personaggio storico, chi sceglieresti?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"Qual è il film che ti è piaciuto di meno in assoluto?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"Quale insegnante amavi di meno?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="it"><![CDATA[{"text":"Qual è il cibo che odi di più?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"お気に入りの本の主人公の名前は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"お気に入りの先生の名前は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"お気に入りのペットの名前は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"子供の頃の親友の名前は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"子供の頃好きだったテレビ番組は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"好きな作家は誰ですか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"好きな食べ物は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"パートナーのニックネームは何ですか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"好きなチームは何ですか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"あなたが育った通りの名前は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"あなたが生まれた市町村区の名前は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"お気に入りの車は何ですか」?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"歴史上の人物に会えるとしたら、誰に会いたいですか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"これまでに見た中で嫌いな映画は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"嫌いな先生は誰でしたか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ja"><![CDATA[{"text":"一番嫌いな食べ物は何ですか?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is de naam van de hoofdpersoon in uw favoriete boek?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is de naam van uw favoriete leraar?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is de naam van uw favoriete huisdier?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is de naam van uw beste jeugdvriend?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat was uw favoriete tv-programma als kind?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wie is uw favoriete schrijver?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete eten?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is de bijnaam van uw partner?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete voetbalteam?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"In welke straat bent u opgegroeid?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"In welke stad of in welk dorp bent u geboren?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete voertuig?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Als u een bekende persoon uit het verleden zou kunnen ontmoeten, wie zou dat dan zijn?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is uw minst favoriete film aller tijden?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wie was uw minst favoriete leraar?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Welk eten vindt u het minst lekker?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Jak nazywa się główny bohater Twojej ulubionej książki?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Jak nazywa się Twój ulubiony nauczyciel?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Jak nazywa się Twój ulubiony zwierzak?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Jak miał na imię Twój najlepszy kolega z dzieciństwa?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Jaki był Twój ulubiony program telewizyjny w dzieciństwie?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Kto jest Twoim ulubionym pisarzem?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Co jest Twoją ulubioną potrawą?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Jak brzmi przydomek Twojego partnera?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Jaka jest Twoja ulubiona drużyna?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Na jakiej ulicy dorastałeś(-aś)?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Jakie miasto jest miejscem Twojego urodzenia?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Jaki jest Twój ulubiony pojazd?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Gdyby było możliwe spotkanie jakiejś historycznej postaci, kto by nią był?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Jaki jest Twój ulubiony film wszechczasów?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Kto był Twoim najmniej lubianym nauczycielem?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pl"><![CDATA[{"text":"Jakiej potrawy najbardziej nie lubisz?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Qual é o nome do personagem principal do seu livro favorito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Qual é o nome do seu professor favorito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Qual é o nome do seu animal de estimação favorito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Qual era o nome do seu melhor amigo de infância?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Qual era seu programa de TV favorito quando criança?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Quem é seu autor favorito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Qual é seu prato favorito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Qual é o apelido de seu(sua) companheiro(a)?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Qual é seu time favorito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Em que rua você cresceu?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Em que cidade você nasceu?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Qual é seu carro favorito?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Se você pudesse conhecer um personagem histórico, quem seria?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Qual é o filme de que você menos gostou até hoje?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Qual era o professor de quem você menos gostava?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="pt_BR"><![CDATA[{"text":"Qual é o prato de que você menos gosta?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Имя главного персонажа в вашей любимой книге.","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Имя вашего любимого учителя.","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Имя вашего любимого домашнего животного.","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Имя вашего лучшего друга детства.","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Ваше любимое шоу в детстве.","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Ваш любимый автор.","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Ваша любимая еда.","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Как вы называете своего партнера?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Ваша любимая команда.","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Улица, на которой вы выросли.","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Город (населенный пункт), в котором вы родились.","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Ваш любимый автомобиль.","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"С кем из исторических персонажей вы бы хотели встретиться?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Самый нелюбимый вами фильм за все время.","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Ваш самый нелюбимый учитель.","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="ru"><![CDATA[{"text":"Еда, которая вам не нравится больше всего.","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Vad heter huvudpersonen i din favoritbok?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Vad heter din favoritlärare?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Vad heter ditt favorithusdjur?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Vad hette din bästa kompis när du var barn?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Vilket var ditt favoritprogram på TV när du var liten?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Vem är din favoritförfattare?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Vilken är din favoriträtt?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Vad är din partners smeknamn?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Vilket lag håller du på?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Vad hette gatan där du växte upp?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"I vilken stad är du född?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Vilket är ditt favoritfordon?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Om du kunde träffa en historisk person, vem skulle du välja?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Vilken film tycker du är historiens sämsta?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Vilken lärare tyckte du sämst om?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="sv"><![CDATA[{"text":"Vilken mat tycker du sämst om?","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"在您最喜爱的书中，主人公叫什么名字？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"您最喜欢的老师叫什么名字？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"您最喜爱的宠物叫什么名字？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"您儿时的好友叫什么名字？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"孩提时代，您最喜欢的节目是什么？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"您最喜欢的作者是谁？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"您最爱吃的食物是什么？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"您伴侣的绰号是什么？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"您最喜爱的球队是什么？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"您在哪条街道长大？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"您出生在哪个城市/城镇？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"您最喜欢的交通工具是什么？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"如果您可以穿越历史邂逅某个人物，此人会是谁？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"一直以来，您最不喜欢的电影是什么？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"您最不喜欢的老师是谁？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_CN"><![CDATA[{"text":"您最不爱吃哪种食物？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您最喜愛的書籍主角姓名？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您最喜愛的老師姓名？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您最喜愛的寵物名字？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您兒時摯友的姓名？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您小時候最喜歡的節目？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您最喜愛的作家？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您最喜愛的食物？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您伴侶的綽號？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您最喜愛的運動隊伍？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您在哪條街上長大的？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您出生的城市/城鎮？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您最喜愛的交通工具？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"若您可以與歷史人物見面，會是哪一位歷史人物？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您最不喜愛的電影？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您最不喜愛的老師？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
+            <value locale="zh_TW"><![CDATA[{"text":"您最討厭的食物？","minLength":4,"maxLength":200,"adminDefined":true,"enforceWordlist":true,"maxQuestionCharsInAnswer":3}]]></value>
         </default>
     </setting>
     <setting hidden="false" key="challenge.requiredChallenges" level="1">
@@ -2459,13 +2473,13 @@
     <setting hidden="false" key="challenge.allowSetup.queryMatch" level="2" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="command.checkResponses.queryMatch" level="2" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="true" key="challenge.profile.list" level="1">
@@ -2480,7 +2494,7 @@
     <setting hidden="false" key="challenge.policy.queryMatch" level="1">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="recovery.verificationMethods" level="1">
@@ -2512,7 +2526,7 @@
     <setting hidden="false" key="recovery.oauth.idserver.serverCerts" level="2">
         <default/>
         <properties>
-            <property key="Cert_ImportHandler">password.pwm.config.function.OAuthCertImportFunction</property>
+            <property key="Cert_ImportHandler">password.pwm.http.servlet.configeditor.function.OAuthCertImportFunction</property>
         </properties>
     </setting>
     <setting hidden="false" key="recovery.oauth.idserver.clientName" level="2">
@@ -2787,9 +2801,9 @@
         <flag>Form_ShowReadOnlyOption</flag>
         <flag>Form_ShowSource</flag>
         <default>
-            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":"Email Address has invalid characters"},"description":{"":""},"placeholder":"username@example.com","selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
-            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
-            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},regex:"^[a-zA-Z0-9 .,'@]*$"}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":"Email Address has invalid characters"},"description":{"":""},"placeholder":"username@example.com","selectOptions":{},"regex":"^[a-zA-Z0-9 .,'@]*$"}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},"regex":"^[a-zA-Z0-9 .,'@]*$"}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{},"regex":"^[a-zA-Z0-9 .,'@]*$"}</value>
         </default>
         <options>
             <option value="text">text</option>
@@ -3098,7 +3112,7 @@
     <setting hidden="false" key="updateAttributes.queryMatch" level="1" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="updateAttributes.writeAttributes" level="1">
@@ -3231,7 +3245,7 @@
     <setting hidden="false" key="peopleSearch.queryMatch" level="1" required="true">
         <ldapPermission actor="self_other" access="read"/>
         <default syntaxVersion="2">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.search.form" level="1" required="true">
@@ -3343,7 +3357,7 @@
     </setting>
     <setting hidden="false" key="peopleSearch.photo.queryFilter" level="2">
         <default syntaxVersion="2">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="peopleSearch.idleTimeout" level="1">
@@ -3751,13 +3765,13 @@
     <setting hidden="false" key="recovery.queryMatch" level="1" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <default syntaxVersion="2">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
         <default syntaxVersion="2" template="ORACLE_DS">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="helpdesk.token.sendMethod" level="1">
@@ -3903,7 +3917,7 @@
 
     <setting hidden="false" key="reporting.ldap.userMatch" level="1">
         <default syntaxVersion="2">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="reporting.ldap.maxQuerySize" level="2">
@@ -4011,7 +4025,7 @@
             <value/>
         </default>
         <default syntaxVersion="2" template="NOVL_IDM">
-            <value>{type:"ldapAllUsers","ldapProfileID":"all"}</value>
+            <value>{"type":"ldapAllUsers","ldapProfileID":"all"}</value>
         </default>
     </setting>
     <setting hidden="false" key="webservices.thirdParty.queryMatch" level="2">
@@ -4071,7 +4085,7 @@
     <setting hidden="false" key="oauth.idserver.serverCerts" level="2">
         <default/>
         <properties>
-            <property key="Cert_ImportHandler">password.pwm.config.function.OAuthCertImportFunction</property>
+            <property key="Cert_ImportHandler">password.pwm.http.servlet.configeditor.function.OAuthCertImportFunction</property>
         </properties>
     </setting>
     <setting hidden="false" key="oauth.idserver.clientName" level="2">
@@ -4243,7 +4257,12 @@
     </category>
     <category hidden="false" scope="DOMAIN" key="PASSWORD_GLOBAL">
     </category>
-    <category hidden="false" scope="DOMAIN" key="CHALLENGE">
+    <category hidden="false" scope="DOMAIN" key="SETUP_RESPONSES">
+    </category>
+    <category hidden="false" scope="DOMAIN" key="SETUP_RESPONSES_SETTINGS">
+    </category>
+    <category hidden="false" scope="DOMAIN" key="SETUP_RESPONSES_PROFILE" profiles="true">
+        <profile setting="setupResponses.profile.list"/>
     </category>
     <category hidden="false" scope="DOMAIN" key="CHALLENGE_POLICY">
         <profile setting="challenge.profile.list"/>
@@ -4341,7 +4360,7 @@
     <category hidden="false" scope="DOMAIN" key="CHANGE_PASSWORD_SETTINGS">
     </category>
     <category hidden="false" scope="DOMAIN" key="CHANGE_PASSWORD_PROFILE">
-        <profile setting="accountInfo.profile.list"/>
+        <profile setting="changePassword.profile.list"/>
     </category>
     <category hidden="false" scope="DOMAIN" key="ACCOUNT_INFO">
     </category>

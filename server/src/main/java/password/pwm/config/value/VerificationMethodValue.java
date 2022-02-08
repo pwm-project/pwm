@@ -21,6 +21,8 @@
 package password.pwm.config.value;
 
 import lombok.Value;
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -29,9 +31,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -133,7 +133,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
                 }
                 else
                 {
-                    final VerificationMethodSettings settings = JsonUtil.deserialize( input, VerificationMethodSettings.class );
+                    final VerificationMethodSettings settings = JsonFactory.get().deserialize( input, VerificationMethodSettings.class );
                     return new VerificationMethodValue( settings );
                 }
             }
@@ -148,7 +148,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
                     final Optional<String> inputStr = valueElement.get().getText();
                     if ( inputStr.isPresent() )
                     {
-                        final VerificationMethodSettings settings = JsonUtil.deserialize( inputStr.get(), VerificationMethodSettings.class );
+                        final VerificationMethodSettings settings = JsonFactory.get().deserialize( inputStr.get(), VerificationMethodSettings.class );
                         return new VerificationMethodValue( settings );
                     }
                 }
@@ -160,8 +160,8 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-        valueElement.addText( JsonUtil.serialize( value ) );
+        final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+        valueElement.setText( JsonFactory.get().serialize( value ) );
         return Collections.singletonList( valueElement );
     }
 
@@ -208,11 +208,11 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
 
         out.append( "optional methods: " ).append( optionals.isEmpty()
                 ? LocaleHelper.getLocalizedMessage( locale, Display.Value_NotApplicable, null )
-                : JsonUtil.serializeCollection( optionals )
+                : JsonFactory.get().serializeCollection( optionals )
         );
         out.append( ", required methods: " ).append( required.isEmpty()
                 ? LocaleHelper.getLocalizedMessage( locale, Display.Value_NotApplicable, null )
-                : JsonUtil.serializeCollection( required )
+                : JsonFactory.get().serializeCollection( required )
         );
 
         if ( value.getMinOptionalRequired() > 0 )

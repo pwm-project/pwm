@@ -20,14 +20,15 @@
 
 package password.pwm.config;
 
+import org.jrivard.xmlchai.AccessMode;
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlDocument;
+import org.jrivard.xmlchai.XmlElement;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.XmlDocument;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
 
 import java.io.InputStream;
 import java.util.List;
@@ -42,7 +43,7 @@ public class PwmSettingXmlTest
     {
         try ( InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( PwmSettingXml.SETTING_XML_FILENAME ) )
         {
-            xmlDocument = XmlFactory.getFactory().parseXml( inputStream );
+            xmlDocument = XmlChai.getFactory().parse( inputStream, AccessMode.IMMUTABLE );
         }
     }
 
@@ -69,7 +70,7 @@ public class PwmSettingXmlTest
         Assert.assertFalse( settingElements.isEmpty() );
         for ( final XmlElement element : settingElements )
         {
-            final String key = element.getAttributeValue( "key" )
+            final String key = element.getAttribute( "key" )
                     .orElseThrow( () -> new IllegalStateException( "setting element " + element.getName() + " missing key attribute" ) );
 
             final String errorMsg = "PwmSetting.xml contains setting key of '"
@@ -95,7 +96,7 @@ public class PwmSettingXmlTest
         Assert.assertFalse( categoryElements.isEmpty() );
         for ( final XmlElement element : categoryElements )
         {
-            final String key = element.getAttributeValue( "key" )
+            final String key = element.getAttribute( "key" )
                     .orElseThrow( () -> new IllegalStateException( "category element " + element.getName() + " missing key attribute" ) );
 
             final PwmSettingCategory category = JavaHelper.readEnumFromString( PwmSettingCategory.class, null, key );
@@ -113,7 +114,7 @@ public class PwmSettingXmlTest
         Assert.assertFalse( profileElements.isEmpty() );
         for ( final XmlElement element : profileElements )
         {
-            final String settingKey = element.getAttributeValue( "setting" )
+            final String settingKey = element.getAttribute( "setting" )
                     .orElseThrow( () -> new IllegalStateException( "profile element " + element.getName() + " missing setting attribute" ) );
 
             final Optional<PwmSetting> setting = PwmSetting.forKey( settingKey );

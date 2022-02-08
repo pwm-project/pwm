@@ -57,7 +57,7 @@ import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -162,7 +162,7 @@ public class NewUserServlet extends ControlledPwmServlet
         if ( StringUtil.notEmpty( signedFormData ) )
         {
             final Map<String, String> jsonForm = RestFormSigningServer.readSignedFormValue( pwmDomain, signedFormData );
-            LOGGER.trace( () -> "detected signedForm parameter in request, will read and place in bean; keys=" + JsonUtil.serializeCollection( jsonForm.keySet() ) );
+            LOGGER.trace( () -> "detected signedForm parameter in request, will read and place in bean; keys=" + JsonFactory.get().serializeCollection( jsonForm.keySet() ) );
             newUserBean.setRemoteInputData( jsonForm );
         }
 
@@ -373,7 +373,7 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "validate" )
-    private ProcessStatus restValidateForm(
+    public ProcessStatus restValidateForm(
             final PwmRequest pwmRequest
     )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
@@ -400,7 +400,7 @@ public class NewUserServlet extends ControlledPwmServlet
             final RestCheckPasswordServer.JsonOutput jsonData = RestCheckPasswordServer.JsonOutput.fromPasswordCheckInfo(
                     passwordCheckInfo );
 
-            final RestResultBean restResultBean = RestResultBean.withData( jsonData );
+            final RestResultBean restResultBean = RestResultBean.withData( jsonData, RestCheckPasswordServer.JsonOutput.class );
             pwmRequest.outputJsonResult( restResultBean );
         }
         catch ( final PwmOperationalException e )
@@ -475,7 +475,7 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "enterCode" )
-    private ProcessStatus handleEnterCodeRequest( final PwmRequest pwmRequest )
+    public ProcessStatus handleEnterCodeRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
         final NewUserBean newUserBean = getNewUserBean( pwmRequest );
@@ -558,7 +558,7 @@ public class NewUserServlet extends ControlledPwmServlet
             return ProcessStatus.Continue;
         }
 
-        LOGGER.debug( pwmRequest, () -> "marking token as passed " + JsonUtil.serialize( tokenDestinationItem ) );
+        LOGGER.debug( pwmRequest, () -> "marking token as passed " + JsonFactory.get().serialize( tokenDestinationItem ) );
         newUserBean.getCompletedTokenFields().add( newUserBean.getCurrentTokenField() );
         newUserBean.setTokenSent( false );
         newUserBean.setCurrentTokenField( null );
@@ -574,7 +574,7 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "enterRemoteResponse" )
-    private ProcessStatus processEnterRemoteResponse( final PwmRequest pwmRequest )
+    public ProcessStatus processEnterRemoteResponse( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ServletException
     {
         final String prefix = "remote-";
@@ -608,7 +608,7 @@ public class NewUserServlet extends ControlledPwmServlet
 
 
     @ActionHandler( action = "profileChoice" )
-    private ProcessStatus handleProfileChoiceRequest( final PwmRequest pwmRequest )
+    public ProcessStatus handleProfileChoiceRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
         final Set<String> profileIDs = pwmRequest.getDomainConfig().getNewUserProfiles().keySet();
@@ -629,7 +629,7 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "processForm" )
-    private ProcessStatus handleProcessFormRequest( final PwmRequest pwmRequest )
+    public ProcessStatus handleProcessFormRequest( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
         final NewUserBean newUserBean = getNewUserBean( pwmRequest );
@@ -666,9 +666,8 @@ public class NewUserServlet extends ControlledPwmServlet
         return ProcessStatus.Continue;
     }
 
-
     @ActionHandler( action = "checkProgress" )
-    private ProcessStatus restCheckProgress(
+    public ProcessStatus restCheckProgress(
             final PwmRequest pwmRequest
     )
             throws IOException, ServletException, PwmUnrecoverableException
@@ -705,15 +704,15 @@ public class NewUserServlet extends ControlledPwmServlet
         outputMap.put( "percentComplete", percentComplete );
         outputMap.put( "complete", complete );
 
-        final RestResultBean restResultBean = RestResultBean.withData( outputMap );
+        final RestResultBean restResultBean = RestResultBean.withData( outputMap, Map.class );
 
-        LOGGER.trace( pwmRequest, () -> "returning result for restCheckProgress: " + JsonUtil.serialize( restResultBean ) );
+        LOGGER.trace( pwmRequest, () -> "returning result for restCheckProgress: " + JsonFactory.get().serialize( restResultBean ) );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
 
     @ActionHandler( action = "agree" )
-    private ProcessStatus handleAgree(
+    public ProcessStatus handleAgree(
             final PwmRequest pwmRequest
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
@@ -727,7 +726,7 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "reset" )
-    private ProcessStatus handleReset(
+    public ProcessStatus handleReset(
             final PwmRequest pwmRequest
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
@@ -739,7 +738,7 @@ public class NewUserServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "complete" )
-    private ProcessStatus handleComplete(
+    public ProcessStatus handleComplete(
             final PwmRequest pwmRequest
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
@@ -869,7 +868,7 @@ public class NewUserServlet extends ControlledPwmServlet
 
         {
             final boolean showBack = !newUserBean.isUrlSpecifiedProfile()
-                    && pwmRequest.getDomainConfig().getNewUserProfiles().keySet().size() > 1;
+                    && pwmRequest.getDomainConfig().getNewUserProfiles().size() > 1;
             pwmRequest.setAttribute( PwmRequestAttribute.NewUser_FormShowBackButton, showBack );
         }
 

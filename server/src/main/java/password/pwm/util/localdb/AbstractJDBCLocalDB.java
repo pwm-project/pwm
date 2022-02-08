@@ -118,8 +118,8 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                 final String indexName = db.toString() + "_IDX";
                 final StringBuilder sqlString = new StringBuilder();
                 sqlString.append( "CREATE index " ).append( indexName );
-                sqlString.append( " ON " ).append( db.toString() );
-                sqlString.append( " (" ).append( KEY_COLUMN ).append( ")" );
+                sqlString.append( " ON " ).append( db );
+                sqlString.append( " (" ).append( KEY_COLUMN ).append( ')' );
 
                 Statement statement = null;
                 try
@@ -144,7 +144,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     private static void checkIfTableExists( final Connection connection, final LocalDB.DB db ) throws LocalDBException
     {
         final StringBuilder sb = new StringBuilder();
-        sb.append( "SELECT * FROM  " ).append( db.toString() ).append( " WHERE " + KEY_COLUMN + " = '0'" );
+        sb.append( "SELECT * FROM  " ).append( db ).append( " WHERE " + KEY_COLUMN + " = '0'" );
         Statement statement = null;
         ResultSet resultSet = null;
         try
@@ -241,7 +241,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             throws LocalDBException
     {
         preCheck( false );
-        return get( db, key ) != null;
+        return get( db, key ).isPresent();
     }
 
     @Override
@@ -486,7 +486,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     {
         preCheck( false );
         final StringBuilder sb = new StringBuilder();
-        sb.append( "SELECT COUNT(" + KEY_COLUMN + ") FROM " ).append( db.toString() );
+        sb.append( "SELECT COUNT(" + KEY_COLUMN + ") FROM " ).append( db );
 
         PreparedStatement statement = null;
         ResultSet resultSet = null;
@@ -527,7 +527,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         preCheck( true );
         final Instant startTime = Instant.now();
         final StringBuilder sqlText = new StringBuilder();
-        sqlText.append( "DROP TABLE " ).append( db.toString() );
+        sqlText.append( "DROP TABLE " ).append( db );
 
         PreparedStatement statement = null;
         try

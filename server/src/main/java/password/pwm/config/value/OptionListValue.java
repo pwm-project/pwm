@@ -20,13 +20,12 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.java.JsonUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -59,15 +58,13 @@ public class OptionListValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    Set<String> srcList = JsonUtil.deserialize( input, new TypeToken<Set<String>>()
-                    {
-                    } );
-                    srcList = srcList == null ? Collections.emptySet() : srcList;
+                    List<String> srcList = JsonFactory.get().deserializeStringList( input );
+                    srcList = srcList == null ? Collections.emptyList() : srcList;
                     while ( srcList.contains( null ) )
                     {
                         srcList.remove( null );
                     }
-                    return new OptionListValue( Collections.unmodifiableSet( srcList ) );
+                    return new OptionListValue( Set.copyOf( srcList ) );
                 }
             }
 
@@ -89,11 +86,11 @@ public class OptionListValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final String value : values )
         {
-            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-            valueElement.addText( value );
+            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            valueElement.setText( value );
             returnList.add( valueElement );
         }
         return returnList;
@@ -120,7 +117,7 @@ public class OptionListValue extends AbstractValue implements StoredValue
             sb.append( valueIterator.next() );
             if ( valueIterator.hasNext() )
             {
-                sb.append( "\n" );
+                sb.append( '\n' );
             }
         }
         return sb.toString();

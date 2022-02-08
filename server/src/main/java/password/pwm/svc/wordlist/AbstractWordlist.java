@@ -36,7 +36,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.PwmCallable;
 import password.pwm.util.java.StringUtil;
@@ -129,7 +129,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
                     new InspectorJob(), executorService, TimeDuration.SECOND, wordlistConfiguration.getInspectorFrequency() );
         }
 
-        getLogger().trace( getSessionLabel(), () -> "opening with configuration: " + JsonUtil.serialize( wordlistConfiguration ) );
+        getLogger().trace( getSessionLabel(), () -> "opening with configuration: " + JsonFactory.get().serialize( wordlistConfiguration ) );
 
         return STATUS.OPEN;
     }

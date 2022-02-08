@@ -33,7 +33,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.self.SelfCertFactory;
 
@@ -149,7 +149,7 @@ public class HttpsServerCertificateManager
                     final String value = aliasEnum.next();
                     allAliases.add( value );
                 }
-                effectiveAlias = allAliases.size() == 1 ? allAliases.iterator().next() : alias;
+                effectiveAlias = allAliases.size() == 1 ? allAliases.get( 0 ) : alias;
             }
 
             final KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection( charPassword );
@@ -170,7 +170,7 @@ public class HttpsServerCertificateManager
             final PrivateKey key = entry.getPrivateKey();
             final List<X509Certificate> certificates = Arrays.asList( ( X509Certificate[] ) entry.getCertificateChain() );
 
-            LOGGER.debug( () -> "importing certificate chain: " + JsonUtil.serializeCollection( X509Utils.makeDebugInfoMap( certificates ) ) );
+            LOGGER.debug( () -> "importing certificate chain: " + JsonFactory.get().serializeCollection( X509Utils.makeDebugInfoMap( certificates ) ) );
             privateKeyCertificate = new PrivateKeyCertificate( certificates, key );
         }
         catch ( final Exception e )

@@ -74,7 +74,7 @@ public class StoredConfigKeyTest
         set.add( StoredConfigKey.forSetting( PwmSetting.PWM_SITE_URL, null, DomainID.systemId() ) );
         set.add( StoredConfigKey.forSetting( PwmSetting.SECURITY_ENABLE_FORM_NONCE, null, DomainID.systemId() ) );
         set.add( StoredConfigKey.forSetting( PwmSetting.SECURITY_ENABLE_FORM_NONCE, null, DomainID.systemId() ) );
-        set.add( StoredConfigKey.forSetting( PwmSetting.CHALLENGE_ENABLE, null, DomainID.systemId() ) );
+        set.add( StoredConfigKey.forSetting( PwmSetting.SETUP_RESPONSE_ENABLE, null, DomainID.systemId() ) );
         Assert.assertEquals( 3, set.size() );
     }
 

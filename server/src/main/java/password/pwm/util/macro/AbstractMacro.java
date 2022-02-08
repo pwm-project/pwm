@@ -52,10 +52,8 @@ public abstract class AbstractMacro implements Macro
 
     static String unescapeParamValue( final String input )
     {
-        String result = input;
-        result = result.replace( "/:", ":" );
-        result = result.replace( "/@", "@" );
-        return result;
+        return input.replace( "/:", ":" )
+                .replace( "/@", "@" );
     }
 
     static List<String> splitMacroParameters( final String input, final List<String> ignoreValueList )

@@ -20,7 +20,6 @@
 
 package password.pwm.ldap;
 
-import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
@@ -28,7 +27,6 @@ import com.novell.ldapchai.provider.ProviderStatistics;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Value;
-import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
@@ -48,7 +46,6 @@ import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -63,7 +60,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
@@ -151,7 +147,7 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
         LOGGER.trace( () -> "threadLocal enabled: " + useThreadLocal );
 
         // read the lastLoginTime
-        this.lastLdapErrors.putAll( readLastLdapFailure( pwmDomain ) );
+        this.lastLdapErrors.putAll( pwmApplication.readLastLdapFailure( getDomainID() ) );
 
         final long idleWeakTimeoutMS = JavaHelper.silentParseLong(
                 pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROXY_IDLE_THREAD_LOCAL_TIMEOUT_MS ),
@@ -328,8 +324,7 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
     public void setLastLdapFailure( final LdapProfile ldapProfile, final ErrorInformation errorInformation )
     {
         lastLdapErrors.put( ldapProfile.getIdentifier(), errorInformation );
-        final String jsonString = JsonUtil.serializeMap( lastLdapErrors );
-        pwmDomain.getPwmApplication().writeAppAttribute( AppAttribute.LAST_LDAP_ERROR, jsonString );
+        getPwmApplication().writeLastLdapFailure( getDomainID(), lastLdapErrors );
     }
 
     public Map<String, ErrorInformation> getLastLdapFailure( )
@@ -345,34 +340,6 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
             return errorInformation.getDate();
         }
         return null;
-    }
-
-    private static Map<String, ErrorInformation> readLastLdapFailure( final PwmDomain pwmDomain )
-    {
-        String lastLdapFailureStr = null;
-        try
-        {
-            final Optional<String> optionalLastLdapError = pwmDomain.getPwmApplication().readAppAttribute( AppAttribute.LAST_LDAP_ERROR, String.class );
-            if ( optionalLastLdapError.isPresent() )
-            {
-                lastLdapFailureStr = optionalLastLdapError.get();
-                if ( StringUtil.notEmpty( lastLdapFailureStr ) )
-                {
-                    final Map<String, ErrorInformation> fromJson = JsonUtil.deserialize( lastLdapFailureStr, new TypeToken<Map<String, ErrorInformation>>()
-                    {
-                    } );
-                    final Map<String, ErrorInformation> returnMap = new HashMap<>( fromJson );
-                    returnMap.keySet().retainAll( pwmDomain.getConfig().getLdapProfiles().keySet() );
-                    return returnMap;
-                }
-            }
-        }
-        catch ( final Exception e )
-        {
-            final  String lastFailureStrFinal = lastLdapFailureStr;
-            LOGGER.error( () -> "unexpected error loading cached lastLdapFailure statuses: " + e.getMessage() + ", input=" + lastFailureStrFinal );
-        }
-        return Collections.emptyMap();
     }
 
     private int maxSlotsPerProfile( final PwmDomain pwmDomain )

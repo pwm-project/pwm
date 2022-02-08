@@ -118,7 +118,7 @@ public class FullPageHealthServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "value" )
-    private ProcessStatus bogusValueHandler( final PwmRequest pwmRequest )
+    public ProcessStatus bogusValueHandler( final PwmRequest pwmRequest )
     {
         // bogus method to satisfy test case
         return ProcessStatus.Continue;

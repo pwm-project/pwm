@@ -30,7 +30,7 @@
 <%@ page import="password.pwm.svc.token.TokenPayload" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="java.util.Iterator" %>
-<%@ page import="password.pwm.util.java.JsonUtil" %>
+<%@ page import="password.pwm.util.json.JsonFactory" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.bean.TokenDestinationItem" %>
 

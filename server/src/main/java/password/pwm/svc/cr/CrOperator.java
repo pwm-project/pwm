@@ -102,11 +102,9 @@ public interface CrOperator
     {
         private static final PwmLogger LOGGER = PwmLogger.forClass( CrOperator.class );
 
-        static ResponseInfoBean convertToNoAnswerInfoBean( final ResponseSet responseSet, final DataStorageMethod dataSource
-        )
+        static ResponseInfoBean convertToNoAnswerInfoBean( final ResponseSet responseSet, final DataStorageMethod dataSource )
                 throws ChaiUnavailableException, ChaiOperationException, ChaiValidationException
         {
-            final Map<Challenge, String> crMap = new LinkedHashMap<>();
             Answer.FormatType formatType = null;
             try
             {
@@ -127,6 +125,8 @@ public interface CrOperator
             {
                 LOGGER.error( () -> "unable to determine formatType of stored responses: " + e.getMessage() );
             }
+
+            final Map<Challenge, String> crMap = new LinkedHashMap<>( responseSet.getChallengeSet().getChallenges().size() );
             for ( final Challenge challenge : responseSet.getChallengeSet().getChallenges() )
             {
                 crMap.put( challenge, "" );

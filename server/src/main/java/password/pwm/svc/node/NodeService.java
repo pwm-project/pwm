@@ -35,7 +35,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
@@ -157,7 +157,7 @@ public class NodeService extends AbstractPwmService implements PwmService
 
         if ( nodeMachine != null )
         {
-            props.putAll( JsonUtil.deserializeStringMap( JsonUtil.serialize( nodeMachine.getNodeServiceStatistics() ) ) );
+            props.putAll( JsonFactory.get().deserializeStringMap( JsonFactory.get().serialize( nodeMachine.getNodeServiceStatistics() ) ) );
         }
         return ServiceInfoBean.builder()
                 .storageMethod( dataStore )

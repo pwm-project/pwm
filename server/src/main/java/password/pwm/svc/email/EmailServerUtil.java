@@ -248,28 +248,24 @@ public class EmailServerUtil
 
     static EmailItemBean applyMacrosToEmail( final EmailItemBean emailItem, final MacroRequest macroRequest )
     {
-        final EmailItemBean expandedEmailItem;
-        expandedEmailItem = new EmailItemBean(
+        return new EmailItemBean(
                 macroRequest.expandMacros( emailItem.getTo() ),
                 macroRequest.expandMacros( emailItem.getFrom() ),
                 macroRequest.expandMacros( emailItem.getSubject() ),
                 macroRequest.expandMacros( emailItem.getBodyPlain() ),
                 macroRequest.expandMacros( emailItem.getBodyHtml() )
         );
-        return expandedEmailItem;
     }
 
     static EmailItemBean newEmailToAddress( final EmailItemBean emailItem, final String toAddress )
     {
-        final EmailItemBean expandedEmailItem;
-        expandedEmailItem = new EmailItemBean(
+        return new EmailItemBean(
                 toAddress,
                 emailItem.getFrom(),
                 emailItem.getSubject(),
                 emailItem.getBodyPlain(),
                 emailItem.getBodyHtml()
         );
-        return expandedEmailItem;
     }
 
     static boolean examineSendFailure( final Exception e, final Set<Integer> retyableStatusCodes )

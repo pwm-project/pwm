@@ -46,9 +46,8 @@
     <allow pkg="org.apache.commons.net.ftp"/>
 
     <!-- xml -->
-    <allow pkg="javax.xml"/>
-    <allow pkg="org.w3c"/>
-    <allow pkg="org.xml"/>
+    <allow pkg="org.jrivard.xmlchai"/>
+
 
     <!-- graylog2 -->
     <allow pkg="org.graylog2"/>
@@ -67,6 +66,7 @@
 
     <!-- gson -->
     <allow pkg="com.google.gson"/>
+    <allow pkg="com.squareup.moshi"/>
 
     <allow pkg="javax.management"/>
 
@@ -123,6 +123,10 @@
     <subpackage name="svc.cr">
         <allow pkg="com.novell.ldap"/>
         <allow pkg="com.novell.security.nmas"/>
+
+        <allow pkg="javax.xml"/>
+        <allow pkg="org.w3c.dom"/>
+        <allow pkg="org.xml.sax"/>
     </subpackage>
 
     <!-- database -->

@@ -20,17 +20,16 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.reflect.TypeToken;
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.XmlElement;
-import password.pwm.util.java.XmlFactory;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -63,9 +62,7 @@ public class FormValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    List<FormConfiguration> srcList = JsonUtil.deserialize( input, new TypeToken<List<FormConfiguration>>()
-                    {
-                    } );
+                    List<FormConfiguration> srcList = JsonFactory.get().deserializeList( input, FormConfiguration.class );
                     srcList = srcList == null ? Collections.emptyList() : srcList;
                     while ( srcList.contains( null ) )
                     {
@@ -80,13 +77,13 @@ public class FormValue extends AbstractValue implements StoredValue
                     throws PwmOperationalException
             {
                 final boolean oldType = PwmSettingSyntax.LOCALIZED_STRING_ARRAY.toString().equals(
-                        settingElement.getAttributeValue( "syntax" ).orElse( "" ) );
+                        settingElement.getAttribute( "syntax" ).orElse( "" ) );
                 final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final List<FormConfiguration> values = new ArrayList<>();
                 for ( final XmlElement loopValueElement  : valueElements )
                 {
                     final Optional<String> value = loopValueElement.getText();
-                    if ( value.isPresent() && loopValueElement.getAttributeValue( "locale" ).isEmpty() )
+                    if ( value.isPresent() && loopValueElement.getAttribute( "locale" ).isEmpty() )
                     {
                         if ( oldType )
                         {
@@ -94,7 +91,7 @@ public class FormValue extends AbstractValue implements StoredValue
                         }
                         else
                         {
-                            values.add( JsonUtil.deserialize( value.get(), FormConfiguration.class ) );
+                            values.add( JsonFactory.get().deserialize( value.get(), FormConfiguration.class ) );
                         }
                     }
                 }
@@ -106,11 +103,11 @@ public class FormValue extends AbstractValue implements StoredValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final List<XmlElement> returnList = new ArrayList<>();
+        final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final FormConfiguration value : values )
         {
-            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
-            valueElement.addText( JsonUtil.serialize( value ) );
+            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            valueElement.setText( JsonFactory.get().serialize( value ) );
             returnList.add( valueElement );
         }
         return returnList;
@@ -119,7 +116,7 @@ public class FormValue extends AbstractValue implements StoredValue
     @Override
     public List<FormConfiguration> toNativeObject( )
     {
-        return Collections.unmodifiableList( values );
+        return values;
     }
 
     @Override
@@ -133,7 +130,7 @@ public class FormValue extends AbstractValue implements StoredValue
             }
         }
 
-        final Set<String> seenNames = new HashSet<>();
+        final Set<String> seenNames = new HashSet<>( values.size() );
         for ( final FormConfiguration loopConfig : values )
         {
             if ( seenNames.contains( loopConfig.getName().toLowerCase() ) )
@@ -161,45 +158,43 @@ public class FormValue extends AbstractValue implements StoredValue
     @Override
     public String toDebugString( final Locale locale )
     {
-        if ( !CollectionUtil.isEmpty( values ) )
-        {
-            final StringBuilder sb = new StringBuilder();
-            for ( final FormConfiguration formRow : values )
-            {
-                sb.append( "FormItem Name:" ).append( formRow.getName() ).append( "\n" );
-                sb.append( " Type:" ).append( formRow.getType() );
-                sb.append( " Min:" ).append( formRow.getMinimumLength() );
-                sb.append( " Max:" ).append( formRow.getMaximumLength() );
-                sb.append( " ReadOnly:" ).append( formRow.isReadonly() );
-                sb.append( " Required:" ).append( formRow.isRequired() );
-                sb.append( " Confirm:" ).append( formRow.isConfirmationRequired() );
-                sb.append( " Unique:" ).append( formRow.isUnique() );
-                sb.append( " Multi-Value:" ).append( formRow.isMultivalue() );
-                sb.append( " Source:" ).append( formRow.getSource() );
-                sb.append( "\n" );
-                sb.append( " Label:" ).append( JsonUtil.serializeMap( formRow.getLabels() ) ).append( "\n" );
-                sb.append( " Description:" ).append( JsonUtil.serializeMap( formRow.getDescription() ) ).append( "\n" );
-                if ( formRow.getType() == FormConfiguration.Type.select && CollectionUtil.isEmpty( formRow.getSelectOptions() ) )
-                {
-                    sb.append( " Select Options: " ).append( JsonUtil.serializeMap( formRow.getSelectOptions() ) ).append( "\n" );
-                }
-                if ( StringUtil.notEmpty( formRow.getRegex() ) )
-                {
-                    sb.append( " Regex:" ).append( formRow.getRegex() )
-                            .append( " Regex Error:" ).append( JsonUtil.serializeMap( formRow.getRegexErrors() ) );
-                }
-                if ( formRow.getType() == FormConfiguration.Type.photo )
-                {
-                    sb.append( " MimeTypes: " ).append( StringUtil.collectionToString( formRow.getMimeTypes() ) ).append( "\n" );
-                    sb.append( " MaxSize: " ).append( formRow.getMaximumSize() ).append( "\n" );
-                }
-            }
-            return sb.toString();
-        }
-        else
+        if ( CollectionUtil.isEmpty( values ) )
         {
             return "";
         }
-    }
 
+        final StringBuilder sb = new StringBuilder();
+        for ( final FormConfiguration formRow : values )
+        {
+            sb.append( "FormItem Name:" ).append( formRow.getName() ).append( '\n' );
+            sb.append( " Type:" ).append( formRow.getType() );
+            sb.append( " Min:" ).append( formRow.getMinimumLength() );
+            sb.append( " Max:" ).append( formRow.getMaximumLength() );
+            sb.append( " ReadOnly:" ).append( formRow.isReadonly() );
+            sb.append( " Required:" ).append( formRow.isRequired() );
+            sb.append( " Confirm:" ).append( formRow.isConfirmationRequired() );
+            sb.append( " Unique:" ).append( formRow.isUnique() );
+            sb.append( " Multi-Value:" ).append( formRow.isMultivalue() );
+            sb.append( " Source:" ).append( formRow.getSource() );
+            sb.append( '\n' );
+            sb.append( " Label:" ).append( JsonFactory.get().serializeStringMap( formRow.getLabels() ) ).append( '\n' );
+            sb.append( " Description:" ).append( JsonFactory.get().serializeStringMap( formRow.getDescription() ) ).append( '\n' );
+            if ( formRow.getType() == FormConfiguration.Type.select && CollectionUtil.isEmpty( formRow.getSelectOptions() ) )
+            {
+                sb.append( " Select Options: " ).append( JsonFactory.get().serializeStringMap( formRow.getSelectOptions() ) ).append( '\n' );
+            }
+            if ( StringUtil.notEmpty( formRow.getRegex() ) )
+            {
+                sb.append( " Regex:" ).append( formRow.getRegex() )
+                        .append( " Regex Error:" ).append( JsonFactory.get().serializeStringMap( formRow.getRegexErrors() ) );
+            }
+            if ( formRow.getType() == FormConfiguration.Type.photo )
+            {
+                sb.append( " MimeTypes: " ).append( StringUtil.collectionToString( formRow.getMimeTypes() ) ).append( '\n' );
+                sb.append( " MaxSize: " ).append( formRow.getMaximumSize() ).append( '\n' );
+            }
+        }
+
+        return sb.toString();
+    }
 }

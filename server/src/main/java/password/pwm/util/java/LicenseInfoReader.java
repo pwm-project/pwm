@@ -21,6 +21,11 @@
 package password.pwm.util.java;
 
 import lombok.Value;
+import org.jrivard.xmlchai.AccessMode;
+import org.jrivard.xmlchai.XmlChai;
+import org.jrivard.xmlchai.XmlDocument;
+import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -42,7 +47,7 @@ public class LicenseInfoReader
     {
         final List<String> attributionFiles = Collections.singletonList( "/attribution.xml" );
         final List<DependencyInfo> returnList = new ArrayList<>();
-        final XmlFactory factory = XmlFactory.getFactory();
+        final XmlFactory factory = XmlChai.getFactory();
 
         for ( final String attributionFile : attributionFiles )
         {
@@ -50,9 +55,9 @@ public class LicenseInfoReader
             {
                 if ( attributionInputStream != null )
                 {
-                    final XmlDocument document = factory.parseXml( attributionInputStream );
+                    final XmlDocument document = factory.parse( attributionInputStream, AccessMode.IMMUTABLE );
                     final XmlElement rootElement = document.getRootElement();
-                    final XmlElement dependenciesElement = rootElement.getChildren( "dependencies" ).iterator().next();
+                    final XmlElement dependenciesElement = rootElement.getChildren( "dependencies" ).get( 0 );
 
                     for ( final XmlElement dependency : dependenciesElement.getChildren( "dependency" ) )
                     {
@@ -74,15 +79,16 @@ public class LicenseInfoReader
 
     private static DependencyInfo readDependencyInfo( final XmlElement dependency )
     {
-        final String projectUrl = dependency.getChildText( "projectUrl" ).orElse( null );
-        final String name = dependency.getChildText( "name" ).orElse( null );
-        final String artifactId = dependency.getChildText( "artifactId" ).orElse( null );
-        final String version = dependency.getChildText( "version" ).orElse( null );
-        final String type = dependency.getChildText( "type" ).orElse( null );
+
+        final String projectUrl = dependency.getChild( "projectUrl" ).flatMap( XmlElement::getText ).orElse( null );
+        final String name = dependency.getChild( "name" ).flatMap( XmlElement::getText ).orElse( null );
+        final String artifactId = dependency.getChild( "artifactId" ).flatMap( XmlElement::getText ).orElse( null );
+        final String version = dependency.getChild( "version" ).flatMap( XmlElement::getText ).orElse( null );
+        final String type = dependency.getChild( "type" ).flatMap( XmlElement::getText ).orElse( null );
 
         final List<LicenseInfo> licenseInfos = dependency.getChild( "licenses" )
                 .map( LicenseInfoReader::readLicenses )
-                .orElse( Collections.emptyList() );
+                .orElseGet( Collections::emptyList );
 
         return new DependencyInfo( projectUrl, name, artifactId, version, type, licenseInfos );
     }
@@ -97,8 +103,8 @@ public class LicenseInfoReader
 
     private static LicenseInfo readLicenseInfo( final XmlElement license )
     {
-        final String licenseUrl = license.getChildText( "url" ).orElse( null );
-        final String licenseName = license.getChildText( "name" ).orElse( null );
+        final String licenseUrl = license.getChild( "url" ).flatMap( XmlElement::getText ).orElse( null );
+        final String licenseName = license.getChild( "name" ).flatMap( XmlElement::getText ).orElse( null );
         return new LicenseInfo( licenseUrl, licenseName );
     }
 

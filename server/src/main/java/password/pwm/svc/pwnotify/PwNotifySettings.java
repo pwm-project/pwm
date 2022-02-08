@@ -29,9 +29,8 @@ import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Value
 @Builder
@@ -49,14 +48,12 @@ class PwNotifySettings implements Serializable
     {
         final PwNotifySettingsBuilder builder = PwNotifySettings.builder();
         {
-            final List<Integer> timeDurations = new ArrayList<>(  );
-            final List<String> stringValues = domainConfig.readSettingAsStringArray( PwmSetting.PW_EXPY_NOTIFY_INTERVAL );
-            for ( final String value : stringValues )
-            {
-                timeDurations.add( Integer.parseInt( value ) );
-            }
-            Collections.sort( timeDurations );
-            builder.notificationIntervals( Collections.unmodifiableList( timeDurations ) );
+            final List<Integer> timeDurations = domainConfig.readSettingAsStringArray( PwmSetting.PW_EXPY_NOTIFY_INTERVAL ).stream()
+                    .map( Integer::parseInt )
+                    .sorted()
+                    .collect( Collectors.toUnmodifiableList() );
+
+            builder.notificationIntervals( timeDurations );
         }
 
         builder.searchTimeout( TimeDuration.of( Long.parseLong( domainConfig.readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT_MS ) ), TimeDuration.Unit.MILLISECONDS ) );

@@ -22,14 +22,14 @@ package password.pwm.http.servlet.peoplesearch;
 
 import lombok.Builder;
 import lombok.Value;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Value
 @Builder
@@ -57,12 +57,11 @@ public class SearchRequestBean implements Serializable
 
     public static Map<String, String> searchValueToMap( final List<SearchValue> input )
     {
-        final Map<String, String> returnMap = new LinkedHashMap<>();
-        for ( final SearchValue searchValue : input )
-        {
-            returnMap.put( searchValue.getKey(), searchValue.getValue() );
-        }
-        return Collections.unmodifiableMap( returnMap );
+        return input.stream()
+                .collect( Collectors.toUnmodifiableMap(
+                        SearchValue::getKey,
+                        SearchValue::getValue
+                ) );
     }
 
     public List<SearchValue> nonEmptySearchValues()
@@ -72,13 +71,14 @@ public class SearchRequestBean implements Serializable
 
     public static List<SearchValue> filterNonEmptySearchValues( final List<SearchValue> input )
     {
-        final List<SearchValue> returnList = input == null
-                ? new ArrayList<>()
-                : new ArrayList<>( input );
+        if ( CollectionUtil.isEmpty( input ) )
+        {
+            return Collections.emptyList();
+        }
 
-        returnList.removeIf( searchValue -> StringUtil.isEmpty( searchValue.getKey() )
-                || StringUtil.isEmpty( searchValue.getValue() ) );
-
-        return Collections.unmodifiableList( returnList );
+        return input.stream()
+                .filter( searchValue -> !StringUtil.isEmpty( searchValue.getKey() ) )
+                .filter( searchValue -> !StringUtil.isEmpty( searchValue.getValue() ) )
+                .collect( Collectors.toUnmodifiableList() );
     }
 }

@@ -46,6 +46,7 @@ import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.SetupOtpProfile;
+import password.pwm.config.profile.SetupResponsesProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -317,8 +318,9 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public UserIdentity getUserInfoIfLoggedIn( )
     {
-        return this.getPwmSession().isAuthenticated()
-                ? this.getPwmSession().getUserInfo().getUserIdentity()
+        final PwmSession pwmSession = getPwmSession();
+        return pwmSession.isAuthenticated()
+                ? pwmSession.getUserInfo().getUserIdentity()
                 : null;
     }
 
@@ -355,12 +357,12 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
         if ( aftPath.contains( "?" ) )
         {
-            aftPath = aftPath.substring( 0, aftPath.indexOf( "?" ) );
+            aftPath = aftPath.substring( 0, aftPath.indexOf( '?' ) );
         }
 
         if ( aftPath.contains( "&" ) )
         {
-            aftPath = aftPath.substring( 0, aftPath.indexOf( "?" ) );
+            aftPath = aftPath.substring( 0, aftPath.indexOf( '?' ) );
         }
 
         if ( aftPath.length() <= 1 )
@@ -374,10 +376,10 @@ public class PwmRequest extends PwmHttpRequestWrapper
         final StringBuilder redirectURL = new StringBuilder();
         redirectURL.append( this.getHttpServletRequest().getContextPath() );
         redirectURL.append( pwmServletDefinition.servletUrl() );
-        redirectURL.append( "?" );
-        redirectURL.append( PwmConstants.PARAM_ACTION_REQUEST ).append( "=" ).append( processAction.toString() );
-        redirectURL.append( "&" );
-        redirectURL.append( PwmConstants.PARAM_TOKEN ).append( "=" ).append( tokenValue );
+        redirectURL.append( '?' );
+        redirectURL.append( PwmConstants.PARAM_ACTION_REQUEST ).append( '=' ).append( processAction );
+        redirectURL.append( '&' );
+        redirectURL.append( PwmConstants.PARAM_TOKEN ).append( '=' ).append( tokenValue );
 
         LOGGER.debug( this, () -> "detected long servlet url, redirecting user to " + redirectURL );
         getPwmResponse().sendRedirect( redirectURL.toString() );
@@ -570,12 +572,12 @@ public class PwmRequest extends PwmHttpRequestWrapper
             final boolean showPasswordFields
     )
     {
-        final LinkedHashMap<FormConfiguration, String> formDataMapValue = formDataMap == null
+        final Map<FormConfiguration, String> formDataMapValue = formDataMap == null
                 ? new LinkedHashMap<>()
                 : new LinkedHashMap<>( formDataMap );
 
         this.setAttribute( PwmRequestAttribute.FormConfiguration, new ArrayList<>( formConfiguration ) );
-        this.setAttribute( PwmRequestAttribute.FormData, formDataMapValue );
+        this.setAttribute( PwmRequestAttribute.FormData, ( Serializable ) formDataMapValue );
         this.setAttribute( PwmRequestAttribute.FormReadOnly, readOnly );
         this.setAttribute( PwmRequestAttribute.FormShowPasswordFields, showPasswordFields );
     }
@@ -681,6 +683,11 @@ public class PwmRequest extends PwmHttpRequestWrapper
     public SetupOtpProfile getSetupOTPProfile() throws PwmUnrecoverableException
     {
         return ( SetupOtpProfile ) getProfile( getPwmDomain(), ProfileDefinition.SetupOTPProfile );
+    }
+
+    public SetupResponsesProfile getSetupResponsesProfile() throws PwmUnrecoverableException
+    {
+        return ( SetupResponsesProfile ) getProfile( getPwmDomain(), ProfileDefinition.SetupResponsesProfile );
     }
 
     public UpdateProfileProfile getUpdateAttributeProfile() throws PwmUnrecoverableException

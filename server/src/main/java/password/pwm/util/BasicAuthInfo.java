@@ -106,7 +106,7 @@ public class BasicAuthInfo implements Serializable
             // The decoded string should now look something like:
             //   "cn=user,o=company:chpass" or "user:chpass"
 
-            final int index = input.indexOf( ":" );
+            final int index = input.indexOf( ':' );
             if ( index != -1 )
             {
                 // ***** Separate "username:chpass"
@@ -131,12 +131,12 @@ public class BasicAuthInfo implements Serializable
     {
         final StringBuilder sb = new StringBuilder();
         sb.append( this.getUsername() );
-        sb.append( ":" );
+        sb.append( ':' );
         sb.append( this.getPassword().getStringValue() );
 
         sb.replace( 0, sb.length(), StringUtil.base64Encode( sb.toString().getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
 
-        sb.insert( 0, PwmConstants.HTTP_BASIC_AUTH_PREFIX + " " );
+        sb.insert( 0, PwmConstants.HTTP_BASIC_AUTH_PREFIX + ' ' );
 
         return sb.toString();
     }

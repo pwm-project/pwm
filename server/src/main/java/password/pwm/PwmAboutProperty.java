@@ -20,6 +20,7 @@
 
 package password.pwm;
 
+import lombok.Value;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapConnectionService;
@@ -35,9 +36,13 @@ import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public enum PwmAboutProperty
 {
@@ -122,40 +127,47 @@ public enum PwmAboutProperty
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmAboutProperty.class );
 
+    @Value
+    private static class Pair<K, V>
+    {
+        private final K key;
+        private final V value;
+    }
+
     public static Map<PwmAboutProperty, String> makeInfoBean(
             final PwmApplication pwmApplication
     )
     {
-        final Map<String, String> aboutMap = new TreeMap<>();
+        return Collections.unmodifiableMap( EnumSet.allOf( PwmAboutProperty.class )
+                .stream()
+                .map( aboutProp -> new Pair<>( aboutProp, readAboutValue( pwmApplication, aboutProp ) ) )
+                .filter( entry -> entry.getValue().isPresent() )
+                .collect( Collectors.toMap(
+                        Pair::getKey,
+                        entry -> entry.getValue().get(),
+                        ( k, k2 ) -> k,
+                        () -> new EnumMap<>( PwmAboutProperty.class ) ) ) );
 
-        for ( final PwmAboutProperty pwmAboutProperty : PwmAboutProperty.values() )
+    }
+
+    private static Optional<String> readAboutValue( final PwmApplication pwmApplication, final PwmAboutProperty pwmAboutProperty )
+    {
+        final Function<PwmApplication, String> valueProvider = pwmAboutProperty.value;
+        if ( valueProvider != null )
         {
-            final Function<PwmApplication, String> valueProvider = pwmAboutProperty.value;
-            if ( valueProvider != null )
+            try
             {
-                try
-                {
-                    final String value = valueProvider.apply( pwmApplication );
-                    aboutMap.put( pwmAboutProperty.name(), value == null ? "" : value );
-                }
-                catch ( final Throwable t )
-                {
-                    if ( !( t instanceof NullPointerException ) )
-                    {
-                        aboutMap.put( pwmAboutProperty.name(), LocaleHelper.getLocalizedMessage( null, Display.Value_NotApplicable, null ) );
-                        LOGGER.trace( () -> "error generating about value for '" + pwmAboutProperty.name() + "', error: " + t.getMessage() );
-                    }
-                }
+                final String value = valueProvider.apply( pwmApplication );
+                return Optional.ofNullable( value );
+            }
+            catch ( final Exception t )
+            {
+                LOGGER.trace( () -> "error generating about value for '" + pwmAboutProperty.name() + "', error: " + t.getMessage() );
+                return Optional.of( LocaleHelper.getLocalizedMessage( null, Display.Value_NotApplicable, pwmApplication.getConfig() ) );
             }
         }
 
-        final Map<PwmAboutProperty, String> returnMap = new TreeMap<>();
-        for ( final Map.Entry<String, String> entry : aboutMap.entrySet() )
-        {
-            returnMap.put( PwmAboutProperty.valueOf( entry.getKey() ), entry.getValue() );
-        }
-
-        return Collections.unmodifiableMap( returnMap );
+        return Optional.empty();
     }
 
     private static String format( final Instant date )
@@ -183,7 +195,7 @@ public enum PwmAboutProperty
         {
             final PwmAboutProperty aboutProperty = entry.getKey();
             final String value = entry.getValue();
-            outputProps.put( aboutProperty.toString().replace( "_", "." ), value );
+            outputProps.put( aboutProperty.toString().replace( '_', '.' ), value );
         }
         return Collections.unmodifiableMap( outputProps );
     }

@@ -354,7 +354,7 @@ public abstract class StoredConfigurationUtil
         {
             case SETTING:
             {
-                final PwmSettingTemplateSet templateSet = storedConfiguration.getTemplateSet().get( key.getDomainID() );
+                final PwmSettingTemplateSet templateSet = storedConfiguration.getTemplateSets().get( key.getDomainID() );
                 return key.toPwmSetting().getDefaultValue( templateSet );
             }
 
@@ -375,7 +375,7 @@ public abstract class StoredConfigurationUtil
 
     public static List<DomainID> domainList( final StoredConfiguration storedConfiguration )
     {
-        return storedConfiguration.getTemplateSet().keySet().stream()
+        return storedConfiguration.getTemplateSets().keySet().stream()
                 .filter( domain -> !Objects.equals( domain, DomainID.systemId() ) )
                 .sorted()
                 .collect( Collectors.toUnmodifiableList() );
@@ -534,6 +534,6 @@ public abstract class StoredConfigurationUtil
             return true;
         }
 
-        return ValueFactory.isDefaultValue( storedConfiguration.getTemplateSet().get( key.getDomainID( ) ), key.toPwmSetting(), existingValue.get() );
+        return ValueFactory.isDefaultValue( storedConfiguration.getTemplateSets().get( key.getDomainID( ) ), key.toPwmSetting(), existingValue.get() );
     }
 }

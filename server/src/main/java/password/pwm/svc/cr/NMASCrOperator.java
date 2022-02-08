@@ -55,6 +55,7 @@ import com.novell.security.nmas.lcm.registry.GenLCMRegistry;
 import com.novell.security.nmas.lcm.registry.LCMRegistry;
 import com.novell.security.nmas.lcm.registry.LCMRegistryException;
 import com.novell.security.nmas.ui.GenLcmUI;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -77,7 +78,7 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -399,7 +400,7 @@ public class NMASCrOperator implements CrOperator
         {
             return null;
         }
-        final List<Challenge> challenges = new ArrayList<>();
+        final List<Challenge> challenges = new ArrayList<>( questions.size() );
         for ( final String question : questions )
         {
             challenges.add( new ChaiChallenge( true, question, 1, 256, true, 0, false ) );
@@ -412,7 +413,7 @@ public class NMASCrOperator implements CrOperator
         final XPath xpath = XPathFactory.newInstance().newXPath();
         final XPathExpression challengesExpr = xpath.compile( "/Challenges/Challenge/text()" );
         final NodeList challenges = ( NodeList ) challengesExpr.evaluate( doc, XPathConstants.NODESET );
-        final List<String> res = new ArrayList<>();
+        final List<String> res = new ArrayList<>( challenges.getLength() );
         for ( int i = 0; i < challenges.getLength(); ++i )
         {
             final String question = challenges.item( i ).getTextContent();
@@ -732,6 +733,7 @@ public class NMASCrOperator implements CrOperator
             }
 
             @Override
+            @SuppressFBWarnings( "CCNE_COMPARE_CLASS_EQUALS_NAME" )
             public void handle( final Callback[] callbacks ) throws UnsupportedCallbackException
             {
                 LOGGER.trace( () -> "entering ChalRespCallbackHandler.handle()" );
@@ -813,6 +815,7 @@ public class NMASCrOperator implements CrOperator
         NEW, BIND, COMPLETED, ABORTED,
     }
 
+    @SuppressFBWarnings( "STS_SPURIOUS_THREAD_STATES" )
     private class NMASSessionThread extends Thread
     {
         private volatile Instant lastActivityTimestamp = Instant.now();
@@ -915,6 +918,7 @@ public class NMASCrOperator implements CrOperator
             }
         }
 
+        @SuppressFBWarnings( "DCN_NULLPOINTER_EXCEPTION" )
         private void doLoginSequence( )
         {
             if ( loginState == NMASThreadState.ABORTED || loginState == NMASThreadState.COMPLETED )
@@ -1022,7 +1026,7 @@ public class NMASCrOperator implements CrOperator
             debugInfo.put( "loginResultReady", Boolean.toString( this.loginResultReady ) );
             debugInfo.put( "idleTime", TimeDuration.fromCurrent( this.getLastActivityTimestamp() ).asCompactString() );
 
-            return "NMASSessionThread: " + JsonUtil.serialize( debugInfo );
+            return "NMASSessionThread: " + JsonFactory.get().serialize( debugInfo );
         }
     }
 

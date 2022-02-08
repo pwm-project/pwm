@@ -40,7 +40,7 @@ import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.ldap.UserInfo;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
@@ -153,7 +153,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
         final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder()
                 .method( HttpMethod.POST )
                 .url( url )
-                .body( JsonUtil.serialize( remoteVerificationRequestBean ) )
+                .body( JsonFactory.get().serialize( remoteVerificationRequestBean ) )
                 .headers( headers )
                 .build();
 
@@ -161,7 +161,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
         {
             final PwmHttpClientResponse response = pwmHttpClient.makeRequest( pwmHttpClientRequest, this.sessionLabel );
             final String responseBodyStr = response.getBody();
-            this.lastResponse = JsonUtil.deserialize( responseBodyStr, RemoteVerificationResponseBean.class );
+            this.lastResponse = JsonFactory.get().deserialize( responseBodyStr, RemoteVerificationResponseBean.class );
         }
         catch ( final PwmException e )
         {

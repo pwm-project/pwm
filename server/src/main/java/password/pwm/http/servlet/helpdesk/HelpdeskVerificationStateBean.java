@@ -33,7 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -188,7 +188,7 @@ class HelpdeskVerificationStateBean implements Serializable
 
         {
             final HelpdeskVerificationStateBean finalState = state;
-            LOGGER.debug( pwmRequest, () -> "read current state: " + JsonUtil.serialize( finalState ) );
+            LOGGER.debug( pwmRequest, () -> "read current state: " + JsonFactory.get().serialize( finalState ) );
         }
 
         return state;

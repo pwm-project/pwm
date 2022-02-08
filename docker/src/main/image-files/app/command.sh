@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 # Run command line shell environment inside the docker container.  Execute using
 # docker exec -it <container name> /application/command.sh
 

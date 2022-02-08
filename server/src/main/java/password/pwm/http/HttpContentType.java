@@ -89,7 +89,7 @@ public enum HttpContentType
         for ( final String value : values )
         {
             final String mimeValue = value.contains( ";" )
-                    ? value.substring( 0, value.indexOf( ";" ) )
+                    ? value.substring( 0, value.indexOf( ';' ) )
                     : value;
 
             for ( final HttpContentType httpContentType : HttpContentType.values() )

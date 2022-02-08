@@ -24,7 +24,7 @@ import password.pwm.config.SettingReader;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmDisplayBundle;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
 
 import java.util.Locale;
 import java.util.Map;
@@ -156,6 +156,6 @@ public enum AuditEvent
     {
         final ResourceBundle resourceBundle = ResourceBundle.getBundle( AuditEvent.class.getName() );
         final String jsonObj = resourceBundle.getString( this.toString() );
-        return JsonUtil.deserializeStringMap( jsonObj );
+        return JsonFactory.get().deserializeStringMap( jsonObj );
     }
 }

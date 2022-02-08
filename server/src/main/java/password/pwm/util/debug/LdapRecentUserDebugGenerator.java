@@ -25,7 +25,8 @@ import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.http.servlet.admin.UserDebugDataBean;
 import password.pwm.http.servlet.admin.UserDebugDataReader;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonProvider;
+import password.pwm.util.json.JsonFactory;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -61,6 +62,6 @@ class LdapRecentUserDebugGenerator implements DomainItemGenerator
             }
         }
 
-        outputStream.write( JsonUtil.serializeCollection( recentDebugBeans, JsonUtil.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        outputStream.write( JsonFactory.get().serializeCollection( recentDebugBeans, JsonProvider.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }
 }

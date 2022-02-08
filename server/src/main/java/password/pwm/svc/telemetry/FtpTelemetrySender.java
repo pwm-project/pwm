@@ -33,7 +33,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonProvider;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -56,7 +57,7 @@ public class FtpTelemetrySender implements TelemetrySender
     public void init( final PwmApplication pwmApplication, final SessionLabel sessionLabel, final String initString )
     {
         this.sessionLabel = sessionLabel;
-        settings = JsonUtil.deserialize( initString, Settings.class );
+        settings = JsonFactory.get().deserialize( initString, Settings.class );
     }
 
     @Override
@@ -215,7 +216,7 @@ public class FtpTelemetrySender implements TelemetrySender
 
     private static byte[] dataToJsonZipFile( final TelemetryPublishBean telemetryPublishBean ) throws IOException
     {
-        final String jsonData = JsonUtil.serialize( telemetryPublishBean, JsonUtil.Flag.PrettyPrint );
+        final String jsonData = JsonFactory.get().serialize( telemetryPublishBean, JsonProvider.Flag.PrettyPrint );
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         final ZipOutputStream zipOutputStream = new ZipOutputStream( byteArrayOutputStream );
         final ZipEntry e = new ZipEntry( telemetryPublishBean.getId() + ".json" );

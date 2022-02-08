@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
@@ -35,7 +36,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -53,6 +56,11 @@ import java.util.stream.Collectors;
 public abstract class StringUtil
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( StringUtil.class );
+
+    private static final Base64.Decoder B64_MIME_DECODER = Base64.getMimeDecoder();
+    private static final Base64.Decoder B64_URL_DECODER = Base64.getUrlDecoder();
+    private static final Base64.Encoder B64_MIME_ENCODER = Base64.getMimeEncoder( 0, new byte[0] );
+    private static final Base64.Encoder B64_URL_ENCODER = Base64.getUrlEncoder();
 
     /**
      * Based on http://www.owasp.org/index.php/Preventing_LDAP_Injection_in_Java.
@@ -179,7 +187,7 @@ public abstract class StringUtil
         return StringUtils.join( inputs, separator );
     }
 
-    public static String join( final Collection inputs, final String separator )
+    public static <V> String join( final Collection<V> inputs, final String separator )
     {
         if ( inputs != null )
         {
@@ -239,7 +247,7 @@ public abstract class StringUtil
     public enum Base64Options
     {
         GZIP,
-        URL_SAFE,;
+        URL_SAFE,
     }
 
     public static String escapeJS( final String input )
@@ -311,11 +319,11 @@ public abstract class StringUtil
         final byte[] decodedBytes;
         if ( JavaHelper.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
         {
-            decodedBytes = java.util.Base64.getUrlDecoder().decode( input.toString() );
+            decodedBytes = B64_URL_DECODER.decode( input.toString() );
         }
         else
         {
-            decodedBytes = java.util.Base64.getMimeDecoder().decode( input.toString() );
+            decodedBytes = B64_MIME_DECODER.decode( input.toString() );
         }
 
         if ( JavaHelper.enumArrayContainsValue( options, Base64Options.GZIP ) )
@@ -328,9 +336,7 @@ public abstract class StringUtil
         }
     }
 
-
     public static String base64Encode( final byte[] input, final StringUtil.Base64Options... options )
-            throws PwmUnrecoverableException
     {
         final byte[] compressedBytes;
         if ( JavaHelper.enumArrayContainsValue( options, Base64Options.GZIP ) )
@@ -341,7 +347,7 @@ public abstract class StringUtil
             }
             catch ( final IOException e )
             {
-                throw PwmUnrecoverableException.convert( e );
+                throw PwmInternalException.fromPwmException( "unexpected error during base64 decoding: " + e, e );
             }
         }
         else
@@ -351,11 +357,11 @@ public abstract class StringUtil
 
         if ( JavaHelper.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
         {
-            return java.util.Base64.getUrlEncoder().encodeToString( compressedBytes );
+            return B64_URL_ENCODER.encodeToString( compressedBytes );
         }
         else
         {
-            return java.util.Base64.getMimeEncoder().encodeToString( compressedBytes );
+            return B64_MIME_ENCODER.encodeToString( compressedBytes );
         }
     }
 
@@ -397,14 +403,14 @@ public abstract class StringUtil
         return sb.toString();
     }
 
-    public static List<String> splitAndTrim( final String input, final String seperator )
+    public static List<String> splitAndTrim( final String input, final String separator )
     {
         if ( StringUtil.isEmpty( input ) )
         {
             return Collections.emptyList();
         }
 
-        final String[] splitValues = StringUtils.split( input, seperator );
+        final String[] splitValues = StringUtils.split( input, separator );
 
         return Arrays.stream( splitValues )
                 .map( String::trim )
@@ -443,22 +449,22 @@ public abstract class StringUtil
         return chunks.toArray( new String[ numOfChunks ] );
     }
 
-    public static String collectionToString( final Collection collection )
+    public static <V> String collectionToString( final Collection<V> collection )
     {
         return collectionToString( collection, "," );
     }
 
-    public static String collectionToString( final Collection collection, final String recordSeparator )
+    public static <V> String collectionToString( final Collection<V> collection, final String recordSeparator )
     {
         final StringBuilder sb = new StringBuilder();
         if ( collection != null )
         {
-            for ( final Iterator iterator = collection.iterator(); iterator.hasNext(); )
+            for ( final Iterator<V> iterator = collection.iterator(); iterator.hasNext(); )
             {
                 final Object obj = iterator.next();
                 if ( obj != null )
                 {
-                    sb.append( obj.toString() );
+                    sb.append( obj );
                     if ( iterator.hasNext() )
                     {
                         sb.append( recordSeparator );
@@ -469,28 +475,32 @@ public abstract class StringUtil
         return sb.toString();
     }
 
-    public static String mapToString( final Map map )
+    public static <K, V> String mapToString( final Map<K, V> map )
     {
         return mapToString( map, "=", ", " );
     }
 
-    public static String mapToString( final Map map, final String keyValueSeparator, final String recordSeparator )
+    public static <K, V> String mapToString( final Map<K, V> map, final String keyValueSeparator, final String recordSeparator )
     {
         final StringBuilder sb = new StringBuilder();
-        for ( final Iterator iterator = map.entrySet().iterator(); iterator.hasNext(); )
+        for ( final Iterator<Map.Entry<K, V>> iterator = map.entrySet().iterator(); iterator.hasNext(); )
         {
-            final Map.Entry entrySet = ( Map.Entry ) iterator.next();
-            final String key = entrySet.getKey().toString();
-            final String value = entrySet.getValue() == null ? "" : entrySet.getValue().toString();
-
-            if ( key != null && value != null && !key.trim().isEmpty() && !value.trim().isEmpty() )
+            final Map.Entry<K, V> entry = iterator.next();
+            if ( entry.getKey() != null && entry.getValue() != null )
             {
-                sb.append( key.trim() );
-                sb.append( keyValueSeparator );
-                sb.append( value.trim() );
-                if ( iterator.hasNext() )
+                final String key = entry.getKey().toString().trim();
+                final String value = entry.getValue().toString().trim();
+
+                if ( !key.isEmpty() && !value.isEmpty() )
                 {
-                    sb.append( recordSeparator );
+                    sb.append( key );
+                    sb.append( keyValueSeparator );
+                    sb.append( value );
+
+                    if ( iterator.hasNext() )
+                    {
+                        sb.append( recordSeparator );
+                    }
                 }
             }
         }
@@ -615,7 +625,7 @@ public abstract class StringUtil
         // count of valid output chars
         int index = 0;
         {
-            // loop through input chars and stop if replacement char is needed ( but no actual coppying yet )
+            // loop through input chars and stop if replacement char is needed ( but no actual copying yet )
             while ( index < inputLength )
             {
                 final Character indexChar = input.charAt( index );
@@ -760,5 +770,36 @@ public abstract class StringUtil
     {
         return replaceAllChars( input,
                 character -> Optional.ofNullable( URL_PATH_ENCODING_REPLACEMENTS.getOrDefault( character, null ) ) );
+    }
+
+    /**
+     * Convert a string value to a boolean.  If the value is a common positive string
+     * value such as "1", "true", "y" or "yes" then TRUE is returned.  For any other
+     * value or null, FALSE is returned.
+     *
+     * @param string value to test
+     * @return true if the string resolves to a positive value.
+     */
+    public static boolean convertStrToBoolean( final String string )
+    {
+        return !( string == null || string.length() < 1 ) && ( "true".equalsIgnoreCase( string )
+                || "1".equalsIgnoreCase( string )
+                || "yes".equalsIgnoreCase( string )
+                || "y".equalsIgnoreCase( string )
+        );
+    }
+
+    public static List<String> tokenizeString(
+            final String inputString,
+            final String seperator
+    )
+    {
+        if ( inputString == null || inputString.length() < 1 )
+        {
+            return Collections.emptyList();
+        }
+
+        final List<String> values = new ArrayList<>( Arrays.asList( inputString.split( seperator ) ) );
+        return Collections.unmodifiableList( values );
     }
 }

@@ -70,7 +70,26 @@ public class ControlledPwmServletTest
     }
 
     @Test
-    public void testActionHandlerReturnTypes() throws IllegalAccessException, InstantiationException
+    public void testActionHandlerAccessibility()
+    {
+        final Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> dataMap = getClassAndMethods();
+
+        for ( final Class<? extends ControlledPwmServlet> controlledPwmServlet : dataMap.keySet() )
+        {
+            final String servletName = controlledPwmServlet.getName();
+            for ( final String methodName : dataMap.get( controlledPwmServlet ).keySet() )
+            {
+                final Method method = dataMap.get( controlledPwmServlet ).get( methodName );
+                if ( !Modifier.isPublic( method.getModifiers() ) )
+                {
+                    Assert.fail( servletName + "#" + method.getName() + " must be public " );
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testActionHandlerReturnTypes()
     {
         final Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> dataMap = getClassAndMethods();
 
@@ -82,14 +101,14 @@ public class ControlledPwmServletTest
                 final Method method = dataMap.get( controlledPwmServlet ).get( methodName );
                 if ( method.getReturnType() != ProcessStatus.class )
                 {
-                    Assert.fail( servletName + ":" + method.getName() + " must have return type of " + ProcessStatus.class.getName() );
+                    Assert.fail( servletName + "#" + method.getName() + " must have return type of " + ProcessStatus.class.getName() );
                 }
             }
         }
     }
 
     @Test
-    public void testActionHandlerParameters() throws IllegalAccessException, InstantiationException
+    public void testActionHandlerParameters()
     {
         final Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> dataMap = getClassAndMethods();
 
@@ -102,18 +121,18 @@ public class ControlledPwmServletTest
                 final Class[] returnTypes = method.getParameterTypes();
                 if ( returnTypes.length != 1 )
                 {
-                    Assert.fail( servletName + ":" + method.getName() + " must have exactly one parameter" );
+                    Assert.fail( servletName + "#" + method.getName() + " must have exactly one parameter" );
                 }
                 if ( !returnTypes[0].equals( PwmRequest.class ) )
                 {
-                    Assert.fail( servletName + ":" + method.getName() + " must have exactly one parameter of type " + PwmRequest.class.getName() );
+                    Assert.fail( servletName + "#" + method.getName() + " must have exactly one parameter of type " + PwmRequest.class.getName() );
                 }
             }
         }
     }
 
     @Test
-    public void testActionHandlerMethodNaming() throws IllegalAccessException, InstantiationException
+    public void testActionHandlerMethodNaming()
     {
         final Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> dataMap = getClassAndMethods();
 
@@ -129,7 +148,7 @@ public class ControlledPwmServletTest
                     final String actionName = actionHandler.action();
                     if ( !methodName.toLowerCase().contains( actionName.toLowerCase() ) )
                     {
-                        Assert.fail( "method " + servletName + ":" + methodName + " must have the ActionHandler name '"
+                        Assert.fail( "method " + servletName + "#" + methodName + " must have the ActionHandler name '"
                                 + actionName + "' as part of the method name." );
                     }
                 }
