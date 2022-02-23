@@ -27,10 +27,11 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.SettingReader;
+import password.pwm.config.AppConfig;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -41,22 +42,29 @@ import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Queue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -80,7 +88,7 @@ public class ReportProcess implements AutoCloseable
     private final AtomicLong recordCounter = new AtomicLong();
     private final AtomicBoolean inProgress = new AtomicBoolean();
     private final AtomicBoolean cancelFlag = new AtomicBoolean();
-    private final EventRateMeter processRateMeter = new EventRateMeter( TimeDuration.of( 5, TimeDuration.Unit.MINUTES ) );
+    private final EventRateMeter processRateMeter = new EventRateMeter( TimeDuration.MINUTE );
 
 
     private Instant startTime = Instant.now();
@@ -120,6 +128,31 @@ public class ReportProcess implements AutoCloseable
         return new ReportProcess( pwmApplication, reportServiceSemaphore, reportSettings, locale, sessionLabel );
     }
 
+    public static void outputSummaryToCsv(
+            final AppConfig config,
+            final ReportSummaryData reportSummaryData,
+            final OutputStream outputStream,
+            final Locale locale
+    )
+            throws IOException
+    {
+
+        final List<ReportSummaryData.PresentationRow> outputList = reportSummaryData.asPresentableCollection( config, locale );
+        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
+
+        for ( final ReportSummaryData.PresentationRow presentationRow : outputList )
+        {
+            final List<String> row = List.of(
+                    presentationRow.getLabel(),
+                    presentationRow.getCount(),
+                    presentationRow.getPct() );
+
+            csvPrinter.printRecord( row );
+        }
+
+        csvPrinter.flush();
+    }
+
     public void startReport(
             @NotNull final ReportProcessRequest reportProcessRequest,
             @NotNull final OutputStream outputStream
@@ -141,19 +174,28 @@ public class ReportProcess implements AutoCloseable
 
         this.startTime = Instant.now();
         this.summaryData = ReportSummaryData.newSummaryData( reportSettings.getTrackDays() );
+        this.recordCounter.set( 0 );
+        this.processRateMeter.reset();
         this.inProgress.set( true );
         this.cancelFlag.set( false );
 
-        LOGGER.trace( sessionLabel, () -> "beginning live report #" + reportId + " generation, request parameters: " + JsonUtil.serialize( reportProcessRequest ) );
+        LOGGER.trace( sessionLabel, () -> "beginning live report #" + reportId + " generation, request parameters: "
+                + JsonFactory.get().serialize( reportProcessRequest, ReportProcessRequest.class ) );
 
         try ( ZipOutputStream zipOutputStream = new ZipOutputStream( outputStream ) )
         {
             liveReportDownloadZipImpl( reportProcessRequest, zipOutputStream );
         }
-        catch ( final IOException | PwmOperationalException e )
+        catch ( final PwmException e )
         {
             LOGGER.debug( sessionLabel, () -> "error during live report #" + reportId + " generation: " + e.getMessage() );
+            cancelFlag.set( true );
             throw new PwmUnrecoverableException( new ErrorInformation(  PwmError.ERROR_INTERNAL, e.getMessage() ) );
+        }
+        catch ( final IOException e )
+        {
+            LOGGER.debug( sessionLabel, () -> "I/O error during live report #" + reportId + " generation: " + e.getMessage() );
+            cancelFlag.set( true );
         }
         finally
         {
@@ -167,22 +209,17 @@ public class ReportProcess implements AutoCloseable
     )
             throws PwmUnrecoverableException, PwmOperationalException, IOException
     {
-        final AtomicLong recordCounter = new AtomicLong();
+        final ReportRecordWriter recordWriter = reportProcessRequest.getReportType() == ReportProcessRequest.ReportType.json
+                ? new ReportJsonRecordWriter( zipOutputStream )
+                : new ReportCsvRecordWriter( zipOutputStream, pwmApplication, locale );
 
-        if ( reportProcessRequest.getReportType() == ReportProcessRequest.ReportType.json )
-        {
-            outputUsersToJson( reportProcessRequest, zipOutputStream );
-        }
-        else
-        {
-            outputUsersToCsv( reportProcessRequest, zipOutputStream );
-        }
+        processReport( reportProcessRequest, zipOutputStream, recordWriter );
 
         checkCancel( zipOutputStream );
         outputSummary( zipOutputStream );
 
         checkCancel( zipOutputStream );
-        outputResult( zipOutputStream );
+        outputResult( reportProcessRequest, zipOutputStream );
 
         LOGGER.trace( sessionLabel, () -> "completed liveReport generation with " + recordCounter.longValue() + " records",
                 () -> TimeDuration.fromCurrent( startTime ) );
@@ -199,18 +236,23 @@ public class ReportProcess implements AutoCloseable
     }
 
     private void outputResult(
+            final ReportProcessRequest request,
             final ZipOutputStream zipOutputStream
     )
             throws IOException
     {
-        zipOutputStream.putNextEntry( new ZipEntry( "result.json" ) );
-        zipOutputStream.write( JsonUtil.serialize( generateResult() ).getBytes( StandardCharsets.UTF_8 ) );
-        zipOutputStream.closeEntry();
-    }
+        final ReportProcessResult result = new ReportProcessResult(
+                request,
+                this.recordCounter.incrementAndGet(),
+                startTime,
+                Instant.now(),
+                TimeDuration.fromCurrent( startTime ) );
 
-    private ReportProcessResult generateResult()
-    {
-        return new ReportProcessResult( recordCounter.incrementAndGet(), startTime, Instant.now() );
+        final String jsonData = JsonFactory.get().serialize( result, ReportProcessResult.class, JsonProvider.Flag.PrettyPrint );
+
+        zipOutputStream.putNextEntry( new ZipEntry( "result.json" ) );
+        zipOutputStream.write( jsonData.getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        zipOutputStream.closeEntry();
     }
 
     private void outputSummary(
@@ -220,37 +262,63 @@ public class ReportProcess implements AutoCloseable
     {
         {
             zipOutputStream.putNextEntry( new ZipEntry( "summary.json" ) );
-            outputSummaryToZip( summaryData, zipOutputStream );
+            outputJsonSummaryToZip( summaryData, zipOutputStream );
             zipOutputStream.closeEntry();
         }
         {
             zipOutputStream.putNextEntry( new ZipEntry( "summary.csv" ) );
-            ReportCsvUtility.outputSummaryToCsv( pwmApplication.getConfig(), summaryData, zipOutputStream, locale );
+            outputSummaryToCsv( pwmApplication.getConfig(), summaryData, zipOutputStream, locale );
             zipOutputStream.closeEntry();
         }
     }
 
-    private void outputUsersToJson(
+    private void processReport(
             final ReportProcessRequest reportProcessRequest,
-            final ZipOutputStream zipOutputStream
+            final ZipOutputStream zipOutputStream,
+            final ReportRecordWriter recordWriter
     )
             throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
-        zipOutputStream.putNextEntry( new ZipEntry( "report.json" ) );
+        zipOutputStream.putNextEntry( new ZipEntry( recordWriter.getZipName() ) );
 
-        for ( final PwmDomain pwmDomain : applicableDomains( reportProcessRequest ) )
+        recordWriter.outputHeader();
+
+        for (
+                final Iterator<PwmDomain> domainIterator = applicableDomains( reportProcessRequest ).iterator();
+                domainIterator.hasNext() && !cancelFlag.get();
+        )
         {
-            final Queue<UserIdentity> identityIterator = new LinkedList<>( ReportProcess.readUserListFromLdap( reportProcessRequest, pwmDomain, sessionLabel, reportSettings ) );
-            while ( identityIterator.peek() != null )
-            {
-                final UserReportRecord userReportRecord = readUserReportRecord( identityIterator.poll() );
-                zipOutputStream.write( JsonUtil.serialize( userReportRecord ).getBytes( StandardCharsets.UTF_8 ) );
-                perRecordOutputTasks( userReportRecord, zipOutputStream );
+            final PwmDomain pwmDomain = domainIterator.next();
 
+            for (
+                    final Iterator<UserReportRecord> reportRecordQueue = executeUserRecordReadJobs( reportProcessRequest, pwmDomain );
+                    reportRecordQueue.hasNext() && !cancelFlag.get();
+            )
+            {
+                final UserReportRecord userReportRecord = reportRecordQueue.next();
+                final boolean lastRecord = !reportRecordQueue.hasNext() && !domainIterator.hasNext();
+                recordWriter.outputRecord( userReportRecord, lastRecord );
+                perRecordOutputTasks( userReportRecord, zipOutputStream );
             }
         }
 
+        recordWriter.outputFooter();
+        recordWriter.close();
+
         zipOutputStream.closeEntry();
+    }
+
+    private Iterator<UserReportRecord> executeUserRecordReadJobs(
+            final ReportProcessRequest reportProcessRequest,
+            final PwmDomain pwmDomain
+    )
+            throws PwmUnrecoverableException, PwmOperationalException
+    {
+        final Queue<UserIdentity> identityIterator = readUserListFromLdap( reportProcessRequest, pwmDomain );
+        final ExecutorService executor = pwmApplication.getReportService().getExecutor();
+        final Queue<Future<UserReportRecord>> returnQueue = new LinkedList<>();
+        identityIterator.forEach( userIdentity -> returnQueue.add( executor.submit( new UserReportRecordReaderTask( userIdentity ) ) ) );
+        return new FutureUserReportRecordIterator( returnQueue );
     }
 
     private Collection<PwmDomain> applicableDomains( final ReportProcessRequest reportProcessRequest )
@@ -263,30 +331,6 @@ public class ReportProcess implements AutoCloseable
         return pwmApplication.domains().values();
     }
 
-    private void outputUsersToCsv(
-            final ReportProcessRequest reportProcessRequest,
-            final ZipOutputStream zipOutputStream
-    )
-            throws IOException, PwmUnrecoverableException, PwmOperationalException
-    {
-        zipOutputStream.putNextEntry( new ZipEntry( "report.csv" ) );
-
-        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( zipOutputStream );
-        ReportCsvUtility.outputHeaderRow( locale, csvPrinter, pwmApplication.getConfig() );
-
-        for ( final PwmDomain pwmDomain : applicableDomains( reportProcessRequest ) )
-        {
-            final Queue<UserIdentity> identityIterator = new LinkedList<>( ReportProcess.readUserListFromLdap( reportProcessRequest, pwmDomain, sessionLabel, reportSettings ) );
-            while ( identityIterator.peek() != null )
-            {
-                final UserReportRecord userReportRecord = outputIdentityToCsvRow( identityIterator.poll(), csvPrinter );
-                perRecordOutputTasks( userReportRecord, zipOutputStream );
-            }
-        }
-
-        zipOutputStream.closeEntry();
-    }
-
     private void perRecordOutputTasks( final UserReportRecord userReportRecord, final ZipOutputStream zipOutputStream )
             throws IOException
     {
@@ -297,32 +341,12 @@ public class ReportProcess implements AutoCloseable
         debugOutputLogger.conditionallyExecuteTask();
     }
 
-    private static void outputSummaryToZip( final ReportSummaryData reportSummaryData, final OutputStream outputStream )
+    private static void outputJsonSummaryToZip( final ReportSummaryData reportSummaryData, final OutputStream outputStream )
     {
         try
         {
-            final String json = JsonUtil.serialize( reportSummaryData );
-            outputStream.write( json.getBytes( StandardCharsets.UTF_8 ) );
-        }
-        catch ( final IOException e )
-        {
-            throw new PwmInternalException( e.getMessage(), e );
-        }
-
-    }
-
-    private UserReportRecord outputIdentityToCsvRow(
-            final UserIdentity userIdentity,
-            final CSVPrinter csvPrinter
-    )
-    {
-        try
-        {
-            final UserReportRecord userReportRecord = readUserReportRecord( userIdentity );
-            final SettingReader settingReader = pwmApplication.getConfig();
-            ReportCsvUtility.outputRecordRow( settingReader, locale, userReportRecord, csvPrinter );
-            summaryData.update( userReportRecord );
-            return userReportRecord;
+            final String json = JsonFactory.get().serialize( reportSummaryData, ReportSummaryData.class, JsonProvider.Flag.PrettyPrint );
+            outputStream.write( json.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
         catch ( final IOException e )
         {
@@ -330,7 +354,7 @@ public class ReportProcess implements AutoCloseable
         }
     }
 
-    private  UserReportRecord readUserReportRecord(
+    private UserReportRecord readUserReportRecord(
             final UserIdentity userIdentity
     )
     {
@@ -339,10 +363,7 @@ public class ReportProcess implements AutoCloseable
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxyForOfflineUser(
                     pwmApplication,
                     sessionLabel,
-                    userIdentity
-            );
-
-
+                    userIdentity );
 
             return UserReportRecord.fromUserInfo( userInfo );
         }
@@ -352,33 +373,32 @@ public class ReportProcess implements AutoCloseable
         }
     }
 
-    static List<UserIdentity> readUserListFromLdap(
+    Queue<UserIdentity> readUserListFromLdap(
             final ReportProcessRequest reportProcessRequest,
-            final PwmDomain pwmDomain,
-            final SessionLabel sessionLabel,
-            final ReportSettings settings
+            final PwmDomain pwmDomain
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
         final Instant loopStartTime = Instant.now();
-        final int maxSearchSize = ( int ) JavaHelper.rangeCheck( 0, settings.getMaxSearchSize(), reportProcessRequest.getMaximumRecords() );
+        final int maxSearchSize = ( int ) JavaHelper.rangeCheck( 0, reportSettings.getMaxSearchSize(), reportProcessRequest.getMaximumRecords() );
         LOGGER.trace( sessionLabel, () -> "beginning ldap search process for domain '" + pwmDomain.getDomainID() + "'" );
 
-        final List<UserPermission> searchFilters = settings.getSearchFilter().get( pwmDomain.getDomainID() );
+        final List<UserPermission> searchFilters = reportSettings.getSearchFilter().get( pwmDomain.getDomainID() );
 
         final List<UserIdentity> searchResults = UserPermissionUtility.discoverMatchingUsers(
                 pwmDomain,
                 searchFilters,
                 sessionLabel,
                 maxSearchSize,
-                settings.getSearchTimeout() );
+                reportSettings.getSearchTimeout() );
 
         LOGGER.trace(
                 sessionLabel,
                 () -> "completed ldap search process with for domain '" + pwmDomain.getDomainID() + "'",
                 () -> TimeDuration.fromCurrent( loopStartTime ) );
 
-        return searchResults;
+        processRateMeter.reset();
+        return new LinkedList<>( searchResults );
     }
 
     public ReportProcessStatus getStatus( final Locale locale )
@@ -386,9 +406,24 @@ public class ReportProcess implements AutoCloseable
         final List<DisplayElement> list = new ArrayList<>();
         if ( inProgress.get() )
         {
-            list.add( new DisplayElement( "status", DisplayElement.Type.string, "Status", "In Progress" ) );
-            list.add( new DisplayElement( "recordCount", DisplayElement.Type.number, "Record Count", String.valueOf( recordCounter.longValue() ) ) );
-            list.add( new DisplayElement( "duration", DisplayElement.Type.string, "Duration", TimeDuration.fromCurrent( startTime ).asLongString( locale ) ) );
+            list.add( new DisplayElement( "status", DisplayElement.Type.string,
+                    "Status",
+                    "In Progress" ) );
+            list.add( new DisplayElement( "recordCount", DisplayElement.Type.number,
+                    "Record Count",
+                    String.valueOf( recordCounter.longValue() ) ) );
+            list.add( new DisplayElement( "duration", DisplayElement.Type.string,
+                    "Duration",
+                    TimeDuration.fromCurrent( startTime ).asLongString( locale ) ) );
+            if ( recordCounter.get() > 0 )
+            {
+                final String rate = processRateMeter.readEventRate()
+                        .multiply( new BigDecimal( "60" ) )
+                        .setScale( 2, RoundingMode.UP ).toString();
+                list.add( new DisplayElement( "eventRate", DisplayElement.Type.number,
+                        "Users / Minute",
+                        String.valueOf( rate ) ) );
+            }
         }
         else
         {
@@ -408,4 +443,60 @@ public class ReportProcess implements AutoCloseable
         }
         reportServiceSemaphore.release();
     }
+
+    public class UserReportRecordReaderTask implements Callable<UserReportRecord>
+    {
+        private final UserIdentity userIdentity;
+
+        public UserReportRecordReaderTask( final UserIdentity userIdentity )
+        {
+            this.userIdentity = userIdentity;
+        }
+
+        @Override
+        public UserReportRecord call()
+        {
+            if ( cancelFlag.get() )
+            {
+                throw new RuntimeException( "report process job cancelled" );
+            }
+            return readUserReportRecord( userIdentity );
+        }
+    }
+
+    class FutureUserReportRecordIterator implements Iterator<UserReportRecord>
+    {
+        private final Queue<Future<UserReportRecord>> reportRecordQueue;
+
+        FutureUserReportRecordIterator( final Queue<Future<UserReportRecord>> reportRecordQueue )
+        {
+            this.reportRecordQueue = reportRecordQueue;
+        }
+
+        @Override
+        public boolean hasNext()
+        {
+            return !reportRecordQueue.isEmpty();
+        }
+
+        @Override
+        public UserReportRecord next()
+        {
+            try
+            {
+                final Future<UserReportRecord> future = reportRecordQueue.poll();
+                if ( future == null )
+                {
+                    throw new NoSuchMethodException();
+                }
+                return future.get();
+            }
+            catch ( final InterruptedException | ExecutionException | NoSuchMethodException e )
+            {
+                LOGGER.trace( sessionLabel, () -> "user report record job failure: " + e.getMessage() );
+                throw new RuntimeException( e );
+            }
+        }
+    }
+
 }

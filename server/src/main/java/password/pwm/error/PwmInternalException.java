@@ -22,38 +22,9 @@ package password.pwm.error;
 
 public class PwmInternalException extends RuntimeException
 {
-    protected final ErrorInformation errorInformation;
-
-    protected PwmInternalException( final ErrorInformation error )
-    {
-        this.errorInformation = error == null ? new ErrorInformation( PwmError.ERROR_INTERNAL ) : error;
-    }
-
-    protected PwmInternalException( final ErrorInformation error, final Throwable initialCause )
-    {
-        this.errorInformation = error == null ? new ErrorInformation( PwmError.ERROR_INTERNAL ) : error;
-        this.initCause( initialCause );
-    }
-
     public PwmInternalException( final String message, final Throwable cause )
     {
         super( message, cause );
-        errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, message );
-    }
-
-    public PwmInternalException( final String message )
-    {
-        errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, message );
-    }
-
-    public ErrorInformation getErrorInformation( )
-    {
-        return errorInformation;
-    }
-
-    public static PwmInternalException fromPwmException( final PwmException pwmException )
-    {
-        return new PwmInternalException( pwmException.getErrorInformation() );
     }
 
     public PwmInternalException( final String message )

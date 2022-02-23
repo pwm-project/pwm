@@ -518,7 +518,7 @@ public class ReportSummaryData implements Serializable
 
         PresentationRow makeNoPctRow( final String labelKey, final long valueCount, final String replacement )
         {
-            return makeRowImpl( labelKey, valueCount, replacement ).toBuilder().pct( null ).build();
+            return makeRowImpl( labelKey, valueCount, replacement ).toBuilder().pct( "" ).build();
         }
 
         private PresentationRow makeRowImpl( final String labelKey, final long valueCount, final String replacement )

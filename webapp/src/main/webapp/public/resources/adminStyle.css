@@ -1,4 +1,4 @@
-/*
+/*!
  * Password Management Servlets (PWM)
  * http://www.pwm-project.org
  *
@@ -18,20 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.svc.report;
-
-import lombok.Value;
-import password.pwm.util.java.TimeDuration;
-
-import java.io.Serializable;
-import java.time.Instant;
-
-@Value
-public class ReportProcessResult implements Serializable
-{
-    private final ReportProcessRequest request;
-    private final long recordCount;
-    private final Instant startTime;
-    private final Instant finishTime;
-    private final TimeDuration timeDuration;
+.admin-breadcrumb-navigation-button {
+    text-align: center;
+    margin-bottom: 10px;
 }

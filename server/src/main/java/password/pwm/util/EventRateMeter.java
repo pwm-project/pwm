@@ -33,8 +33,8 @@ public class EventRateMeter implements Serializable
     private final TimeDuration maxDuration;
     private final Lock lock = new ReentrantLock();
 
-    private MovingAverage movingAverage;
-    private double remainder;
+    private volatile MovingAverage movingAverage;
+    private volatile double remainder;
 
     public EventRateMeter( final TimeDuration maxDuration )
     {

@@ -37,7 +37,8 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.util.java.JsonUtil;
+import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -96,16 +97,17 @@ public abstract class CommandServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "cspReport" )
-    private ProcessStatus processCspReport(
+    public ProcessStatus processCspReport(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException
     {
         final String body = pwmRequest.readRequestBodyAsString();
+        final JsonProvider jsonProvider = JsonFactory.get();
         try
         {
-            final Map<String, Object> map = JsonUtil.deserializeStringObjectMap( body );
-            LOGGER.trace( () -> "CSP Report: " + JsonUtil.serializeMap( map, JsonUtil.Flag.PrettyPrint ) );
+            final Map<String, Object> map = jsonProvider.deserializeMap( body, String.class, Object.class );
+            LOGGER.trace( () -> "CSP Report: " + jsonProvider.serializeMap( map, JsonProvider.Flag.PrettyPrint ) );
         }
         catch ( final Exception e )
         {
@@ -115,7 +117,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "idleUpdate" )
-    private ProcessStatus processIdleUpdate(
+    public ProcessStatus processIdleUpdate(
             final PwmRequest pwmRequest
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
@@ -130,7 +132,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "next" )
-    private ProcessStatus processNext(
+    public ProcessStatus processNext(
             final PwmRequest pwmRequest
     )
             throws IOException, PwmUnrecoverableException, ServletException
@@ -161,7 +163,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "pageLeaveNotice" )
-    private ProcessStatus processPageLeaveNotice( final PwmRequest pwmRequest )
+    public ProcessStatus processPageLeaveNotice( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
@@ -178,7 +180,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "checkAttributes" )
-    private ProcessStatus processCheckAttributes(
+    public ProcessStatus processCheckAttributes(
             final PwmRequest pwmRequest
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
@@ -187,7 +189,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "checkProfile" )
-    private ProcessStatus processCheckProfile(
+    public ProcessStatus processCheckProfile(
             final PwmRequest pwmRequest
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
@@ -210,7 +212,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "checkAll" )
-    private ProcessStatus processCheckAll(
+    public ProcessStatus processCheckAll(
             final PwmRequest pwmRequest
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
@@ -228,7 +230,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
     }
 
     @ControlledPwmServlet.ActionHandler( action = "checkIfResponseConfigNeeded" )
-    private ProcessStatus processCheckIfResponseConfigNeeded(
+    public ProcessStatus processCheckIfResponseConfigNeeded(
             final PwmRequest pwmRequest
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
@@ -237,7 +239,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
     }
 
     @ControlledPwmServlet.ActionHandler( action = "checkResponses" )
-    private ProcessStatus processCheckResponses(
+    public ProcessStatus processCheckResponses(
             final PwmRequest pwmRequest
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
@@ -259,7 +261,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
     }
 
     @ControlledPwmServlet.ActionHandler( action = "checkExpire" )
-    private ProcessStatus processCheckExpire(
+    public ProcessStatus processCheckExpire(
             final PwmRequest pwmRequest
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException

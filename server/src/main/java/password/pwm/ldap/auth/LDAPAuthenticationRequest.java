@@ -32,7 +32,6 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.provider.DirectoryVendor;
 import password.pwm.AppProperty;
-import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -45,10 +44,6 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.forgottenpw.ForgottenPasswordUtil;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.svc.event.AuditEvent;
-import password.pwm.svc.event.AuditRecord;
-import password.pwm.svc.event.AuditRecordFactory;
-import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.intruder.IntruderDomainService;
 import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.intruder.IntruderServiceClient;
@@ -63,7 +58,6 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomPasswordGenerator;
 
@@ -349,14 +343,12 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             final AuthenticationResult authenticationResult,
             final boolean usingProxy
     )
-            throws PwmUnrecoverableException
     {
         final StatisticsService statisticsManager = pwmDomain.getStatisticsManager();
         StatisticsClient.incrementStat( pwmDomain.getPwmApplication(), Statistic.AUTHENTICATIONS );
         StatisticsClient.updateEps( pwmDomain.getPwmApplication(), EpsStatistic.AUTHENTICATION );
         statisticsManager.updateAverageValue( AvgStatistic.AVG_AUTHENTICATION_TIME,
                 TimeDuration.fromCurrent( startTime ).asMillis() );
-
 
         log( PwmLogLevel.DEBUG, () -> "successful ldap authentication for " + userIdentity
                 + " (" +  TimeDuration.fromCurrent( startTime ).asCompactString() + ")"
@@ -367,18 +359,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                 ? "none"
                 : authenticationResult.getUserProvider().getChaiConfiguration().getSetting( ChaiSetting.BIND_DN ) ) );
 
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), PwmConstants.DEFAULT_LOCALE, sessionLabel, userIdentity );
-        final AuditRecord auditRecord = AuditRecordFactory.make( sessionLabel, pwmDomain, macroRequest ).createUserAuditRecord(
-                AuditEvent.AUTHENTICATE,
-                this.userIdentity,
-                makeAuditLogMessage( authenticationResult.getAuthenticationType() ),
-                sessionLabel.getSourceAddress(),
-                sessionLabel.getSourceHostname()
-        );
-        AuditServiceClient.submit( pwmDomain.getPwmApplication(), sessionLabel, auditRecord );
         pwmDomain.getSessionTrackService().addRecentLogin( userIdentity );
-
-
     }
 
     private void initialize( )
@@ -642,7 +623,6 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     }
 
     private boolean determineIfLdapProxyNeeded( final AuthenticationType authenticationType, final PasswordData userPassword )
-            throws ChaiUnavailableException, PwmUnrecoverableException
     {
         if ( userProvider != null )
         {
@@ -670,13 +650,5 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
     private void log( final PwmLogLevel level, final Supplier<CharSequence> message )
     {
         LOGGER.log( level, sessionLabel, () -> "authID=" + operationNumber + ", " + message.get() );
-    }
-
-    private String makeAuditLogMessage( final AuthenticationType authenticationType )
-    {
-        return "type=" + authenticationType.toString()
-                + ", "
-                + "source="
-                + ( authenticationSource == null ? "null" : authenticationSource.toString() );
     }
 }

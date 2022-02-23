@@ -152,6 +152,14 @@
                         <%= LocaleHelper.booleanString(setting.isConfidential(),pwmRequest) %>
                     </td>
                 </tr>
+                <tr>
+                    <td class="key" style="width: 100px">
+                        Scope
+                    </td>
+                    <td>
+                        <%= setting.getCategory().getScope() %>
+                    </td>
+                </tr>
                 <% if (setting.getSyntax() == PwmSettingSyntax.OPTIONLIST || setting.getSyntax() == PwmSettingSyntax.SELECT) { %>
                 <tr>
                     <td class="key" style="width: 100px">

@@ -20,18 +20,21 @@
 
 package password.pwm.svc.report;
 
-import lombok.Value;
-import password.pwm.util.java.TimeDuration;
+import java.io.IOException;
 
-import java.io.Serializable;
-import java.time.Instant;
-
-@Value
-public class ReportProcessResult implements Serializable
+interface ReportRecordWriter
 {
-    private final ReportProcessRequest request;
-    private final long recordCount;
-    private final Instant startTime;
-    private final Instant finishTime;
-    private final TimeDuration timeDuration;
+    String getZipName();
+
+    void outputHeader()
+            throws IOException;
+
+    void outputRecord( UserReportRecord userReportRecord, boolean lastRecord )
+            throws IOException;
+
+    void outputFooter()
+            throws IOException;
+
+    void close()
+            throws IOException;
 }

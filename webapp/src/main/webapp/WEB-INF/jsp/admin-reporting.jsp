@@ -40,7 +40,6 @@
     <div id="centerbody">
         <h1 id="page-content-title"><pwm:display key="Title_DataAnalysis" bundle="Admin"/></h1>
         <%@ include file="fragment/admin-modular-nav.jsp" %>
-        </table>
         <table id="statusTable">
             <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
         </table>
@@ -72,7 +71,7 @@
             <table class="noborder">
                 <tr><td colspan="2">
                     <div class="buttonbar">
-                        <button id="reportDownloadButton" class="btn" type="submit" disabled>
+                        <button id="reportDownloadButton" class="btn" type="button" disabled>
                             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-download">&nbsp;</span></pwm:if>
                             <pwm:display key="Button_Download_Report" bundle="Admin"/>
                         </button>
@@ -92,10 +91,11 @@
 </div>
 <pwm:script>
     <script type="text/javascript">
+        PWM_ADMIN.initDownloadProcessReportZipForm();
         PWM_GLOBAL['startupFunctions'].push(function(){
             setInterval(function () { PWM_ADMIN.refreshReportProcessStatus() }, 5 * 1000);
+            PWM_ADMIN.refreshReportProcessStatus();
         });
-        PWM_ADMIN.initDownloadProcessReportZipForm();
     </script>
 </pwm:script>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>

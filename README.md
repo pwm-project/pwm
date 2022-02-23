@@ -68,7 +68,7 @@ For all artifacts, each PWM instance will need an _applicationPath_ directory de
 log, and runtime files.  Once PWM is configured, the initial web UI will prompt the administrator for LDAP and other configuration settings.  
 Alternatively, you can place the _PwmConfiguration.xml_ in the _applicationPath_ directory to create a fully configured instance.
 
-PWM is primarily developed tested and built using [AdoptOpenJDK](https://adoptopenjdk.net) Java, but any standard Java distribution should work.
+PWM is primarily developed tested and built using [Adoptium](https://adoptium.net/) Java, but any standard Java distribution should work.
 
 ### WAR
 Requirements:

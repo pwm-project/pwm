@@ -45,15 +45,20 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.svc.event.AuditEvent;
+import password.pwm.svc.event.AuditRecord;
+import password.pwm.svc.event.AuditRecordFactory;
+import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.intruder.IntruderDomainService;
 import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroRequest;
 
 import java.time.Instant;
 import java.util.EnumSet;
@@ -429,11 +434,47 @@ public class SessionAuthenticator
             StatisticsClient.incrementStat( pwmRequest, Statistic.AUTHENTICATION_EXPIRED );
         }
 
+
         //clear permission cache - needs rechecking after login
         LOGGER.debug( pwmRequest, () -> "clearing permission cache" );
         pwmSession.getUserSessionDataCacheBean().clearPermissions();
 
+        logAuthEvent( loginInfoBean, authenticationResult );
+
         // update the users ldap attribute.
         LdapOperationsHelper.processAutoUpdateLanguageAttribute( pwmDomain, sessionLabel, ssBean.getLocale(), userIdentity );
+
+        pwmSession.setLoginInfoBean( loginInfoBean );
+    }
+
+    private void logAuthEvent( final LoginInfoBean loginInfoBean, final AuthenticationResult authenticationResult )
+            throws PwmUnrecoverableException
+    {
+        if ( loginInfoBean.getLoginFlags().contains( LoginInfoBean.LoginFlag.audit ) )
+        {
+            return;
+        }
+
+        System.out.println( loginInfoBean.getGuid() );
+
+        final UserIdentity userIdentity = loginInfoBean.getUserIdentity();
+        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), PwmConstants.DEFAULT_LOCALE, sessionLabel, userIdentity );
+        final AuditRecord auditRecord = AuditRecordFactory.make( sessionLabel, pwmDomain, macroRequest ).createUserAuditRecord(
+                AuditEvent.AUTHENTICATE,
+                loginInfoBean.getUserIdentity(),
+                makeAuditLogMessage( authenticationResult.getAuthenticationType() ),
+                sessionLabel.getSourceAddress(),
+                sessionLabel.getSourceHostname()
+        );
+        AuditServiceClient.submit( pwmDomain.getPwmApplication(), sessionLabel, auditRecord );
+        loginInfoBean.getLoginFlags().add( LoginInfoBean.LoginFlag.audit );
+    }
+
+    private static String makeAuditLogMessage( final AuthenticationType authenticationType )
+    {
+        return "type=" + authenticationType.toString()
+                + ", "
+                + "source="
+                + ( authenticationType == null ? "null" : authenticationType.toString() );
     }
 }

@@ -45,7 +45,7 @@
             <form action="<pwm:url addContext="true" url="/private"/>" method="get" id="admin" name="admin">
                 <button type="submit" class="navbutton">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-arrow-up"></span></pwm:if>
-                    <pwm:display key="Button_Home" bundle="Display"/>
+                    <pwm:display key="Title_MainPage" bundle="Display"/>
                 </button>
             </form>
         </div>

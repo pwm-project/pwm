@@ -29,12 +29,14 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
+import password.pwm.util.PwmScheduler;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
 
 
@@ -46,6 +48,7 @@ public class ReportService extends AbstractPwmService implements PwmService
     private final Semaphore activeReportSemaphore = new Semaphore( 5 );
     private final Set<ReportProcess> outstandingReportProcesses = Collections.newSetFromMap( new WeakHashMap<>() );
 
+    private ExecutorService threadPool;
 
     public ReportService( )
     {
@@ -54,6 +57,11 @@ public class ReportService extends AbstractPwmService implements PwmService
     public ReportSettings getSettings()
     {
         return settings;
+    }
+
+    public ExecutorService getExecutor()
+    {
+        return this.threadPool;
     }
 
     public enum ReportCommand
@@ -68,13 +76,22 @@ public class ReportService extends AbstractPwmService implements PwmService
     {
         this.pwmApplication = pwmApplication;
         this.settings = ReportSettings.readSettingsFromConfig( this.getPwmApplication().getConfig() );
+        final int maxThreads = settings.getReportJobThreads();
+        this.threadPool = PwmScheduler.makeMultiThreadExecutorService( pwmApplication, ReportService.class, maxThreads );
         return STATUS.OPEN;
     }
 
     @Override
     public void close( )
     {
+        if ( threadPool != null )
+        {
+            threadPool.shutdown();
+            threadPool = null;
+        }
+
         setStatus( STATUS.CLOSED );
+
         for ( final ReportProcess reportProcess : outstandingReportProcesses )
         {
             if ( reportProcess != null )

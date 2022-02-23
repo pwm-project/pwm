@@ -61,9 +61,9 @@ public class AdminReportServlet extends ControlledPwmServlet
 
     enum AdminReportAction implements AbstractPwmServlet.ProcessAction
     {
-        reportProcessStatus( HttpMethod.GET ),
+        reportProcessStatus( HttpMethod.POST ),
         cancelDownload( HttpMethod.POST ),
-        downloadReportZip( HttpMethod.POST ),;
+        downloadReportZip( HttpMethod.GET ),;
 
         private final Collection<HttpMethod> method;
 
@@ -104,14 +104,14 @@ public class AdminReportServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "reportProcessStatus" )
-    private ProcessStatus processReportProcessStatus( final PwmRequest pwmRequest )
+    public ProcessStatus processReportProcessStatus( final PwmRequest pwmRequest )
             throws IOException
     {
         final ReportProcessStatus reportProcessStatus = pwmRequest.getPwmSession().getSessionManager().getReportProcess()
                 .map( process -> process.getStatus( pwmRequest.getLocale() ) )
                 .orElse( ReportProcessStatus.builder().build() );
 
-        final RestResultBean restResultBean = RestResultBean.withData( reportProcessStatus );
+        final RestResultBean<ReportProcessStatus> restResultBean = RestResultBean.withData( reportProcessStatus, ReportProcessStatus.class );
 
         pwmRequest.outputJsonResult( restResultBean );
 
@@ -119,7 +119,7 @@ public class AdminReportServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "cancelDownload" )
-    private ProcessStatus processCancelDownload( final PwmRequest pwmRequest )
+    public ProcessStatus processCancelDownload( final PwmRequest pwmRequest )
             throws IOException
     {
         pwmRequest.getPwmSession().getSessionManager().getReportProcess().ifPresent( ReportProcess::close );
@@ -139,7 +139,8 @@ public class AdminReportServlet extends ControlledPwmServlet
         final ReportProcessRequest reportProcessRequest = ReportProcessRequest.builder()
                 .domainID( pwmRequest.getDomainID() )
                 .maximumRecords( pwmRequest.readParameterAsInt( "recordCount", 1000 ) )
-                .reportType( pwmRequest.readParameterAsEnum( "recordType", ReportProcessRequest.ReportType.class, ReportProcessRequest.ReportType.json ) )
+                .reportType( pwmRequest.readParameterAsEnum( "recordType", ReportProcessRequest.ReportType.class )
+                        .orElse( ReportProcessRequest.ReportType.json ) )
                 .build();
 
         try ( OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream() )

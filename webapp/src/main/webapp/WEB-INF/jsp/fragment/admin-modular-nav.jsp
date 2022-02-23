@@ -29,12 +29,20 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SystemAdminServlet.Page currentPage = SystemAdminServlet.Page.forUrl(JspUtility.getPwmRequest(pageContext).getURL()); %>
 <pwm:script-ref url="/public/resources/js/uilibrary.js"/>
 <pwm:script-ref url="/public/resources/js/main.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
+<link href="<pwm:url url='/public/resources/adminStyle.css' addContext="true"/>" rel="stylesheet" type="text/css" media="screen"/>
 
-<div style="text-align: center; margin-bottom: 10px;">
+<div class="admin-breadcrumb-navigation-button">
+    <a href="<pwm:url addContext="true" url="/private"/>">
+        <button type="submit" class="navbutton">
+            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-arrow-up"></span></pwm:if>
+            <pwm:display key="Title_MainPage" bundle="Display"/>
+        </button>
+    </a>
+</div>
+<div class="admin-breadcrumb-navigation-button">
     <a href="<pwm:url addContext="true" url="/private/admin"/>">
         <button type="submit" class="navbutton">
             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-arrow-up"></span></pwm:if>
@@ -42,5 +50,4 @@
         </button>
     </a>
 </div>
-
 

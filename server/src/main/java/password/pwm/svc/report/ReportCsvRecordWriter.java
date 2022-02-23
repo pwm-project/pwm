@@ -22,7 +22,6 @@ package password.pwm.svc.report;
 
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmApplication;
-import password.pwm.config.AppConfig;
 import password.pwm.config.SettingReader;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
@@ -35,74 +34,49 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class ReportCsvUtility
+class ReportCsvRecordWriter implements ReportRecordWriter
 {
-
+    private final Locale locale;
     private final PwmApplication pwmApplication;
-    private final ReportService reportService;
+    private final CSVPrinter csvPrinter;
 
-    public ReportCsvUtility( final PwmApplication pwmApplication )
-    {
-        this.pwmApplication = pwmApplication;
-        this.reportService = pwmApplication.getReportService();
-    }
-
-
-    public static void outputSummaryToCsv(
-            final AppConfig config,
-            final ReportSummaryData reportSummaryData,
-            final OutputStream outputStream,
-            final Locale locale
-    )
+    ReportCsvRecordWriter( final OutputStream outputStream, final PwmApplication pwmApplication, final Locale locale )
             throws IOException
     {
-
-        final List<ReportSummaryData.PresentationRow> outputList = reportSummaryData.asPresentableCollection( config, locale );
-        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
-
-        for ( final ReportSummaryData.PresentationRow presentationRow : outputList )
-        {
-            final List<String> row = List.of(
-                    presentationRow.getLabel(),
-                    presentationRow.getCount(),
-                    presentationRow.getPct() );
-
-            csvPrinter.printRecord( row );
-        }
-
-        csvPrinter.flush();
+        this.csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
+        this.locale = locale;
+        this.pwmApplication = pwmApplication;
     }
 
     static void outputHeaderRow( final Locale locale, final CSVPrinter csvPrinter, final SettingReader config )
             throws IOException
     {
-        final List<String> headerRow = new ArrayList<>();
         final Class<? extends PwmDisplayBundle> localeClass = password.pwm.i18n.Admin.class;
-
         final LocaleHelper.Factory localeFactory = LocaleHelper.Factory.createFactory( config, locale, localeClass );
-        headerRow.add( localeFactory.get( "Field_Report_DomainID" ) );
-        headerRow.add( localeFactory.get( "Field_Report_Username" ) );
-        headerRow.add( localeFactory.get( "Field_Report_UserDN" ) );
-        headerRow.add( localeFactory.get( "Field_Report_LDAP_Profile" ) );
-        headerRow.add( localeFactory.get( "Field_Report_Email" ) );
-        headerRow.add( localeFactory.get( "Field_Report_UserGuid" ) );
-        headerRow.add( localeFactory.get( "Field_Report_AccountExpireTime" ) );
-        headerRow.add( localeFactory.get( "Field_Report_PwdExpireTime" ) );
-        headerRow.add( localeFactory.get( "Field_Report_PwdChangeTime" ) );
-        headerRow.add( localeFactory.get( "Field_Report_ResponseSaveTime" ) );
-        headerRow.add( localeFactory.get( "Field_Report_LastLogin" ) );
-        headerRow.add( localeFactory.get( "Field_Report_HasResponses" ) );
-        headerRow.add( localeFactory.get( "Field_Report_HasHelpdeskResponses" ) );
-        headerRow.add( localeFactory.get( "Field_Report_ResponseStorageMethod" ) );
-        headerRow.add( localeFactory.get( "Field_Report_ResponseFormatType" ) );
-        headerRow.add( localeFactory.get( "Field_Report_PwdExpired" ) );
-        headerRow.add( localeFactory.get( "Field_Report_PwdPreExpired" ) );
-        headerRow.add( localeFactory.get( "Field_Report_PwdViolatesPolicy" ) );
-        headerRow.add( localeFactory.get( "Field_Report_PwdWarnPeriod" ) );
-        headerRow.add( localeFactory.get( "Field_Report_RequiresPasswordUpdate" ) );
-        headerRow.add( localeFactory.get( "Field_Report_RequiresResponseUpdate" ) );
-        headerRow.add( localeFactory.get( "Field_Report_RequiresProfileUpdate" ) );
-        headerRow.add( localeFactory.get( "Field_Report_RecordCacheTime" ) );
+        final List<String> headerRow = List.of(
+                localeFactory.get( "Field_Report_DomainID" ),
+                localeFactory.get( "Field_Report_Username" ),
+                localeFactory.get( "Field_Report_UserDN" ),
+                localeFactory.get( "Field_Report_LDAP_Profile" ),
+                localeFactory.get( "Field_Report_Email" ),
+                localeFactory.get( "Field_Report_UserGuid" ),
+                localeFactory.get( "Field_Report_AccountExpireTime" ),
+                localeFactory.get( "Field_Report_PwdExpireTime" ),
+                localeFactory.get( "Field_Report_PwdChangeTime" ),
+                localeFactory.get( "Field_Report_ResponseSaveTime" ),
+                localeFactory.get( "Field_Report_LastLogin" ),
+                localeFactory.get( "Field_Report_HasResponses" ),
+                localeFactory.get( "Field_Report_HasHelpdeskResponses" ),
+                localeFactory.get( "Field_Report_ResponseStorageMethod" ),
+                localeFactory.get( "Field_Report_ResponseFormatType" ),
+                localeFactory.get( "Field_Report_PwdExpired" ),
+                localeFactory.get( "Field_Report_PwdPreExpired" ),
+                localeFactory.get( "Field_Report_PwdViolatesPolicy" ),
+                localeFactory.get( "Field_Report_PwdWarnPeriod" ),
+                localeFactory.get( "Field_Report_RequiresPasswordUpdate" ),
+                localeFactory.get( "Field_Report_RequiresResponseUpdate" ),
+                localeFactory.get( "Field_Report_RequiresProfileUpdate" ),
+                localeFactory.get( "Field_Report_RecordCacheTime" ) );
 
         csvPrinter.printRecord( headerRow );
     }
@@ -160,5 +134,35 @@ public class ReportCsvUtility
                 : JavaHelper.toIsoDate( userReportRecord.getCacheTimestamp() ) );
 
         csvPrinter.printRecord( csvRow );
+    }
+
+    @Override
+    public String getZipName()
+    {
+        return "report.csv";
+    }
+
+    @Override
+    public void outputHeader() throws IOException
+    {
+        outputHeaderRow( locale, csvPrinter, pwmApplication.getConfig() );
+    }
+
+    @Override
+    public void outputRecord( final UserReportRecord userReportRecord, final boolean lastRecord ) throws IOException
+    {
+        final SettingReader settingReader = pwmApplication.getConfig();
+        outputRecordRow( settingReader, locale, userReportRecord, csvPrinter );
+    }
+
+    @Override
+    public void outputFooter() throws IOException
+    {
+    }
+
+    @Override
+    public void close() throws IOException
+    {
+        csvPrinter.flush();
     }
 }

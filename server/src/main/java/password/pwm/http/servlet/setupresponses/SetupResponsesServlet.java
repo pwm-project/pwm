@@ -55,8 +55,8 @@ import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -67,6 +67,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * User interaction servlet for setting up secret question/answer.
@@ -112,9 +113,9 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     }
 
     @Override
-    public Class<? extends ProcessAction> getProcessActionsClass( )
+    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
     {
-        return SetupResponsesAction.class;
+        return Optional.of( SetupResponsesAction.class );
     }
 
     private SetupResponsesBean getSetupResponseBean( final PwmRequest pwmRequest )

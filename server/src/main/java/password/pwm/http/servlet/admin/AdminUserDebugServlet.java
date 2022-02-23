@@ -40,8 +40,9 @@ import password.pwm.http.bean.AdminBean;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.ldap.search.UserSearchEngine;
-import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -105,7 +106,7 @@ public class AdminUserDebugServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "searchUsername" )
-    private ProcessStatus processSearchUsername( final PwmRequest pwmRequest )
+    public ProcessStatus processSearchUsername( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException, ServletException, IOException
     {
         final String username = pwmRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation );
@@ -137,7 +138,7 @@ public class AdminUserDebugServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "downloadUserDebug" )
-    private ProcessStatus processDownloadUserDebug( final PwmRequest pwmRequest )
+    public ProcessStatus processDownloadUserDebug( final PwmRequest pwmRequest )
 
             throws PwmUnrecoverableException, IOException, ServletException
     {
@@ -156,7 +157,7 @@ public class AdminUserDebugServlet extends ControlledPwmServlet
                     pwmRequest.getLabel(),
                     userIdentity
             );
-            final String output = JsonUtil.serialize( userDebugData, JsonUtil.Flag.PrettyPrint );
+            final String output = JsonFactory.get().serialize( userDebugData, UserDebugDataBean.class, JsonProvider.Flag.PrettyPrint );
             pwmRequest.getPwmResponse().getOutputStream().write( output.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
         else

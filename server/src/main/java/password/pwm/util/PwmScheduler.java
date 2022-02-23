@@ -304,6 +304,25 @@ public class PwmScheduler
         return makeSingleThreadExecutorService( pwmApplication.getInstanceID(), theClass );
     }
 
+    public static ExecutorService makeMultiThreadExecutorService(
+            final PwmApplication pwmApplication,
+            final Class theClass,
+            final int maxThreads
+    )
+    {
+        final String threadName = makeThreadName( pwmApplication.getInstanceID(), theClass ) + "-";
+        final ThreadFactory threadFactory = makePwmThreadFactory( threadName, true );
+        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+                maxThreads,
+                maxThreads,
+                10,
+                TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(),
+                threadFactory );
+        threadPoolExecutor.allowCoreThreadTimeOut( true );
+        return threadPoolExecutor;
+    }
+
     public static ScheduledExecutorService makeSingleThreadExecutorService(
             final String instanceID,
             final Class theClass

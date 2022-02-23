@@ -21,11 +21,12 @@
 package password.pwm.http.tag.value;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
-import password.pwm.PwmDomain;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.IdleTimeoutCalculator;
@@ -42,6 +43,8 @@ import javax.servlet.jsp.PageContext;
 import java.util.Locale;
 import java.util.Set;
 
+
+@SuppressFBWarnings( "SE_BAD_FIELD" )
 public enum PwmValue
 {
     cspNonce( new CspNonceOutput() ),

@@ -34,18 +34,19 @@ import java.io.IOException;
 import java.util.Optional;
 
 
-@WebServlet(
-        name = "AdminServlet",
-        urlPatterns = {
-                PwmConstants.URL_PREFIX_PRIVATE + "/admin",
-                PwmConstants.URL_PREFIX_PRIVATE + "/admin/",
-                PwmConstants.URL_PREFIX_PRIVATE + "/administration",
-                PwmConstants.URL_PREFIX_PRIVATE + "/administration/",
-        }
-)
+
 /**
  * Simple servlet to front requests to the otherwise standard index page at '/private/admin/index.jsp'.
  */
+@WebServlet(
+        name = "AdminServlet",
+        urlPatterns = {
+                PwmConstants.URL_PREFIX_PRIVATE + "/oldadmin",
+                PwmConstants.URL_PREFIX_PRIVATE + "/oldadmin/",
+                PwmConstants.URL_PREFIX_PRIVATE + "/oldadministration",
+                PwmConstants.URL_PREFIX_PRIVATE + "/oldadministration/",
+        }
+)
 public class AdminServlet extends ControlledPwmServlet
 {
     @Override

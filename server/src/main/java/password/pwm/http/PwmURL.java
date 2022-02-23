@@ -28,6 +28,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -238,7 +239,7 @@ public class PwmURL
             return Optional.of( startsWithMatch.get( 0 ) );
         }
 
-        throw new PwmInternalException( "unable to match servlet url" );
+        throw new PwmInternalException( "multiple servlet url matches: " + JsonFactory.get().serializeCollection( startsWithMatch ) );
     }
 
     public boolean matches( final PwmServletDefinition servletDefinition )
