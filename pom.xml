@@ -24,7 +24,6 @@
 
     <properties>
         <warArtifactID>pwm-${project.version}.war</warArtifactID>
-        <dockerImageTag>pwm/pwm-webapp</dockerImageTag>
 
         <build.number>0</build.number>  <!-- default in case not set on command line -->
         <build.revision>0</build.revision>  <!-- default in case not set on command line -->

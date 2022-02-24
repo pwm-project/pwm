@@ -46,7 +46,7 @@ public class TelemetryViewerServlet extends HttpServlet
     @Override
     protected void doGet( final HttpServletRequest req, final HttpServletResponse resp ) throws ServletException, IOException
     {
-        LOGGER.debug( "htttp request for viewer" );
+        LOGGER.debug( "http request for viewer" );
         final String daysString = req.getParameter( PARAM_DAYS );
         final int days = StringUtil.isEmpty( daysString ) ? 30 : Integer.parseInt( daysString );
         final ContextManager contextManager = ContextManager.getContextManager( req.getServletContext() );
