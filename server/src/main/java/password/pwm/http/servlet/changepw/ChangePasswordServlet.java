@@ -56,6 +56,7 @@ import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -179,7 +180,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                         break;
 
                     default:
-                        JavaHelper.unhandledSwitchStatement( warnResponse );
+                        MiscUtil.unhandledSwitchStatement( warnResponse );
                 }
             }
         }

@@ -32,7 +32,7 @@ import password.pwm.bean.TelemetryPublishBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonProvider;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
@@ -80,7 +80,7 @@ public class FtpTelemetrySender implements TelemetrySender
                 break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( settings.getFtpMode() );
+                MiscUtil.unhandledSwitchStatement( settings.getFtpMode() );
                 throw new UnsupportedOperationException();
         }
 

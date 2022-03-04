@@ -46,7 +46,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -201,7 +201,7 @@ public class OtpService extends AbstractPwmService implements PwmService
                 break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( settings.getOtpType() );
+                MiscUtil.unhandledSwitchStatement( settings.getOtpType() );
         }
 
         final List<String> rawRecoveryCodes;
@@ -354,7 +354,7 @@ public class OtpService extends AbstractPwmService implements PwmService
                     ? "no otp record found for user " + userIdentity.toDisplayString()
                     : "loaded otp record for user " + userIdentity.toDisplayString()
                     + " [recordType=" + finalOtpConfig.getType() + ", identifier=" + finalOtpConfig.getIdentifier() + ", timestamp="
-                    + JavaHelper.toIsoDate( finalOtpConfig.getTimestamp() ) + "]";
+                    + StringUtil.toIsoDate( finalOtpConfig.getTimestamp() ) + "]";
             LOGGER.trace( sessionLabel, msg, () -> TimeDuration.fromCurrent(  methodStartTime ) );
         }
 

@@ -31,6 +31,7 @@ import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -72,7 +73,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
 
     StoredConfigurationImpl()
     {
-        this.createTime = JavaHelper.toIsoDate( Instant.now() );
+        this.createTime = StringUtil.toIsoDate( Instant.now() );
         this.modifyTime = Instant.now();
         this.storedValues = Collections.emptyMap();
         this.metaValues = Collections.emptyMap();

@@ -25,7 +25,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.http.HttpEntityDataType;
 import password.pwm.http.HttpHeader;
-import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.util.java.ImmutableByteArray;
 import password.pwm.util.java.StringUtil;
 
 import java.util.Map;

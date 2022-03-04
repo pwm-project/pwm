@@ -146,10 +146,23 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>pwm-lib-data</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>pwm-lib-util</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>pwm-server</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
         </dependency>
+
 
 
         <!-- container dependencies -->

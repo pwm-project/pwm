@@ -20,33 +20,26 @@
 
 package password.pwm.util.java;
 
-import password.pwm.PwmConstants;
+import java.io.OutputStream;
 
-import java.text.NumberFormat;
-import java.util.Locale;
-
-public class PwmNumberFormat
+public class CrcChecksumOutputStream extends CopyingOutputStream
 {
-    private final Locale locale;
+    private final CrcChecksumConsumer crcChecksumConsumer;
 
-    private PwmNumberFormat( final Locale locale )
+    private CrcChecksumOutputStream( final OutputStream realStream, final CrcChecksumConsumer crcChecksumConsumer )
     {
-        this.locale = locale;
+        super( realStream, crcChecksumConsumer );
+        this.crcChecksumConsumer = crcChecksumConsumer;
     }
 
-    public static PwmNumberFormat forLocale( final Locale locale )
+    public static CrcChecksumOutputStream newChecksumOutputStream( final OutputStream wrappedStream )
     {
-        return new PwmNumberFormat( locale );
+        final CrcChecksumConsumer crcChecksumConsumer = new CrcChecksumConsumer();
+        return new CrcChecksumOutputStream( wrappedStream, crcChecksumConsumer );
     }
 
-    public static PwmNumberFormat forDefaultLocale( )
+    public long checksum()
     {
-        return new PwmNumberFormat( PwmConstants.DEFAULT_LOCALE );
-    }
-
-    public String format( final long number )
-    {
-        final NumberFormat numberFormat = NumberFormat.getInstance( locale );
-        return numberFormat.format( number );
+        return crcChecksumConsumer.checksum();
     }
 }

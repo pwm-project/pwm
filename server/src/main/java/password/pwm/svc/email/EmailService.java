@@ -76,7 +76,9 @@ public class EmailService extends AbstractPwmService implements PwmService
 
     private final AtomicReference<ErrorInformation> lastSendError = new AtomicReference<>();
 
-    private final ConditionalTaskExecutor statsLogger = ConditionalTaskExecutor.forPeriodicTask( this::logStats, TimeDuration.MINUTE );
+    private final ConditionalTaskExecutor statsLogger = ConditionalTaskExecutor.forPeriodicTask(
+            this::logStats,
+            TimeDuration.MINUTE.asDuration() );
     private final ReentrantLock submitLock = new ReentrantLock();
 
     @Override
@@ -273,7 +275,7 @@ public class EmailService extends AbstractPwmService implements PwmService
                 }
                 {
                     final String name = "averageSendTime[" + emailServer.getId() + "]";
-                    final TimeDuration value = emailServer.getAverageSendTime().getAverageAsDuration();
+                    final TimeDuration value = TimeDuration.fromDuration( emailServer.getAverageSendTime().getAverageAsDuration() );
                     stats.put( name, value.asCompactString() );
 
                 }

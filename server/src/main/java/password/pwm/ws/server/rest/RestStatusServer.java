@@ -31,6 +31,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoBean;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
@@ -90,7 +91,7 @@ public class RestStatusServer extends RestServlet
                     targetUserIdentity.getUserIdentity()
             );
 
-            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(
+            final PublicUserInfoBean publicUserInfoBean = UserInfoBean.toPublicUserInfoBean(
                     userInfo,
                     restRequest.getDomain().getConfig(),
                     restRequest.getLocale(),

@@ -20,9 +20,9 @@
 
 package password.pwm.util.java;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
-import password.pwm.util.secure.PwmRandom;
 
 import java.io.IOException;
 
@@ -171,7 +171,7 @@ public class StringUtilTest
     {
         final String lineSeparator = System.lineSeparator();
 
-        final String original = PwmRandom.getInstance().alphaNumericString( 1024 * 1024 );
+        final String original = RandomStringUtils.random( 1024 * 1024, true, true );
         final String linebreaks = StringUtil.insertRepeatedLineBreaks( original, 80 );
         Assert.assertEquals( lineSeparator, linebreaks.substring( 80, 80 + lineSeparator.length() ) );
         final String stripped = StringUtil.stripAllWhitespace( linebreaks );

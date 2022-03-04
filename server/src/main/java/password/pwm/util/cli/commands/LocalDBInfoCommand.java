@@ -22,9 +22,9 @@ package password.pwm.util.cli.commands;
 
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonProvider;
 import password.pwm.util.json.JsonFactory;
-import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -42,7 +42,7 @@ public class LocalDBInfoCommand extends AbstractCliCommand
         final LocalDB localDB = cliEnvironment.getLocalDB();
         final long localDBdiskSpace = FileSystemUtility.getFileDirectorySize( localDB.getFileLocation() );
         out( "beginning LocalDBInfo" );
-        out( "LocalDB total disk space = " + PwmNumberFormat.forDefaultLocale().format( localDBdiskSpace ) + " (" + StringUtil.formatDiskSize( localDBdiskSpace ) + ")" );
+        out( "LocalDB total disk space = " + MiscUtil.forDefaultLocale().format( localDBdiskSpace ) + " (" + StringUtil.formatDiskSize( localDBdiskSpace ) + ")" );
         out( "examining LocalDB, this may take a while.... " );
         for ( final LocalDB.DB db : LocalDB.DB.values() )
         {

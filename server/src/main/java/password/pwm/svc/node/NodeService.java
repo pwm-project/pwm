@@ -34,7 +34,7 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
@@ -89,7 +89,7 @@ public class NodeService extends AbstractPwmService implements PwmService
 
                     default:
                         LOGGER.debug( () -> "no suitable storage method configured " );
-                        JavaHelper.unhandledSwitchStatement( dataStore );
+                        MiscUtil.unhandledSwitchStatement( dataStore );
                         return STATUS.CLOSED;
 
                 }

@@ -69,7 +69,6 @@ import password.pwm.util.PwmScheduler;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.FileSystemUtility;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -205,7 +204,8 @@ public class PwmApplication
             final File tempFileDirectory = getTempDirectory();
             try
             {
-                FileSystemUtility.deleteDirectoryContents( tempFileDirectory );
+                LOGGER.debug( () -> "deleting directory (and sub-directory) contents in " + tempFileDirectory );
+                FileSystemUtility.deleteDirectoryContentsRecursively( tempFileDirectory.toPath() );
             }
             catch ( final Exception e )
             {
@@ -249,7 +249,7 @@ public class PwmApplication
 
         // read the pwm installation date
         installTime = fetchInstallDate( startupTime );
-        LOGGER.debug( () -> "this application instance first installed on " + JavaHelper.toIsoDate( installTime ) );
+        LOGGER.debug( () -> "this application instance first installed on " + StringUtil.toIsoDate( installTime ) );
 
         LOGGER.debug( () -> "application environment flags: " + JsonFactory.get().serializeCollection( pwmEnvironment.getFlags() ) );
         LOGGER.debug( () -> "application environment parameters: "

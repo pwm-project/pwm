@@ -33,7 +33,6 @@ import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.i18n.PwmLocaleBundle;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -376,7 +375,7 @@ public class LocaleHelper
         {
             return LocaleHelper.getLocalizedMessage( locale, Display.Value_NotApplicable, domainConfig );
         }
-        return JavaHelper.toIsoDate( input );
+        return StringUtil.toIsoDate( input );
     }
 
     public static Map<PwmLocaleBundle, Map<String, List<Locale>>> getModifiedKeysInConfig( final DomainConfig domainConfig )

@@ -32,7 +32,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditServiceClient;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -263,7 +263,7 @@ public class PwmLogger
                     break;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( level );
+                    MiscUtil.unhandledSwitchStatement( level );
             }
         }
         else

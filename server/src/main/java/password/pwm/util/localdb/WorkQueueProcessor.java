@@ -79,7 +79,7 @@ public final class WorkQueueProcessor<W extends Serializable>
 
     private ThreadPoolExecutor executorService;
 
-    private final MovingAverage avgLagTime = new MovingAverage( TimeDuration.MINUTE );
+    private final MovingAverage avgLagTime = new MovingAverage( TimeDuration.MINUTE.asDuration() );
     private final EventRateMeter sendRate = new EventRateMeter( TimeDuration.MINUTE );
 
     private final StatisticCounterBundle<WorkQueueStat> workQueueStats = new StatisticCounterBundle<>( WorkQueueStat.class );
@@ -616,7 +616,7 @@ public final class WorkQueueProcessor<W extends Serializable>
     public Map<String, String> debugInfo( )
     {
         final Map<String, String> output = new HashMap<>();
-        output.put( "avgLagTime", avgLagTime.getAverageAsDuration().asCompactString() );
+        output.put( "avgLagTime", TimeDuration.fromDuration( avgLagTime.getAverageAsDuration() ).asCompactString() );
         output.put( "sendRate", sendRate.readEventRate().setScale( 2, RoundingMode.DOWN ) + "/s" );
         if ( executorService != null )
         {

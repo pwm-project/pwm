@@ -379,8 +379,8 @@ public class X509Utils
         returnMap.put( CertDebugInfoKey.subject.toString(), cert.getSubjectDN().toString() );
         returnMap.put( CertDebugInfoKey.serial.toString(), X509Utils.hexSerial( cert ) );
         returnMap.put( CertDebugInfoKey.issuer.toString(), cert.getIssuerDN().toString() );
-        returnMap.put( CertDebugInfoKey.issueDate.toString(), JavaHelper.toIsoDate( cert.getNotBefore() ) );
-        returnMap.put( CertDebugInfoKey.expireDate.toString(), JavaHelper.toIsoDate( cert.getNotAfter() ) );
+        returnMap.put( CertDebugInfoKey.issueDate.toString(), StringUtil.toIsoDate( cert.getNotBefore().toInstant() ) );
+        returnMap.put( CertDebugInfoKey.expireDate.toString(), StringUtil.toIsoDate( cert.getNotAfter().toInstant() ) );
         try
         {
             returnMap.put( CertDebugInfoKey.md5Hash.toString(), hash( cert, PwmHashAlgorithm.MD5 ) );

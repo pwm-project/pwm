@@ -37,7 +37,7 @@ import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
-import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.util.java.ImmutableByteArray;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.PhotoDataBean;
@@ -47,6 +47,7 @@ import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -157,7 +158,7 @@ public class PhotoDataReader
                 return Optional.of( returnUrl );
 
             default:
-                JavaHelper.unhandledSwitchStatement( method );
+                MiscUtil.unhandledSwitchStatement( method );
 
         }
 
@@ -190,7 +191,7 @@ public class PhotoDataReader
                     break;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( method );
+                    MiscUtil.unhandledSwitchStatement( method );
             }
         }
         finally

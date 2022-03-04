@@ -46,6 +46,7 @@ import password.pwm.util.java.AverageTracker;
 import password.pwm.util.java.BlockingThreadPool;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -206,7 +207,7 @@ public class ReportService extends AbstractPwmService implements PwmService
             break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( reportCommand );
+                MiscUtil.unhandledSwitchStatement( reportCommand );
         }
     }
 

@@ -23,8 +23,8 @@ package password.pwm.svc.wordlist;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LongIncrementer;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.util.Collection;
@@ -87,7 +87,7 @@ public abstract class AbstractWordlistBucket implements WordlistBucket
             }
 
             default:
-                JavaHelper.unhandledSwitchStatement( type );
+                MiscUtil.unhandledSwitchStatement( type );
         }
 
         throw new IllegalStateException( "unreachable switch statement" );

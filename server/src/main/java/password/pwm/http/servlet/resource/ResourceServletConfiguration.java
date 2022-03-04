@@ -29,7 +29,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
-import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.util.java.ImmutableByteArray;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;

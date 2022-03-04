@@ -22,25 +22,30 @@ package password.pwm.ldap;
 
 import com.novell.ldapchai.impl.edir.entry.EdirEntries;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.Singular;
+import lombok.Value;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
+import password.pwm.bean.pub.PublicUserInfoBean;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.tag.PasswordRequirementsTag;
 import password.pwm.svc.otp.OTPUserRecord;
+import password.pwm.util.macro.MacroRequest;
 
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
-@Getter
+@Value
 @Builder
 public class UserInfoBean implements UserInfo
 {
@@ -99,6 +104,54 @@ public class UserInfoBean implements UserInfo
 
     @Singular
     private final Map<String, String> attributes;
+
+    public static PublicUserInfoBean toPublicUserInfoBean(
+            final UserInfo userInfoBean,
+            final DomainConfig config,
+            final Locale locale,
+            final MacroRequest macroRequest
+    )
+            throws PwmUnrecoverableException
+    {
+        final PublicUserInfoBean.PublicUserInfoBeanBuilder publicUserInfoBean = PublicUserInfoBean.builder();
+        publicUserInfoBean.userDN( userInfoBean.getUserIdentity() == null ? "" : userInfoBean.getUserIdentity().getUserDN() );
+        publicUserInfoBean.ldapProfile( userInfoBean.getUserIdentity() == null ? "" : userInfoBean.getUserIdentity().getLdapProfileID() );
+        publicUserInfoBean.userID( userInfoBean.getUsername() );
+        publicUserInfoBean.userGUID( userInfoBean.getUserGuid() );
+        publicUserInfoBean.userEmailAddress( userInfoBean.getUserEmailAddress() );
+        publicUserInfoBean.userEmailAddress2( userInfoBean.getUserEmailAddress2() );
+        publicUserInfoBean.userEmailAddress3( userInfoBean.getUserEmailAddress3() );
+        publicUserInfoBean.userSmsNumber( userInfoBean.getUserSmsNumber() );
+        publicUserInfoBean.userSmsNumber2( userInfoBean.getUserSmsNumber2() );
+        publicUserInfoBean.userSmsNumber3( userInfoBean.getUserSmsNumber3() );
+        publicUserInfoBean.passwordExpirationTime( userInfoBean.getPasswordExpirationTime() );
+        publicUserInfoBean.passwordLastModifiedTime( userInfoBean.getPasswordLastModifiedTime() );
+        publicUserInfoBean.passwordStatus( userInfoBean.getPasswordStatus() );
+        publicUserInfoBean.accountExpirationTime( userInfoBean.getAccountExpirationTime() );
+        publicUserInfoBean.lastLoginTime( userInfoBean.getLastLdapLoginTime() );
+
+        publicUserInfoBean.requiresNewPassword( userInfoBean.isRequiresNewPassword() );
+        publicUserInfoBean.requiresResponseConfig( userInfoBean.isRequiresResponseConfig() );
+        publicUserInfoBean.requiresUpdateProfile( userInfoBean.isRequiresUpdateProfile() );
+        publicUserInfoBean.requiresOtpConfig( userInfoBean.isRequiresOtpConfig() );
+        publicUserInfoBean.requiresInteraction( userInfoBean.isRequiresInteraction() );
+        publicUserInfoBean.language( userInfoBean.getLanguage() );
+
+        publicUserInfoBean.passwordPolicy( Collections.unmodifiableMap( userInfoBean.getPasswordPolicy().getPolicyMap() ) );
+
+        publicUserInfoBean.passwordRules( PasswordRequirementsTag.getPasswordRequirementsStrings(
+                userInfoBean.getPasswordPolicy(),
+                config,
+                locale,
+                macroRequest ) );
+
+        if ( userInfoBean.getCachedAttributeValues() != null && !userInfoBean.getCachedAttributeValues().isEmpty() )
+        {
+            publicUserInfoBean.attributes( Collections.unmodifiableMap( userInfoBean.getCachedAttributeValues() ) );
+        }
+
+        return publicUserInfoBean.build();
+    }
 
     @Override
     public String readStringAttribute( final String attribute ) throws PwmUnrecoverableException

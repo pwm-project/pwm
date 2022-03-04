@@ -41,6 +41,7 @@ import password.pwm.svc.stats.StatisticsBundle;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestMethodHandler;
@@ -140,7 +141,7 @@ public class RestStatisticsServer extends RestServlet
                 return OutputVersion2.makeData( restRequest );
 
             default:
-                JavaHelper.unhandledSwitchStatement( version );
+                MiscUtil.unhandledSwitchStatement( version );
         }
 
         // unreachable

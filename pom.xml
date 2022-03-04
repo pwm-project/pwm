@@ -48,6 +48,8 @@
     </properties>
 
     <modules>
+        <module>lib-data</module>
+        <module>lib-util</module>
         <module>server</module>
         <module>client</module>
         <module>webapp</module>
@@ -236,7 +238,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.9.0</version>
+                <version>3.10.0</version>
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>

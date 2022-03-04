@@ -58,6 +58,8 @@ import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -134,8 +136,8 @@ public class LDAPHealthChecker implements HealthSupplier
                 final long cautionDurationMS = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.HEALTH_LDAP_CAUTION_DURATION_MS ) );
                 if ( errorAge.isShorterThan( cautionDurationMS ) )
                 {
-                    final String ageString = errorAge.asLongString();
-                    final String errorDate = JavaHelper.toIsoDate( errorInfo.getDate() );
+                    final String ageString = PwmTimeUtil.asLongString( errorAge );
+                    final String errorDate = StringUtil.toIsoDate( errorInfo.getDate() );
                     final String errorMsg = errorInfo.toDebugStr();
                     returnRecords.add( HealthRecord.forMessage(
                             pwmDomain.getDomainID(),
@@ -553,7 +555,7 @@ public class LDAPHealthChecker implements HealthSupplier
                                 pwmDomain.getDomainID(),
                                 HealthMessage.LDAP_ProxyUserPwExpired,
                                 adminEntry.getEntryDN(),
-                                expirationDuration.asLongString( PwmConstants.DEFAULT_LOCALE )
+                                PwmTimeUtil.asLongString( expirationDuration, PwmConstants.DEFAULT_LOCALE )
                         ) );
                     }
                 }
@@ -1061,7 +1063,7 @@ public class LDAPHealthChecker implements HealthSupplier
                     HealthRecord.forMessage(
                             pwmDomain.getDomainID(),
                             HealthMessage.LDAP_SearchFailure,
-                            "user search time of " + timeDuration.asLongString() + " exceeded ideal of " + warnDuration.asLongString(  )
+                            "user search time of " + PwmTimeUtil.asLongString( timeDuration ) + " exceeded ideal of " + PwmTimeUtil.asLongString( warnDuration )
                     ) );
         }
 
@@ -1159,7 +1161,7 @@ public class LDAPHealthChecker implements HealthSupplier
                 break;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( userPermission.getType() );
+                    MiscUtil.unhandledSwitchStatement( userPermission.getType() );
             }
         }
         return returnList;

@@ -21,6 +21,7 @@
 package password.pwm.util.debug;
 
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 
 import java.io.OutputStream;
 import java.time.Instant;
@@ -39,6 +40,6 @@ class SystemEnvironmentItemGenerator implements AppItemGenerator
     {
         final Properties outputProps = JavaHelper.newSortedProperties();
         outputProps.putAll( System.getenv() );
-        outputProps.store( outputStream, JavaHelper.toIsoDate( Instant.now() ) );
+        outputProps.store( outputStream, StringUtil.toIsoDate( Instant.now() ) );
     }
 }

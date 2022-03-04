@@ -23,7 +23,7 @@ package password.pwm.util.debug;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.config.DomainConfig;
 import password.pwm.util.LDAPPermissionCalculator;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.OutputStream;
@@ -45,7 +45,7 @@ class LDAPPermissionItemGenerator implements DomainItemGenerator
         final DomainConfig domainConfig = debugItemInput.getObfuscatedDomainConfig();
         final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( domainConfig );
 
-        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
         {
             final List<String> headerRow = new ArrayList<>();
             headerRow.add( "Attribute" );

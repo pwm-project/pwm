@@ -34,6 +34,7 @@ import password.pwm.http.servlet.ClientApiServlet;
 import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
@@ -280,7 +281,7 @@ public enum PwmValue
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
                 throws PwmUnrecoverableException
         {
-            return IdleTimeoutCalculator.idleTimeoutForRequest( pwmRequest ).asLongString();
+            return PwmTimeUtil.asLongString( IdleTimeoutCalculator.idleTimeoutForRequest( pwmRequest ) );
         }
     }
 

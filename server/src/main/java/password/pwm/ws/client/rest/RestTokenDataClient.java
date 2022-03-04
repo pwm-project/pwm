@@ -33,6 +33,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoBean;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.token.TokenDestinationDisplayMasker;
 import password.pwm.util.json.JsonFactory;
@@ -94,7 +95,7 @@ public class RestTokenDataClient implements RestClient
                     SessionLabel.SYSTEM_LABEL,
                     userInfo.getUserIdentity() );
 
-            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean( userInfo, pwmDomain.getConfig(), PwmConstants.DEFAULT_LOCALE, macroRequest );
+            final PublicUserInfoBean publicUserInfoBean = UserInfoBean.toPublicUserInfoBean( userInfo, pwmDomain.getConfig(), PwmConstants.DEFAULT_LOCALE, macroRequest );
             sendData.put( RestClient.DATA_KEY_USERINFO, publicUserInfoBean );
         }
 

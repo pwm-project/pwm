@@ -34,7 +34,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
@@ -196,7 +196,7 @@ public class CertificateChecker implements HealthSupplier
             if ( issueDate.isAfter( Instant.now() ) )
             {
                 final String errorMsg = "certificate " + X509Utils.makeDebugText( certificate )
-                        + " issue date of '" + JavaHelper.toIsoDate( issueDate ) + "' "
+                        + " issue date of '" + StringUtil.toIsoDate( issueDate ) + "' "
                         + " is prior to current time.";
 
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg, new String[]
@@ -217,7 +217,7 @@ public class CertificateChecker implements HealthSupplier
                 errorMsg.append( "certificate for subject " );
                 errorMsg.append( certificate.getSubjectDN().getName() );
                 errorMsg.append( " will expire on: " );
-                errorMsg.append( JavaHelper.toIsoDate( expireDate ) );
+                errorMsg.append( StringUtil.toIsoDate( expireDate ) );
                 errorMsg.append( " (" ).append( durationUntilExpire.asCompactString() ).append( " from now)" );
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg.toString(), new String[]
                         {

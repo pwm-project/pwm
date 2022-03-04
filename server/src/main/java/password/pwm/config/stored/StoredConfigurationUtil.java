@@ -41,7 +41,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -367,7 +367,7 @@ public abstract class StoredConfigurationUtil
                 return new StringValue( "" );
 
             default:
-                JavaHelper.unhandledSwitchStatement( key );
+                MiscUtil.unhandledSwitchStatement( key );
         }
 
         throw new IllegalStateException();

@@ -66,7 +66,7 @@ import password.pwm.http.servlet.configeditor.data.SettingDataMaker;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaOperationResult;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -327,7 +327,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( configGuideBean.getStep() );
+                MiscUtil.unhandledSwitchStatement( configGuideBean.getStep() );
         }
 
         final PublicHealthData jsonOutput = PublicHealthData.builder()

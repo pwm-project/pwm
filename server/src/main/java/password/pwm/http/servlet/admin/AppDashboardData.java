@@ -45,6 +45,7 @@ import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmNumberFormat;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -238,22 +239,22 @@ public class AppDashboardData implements Serializable
                 "currentTime",
                 DisplayElement.Type.timestamp,
                 l.forKey( "Field_CurrentTime" ),
-                JavaHelper.toIsoDate( Instant.now() )
+                StringUtil.toIsoDate( Instant.now() )
         ), new DisplayElement(
                 "startupTime",
                 DisplayElement.Type.timestamp,
                 l.forKey( "Field_StartTime" ),
-                JavaHelper.toIsoDate( pwmDomain.getPwmApplication().getStartupTime() )
+                StringUtil.toIsoDate( pwmDomain.getPwmApplication().getStartupTime() )
         ), new DisplayElement(
                 "runningDuration",
                 DisplayElement.Type.string,
                 l.forKey( "Field_UpTime" ),
-                TimeDuration.fromCurrent( pwmDomain.getPwmApplication().getStartupTime() ).asLongString( locale )
+                PwmTimeUtil.asLongString( TimeDuration.fromCurrent( pwmDomain.getPwmApplication().getStartupTime() ), locale )
         ), new DisplayElement(
                 "installTime",
                 DisplayElement.Type.timestamp,
                 l.forKey( "Field_InstallTime" ),
-                JavaHelper.toIsoDate( pwmDomain.getPwmApplication().getInstallTime() )
+                StringUtil.toIsoDate( pwmDomain.getPwmApplication().getInstallTime() )
         ), new DisplayElement(
                 "siteURL",
                 DisplayElement.Type.string,
@@ -383,7 +384,7 @@ public class AppDashboardData implements Serializable
         {
             final Optional<Instant> eldestAuditRecord = pwmDomain.getAuditService().eldestVaultRecord();
             final String display = eldestAuditRecord.isPresent()
-                    ? TimeDuration.fromCurrent( eldestAuditRecord.get() ).asLongString()
+                    ? PwmTimeUtil.asLongString( TimeDuration.fromCurrent( eldestAuditRecord.get() ) )
                     : notApplicable;
             localDbInfo.add( new DisplayElement(
                     "oldestLocalAuditRecords",
@@ -402,7 +403,7 @@ public class AppDashboardData implements Serializable
             final LocalDBLogger localDBLogger = pwmDomain.getPwmApplication().getLocalDBLogger();
             final String display = localDBLogger != null
                     && localDBLogger.getTailDate().isPresent()
-                    ? TimeDuration.fromCurrent( localDBLogger.getTailDate().get() ).asLongString()
+                    ? PwmTimeUtil.asLongString( TimeDuration.fromCurrent( localDBLogger.getTailDate().get() ) )
                     : notApplicable;
             localDbInfo.add( new DisplayElement(
                     "oldestLogEvents",
@@ -565,12 +566,12 @@ public class AppDashboardData implements Serializable
 
                 final String uptime = nodeInfo.getStartupTime() == null
                         ? notApplicable
-                        : TimeDuration.fromCurrent( nodeInfo.getStartupTime() ).asLongString( locale );
+                        : PwmTimeUtil.asLongString( TimeDuration.fromCurrent( nodeInfo.getStartupTime() ), locale );
 
                 nodeData.add( new NodeData(
                         nodeInfo.getInstanceID(),
                         uptime,
-                        JavaHelper.toIsoDate( nodeInfo.getLastSeen() ),
+                        StringUtil.toIsoDate( nodeInfo.getLastSeen() ),
                         nodeInfo.getNodeState(),
                         nodeInfo.isConfigMatch()
                 ) );

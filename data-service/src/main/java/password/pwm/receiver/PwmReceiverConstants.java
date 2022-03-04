@@ -18,31 +18,8 @@
  * limitations under the License.
  */
 
-package password.pwm.bean;
+package password.pwm.receiver;
 
-import lombok.Builder;
-import lombok.Value;
-import password.pwm.util.json.JsonFactory;
-
-import java.io.Serializable;
-
-@Value
-@Builder
-public class PasswordStatus implements Serializable
+public class PwmReceiverConstants
 {
-    private final boolean expired;
-    private final boolean preExpired;
-    private final boolean violatesPolicy;
-    private final boolean warnPeriod;
-
-    @Override
-    public String toString( )
-    {
-        return JsonFactory.get().serialize( this );
-    }
-
-    public boolean isEffectivelyExpired( )
-    {
-        return this.isExpired() || !this.isPreExpired() || !this.isViolatesPolicy();
-    }
 }

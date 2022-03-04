@@ -22,6 +22,7 @@ package password.pwm.util.debug;
 
 import password.pwm.PwmAboutProperty;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 
 import java.io.OutputStream;
 import java.time.Instant;
@@ -42,6 +43,6 @@ class AboutItemGenerator implements AppItemGenerator
         final Properties outputProps = JavaHelper.newSortedProperties();
         final Map<PwmAboutProperty, String> infoBean = PwmAboutProperty.makeInfoBean( debugItemInput.getPwmApplication() );
         outputProps.putAll( PwmAboutProperty.toStringMap( infoBean ) );
-        outputProps.store( outputStream, JavaHelper.toIsoDate( Instant.now() ) );
+        outputProps.store( outputStream, StringUtil.toIsoDate( Instant.now() ) );
     }
 }

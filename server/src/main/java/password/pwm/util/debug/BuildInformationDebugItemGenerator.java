@@ -22,6 +22,7 @@ package password.pwm.util.debug;
 
 import password.pwm.PwmConstants;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 
 import java.io.OutputStream;
 import java.time.Instant;
@@ -40,6 +41,6 @@ class BuildInformationDebugItemGenerator implements AppItemGenerator
     {
         final Properties outputProps = JavaHelper.newSortedProperties();
         outputProps.putAll( PwmConstants.BUILD_MANIFEST );
-        outputProps.store( outputStream, JavaHelper.toIsoDate( Instant.now() ) );
+        outputProps.store( outputStream, StringUtil.toIsoDate( Instant.now() ) );
     }
 }

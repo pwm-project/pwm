@@ -29,6 +29,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.util.java.TimeDuration;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -48,7 +49,7 @@ public class SummaryBean
     private Map<String, Integer> javaCount;
     private Map<String, Integer> appVersionCount;
 
-    static SummaryBean fromStorage( final Storage storage, final TimeDuration maxAge )
+    static SummaryBean fromStorage( final Storage storage, final Duration maxAge )
     {
 
         final String naText = "n/a";
@@ -67,9 +68,9 @@ public class SummaryBean
         for ( Iterator<TelemetryPublishBean> iterator = storage.iterator(); iterator.hasNext(); )
         {
             final TelemetryPublishBean bean = iterator.next();
-            final TimeDuration age = TimeDuration.fromCurrent( bean.getTimestamp() );
+            final Duration age = Duration.between( Instant.now(), bean.getTimestamp() );
 
-            if ( bean.getAbout() != null && age.isShorterThan( maxAge ) )
+            if ( bean.getAbout() != null && age.toMillis() < maxAge.toMillis() )
             {
                 serverCount++;
                 final String hashID = bean.getInstanceHash();

@@ -42,7 +42,7 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -367,7 +367,7 @@ public class PwmSession implements Serializable
 
     public int size( )
     {
-        return ( int ) JavaHelper.sizeof( this );
+        return ( int ) MiscUtil.sizeof( this );
     }
 
     PwmSecurityKey getSecurityKey( final PwmRequest pwmRequest )

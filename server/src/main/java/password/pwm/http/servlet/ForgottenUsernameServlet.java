@@ -49,6 +49,7 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
@@ -117,7 +118,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
                     return;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( action.get() );
+                    MiscUtil.unhandledSwitchStatement( action.get() );
             }
         }
 

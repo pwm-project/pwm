@@ -1158,7 +1158,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
 
                 final ConditionalTaskExecutor conditionalTaskExecutor = ConditionalTaskExecutor.forPeriodicTask(
                         checkPointProcess,
-                        TimeDuration.SECONDS_10 );
+                        TimeDuration.SECONDS_10.asDuration() );
 
                 // trim the top.
                 while ( !headPosition.equals( tailPosition ) && localDB.get( db, headPosition.key() ).isPresent() )

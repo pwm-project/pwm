@@ -23,19 +23,16 @@ package password.pwm.util.java;
 import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
-import password.pwm.PwmConstants;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmInternalException;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.logging.PwmLogger;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -45,6 +42,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -55,7 +53,7 @@ import java.util.stream.Collectors;
 
 public abstract class StringUtil
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( StringUtil.class );
+    private static final Charset STRING_UTIL_CHARSET = StandardCharsets.UTF_8;
 
     private static final Base64.Decoder B64_MIME_DECODER = Base64.getMimeDecoder();
     private static final Base64.Decoder B64_URL_DECODER = Base64.getUrlDecoder();
@@ -200,7 +198,7 @@ public abstract class StringUtil
     {
         return diskSize == 0
                 ? "0"
-                : PwmNumberFormat.forDefaultLocale().format( diskSize ) + " (" + formatDiskSize( diskSize ) + ")";
+                : PwmNumberFormat.forLocale( Locale.getDefault() ).format( diskSize ) + " (" + formatDiskSize( diskSize ) + ")";
     }
 
     public static String formatDiskSize( final long diskSize )
@@ -229,19 +227,24 @@ public abstract class StringUtil
             return nf.format( diskSize / count / count ) + " MB";
         }
 
-        return PwmNumberFormat.forDefaultLocale().format( diskSize ) + " bytes";
+        return PwmNumberFormat.forLocale( Locale.getDefault() ).format( diskSize ) + " bytes";
     }
 
     public static boolean nullSafeEqualsIgnoreCase( final String value1, final String value2 )
     {
         final String compare1 = value1 == null ? "" : value1;
         final String compare2 = value2 == null ? "" : value2;
-        return Objects.equals( compare1.toLowerCase( PwmConstants.DEFAULT_LOCALE ), compare2.toLowerCase( PwmConstants.DEFAULT_LOCALE ) );
+        return Objects.equals( compare1.toLowerCase(), compare2.toLowerCase() );
     }
 
     public static boolean nullSafeEquals( final String value1, final String value2 )
     {
         return Objects.equals( value1, value2 );
+    }
+
+    public static String toIsoDate( final Instant instant )
+    {
+        return instant == null ? "" : instant.truncatedTo( ChronoUnit.SECONDS ).toString();
     }
 
     public enum Base64Options
@@ -279,12 +282,11 @@ public abstract class StringUtil
     {
         try
         {
-            return URLEncoder.encode( input, PwmConstants.DEFAULT_CHARSET.toString() );
+            return URLEncoder.encode( input, STRING_UTIL_CHARSET.toString() );
         }
         catch ( final UnsupportedEncodingException e )
         {
-            LOGGER.error( () -> "unexpected error during url encoding: " + e.getMessage() );
-            return input;
+            throw new RuntimeException( "unexpected error during url encoding: " + e.getMessage(), e );
         }
     }
 
@@ -292,12 +294,11 @@ public abstract class StringUtil
     {
         try
         {
-            return URLDecoder.decode( input, PwmConstants.DEFAULT_CHARSET.toString() );
+            return URLDecoder.decode( input, STRING_UTIL_CHARSET.toString() );
         }
         catch ( final UnsupportedEncodingException e )
         {
-            LOGGER.error( () -> "unexpected error during url decoding: " + e.getMessage() );
-            return input;
+            throw new RuntimeException( "unexpected error during url decoding: " + e.getMessage(), e );
         }
     }
 
@@ -305,7 +306,7 @@ public abstract class StringUtil
             throws IOException
     {
         final Base32 base32 = new Base32();
-        return new String( base32.encode( input ), PwmConstants.DEFAULT_CHARSET );
+        return new String( base32.encode( input ), STRING_UTIL_CHARSET.toString() );
     }
 
     public static byte[] base64Decode( final CharSequence input, final StringUtil.Base64Options... options )
@@ -347,7 +348,7 @@ public abstract class StringUtil
             }
             catch ( final IOException e )
             {
-                throw PwmInternalException.fromPwmException( "unexpected error during base64 decoding: " + e, e );
+                throw new RuntimeException( "unexpected error during base64 decoding: " + e, e );
             }
         }
         else
@@ -722,27 +723,6 @@ public abstract class StringUtil
                 .anyMatch( lCaseValue::equals );
     }
 
-    public static void validateLdapSearchFilter( final String filter )
-            throws PwmUnrecoverableException
-    {
-        if ( filter == null || filter.isEmpty() )
-        {
-            return;
-        }
-
-        final int leftParens = StringUtils.countMatches( filter, "(" );
-        final int rightParens = StringUtils.countMatches( filter, ")" );
-
-        if ( leftParens != rightParens )
-        {
-            throw PwmUnrecoverableException.newException( PwmError.CONFIG_FORMAT_ERROR, "unbalanced parentheses in ldap filter" );
-        }
-    }
-
-    public static InputStream stringToInputStream( final String input )
-    {
-        return new ByteArrayInputStream( input.getBytes( PwmConstants.DEFAULT_CHARSET ) );
-    }
 
     private static final Map<Character, String> URL_PATH_ENCODING_REPLACEMENTS = Map.ofEntries(
             Map.entry( ' ', "%20" ),

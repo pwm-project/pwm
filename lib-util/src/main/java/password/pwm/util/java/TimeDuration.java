@@ -21,28 +21,20 @@
 package password.pwm.util.java;
 
 import lombok.Value;
-import password.pwm.PwmConstants;
-import password.pwm.i18n.Display;
-import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.secure.PwmRandom;
-import password.pwm.svc.secure.DomainSecureService;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 
 /**
  * <p>An immutable class representing a time period.  The internal value of the time period is
- * stored as milliseconds.</p>
+ * stored as milliseconds.  This class predates {@link java.time.Duration} and has similar functionality,
+ * but still offers some additional convenience/features that make it useful.</p>
  *
  * <p>Negative time durations are not permitted.  Operations that would result in a negative value
  * are ignored and will instead result in a zero value.</p>
@@ -202,7 +194,7 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
 
     public String asCompactString( )
     {
-        final FractionalTimeDetail fractionalTimeDetail = new FractionalTimeDetail( ms );
+        final FractionalTimeDetail fractionalTimeDetail = asFractionalTimeDetail();
         final StringBuilder sb = new StringBuilder();
 
         if ( this.equals( ZERO ) )
@@ -311,100 +303,6 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
         return this.isShorterThan( newTimeDuration( durationMS ) );
     }
 
-    public String asLongString( )
-    {
-        return asLongString( PwmConstants.DEFAULT_LOCALE );
-    }
-
-    public String asLongString( final Locale locale )
-    {
-        final FractionalTimeDetail fractionalTimeDetail = new FractionalTimeDetail( ms );
-        final List<String> segments = new ArrayList<>();
-
-        //output number of days
-        if ( fractionalTimeDetail.days > 0 )
-        {
-            segments.add( fractionalTimeDetail.days
-                    + " "
-                    + ( fractionalTimeDetail.days == 1
-                    ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Day, null )
-                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Days, null ) )
-            );
-        }
-
-        //output number of hours
-        if ( fractionalTimeDetail.hours > 0 )
-        {
-            segments.add( fractionalTimeDetail.hours
-                    + " "
-                    + ( fractionalTimeDetail.hours == 1
-                    ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Hour, null )
-                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Hours, null ) )
-            );
-        }
-
-        //output number of minutes
-        if ( fractionalTimeDetail.minutes > 0 )
-        {
-            segments.add( fractionalTimeDetail.minutes
-                    + " "
-                    + ( fractionalTimeDetail.minutes == 1
-                    ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Minute, null )
-                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Minutes, null ) )
-            );
-        }
-
-        //seconds & ms
-        if ( fractionalTimeDetail.seconds > 0 || segments.isEmpty() )
-        {
-            final StringBuilder sb = new StringBuilder();
-            if ( sb.length() == 0 )
-            {
-                if ( ms < 10_000 )
-                {
-                    final BigDecimal msDecimal = new BigDecimal( ms ).movePointLeft( 3 );
-
-                    final DecimalFormat formatter;
-
-                    if ( ms > 5000 )
-                    {
-                        formatter = new DecimalFormat( "#.#" );
-                    }
-                    else if ( ms > 2000 )
-                    {
-                        formatter = new DecimalFormat( "#.##" );
-                    }
-                    else
-                    {
-                        formatter = new DecimalFormat( "#.###" );
-                    }
-
-                    sb.append( formatter.format( msDecimal ) );
-                }
-                else
-                {
-                    sb.append( fractionalTimeDetail.seconds );
-                }
-            }
-            else
-            {
-                sb.append( fractionalTimeDetail.seconds );
-            }
-
-            sb.append( ' ' );
-            sb.append( ms == 1000
-                    ? LocaleHelper.getLocalizedMessage( locale, Display.Display_Second, null )
-                    : LocaleHelper.getLocalizedMessage( locale, Display.Display_Seconds, null )
-            );
-
-
-
-            segments.add( sb.toString() );
-        }
-
-        return StringUtil.collectionToString( segments, ", " );
-    }
-
     public Instant getInstantAfter( final Instant specifiedDate )
     {
         return specifiedDate.minusMillis( ms );
@@ -439,17 +337,6 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
     public void pause( )
     {
         pause( this, () -> false );
-    }
-
-    /**
-     * Pause the calling thread the specified amount of time.
-     */
-    public void jitterPause( final DomainSecureService domainSecureService, final float factor )
-    {
-        final PwmRandom pwmRandom = domainSecureService.pwmRandom();
-        final long jitterMs = (long) ( this.ms * factor );
-        final long deviation = pwmRandom.nextBoolean() ? jitterMs + this.ms : jitterMs - this.ms;
-        pause( TimeDuration.of( deviation, Unit.MILLISECONDS ), () -> false );
     }
 
     public void pause(
@@ -496,8 +383,18 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
         return fromDuration( Duration.of( value, timeUnit.getTemporalUnit() ) );
     }
 
+    public boolean isZero()
+    {
+        return ms <= 0;
+    }
+
+    public FractionalTimeDetail asFractionalTimeDetail()
+    {
+        return new FractionalTimeDetail( ms );
+    }
+
     @Value
-    private static class FractionalTimeDetail implements Serializable
+    public static class FractionalTimeDetail implements Serializable
     {
         private final long milliseconds;
         private final long seconds;
@@ -505,7 +402,7 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
         private final long hours;
         private final long days;
 
-        FractionalTimeDetail( final long duration )
+        private FractionalTimeDetail( final long duration )
         {
             final long totalSeconds = new BigDecimal( duration ).movePointLeft( 3 ).longValue();
             milliseconds = duration % 1000;
@@ -514,11 +411,6 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
             hours = ( ( totalSeconds / 60 ) / 60 ) % 24;
             days = ( ( ( totalSeconds / 60 ) / 60 ) / 24 );
         }
-    }
-
-    public boolean isZero()
-    {
-        return ms <= 0;
     }
 }
 

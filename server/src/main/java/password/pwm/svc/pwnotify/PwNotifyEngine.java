@@ -42,6 +42,7 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -77,7 +78,7 @@ public class PwNotifyEngine
 
     private final ConditionalTaskExecutor debugOutputTask = ConditionalTaskExecutor.forPeriodicTask(
             this::periodicDebugOutput,
-            TimeDuration.MINUTE
+            TimeDuration.MINUTE.asDuration()
     );
 
     private final AtomicInteger examinedCount = new AtomicInteger( 0 );
@@ -344,7 +345,7 @@ public class PwNotifyEngine
 
     private void log( final String output )
     {
-        final String msg = JavaHelper.toIsoDate( Instant.now() )
+        final String msg = StringUtil.toIsoDate( Instant.now() )
                 + " "
                 + output
                 + "\n";

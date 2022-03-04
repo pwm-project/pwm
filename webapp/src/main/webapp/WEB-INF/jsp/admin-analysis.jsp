@@ -36,6 +36,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
+<%@ page import="password.pwm.util.java.MiscUtil" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -188,10 +189,10 @@
                                             <select name="statsPeriodSelect"
                                                     style="width: 350px;">
                                                 <option value="<%=StatisticsService.KEY_CUMULATIVE%>" <%= StatisticsService.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                    since installation - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getInstallTime()) %></span>
+                                                    since installation - <span class="timestamp"><%= StringUtil.toIsoDate(analysis_pwmRequest.getPwmApplication().getInstallTime()) %></span>
                                                 </option>
                                                 <option value="<%=StatisticsService.KEY_CURRENT%>" <%= StatisticsService.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                    since startup - <span class="timestamp"><%= JavaHelper.toIsoDate(analysis_pwmRequest.getPwmApplication().getStartupTime()) %></span>
+                                                    since startup - <span class="timestamp"><%= StringUtil.toIsoDate(analysis_pwmRequest.getPwmApplication().getStartupTime()) %></span>
                                                 </option>
                                                 <% final Map<DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
                                                 <% for (final Map.Entry<DailyKey, String> entry : availableKeys.entrySet()) { %>

@@ -26,9 +26,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.ConditionalTaskExecutor;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.Percent;
-import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.StatisticAverageBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -143,7 +143,7 @@ class WordlistImporter implements Runnable
             final TimeDuration pauseDuration = wordlistConfiguration.getImportPauseDuration();
             this.pauseTimer = ConditionalTaskExecutor.forPeriodicTask(
                     pauseDuration::pause,
-                    wordlistConfiguration.getImportPauseFrequency() );
+                    wordlistConfiguration.getImportPauseFrequency().asDuration() );
         }
     }
 
@@ -224,11 +224,11 @@ class WordlistImporter implements Runnable
 
         final ConditionalTaskExecutor metaUpdater = ConditionalTaskExecutor.forPeriodicTask(
                 this::writeCurrentWordlistStatus,
-                TimeDuration.SECONDS_10 );
+                TimeDuration.SECONDS_10.asDuration() );
 
         final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask(
                 () -> getLogger().debug( rootWordlist.getSessionLabel(), this::makeStatString ),
-                AbstractWordlist.DEBUG_OUTPUT_FREQUENCY );
+                AbstractWordlist.DEBUG_OUTPUT_FREQUENCY.asDuration() );
 
         try
         {
@@ -397,7 +397,7 @@ class WordlistImporter implements Runnable
                             + StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() )
                             + " of " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
                             + " (" + TimeDuration.compactFromCurrent( startSkipTime ) + ")" ),
-                    AbstractWordlist.DEBUG_OUTPUT_FREQUENCY );
+                    AbstractWordlist.DEBUG_OUTPUT_FREQUENCY.asDuration() );
 
 
             getLogger().debug( rootWordlist.getSessionLabel(), () -> "will skip forward " + StringUtil.formatDiskSizeforDebug( previousBytesRead )
@@ -458,8 +458,8 @@ class WordlistImporter implements Runnable
             stats.put( DebugKey.BytesRemaining, StringUtil.formatDiskSizeforDebug( remainingBytes ) );
         }
 
-        stats.put( DebugKey.LinesRead, PwmNumberFormat.forDefaultLocale().format( zipFileReader.getLineCount() ) );
-        stats.put( DebugKey.ChunksSaved, PwmNumberFormat.forDefaultLocale().format( rootWordlist.size() ) );
+        stats.put( DebugKey.LinesRead, MiscUtil.forDefaultLocale().format( zipFileReader.getLineCount() ) );
+        stats.put( DebugKey.ChunksSaved, MiscUtil.forDefaultLocale().format( rootWordlist.size() ) );
         stats.put( DebugKey.BytesRead, StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() ) );
         stats.put( DebugKey.DiskFreeSpace, StringUtil.formatDiskSize( wordlistBucket.spaceRemaining() ) );
         stats.put( DebugKey.ImportDuration, getImportDuration().asCompactString() );
@@ -473,7 +473,7 @@ class WordlistImporter implements Runnable
 
         try
         {
-            stats.put( DebugKey.WordsImported, PwmNumberFormat.forDefaultLocale().format( wordlistBucket.size() ) );
+            stats.put( DebugKey.WordsImported, MiscUtil.forDefaultLocale().format( wordlistBucket.size() ) );
         }
         catch ( final PwmUnrecoverableException e )
         {

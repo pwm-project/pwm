@@ -33,6 +33,8 @@ import password.pwm.util.EventRateMeter;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -259,7 +261,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
 
         try
         {
-            localDB.put( LocalDB.DB.PWM_STATS, DB_KEY_TEMP, JavaHelper.toIsoDate( Instant.now() ) );
+            localDB.put( LocalDB.DB.PWM_STATS, DB_KEY_TEMP, StringUtil.toIsoDate( Instant.now() ) );
         }
         catch ( final IllegalStateException e )
         {
@@ -379,7 +381,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
         final Instant startTime = Instant.now();
 
         final StatisticsService statsManger = getPwmApplication().getStatisticsManager();
-        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
 
         if ( includeHeader )
         {

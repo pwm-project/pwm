@@ -28,7 +28,6 @@ import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -151,8 +150,8 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
             sb.append( " Subject: " ).append( cert.getSubjectDN().toString() ).append( '\n' );
             sb.append( " Serial: " ).append( X509Utils.hexSerial( cert ) ).append( '\n' );
             sb.append( " Issuer: " ).append( cert.getIssuerDN().toString() ).append( '\n' );
-            sb.append( " IssueDate: " ).append( JavaHelper.toIsoDate( cert.getNotBefore() ) ).append( '\n' );
-            sb.append( " ExpireDate: " ).append( JavaHelper.toIsoDate( cert.getNotAfter() ) ).append( '\n' );
+            sb.append( " IssueDate: " ).append( StringUtil.toIsoDate( cert.getNotBefore().toInstant() ) ).append( '\n' );
+            sb.append( " ExpireDate: " ).append( StringUtil.toIsoDate( cert.getNotAfter().toInstant() ) ).append( '\n' );
             try
             {
                 sb.append( " MD5 Hash: " ).append( SecureEngine.hash( new ByteArrayInputStream( cert.getEncoded() ),

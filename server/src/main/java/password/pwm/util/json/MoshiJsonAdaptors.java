@@ -114,7 +114,7 @@ class MoshiJsonAdaptors
                 return;
             }
 
-            writer.jsonValue( JavaHelper.toIsoDate( value ) );
+            writer.jsonValue( StringUtil.toIsoDate( value ) );
         }
     }
 

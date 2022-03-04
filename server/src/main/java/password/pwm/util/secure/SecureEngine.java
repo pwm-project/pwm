@@ -138,19 +138,19 @@ public class SecureEngine
             if ( blockAlgorithm.getHmacAlgorithm() != null )
             {
                 final byte[] hashChecksum = computeHmacToBytes( blockAlgorithm.getHmacAlgorithm(), key, encryptedBytes );
-                output = appendByteArrays( blockAlgorithm.getPrefix(), hashChecksum, encryptedBytes );
+                output = JavaHelper.concatByteArrays( blockAlgorithm.getPrefix(), hashChecksum, encryptedBytes );
             }
             else
             {
                 if ( nonce == null )
                 {
-                    output = appendByteArrays( blockAlgorithm.getPrefix(), encryptedBytes );
+                    output = JavaHelper.concatByteArrays( blockAlgorithm.getPrefix(), encryptedBytes );
                 }
                 else
                 {
                     final byte[] nonceLength = new byte[ 1 ];
                     nonceLength[ 0 ] = ( byte ) nonce.length;
-                    output = appendByteArrays( blockAlgorithm.getPrefix(), nonceLength, nonce, encryptedBytes );
+                    output = JavaHelper.concatByteArrays( blockAlgorithm.getPrefix(), nonceLength, nonce, encryptedBytes );
                 }
             }
             return output;
@@ -419,35 +419,6 @@ public class SecureEngine
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-    }
-
-    private static byte[] appendByteArrays( final byte[]... input )
-    {
-        if ( input == null || input.length == 0 )
-        {
-            return new byte[ 0 ];
-        }
-
-        if ( input.length == 1 )
-        {
-            return input[ 0 ];
-        }
-
-        int totalLength = 0;
-        for ( final byte[] loopBa : input )
-        {
-            totalLength += loopBa.length;
-        }
-
-        final byte[] output = new byte[ totalLength ];
-
-        int position = 0;
-        for ( final byte[] loopBa : input )
-        {
-            System.arraycopy( loopBa, 0, output, position, loopBa.length );
-            position += loopBa.length;
-        }
-        return output;
     }
 
     static byte[] verifyAndStripPrefix( final PwmBlockAlgorithm blockAlgorithm, final byte[] input ) throws PwmUnrecoverableException

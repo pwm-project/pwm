@@ -30,7 +30,7 @@ import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
@@ -428,7 +428,7 @@ public class ActionValue extends AbstractValue implements StoredValue
             break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( oldAction.getType() );
+                MiscUtil.unhandledSwitchStatement( oldAction.getType() );
 
         }
 

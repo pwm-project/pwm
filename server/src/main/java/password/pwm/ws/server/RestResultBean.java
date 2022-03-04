@@ -38,7 +38,7 @@ import java.lang.reflect.Type;
 import java.util.Locale;
 
 @Value
-@Builder( toBuilder =  true, access = AccessLevel.PRIVATE )
+@Builder( toBuilder =  true, access = AccessLevel.PACKAGE )
 public class RestResultBean<T> implements Serializable
 {
     private static final long serialVersionUID = 1L;

@@ -41,7 +41,7 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.ldap.search.UserSearchEngine;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
@@ -142,7 +142,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                     return;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( oAuthUseCaseCase );
+                    MiscUtil.unhandledSwitchStatement( oAuthUseCaseCase );
             }
 
         }
@@ -184,7 +184,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                         return;
 
                     default:
-                        JavaHelper.unhandledSwitchStatement( oAuthUseCaseCase );
+                        MiscUtil.unhandledSwitchStatement( oAuthUseCaseCase );
                 }
             }
             catch ( final PwmUnrecoverableException e )
@@ -323,7 +323,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                 return OAuthSettings.forForgottenPassword( profile );
 
             default:
-                JavaHelper.unhandledSwitchStatement( oAuthUseCase );
+                MiscUtil.unhandledSwitchStatement( oAuthUseCase );
 
         }
 

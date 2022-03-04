@@ -26,7 +26,6 @@ import password.pwm.VerificationMethodSystem;
 import password.pwm.bean.RemoteVerificationRequestBean;
 import password.pwm.bean.RemoteVerificationResponseBean;
 import password.pwm.bean.SessionLabel;
-import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -36,6 +35,7 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
+import password.pwm.ldap.UserInfoBean;
 import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
@@ -146,7 +146,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
 
         final RemoteVerificationRequestBean remoteVerificationRequestBean = RemoteVerificationRequestBean.builder()
             .responseSessionID( this.remoteSessionID )
-            .userInfo( PublicUserInfoBean.fromUserInfoBean( userInfo, pwmDomain.getConfig(), locale, macroRequest ) )
+            .userInfo( UserInfoBean.toPublicUserInfoBean( userInfo, pwmDomain.getConfig(), locale, macroRequest ) )
             .userResponses( userResponses )
             .build();
 

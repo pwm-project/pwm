@@ -72,7 +72,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
     private final ReentrantLock backgroundImportRunning = new ReentrantLock();
     private final WordlistStatistics statistics = new WordlistStatistics();
     private final ConditionalTaskExecutor statsOutput = ConditionalTaskExecutor.forPeriodicTask( this::outputStats,
-            TimeDuration.of( 5, TimeDuration.Unit.MINUTES ) );
+            TimeDuration.of( 5, TimeDuration.Unit.MINUTES ).asDuration() );
 
     private volatile Activity activity = Wordlist.Activity.Idle;
 
@@ -173,7 +173,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
         }
 
         getStatistics().getAverageStats().update( WordlistStatistics.AverageStat.avgWordCheckLength, word.length() );
-        getStatistics().getAverageStats().update( WordlistStatistics.AverageStat.wordCheckTimeMS, TimeDuration.fromCurrent( startTime ) );
+        getStatistics().getAverageStats().update( WordlistStatistics.AverageStat.wordCheckTimeMS, TimeDuration.fromCurrent( startTime ).asDuration() );
         getStatistics().getCounterStats().increment( WordlistStatistics.CounterStat.wordChecks );
         if ( result )
         {
@@ -239,7 +239,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
 
         statsOutput.conditionallyExecuteTask();
 
-        getStatistics().getAverageStats().update( WordlistStatistics.AverageStat.chunkCheckTimeMS, TimeDuration.fromCurrent( startTime ) );
+        getStatistics().getAverageStats().update( WordlistStatistics.AverageStat.chunkCheckTimeMS, TimeDuration.fromCurrent( startTime ).asDuration() );
         getStatistics().getCounterStats().increment( WordlistStatistics.CounterStat.chunkChecks );
         if ( results )
         {
@@ -323,7 +323,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
                     HealthMessage.Wordlist_AutoImportFailure,
                     wordlistConfiguration.getWordlistFilenameSetting().toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ),
                     autoImportError.getDetailedErrorMsg(),
-                    JavaHelper.toIsoDate( autoImportError.getDate() )
+                    StringUtil.toIsoDate( autoImportError.getDate() )
             );
             returnList.add( healthRecord );
         }

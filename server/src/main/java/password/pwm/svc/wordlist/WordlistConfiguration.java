@@ -30,6 +30,7 @@ import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
@@ -113,7 +114,7 @@ public class WordlistConfiguration implements Serializable
             }
 
             default:
-                JavaHelper.unhandledSwitchStatement( type );
+                MiscUtil.unhandledSwitchStatement( type );
         }
 
         throw new IllegalStateException( "unreachable switch statement" );

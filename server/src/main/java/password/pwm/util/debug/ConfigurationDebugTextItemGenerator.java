@@ -24,7 +24,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 
 import java.io.OutputStream;
 import java.io.StringWriter;
@@ -48,7 +48,7 @@ class ConfigurationDebugTextItemGenerator implements AppItemGenerator
         writer.write( "Configuration Debug Output for "
                 + PwmConstants.PWM_APP_NAME + " "
                 + PwmConstants.SERVLET_VERSION + "\n" );
-        writer.write( "Timestamp: " + JavaHelper.toIsoDate( storedConfiguration.modifyTime() ) + "\n" );
+        writer.write( "Timestamp: " + StringUtil.toIsoDate( storedConfiguration.modifyTime() ) + "\n" );
         writer.write( "This file is " + PwmConstants.DEFAULT_CHARSET.displayName() + " encoded\n" );
         writer.write( '\n' );
 

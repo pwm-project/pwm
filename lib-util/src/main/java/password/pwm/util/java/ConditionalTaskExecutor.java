@@ -20,8 +20,7 @@
 
 package password.pwm.util.java;
 
-import password.pwm.util.logging.PwmLogger;
-
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
@@ -40,8 +39,6 @@ import java.util.function.BooleanSupplier;
  */
 public class ConditionalTaskExecutor
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( ConditionalTaskExecutor.class );
-
     private final Runnable task;
     private final BooleanSupplier predicate;
     private final Lock lock = new ReentrantLock();
@@ -62,9 +59,8 @@ public class ConditionalTaskExecutor
                 }
                 catch ( final Throwable t )
                 {
-                    LOGGER.warn( () -> "unexpected error executing conditional task: " + t.getMessage(), t );
+                    throw new RuntimeException( t );
                 }
-
             }
         }
         finally
@@ -79,39 +75,39 @@ public class ConditionalTaskExecutor
         this.predicate = Objects.requireNonNull( predicate );
     }
 
-    public static ConditionalTaskExecutor forPeriodicTask( final Runnable task, final TimeDuration timeDuration )
+    public static ConditionalTaskExecutor forPeriodicTask( final Runnable task, final Duration timeDuration )
     {
         return new ConditionalTaskExecutor( task, new TimeDurationPredicate( timeDuration ) );
     }
 
     public static ConditionalTaskExecutor forPeriodicTask(
             final Runnable task,
-            final TimeDuration timeDuration,
-            final TimeDuration firstExecutionDelay )
+            final Duration timeDuration,
+            final Duration firstExecutionDelay )
     {
         return new ConditionalTaskExecutor( task, new TimeDurationPredicate( timeDuration, firstExecutionDelay ) );
     }
 
     private static class TimeDurationPredicate implements BooleanSupplier
     {
-        private final TimeDuration timeDuration;
+        private final Duration timeDuration;
         private final AtomicReference<Instant> nextExecuteTimestamp = new AtomicReference<>();
 
-        TimeDurationPredicate( final TimeDuration timeDuration )
+        TimeDurationPredicate( final Duration timeDuration )
         {
             this.timeDuration = timeDuration;
             setNextTimeFromNow( timeDuration );
         }
 
-        TimeDurationPredicate( final TimeDuration timeDuration, final TimeDuration firstExecutionDelay )
+        TimeDurationPredicate( final Duration timeDuration, final Duration firstExecutionDelay )
         {
             this.timeDuration = timeDuration;
             setNextTimeFromNow( firstExecutionDelay );
         }
 
-        private void setNextTimeFromNow( final TimeDuration duration )
+        private void setNextTimeFromNow( final Duration duration )
         {
-            nextExecuteTimestamp.set( Instant.now().plus( duration.asMillis(), ChronoUnit.MILLIS ) );
+            nextExecuteTimestamp.set( Instant.now().plus( duration.toMillis(), ChronoUnit.MILLIS ) );
         }
 
         @Override

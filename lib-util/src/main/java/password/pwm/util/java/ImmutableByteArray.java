@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.http.bean;
+package password.pwm.util.java;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

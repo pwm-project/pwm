@@ -49,6 +49,7 @@ import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -89,7 +90,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
         final String message = LocaleHelper.getLocalizedMessage(
                 Display.Display_SearchResultsInfo, pwmRequest,
                 String.valueOf( users.size() ),
-                searchDuration.asLongString( pwmRequest.getLocale() ) );
+                PwmTimeUtil.asLongString( searchDuration, pwmRequest.getLocale() ) );
 
         final boolean sizeExceeded = users.size() >= maxResultSize;
 

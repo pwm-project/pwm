@@ -35,6 +35,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.util.ProgressInfo;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.TimeDuration;
@@ -166,8 +167,8 @@ public class PasswordChangeProgressChecker
                 percentage.isComplete(),
                 percentage.asBigDecimal( 2 ),
                 newItemProgress.values(),
-                TimeDuration.of( elapsedMs, TimeDuration.Unit.MILLISECONDS ).asLongString( locale ),
-                TimeDuration.of( remainingMs, TimeDuration.Unit.MILLISECONDS ).asLongString( locale )
+                PwmTimeUtil.asLongString( TimeDuration.of( elapsedMs, TimeDuration.Unit.MILLISECONDS ), locale ),
+                PwmTimeUtil.asLongString( TimeDuration.of( remainingMs, TimeDuration.Unit.MILLISECONDS ), locale )
         );
     }
 

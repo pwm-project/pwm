@@ -34,6 +34,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import password.pwm.svc.secure.SystemSecureService;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.logging.PwmLogger;
 
@@ -135,7 +136,7 @@ class SelfCertGenerator
 
     private BigInteger makeSerialNumber()
     {
-        final PwmDateFormat formatter = PwmDateFormat.newPwmDateFormat( "yyyyMMddhhmmss" );
+        final PwmDateFormat formatter = MiscUtil.newPwmDateFormat( "yyyyMMddhhmmss" );
         final String serNumStr = formatter.format( Instant.now() );
         return new BigInteger( serNumStr );
     }

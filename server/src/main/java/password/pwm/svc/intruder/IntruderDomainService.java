@@ -52,7 +52,7 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.DataStore;
 import password.pwm.util.DataStoreFactory;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -238,7 +238,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
                     throw new PwmUnrecoverableException( PwmError.ERROR_INTRUDER_USER );
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( recordType );
+                    MiscUtil.unhandledSwitchStatement( recordType );
             }
         }
     }

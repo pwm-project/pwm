@@ -183,7 +183,7 @@ public class HttpEventManager implements
             final TimeDuration timeDuration = TimeDuration.between( startTime, lastAccessedTime );
             debugItems.put( "firstToLastRequestInterval", timeDuration.asCompactString() );
         }
-        final TimeDuration avgReqDuration =  sessionStateBean.getAvgRequestDuration().getAverageAsDuration();
+        final TimeDuration avgReqDuration =  TimeDuration.fromDuration( sessionStateBean.getAvgRequestDuration().getAverageAsDuration() );
         debugItems.put( "avgRequestDuration", avgReqDuration.asCompactString() );
         return StringUtil.mapToString( debugItems );
     }
