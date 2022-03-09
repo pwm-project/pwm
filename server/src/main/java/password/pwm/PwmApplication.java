@@ -81,6 +81,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 import password.pwm.util.secure.PwmRandom;
+import password.pwm.util.secure.X509Utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -508,31 +509,17 @@ public class PwmApplication
     {
         final Map<PwmEnvironment.ApplicationParameter, String> applicationParams = pwmApplication.getPwmEnvironment().getParameters();
         final String keystoreFileString = applicationParams.get( PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStoreFile );
-        if ( keystoreFileString != null && !keystoreFileString.isEmpty() )
+        if ( StringUtil.isEmpty( keystoreFileString ) )
         {
-            LOGGER.trace( () -> "attempting to output keystore as configured by environment parameters to " + keystoreFileString );
-            final File keyStoreFile = new File( keystoreFileString );
-            final String password = applicationParams.get( PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStorePassword );
-            final String alias = applicationParams.get( PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStoreAlias );
-            final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication( pwmApplication, new PasswordData( password ), alias );
-            final ByteArrayOutputStream outputContents = new ByteArrayOutputStream();
-            keyStore.store( outputContents, password.toCharArray() );
-            if ( keyStoreFile.exists() )
-            {
-                LOGGER.trace( () -> "deleting existing keystore file " + keyStoreFile.getAbsolutePath() );
-                if ( keyStoreFile.delete() )
-                {
-                    LOGGER.trace( () -> "deleted existing keystore file: " + keyStoreFile.getAbsolutePath() );
-                }
-            }
-
-            try ( OutputStream fileOutputStream = Files.newOutputStream( keyStoreFile.toPath() ) )
-            {
-                fileOutputStream.write( outputContents.toByteArray() );
-            }
-
-            LOGGER.info( () -> "successfully exported application https key to keystore file " + keyStoreFile.getAbsolutePath() );
+            return;
         }
+
+        final File keyStoreFile = new File( keystoreFileString );
+        final String password = applicationParams.get( PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStorePassword );
+        final String alias = applicationParams.get( PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStoreAlias );
+        final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication( pwmApplication, new PasswordData( password ), alias );
+        X509Utils.outputKeystore( keyStore, keyStoreFile, password );
+        PwmApplication.LOGGER.info( () -> "exported application https key to keystore file " + keyStoreFile.getAbsolutePath() );
     }
 
     private static void outputTomcatConf( final PwmApplication pwmDomain ) throws IOException

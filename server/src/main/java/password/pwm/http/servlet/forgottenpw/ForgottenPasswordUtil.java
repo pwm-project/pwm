@@ -847,7 +847,7 @@ public class ForgottenPasswordUtil
                     pwmRequestContext,
                     forgottenPasswordBean
             );
-            final Set<IdentityVerificationMethod> otherOptionalMethodChoices = CollectionUtil.copiedEnumSet( remainingAvailableOptionalMethods, IdentityVerificationMethod.class );
+            final Set<IdentityVerificationMethod> otherOptionalMethodChoices = CollectionUtil.copyToEnumSet( remainingAvailableOptionalMethods, IdentityVerificationMethod.class );
             otherOptionalMethodChoices.remove( thisMethod );
 
             return !otherOptionalMethodChoices.isEmpty();

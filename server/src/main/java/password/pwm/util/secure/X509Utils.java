@@ -46,11 +46,16 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.CertificateEncodingException;
@@ -335,6 +340,27 @@ public class X509Utils
                 .map( mapFunction )
                 .flatMap( Optional::stream )
                 .collect( Collectors.toList() );
+    }
+
+    public static void outputKeystore(
+            final KeyStore keyStore,
+            final File keyStoreFile,
+            final String password
+    )
+            throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException
+    {
+        final ByteArrayOutputStream outputContents = new ByteArrayOutputStream();
+        keyStore.store( outputContents, password.toCharArray() );
+
+        if ( keyStoreFile.exists() )
+        {
+            Files.delete( keyStoreFile.toPath() );
+        }
+
+        try ( OutputStream fileOutputStream = Files.newOutputStream( keyStoreFile.toPath() ) )
+        {
+            fileOutputStream.write( outputContents.toByteArray() );
+        }
     }
 
     enum CertDebugInfoKey

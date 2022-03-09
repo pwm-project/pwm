@@ -18,22 +18,26 @@
  * limitations under the License.
  */
 
-package password.pwm.receiver;
+package password.pwm.util.debug;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import password.pwm.PwmConstants;
+import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 
-@WebServlet( urlPatterns = "/testServlet" )
-public class TestServlet extends HttpServlet
+import java.io.OutputStream;
+
+class BuildManifestDebugItemGenerator implements AppItemGenerator
 {
     @Override
-    protected void doGet( final HttpServletRequest req, final HttpServletResponse resp )
-            throws ServletException, IOException
+    public String getFilename()
     {
-        resp.getWriter().write( "yeppers" );
+        return "build-manifest.json";
+    }
+
+    @Override
+    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    {
+        final String json = JsonFactory.get().serializeMap( PwmConstants.BUILD_MANIFEST, JsonProvider.Flag.PrettyPrint );
+        DebugItemGenerator.writeString( outputStream, json );
     }
 }

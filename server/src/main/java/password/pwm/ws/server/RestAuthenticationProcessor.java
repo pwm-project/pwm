@@ -76,7 +76,7 @@ public class RestAuthenticationProcessor
             {
                 final String name = namedSecretName.get();
                 LOGGER.trace( sessionLabel, () -> "authenticating with named secret '" + name + "'" );
-                final Set<WebServiceUsage> usages = CollectionUtil.copiedEnumSet( CollectionUtil.readEnumSetFromStringCollection(
+                final Set<WebServiceUsage> usages = CollectionUtil.copyToEnumSet( CollectionUtil.readEnumSetFromStringCollection(
                         WebServiceUsage.class,
                         pwmDomain.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET ).get( name ).getUsage()
                 ), WebServiceUsage.class );
@@ -121,7 +121,7 @@ public class RestAuthenticationProcessor
                         RestAuthenticationType.LDAP,
                         null,
                         userIdentity.get(),
-                        Collections.unmodifiableSet( CollectionUtil.copiedEnumSet( WebServiceUsage.forType( RestAuthenticationType.LDAP ), WebServiceUsage.class ) ),
+                        Collections.unmodifiableSet( CollectionUtil.copyToEnumSet( WebServiceUsage.forType( RestAuthenticationType.LDAP ), WebServiceUsage.class ) ),
                         thirdParty,
                         chaiProvider
                 );
@@ -129,7 +129,7 @@ public class RestAuthenticationProcessor
         }
 
         final Set<WebServiceUsage> publicUsages = WebServiceUsage.forType( RestAuthenticationType.PUBLIC );
-        final Set<WebServiceUsage> enabledUsages = CollectionUtil.copiedEnumSet(
+        final Set<WebServiceUsage> enabledUsages = CollectionUtil.copyToEnumSet(
                 pwmDomain.getConfig().readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class ), WebServiceUsage.class );
         enabledUsages.retainAll( publicUsages );
 

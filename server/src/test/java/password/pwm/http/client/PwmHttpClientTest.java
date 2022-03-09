@@ -46,10 +46,14 @@ import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
+import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.localdb.TestHelper;
+import password.pwm.util.secure.X509Utils;
+import password.pwm.util.secure.self.SelfCertFactory;
+import password.pwm.util.secure.self.SelfCertSettings;
 
-import java.io.InputStream;
+import java.io.File;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -58,17 +62,56 @@ import java.util.List;
 
 public class PwmHttpClientTest
 {
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule( WireMockConfiguration.wireMockConfig()
-            .dynamicPort()
-            .dynamicHttpsPort() );
+    private static final String CERT_PASSWORD = "password";
+    private static final String CERT_ALIAS = "wiremock";
+    private static final String CERT_HOSTNAME = "localhost";
+
+    private X509Certificate httpsCertificate;
 
     @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    public TemporaryFolder tempAppPath = new TemporaryFolder();
+
+    @Rule
+    public WireMockRule wireMockRule = initWireMock();
 
 
-    public PwmHttpClientTest() throws PwmUnrecoverableException
+    private WireMockRule initWireMock()
     {
+        try
+        {
+            return initWireMockImpl();
+        }
+        catch ( final Exception e )
+        {
+            throw new IllegalStateException( e );
+        }
+    }
+
+    private WireMockRule initWireMockImpl()
+            throws Exception
+    {
+        tempAppPath.create();
+
+        final File httpsKeystoreFile = File.createTempFile(
+                "pwm-" + PwmHttpClientTest.class.getName() + "-",
+                ".jks",
+                tempAppPath.newFolder() );
+
+        final KeyStore keyStore = SelfCertFactory.generateNewCert(
+                SelfCertSettings.builder().subjectAlternateName( CERT_HOSTNAME ).build(),
+                null,
+                new PasswordData( CERT_PASSWORD ),
+                CERT_ALIAS );
+
+        httpsCertificate = ( X509Certificate ) keyStore.getCertificate( CERT_ALIAS );
+
+        X509Utils.outputKeystore( keyStore, httpsKeystoreFile, CERT_PASSWORD );
+
+        return new WireMockRule( WireMockConfiguration.wireMockConfig()
+                .keystorePassword( CERT_PASSWORD )
+                .keystorePath( httpsKeystoreFile.getAbsolutePath() )
+                .dynamicPort()
+                .dynamicHttpsPort() );
     }
 
     /**
@@ -87,7 +130,7 @@ public class PwmHttpClientTest
         final String url = String.format( "http://localhost:%d/simpleHello", wireMockRule.port() );
 
         // Obtain the HTTP client
-        final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), makeAppConfig( url, false, false ) );
+        final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( tempAppPath.newFolder(), makeAppConfig( url, false, false ) );
         final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient(  );
 
         // Execute the HTTP request
@@ -121,7 +164,7 @@ public class PwmHttpClientTest
         final String url = String.format( "https://localhost:%d/simpleHello", wireMockRule.httpsPort() );
 
         // Obtain the HTTP client
-        final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), makeAppConfig( null, false, false ) );
+        final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( tempAppPath.newFolder(), makeAppConfig( null, false, false ) );
         final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient(  );
 
         // Execute the HTTP request
@@ -147,7 +190,7 @@ public class PwmHttpClientTest
         final String url = String.format( "https://localhost:%d/simpleHello", wireMockRule.httpsPort() );
 
         // Obtain the HTTP client
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), makeAppConfig( null, true, false ) );
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( tempAppPath.newFolder(), makeAppConfig( null, true, false ) );
         final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(
                 PwmHttpClientConfiguration.builder().trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous ).build()
         );
@@ -166,7 +209,6 @@ public class PwmHttpClientTest
     /**
      * Test making an SSL request using the server's certificate.
      */
-
     @Test
     public void testGetHttpClientSslWithCertificates() throws Exception
     {
@@ -180,7 +222,7 @@ public class PwmHttpClientTest
 
 
         // Obtain the HTTP client
-        final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), makeAppConfig( null, false, true ) );
+        final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( tempAppPath.newFolder(), makeAppConfig( null, false, true ) );
         final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient(
                 PwmHttpClientConfiguration.builder().trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
                         .certificates( getWireMockSelfSignedCertificate() ).build()
@@ -214,7 +256,7 @@ public class PwmHttpClientTest
         final String proxyUrl = String.format( "http://localhost:%d/simpleHello", wireMockRule.port() );
 
         // Obtain the HTTP client
-        final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), makeAppConfig( proxyUrl, false, false ) );
+        final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( tempAppPath.newFolder(), makeAppConfig( proxyUrl, false, false ) );
         final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient(
                 PwmHttpClientConfiguration.builder().trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
                         .certificates( getWireMockSelfSignedCertificate() ).build()
@@ -236,21 +278,7 @@ public class PwmHttpClientTest
 
     private List<X509Certificate> getWireMockSelfSignedCertificate()
     {
-        final InputStream keystoreInputStream = WireMock.class.getResourceAsStream( "/keystore" );
-
-        try
-        {
-            final KeyStore keyStore = KeyStore.getInstance( KeyStore.getDefaultType() );
-            keyStore.load( keystoreInputStream, "password".toCharArray() );
-            final X509Certificate cert = ( X509Certificate ) keyStore.getCertificate( "wiremock" );
-            return Collections.singletonList( cert );
-        }
-        catch ( final Exception e )
-        {
-            Assert.fail( "Unable to load wiremock self-signed certificate: " + e.getMessage() );
-        }
-
-        return Collections.emptyList();
+        return Collections.singletonList( this.httpsCertificate );
     }
 
     private AppConfig makeAppConfig( final String proxyUrl, final boolean promiscuousEnable, final boolean disableHostnameVerification )

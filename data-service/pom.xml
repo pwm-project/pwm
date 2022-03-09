@@ -124,6 +124,10 @@
                             </outputPaths>
                             <container>
                                 <appRoot>/usr/local/tomcat/webapps/ROOT</appRoot>
+                                <jvmFlags>
+                                    <jvmFlag>-server</jvmFlag>
+                                    <jvmFlag>-Xmx512m</jvmFlag>
+                                </jvmFlags>
                                 <environment>
                                     <DATA_SERVICE_PROPS>/config/data-service.properties</DATA_SERVICE_PROPS>
                                 </environment>

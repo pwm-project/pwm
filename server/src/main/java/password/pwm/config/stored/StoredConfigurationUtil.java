@@ -150,6 +150,10 @@ public abstract class StoredConfigurationUtil
             modifier.writeConfigProperty( ConfigurationProperty.PASSWORD_HASH, PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
         }
 
+        final PasswordValue passwordValue = new PasswordValue( new PasswordData( PwmRandom.getInstance().alphaNumericString( 256 ) ) );
+        final StoredConfigKey storedConfigKey = StoredConfigKey.forSetting( PwmSetting.PWM_SECURITY_KEY, null, DomainID.systemId() );
+        modifier.writeSetting( storedConfigKey, passwordValue, null );
+
         return modifier.newStoredConfiguration();
     }
 

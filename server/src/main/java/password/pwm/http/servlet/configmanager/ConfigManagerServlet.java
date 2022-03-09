@@ -370,8 +370,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     {
         final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmRequest.getPwmApplication(), pwmRequest.getLabel() );
         final PwmResponse resp = pwmRequest.getPwmResponse();
-        resp.setHeader( HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip" );
-        resp.setContentType( HttpContentType.zip );
+        resp.markAsDownload( HttpContentType.zip, PwmConstants.PWM_APP_NAME + "-Support.zip" );
         try ( ZipOutputStream zipOutput = new ZipOutputStream( resp.getOutputStream(), PwmConstants.DEFAULT_CHARSET ) )
         {
             debugItemGenerator.outputZipDebugFile( zipOutput );

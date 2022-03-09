@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.management.LockInfo;
 import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
@@ -200,9 +201,7 @@ public class JavaHelper
     public static long copy( final InputStream input, final OutputStream output )
             throws IOException
     {
-        final int bufferSize = 4 * 1024;
-        final byte[] buffer = new byte[bufferSize];
-        return IOUtils.copyLarge( input, output, 0, -1, buffer );
+        return IOUtils.copyLarge( input, output, 0, -1 );
     }
 
 
@@ -446,11 +445,6 @@ public class JavaHelper
         }, 0L );
     }
 
-    public static Properties newSortedProperties()
-    {
-        return new org.apache.commons.collections4.properties.SortedProperties();
-    }
-
     public static int silentParseInt( final String input, final int defaultValue )
     {
         try
@@ -582,5 +576,13 @@ public class JavaHelper
         {
            /* ignore */
         }
+    }
+
+    public static String stackTraceToString( final Throwable e )
+    {
+        final Writer stackTraceOutput = new StringWriter();
+        e.printStackTrace( new PrintWriter( stackTraceOutput ) );
+        return stackTraceOutput.toString();
+
     }
 }

@@ -73,7 +73,7 @@ public class SettingInfo implements Serializable
                 .options( setting.getOptions() )
                 .pattern( setting.getRegExPattern().toString() )
                 .placeholder( setting.getExample( template ) )
-                .flags( Collections.unmodifiableSet( CollectionUtil.copiedEnumSet( setting.getFlags(), PwmSettingFlag.class ) ) )
+                .flags( Collections.unmodifiableSet( CollectionUtil.copyToEnumSet( setting.getFlags(), PwmSettingFlag.class ) ) )
                 .build();
     }
 }

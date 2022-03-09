@@ -33,8 +33,6 @@ import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.time.Instant;
 import java.util.function.Function;
 
@@ -60,18 +58,12 @@ class LogDebugItemGenerator implements AppItemGenerator
         final LocalDBSearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents( searchParameters );
         final CountingOutputStream countingOutputStream = new CountingOutputStream( outputStream );
 
-        try ( Writer writer = new OutputStreamWriter( countingOutputStream, PwmConstants.DEFAULT_CHARSET ) )
+        while ( searchResults.hasNext() && countingOutputStream.getByteCount() < maxByteCount )
         {
-            while ( searchResults.hasNext() && countingOutputStream.getByteCount() < maxByteCount )
-            {
-                final PwmLogEvent event = searchResults.next();
-                final String output = logEventFormatter.apply( event );
-                writer.write( output );
-                writer.write( "\n" );
-            }
-
-            // do not close writer because underlying stream should not be closed.
-            writer.flush();
+            final PwmLogEvent event = searchResults.next();
+            final String output = logEventFormatter.apply( event );
+            outputStream.write( output.getBytes( PwmConstants.DEFAULT_CHARSET ) );
+            outputStream.write( output.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
     }
 

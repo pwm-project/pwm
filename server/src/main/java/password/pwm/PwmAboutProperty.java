@@ -31,6 +31,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.net.ssl.SSLContext;
+import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
@@ -105,7 +106,8 @@ public enum PwmAboutProperty
     java_randomAlgorithm( "Random Algorithm", pwmApplication -> pwmApplication.getSecureService().pwmRandom().getAlgorithm() ),
     java_defaultCharset( "Default Character Set", pwmApplication -> Charset.defaultCharset().name() ),
     java_appServerInfo( "Java AppServer Info", pwmApplication -> pwmApplication.getPwmEnvironment().getContextManager().getServerInfo() ),
-    java_sslVersions( "Java SSL Versions", pwmApplication ->  readSslVersions() ),
+    java_sslVersions( "Java SSL Versions", pwmApplication -> readSslVersions() ),
+    java_gcName( "Java GC Name", pwmApplication -> readGcName() ),
 
     database_driverName( null,
             pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseAboutProperty.driverName ) ),
@@ -210,5 +212,15 @@ public enum PwmAboutProperty
         {
             return "";
         }
+    }
+
+    private static String readGcName()
+    {
+
+        for ( final GarbageCollectorMXBean bean : ManagementFactory.getGarbageCollectorMXBeans() )
+        {
+            return bean.getName();
+        }
+        return LocaleHelper.valueNotApplicable( PwmConstants.DEFAULT_LOCALE );
     }
 }

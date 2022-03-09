@@ -38,7 +38,7 @@ public class PwmSettingTemplateSet implements Serializable
 
     public PwmSettingTemplateSet( final Set<PwmSettingTemplate> templates )
     {
-        final Set<PwmSettingTemplate> workingSet = CollectionUtil.copiedEnumSet( templates, PwmSettingTemplate.class );
+        final Set<PwmSettingTemplate> workingSet = CollectionUtil.copyToEnumSet( templates, PwmSettingTemplate.class );
 
         final Set<PwmSettingTemplate.Type> seenTypes = workingSet.stream()
                 .map( PwmSettingTemplate::getType )

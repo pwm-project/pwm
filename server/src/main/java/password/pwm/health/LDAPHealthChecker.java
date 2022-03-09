@@ -756,7 +756,7 @@ public class LDAPHealthChecker implements HealthSupplier
         }
 
         final ArrayList<HealthRecord> healthRecords = new ArrayList<>();
-        final Set<DirectoryVendor> discoveredVendors = CollectionUtil.copiedEnumSet( replicaVendorMap.values(), DirectoryVendor.class );
+        final Set<DirectoryVendor> discoveredVendors = CollectionUtil.copyToEnumSet( replicaVendorMap.values(), DirectoryVendor.class );
 
         if ( discoveredVendors.size() >= 2 )
         {

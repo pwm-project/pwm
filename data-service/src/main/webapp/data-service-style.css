@@ -29,3 +29,6 @@ table, td, th {
   border-collapse: collapse;
 }
 
+thead {
+  cursor: pointer;
+}

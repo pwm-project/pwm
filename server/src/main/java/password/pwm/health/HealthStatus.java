@@ -52,7 +52,7 @@ public enum HealthStatus
     public static Optional<HealthStatus> mostSevere( final Collection<HealthStatus> healthStatuses )
     {
         // enumset will sort in natural order, with most severe first.
-        final EnumSet<HealthStatus> sortedSet = CollectionUtil.copiedEnumSet( healthStatuses, HealthStatus.class );
+        final EnumSet<HealthStatus> sortedSet = CollectionUtil.copyToEnumSet( healthStatuses, HealthStatus.class );
         if ( sortedSet.isEmpty() )
         {
             return Optional.empty();

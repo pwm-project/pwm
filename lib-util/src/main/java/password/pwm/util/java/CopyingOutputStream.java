@@ -30,7 +30,6 @@ import java.util.function.Consumer;
  */
 public class CopyingOutputStream extends OutputStream
 {
-    private static final int DEFAULT_BUFFER_SIZE = 8192;
     private final OutputStream realStream;
     private final Consumer<byte[]> consumer;
 

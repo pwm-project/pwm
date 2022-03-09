@@ -513,7 +513,7 @@ public enum PwmSettingCategory
                     .stream()
                     .filter( ( loopCategory ) -> loopCategory.getParent() == category )
                     .collect( Collectors.toUnmodifiableSet() );
-            return Collections.unmodifiableSet( CollectionUtil.copiedEnumSet( categories, PwmSettingCategory.class ) );
+            return Collections.unmodifiableSet( CollectionUtil.copyToEnumSet( categories, PwmSettingCategory.class ) );
         }
 
         public static Set<PwmSetting> readSettings( final PwmSettingCategory category )
@@ -522,7 +522,7 @@ public enum PwmSettingCategory
                     .stream()
                     .filter( ( setting ) -> setting.getCategory() == category )
                     .collect( Collectors.toSet() );
-            return Collections.unmodifiableSet( CollectionUtil.copiedEnumSet( settings, PwmSetting.class ) );
+            return Collections.unmodifiableSet( CollectionUtil.copyToEnumSet( settings, PwmSetting.class ) );
         }
     }
 }
