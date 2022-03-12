@@ -40,6 +40,7 @@ import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -51,6 +52,7 @@ import password.pwm.util.secure.PwmSecurityKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -75,7 +77,7 @@ public class AppConfig implements SettingReader
     private final Set<String> domainIDs;
 
     private final PwmSecurityKey applicationSecurityKey;
-    private final Map<String, String> appPropertyOverrides;
+    private final Map<AppProperty, String> appPropertyOverrides;
     private final Map<Locale, String> localeFlagMap;
 
     private static final Supplier<AppConfig> DEFAULT_CONFIG = new LazySupplier<>( AppConfig::makeDefaultConfig );
@@ -151,7 +153,7 @@ public class AppConfig implements SettingReader
 
     public String readAppProperty( final AppProperty property )
     {
-        return appPropertyOverrides.getOrDefault( property.getKey(), property.getDefaultValue() );
+        return appPropertyOverrides.getOrDefault( property, property.getDefaultValue() );
     }
 
     public boolean readBooleanAppProperty( final AppProperty appProperty )
@@ -181,17 +183,17 @@ public class AppConfig implements SettingReader
 
     public Map<AppProperty, String> readAllNonDefaultAppProperties( )
     {
-        final LinkedHashMap<AppProperty, String> nonDefaultProperties = new LinkedHashMap<>();
-        for ( final AppProperty loopProperty : EnumSet.allOf( AppProperty.class ) )
-        {
-            final String configuredValue = readAppProperty( loopProperty );
-            final String defaultValue = loopProperty.getDefaultValue();
-            if ( configuredValue != null && !configuredValue.equals( defaultValue ) )
-            {
-                nonDefaultProperties.put( loopProperty, configuredValue );
-            }
-        }
-        return Collections.unmodifiableMap( nonDefaultProperties );
+        return appPropertyOverrides;
+    }
+
+    public Map<AppProperty, String> readAllAppProperties()
+    {
+          return Collections.unmodifiableMap( EnumSet.allOf( AppProperty.class ).stream()
+                  .collect( Collectors.toMap(
+                          Function.identity(),
+                          this::readAppProperty
+                  ) ) );
+
     }
 
     public StoredConfiguration getStoredConfiguration()
@@ -333,10 +335,27 @@ public class AppConfig implements SettingReader
         return this.getDomainConfigs().size() > 1;
     }
 
-    private static Map<String, String> makeAppPropertyOverrides( final SettingReader settingReader )
+    private static Map<AppProperty, String> makeAppPropertyOverrides( final SettingReader settingReader )
     {
-        return StringUtil.convertStringListToNameValuePair(
+        final Map<String, String> stringMap =  StringUtil.convertStringListToNameValuePair(
                 settingReader.readSettingAsStringArray( PwmSetting.APP_PROPERTY_OVERRIDES ), "=" );
+
+        final Map<AppProperty, String> appPropertyMap = new EnumMap<>( AppProperty.class );
+        for ( final Map.Entry<String, String> stringEntry : stringMap.entrySet() )
+        {
+            JavaHelper.readEnumFromString( AppProperty.class, stringEntry.getKey() )
+                    .ifPresent( appProperty ->
+                    {
+                       final String defaultValue = appProperty.getDefaultValue();
+                       final String value = stringEntry.getValue();
+                       if ( !Objects.equals( defaultValue, value ) )
+                       {
+                           appPropertyMap.put( appProperty, value );
+                       }
+                    } );
+        }
+
+        return Collections.unmodifiableMap( appPropertyMap );
     }
 
     private static PwmSecurityKey makeAppSecurityKey( final AppConfig appConfig )

@@ -68,7 +68,7 @@ public class LocalSessionStateBean implements Serializable
 
     private final AtomicInteger intruderAttempts = new AtomicInteger( 0 );
     private final AtomicInteger requestCount = new AtomicInteger( 0 );
-    private final MovingAverage avgRequestDuration = new MovingAverage( TimeDuration.DAY );
+    private final MovingAverage avgRequestDuration = new MovingAverage( TimeDuration.DAY.asDuration() );
     private boolean oauthInProgress;
 
     private boolean sessionIdRecycleNeeded;

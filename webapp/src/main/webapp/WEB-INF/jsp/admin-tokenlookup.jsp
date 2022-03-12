@@ -33,6 +33,7 @@
 <%@ page import="password.pwm.util.json.JsonFactory" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.bean.TokenDestinationItem" %>
+<%@ page import="password.pwm.util.java.MiscUtil" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -111,7 +112,7 @@
                     Issue Date
                 </td>
                 <td>
-                    <span class="timestamp"><%= JavaHelper.toIsoDate(tokenPayload.getIssueTime()) %></span>
+                    <span class="timestamp"><%= StringUtil.toIsoDate(tokenPayload.getIssueTime()) %></span>
                 </td>
             </tr>
             <tr>
@@ -119,7 +120,7 @@
                     Expiration Date
                 </td>
                 <td>
-                    <span class="timestamp"><%= JavaHelper.toIsoDate(tokenPayload.getExpiration()) %></span>
+                    <span class="timestamp"><%= StringUtil.toIsoDate(tokenPayload.getExpiration()) %></span>
                 </td>
             </tr>
             <tr>

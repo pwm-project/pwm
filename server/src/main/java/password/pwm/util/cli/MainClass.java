@@ -64,7 +64,7 @@ import password.pwm.util.cli.commands.TokenInfoCommand;
 import password.pwm.util.cli.commands.UserReportCommand;
 import password.pwm.util.cli.commands.VersionCommand;
 import password.pwm.util.java.FileSystemUtility;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.logging.PwmLogLevel;
@@ -297,7 +297,7 @@ public class MainClass
                             break;
 
                         default:
-                            JavaHelper.unhandledSwitchStatement( option.getType() );
+                            MiscUtil.unhandledSwitchStatement( option.getType() );
                     }
                 }
             }

@@ -30,8 +30,10 @@ import password.pwm.util.java.TimeDuration;
 
 @Value
 @Builder
-public class Settings
+public class SelfCertSettings
 {
+    private String subjectAlternateName;
+
     @Builder.Default
     private int keySize = 1024;
 
@@ -44,9 +46,9 @@ public class Settings
     @Builder.Default
     private String siteUrl = "http://" + PwmConstants.PWM_APP_NAME.toLowerCase() + ".example.com";
 
-    public static Settings fromConfiguration ( final AppConfig config )
+    public static SelfCertSettings fromConfiguration ( final AppConfig config )
     {
-        return Settings.builder()
+        return SelfCertSettings.builder()
             .keySize( Integer.parseInt( config.readAppProperty( AppProperty.SECURITY_HTTPSSERVER_SELF_KEY_SIZE )  ) )
             .keyAlg( config.readAppProperty( AppProperty.SECURITY_HTTPSSERVER_SELF_ALG ) )
             .futureSeconds( Long.parseLong( config.readAppProperty( AppProperty.SECURITY_HTTPSSERVER_SELF_FUTURESECONDS ) ) )

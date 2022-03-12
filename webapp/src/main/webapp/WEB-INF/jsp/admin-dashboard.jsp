@@ -41,6 +41,7 @@
 <%@ page import="password.pwm.http.bean.DisplayElement" %>
 <%@ page import="password.pwm.PwmDomain" %>
 <%@ page import="password.pwm.util.java.CollectionUtil" %>
+<%@ page import="password.pwm.util.java.MiscUtil" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -211,7 +212,7 @@
                                 <% final Instant lastError = dashboard_pwmDomain
                                         .getLdapConnectionService().getLastLdapFailureTime(ldapProfiles.iterator().next()); %>
                                 <span class="timestamp">
-                                <%= lastError == null ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable) :JavaHelper.toIsoDate(lastError) %>
+                                <%= lastError == null ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable) : StringUtil.toIsoDate(lastError) %>
                                 </span>
                                 <% } else { %>
                                 <table class="nomargin">
@@ -220,7 +221,7 @@
                                         <td><%=ldapProfile.getDisplayName(locale)%></td>
                                         <td class="timestamp">
                                             <% final Instant lastError = dashboard_pwmDomain.getLdapConnectionService().getLastLdapFailureTime(ldapProfile); %>
-                                            <%= lastError == null ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable) :JavaHelper.toIsoDate(lastError) %>
+                                            <%= lastError == null ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable) : StringUtil.toIsoDate(lastError) %>
                                         </td>
                                     </tr>
                                     <% } %>

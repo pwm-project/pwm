@@ -49,7 +49,7 @@ public class EmailServer
     private SmtpServerType type;
 
     private final StatisticCounterBundle<ServerStat> connectionStats = new StatisticCounterBundle<>( ServerStat.class );
-    private final MovingAverage averageSendTime = new MovingAverage( TimeDuration.MINUTE );
+    private final MovingAverage averageSendTime = new MovingAverage( TimeDuration.MINUTE.asDuration() );
     private final AtomicReference<ErrorInformation> lastConnectError = new AtomicReference<>();
 
 

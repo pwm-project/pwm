@@ -168,7 +168,7 @@ public class HealthService extends AbstractPwmService implements PwmService
             final Future future = getPwmApplication().getPwmScheduler().scheduleJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
             settings.getMaximumForceCheckWait().pause( future::isDone );
             final TimeDuration checkDuration = TimeDuration.fromCurrent( startTime );
-            averageStats.update( AverageStatKey.checkProcessTime, checkDuration );
+            averageStats.update( AverageStatKey.checkProcessTime, checkDuration.asDuration() );
             counterStats.increment( CounterStatKey.checks );
             LOGGER.trace( () ->  "exit force immediate check, done=" + future.isDone(), () -> checkDuration );
         }
@@ -394,7 +394,7 @@ public class HealthService extends AbstractPwmService implements PwmService
 
             final File supportPath = new File( appPath.getPath() + File.separator + "support" );
 
-            FileSystemUtility.mkdirs( supportPath );
+            Files.createDirectories( supportPath.toPath() );
 
             final File supportFile = new File ( supportPath.getPath() + File.separator + debugItemGenerator.getFilename() );
 

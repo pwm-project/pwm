@@ -21,7 +21,6 @@
 package password.pwm.receiver;
 
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.TimeDuration;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -29,6 +28,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 @WebServlet(
         name = "TelemetryViewer",
@@ -44,9 +45,10 @@ public class TelemetryViewerServlet extends HttpServlet
     public static final String SUMMARY_ATTR = "SummaryBean";
 
     @Override
-    protected void doGet( final HttpServletRequest req, final HttpServletResponse resp ) throws ServletException, IOException
+    protected void doGet( final HttpServletRequest req, final HttpServletResponse resp )
+            throws ServletException, IOException
     {
-        LOGGER.debug( "htttp request for viewer" );
+        LOGGER.debug( "http request for viewer" );
         final String daysString = req.getParameter( PARAM_DAYS );
         final int days = StringUtil.isEmpty( daysString ) ? 30 : Integer.parseInt( daysString );
         final ContextManager contextManager = ContextManager.getContextManager( req.getServletContext() );
@@ -64,7 +66,7 @@ public class TelemetryViewerServlet extends HttpServlet
         }
 
         final Storage storage = app.getStorage();
-        final SummaryBean summaryBean = SummaryBean.fromStorage( storage, TimeDuration.of( days, TimeDuration.Unit.DAYS ) );
+        final SummaryBean summaryBean = SummaryBean.fromStorage( storage, Duration.of( days, ChronoUnit.DAYS ) );
         req.setAttribute( SUMMARY_ATTR, summaryBean );
         req.getServletContext().getRequestDispatcher( "/WEB-INF/jsp/telemetry-viewer.jsp" ).forward( req, resp );
     }

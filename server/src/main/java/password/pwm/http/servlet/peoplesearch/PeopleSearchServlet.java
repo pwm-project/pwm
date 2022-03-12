@@ -44,7 +44,7 @@ import password.pwm.http.servlet.peoplesearch.bean.UserDetailBean;
 import password.pwm.ldap.PhotoDataBean;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -283,7 +283,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         pwmRequest.getPwmResponse().getHttpServletResponse().setBufferSize( 0 );
         pwmRequest.getPwmResponse().markAsDownload( HttpContentType.csv, "userData.csv" );
 
-        try ( CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() ) )
+        try ( CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() ) )
         {
             peopleSearchDataReader.writeUserOrgChartDetailToCsv( csvPrinter, userIdentity, effectiveDepth );
         }

@@ -1482,7 +1482,7 @@ public enum PwmSetting
             {
                 for ( final TemplateSetReference<T> templateSetReference : templateSetReferences )
                 {
-                    final Set<PwmSettingTemplate> temporarySet = CollectionUtil.copiedEnumSet( templateSetReference.getSettingTemplates(), PwmSettingTemplate.class );
+                    final Set<PwmSettingTemplate> temporarySet = CollectionUtil.copyToEnumSet( templateSetReference.getSettingTemplates(), PwmSettingTemplate.class );
                     temporarySet.retainAll( effectiveTemplateSet.getTemplates() );
                     final int matchCount = temporarySet.size();
                     if ( matchCount == matchCountExamSize )

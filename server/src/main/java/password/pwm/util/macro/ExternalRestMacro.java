@@ -27,6 +27,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.error.PwmException;
 import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoBean;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.client.rest.RestClientHelper;
@@ -79,7 +80,7 @@ class ExternalRestMacro extends AbstractMacro
             if ( userInfoBean != null )
             {
                 final MacroRequest macroRequest = MacroRequest.forUser( pwmApplication, PwmConstants.DEFAULT_LOCALE, SessionLabel.SYSTEM_LABEL, userInfoBean.getUserIdentity() );
-                final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean(
+                final PublicUserInfoBean publicUserInfoBean = UserInfoBean.toPublicUserInfoBean(
                         userInfoBean,
                         pwmDomain.getConfig(),
                         PwmConstants.DEFAULT_LOCALE,

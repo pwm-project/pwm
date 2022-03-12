@@ -62,6 +62,8 @@ import password.pwm.util.debug.DebugItemGenerator;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -180,7 +182,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                     return;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( processAction.get() );
+                    MiscUtil.unhandledSwitchStatement( processAction.get() );
             }
             return;
         }
@@ -200,7 +202,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             final Instant lastModifyTime = configurationReader.getStoredConfiguration().modifyTime();
             final String output = lastModifyTime == null
                     ? LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest )
-                    : JavaHelper.toIsoDate( lastModifyTime );
+                    : StringUtil.toIsoDate( lastModifyTime );
             pwmRequest.setAttribute( PwmRequestAttribute.ConfigLastModified, output );
         }
 
@@ -368,8 +370,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     {
         final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmRequest.getPwmApplication(), pwmRequest.getLabel() );
         final PwmResponse resp = pwmRequest.getPwmResponse();
-        resp.setHeader( HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip" );
-        resp.setContentType( HttpContentType.zip );
+        resp.markAsDownload( HttpContentType.zip, PwmConstants.PWM_APP_NAME + "-Support.zip" );
         try ( ZipOutputStream zipOutput = new ZipOutputStream( resp.getOutputStream(), PwmConstants.DEFAULT_CHARSET ) )
         {
             debugItemGenerator.outputZipDebugFile( zipOutput );
@@ -418,7 +419,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                 pwmRequest.getDomainConfig().readAppProperty( AppProperty.DOWNLOAD_FILENAME_LDAP_PERMISSION_CSV )
         );
 
-        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() );
+        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() );
         try
         {
 

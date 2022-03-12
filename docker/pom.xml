@@ -16,6 +16,7 @@
     <name>PWM Password Self Service: Docker Image</name>
 
     <properties>
+        <dockerImageTag>pwm/pwm-webapp</dockerImageTag>
         <skipDocker>false</skipDocker>
     </properties>
 
@@ -48,6 +49,10 @@
                             </from>
                             <to>
                                 <image>${dockerImageTag}</image>
+                                <tags>
+                                    <tag>latest</tag>
+                                    <tag>${project.version}</tag>
+                                </tags>
                             </to>
                             <outputPaths>
                                 <tar>target/pwm-docker-image-${project.version}.tar</tar>

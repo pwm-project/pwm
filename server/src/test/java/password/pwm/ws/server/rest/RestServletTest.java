@@ -23,9 +23,7 @@ package password.pwm.ws.server.rest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.reflections.Reflections;
-import org.reflections.scanners.FieldAnnotationsScanner;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeAnnotationsScanner;
+import org.reflections.scanners.Scanners;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import password.pwm.http.HttpContentType;
@@ -144,9 +142,9 @@ public class RestServletTest
     {
         final Reflections reflections = new Reflections( new ConfigurationBuilder()
                 .setUrls( ClasspathHelper.forPackage( "password.pwm" ) )
-                .setScanners( new SubTypesScanner(),
-                        new TypeAnnotationsScanner(),
-                        new FieldAnnotationsScanner()
+                .setScanners( Scanners.SubTypes,
+                        Scanners.TypesAnnotated,
+                        Scanners.FieldsAnnotated
                 ) );
 
 

@@ -25,14 +25,14 @@ import java.util.logging.Logger;
 
 public class PwmReceiverLogger
 {
-    private final Class clazz;
+    private final Class<?> clazz;
 
-    private PwmReceiverLogger( final Class clazz )
+    private PwmReceiverLogger( final Class<?> clazz )
     {
         this.clazz = clazz;
     }
 
-    public static PwmReceiverLogger forClass( final Class clazz )
+    public static PwmReceiverLogger forClass( final Class<?> clazz )
     {
         return new PwmReceiverLogger( clazz );
     }

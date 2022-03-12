@@ -21,8 +21,8 @@
 package password.pwm.util.macro;
 
 import password.pwm.PwmConstants;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmDateFormat;
+import password.pwm.util.java.StringUtil;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -135,7 +135,7 @@ public abstract class AbstractMacro implements Macro
             }
         }
 
-        return JavaHelper.toIsoDate( timestamp );
+        return StringUtil.toIsoDate( timestamp );
     }
 
     @Override

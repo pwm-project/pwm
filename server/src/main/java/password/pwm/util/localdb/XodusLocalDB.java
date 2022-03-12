@@ -102,8 +102,8 @@ public class XodusLocalDB implements LocalDBProvider
 
     private final ConditionalTaskExecutor outputLogExecutor = ConditionalTaskExecutor.forPeriodicTask(
             this::outputStats,
-            STATS_OUTPUT_INTERVAL,
-            TimeDuration.MINUTE
+            STATS_OUTPUT_INTERVAL.asDuration(),
+            TimeDuration.MINUTE.asDuration()
     );
 
     private BindMachine bindMachine = new BindMachine( BindMachine.DEFAULT_ENABLE_COMPRESSION, BindMachine.DEFAULT_MIN_COMPRESSION_LENGTH );

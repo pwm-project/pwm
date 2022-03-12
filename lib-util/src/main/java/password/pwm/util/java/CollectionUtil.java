@@ -102,7 +102,7 @@ public class CollectionUtil
                 .flatMap( Optional::stream )
                 .collect( Collectors.toSet() );
 
-        return Collections.unmodifiableSet( copiedEnumSet( set, enumClass ) );
+        return Collections.unmodifiableSet( copyToEnumSet( set, enumClass ) );
     }
 
     public static <E extends Enum<E>> Set<E> enumSetFromArray( final E[] arrayValues )
@@ -112,10 +112,20 @@ public class CollectionUtil
                 : Collections.unmodifiableSet( EnumSet.copyOf( Arrays.asList( arrayValues ) ) );
     }
 
-    public static <E extends Enum<E>> Map<String, String> enumMapToStringMap( final Map<E, String> inputMap )
+    public static <E extends Enum<E>> Map<String, String> enumMapToStringMap(
+            final Map<E, String> inputMap,
+            final Function<E, String> keyToStringFunction
+    )
     {
         return Collections.unmodifiableMap( inputMap.entrySet().stream()
-                .collect( Collectors.toMap( entry -> entry.getKey().name(), Map.Entry::getValue, ( a, b ) -> b, java.util.LinkedHashMap::new ) ) );
+                .collect( collectorToLinkedMap(
+                        entry -> keyToStringFunction.apply( entry.getKey() ),
+                        Map.Entry::getValue ) ) );
+    }
+
+    public static <E extends Enum<E>> Map<String, String> enumMapToStringMap( final Map<E, String> inputMap )
+    {
+        return enumMapToStringMap( inputMap, Enum::name );
     }
 
     public static <K> boolean isEmpty( final Collection<K> collection )
@@ -128,7 +138,7 @@ public class CollectionUtil
         return map == null || map.isEmpty();
     }
 
-    public static <E extends Enum<E>> EnumSet<E> copiedEnumSet( final Collection<E> source, final Class<E> classOfT )
+    public static <E extends Enum<E>> EnumSet<E> copyToEnumSet( final Collection<E> source, final Class<E> classOfT )
     {
         return isEmpty( source )
                 ? EnumSet.noneOf( classOfT )

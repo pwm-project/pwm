@@ -83,6 +83,8 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -504,7 +506,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
 
             default:
-                JavaHelper.unhandledSwitchStatement( searchMode );
+                MiscUtil.unhandledSwitchStatement( searchMode );
         }
 
         final UserSearchEngine userSearchEngine = pwmRequest.getPwmDomain().getUserSearchEngine();
@@ -556,7 +558,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( searchMode );
+                    MiscUtil.unhandledSwitchStatement( searchMode );
             }
 
             searchConfiguration = builder.build();
@@ -1115,7 +1117,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
     {
         // add a delay to prevent continuous checks
         final long delayMs = JavaHelper.silentParseLong( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HELPDESK_VERIFICATION_INVALID_DELAY_MS ), 500 );
-        TimeDuration.of( delayMs, TimeDuration.Unit.MILLISECONDS ).jitterPause( pwmRequest.getPwmDomain().getSecureService(), 0.3f );
+        PwmTimeUtil.jitterPause( TimeDuration.of( delayMs, TimeDuration.Unit.MILLISECONDS ), pwmRequest.getPwmDomain().getSecureService(), 0.3f );
 
         final HelpdeskVerificationResponseBean responseBean = new HelpdeskVerificationResponseBean(
                 passed,

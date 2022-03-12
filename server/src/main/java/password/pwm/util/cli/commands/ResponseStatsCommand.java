@@ -37,6 +37,7 @@ import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.ConditionalTaskExecutor;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.json.JsonProvider;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
@@ -74,7 +75,7 @@ public class ResponseStatsCommand extends AbstractCliCommand
         {
             fileOutputStream.write( JsonFactory.get().serialize( responseStats, JsonProvider.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
-        out( "completed writing stats output in " + TimeDuration.fromCurrent( startTime ).asLongString() );
+        out( "completed writing stats output in " + PwmTimeUtil.asLongString( TimeDuration.fromCurrent( startTime ) ) );
     }
 
     static class ResponseStats implements Serializable
@@ -98,7 +99,7 @@ public class ResponseStatsCommand extends AbstractCliCommand
 
         final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask(
                 () -> out( "processing...  " + userCounter + " users read" ),
-                TimeDuration.SECONDS_30 );
+                TimeDuration.SECONDS_30.asDuration() );
 
         final CrService crService = pwmDomain.getCrService();
         for ( final UserIdentity userIdentity : userIdentities )

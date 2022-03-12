@@ -21,28 +21,33 @@
 package password.pwm.receiver;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 public class Logger
 {
     private final String name;
 
-    private Logger( final Class classname )
+    private Logger( final Class<?> classname )
     {
         this.name = classname.getName();
     }
 
-    public static Logger createLogger( final Class classname )
+    public static Logger createLogger( final Class<?> classname )
     {
         return new Logger( classname );
     }
 
     public void info( final CharSequence input )
     {
-        System.out.println( "PwmReceiver: " + Instant.now().toString() + ", INFO , " + name + ", " + input );
+        System.out.println( "PwmReceiver: "
+                + Instant.now().truncatedTo( ChronoUnit.SECONDS ).toString()
+                + ", INFO , " + name + ", " + input );
     }
 
     public void debug( final CharSequence input )
     {
-        System.out.println( "PwmReceiver: " + Instant.now().toString() + ", DEBUG, " + name + ", " + input );
+        System.out.println( "PwmReceiver: "
+                + Instant.now().toString()
+                + ", DEBUG, " + name + ", " + input );
     }
 }

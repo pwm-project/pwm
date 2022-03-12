@@ -20,11 +20,10 @@
 
 package password.pwm.bean;
 
-import org.jetbrains.annotations.NotNull;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingScope;
 import password.pwm.config.value.StringValue;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 
 import java.io.Serializable;
 import java.util.Comparator;
@@ -74,7 +73,7 @@ public class DomainID implements Comparable<DomainID>, Serializable
                 return !this.isSystem();
 
             default:
-                JavaHelper.unhandledSwitchStatement( scope );
+                MiscUtil.unhandledSwitchStatement( scope );
         }
 
         return false;
@@ -102,7 +101,7 @@ public class DomainID implements Comparable<DomainID>, Serializable
     }
 
     @Override
-    public int compareTo( @NotNull final DomainID o )
+    public int compareTo( final DomainID o )
     {
         return COMPARATOR.compare( this, o );
     }

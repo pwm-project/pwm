@@ -75,8 +75,7 @@ public class CacheService extends AbstractPwmService implements PwmService
         memoryCacheStore = new MemoryCacheStore( maxMemItems );
         this.traceDebugOutputter = ConditionalTaskExecutor.forPeriodicTask(
                 this::outputTraceInfo,
-                TimeDuration.MINUTE
-        );
+                TimeDuration.MINUTE.asDuration() );
 
         return STATUS.OPEN;
     }

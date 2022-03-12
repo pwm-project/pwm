@@ -38,6 +38,8 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.PwmTimeUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -244,7 +246,7 @@ public class DatabaseService extends AbstractPwmService implements PwmService
         try
         {
             final Map<String, String> tempMap = new HashMap<>();
-            tempMap.put( "date", JavaHelper.toIsoDate( Instant.now() ) );
+            tempMap.put( "date", StringUtil.toIsoDate( Instant.now() ) );
             final DatabaseAccessor accessor = getAccessor();
             accessor.put( DatabaseTable.PWM_META, KEY_TEST, JsonFactory.get().serializeMap( tempMap ) );
         }
@@ -265,8 +267,8 @@ public class DatabaseService extends AbstractPwmService implements PwmService
 
             if ( errorAge.isShorterThan( cautionDurationMS ) )
             {
-                final String ageString = errorAge.asLongString();
-                final String errorDate = JavaHelper.toIsoDate( lastError.getDate() );
+                final String ageString = PwmTimeUtil.asLongString( errorAge );
+                final String errorDate = StringUtil.toIsoDate( lastError.getDate() );
                 final String errorMsg = lastError.toDebugStr();
                 returnRecords.add( HealthRecord.forMessage(
                         DomainID.systemId(),

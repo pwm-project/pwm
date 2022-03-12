@@ -27,7 +27,7 @@ import password.pwm.config.value.FileValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.util.java.ImmutableByteArray;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.json.JsonProvider;
@@ -145,19 +145,19 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
         {
             if ( SETTINGS_FILENAME.equals( zipEntry.getName() ) )
             {
-                final String stringData = JavaHelper.copyToString( zipInputStream );
+                final String stringData = JavaHelper.copyToString( zipInputStream, PwmConstants.DEFAULT_CHARSET );
                 final List<SerializedValue> readComponents = JsonFactory.get().deserializeList( stringData, SerializedValue.class );
                 serializedValues.addAll( readComponents );
             }
             else if ( META_VALUES_FILENAME.equals( zipEntry.getName() ) )
             {
-                final String stringData = JavaHelper.copyToString( zipInputStream );
+                final String stringData = JavaHelper.copyToString( zipInputStream, PwmConstants.DEFAULT_CHARSET );
                 final List<SerializedMetaValue> readMetaValues = JsonFactory.get().deserializeList( stringData, SerializedMetaValue.class );
                 serializedMetaValues.addAll( readMetaValues );
             }
             else if ( META_FILENAME.equals( zipEntry.getName() ) )
             {
-                final String stringData = JavaHelper.copyToString( zipInputStream );
+                final String stringData = JavaHelper.copyToString( zipInputStream, PwmConstants.DEFAULT_CHARSET );
                 metaData = JsonFactory.get().deserialize( stringData, MetaData.class );
             }
             else if ( zipEntry.getName().endsWith( XREF_SUFFIX ) )
@@ -191,7 +191,8 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
                     JsonFactory.get().serializeCollection(
                             intermediateRepresentation.getSerializedValues(),
                             JsonProvider.Flag.PrettyPrint ),
-                    zipOutputStream );
+                    zipOutputStream,
+                    PwmConstants.DEFAULT_CHARSET );
         }
 
         {
@@ -200,7 +201,8 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
                     JsonFactory.get().serializeCollection(
                             intermediateRepresentation.getSerializedMetaValues(),
                             JsonProvider.Flag.PrettyPrint ),
-                    zipOutputStream );
+                    zipOutputStream,
+                    PwmConstants.DEFAULT_CHARSET );
         }
 
         {
@@ -210,7 +212,8 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
                     JsonFactory.get().serialize(
                             metaData,
                             JsonProvider.Flag.PrettyPrint ),
-                    zipOutputStream );
+                    zipOutputStream,
+                    PwmConstants.DEFAULT_CHARSET );
         }
 
         for ( final Map.Entry<String, ImmutableByteArray> entry : intermediateRepresentation.getExRefs().entrySet() )

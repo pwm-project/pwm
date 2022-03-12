@@ -34,7 +34,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.i18n.Display;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -146,8 +146,8 @@ public class DailySummaryJob implements Runnable
             final Map<String, String> metadata = new LinkedHashMap<>();
             metadata.put( "Instance ID", pwmDomain.getPwmApplication().getInstanceID() );
             metadata.put( "Site URL", settings.getSiteUrl() );
-            metadata.put( "Timestamp", JavaHelper.toIsoDate( Instant.now() ) );
-            metadata.put( "Up Time", TimeDuration.fromCurrent( pwmDomain.getPwmApplication().getStartupTime() ).asLongString() );
+            metadata.put( "Timestamp", StringUtil.toIsoDate( Instant.now() ) );
+            metadata.put( "Up Time", PwmTimeUtil.asLongString( TimeDuration.fromCurrent( pwmDomain.getPwmApplication().getStartupTime() ) ) );
 
             for ( final Map.Entry<String, String> entry : metadata.entrySet() )
             {

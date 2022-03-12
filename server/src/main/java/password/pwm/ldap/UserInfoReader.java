@@ -59,7 +59,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CachingProxyWrapper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordUtility;
@@ -277,7 +277,7 @@ public class UserInfoReader implements UserInfo
         {
             final TimeDuration expirationInterval = TimeDuration.fromCurrent( ldapPasswordExpirationTime );
             LOGGER.trace( sessionLabel, () -> "read password expiration time: "
-                    + JavaHelper.toIsoDate( ldapPasswordExpirationTime )
+                    + StringUtil.toIsoDate( ldapPasswordExpirationTime )
                     + ", " + expirationInterval.asCompactString() + " from now"
             );
             final TimeDuration diff = TimeDuration.fromCurrent( ldapPasswordExpirationTime );

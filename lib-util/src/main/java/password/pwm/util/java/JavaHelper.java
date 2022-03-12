@@ -20,33 +20,26 @@
 
 package password.pwm.util.java;
 
-import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.IOUtils;
-import password.pwm.PwmConstants;
-import password.pwm.http.bean.ImmutableByteArray;
-import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.management.LockInfo;
 import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -65,8 +58,6 @@ import java.util.zip.GZIPOutputStream;
 
 public class JavaHelper
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( JavaHelper.class );
-
     private static final char[] HEX_CHAR_ARRAY = "0123456789ABCDEF".toCharArray();
 
     private JavaHelper( )
@@ -143,11 +134,6 @@ public class JavaHelper
         catch ( final IllegalArgumentException e )
         {
             /* noop */
-            //LOGGER.trace("input=" + input + " does not exist in enumClass=" + enumClass.getSimpleName());
-        }
-        catch ( final Throwable e )
-        {
-            LOGGER.warn( () -> "unexpected error translating input=" + input + " to enumClass=" + enumClass.getSimpleName() + ", error: " + e.getMessage() );
         }
 
         return Optional.empty();
@@ -212,36 +198,19 @@ public class JavaHelper
         return false;
     }
 
-    public static void unhandledSwitchStatement( final Object switchParameter )
-    {
-        final String className = switchParameter == null
-                ? "unknown - see stack trace"
-                : switchParameter.getClass().getName();
-
-        final String paramValue = switchParameter == null
-                ? "unknown"
-                : switchParameter.toString();
-
-        final String errorMsg = "unhandled switch statement on parameter class=" + className + ", value=" + paramValue;
-        final UnsupportedOperationException exception = new UnsupportedOperationException( errorMsg );
-        LOGGER.warn( () -> errorMsg, exception );
-        throw exception;
-    }
-
     public static long copy( final InputStream input, final OutputStream output )
             throws IOException
     {
-        final int bufferSize = 4 * 1024;
-        final byte[] buffer = new byte[bufferSize];
-        return IOUtils.copyLarge( input, output, 0, -1, buffer );
+        return IOUtils.copyLarge( input, output, 0, -1 );
     }
 
-    public static String copyToString( final InputStream input )
+
+    public static String copyToString( final InputStream input, final Charset charset )
             throws IOException
     {
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         JavaHelper.copy( input, byteArrayOutputStream );
-        return byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET );
+        return byteArrayOutputStream.toString( charset );
     }
 
     public static ImmutableByteArray copyToBytes( final InputStream inputStream, final int maxLength )
@@ -251,10 +220,10 @@ public class JavaHelper
         return ImmutableByteArray.of( bytes );
     }
 
-    public static void copy( final String input, final OutputStream output )
+    public static void copy( final String input, final OutputStream output, final Charset charset )
             throws IOException
     {
-        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream( input.getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream( input.getBytes( charset ) );
         JavaHelper.copy( byteArrayInputStream, output );
     }
 
@@ -301,67 +270,22 @@ public class JavaHelper
         return totalCopied;
     }
 
-    public static String toIsoDate( final Instant instant )
-    {
-        return instant == null ? "" : instant.truncatedTo( ChronoUnit.SECONDS ).toString();
-    }
-
-    public static String toIsoDate( final Date date )
-    {
-        if ( date == null )
-        {
-            return "";
-        }
-
-        final PwmDateFormat dateFormat = PwmDateFormat.newPwmDateFormat(
-                PwmConstants.DEFAULT_DATETIME_FORMAT_STR,
-                PwmConstants.DEFAULT_LOCALE,
-                PwmConstants.DEFAULT_TIMEZONE
-        );
-
-        return dateFormat.format( date.toInstant() );
-    }
-
     public static Instant parseIsoToInstant( final String input )
     {
         return Instant.parse( input );
     }
 
-    public static void closeAndWaitExecutor( final ExecutorService executor, final TimeDuration timeDuration )
-    {
-        if ( executor == null )
-        {
-            return;
-        }
-
-        executor.shutdown();
-        try
-        {
-            executor.awaitTermination( timeDuration.asMillis(), TimeUnit.MILLISECONDS );
-        }
-        catch ( final InterruptedException e )
-        {
-            LOGGER.warn( () -> "unexpected error shutting down executor service " + executor.getClass().toString() + " error: " + e.getMessage() );
-        }
-    }
-
-    public static Collection<Method> getAllMethodsForClass( final Class clazz )
+    public static Collection<Method> getAllMethodsForClass( final Class<?> clazz )
     {
         final LinkedHashSet<Method> methods = new LinkedHashSet<>( Arrays.asList( clazz.getDeclaredMethods() ) );
 
-        final Class superClass = clazz.getSuperclass();
+        final Class<?> superClass = clazz.getSuperclass();
         if ( superClass != null )
         {
             methods.addAll( getAllMethodsForClass( superClass ) );
         }
 
         return Collections.unmodifiableSet( methods );
-    }
-
-    public static CSVPrinter makeCsvPrinter( final OutputStream outputStream )
-            throws IOException
-    {
-        return new CSVPrinter( new OutputStreamWriter( outputStream, PwmConstants.DEFAULT_CHARSET ), PwmConstants.DEFAULT_CSV_FORMAT );
     }
 
     /**
@@ -453,7 +377,7 @@ public class JavaHelper
 
     public static int rangeCheck( final int min, final int max, final int value )
     {
-        return ( int ) rangeCheck( ( long ) min, ( long ) max, ( long ) value );
+        return ( int ) rangeCheck( ( long ) min, max, value );
     }
 
     public static long rangeCheck( final long min, final long max, final long value )
@@ -504,29 +428,6 @@ public class JavaHelper
         return Optional.empty();
     }
 
-    /**
-     * Very naive implementation to get a rough order estimate of object memory size, used for debug
-     * purposes only.
-     *
-     * @param object object to be analyzed
-     * @return size of object (very rough estimate)
-     */
-    public static long sizeof( final Serializable object )
-    {
-        try ( ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream() )
-        {
-            final ObjectOutputStream out = new ObjectOutputStream( byteArrayOutputStream );
-            out.writeObject( object );
-            out.flush();
-            return byteArrayOutputStream.toByteArray().length;
-        }
-        catch ( final IOException e )
-        {
-            LOGGER.debug( () -> "exception while estimating session size: " + e.getMessage() );
-            return 0;
-        }
-    }
-
     public static Map<String, String> propertiesToStringMap( final Properties properties )
     {
         Objects.requireNonNull( properties );
@@ -542,11 +443,6 @@ public class JavaHelper
             final long newValue = left + right;
             return newValue < 0 ? 0 : newValue;
         }, 0L );
-    }
-
-    public static Properties newSortedProperties()
-    {
-        return new org.apache.commons.collections4.properties.SortedProperties();
     }
 
     public static int silentParseInt( final String input, final int defaultValue )
@@ -629,11 +525,64 @@ public class JavaHelper
         }
     }
 
-    public static byte[] addByteArrays( final byte[] a, final byte[] b )
+    /**
+     * Append multiple byte array values into a single array.
+     * @param byteArrays two or more byte arrays.
+     * @return A new array with the contents of all byteArrays appended
+     */
+    public static byte[] concatByteArrays( final byte[]... byteArrays )
     {
-        final byte[] newByteArray = new byte[ a.length + b.length ];
-        System.arraycopy( a, 0, newByteArray, 0, a.length );
-        System.arraycopy( b, 0, newByteArray, a.length, b.length );
+        if ( byteArrays == null || byteArrays.length < 1 )
+        {
+            return new byte[0];
+        }
+
+        int totalLength = 0;
+        for ( final byte[] array : byteArrays )
+        {
+            totalLength += array.length;
+        }
+
+        final byte[] newByteArray = new byte[ totalLength ];
+        int nextIndex = 0;
+        for ( final byte[] array : byteArrays )
+        {
+            System.arraycopy( array, 0, newByteArray, nextIndex, array.length );
+            nextIndex += array.length;
+        }
+
         return newByteArray;
+    }
+
+    /**
+     * Close executor and wait up to the specified TimeDuration for all executor jobs to terminate.  There is no guarantee that either all jobs will
+     * terminate or the entire duration will be waited for, though the duration should not be exceeded.
+     * @param executor Executor close
+     * @param timeDuration TimeDuration to wait for
+     */
+    public static void closeAndWaitExecutor( final ExecutorService executor, final TimeDuration timeDuration )
+    {
+        if ( executor == null )
+        {
+            return;
+        }
+
+        executor.shutdown();
+        try
+        {
+            executor.awaitTermination( timeDuration.asMillis(), TimeUnit.MILLISECONDS );
+        }
+        catch ( final InterruptedException e )
+        {
+           /* ignore */
+        }
+    }
+
+    public static String stackTraceToString( final Throwable e )
+    {
+        final Writer stackTraceOutput = new StringWriter();
+        e.printStackTrace( new PrintWriter( stackTraceOutput ) );
+        return stackTraceOutput.toString();
+
     }
 }

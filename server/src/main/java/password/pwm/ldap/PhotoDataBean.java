@@ -21,7 +21,7 @@
 package password.pwm.ldap;
 
 import lombok.Value;
-import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.util.java.ImmutableByteArray;
 
 import java.io.Serializable;
 

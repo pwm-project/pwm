@@ -172,7 +172,7 @@ class GsonJsonAdaptors
         @Override
         public JsonElement serialize( final Instant instant, final Type type, final JsonSerializationContext jsonSerializationContext )
         {
-            return new JsonPrimitive( JavaHelper.toIsoDate( instant ) );
+            return new JsonPrimitive( StringUtil.toIsoDate( instant ) );
         }
 
         @Override

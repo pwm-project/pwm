@@ -41,7 +41,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -149,6 +149,10 @@ public abstract class StoredConfigurationUtil
         {
             modifier.writeConfigProperty( ConfigurationProperty.PASSWORD_HASH, PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
         }
+
+        final PasswordValue passwordValue = new PasswordValue( new PasswordData( PwmRandom.getInstance().alphaNumericString( 256 ) ) );
+        final StoredConfigKey storedConfigKey = StoredConfigKey.forSetting( PwmSetting.PWM_SECURITY_KEY, null, DomainID.systemId() );
+        modifier.writeSetting( storedConfigKey, passwordValue, null );
 
         return modifier.newStoredConfiguration();
     }
@@ -367,7 +371,7 @@ public abstract class StoredConfigurationUtil
                 return new StringValue( "" );
 
             default:
-                JavaHelper.unhandledSwitchStatement( key );
+                MiscUtil.unhandledSwitchStatement( key );
         }
 
         throw new IllegalStateException();

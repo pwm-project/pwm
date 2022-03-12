@@ -36,7 +36,6 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.ldap.UserInfo;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -241,7 +240,7 @@ public class TokenUtil
             final Instant userLastPasswordChange = userInfo.getPasswordLastModifiedTime();
             if ( userLastPasswordChange != null )
             {
-                final String userChangeString = JavaHelper.toIsoDate( userLastPasswordChange );
+                final String userChangeString = StringUtil.toIsoDate( userLastPasswordChange );
                 tokenMapData.put( PwmConstants.TOKEN_KEY_PWD_CHG_DATE, userChangeString );
             }
         }

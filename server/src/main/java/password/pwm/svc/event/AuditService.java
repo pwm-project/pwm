@@ -45,7 +45,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
@@ -182,7 +182,7 @@ public class AuditService extends AbstractPwmService implements PwmService
                 break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( record.getEventCode().getType() );
+                MiscUtil.unhandledSwitchStatement( record.getEventCode().getType() );
 
         }
     }
@@ -327,10 +327,10 @@ public class AuditService extends AbstractPwmService implements PwmService
     {
         final AppConfig config = getPwmApplication().getConfig();
 
-        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
 
         csvPrinter.printComment( " " + PwmConstants.PWM_APP_NAME + " audit record output " );
-        csvPrinter.printComment( " " + JavaHelper.toIsoDate( Instant.now() ) );
+        csvPrinter.printComment( " " + StringUtil.toIsoDate( Instant.now() ) );
 
         if ( includeHeader )
         {
@@ -360,7 +360,7 @@ public class AuditService extends AbstractPwmService implements PwmService
             final List<String> lineOutput = new ArrayList<>();
             lineOutput.add( loopRecord.getEventCode().getType().toString() );
             lineOutput.add( loopRecord.getEventCode().toString() );
-            lineOutput.add( JavaHelper.toIsoDate( loopRecord.getTimestamp() ) );
+            lineOutput.add( StringUtil.toIsoDate( loopRecord.getTimestamp() ) );
             lineOutput.add( loopRecord.getGuid() );
             lineOutput.add( loopRecord.getMessage() == null ? "" : loopRecord.getMessage() );
             if ( loopRecord instanceof SystemAuditRecord )

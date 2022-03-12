@@ -64,7 +64,8 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -814,7 +815,7 @@ class PeopleSearchDataReader
                 Display.class,
                 new String[]
                         {
-                                String.valueOf( results.getResults().size() ), searchDuration.asLongString( pwmRequest.getLocale() ),
+                                String.valueOf( results.getResults().size() ), PwmTimeUtil.asLongString( searchDuration, pwmRequest.getLocale() ),
                         }
         );
 
@@ -885,7 +886,7 @@ class PeopleSearchDataReader
             break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( searchMode );
+                MiscUtil.unhandledSwitchStatement( searchMode );
         }
 
         return Optional.of( builder.build() );

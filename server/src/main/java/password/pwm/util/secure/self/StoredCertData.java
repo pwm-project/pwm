@@ -34,7 +34,7 @@ import java.security.cert.X509Certificate;
 public class StoredCertData implements Serializable
 {
     private final X509Certificate x509Certificate;
-    private String keypairb64;
+    private final String keypairb64;
 
     public StoredCertData( final X509Certificate x509Certificate, final KeyPair keypair )
         throws IOException

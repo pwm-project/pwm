@@ -20,25 +20,23 @@
 
 package password.pwm.util.debug;
 
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 
 import java.io.OutputStream;
-import java.time.Instant;
-import java.util.Properties;
 
 class SystemEnvironmentItemGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
     {
-        return "system-environment.properties";
+        return "system-environment.json";
     }
 
     @Override
     public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
     {
-        final Properties outputProps = JavaHelper.newSortedProperties();
-        outputProps.putAll( System.getenv() );
-        outputProps.store( outputStream, JavaHelper.toIsoDate( Instant.now() ) );
+        final String json = JsonFactory.get().serializeMap( System.getenv(), JsonProvider.Flag.PrettyPrint );
+        DebugItemGenerator.writeString( outputStream, json );
     }
 }

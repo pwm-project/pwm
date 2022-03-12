@@ -227,7 +227,7 @@ public class TomcatOnejarRunner
 
         try ( URLClassLoader classLoader = warClassLoaderFromConfig( onejarConfig ) )
         {
-            final Class pwmMainClass = classLoader.loadClass( "password.pwm.util.OnejarHelper" );
+            final Class<?> pwmMainClass = classLoader.loadClass( "password.pwm.util.OnejarHelper" );
             final String keystoreFile = onejarConfig.getKeystoreFile().getAbsolutePath();
             final Method mainMethod = pwmMainClass.getMethod(
                     "onejarHelper",
@@ -244,7 +244,7 @@ public class TomcatOnejarRunner
                     onejarConfig.getKeystorePass(),
             };
 
-            final Object returnObjValue = mainMethod.invoke( null, arguments );
+            final Object returnObjValue = mainMethod.invoke( null, ( Object[] ) arguments );
             final Properties returnProps = ( Properties ) returnObjValue;
             out( "completed read of tlsProperties", startTime );
             return returnProps;

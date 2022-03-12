@@ -54,7 +54,7 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
@@ -551,7 +551,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             {
                 if ( Instant.now().isBefore( date ) )
                 {
-                    final String errorMsg = "change not permitted until " + JavaHelper.toIsoDate(
+                    final String errorMsg = "change not permitted until " + StringUtil.toIsoDate(
                             date );
                     throw new PwmUnrecoverableException(
                             new ErrorInformation( PwmError.PASSWORD_TOO_SOON, errorMsg ) );

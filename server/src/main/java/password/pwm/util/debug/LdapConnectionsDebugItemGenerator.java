@@ -23,12 +23,10 @@ package password.pwm.util.debug;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.ldap.LdapConnectionService;
-import password.pwm.util.json.JsonProvider;
 import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.List;
 
 class LdapConnectionsDebugItemGenerator implements DomainItemGenerator
@@ -44,8 +42,7 @@ class LdapConnectionsDebugItemGenerator implements DomainItemGenerator
     {
         final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
         final List<LdapConnectionService.ConnectionInfo> connectionInfos = pwmDomain.getLdapConnectionService().getConnectionInfos();
-        final Writer writer = new OutputStreamWriter( outputStream, PwmConstants.DEFAULT_CHARSET );
-        writer.write( JsonFactory.get().serializeCollection( connectionInfos, JsonProvider.Flag.PrettyPrint ) );
-        writer.flush();
+        final String jsonString = JsonFactory.get().serializeCollection( connectionInfos, JsonProvider.Flag.PrettyPrint );
+        outputStream.write( jsonString.getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }
 }

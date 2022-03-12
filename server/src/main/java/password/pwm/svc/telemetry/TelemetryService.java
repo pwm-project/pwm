@@ -49,7 +49,6 @@ import password.pwm.svc.stats.StatisticsBundle;
 import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -125,7 +124,7 @@ public class TelemetryService extends AbstractPwmService implements PwmService
 
         lastPublishTime = pwmApplication.readAppAttribute( AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, Instant.class )
                 .orElseGet( pwmApplication::getInstallTime );
-        LOGGER.trace( getSessionLabel(), () -> "last publish time was " + JavaHelper.toIsoDate( lastPublishTime ) );
+        LOGGER.trace( getSessionLabel(), () -> "last publish time was " + StringUtil.toIsoDate( lastPublishTime ) );
 
         executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, TelemetryService.class );
 
@@ -238,7 +237,7 @@ public class TelemetryService extends AbstractPwmService implements PwmService
     public ServiceInfoBean serviceInfo( )
     {
         final Map<String, String> debugMap = new LinkedHashMap<>();
-        debugMap.put( "lastPublishTime", JavaHelper.toIsoDate( lastPublishTime ) );
+        debugMap.put( "lastPublishTime", StringUtil.toIsoDate( lastPublishTime ) );
         if ( lastError != null )
         {
             debugMap.put( "lastError", lastError.toDebugStr() );

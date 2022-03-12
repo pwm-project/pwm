@@ -38,6 +38,8 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page import="java.util.TreeMap" %>
+<%@ page import="password.pwm.util.java.MiscUtil" %>
+<%@ page import="java.time.Instant" %>
 
 <%
   final Map<String,String> outputData = new TreeMap<>();
@@ -70,7 +72,7 @@
       <%=PwmConstants.PWM_APP_NAME%> &nbsp; <%=PwmConstants.SERVLET_VERSION%>
     </div>
     <div>
-      Current Time: <span class="timestamp"><%=JavaHelper.toIsoDate(new Date())%></span>
+      Current Time: <span class="timestamp"><%=StringUtil.toIsoDate( Instant.now())%></span>
       <br/>
       <br/>
       <br/>

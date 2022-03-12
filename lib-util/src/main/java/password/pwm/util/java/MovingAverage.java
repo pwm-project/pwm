@@ -22,6 +22,8 @@ package password.pwm.util.java;
 
 import java.io.Serializable;
 import java.text.NumberFormat;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -71,9 +73,9 @@ public class MovingAverage implements Serializable
         this.windowMillis = windowMillis;
     }
 
-    public MovingAverage( final TimeDuration timeDuration )
+    public MovingAverage( final Duration timeDuration )
     {
-        this.windowMillis = timeDuration.asMillis();
+        this.windowMillis = timeDuration.toMillis();
     }
 
     /**
@@ -132,14 +134,14 @@ public class MovingAverage implements Serializable
         return lastMillis;
     }
 
-    public void update( final TimeDuration timeDuration )
+    public void update( final Duration timeDuration )
     {
-        update( timeDuration.asMillis() );
+        update( timeDuration.toMillis() );
     }
 
-    public TimeDuration getAverageAsDuration()
+    public Duration getAverageAsDuration()
     {
-        return TimeDuration.of( ( long ) getAverage(), TimeDuration.Unit.MILLISECONDS );
+        return Duration.of( ( long ) getAverage(), ChronoUnit.MILLIS );
     }
 
 }

@@ -43,7 +43,7 @@ import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
-import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.util.java.ImmutableByteArray;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.i18n.Message;
@@ -57,6 +57,7 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -275,7 +276,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
                 return ProcessStatus.Halt;
 
             default:
-                JavaHelper.unhandledSwitchStatement( resetType );
+                MiscUtil.unhandledSwitchStatement( resetType );
 
         }
 

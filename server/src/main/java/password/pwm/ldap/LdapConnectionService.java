@@ -77,7 +77,9 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
     private final ThreadLocal<ThreadLocalContainer> threadLocalProvider = new ThreadLocal<>();
     private final Set<ThreadLocalContainer> threadLocalContainers = Collections.synchronizedSet( Collections.newSetFromMap( new WeakHashMap<>() ) );
     private final ReentrantLock reentrantLock = new ReentrantLock();
-    private final ConditionalTaskExecutor debugLogger = ConditionalTaskExecutor.forPeriodicTask( this::conditionallyLogDebugInfo, TimeDuration.MINUTE );
+    private final ConditionalTaskExecutor debugLogger = ConditionalTaskExecutor.forPeriodicTask(
+            this::conditionallyLogDebugInfo,
+            TimeDuration.MINUTE.asDuration() );
     private final Map<String, Map<Integer, ChaiProvider>> proxyChaiProviders = new HashMap<>();
 
     private PwmDomain pwmDomain;

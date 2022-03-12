@@ -65,7 +65,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.DataStore;
 import password.pwm.util.PwmScheduler;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
@@ -203,7 +203,7 @@ public class TokenService extends AbstractPwmService implements PwmService
                     break;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( storageMethod );
+                    MiscUtil.unhandledSwitchStatement( storageMethod );
             }
             dataStorageMethod = usedStorageMethod;
         }
@@ -685,13 +685,13 @@ public class TokenService extends AbstractPwmService implements PwmService
                 LOGGER.trace( sessionLabel, () -> "tokenPayload=" + tokenPayload.toDebugString()
                         + ", sessionUser=" + ( sessionUserIdentity == null ? "null" : sessionUserIdentity.toDisplayString() )
                         + ", payloadUserIdentity=" + tokenPayload.getUserIdentity().toDisplayString()
-                        + ", userLastPasswordChange=" + JavaHelper.toIsoDate( userLastPasswordChange )
+                        + ", userLastPasswordChange=" + StringUtil.toIsoDate( userLastPasswordChange )
                         + ", dateStringInToken=" + dateStringInToken );
 
                 if ( userLastPasswordChange != null && dateStringInToken != null )
                 {
 
-                    final String userChangeString = JavaHelper.toIsoDate( userLastPasswordChange );
+                    final String userChangeString = StringUtil.toIsoDate( userLastPasswordChange );
 
                     if ( !dateStringInToken.equalsIgnoreCase( userChangeString ) )
                     {

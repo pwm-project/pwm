@@ -25,6 +25,7 @@ import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 
@@ -212,9 +213,9 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
     public String toCsvLine( ) throws IOException
     {
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( byteArrayOutputStream );
+        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( byteArrayOutputStream );
         final List<String> dataRow = new ArrayList<>();
-        dataRow.add( JavaHelper.toIsoDate( getTimestamp() ) );
+        dataRow.add( StringUtil.toIsoDate( getTimestamp() ) );
         dataRow.add( getLevel().name() );
         dataRow.add( getSourceAddress( ) == null ? "" : getSourceAddress() );
         dataRow.add( getSessionID() == null ? "" : getSessionID() );

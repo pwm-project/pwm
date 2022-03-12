@@ -20,6 +20,7 @@
 
 package password.pwm.util;
 
+import org.apache.commons.lang3.StringUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.FormNonce;
@@ -171,6 +172,23 @@ public class Validator
             return output;
         }
         return input;
+    }
+
+    public static void validateLdapSearchFilter( final String filter )
+            throws PwmUnrecoverableException
+    {
+        if ( filter == null || filter.isEmpty() )
+        {
+            return;
+        }
+
+        final int leftParens = StringUtils.countMatches( filter, "(" );
+        final int rightParens = StringUtils.countMatches( filter, ")" );
+
+        if ( leftParens != rightParens )
+        {
+            throw PwmUnrecoverableException.newException( PwmError.CONFIG_FORMAT_ERROR, "unbalanced parentheses in ldap filter" );
+        }
     }
 }
 

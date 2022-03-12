@@ -28,6 +28,7 @@ import password.pwm.svc.secure.SystemSecureService;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
 
 import java.io.IOException;
 import java.net.URI;
@@ -51,7 +52,7 @@ public class SelfCertFactory
     )
         throws Exception
     {
-        final Settings settings = Settings.fromConfiguration( pwmApplication.getConfig() );
+        final SelfCertSettings settings = SelfCertSettings.fromConfiguration( pwmApplication.getConfig() );
 
         final Optional<StoredCertData> existingCert = loadExistingStoredCert( pwmApplication );
         if ( existingCert.isPresent() )
@@ -70,14 +71,16 @@ public class SelfCertFactory
     }
 
     public static KeyStore generateNewCert(
-        final Settings settings,
+        final SelfCertSettings settings,
         final SystemSecureService domainSecureService,
         final PasswordData password,
         final String alias
     )
         throws Exception
     {
-        final SelfCertGenerator selfCertGenerator = new SelfCertGenerator( settings, domainSecureService );
+        final SelfCertGenerator selfCertGenerator = new SelfCertGenerator(
+                settings,
+                domainSecureService == null ? PwmRandom.getInstance() : domainSecureService.pwmRandom() );
         final StoredCertData storedCertData = selfCertGenerator.generateNewCertificate( makeSubjectName( settings ) );
         return storedCertToKeyStore( storedCertData, alias, password );
     }
@@ -87,7 +90,7 @@ public class SelfCertFactory
         return pwmApplication.readAppAttribute( AppAttribute.HTTPS_SELF_CERT, StoredCertData.class );
     }
 
-    private static boolean evaluateExistingStoredCert( final StoredCertData storedCertData, final Settings settings )
+    private static boolean evaluateExistingStoredCert( final StoredCertData storedCertData, final SelfCertSettings settings )
     {
         final String cnName = makeSubjectName( settings );
         if ( !cnName.equals( storedCertData.getX509Certificate().getSubjectDN().getName() ) )
@@ -109,8 +112,13 @@ public class SelfCertFactory
         return true;
     }
 
-    private static String makeSubjectName( final Settings settings )
+    private static String makeSubjectName( final SelfCertSettings settings )
     {
+        if ( !StringUtil.isEmpty( settings.getSubjectAlternateName() ) )
+        {
+            return settings.getSubjectAlternateName();
+        }
+
         String cnName = PwmConstants.PWM_APP_NAME.toLowerCase() + ".example.com";
         {
             final String siteURL = settings.getSiteUrl();

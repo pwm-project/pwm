@@ -20,13 +20,11 @@
 
 package password.pwm.receiver;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.time.Instant;
 
-@Getter
-@Setter
+@Data
 public class Status
 {
     private String errorState;

@@ -39,6 +39,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserInfo;
+import password.pwm.ldap.UserInfoBean;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
@@ -253,7 +254,7 @@ public class PwmPasswordRuleValidator
                     PwmConstants.DEFAULT_LOCALE,
                     SessionLabel.SYSTEM_LABEL,
                     userInfo.getUserIdentity() );
-            final PublicUserInfoBean publicUserInfoBean = PublicUserInfoBean.fromUserInfoBean( userInfo, pwmDomain.getConfig(), locale, macroRequest );
+            final PublicUserInfoBean publicUserInfoBean = UserInfoBean.toPublicUserInfoBean( userInfo, pwmDomain.getConfig(), locale, macroRequest );
             sendData.put( "userInfo", publicUserInfoBean );
         }
 

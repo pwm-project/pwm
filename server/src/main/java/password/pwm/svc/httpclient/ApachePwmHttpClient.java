@@ -70,7 +70,7 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpEntityDataType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmURL;
-import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.util.java.ImmutableByteArray;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.AtomicLoopIntIncrementer;

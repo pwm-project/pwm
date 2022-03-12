@@ -18,28 +18,28 @@
  * limitations under the License.
  */
 
-package password.pwm.util.debug;
-
-import password.pwm.PwmConstants;
-import password.pwm.util.java.JavaHelper;
+package password.pwm.util.java;
 
 import java.io.OutputStream;
-import java.time.Instant;
-import java.util.Properties;
 
-class BuildInformationDebugItemGenerator implements AppItemGenerator
+public class CrcChecksumOutputStream extends CopyingOutputStream
 {
-    @Override
-    public String getFilename()
+    private final CrcChecksumConsumer crcChecksumConsumer;
+
+    private CrcChecksumOutputStream( final OutputStream realStream, final CrcChecksumConsumer crcChecksumConsumer )
     {
-        return "build.properties";
+        super( realStream, crcChecksumConsumer );
+        this.crcChecksumConsumer = crcChecksumConsumer;
     }
 
-    @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public static CrcChecksumOutputStream newChecksumOutputStream( final OutputStream wrappedStream )
     {
-        final Properties outputProps = JavaHelper.newSortedProperties();
-        outputProps.putAll( PwmConstants.BUILD_MANIFEST );
-        outputProps.store( outputStream, JavaHelper.toIsoDate( Instant.now() ) );
+        final CrcChecksumConsumer crcChecksumConsumer = new CrcChecksumConsumer();
+        return new CrcChecksumOutputStream( wrappedStream, crcChecksumConsumer );
+    }
+
+    public long checksum()
+    {
+        return crcChecksumConsumer.checksum();
     }
 }

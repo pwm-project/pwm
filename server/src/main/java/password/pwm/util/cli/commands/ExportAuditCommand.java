@@ -25,6 +25,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.svc.event.AuditService;
 import password.pwm.util.cli.CliParameters;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.File;
@@ -51,7 +52,7 @@ public class ExportAuditCommand extends AbstractCliCommand
         {
             counter = auditManager.outputVaultToCsv( fileOutputStream, PwmConstants.DEFAULT_LOCALE, false );
         }
-        out( "completed writing " + counter + " rows of audit output in " + TimeDuration.fromCurrent( startTime ).asLongString() );
+        out( "completed writing " + counter + " rows of audit output in " + PwmTimeUtil.asLongString( TimeDuration.fromCurrent( startTime ) ) );
     }
 
     @Override

@@ -23,6 +23,7 @@ package password.pwm.util.cli.commands;
 import password.pwm.PwmApplication;
 import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.cli.CliParameters;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.File;
@@ -49,7 +50,7 @@ public class ExportStatsCommand extends AbstractCliCommand
             counter = statsManger.outputStatsToCsv( fileOutputStream, Locale.getDefault(), true );
             fileOutputStream.close();
         }
-        out( "completed writing " + counter + " rows of stats output in " + TimeDuration.fromCurrent( startTime ).asLongString() );
+        out( "completed writing " + counter + " rows of stats output in " + PwmTimeUtil.asLongString( TimeDuration.fromCurrent( startTime ) ) );
     }
 
     @Override

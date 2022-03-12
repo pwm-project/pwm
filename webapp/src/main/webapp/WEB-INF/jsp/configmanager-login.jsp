@@ -30,6 +30,8 @@
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page import="password.pwm.http.servlet.configmanager.ConfigManagerServlet" %>
 <%@ page import="password.pwm.http.servlet.configmanager.ConfigManagerLoginServlet" %>
+<%@ page import="password.pwm.util.java.MiscUtil" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
 
 <!DOCTYPE html>
 
@@ -89,7 +91,7 @@
             <% for (final ConfigManagerLoginServlet.ConfigLoginEvent event : configLoginHistory.successEvents()) { %>
             <tr>
                 <td><%=event.getUserIdentity()%></td>
-                <td><span  class="timestamp"><%=JavaHelper.toIsoDate(event.getDate())%></span></td>
+                <td><span  class="timestamp"><%=StringUtil.toIsoDate(event.getDate())%></span></td>
                 <td><%=event.getNetworkAddress()%></td>
             </tr>
             <% } %>
@@ -107,7 +109,7 @@
             <% for (final ConfigManagerLoginServlet.ConfigLoginEvent event : configLoginHistory.failedEvents()) { %>
             <tr>
                 <td><%=event.getUserIdentity()%></td>
-                <td><span  class="timestamp"><%=JavaHelper.toIsoDate(event.getDate())%></span></td>
+                <td><span  class="timestamp"><%=StringUtil.toIsoDate(event.getDate())%></span></td>
                 <td><%=event.getNetworkAddress()%></td>
             </tr>
             <% } %>

@@ -50,6 +50,8 @@ import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -115,7 +117,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
                     break;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( processAction.get() );
+                    MiscUtil.unhandledSwitchStatement( processAction.get() );
 
             }
             return;
@@ -174,7 +176,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             throws ServletException, PwmUnrecoverableException, IOException
     {
         final int persistentSeconds = figureMaxLoginSeconds( pwmRequest );
-        final String time = TimeDuration.of( persistentSeconds, TimeDuration.Unit.SECONDS ).asLongString( pwmRequest.getLocale() );
+        final String time = PwmTimeUtil.asLongString( TimeDuration.of( persistentSeconds, TimeDuration.Unit.SECONDS ), pwmRequest.getLocale() );
 
         final ConfigLoginHistory configLoginHistory = readConfigLoginHistory( pwmRequest );
         final boolean persistentLoginEnabled = persistentLoginEnabled( pwmRequest );

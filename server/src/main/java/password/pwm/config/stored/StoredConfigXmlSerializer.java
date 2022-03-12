@@ -487,7 +487,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             rootElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_XML_VERSION, XML_FORMAT_VERSION );
 
             rootElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_CREATE_TIME, storedConfiguration.createTime() );
-            rootElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate( storedConfiguration.modifyTime() ) );
+            rootElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_TIME, StringUtil.toIsoDate( storedConfiguration.modifyTime() ) );
         }
 
         static XmlElement makeSettingsXmlElement(
@@ -632,7 +632,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
                 if ( valueMetaData.get().getModifyDate() != null )
                 {
-                    xmlElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_TIME, JavaHelper.toIsoDate( valueMetaData.get().getModifyDate() ) );
+                    xmlElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_TIME, StringUtil.toIsoDate( valueMetaData.get().getModifyDate() ) );
                 }
             }
         }

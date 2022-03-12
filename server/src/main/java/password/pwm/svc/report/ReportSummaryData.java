@@ -441,12 +441,12 @@ public class ReportSummaryData implements Serializable
 
         returnCollection.add( builder.makeRow( "Field_Report_Sum_HaveResponses", this.hasResponses.sum() ) );
         returnCollection.add( builder.makeRow( "Field_Report_Sum_HaveHelpdeskResponses", this.hasHelpdeskResponses.sum() ) );
-        for ( final DataStorageMethod storageMethod : CollectionUtil.copiedEnumSet( this.getResponseStorage().keySet(), DataStorageMethod.class ) )
+        for ( final DataStorageMethod storageMethod : CollectionUtil.copyToEnumSet( this.getResponseStorage().keySet(), DataStorageMethod.class ) )
         {
             final long count = this.getResponseStorage().get( storageMethod );
             returnCollection.add( builder.makeRow( "Field_Report_Sum_StorageMethod", count, storageMethod.toString() ) );
         }
-        for ( final Answer.FormatType formatType : CollectionUtil.copiedEnumSet( this.getResponseFormatType().keySet(), Answer.FormatType.class ) )
+        for ( final Answer.FormatType formatType : CollectionUtil.copyToEnumSet( this.getResponseFormatType().keySet(), Answer.FormatType.class ) )
         {
             final long count = this.getResponseFormatType().get( formatType );
             returnCollection.add( builder.makeRow( "Field_Report_Sum_ResponseFormatType", count, formatType.toString() ) );

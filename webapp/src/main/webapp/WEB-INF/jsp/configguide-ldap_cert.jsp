@@ -33,6 +33,7 @@
 <%@ page import="java.io.ByteArrayInputStream" %>
 <%@ page import="java.security.cert.X509Certificate" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
+<%@ page import="password.pwm.util.java.MiscUtil" %>
 
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
@@ -74,8 +75,8 @@
                                 <tr><td>Issuer Name</td><td><div class="setting_table_value"><%=certificate.getIssuerX500Principal().getName()%></div></td></tr>
                                 <% final String serialNum = X509Utils.hexSerial(certificate); %>
                                 <tr><td>Serial Number</td><td><div class="setting_table_value"><%=serialNum%></div></td></tr>
-                                <tr><td>Issue Date</td><td><div class="setting_table_value timestamp"><%=JavaHelper.toIsoDate(certificate.getNotBefore())%></div></td></tr>
-                                <tr><td>Expire Date</td><td><div class="setting_table_value timestamp"><%=JavaHelper.toIsoDate(certificate.getNotAfter())%></div></td></tr>
+                                <tr><td>Issue Date</td><td><div class="setting_table_value timestamp"><%=StringUtil.toIsoDate(certificate.getNotBefore().toInstant())%></div></td></tr>
+                                <tr><td>Expire Date</td><td><div class="setting_table_value timestamp"><%=StringUtil.toIsoDate(certificate.getNotAfter().toInstant())%></div></td></tr>
                             </table>
                             <pwm:script>
                                 <script type="text/javascript">

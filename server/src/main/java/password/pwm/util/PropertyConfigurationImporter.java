@@ -148,7 +148,7 @@ public class PropertyConfigurationImporter
         modifySetting( modifier, PwmSetting.PASSWORD_POLICY_SOURCE, null, new StringValue( "LDAP" ) );
         modifySetting( modifier, PwmSetting.CERTIFICATE_VALIDATION_MODE, null, new StringValue( "CA_ONLY" ) );
         {
-            final String notes = "Configuration generated via properties import at " + JavaHelper.toIsoDate( Instant.now( ) );
+            final String notes = "Configuration generated via properties import at " + StringUtil.toIsoDate( Instant.now( ) );
             modifySetting( modifier, PwmSetting.NOTES, null, new StringValue( notes ) );
         }
 

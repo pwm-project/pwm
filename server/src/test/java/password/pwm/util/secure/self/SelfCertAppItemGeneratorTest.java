@@ -35,7 +35,7 @@ public class SelfCertAppItemGeneratorTest
     @Test
     public void doSelfCertGeneratorTest() throws Exception
     {
-        final KeyStore keyStore = SelfCertFactory.generateNewCert( Settings.builder().build(), null, new PasswordData( "password" ), "alias" );
+        final KeyStore keyStore = SelfCertFactory.generateNewCert( SelfCertSettings.builder().build(), null, new PasswordData( "password" ), "alias" );
         final Certificate certificate = keyStore.getCertificate( "alias" );
         final String subjectDN = ( ( X509Certificate) certificate ).getSubjectDN().getName();
         Assert.assertEquals( "CN=" + PwmConstants.PWM_APP_NAME.toLowerCase() + ".example.com", subjectDN );

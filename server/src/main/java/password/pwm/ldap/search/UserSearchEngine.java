@@ -101,7 +101,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
 
     private final ConditionalTaskExecutor debugOutputTask = ConditionalTaskExecutor.forPeriodicTask(
             this::periodicDebugOutput,
-            TimeDuration.of( 1, TimeDuration.Unit.MINUTES )
+            TimeDuration.of( 1, TimeDuration.Unit.MINUTES ).asDuration()
     );
 
     public UserSearchEngine( )

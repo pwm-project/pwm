@@ -302,7 +302,7 @@ class WordlistSource
 
         return ConditionalTaskExecutor.forPeriodicTask(
                 logOutputter,
-                AbstractWordlist.DEBUG_OUTPUT_FREQUENCY );
+                AbstractWordlist.DEBUG_OUTPUT_FREQUENCY.asDuration() );
     }
 
     private void closeStreams(

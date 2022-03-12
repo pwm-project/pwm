@@ -383,7 +383,7 @@ public class OAuthMachine
                 if ( resolveResults.getExpiresSeconds() > 0 )
                 {
                     final Instant accessTokenExpirationDate = Instant.ofEpochMilli( System.currentTimeMillis() + 1000 * resolveResults.getExpiresSeconds() );
-                    LOGGER.trace( sessionLabel, () -> "noted oauth access token expiration at timestamp " + JavaHelper.toIsoDate( accessTokenExpirationDate ) );
+                    LOGGER.trace( sessionLabel, () -> "noted oauth access token expiration at timestamp " + StringUtil.toIsoDate( accessTokenExpirationDate ) );
                     loginInfoBean.setOauthExp( accessTokenExpirationDate );
                     loginInfoBean.setOauthRefToken( resolveResults.getRefreshToken() );
                     return false;

@@ -176,14 +176,14 @@ public class HelpdeskVerificationOptionsBean implements Serializable
             final Map<VerificationMethodValue.EnabledState, Collection<IdentityVerificationMethod>> returnMap
                     = new EnumMap<>( VerificationMethodValue.EnabledState.class );
             {
-                final Set<IdentityVerificationMethod> optionalMethods = CollectionUtil.copiedEnumSet(
+                final Set<IdentityVerificationMethod> optionalMethods = CollectionUtil.copyToEnumSet(
                         helpdeskProfile.readOptionalVerificationMethods(),
                         IdentityVerificationMethod.class );
                 optionalMethods.removeAll( unavailableMethods );
                 returnMap.put( VerificationMethodValue.EnabledState.optional, optionalMethods );
             }
             {
-                final Set<IdentityVerificationMethod> requiredMethods = CollectionUtil.copiedEnumSet(
+                final Set<IdentityVerificationMethod> requiredMethods = CollectionUtil.copyToEnumSet(
                         helpdeskProfile.readRequiredVerificationMethods(),
                         IdentityVerificationMethod.class );
                 requiredMethods.removeAll( unavailableMethods );

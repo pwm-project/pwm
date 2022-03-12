@@ -20,39 +20,52 @@
 
 package password.pwm.util.java;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.concurrent.atomic.LongAccumulator;
 import java.util.stream.Collectors;
 
-public class StatisticCounterBundle<K extends Enum<K>>
+public class StatisticAverageBundle<K extends Enum<K>>
 {
-    private final Class<K> keyType;
-    private final Map<K, LongAccumulator> statMap;
+    private static final Duration DEFAULT_DURATION = Duration.ofMinutes( 1 );
 
-    public StatisticCounterBundle( final Class<K> keyType )
+    private final Class<K> keyType;
+    private final Map<K, MovingAverage> statMap;
+
+    public StatisticAverageBundle( final Class<K> keyType, final Duration avgPeriodLength )
     {
         this.keyType = keyType;
         statMap = new EnumMap<>( keyType );
-        Arrays.stream( keyType.getEnumConstants() ).forEach( k -> statMap.put( k, JavaHelper.newAbsLongAccumulator() ) );
+        Arrays.stream( keyType.getEnumConstants() )
+                .forEach( k -> statMap.put( k, new MovingAverage( avgPeriodLength ) ) );
     }
 
-    public void increment( final K stat )
+    public StatisticAverageBundle( final Class<K> keyType )
     {
-        increment( stat, 1 );
+        this( keyType, DEFAULT_DURATION );
     }
 
-    public void increment( final K stat, final long amount )
+    public void update( final K stat, final long sample )
     {
-        statMap.get( stat ).accumulate( amount );
+        statMap.get( stat ).update( sample );
     }
 
-    public long get( final K stat )
+    public void update( final K stat, final Duration sample )
     {
-        final LongAccumulator longAdder = statMap.get( stat );
-        return longAdder == null ? 0 : longAdder.longValue();
+        statMap.get( stat ).update( sample );
+    }
+
+    public double getAverage( final K stat )
+    {
+        final MovingAverage movingAverage = statMap.get( stat );
+        return movingAverage == null ? 0 : movingAverage.getAverage();
+    }
+
+    public String getFormattedAverage( final K stat )
+    {
+        return statMap.get( stat ).getFormattedAverage( );
     }
 
     public Map<String, String> debugStats()
@@ -60,7 +73,7 @@ public class StatisticCounterBundle<K extends Enum<K>>
         return Collections.unmodifiableMap( Arrays.stream( keyType.getEnumConstants() )
                 .collect( Collectors.toMap(
                         Enum::name,
-                        stat -> Long.toString( get( stat ) )
+                        this::getFormattedAverage
                 ) ) );
     }
 

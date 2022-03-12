@@ -28,7 +28,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 
 import java.net.URI;
 
@@ -57,7 +57,7 @@ public class OAuthCertImportFunction extends AbstractUriCertImportFunction
                 break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( pwmSetting );
+                MiscUtil.unhandledSwitchStatement( pwmSetting );
                 return null;
         }
 
