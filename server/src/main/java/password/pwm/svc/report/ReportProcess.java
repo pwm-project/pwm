@@ -42,6 +42,8 @@ import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.json.JsonProvider;
@@ -113,7 +115,7 @@ public class ReportProcess implements AutoCloseable
         this.debugOutputLogger = ConditionalTaskExecutor.forPeriodicTask(
                 () -> LOGGER.trace( sessionLabel, () -> "live report #" + reportId + " in progress: " + recordCounter.longValue() + " records exported",
                         () -> TimeDuration.fromCurrent( startTime ) ),
-                TimeDuration.MINUTE );
+                TimeDuration.MINUTE.asDuration() );
 
     }
 
@@ -138,7 +140,7 @@ public class ReportProcess implements AutoCloseable
     {
 
         final List<ReportSummaryData.PresentationRow> outputList = reportSummaryData.asPresentableCollection( config, locale );
-        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
 
         for ( final ReportSummaryData.PresentationRow presentationRow : outputList )
         {
@@ -213,13 +215,13 @@ public class ReportProcess implements AutoCloseable
                 ? new ReportJsonRecordWriter( zipOutputStream )
                 : new ReportCsvRecordWriter( zipOutputStream, pwmApplication, locale );
 
-        processReport( reportProcessRequest, zipOutputStream, recordWriter );
+        final boolean recordLimitReached = processReport( reportProcessRequest, zipOutputStream, recordWriter );
 
         checkCancel( zipOutputStream );
         outputSummary( zipOutputStream );
 
         checkCancel( zipOutputStream );
-        outputResult( reportProcessRequest, zipOutputStream );
+        outputResult( reportProcessRequest, zipOutputStream, recordLimitReached );
 
         LOGGER.trace( sessionLabel, () -> "completed liveReport generation with " + recordCounter.longValue() + " records",
                 () -> TimeDuration.fromCurrent( startTime ) );
@@ -237,7 +239,8 @@ public class ReportProcess implements AutoCloseable
 
     private void outputResult(
             final ReportProcessRequest request,
-            final ZipOutputStream zipOutputStream
+            final ZipOutputStream zipOutputStream,
+            final boolean recordLimitReached
     )
             throws IOException
     {
@@ -246,7 +249,8 @@ public class ReportProcess implements AutoCloseable
                 this.recordCounter.incrementAndGet(),
                 startTime,
                 Instant.now(),
-                TimeDuration.fromCurrent( startTime ) );
+                TimeDuration.fromCurrent( startTime ),
+                recordLimitReached );
 
         final String jsonData = JsonFactory.get().serialize( result, ReportProcessResult.class, JsonProvider.Flag.PrettyPrint );
 
@@ -272,7 +276,7 @@ public class ReportProcess implements AutoCloseable
         }
     }
 
-    private void processReport(
+    private boolean processReport(
             final ReportProcessRequest reportProcessRequest,
             final ZipOutputStream zipOutputStream,
             final ReportRecordWriter recordWriter
@@ -283,20 +287,30 @@ public class ReportProcess implements AutoCloseable
 
         recordWriter.outputHeader();
 
+        int processCounter = 0;
+        boolean recordLimitReached = false;
+
         for (
                 final Iterator<PwmDomain> domainIterator = applicableDomains( reportProcessRequest ).iterator();
-                domainIterator.hasNext() && !cancelFlag.get();
+                domainIterator.hasNext() && !cancelFlag.get() && !recordLimitReached;
         )
         {
             final PwmDomain pwmDomain = domainIterator.next();
 
             for (
                     final Iterator<UserReportRecord> reportRecordQueue = executeUserRecordReadJobs( reportProcessRequest, pwmDomain );
-                    reportRecordQueue.hasNext() && !cancelFlag.get();
+                    reportRecordQueue.hasNext() && !cancelFlag.get() && !recordLimitReached;
             )
             {
+                processCounter++;
+
+                if ( processCounter >= reportProcessRequest.getMaximumRecords() )
+                {
+                    recordLimitReached = true;
+                }
+
                 final UserReportRecord userReportRecord = reportRecordQueue.next();
-                final boolean lastRecord = !reportRecordQueue.hasNext() && !domainIterator.hasNext();
+                final boolean lastRecord = recordLimitReached || ( !reportRecordQueue.hasNext() && !domainIterator.hasNext() );
                 recordWriter.outputRecord( userReportRecord, lastRecord );
                 perRecordOutputTasks( userReportRecord, zipOutputStream );
             }
@@ -306,6 +320,7 @@ public class ReportProcess implements AutoCloseable
         recordWriter.close();
 
         zipOutputStream.closeEntry();
+        return recordLimitReached;
     }
 
     private Iterator<UserReportRecord> executeUserRecordReadJobs(
@@ -414,7 +429,7 @@ public class ReportProcess implements AutoCloseable
                     String.valueOf( recordCounter.longValue() ) ) );
             list.add( new DisplayElement( "duration", DisplayElement.Type.string,
                     "Duration",
-                    TimeDuration.fromCurrent( startTime ).asLongString( locale ) ) );
+                    PwmTimeUtil.asLongString( TimeDuration.fromCurrent( startTime ), locale ) ) );
             if ( recordCounter.get() > 0 )
             {
                 final String rate = processRateMeter.readEventRate()

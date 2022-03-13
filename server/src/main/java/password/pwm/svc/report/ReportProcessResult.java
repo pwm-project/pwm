@@ -34,4 +34,5 @@ public class ReportProcessResult implements Serializable
     private final Instant startTime;
     private final Instant finishTime;
     private final TimeDuration timeDuration;
+    private final boolean recordLimitReached;
 }

@@ -26,7 +26,8 @@ import password.pwm.config.SettingReader;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.StringUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -43,7 +44,7 @@ class ReportCsvRecordWriter implements ReportRecordWriter
     ReportCsvRecordWriter( final OutputStream outputStream, final PwmApplication pwmApplication, final Locale locale )
             throws IOException
     {
-        this.csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
+        this.csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
         this.locale = locale;
         this.pwmApplication = pwmApplication;
     }
@@ -101,19 +102,19 @@ class ReportCsvRecordWriter implements ReportRecordWriter
         csvRow.add( userReportRecord.getUserGUID() );
         csvRow.add( userReportRecord.getAccountExpirationTime() == null
                 ? naField
-                : JavaHelper.toIsoDate( userReportRecord.getAccountExpirationTime() ) );
+                : StringUtil.toIsoDate( userReportRecord.getAccountExpirationTime() ) );
         csvRow.add( userReportRecord.getPasswordExpirationTime() == null
                 ? naField
-                : JavaHelper.toIsoDate( userReportRecord.getPasswordExpirationTime() ) );
+                : StringUtil.toIsoDate( userReportRecord.getPasswordExpirationTime() ) );
         csvRow.add( userReportRecord.getPasswordChangeTime() == null
                 ? naField
-                : JavaHelper.toIsoDate( userReportRecord.getPasswordChangeTime() ) );
+                : StringUtil.toIsoDate( userReportRecord.getPasswordChangeTime() ) );
         csvRow.add( userReportRecord.getResponseSetTime() == null
                 ? naField
-                : JavaHelper.toIsoDate( userReportRecord.getResponseSetTime() ) );
+                : StringUtil.toIsoDate( userReportRecord.getResponseSetTime() ) );
         csvRow.add( userReportRecord.getLastLoginTime() == null
                 ? naField
-                : JavaHelper.toIsoDate( userReportRecord.getLastLoginTime() ) );
+                : StringUtil.toIsoDate( userReportRecord.getLastLoginTime() ) );
         csvRow.add( userReportRecord.isHasResponses() ? trueField : falseField );
         csvRow.add( userReportRecord.isHasHelpdeskResponses() ? trueField : falseField );
         csvRow.add( userReportRecord.getResponseStorageMethod() == null
@@ -131,7 +132,7 @@ class ReportCsvRecordWriter implements ReportRecordWriter
         csvRow.add( userReportRecord.isRequiresProfileUpdate() ? trueField : falseField );
         csvRow.add( userReportRecord.getCacheTimestamp() == null
                 ? naField
-                : JavaHelper.toIsoDate( userReportRecord.getCacheTimestamp() ) );
+                : StringUtil.toIsoDate( userReportRecord.getCacheTimestamp() ) );
 
         csvPrinter.printRecord( csvRow );
     }

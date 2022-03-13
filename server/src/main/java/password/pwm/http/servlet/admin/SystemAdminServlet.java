@@ -55,6 +55,8 @@ import password.pwm.svc.pwnotify.PwNotifyStoredJobState;
 import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.LocalDBLogger;
@@ -509,8 +511,9 @@ public class SystemAdminServlet extends ControlledPwmServlet
 
             if ( pwNotifyStoredJobState.getLastStart() != null && pwNotifyStoredJobState.getLastCompletion() != null )
             {
+                final TimeDuration lastJobDuration = TimeDuration.between( pwNotifyStoredJobState.getLastStart(), pwNotifyStoredJobState.getLastCompletion() );
                 statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
-                        "Last Job Duration", TimeDuration.between( pwNotifyStoredJobState.getLastStart(), pwNotifyStoredJobState.getLastCompletion() ).asLongString( locale ) ) );
+                        "Last Job Duration", PwmTimeUtil.asLongString( lastJobDuration, locale ) ) );
             }
 
             if ( StringUtil.notEmpty( pwNotifyStoredJobState.getServerInstance() ) )
@@ -703,7 +706,7 @@ public class SystemAdminServlet extends ControlledPwmServlet
             break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( logDownloadType );
+                MiscUtil.unhandledSwitchStatement( logDownloadType );
 
         }
 
