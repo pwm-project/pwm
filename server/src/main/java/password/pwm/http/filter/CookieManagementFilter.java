@@ -25,6 +25,8 @@ import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.HttpHeader;
+import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmSession;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -36,6 +38,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -73,7 +76,7 @@ public class CookieManagementFilter implements Filter
     {
         filterChain.doFilter( servletRequest, servletResponse );
         addSameSiteCookieAttribute( ( HttpServletResponse ) servletResponse, value );
-        markSessionForRecycle( ( HttpServletRequest ) servletRequest );
+        markSessionForRecycle( ( HttpServletRequest ) servletRequest, ( HttpServletResponse ) servletResponse  );
     }
 
     /**
@@ -82,9 +85,8 @@ public class CookieManagementFilter implements Filter
      *
      * @param httpServletRequest The request to be marked
      */
-    private void markSessionForRecycle( final HttpServletRequest httpServletRequest )
+    private void markSessionForRecycle( final HttpServletRequest httpServletRequest, final HttpServletResponse httpServletResponse )
     {
-        /*
         if ( StringUtil.isEmpty( value ) )
         {
             return;
@@ -96,7 +98,8 @@ public class CookieManagementFilter implements Filter
             PwmSession pwmSession = null;
             try
             {
-                pwmSession = PwmSessionFactory.readPwmSession( httpSession );
+                final PwmRequest pwmRequest = PwmRequest.forRequest( httpServletRequest, httpServletResponse );
+                pwmSession = pwmRequest.getPwmSession();
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -112,8 +115,6 @@ public class CookieManagementFilter implements Filter
                 }
             }
         }
-
-         */
     }
 
     public static void addSameSiteCookieAttribute( final HttpServletResponse response, final String value )
