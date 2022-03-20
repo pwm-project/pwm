@@ -1247,7 +1247,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             pwmSession.getLoginInfoBean().getLoginFlags().add( LoginInfoBean.LoginFlag.forcePwChange );
 
             // redirect user to change password screen.
-            pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.PublicChangePassword.servletUrlName() );
+            pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.PublicChangePassword );
         }
         catch ( final PwmUnrecoverableException e )
         {

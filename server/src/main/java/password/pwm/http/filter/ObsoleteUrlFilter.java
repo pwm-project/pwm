@@ -88,7 +88,7 @@ public class ObsoleteUrlFilter extends AbstractPwmFilter
         if ( optionalDefinition.isPresent() )
         {
             final PwmServletDefinition pwmServletDefinition = optionalDefinition.get();
-            if ( !pwmServletDefinition.servletUrl().equals( requestServletUrl ) )
+            if ( !requestServletUrl.startsWith( pwmServletDefinition.servletUrl() ) )
             {
                 LOGGER.debug( pwmRequest, () -> "obsolete url of '"
                         + requestServletUrl

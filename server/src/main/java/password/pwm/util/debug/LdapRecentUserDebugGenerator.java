@@ -23,8 +23,8 @@ package password.pwm.util.debug;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
-import password.pwm.http.servlet.admin.UserDebugDataBean;
-import password.pwm.http.servlet.admin.UserDebugDataReader;
+import password.pwm.http.servlet.admin.domain.UserDebugDataBean;
+import password.pwm.http.servlet.admin.domain.UserDebugDataReader;
 import password.pwm.util.json.JsonProvider;
 import password.pwm.util.json.JsonFactory;
 

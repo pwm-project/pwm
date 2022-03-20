@@ -29,7 +29,7 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SystemAdminServlet.Page currentPage = SystemAdminServlet.Page.forUrl(JspUtility.getPwmRequest(pageContext).getURL()); %>
+<% final SystemAdminServlet.Page currentPage = SystemAdminServlet.Page.forUrl(JspUtility.getPwmRequest(pageContext).getURL()).orElseThrow(); %>
 <pwm:script-ref url="/public/resources/js/uilibrary.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 <link href="<pwm:url url='/public/resources/webjars/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
@@ -68,5 +68,3 @@
     <div style="display: inline" id="admin-nav-menu-container">
     </div>
 </div>
-
-

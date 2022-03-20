@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.http.servlet.admin;
+package password.pwm.http.servlet.admin.domain;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
@@ -39,6 +39,7 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.AdminBean;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.http.servlet.admin.SystemAdminServlet;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;

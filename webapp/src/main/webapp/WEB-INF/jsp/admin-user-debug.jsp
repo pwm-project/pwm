@@ -31,14 +31,14 @@
 <%@ page import="password.pwm.config.profile.ProfileDefinition" %>
 <%@ page import="password.pwm.config.profile.PwmPasswordPolicy" %>
 <%@ page import="password.pwm.config.profile.PwmPasswordRule" %>
-<%@ page import="password.pwm.http.servlet.admin.UserDebugDataBean" %>
+<%@ page import="password.pwm.http.servlet.admin.domain.UserDebugDataBean" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.util.java.TimeDuration" %>
 <%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.svc.PwmService" %>
-<%@ page import="password.pwm.http.servlet.admin.AdminUserDebugServlet" %>
+<%@ page import="password.pwm.http.servlet.admin.domain.AdminUserDebugServlet" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>

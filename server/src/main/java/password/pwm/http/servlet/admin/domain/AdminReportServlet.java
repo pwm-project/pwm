@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.http.servlet.admin;
+package password.pwm.http.servlet.admin.domain;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
@@ -32,6 +32,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.http.servlet.admin.SystemAdminServlet;
 import password.pwm.i18n.Message;
 import password.pwm.svc.report.ReportProcess;
 import password.pwm.svc.report.ReportProcessRequest;

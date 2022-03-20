@@ -89,6 +89,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -380,7 +381,15 @@ public class SystemAdminServlet extends ControlledPwmServlet
 
     private void forwardToJsp( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
     {
-        final Page currentPage = Page.forUrl( pwmRequest.getURL() );
+        final Optional<Page> requestedPage = Page.forUrl( pwmRequest.getURL() );
+        if ( requestedPage.isEmpty() )
+        {
+            final String url = pwmRequest.getBasePath() + PwmServletDefinition.SystemAdmin.servletUrl() + Page.dashboard.getUrlSuffix();
+            pwmRequest.getPwmResponse().sendRedirect( url );
+            return;
+        }
+
+        final Page currentPage = requestedPage.get();
 
         if ( currentPage == Page.threads )
         {
@@ -410,12 +419,7 @@ public class SystemAdminServlet extends ControlledPwmServlet
             pwmRequest.setAttribute( PwmRequestAttribute.AppDashboardData, appDashboardData );
         }
 
-        if ( currentPage != null )
-        {
             pwmRequest.forwardToJsp( currentPage.getJspURL() );
-            return;
-        }
-        pwmRequest.getPwmResponse().sendRedirect( pwmRequest.getBasePath() + PwmServletDefinition.SystemAdmin.servletUrl() + Page.dashboard.getUrlSuffix() );
     }
 
     private static int readMaxParameter( final PwmRequest pwmRequest, final int defaultValue, final int maxValue )
@@ -454,17 +458,12 @@ public class SystemAdminServlet extends ControlledPwmServlet
             return urlSuffix;
         }
 
-        public static Page forUrl( final PwmURL pwmURL )
+        public static Optional<Page> forUrl( final PwmURL pwmURL )
         {
             final String url = pwmURL.toString();
-            for ( final Page page : Page.values() )
-            {
-                if ( url.endsWith( page.urlSuffix ) )
-                {
-                    return page;
-                }
-            }
-            return null;
+            return Stream.of( Page.values() )
+                    .filter( page -> url.endsWith( page.getUrlSuffix() ) )
+                    .findFirst();
         }
     }
 

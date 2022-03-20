@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.http.servlet.admin;
+package password.pwm.http.servlet.admin.domain;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
