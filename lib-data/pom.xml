@@ -12,7 +12,7 @@
     <artifactId>pwm-lib-data</artifactId>
     <packaging>jar</packaging>
 
-    <name>PWM Password Self Service: Library JAR - Data Objects</name>
+    <name>PWM Password Self Service: Library JAR - Data</name>
 
     <properties>
         <skipTests>false</skipTests>
