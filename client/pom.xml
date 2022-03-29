@@ -94,7 +94,7 @@
                     <nodeVersion>${node.version}</nodeVersion>
                     <npmVersion>${npm.version}</npmVersion>
                     <workingDirectory>angular/</workingDirectory>
-                    <installDirectory>.node</installDirectory>
+                    <installDirectory>angular/.node</installDirectory>
                 </configuration>
                 <executions>
                     <execution>

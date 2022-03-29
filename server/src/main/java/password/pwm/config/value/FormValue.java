@@ -46,7 +46,7 @@ public class FormValue extends AbstractValue implements StoredValue
 
     public FormValue( final List<FormConfiguration> values )
     {
-        this.values = values == null ? Collections.emptyList() : Collections.unmodifiableList( values );
+        this.values = values == null ? Collections.emptyList() : List.copyOf( CollectionUtil.stripNulls( values ) );
     }
 
     public static StoredValueFactory factory( )
@@ -62,12 +62,7 @@ public class FormValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    List<FormConfiguration> srcList = JsonFactory.get().deserializeList( input, FormConfiguration.class );
-                    srcList = srcList == null ? Collections.emptyList() : srcList;
-                    while ( srcList.contains( null ) )
-                    {
-                        srcList.remove( null );
-                    }
+                    final List<FormConfiguration> srcList = JsonFactory.get().deserializeList( input, FormConfiguration.class );
                     return new FormValue( Collections.unmodifiableList( srcList ) );
                 }
             }

@@ -166,19 +166,15 @@ public class ConfigEditorServletUtils
     static ConfigEditorServlet.ReadSettingResponse handleLocaleBundleReadSetting(
             final PwmRequest pwmRequest,
             final StoredConfiguration storedConfig,
-            final String key
+            final StoredConfigKey key
 
     )
             throws PwmUnrecoverableException
     {
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
         final ConfigEditorServlet.ReadSettingResponse.ReadSettingResponseBuilder builder = ConfigEditorServlet.ReadSettingResponse.builder();
-        final StringTokenizer st = new StringTokenizer( key, "-" );
-        st.nextToken();
-        final String localeBundleName = st.nextToken();
-        final PwmLocaleBundle pwmLocaleBundle = PwmLocaleBundle.forKey( localeBundleName )
-                .orElseThrow( () -> new IllegalArgumentException( "unknown locale bundle name '" + localeBundleName + "'" ) );
-        final String keyName = st.nextToken();
+        final PwmLocaleBundle pwmLocaleBundle = key.toLocaleBundle();
+        final String keyName = key.getProfileID();
         final Map<String, String> bundleMap = storedConfig.readLocaleBundleMap( pwmLocaleBundle, keyName, domainID );
         if ( bundleMap == null || bundleMap.isEmpty() )
         {
@@ -209,28 +205,23 @@ public class ConfigEditorServletUtils
             builder.value( bundleMap );
             builder.isDefault( false );
         }
-        builder.key( key );
+        builder.key( keyName );
         return builder.build();
     }
 
     static ConfigEditorServlet.ReadSettingResponse handleReadSetting(
             final PwmRequest pwmRequest,
             final StoredConfiguration storedConfig,
-            final String settingKey
+            final StoredConfigKey key
     )
             throws PwmUnrecoverableException
     {
         final ConfigEditorServlet.ReadSettingResponse.ReadSettingResponseBuilder builder = ConfigEditorServlet.ReadSettingResponse.builder();
-        final PwmSetting pwmSetting = PwmSetting.forKey( settingKey )
-                .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
 
-        final Object returnValue;
-        final String profile = pwmSetting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString( "profile" ) : null;
-        final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( pwmSetting );
-
-        final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, profile, domainID );
+        final PwmSetting pwmSetting = key.toPwmSetting();
         final boolean isDefault = StoredConfigurationUtil.isDefaultValue( storedConfig, key );
 
+        final Object returnValue;
         switch ( pwmSetting.getSyntax() )
         {
             case PASSWORD:
@@ -268,7 +259,7 @@ public class ConfigEditorServletUtils
                 builder.modifyUser( settingMetaData.map( ValueMetaData::getUserIdentity ).orElse( null ) );
             }
         }
-        builder.key( settingKey );
+        builder.key( key.toPwmSetting().getKey() );
         builder.category( pwmSetting.getCategory().toString() );
         builder.syntax( pwmSetting.getSyntax().toString() );
         return builder.build();
@@ -282,20 +273,20 @@ public class ConfigEditorServletUtils
     {
         try
         {
-            final PasswordData passwordData = pwmRequest.readParameterAsPassword( "password" )
+            final PasswordData passwordData = pwmRequest.readParameterAsPassword( ConfigEditorServlet.REQ_PARAM_PASSWORD )
                     .orElseThrow( () -> new NoSuchElementException( "missing 'password' field" ) );
 
-            final String alias = pwmRequest.readParameterAsString( "alias" );
+            final String alias = pwmRequest.readParameterAsString( ConfigEditorServlet.REQ_PARAM_ALIAS );
             final HttpsServerCertificateManager.KeyStoreFormat keyStoreFormat;
             try
             {
-                keyStoreFormat = HttpsServerCertificateManager.KeyStoreFormat.valueOf( pwmRequest.readParameterAsString( "format" ) );
+                keyStoreFormat = HttpsServerCertificateManager.KeyStoreFormat.valueOf( pwmRequest.readParameterAsString( ConfigEditorServlet.REQ_PARAM_FORMAT ) );
             }
             catch ( final IllegalArgumentException e )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, "unknown format type: " + e.getMessage(), new String[]
                         {
-                                "format",
+                                ConfigEditorServlet.REQ_PARAM_FORMAT,
                         }
                 ) );
             }
@@ -322,5 +313,37 @@ public class ConfigEditorServletUtils
             LOGGER.error( pwmRequest, () -> "error during https certificate upload: " + e.getMessage() );
             pwmRequest.respondWithError( e.getErrorInformation(), false );
         }
+    }
+
+    static StoredConfigKey readConfigKeyFromRequest( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+
+        final String keyStringParam = pwmRequest.readParameterAsString( ConfigEditorServlet.REQ_PARAM_KEY );
+
+        if ( keyStringParam.startsWith( ConfigEditorServlet.REQ_PARAM_LOCALE_BUNDLE ) )
+        {
+            try
+            {
+                final StringTokenizer st = new StringTokenizer( keyStringParam, "-" );
+                st.nextToken();
+                final PwmLocaleBundle pwmLocaleBundle = PwmLocaleBundle.forKey( st.nextToken() )
+                        .orElseThrow( () -> new IllegalArgumentException( "invalid StoredConfigKey locale key" ) );
+                final String keyName = st.nextToken();
+
+                final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
+                return StoredConfigKey.forLocaleBundle( pwmLocaleBundle, keyName, domainID );
+            }
+            catch ( final NoSuchElementException e )
+            {
+                throw new IllegalArgumentException( "invalid StoredConfigKey locale key format" );
+            }
+        }
+
+        final PwmSetting setting = PwmSetting.forKey( keyStringParam )
+                .orElseThrow( () -> new IllegalStateException( "invalid StoredConfigKey setting key" ) );
+        final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( setting );
+        final String profileID = setting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString( ConfigEditorServlet.REQ_PARAM_PROFILE ) : null;
+        return StoredConfigKey.forSetting( setting, profileID, domainID );
     }
 }
