@@ -33,7 +33,6 @@ import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingTemplate;
-import password.pwm.http.servlet.configeditor.function.SettingUIFunction;
 import password.pwm.config.profile.EmailServerProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.stored.ConfigSearchMachine;
@@ -69,6 +68,7 @@ import password.pwm.http.servlet.configeditor.data.NavTreeItem;
 import password.pwm.http.servlet.configeditor.data.NavTreeSettings;
 import password.pwm.http.servlet.configeditor.data.SettingData;
 import password.pwm.http.servlet.configeditor.data.SettingDataMaker;
+import password.pwm.http.servlet.configeditor.function.SettingUIFunction;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Message;
@@ -104,7 +104,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.TreeMap;
 
 @WebServlet(
@@ -120,8 +119,15 @@ import java.util.TreeMap;
 )
 public class ConfigEditorServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigEditorServlet.class );
+
+    public static final String REQ_PARAM_ALIAS = "alias";
+    public static final String REQ_PARAM_PASSWORD = "password";
+    public static final String REQ_PARAM_FORMAT = "format";
+    public static final String REQ_PARAM_LOCALE_BUNDLE = "localeBundle";
+    public static final String REQ_PARAM_KEY = "key";
+    public static final String REQ_PARAM_PROFILE = "profile";
+    public static final String REQ_PARAM_TEMPLATE = "template";
 
     public enum ConfigEditorAction implements AbstractPwmServlet.ProcessAction
     {
@@ -246,7 +252,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final PwmSetting pwmSetting = PwmSetting.forKey( requestMap.get( "setting" ) )
                 .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
         final String functionName = requestMap.get( "function" );
-        final String profileID = pwmSetting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString( "profile" ) : null;
+        final String profileID = pwmSetting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString( REQ_PARAM_PROFILE ) : null;
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( pwmSetting );
         final String extraData = requestMap.get( "extraData" );
 
@@ -287,16 +293,16 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     {
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final StoredConfiguration storedConfig = configManagerBean.getStoredConfiguration();
-        final String key = pwmRequest.readParameterAsString( "key" );
+        final StoredConfigKey storedConfigKey = ConfigEditorServletUtils.readConfigKeyFromRequest( pwmRequest );
 
         final ReadSettingResponse readSettingResponse;
-        if ( key.startsWith( "localeBundle" ) )
+        if ( storedConfigKey.getRecordType() == StoredConfigKey.RecordType.LOCALE_BUNDLE )
         {
-            readSettingResponse = ConfigEditorServletUtils.handleLocaleBundleReadSetting( pwmRequest, storedConfig, key );
+            readSettingResponse = ConfigEditorServletUtils.handleLocaleBundleReadSetting( pwmRequest, storedConfig, storedConfigKey );
         }
         else
         {
-            readSettingResponse = ConfigEditorServletUtils.handleReadSetting( pwmRequest, storedConfig, key );
+            readSettingResponse = ConfigEditorServletUtils.handleReadSetting( pwmRequest, storedConfig, storedConfigKey );
         }
 
         pwmRequest.outputJsonResult( RestResultBean.withData( readSettingResponse, ReadSettingResponse.class ) );
@@ -325,43 +331,35 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     {
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( configManagerBean.getStoredConfiguration() );
-        final String settingKey = pwmRequest.readParameterAsString( "key" );
         final String bodyString = pwmRequest.readRequestBodyAsString();
         final UserIdentity loggedInUser = pwmRequest.getUserInfoIfLoggedIn();
 
         final ReadSettingResponse readSettingResponse;
 
-        if ( settingKey.startsWith( "localeBundle" ) )
+        final StoredConfigKey key = ConfigEditorServletUtils.readConfigKeyFromRequest( pwmRequest );
+
+        if ( key.getRecordType() == StoredConfigKey.RecordType.LOCALE_BUNDLE )
         {
-            final StringTokenizer st = new StringTokenizer( settingKey, "-" );
-            st.nextToken();
-            final PwmLocaleBundle pwmLocaleBundle = PwmLocaleBundle.forKey( st.nextToken() )
-                    .orElseThrow( () -> new IllegalArgumentException( "unknown locale bundle name" ) );
-            final String keyName = st.nextToken();
             final Map<String, String> valueMap = JsonFactory.get().deserializeStringMap( bodyString );
             final Map<String, String> outputMap = new LinkedHashMap<>( valueMap );
 
-            final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
-            modifier.writeLocaleBundleMap( domainID, pwmLocaleBundle, keyName, outputMap );
-            readSettingResponse = ConfigEditorServletUtils.handleLocaleBundleReadSetting( pwmRequest, modifier.newStoredConfiguration(), settingKey );
+            final PwmLocaleBundle pwmLocaleBundle = key.toLocaleBundle();
+            final String keyName = key.getProfileID();
+            modifier.writeLocaleBundleMap( key.getDomainID(), pwmLocaleBundle, keyName, outputMap );
+            readSettingResponse = ConfigEditorServletUtils.handleLocaleBundleReadSetting( pwmRequest, modifier.newStoredConfiguration(), key );
         }
         else
         {
-            final PwmSetting setting = PwmSetting.forKey( settingKey )
-                    .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
-            final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( setting );
-            final String profileID = setting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString( "profile" ) : null;
-            final StoredConfigKey key = StoredConfigKey.forSetting( setting, profileID, domainID );
             try
             {
-                final StoredValue storedValue = ValueFactory.fromJson( setting, bodyString );
+                final StoredValue storedValue = ValueFactory.fromJson( key.toPwmSetting(), bodyString );
                 modifier.writeSetting( key, storedValue, loggedInUser );
             }
             catch ( final PwmOperationalException e )
             {
                 throw new PwmUnrecoverableException( e.getErrorInformation() );
             }
-            readSettingResponse = ConfigEditorServletUtils.handleReadSetting( pwmRequest, modifier.newStoredConfiguration(), settingKey );
+            readSettingResponse = ConfigEditorServletUtils.handleReadSetting( pwmRequest, modifier.newStoredConfiguration(), key );
         }
 
         ConfigurationCleaner.postProcessStoredConfig( modifier );
@@ -379,25 +377,17 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( configManagerBean.getStoredConfiguration() );
         final UserIdentity loggedInUser = pwmRequest.getUserInfoIfLoggedIn();
-        final String settingKey = pwmRequest.readParameterAsString( "key" );
+        final StoredConfigKey key = ConfigEditorServletUtils.readConfigKeyFromRequest( pwmRequest );
 
-        if ( settingKey.startsWith( "localeBundle" ) )
+        if ( key.getRecordType() == StoredConfigKey.RecordType.LOCALE_BUNDLE )
         {
-            final StringTokenizer st = new StringTokenizer( settingKey, "-" );
-            st.nextToken();
-            final PwmLocaleBundle pwmLocaleBundle = PwmLocaleBundle.forKey( st.nextToken() )
-                    .orElseThrow( () -> new IllegalArgumentException( "unknown locale bundle name" ) );
-            final String keyName = st.nextToken();
+            final PwmLocaleBundle pwmLocaleBundle = key.toLocaleBundle();
+            final String keyName = key.getProfileID();
             final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
             modifier.resetLocaleBundleMap( pwmLocaleBundle, keyName, domainID );
         }
         else
         {
-            final PwmSetting setting = PwmSetting.forKey( settingKey )
-                    .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
-            final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( setting );
-            final String profileID = setting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString( "profile" ) : null;
-            final StoredConfigKey key = StoredConfigKey.forSetting( setting, profileID, domainID );
             modifier.resetSetting( key, loggedInUser );
         }
 
@@ -498,36 +488,20 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( configManagerBean.getStoredConfiguration() );
         {
-            final String updateDescriptionTextCmd = pwmRequest.readParameterAsString( "updateNotesText" );
-            if ( StringUtil.nullSafeEqualsIgnoreCase( "true", updateDescriptionTextCmd ) )
+
+            final String requestedTemplate = pwmRequest.readParameterAsString( REQ_PARAM_TEMPLATE );
+            if ( requestedTemplate != null && requestedTemplate.length() > 0 )
             {
                 try
                 {
-                    final String bodyString = pwmRequest.readRequestBodyAsString();
-                    final String value = JsonFactory.get().deserialize( bodyString, String.class );
-                    modifier.writeConfigProperty( ConfigurationProperty.NOTES, value );
-                    LOGGER.trace( () -> "updated notesText" );
+                    final PwmSettingTemplate template = PwmSettingTemplate.valueOf( requestedTemplate );
+                    modifier.writeConfigProperty( ConfigurationProperty.LDAP_TEMPLATE, template.toString() );
+                    LOGGER.trace( () -> "setting template to: " + requestedTemplate );
                 }
-                catch ( final Exception e )
+                catch ( final IllegalArgumentException e )
                 {
-                    LOGGER.error( () -> "error updating notesText: " + e.getMessage() );
-                }
-            }
-            {
-                final String requestedTemplate = pwmRequest.readParameterAsString( "template" );
-                if ( requestedTemplate != null && requestedTemplate.length() > 0 )
-                {
-                    try
-                    {
-                        final PwmSettingTemplate template = PwmSettingTemplate.valueOf( requestedTemplate );
-                        modifier.writeConfigProperty( ConfigurationProperty.LDAP_TEMPLATE, template.toString() );
-                        LOGGER.trace( () -> "setting template to: " + requestedTemplate );
-                    }
-                    catch ( final IllegalArgumentException e )
-                    {
-                        modifier.writeConfigProperty( ConfigurationProperty.LDAP_TEMPLATE, PwmSettingTemplate.DEFAULT.toString() );
-                        LOGGER.error( () -> "unknown template set request: " + requestedTemplate );
-                    }
+                    modifier.writeConfigProperty( ConfigurationProperty.LDAP_TEMPLATE, PwmSettingTemplate.DEFAULT.toString() );
+                    LOGGER.error( () -> "unknown template set request: " + requestedTemplate );
                 }
             }
         }
@@ -619,7 +593,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         LOGGER.debug( pwmRequest, () -> "beginning restLdapHealthCheck" );
-        final String profileID = pwmRequest.readParameterAsString( "profile" );
+        final String profileID = pwmRequest.readParameterAsString( REQ_PARAM_PROFILE );
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.LDAP_SERVER_URLS );
         final DomainConfig config = new AppConfig( configManagerBean.getStoredConfiguration() ).getDomainConfigs().get( domainID );
         final PublicHealthData healthData = LDAPHealthChecker.healthForNewConfiguration(
@@ -710,7 +684,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     {
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
-        final String profileID = pwmRequest.readParameterAsString( "profile" );
+        final String profileID = pwmRequest.readParameterAsString( REQ_PARAM_PROFILE );
 
         LOGGER.debug( pwmRequest, () -> "beginning restEmailHealthCheck" );
 
@@ -765,7 +739,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     {
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
 
-        final String settingKey = pwmRequest.readParameterAsString( "key" );
+        final String settingKey = pwmRequest.readParameterAsString( REQ_PARAM_KEY );
         final PwmSetting pwmSetting = PwmSetting.forKey( settingKey )
                 .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( pwmSetting );

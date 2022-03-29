@@ -105,7 +105,7 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
         return new StoredConfigKey( RecordType.SETTING, domainID, pwmSetting.getKey(), profileID );
     }
 
-    static StoredConfigKey forLocaleBundle( final PwmLocaleBundle localeBundle, final String key, final DomainID domainID )
+    public static StoredConfigKey forLocaleBundle( final PwmLocaleBundle localeBundle, final String key, final DomainID domainID )
     {
         return new StoredConfigKey( RecordType.LOCALE_BUNDLE, domainID, localeBundle.getKey(), key );
     }
