@@ -26,6 +26,7 @@ import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.util.PasswordData;
+import password.pwm.http.HttpMethod;
 
 import java.io.Serializable;
 import java.security.cert.X509Certificate;
@@ -38,6 +39,7 @@ public class OAuthSettings implements Serializable
     private String loginURL;
     private String codeResolveUrl;
     private String attributesUrl;
+    private HttpMethod attributesMethod;
     private String scope;
     private String clientID;
     private PasswordData secret;
@@ -62,6 +64,7 @@ public class OAuthSettings implements Serializable
                 .loginURL( config.readSettingAsString( PwmSetting.OAUTH_ID_LOGIN_URL ) )
                 .codeResolveUrl( config.readSettingAsString( PwmSetting.OAUTH_ID_CODERESOLVE_URL ) )
                 .attributesUrl( config.readSettingAsString( PwmSetting.OAUTH_ID_ATTRIBUTES_URL ) )
+                .attributesMethod( config.readSettingAsHttpMethod( PwmSetting.OAUTH_ID_ATTRIBUTES_METHOD ) )
                 .clientID( config.readSettingAsString( PwmSetting.OAUTH_ID_CLIENTNAME ) )
                 .secret( config.readSettingAsPassword( PwmSetting.OAUTH_ID_SECRET ) )
                 .dnAttributeName( config.readSettingAsString( PwmSetting.OAUTH_ID_DN_ATTRIBUTE_NAME ) )

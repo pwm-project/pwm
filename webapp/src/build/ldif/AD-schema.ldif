@@ -156,7 +156,7 @@ searchFlags: 1
 #------------------------------------------------------
 #--  Update the schema now
 #------------------------------------------------------
-dn: 
+dn:
 changetype: modify
 add: schemaUpdateNow
 schemaUpdateNow: 1
@@ -192,7 +192,7 @@ adminDescription: pwmUser Auxiliary class
 #------------------------------------------------------
 #--  Update the schema now
 #------------------------------------------------------
-dn: 
+dn:
 changetype: modify
 add: schemaUpdateNow
 schemaUpdateNow: 1
@@ -222,7 +222,7 @@ mayContain: pwmData
 #------------------------------------------------------
 #--  Update the schema now
 #------------------------------------------------------
-dn: 
+dn:
 changetype: modify
 add: schemaUpdateNow
 schemaUpdateNow: 1

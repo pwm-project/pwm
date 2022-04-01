@@ -289,9 +289,19 @@ public class PwmResponse extends PwmHttpResponseWrapper
         preCommitActions();
 
         final String basePath = pwmRequest.getBasePath();
-        final String effectiveUrl = url.startsWith( basePath )
-                ? url
-                : basePath + url;
+        final String effectiveUrl;
+
+        // a redirect can either be internal and already include the basePath,
+        // or internal without basePath, in this case we add the basePath
+        // or external with preceding protocol, in this case we use the url as is
+        if ( url.startsWith( basePath ) || url.matches( "^https?://.*" ) )
+        {
+            effectiveUrl  = url;
+        }
+        else
+        {
+            effectiveUrl = basePath + url;
+        }
 
         // http "other" redirect
         final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();

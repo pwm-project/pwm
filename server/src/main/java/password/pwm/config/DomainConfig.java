@@ -58,6 +58,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
+import password.pwm.http.HttpMethod;
 
 import java.io.StringWriter;
 import java.security.cert.X509Certificate;
@@ -255,6 +256,14 @@ public class DomainConfig implements SettingReader
     public PrivateKeyCertificate readSettingAsPrivateKey( final PwmSetting setting )
     {
         return settingReader.readSettingAsPrivateKey( setting );
+    }
+
+    public HttpMethod readSettingAsHttpMethod( final PwmSetting setting )
+    {
+        return settingReader.readSettingAsEnum( setting,
+                password.pwm.config.option.HttpMethod.class ) == password.pwm.config.option.HttpMethod.POST
+                        ? HttpMethod.POST
+                        : HttpMethod.GET;
     }
 
     public PwmSecurityKey getSecurityKey( ) throws PwmUnrecoverableException
