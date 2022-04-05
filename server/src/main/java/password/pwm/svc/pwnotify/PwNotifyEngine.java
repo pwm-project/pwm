@@ -20,7 +20,6 @@
 
 package password.pwm.svc.pwnotify;
 
-import com.novell.ldapchai.ChaiUser;
 import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
@@ -238,8 +237,8 @@ public class PwNotifyEngine
         }
 
         examinedCount.incrementAndGet();
-        final ChaiUser theUser = pwmDomain.getProxiedChaiUser( pwNotifyService.getSessionLabel(), userIdentity );
-        final Instant passwordExpirationTime = LdapOperationsHelper.readPasswordExpirationTime( theUser );
+
+        final Instant passwordExpirationTime = LdapOperationsHelper.readPasswordExpirationTime( pwmDomain, pwNotifyService.getSessionLabel(), userIdentity );
 
         if ( passwordExpirationTime == null )
         {

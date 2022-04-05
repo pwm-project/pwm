@@ -203,7 +203,7 @@ public class UserInfoReader implements UserInfo
     @Override
     public Instant getPasswordExpirationTime( ) throws PwmUnrecoverableException
     {
-        return LdapOperationsHelper.readPasswordExpirationTime( chaiUser );
+        return LdapOperationsHelper.readPasswordExpirationTime( pwmDomain, sessionLabel, userIdentity );
     }
 
     @Override

@@ -252,6 +252,8 @@ public enum PwmSetting
             "ldap.namingAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
             "passwordLastUpdateAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
+    PASSWORD_EXPIRATION_TIME_ATTRIBUTE(
+            "passwordExpirationTimeAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     LDAP_USER_GROUP_ATTRIBUTE(
             "ldap.user.group.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_ATTRIBUTES ),
     LDAP_GROUP_LABEL_ATTRIBUTE(

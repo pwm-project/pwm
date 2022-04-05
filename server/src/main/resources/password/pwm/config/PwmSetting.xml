@@ -623,6 +623,13 @@
             <value/>
         </default>
     </setting>
+    <setting hidden="false" key="passwordExpirationTimeAttribute" level="2">
+        <ldapPermission actor="proxy" access="write"/>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value/>
+        </default>
+    </setting>
     <setting hidden="false" key="ldap.user.group.attribute" level="2">
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>

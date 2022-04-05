@@ -849,11 +849,21 @@ public class LdapOperationsHelper
         return Collections.emptyMap();
     }
 
-    public static Instant readPasswordExpirationTime( final ChaiUser theUser )
+    public static Instant readPasswordExpirationTime(
+            final PwmDomain pwmDomain,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity
+    )
     {
         try
         {
-            Instant ldapPasswordExpirationTime = theUser.readPasswordExpirationDate();
+            final ChaiUser theUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
+
+            final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
+            final String expirationTimeAttribute = ldapProfile.readSettingAsString( PwmSetting.PASSWORD_EXPIRATION_TIME_ATTRIBUTE );
+
+            Instant ldapPasswordExpirationTime = expirationTimeAttribute != null ? theUser.readDateAttribute( expirationTimeAttribute ) : theUser.readPasswordExpirationDate();
+
             if ( ldapPasswordExpirationTime != null && ldapPasswordExpirationTime.toEpochMilli() < 0 )
             {
                 // If ldapPasswordExpirationTime is less than 0, this may indicate an extremely late date, past the epoch.
