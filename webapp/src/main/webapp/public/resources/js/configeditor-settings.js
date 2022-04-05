@@ -1035,7 +1035,8 @@ X509CertificateHandler.certHtmlActions = function(certificate, keyName, id) {
             title: 'Detail - ' + PWM_SETTINGS['settings'][keyName]['label'] + ' - Certificate ' + id,
             text: '<pre>' + certificate['detail'] + '</pre>',
             dialogClass: 'wide',
-            showClose: true
+            showClose: true,
+            showOk: false
         });
     });
 };

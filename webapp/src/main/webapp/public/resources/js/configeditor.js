@@ -522,7 +522,7 @@ PWM_CFGEDIT.executeSettingFunction = function (setting, name, resultHandler, ext
                 if (data['error']) {
                     PWM_MAIN.showErrorDialog(data);
                 } else {
-                    resultHandler(data);
+                    resultHandler(data,extraData);
                 }
             };
             PWM_MAIN.ajaxRequest(requestUrl, loadFunction, {content:jsonSendData});

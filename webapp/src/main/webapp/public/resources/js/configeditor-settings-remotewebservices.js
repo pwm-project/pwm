@@ -254,9 +254,10 @@ RemoteWebServiceHandler.showOptionsDialog = function(keyName, iteration) {
             });
             if (value['certificates']) {
                 PWM_MAIN.addEventHandler('button-' + inputID + '-certDetail','click',function(){
-                    var extraData = JSON.stringify({iteration:iteration});
+                    let extraData = JSON.stringify({iteration:iteration,keyName:keyName});
+                    debugger;
                     PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.http.servlet.configeditor.function.RemoteWebServiceCertViewerFunction',
-                        ActionHandler.showCertificateViewerDialog, extraData)
+                        RemoteWebServiceHandler.showCertificateViewerDialog, extraData)
 
                 });
                 PWM_MAIN.addEventHandler('button-' + inputID + '-clearCertificates','click',function() {
@@ -368,5 +369,27 @@ RemoteWebServiceHandler.addHeader = function(keyName, iteration) {
             RemoteWebServiceHandler.showHeadersDialog(keyName, iteration);
         }
     });
+};
 
+RemoteWebServiceHandler.showCertificateViewerDialog = function(data,extraDataJson) {
+    let extraData = JSON.parse(extraDataJson)
+    let keyName = extraData['keyName'];
+    let certInfos = data['data'];
+    let bodyText = '';
+    for (let i in certInfos) {
+        bodyText += X509CertificateHandler.certificateToHtml(certInfos[i],keyName,i);
+    }
+    let cancelFunction = function(){ RemoteWebServiceHandler.showOptionsDialog(keyName, extraData['iteration'])};
+    let loadFunction = function(){
+        for (let i in certInfos) {
+            X509CertificateHandler.certHtmlActions(certInfos[i],keyName,i);
+        }
+    };
+    PWM_MAIN.showDialog({
+        title:'Certificate Detail',
+        dialogClass: 'wide',
+        text:bodyText,
+        okAction:cancelFunction,
+        loadFunction:loadFunction
+    });
 };

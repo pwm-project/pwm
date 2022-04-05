@@ -31,6 +31,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.X509CertInfo;
 import password.pwm.util.secure.X509Utils;
 
 import java.io.Serializable;
@@ -211,8 +212,8 @@ public class PrivateKeyValue extends AbstractValue
     {
         if ( privateKeyCertificate != null )
         {
-            return "PrivateKeyCertificate: key=" + JsonFactory.get().serializeMap( X509Utils.makeDebugInfoMap( privateKeyCertificate.getKey() ) )
-                    + ", certificates=" + JsonFactory.get().serializeCollection( X509Utils.makeDebugInfoMap( privateKeyCertificate.getCertificates() ) );
+            return "PrivateKeyCertificate: key=" + JsonFactory.get().serializeMap( X509CertInfo.makeDebugInfoMap( privateKeyCertificate.getKey() ) )
+                    + ", certificates=" + JsonFactory.get().serializeCollection( X509CertInfo.makeDebugInfoMap( privateKeyCertificate.getCertificates() ) );
         }
         return "";
     }
@@ -230,7 +231,7 @@ public class PrivateKeyValue extends AbstractValue
                 }
                 : null;
         final Map<String, Object> returnMap = new LinkedHashMap<>();
-        returnMap.put( "certificates", X509Utils.makeDebugInfoMap( privateKeyCertificate.getCertificates(), flags ) );
+        returnMap.put( "certificates", X509CertInfo.makeDebugInfoMap( privateKeyCertificate.getCertificates(), flags ) );
         final Map<String, Object> privateKeyInfo = new LinkedHashMap<>();
         privateKeyInfo.put( "algorithm", privateKeyCertificate.getKey().getAlgorithm() );
         privateKeyInfo.put( "format", privateKeyCertificate.getKey().getFormat() );

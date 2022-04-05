@@ -28,17 +28,18 @@ import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.ImmutableByteArray;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.json.JsonProvider;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.SecureEngine;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Serializable;
+import java.security.DigestOutputStream;
 import java.util.List;
 import java.util.Locale;
 
@@ -121,15 +122,17 @@ public abstract class AbstractValue implements StoredValue
             final List<XmlElement> xmlValues = storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, xmlOutputProcessData );
             final XmlDocument document = XmlChai.getFactory().newDocument( "root" );
             document.getRootElement().attachElement( xmlValues );
-            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            XmlChai.getFactory().output( document, byteArrayOutputStream );
-            final byte[] bytesToHash = byteArrayOutputStream.toByteArray();
-            return SecureEngine.hash( bytesToHash, PwmHashAlgorithm.SHA512 );
 
+            final DigestOutputStream digestOutputStream = new DigestOutputStream(
+                    OutputStream.nullOutputStream(),
+                    PwmHashAlgorithm.SHA512.newMessageDigest() );
+            XmlChai.getFactory().output( document, digestOutputStream );
+            return JavaHelper.binaryArrayToHex( digestOutputStream.getMessageDigest().digest() );
         }
-        catch ( final IOException | PwmUnrecoverableException e )
+        catch ( final IOException e )
         {
             throw new IllegalStateException( e );
         }
     }
+
 }

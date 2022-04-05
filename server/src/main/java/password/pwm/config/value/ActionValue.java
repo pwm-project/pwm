@@ -28,6 +28,7 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.ActionConfiguration;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.MiscUtil;
@@ -35,6 +36,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.X509Utils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -157,30 +159,28 @@ public class ActionValue extends AbstractValue implements StoredValue
                         : webAction.getSuccessStatus();
 
                 // decrypt pw
+                Optional<String> decodedValue = Optional.empty();
                 try
                 {
-                    final Optional<String> decodedValue = StoredValueEncoder.decode(
+                    decodedValue = StoredValueEncoder.decode(
                             webAction.getPassword(),
                             StoredValueEncoder.Mode.ENCODED,
                             pwmSecurityKey );
-                    decodedValue.ifPresent( s ->
-                    {
-                        clonedWebActions.add( webAction.toBuilder()
-                                .password( s )
-                                .successStatus( successStatus )
-                                .build() );
-                    } );
                 }
                 catch ( final PwmOperationalException e )
                 {
                     LOGGER.warn( () -> "error decoding stored pw value on setting '" + pwmSetting.getKey() + "': " + e.getMessage() );
                 }
+
+                final String passwordValue = decodedValue.orElse( "" );
+                clonedWebActions.add( webAction.toBuilder()
+                        .password( passwordValue )
+                        .successStatus( successStatus )
+                        .build() );
             }
 
             return Optional.of( value.toBuilder().webActions( clonedWebActions ).build() );
         }
-
-
     }
 
     @Override
@@ -209,31 +209,26 @@ public class ActionValue extends AbstractValue implements StoredValue
     )
     {
         final List<ActionConfiguration.WebAction> clonedWebActions = new ArrayList<>( webActions.size() );
+
         for ( final ActionConfiguration.WebAction webAction : webActions )
         {
-            if ( StringUtil.notEmpty( webAction.getPassword() ) )
+            try
             {
-                try
-                {
-                    final String encodedValue = StoredValueEncoder.encode(
-                            webAction.getPassword(),
-                            xmlOutputProcessData.getStoredValueEncoderMode(),
-                            xmlOutputProcessData.getPwmSecurityKey() );
-                    clonedWebActions.add( webAction.toBuilder()
-                            .password( encodedValue )
-                            .build() );
-                }
-                catch ( final PwmOperationalException e )
-                {
-                    LOGGER.warn( () -> "error encoding stored pw value: " + e.getMessage() );
-                }
+                final String encodedValue = StringUtil.isEmpty( webAction.getPassword() )
+                        ? ""
+                        : StoredValueEncoder.encode( webAction.getPassword(),
+                                xmlOutputProcessData.getStoredValueEncoderMode(),
+                                xmlOutputProcessData.getPwmSecurityKey() );
+                clonedWebActions.add( webAction.toBuilder()
+                        .password( encodedValue )
+                        .build() );
             }
-            else
+            catch ( final PwmOperationalException e )
             {
-                clonedWebActions.add( webAction.toBuilder().build() );
+                throw new PwmInternalException( "error encoding stored pw value: " + e.getMessage() );
             }
         }
-        return clonedWebActions;
+        return Collections.unmodifiableList( clonedWebActions );
     }
 
     @Override
@@ -323,6 +318,10 @@ public class ActionValue extends AbstractValue implements StoredValue
                 sb.append( "\n   WebServiceAction: " );
                 sb.append( "\n    method=" ).append( webAction.getMethod() );
                 sb.append( "\n    url=" ).append( webAction.getUrl() );
+                if ( !CollectionUtil.isEmpty( webAction.getCertificates() ) )
+                {
+                    sb.append( "\n  certs=" ).append( X509Utils.makeDebugTexts( webAction.getCertificates() ) );
+                }
                 sb.append( "\n    headers=" ).append( JsonFactory.get().serializeMap( webAction.getHeaders() ) );
                 sb.append( "\n    username=" ).append( webAction.getUsername() );
                 sb.append( "\n    password=" ).append(

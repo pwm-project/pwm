@@ -245,7 +245,7 @@ ActionHandler.showActionsDialog = function(keyName, iteration) {
             for (var iter in value['ldapActions']) {
                 (function (ldapActionsIter) {
                     var inputID = keyName + '_' + iteration + "_ldapActions_"  + ldapActionsIter;
-                    PWM_MAIN.addEventHandler('icon-editLdapAction-' + inputID ,'click',function(){
+                    PWM_MAIN.addEventHandler('tableRow-' + inputID ,'click',function(){
                         ActionHandler.addOrEditLdapAction(keyName,iteration,ldapActionsIter);
                     });
                     PWM_MAIN.addEventHandler('button-deleteRow-' + inputID ,'click',function(){
@@ -266,7 +266,7 @@ ActionHandler.showActionsDialog = function(keyName, iteration) {
             for (var iter in value['webActions']) {
                 (function (webActionIter) {
                     var inputID = keyName + '_' + iteration + "_webActions_"  + webActionIter;
-                    PWM_MAIN.addEventHandler('icon-editWebAction-' + inputID ,'click',function(){
+                    PWM_MAIN.addEventHandler('tableRow-' + inputID ,'click',function(){
                         ActionHandler.addOrEditWebAction(keyName,iteration,webActionIter);
                     });
                     PWM_MAIN.addEventHandler('button-deleteRow-' + inputID ,'click',function(){
@@ -481,7 +481,7 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
             }
             if (value['certificates']) {
                 PWM_MAIN.addEventHandler('button-' + inputID + '-certDetail','click',function(){
-                    var extraData = JSON.stringify({iteration:iteration, webActionIter: webActionIter});
+                    let extraData = JSON.stringify({iteration:iteration, webActionIter: webActionIter, keyName:keyName});
                     PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.http.servlet.configeditor.function.ActionCertViewerFunction',
                         ActionHandler.showCertificateViewerDialog, extraData)
                 });
@@ -500,7 +500,7 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
                         PWM_MAIN.showDialog({width:700,title: 'Results', text: msgBody, okAction: function () {
                                 PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
                                     PWM_VAR['clientSettingCache'][keyName] = resultValue;
-                                    ActidonHandler.addOrEditWebAction(keyName,iteration,webActionIter)
+                                    ActionHandler.addOrEditWebAction(keyName,iteration,webActionIter)
                                 });
                             }});
                     };
@@ -597,15 +597,17 @@ ActionHandler.addHeader = function(keyName, iteration, webActionIter) {
     });
 };
 
-ActionHandler.showCertificateViewerDialog = function(data) {
-    var certInfos = data['data'];
-    var bodyText = '';
-    for (var i in certInfos) {
+ActionHandler.showCertificateViewerDialog = function(data,extraDataJson) {
+    let extraData = JSON.parse(extraDataJson)
+    let keyName = extraData['keyName'];
+    let certInfos = data['data'];
+    let bodyText = '';
+    for (let i in certInfos) {
         bodyText += X509CertificateHandler.certificateToHtml(certInfos[i],keyName,i);
     }
-    var cancelFunction = function(){ ActionHandler.addOrEditWebAction(keyName,iteration); };
-    var loadFunction = function(){
-        for (var i in certInfos) {
+    let cancelFunction = function(){ ActionHandler.addOrEditWebAction(keyName, extraData['iteration'], extraData['webActionIter']); };
+    let loadFunction = function(){
+        for (let i in certInfos) {
             X509CertificateHandler.certHtmlActions(certInfos[i],keyName,i);
         }
     };

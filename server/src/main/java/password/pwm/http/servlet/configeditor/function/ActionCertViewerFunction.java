@@ -26,6 +26,7 @@ import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.json.JsonFactory;
+import password.pwm.util.secure.X509CertInfo;
 import password.pwm.util.secure.X509Utils;
 
 import java.io.Serializable;
@@ -71,7 +72,7 @@ public class ActionCertViewerFunction implements SettingUIFunction
         final ActionConfiguration.WebAction webAction = actionConfiguration.getWebActions().get( webActionIter );
 
         return webAction.getCertificates().stream()
-                .map( cert -> X509Utils.makeDebugInfoMap( cert, X509Utils.DebugInfoFlag.IncludeCertificateDetail ) )
+                .map( cert -> X509CertInfo.makeDebugInfoMap( cert, X509Utils.DebugInfoFlag.IncludeCertificateDetail ) )
                 .collect( Collectors.toUnmodifiableList() );
     }
 }

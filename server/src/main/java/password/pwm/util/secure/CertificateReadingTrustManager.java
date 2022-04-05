@@ -117,7 +117,7 @@ public class CertificateReadingTrustManager implements X509TrustManager
         }
 
         LOGGER.debug( () -> "ServerCertReader: read self-signed certificates from remote server: "
-                + JsonFactory.get().serialize( new ArrayList<>( X509Utils.makeDebugInfoMap( certificates ) ) ) );
+                + JsonFactory.get().serialize( new ArrayList<>( X509CertInfo.makeDebugInfoMap( certificates ) ) ) );
         return Collections.unmodifiableList( certificates );
     }
 }
