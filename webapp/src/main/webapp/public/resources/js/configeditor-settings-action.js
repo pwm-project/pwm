@@ -58,7 +58,7 @@ ActionHandler.ldapMethodOptions = [
 
 ActionHandler.init = function(keyName, postInitFunction) {
     console.log('ActionHandler init for ' + keyName);
-    var parentDiv = 'table_setting_' + keyName;
+    const parentDiv = 'table_setting_' + keyName;
     PWM_CFGEDIT.clearDivElements(parentDiv, true);
     PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         PWM_VAR['clientSettingCache'][keyName] = resultValue;
@@ -71,17 +71,17 @@ ActionHandler.init = function(keyName, postInitFunction) {
 
 ActionHandler.redraw = function(keyName) {
     console.log('ActionHandler redraw for ' + keyName);
-    var resultValue = PWM_VAR['clientSettingCache'][keyName];
-    var parentDiv = 'table_setting_' + keyName;
+    const resultValue = PWM_VAR['clientSettingCache'][keyName];
+    const parentDiv = 'table_setting_' + keyName;
     PWM_CFGEDIT.clearDivElements(parentDiv, false);
-    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+    const parentDivElement = PWM_MAIN.getObject(parentDiv);
 
-    var html = '';
+    let html = '';
     if (!PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
         html += '<table class="noborder">';
         html += '<tr><td>Name</td><td></td><td>Description</td></tr>';
 
-        for (var i in resultValue) {
+        for (const i in resultValue) {
             html += ActionHandler.drawRow(keyName, i, resultValue[i]);
         }
 
@@ -91,7 +91,7 @@ ActionHandler.redraw = function(keyName) {
     html += '<br/><button class="btn" id="button-' + keyName + '-addValue"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Action</button>';
     parentDivElement.innerHTML = html;
 
-    for (var i in resultValue) {
+    for (const i in resultValue) {
         html += ActionHandler.addRowHandlers(keyName, i, resultValue[i]);
     }
 
@@ -101,13 +101,13 @@ ActionHandler.redraw = function(keyName) {
 };
 
 ActionHandler.drawRow = function(settingKey, iteration, value) {
-    var inputID = 'value_' + settingKey + '_' + iteration + "_";
-    var optionList = ["webservice","ldap"];
+    const inputID = 'value_' + settingKey + '_' + iteration + "_";
+    const optionList = ["webservice","ldap"];
 
-    var newTableRow = document.createElement("tr");
+    const newTableRow = document.createElement("tr");
     newTableRow.setAttribute("style", "border-width: 0");
 
-    var htmlRow = '<tr>';
+    let htmlRow = '<tr>';
     htmlRow += '<td style="background: #f6f9f8; border:1px solid #dae1e1; width:160px">';
     htmlRow += '<div class="noWrapTextBox" id="display-' + inputID + '-name" ></div>';
     htmlRow += '<td style="width:1px" id="icon-editDescription-' + inputID + '"><span class="btn-icon pwm-icon pwm-icon-edit"></span></td>';
@@ -122,7 +122,7 @@ ActionHandler.drawRow = function(settingKey, iteration, value) {
 };
 
 ActionHandler.addRowHandlers = function(settingKey, iteration, value) {
-    var inputID = 'value_' + settingKey + '_' + iteration + "_";
+    const inputID = 'value_' + settingKey + '_' + iteration + "_";
     UILibrary.addTextValueToElement('display-' + inputID + '-name',value['name']);
     UILibrary.addTextValueToElement('display-' + inputID + '-description',value['description']);
 
@@ -130,7 +130,7 @@ ActionHandler.addRowHandlers = function(settingKey, iteration, value) {
         ActionHandler.showActionsDialog(settingKey, iteration);
     });
 
-    var descriptionEditFunction = function() {
+    const descriptionEditFunction = function() {
         UILibrary.stringEditorDialog({
             value: value['description'],
             textarea: true,
@@ -159,7 +159,7 @@ ActionHandler.addRowHandlers = function(settingKey, iteration, value) {
 };
 
 ActionHandler.write = function(settingKey, finishFunction) {
-    var cachedSetting = PWM_VAR['clientSettingCache'][settingKey];
+    const cachedSetting = PWM_VAR['clientSettingCache'][settingKey];
     PWM_CFGEDIT.writeSetting(settingKey, cachedSetting, finishFunction);
 };
 
@@ -183,8 +183,8 @@ ActionHandler.addRow = function(keyName) {
         instructions: 'Please enter a descriptive name for the action.',
         placeholder:'Name',
         completeFunction:function(newName){
-            var value = PWM_VAR['clientSettingCache'][keyName];
-            var currentSize = PWM_MAIN.JSLibrary.itemCount(value);
+            const value = PWM_VAR['clientSettingCache'][keyName];
+            const currentSize = PWM_MAIN.JSLibrary.itemCount(value);
             value[currentSize] = ActionHandler.defaultValue;
             value[currentSize].name = newName;
             ActionHandler.write(keyName,function(){
@@ -197,16 +197,16 @@ ActionHandler.addRow = function(keyName) {
 };
 
 ActionHandler.showActionsDialog = function(keyName, iteration) {
-    var value = PWM_VAR['clientSettingCache'][keyName][iteration];
-    var titleText = value['name'] + ' actions';
-    var bodyText = '<table class="noborder">';
+    const value = PWM_VAR['clientSettingCache'][keyName][iteration];
+    const titleText = value['name'] + ' actions';
+    let bodyText = '<table class="noborder">';
 
     if (!PWM_MAIN.JSLibrary.isEmpty(value['ldapActions'])) {
         bodyText += '<tr><td></td><td></td><td>LDAP Attribute</td></tr>';
     }
-    for (var iter in value['ldapActions']) {
+    for (const iter in value['ldapActions']) {
         (function (ldapActionsIter) {
-            var inputID = keyName + '_' + iteration + "_ldapActions_"  + ldapActionsIter;
+            const inputID = keyName + '_' + iteration + "_ldapActions_"  + ldapActionsIter;
             bodyText += '<tr id="tableRow-' + inputID + '">'
                 + '<td style="width:1px" id="icon-editLdapAction-' + inputID + '"><span class="btn-icon pwm-icon pwm-icon-edit"></span></td>'
                 + '<td>LDAP Action</td>'
@@ -220,9 +220,9 @@ ActionHandler.showActionsDialog = function(keyName, iteration) {
     if (!PWM_MAIN.JSLibrary.isEmpty(value['webActions'])) {
         bodyText += '<tr><td></td><td></td><td>URL</td></tr>';
     }
-    for (var iter in value['webActions']) {
+    for (const iter in value['webActions']) {
         (function (webActionIter) {
-            var inputID = keyName + '_' + iteration + "_webActions_"  + webActionIter;
+            const inputID = keyName + '_' + iteration + "_webActions_"  + webActionIter;
             bodyText += '<tr id="tableRow-' + inputID + '">'
                 + '<td style="width:1px" id="icon-editWebAction-' + inputID + '"><span class="btn-icon pwm-icon pwm-icon-edit"></span></td>'
                 + '<td>Web Service Action</td>'
@@ -234,7 +234,7 @@ ActionHandler.showActionsDialog = function(keyName, iteration) {
 
     bodyText += '</table><br/>';
 
-    var inputID = keyName + '_' + iteration + "_";
+    const inputID = keyName + '_' + iteration + "_";
     bodyText += '<br/><button class="btn" id="button-addLdap-' + inputID + '"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add LDAP Action</button>';
     bodyText += '<br/><button class="btn" id="button-addWebService-' + inputID + '"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Web Service Action</button>';
 
@@ -242,9 +242,9 @@ ActionHandler.showActionsDialog = function(keyName, iteration) {
         title: titleText,
         text: bodyText,
         loadFunction: function(){
-            for (var iter in value['ldapActions']) {
+            for (const iter in value['ldapActions']) {
                 (function (ldapActionsIter) {
-                    var inputID = keyName + '_' + iteration + "_ldapActions_"  + ldapActionsIter;
+                    const inputID = keyName + '_' + iteration + "_ldapActions_"  + ldapActionsIter;
                     PWM_MAIN.addEventHandler('tableRow-' + inputID ,'click',function(){
                         ActionHandler.addOrEditLdapAction(keyName,iteration,ldapActionsIter);
                     });
@@ -259,13 +259,13 @@ ActionHandler.showActionsDialog = function(keyName, iteration) {
                             }
                         });
                     });
-                    var value = PWM_VAR['clientSettingCache'][keyName][iteration]['ldapActions'][ldapActionsIter];
+                    const value = PWM_VAR['clientSettingCache'][keyName][iteration]['ldapActions'][ldapActionsIter];
                     PWM_MAIN.getObject('value-' + inputID).value =  value['attributeName'];
                 }(iter));
             }
-            for (var iter in value['webActions']) {
+            for (const iter in value['webActions']) {
                 (function (webActionIter) {
-                    var inputID = keyName + '_' + iteration + "_webActions_"  + webActionIter;
+                    const inputID = keyName + '_' + iteration + "_webActions_"  + webActionIter;
                     PWM_MAIN.addEventHandler('tableRow-' + inputID ,'click',function(){
                         ActionHandler.addOrEditWebAction(keyName,iteration,webActionIter);
                     });
@@ -280,18 +280,17 @@ ActionHandler.showActionsDialog = function(keyName, iteration) {
                             }
                         });
                     });
-                    var value = PWM_VAR['clientSettingCache'][keyName][iteration]['webActions'][webActionIter];
+                    const value = PWM_VAR['clientSettingCache'][keyName][iteration]['webActions'][webActionIter];
                     PWM_MAIN.getObject('value-' + inputID).value =  value['url'];
                 }(iter));
             }
 
-            inputID = keyName + '_' + iteration + "_";
             PWM_MAIN.addEventHandler('button-addLdap-' + inputID,'click',function(){
                 UILibrary.stringEditorDialog({
                     textarea: false,
                     title: 'Attribute Name',
                     completeFunction: function (newValue) {
-                        var currentSize = PWM_MAIN.JSLibrary.itemCount(value['ldapActions']);
+                        const currentSize = PWM_MAIN.JSLibrary.itemCount(value['ldapActions']);
                         value['ldapActions'].push(JSON.parse(JSON.stringify(ActionHandler.defaultLdapValue)));
                         value['ldapActions'][currentSize]['attributeName'] = newValue;
                         ActionHandler.write(keyName,function(){
@@ -305,7 +304,7 @@ ActionHandler.showActionsDialog = function(keyName, iteration) {
                     textarea: false,
                     title: 'URL',
                     completeFunction: function (newValue) {
-                        var currentSize = PWM_MAIN.JSLibrary.itemCount(value['webActions']);
+                        const currentSize = PWM_MAIN.JSLibrary.itemCount(value['webActions']);
                         value['webActions'].push(JSON.parse(JSON.stringify(ActionHandler.defaultWebValue)));
                         value['webActions'][currentSize]['url'] = newValue;
                         ActionHandler.write(keyName,function(){
@@ -319,11 +318,11 @@ ActionHandler.showActionsDialog = function(keyName, iteration) {
 };
 
 ActionHandler.addOrEditLdapAction = function(keyName, iteration, ldapActionIter) {
-    var inputID = 'value_' + keyName + '_' + iteration + "_" + ldapActionIter;
-    var value = PWM_VAR['clientSettingCache'][keyName][iteration]['ldapActions'][ldapActionIter];
-    var titleText = 'LDAP options';
+    const inputID = 'value_' + keyName + '_' + iteration + "_" + ldapActionIter;
+    const value = PWM_VAR['clientSettingCache'][keyName][iteration]['ldapActions'][ldapActionIter];
+    const titleText = 'LDAP options';
 
-    var bodyText = '<table class="noborder">';
+    let bodyText = '<table class="noborder">';
     bodyText += '<tr>';
     bodyText += '<td class="key">Attribute Name</td><td><input style="width:300px" class="configStringInput" type="text" id="input-' + inputID + '-attributeName' + '" value="' + value['attributeName'] + '"/></td>';
     bodyText += '</tr><tr>';
@@ -332,10 +331,10 @@ ActionHandler.addOrEditLdapAction = function(keyName, iteration, ldapActionIter)
     bodyText += '<tr>';
     bodyText += '<td class="key">Operation Type</td><td class="noborder"><select id="select-' + inputID + '-ldapMethod' + '">';
 
-    for (var optionItem in ActionHandler.ldapMethodOptions) {
-        var label = ActionHandler.ldapMethodOptions[optionItem]['label'];
-        var optionValue = ActionHandler.ldapMethodOptions[optionItem]['value'];
-        var selected = optionValue === value['ldapMethod'];
+    for (const optionItem in ActionHandler.ldapMethodOptions) {
+        const label = ActionHandler.ldapMethodOptions[optionItem]['label'];
+        const optionValue = ActionHandler.ldapMethodOptions[optionItem]['value'];
+        const selected = optionValue === value['ldapMethod'];
         bodyText += '<option value="' + optionValue + '"' + (selected ? ' selected' : '') + '>' + label + '</option>';
     }
     bodyText += '</td></tr>';
@@ -366,19 +365,19 @@ ActionHandler.addOrEditLdapAction = function(keyName, iteration, ldapActionIter)
 
 
 ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
-    var inputID = 'value_' + keyName + '_' + iteration + "_" + webActionIter;
-    var value = PWM_VAR['clientSettingCache'][keyName][iteration]['webActions'][webActionIter];
-    var titleText = 'Web Service Options';
-    var showBody = value['method'] !== 'get' && value['method'] !== 'delete';
+    const inputID = 'value_' + keyName + '_' + iteration + "_" + webActionIter;
+    const value = PWM_VAR['clientSettingCache'][keyName][iteration]['webActions'][webActionIter];
+    const titleText = 'Web Service Options';
+    const showBody = value['method'] !== 'get' && value['method'] !== 'delete';
 
-    var bodyText = '<table class="noborder">';
+    let bodyText = '<table class="noborder">';
     bodyText += '<tr>';
     bodyText += '<td class="key">HTTP Method</td><td class="noborder" ><select id="select-' + inputID + '-method">';
 
-    for (var optionItem in ActionHandler.httpMethodOptions) {
-        var label = ActionHandler.httpMethodOptions[optionItem]['label'];
-        var optionValue = ActionHandler.httpMethodOptions[optionItem]['value'];
-        var selected = optionValue === value['method'];
+    for (const optionItem in ActionHandler.httpMethodOptions) {
+        const label = ActionHandler.httpMethodOptions[optionItem]['label'];
+        const optionValue = ActionHandler.httpMethodOptions[optionItem]['value'];
+        const selected = optionValue === value['method'];
         bodyText += '<option value="' + optionValue + '"' + (selected ? ' selected' : '') + '>' + label + '</option>';
     }
     bodyText += '</td>';
@@ -424,7 +423,7 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
                 ActionHandler.showHeadersDialog(keyName,iteration, webActionIter);
             });
             PWM_MAIN.addEventHandler('select-' + inputID + '-method','change',function(){
-                var methodValue = PWM_MAIN.getObject('select-' + inputID + '-method').value;
+                const methodValue = PWM_MAIN.getObject('select-' + inputID + '-method').value;
                 if (methodValue === 'get') {
                     value['body'] = '';
                 }
@@ -455,7 +454,7 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
 
             PWM_MAIN.getObject('input-' + inputID + '-successStatus').value = value['successStatus'] ? value['successStatus'].join() : '';
             PWM_MAIN.addEventHandler('button-' + inputID + '-successStatus', 'click', function(){
-                var options = {};
+                const options = {};
                 options['regex'] = '[0-9]{3}';
                 options['title'] = 'Success Status Codes';
                 options['instructions'] = 'Enter the three digit HTTP status codes that will be considered a success if returned by the remote web service.';
@@ -465,7 +464,7 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
                     ActionHandler.write(keyName);
                     ActionHandler.addOrEditWebAction(keyName, iteration, webActionIter)
                 };
-                var values = 'successStatus' in value ? value['successStatus'] : [];
+                const values = 'successStatus' in value ? value['successStatus'] : [];
                 values.sort();
                 options['value'] = values;
                 UILibrary.stringArrayEditorDialog(options);
@@ -495,8 +494,8 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
                 });
             } else {
                 PWM_MAIN.addEventHandler('button-' + inputID + '-importCertificates','click',function() {
-                    var dataHandler = function(data) {
-                        var msgBody = '<div style="max-height: 400px; overflow-y: auto">' + data['successMessage'] + '</div>';
+                    const dataHandler = function(data) {
+                        const msgBody = '<div style="max-height: 400px; overflow-y: auto">' + data['successMessage'] + '</div>';
                         PWM_MAIN.showDialog({width:700,title: 'Results', text: msgBody, okAction: function () {
                                 PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
                                     PWM_VAR['clientSettingCache'][keyName] = resultValue;
@@ -504,7 +503,7 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
                                 });
                             }});
                     };
-                    var extraData = {};
+                    const extraData = {};
                     extraData.iteration = iteration;
                     extraData.webActionIter = webActionIter;
                     PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.http.servlet.configeditor.function.ActionCertImportFunction', dataHandler, JSON.stringify(extraData));
@@ -516,17 +515,17 @@ ActionHandler.addOrEditWebAction = function(keyName, iteration, webActionIter) {
 };
 
 ActionHandler.showHeadersDialog = function(keyName, iteration, webActionIter) {
-    var settingValue = PWM_VAR['clientSettingCache'][keyName][iteration]['webActions'][webActionIter];
+    const settingValue = PWM_VAR['clientSettingCache'][keyName][iteration]['webActions'][webActionIter];
 
-    var inputID = 'value_' + keyName + '_' + iteration + "_webAction_" + webActionIter +  "_headers_";
+    const inputID = 'value_' + keyName + '_' + iteration + "_webAction_" + webActionIter +  "_headers_";
 
-    var bodyText = '';
+    let bodyText = '';
     bodyText += '<table class="noborder">';
     bodyText += '<tr><td><b>Name</b></td><td><b>Value</b></td></tr>';
-    for (var iter in settingValue['headers']) {
+    for (const iter in settingValue['headers']) {
         (function(headerName) {
-            var value = settingValue['headers'][headerName];
-            var optionID = inputID + headerName;
+            const value = settingValue['headers'][headerName];
+            const optionID = inputID + headerName;
             bodyText += '<tr><td class="border">' + headerName + '</td><td class="border">' + value + '</td>';
             bodyText += '<td style="width:15px;"><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="button-' + optionID + '-deleteRow"></span></td>';
             bodyText += '</tr>';
@@ -542,9 +541,9 @@ ActionHandler.showHeadersDialog = function(keyName, iteration, webActionIter) {
             ActionHandler.addOrEditWebAction(keyName,iteration,webActionIter);
         },
         loadFunction: function() {
-            for (var iter in settingValue['headers']) {
+            for (const iter in settingValue['headers']) {
                 (function(headerName) {
-                    var headerID = inputID + headerName;
+                    const headerID = inputID + headerName;
                     PWM_MAIN.addEventHandler('button-' + headerID + '-deleteRow', 'click', function () {
                         delete settingValue['headers'][headerName];
                         ActionHandler.write(keyName);
@@ -560,12 +559,12 @@ ActionHandler.showHeadersDialog = function(keyName, iteration, webActionIter) {
 };
 
 ActionHandler.addHeader = function(keyName, iteration, webActionIter) {
-    var body = '<table class="noborder">';
+    let body = '<table class="noborder">';
     body += '<tr><td>Name</td><td><input class="configStringInput" id="newHeaderName" style="width:300px"/></td></tr>';
     body += '<tr><td>Value</td><td><input class="configStringInput" id="newHeaderValue" style="width:300px"/></td></tr>';
     body += '</table>';
 
-    var updateFunction = function(){
+    const updateFunction = function(){
         PWM_MAIN.getObject('dialog_ok_button').disabled = true;
         PWM_VAR['newHeaderName'] = PWM_MAIN.getObject('newHeaderName').value;
         PWM_VAR['newHeaderValue'] = PWM_MAIN.getObject('newHeaderValue').value;
@@ -587,7 +586,7 @@ ActionHandler.addHeader = function(keyName, iteration, webActionIter) {
             });
             updateFunction();
         },okAction:function(){
-            var headers = PWM_VAR['clientSettingCache'][keyName][iteration]['webActions'][webActionIter]['headers'];
+            const headers = PWM_VAR['clientSettingCache'][keyName][iteration]['webActions'][webActionIter]['headers'];
             headers[PWM_VAR['newHeaderName']] = PWM_VAR['newHeaderValue'];
             ActionHandler.write(keyName);
             ActionHandler.showHeadersDialog(keyName, iteration, webActionIter);
@@ -602,7 +601,7 @@ ActionHandler.showCertificateViewerDialog = function(data,extraDataJson) {
     let keyName = extraData['keyName'];
     let certInfos = data['data'];
     let bodyText = '';
-    for (let i in certInfos) {
+    for (const i in certInfos) {
         bodyText += X509CertificateHandler.certificateToHtml(certInfos[i],keyName,i);
     }
     let cancelFunction = function(){ ActionHandler.addOrEditWebAction(keyName, extraData['iteration'], extraData['webActionIter']); };
