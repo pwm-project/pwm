@@ -20,6 +20,13 @@
 
 package password.pwm.util.secure;
 
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmInternalException;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 public enum PwmHashAlgorithm
 {
     MD5( "MD5", 32 ),
@@ -45,5 +52,19 @@ public enum PwmHashAlgorithm
     public int getHexValueLength()
     {
         return hexValueLength;
+    }
+
+    public MessageDigest newMessageDigest()
+    {
+        try
+        {
+            return MessageDigest.getInstance( getAlgName() );
+        }
+        catch ( final NoSuchAlgorithmException e )
+        {
+            final String errorMsg = "missing hash algorithm: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
+            throw new PwmInternalException( errorInformation );
+        }
     }
 }

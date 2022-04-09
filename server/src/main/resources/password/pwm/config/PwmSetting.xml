@@ -30,11 +30,12 @@
             <value>DEFAULT</value>
         </default>
         <options>
+            <option value="DIRECTORY_SERVER_389">389 Directory Server</option>
             <option value="AD">Microsoft Active Directory</option>
-            <option value="ORACLE_DS">Oracle Directory Server</option>
             <option value="NOVL">NetIQ eDirectory</option>
             <option value="NOVL_IDM">NetIQ IDM / OAuth Integration</option>
             <option value="OPEN_LDAP">OpenLDAP</option>
+            <option value="ORACLE_DS">Oracle Directory Server</option>
             <option value="DEFAULT">Others</option>
         </options>
         <properties>
@@ -550,6 +551,7 @@
         <example template="AD">CN=@PwmAppName@-Proxy,CN=Users,DC=ad,DC=site,DC=example,DC=com</example>
         <example template="ORACLE_DS">cn=@PwmAppName@-Proxy,cn=Administrators,cn=config</example>
         <example template="OPEN_LDAP">cn=@PwmAppName@-Proxy,dc=example,dc=com</example>
+        <example template="DIRECTORY_SERVER_389">cn=@PwmAppName@-Proxy,dc=example,dc=com</example>
         <default/>
     </setting>
     <setting hidden="false" key="ldap.proxy.password" level="0">
@@ -570,6 +572,7 @@
         <example template="AD">CN=@PwmAppName@-Testuser,CN=Users,DC=ad,DC=site,DC=example,DC=com</example>
         <example template="ORACLE_DS">cn=@PwmAppName@-Testuser,cn=Administrators,cn=config</example>
         <example template="OPEN_LDAP">cn=@PwmAppName@-Testuser,dc=example,dc=com</example>
+        <example template="DIRECTORY_SERVER_389">cn=@PwmAppName@-Testuser,dc=example,dc=com</example>
         <default>
             <value />
         </default>
@@ -640,6 +643,9 @@
         <default template="OPEN_LDAP">
             <value>memberof</value>
         </default>
+        <default template="DIRECTORY_SERVER_389">
+            <value>memberof</value>
+        </default>
     </setting>
     <setting hidden="true" key="ldap.group.label.attribute" level="2">
         <default>
@@ -665,6 +671,9 @@
         </default>
         <default template="OPEN_LDAP">
             <value><![CDATA[entryuuid]]></value>
+        </default>
+        <default template="DIRECTORY_SERVER_389">
+            <value><![CDATA[uidNumber]]></value>
         </default>
     </setting>
     <setting hidden="false" key="ldap.namingAttribute" level="1" required="true">

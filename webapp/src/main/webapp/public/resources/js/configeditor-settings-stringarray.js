@@ -23,9 +23,11 @@ var StringArrayValueHandler = {};
 StringArrayValueHandler.init = function(keyName) {
     console.log('StringArrayValueHandler init for ' + keyName);
 
-    var parentDiv = 'table_setting_' + keyName;
-    PWM_MAIN.getObject(parentDiv).innerHTML = '<div id="tableTop_' + keyName + '">';
-    parentDiv = PWM_MAIN.getObject('tableTop_' + keyName);
+    {
+        const parentDiv = 'table_setting_' + keyName;
+        PWM_MAIN.getObject(parentDiv).innerHTML = '<div id="tableTop_' + keyName + '">';
+    }
+    const parentDiv = PWM_MAIN.getObject('tableTop_' + keyName);
 
     PWM_VAR['clientSettingCache'][keyName + "_options"] = PWM_VAR['clientSettingCache'][keyName + "_options"] || {};
     PWM_VAR['clientSettingCache'][keyName + "_options"]['parentDiv'] = parentDiv;
@@ -34,7 +36,7 @@ StringArrayValueHandler.init = function(keyName) {
         PWM_VAR['clientSettingCache'][keyName] = resultValue;
         StringArrayValueHandler.draw(keyName);
 
-        var syntax = PWM_SETTINGS['settings'][keyName]['syntax'];
+        const syntax = PWM_SETTINGS['settings'][keyName]['syntax'];
         if (syntax === 'PROFILE') {
             PWM_MAIN.getObject("resetButton-" + keyName).style.display = 'none';
             PWM_MAIN.getObject("helpButton-" + keyName).style.display = 'none';
@@ -45,43 +47,43 @@ StringArrayValueHandler.init = function(keyName) {
 
 
 StringArrayValueHandler.draw = function(settingKey) {
-    var parentDiv = PWM_VAR['clientSettingCache'][settingKey + "_options"]['parentDiv'];
-    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+    const parentDiv = PWM_VAR['clientSettingCache'][settingKey + "_options"]['parentDiv'];
+    const parentDivElement = PWM_MAIN.getObject(parentDiv);
 
     PWM_CFGEDIT.clearDivElements(parentDiv, false);
-    var resultValue = PWM_VAR['clientSettingCache'][settingKey];
+    const resultValue = PWM_VAR['clientSettingCache'][settingKey];
 
-    var tableElement = document.createElement("table");
+    const tableElement = document.createElement("table");
     tableElement.setAttribute("style", "border-width: 0;");
 
-    var syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
+    const syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
     if (syntax === 'PROFILE') {
-        var divDescriptionElement = document.createElement("div");
-        var text = PWM_SETTINGS['settings'][settingKey]['description'];
+        const divDescriptionElement = document.createElement("div");
+        let text = PWM_SETTINGS['settings'][settingKey]['description'];
         text += '<br/>' + PWM_CONFIG.showString('Display_ProfileNamingRules');
         divDescriptionElement.innerHTML = text;
         parentDivElement.appendChild(divDescriptionElement);
 
-        var defaultProfileRow = document.createElement("tr");
+        const defaultProfileRow = document.createElement("tr");
         defaultProfileRow.setAttribute("colspan", "5");
     }
 
-    var counter = 0;
-    var itemCount = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
+    let counter = 0;
+    const itemCount = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
     parentDivElement.appendChild(tableElement);
 
-    for (var i in resultValue) {
+    for (const i in resultValue) {
         (function(iteration) {
             StringArrayValueHandler.drawRow(settingKey, iteration, resultValue[iteration], itemCount, tableElement);
             counter++;
         })(i);
     }
 
-    var settingProperties = PWM_SETTINGS['settings'][settingKey]['properties'];
+    const settingProperties = PWM_SETTINGS['settings'][settingKey]['properties'];
     if (settingProperties && 'Maximum' in settingProperties && itemCount >= settingProperties['Maximum']) {
         // item count is already maxed out
     } else {
-        var addItemButton = document.createElement("button");
+        const addItemButton = document.createElement("button");
         addItemButton.setAttribute("type", "button");
         addItemButton.setAttribute("class", "btn");
         addItemButton.setAttribute("id", "button-" + settingKey + "-addItem");
@@ -95,44 +97,43 @@ StringArrayValueHandler.draw = function(settingKey) {
 };
 
 StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCount, parentDivElement) {
-    var settingInfo = PWM_SETTINGS['settings'][settingKey];
-    var settingProperties = PWM_SETTINGS['settings'][settingKey]['properties'];
-    var syntax = settingInfo['syntax'];
+    const settingInfo = PWM_SETTINGS['settings'][settingKey];
+    const settingProperties = PWM_SETTINGS['settings'][settingKey]['properties'];
+    const syntax = settingInfo['syntax'];
 
-    var inputID = 'value-' + settingKey + '-' + iteration;
+    const inputID = 'value-' + settingKey + '-' + iteration;
 
-    var valueRow = document.createElement("tr");
+    const valueRow = document.createElement("tr");
     valueRow.setAttribute("style", "border-width: 0");
     valueRow.setAttribute("id",inputID + "_row");
 
-    var rowHtml = '';
+    let rowHtml = '';
     if (syntax !== 'PROFILE') {
         rowHtml = '<td id="button-' + inputID + '" style="border-width:0; width: 15px"><span class="pwm-icon pwm-icon-edit"/></td>';
     }
     rowHtml += '<td style=""><div class="configStringPanel" id="' + inputID + '"></div></td>';
 
+    const copyButtonID = 'button-' + settingKey + '-' + iteration + '-copy';
     if (syntax === 'PROFILE') {
-        var copyButtonID = 'button-' + settingKey + '-' + iteration + '-copy';
         rowHtml += '<td class="noborder nopadding" style="width:10px" title="Copy">';
         rowHtml += '<span id="' + copyButtonID + '" class="action-icon pwm-icon pwm-icon-copy"></span>';
         rowHtml += '</td>';
     } else if (syntax === 'DOMAIN') {
-        var copyButtonID = 'button-' + settingKey + '-' + iteration + '-copy';
         rowHtml += '<td class="noborder nopadding" style="width:10px" title="Copy">';
         rowHtml += '<span id="' + copyButtonID + '" class="action-icon pwm-icon pwm-icon-copy"></span>';
         rowHtml += '</td>';
     }
 
-    var showMoveButtons = syntax !== 'DOMAIN';
+    const showMoveButtons = syntax !== 'DOMAIN';
+    const downButtonID = 'button-' + settingKey + '-' + iteration + '-moveDown';
+    const upButtonID = 'button-' + settingKey + '-' + iteration + '-moveUp';
     if ( showMoveButtons ) {
-        var downButtonID = 'button-' + settingKey + '-' + iteration + '-moveDown';
         rowHtml += '<td class="noborder nopadding" style="width:10px" title="Move Down">';
         if (itemCount > 1 && iteration !== (itemCount - 1)) {
             rowHtml += '<span id="' + downButtonID + '" class="action-icon pwm-icon pwm-icon-chevron-down"></span>';
         }
         rowHtml += '</td>';
 
-        var upButtonID = 'button-' + settingKey + '-' + iteration + '-moveUp';
         rowHtml += '<td class="noborder nopadding" style="width:10px" title="Move Up">';
         if (itemCount > 1 && iteration !== 0) {
             rowHtml += '<span id="' + upButtonID + '" class="action-icon pwm-icon pwm-icon-chevron-up"></span>';
@@ -140,9 +141,9 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
         rowHtml += '</td>';
     }
 
-    var showDeleteButtons = (itemCount > 1 || (!settingInfo['required'])) && (settingProperties['Minimum'] && itemCount > settingProperties['Minimum'])
+    const showDeleteButtons = (itemCount > 1 || (!settingInfo['required'])) && (settingProperties['Minimum'] && itemCount > settingProperties['Minimum'])
+    const deleteButtonID = 'button-' + settingKey + '-' + iteration + '-delete';
     if (showDeleteButtons) {
-        var deleteButtonID = 'button-' + settingKey + '-' + iteration + '-delete';
         rowHtml += '<td class="noborder nopadding" style="width:10px" title="Delete">';
         rowHtml += '<span id="' + deleteButtonID + '" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
         rowHtml += '</td>';
@@ -151,22 +152,22 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
     valueRow.innerHTML = rowHtml;
     parentDivElement.appendChild(valueRow);
 
-    var allowEditValue = true;
+    let allowEditValue = true;
     if (syntax === 'PROFILE' || syntax === 'DOMAIN') {
         allowEditValue = false;
         PWM_MAIN.addEventHandler(copyButtonID, 'click', function () {
-            var editorOptions = {};
+            const editorOptions = {};
             editorOptions['title'] = syntax === 'PROFILE' ? 'Copy Profile' : 'Copy Domain';
             editorOptions['instructions'] = syntax === 'PROFILE' ? 'Copy profile and all profile settings from existing "' + value + '" profile to a new profile.' :
                 'Copy domain and all domain settings from existing "' + value + '" domain to a new domain.'
             editorOptions['regex'] = PWM_SETTINGS['settings'][settingKey]['pattern'];
             editorOptions['placeholder'] = PWM_SETTINGS['settings'][settingKey]['placeholder'];
             editorOptions['completeFunction'] = function (newValue) {
-                var options = {};
+                const options = {};
                 options['setting'] = settingKey;
                 options['sourceID'] = value;
                 options['destinationID'] = newValue;
-                var resultFunction = function (data) {
+                const resultFunction = function (data) {
                     if (data['error']) {
                         PWM_MAIN.showErrorDialog(data);
                     } else {
@@ -174,10 +175,10 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
                     }
                 };
 
-                var actionName = syntax === 'PROFILE' ? 'copyProfile' : 'copyDomain';
+                const actionName = syntax === 'PROFILE' ? 'copyProfile' : 'copyDomain';
                 PWM_MAIN.showWaitDialog({
                     loadFunction: function () {
-                        var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction',actionName);
+                        const url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction',actionName);
                         PWM_MAIN.ajaxRequest(url, resultFunction, {content: options});
                     }
                 });
@@ -211,7 +212,7 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
 };
 
 StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
-    var okAction = function(value) {
+    const okAction = function(value) {
         if (iteration > -1) {
             PWM_VAR['clientSettingCache'][settingKey][iteration] = value;
         } else {
@@ -220,14 +221,14 @@ StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
         StringArrayValueHandler.writeSetting(settingKey)
     };
 
-    var editorOptions = {};
+    const editorOptions = {};
     editorOptions['title'] = PWM_SETTINGS['settings'][settingKey]['label'] + " - " + (iteration > -1 ? "Edit" : "Add") + " Value";
     editorOptions['regex'] = PWM_SETTINGS['settings'][settingKey]['pattern'];
     editorOptions['placeholder'] = PWM_SETTINGS['settings'][settingKey]['placeholder'];
     editorOptions['completeFunction'] = okAction;
     editorOptions['value'] = iteration > -1 ? PWM_VAR['clientSettingCache'][settingKey][iteration] : '';
 
-    var isLdapDN = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'],'ldapDNsyntax');
+    const isLdapDN = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'],'ldapDNsyntax');
     if (isLdapDN) {
         UILibrary.editLdapDN(okAction,{currentDN: editorOptions['value']});
     } else {
@@ -236,7 +237,7 @@ StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
 };
 
 StringArrayValueHandler.move = function(settingKey, moveUp, iteration) {
-    var currentValues = PWM_VAR['clientSettingCache'][settingKey];
+    const currentValues = PWM_VAR['clientSettingCache'][settingKey];
     if (moveUp) {
         StringArrayValueHandler.arrayMoveUtil(currentValues, iteration, iteration - 1);
     } else {
@@ -246,16 +247,16 @@ StringArrayValueHandler.move = function(settingKey, moveUp, iteration) {
 };
 
 StringArrayValueHandler.arrayMoveUtil = function(arr, fromIndex, toIndex) {
-    var element = arr[fromIndex];
+    const element = arr[fromIndex];
     arr.splice(fromIndex, 1);
     arr.splice(toIndex, 0, element);
 };
 
 StringArrayValueHandler.removeValue = function(settingKey, iteration) {
-    var syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
-    var profileName = PWM_VAR['clientSettingCache'][settingKey][iteration];
-    var deleteFunction = function() {
-        var currentValues = PWM_VAR['clientSettingCache'][settingKey];
+    const syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
+    const profileName = PWM_VAR['clientSettingCache'][settingKey][iteration];
+    const deleteFunction = function() {
+        const currentValues = PWM_VAR['clientSettingCache'][settingKey];
         currentValues.splice(iteration,1);
         StringArrayValueHandler.writeSetting(settingKey,false);
     };
@@ -279,8 +280,8 @@ StringArrayValueHandler.removeValue = function(settingKey, iteration) {
 };
 
 StringArrayValueHandler.writeSetting = function(settingKey, reload) {
-    var syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
-    var nextFunction = function() {
+    const syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
+    const nextFunction = function() {
         if (syntax === 'PROFILE') {
             PWM_MAIN.gotoUrl('editor');
         }
@@ -290,6 +291,6 @@ StringArrayValueHandler.writeSetting = function(settingKey, reload) {
             StringArrayValueHandler.draw(settingKey);
         }
     };
-    var currentValues = PWM_VAR['clientSettingCache'][settingKey];
+    const currentValues = PWM_VAR['clientSettingCache'][settingKey];
     PWM_CFGEDIT.writeSetting(settingKey, currentValues, nextFunction);
 };

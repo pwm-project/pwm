@@ -24,6 +24,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
@@ -313,12 +314,8 @@ public class SecureEngine
             final String input,
             final PwmHashAlgorithm algorithm
     )
-            throws PwmUnrecoverableException
     {
-        if ( input == null || input.length() < 1 )
-        {
-            return null;
-        }
+        Objects.requireNonNull( input );
         return hash( new ByteArrayInputStream( input.getBytes( PwmConstants.DEFAULT_CHARSET ) ), algorithm );
     }
 
@@ -326,7 +323,6 @@ public class SecureEngine
             final InputStream is,
             final PwmHashAlgorithm algorithm
     )
-            throws PwmUnrecoverableException
     {
         return JavaHelper.binaryArrayToHex( computeHashToBytes( is, algorithm ) );
     }
@@ -336,8 +332,8 @@ public class SecureEngine
             final PwmSecurityKey pwmSecurityKey,
             final String input
     )
-            throws PwmUnrecoverableException
     {
+        Objects.requireNonNull( input );
         return JavaHelper.binaryArrayToHex( computeHmacToBytes( hmacAlgorithm, pwmSecurityKey, input.getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
     }
 
@@ -346,8 +342,8 @@ public class SecureEngine
             final PwmSecurityKey pwmSecurityKey,
             final String input
     )
-            throws PwmUnrecoverableException
     {
+        Objects.requireNonNull( input );
         return JavaHelper.binaryArrayToHex( computeHmacToBytes( hmacAlgorithm, pwmSecurityKey, input.getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
     }
 
@@ -356,21 +352,19 @@ public class SecureEngine
             final PwmSecurityKey pwmSecurityKey,
             final byte[] input
     )
-            throws PwmUnrecoverableException
     {
         try
         {
-
             final Mac mac = Mac.getInstance( hmacAlgorithm.getAlgorithmName() );
             final SecretKey secretKey = pwmSecurityKey.getKey( hmacAlgorithm.getKeyType() );
             mac.init( secretKey );
             return mac.doFinal( input );
         }
-        catch ( final GeneralSecurityException e )
+        catch ( final GeneralSecurityException | PwmUnrecoverableException e )
         {
             final String errorMsg = "error during hmac operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
+            throw new PwmInternalException( errorInformation );
         }
     }
 
@@ -379,22 +373,13 @@ public class SecureEngine
             final InputStream is,
             final PwmHashAlgorithm algorithm
     )
-            throws PwmUnrecoverableException
     {
+        Objects.requireNonNull( is );
+        Objects.requireNonNull( algorithm );
 
         final InputStream bis = is instanceof BufferedInputStream ? is : new BufferedInputStream( is );
 
-        final MessageDigest messageDigest;
-        try
-        {
-            messageDigest = MessageDigest.getInstance( algorithm.getAlgName() );
-        }
-        catch ( final NoSuchAlgorithmException e )
-        {
-            final String errorMsg = "missing hash algorithm: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
+        final MessageDigest messageDigest = algorithm.newMessageDigest();
 
         try
         {
@@ -417,7 +402,7 @@ public class SecureEngine
         {
             final String errorMsg = "unexpected error during hash operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
+            throw new PwmInternalException( errorInformation );
         }
     }
 
@@ -449,11 +434,11 @@ public class SecureEngine
         NonceGenerator( final int fixedComponentLength, final int counterComponentLength )
         {
             this.fixedComponentLength = fixedComponentLength;
-            value = new byte[ fixedComponentLength + counterComponentLength ];
+            value = new byte[fixedComponentLength + counterComponentLength];
             PwmRandom.getInstance().nextBytes( value );
         }
 
-        public synchronized byte[] nextValue( )
+        public synchronized byte[] nextValue()
         {
             lock.lock();
             try
@@ -469,9 +454,9 @@ public class SecureEngine
 
         private void increment( final int index )
         {
-            if ( value[ index ] == Byte.MAX_VALUE )
+            if ( value[index] == Byte.MAX_VALUE )
             {
-                value[ index ] = 0;
+                value[index] = 0;
                 if ( index > fixedComponentLength )
                 {
                     increment( index - 1 );
@@ -479,7 +464,7 @@ public class SecureEngine
             }
             else
             {
-                value[ index ]++;
+                value[index]++;
             }
         }
     }

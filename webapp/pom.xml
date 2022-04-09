@@ -296,17 +296,17 @@
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>dojo</artifactId>
-            <version>1.16.4</version>
+            <version>1.17.2</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>dijit</artifactId>
-            <version>1.16.4</version>
+            <version>1.17.2</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>dojox</artifactId>
-            <version>1.16.4</version>
+            <version>1.17.2</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.npm</groupId>

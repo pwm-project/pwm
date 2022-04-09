@@ -26,6 +26,7 @@ import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
+import password.pwm.PwmConstants;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.java.JavaHelper;
@@ -202,7 +203,7 @@ public class ControlledPwmServletTest
     private Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> getClassAndMethods()
     {
         final Reflections reflections = new Reflections( new ConfigurationBuilder()
-                .setUrls( ClasspathHelper.forPackage( "password.pwm" ) )
+                .setUrls( ClasspathHelper.forPackage( PwmConstants.PWM_BASE_PACKAGE.getName() ) )
                 .setScanners( Scanners.SubTypes,
                         Scanners.TypesAnnotated,
                         Scanners.FieldsAnnotated

@@ -28,13 +28,12 @@ import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.LazySupplier;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
@@ -165,16 +164,7 @@ public class WordlistConfiguration implements Serializable
 
     @Getter( AccessLevel.PRIVATE )
     private final transient Supplier<String> configHash = new LazySupplier<>( () ->
-    {
-        try
-        {
-            return SecureEngine.hash( JsonFactory.get().serialize( WordlistConfiguration.this ), HASH_ALGORITHM );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            throw new IllegalStateException( "unexpected error generating wordlist-config hash: " + e.getMessage() );
-        }
-    } );
+            SecureEngine.hash( JsonFactory.get().serialize( WordlistConfiguration.this ), HASH_ALGORITHM ) );
 
     public boolean isAutoImportUrlConfigured()
     {

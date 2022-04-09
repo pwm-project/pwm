@@ -47,7 +47,6 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -175,23 +174,15 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
             final String profileId,
             final X509Certificate certificate
     )
-            throws PwmUnrecoverableException
     {
         final CertificateDebugDataItem.CertificateDebugDataItemBuilder builder = CertificateDebugDataItem.builder();
         builder.menuLocation( setting.toMenuLocationDebug( profileId, PwmConstants.DEFAULT_LOCALE ) );
-        builder.subject( certificate.getSubjectDN().toString() );
+        builder.subject( certificate.getSubjectX500Principal().getName() );
         builder.serial( certificate.getSerialNumber().toString() );
         builder.algorithm( certificate.getSigAlgName() );
         builder.issueDate( certificate.getNotBefore().toInstant() );
         builder.expirationDate( certificate.getNotAfter().toInstant() );
-        try
-        {
-            builder.detail( X509Utils.makeDetailText( certificate ) );
-        }
-        catch ( final CertificateEncodingException e )
-        {
-            LOGGER.error( () -> "unexpected error parsing certificate detail text: " + e.getMessage() );
-        }
+        builder.detail( X509Utils.makeDetailText( certificate ) );
         return builder.build();
     }
 

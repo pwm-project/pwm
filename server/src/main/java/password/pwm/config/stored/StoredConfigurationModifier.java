@@ -187,7 +187,7 @@ public class StoredConfigurationModifier
         } );
     }
 
-    public int modifications()
+    public int modificationCount()
     {
         return modifications.get();
     }

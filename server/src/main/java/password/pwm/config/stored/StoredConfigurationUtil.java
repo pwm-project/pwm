@@ -495,7 +495,7 @@ public abstract class StoredConfigurationUtil
             modifier.writeSetting( key, value, userIdentity );
         }
 
-        LOGGER.trace( () -> "copied " + modifier.modifications() + " domain settings from '" + source + "' to '" + destination + "' domain",
+        LOGGER.trace( () -> "copied " + modifier.modificationCount() + " domain settings from '" + source + "' to '" + destination + "' domain",
                 () -> TimeDuration.fromCurrent( startTime ) );
 
         return modifier.newStoredConfiguration();

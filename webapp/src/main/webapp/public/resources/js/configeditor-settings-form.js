@@ -39,7 +39,7 @@ FormTableHandler.newRowValue = {
 
 FormTableHandler.init = function(keyName) {
     console.log('FormTableHandler init for ' + keyName);
-    var parentDiv = 'table_setting_' + keyName;
+    const parentDiv = 'table_setting_' + keyName;
     PWM_CFGEDIT.clearDivElements(parentDiv, true);
     PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         PWM_VAR['clientSettingCache'][keyName] = resultValue;
@@ -48,26 +48,27 @@ FormTableHandler.init = function(keyName) {
 };
 
 FormTableHandler.redraw = function(keyName) {
-    var resultValue = PWM_VAR['clientSettingCache'][keyName];
-    var parentDiv = 'table_setting_' + keyName;
-    var parentDivElement = PWM_MAIN.getObject(parentDiv);
-
-    parentDivElement.innerHTML = '<table class="noborder" style="margin-left: 0; width:auto" id="table-top-' + keyName + '"></table>';
-    parentDiv = 'table-top-' + keyName;
-    parentDivElement = PWM_MAIN.getObject(parentDiv);
+    const resultValue = PWM_VAR['clientSettingCache'][keyName];
+    {
+        const parentDiv = 'table_setting_' + keyName;
+        const parentDivElement = PWM_MAIN.getObject(parentDiv);
+        parentDivElement.innerHTML = '<table class="noborder" style="margin-left: 0; width:auto" id="table-top-' + keyName + '"></table>';
+    }
+    const parentDiv = 'table-top-' + keyName;
+    const parentDivElement = PWM_MAIN.getObject(parentDiv);
 
     if (!PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
-        var headerRow = document.createElement("tr");
-        var rowHtml = '<td>Name</td><td></td><td>Label</td>';
+        const headerRow = document.createElement("tr");
+        const rowHtml = '<td>Name</td><td></td><td>Label</td>';
         headerRow.innerHTML = rowHtml;
         parentDivElement.appendChild(headerRow);
     }
 
-    for (var i in resultValue) {
+    for (const i in resultValue) {
         FormTableHandler.drawRow(parentDiv, keyName, i, resultValue[i]);
     }
 
-    var buttonRow = document.createElement("tr");
+    const buttonRow = document.createElement("tr");
     buttonRow.setAttribute("colspan","5");
     buttonRow.innerHTML = '<td><button class="btn" id="button-' + keyName + '-addRow"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Item</button></td>';
 
@@ -80,27 +81,27 @@ FormTableHandler.redraw = function(keyName) {
 };
 
 FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
-    var itemCount = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
-    var inputID = 'value_' + settingKey + '_' + iteration + "_";
-    var options = PWM_SETTINGS['settings'][settingKey]['options'];
-    var properties = PWM_SETTINGS['settings'][settingKey]['properties'];
+    const itemCount = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
+    const inputID = 'value_' + settingKey + '_' + iteration + "_";
+    const options = PWM_SETTINGS['settings'][settingKey]['options'];
+    const properties = PWM_SETTINGS['settings'][settingKey]['properties'];
 
-    var newTableRow = document.createElement("tr");
+    const newTableRow = document.createElement("tr");
     newTableRow.setAttribute("style", "border-width: 0");
 
-    var htmlRow = '';
+    let htmlRow = '';
     htmlRow += '<td style="background: #f6f9f8; border:1px solid #dae1e1; width:180px"><div class="noWrapTextBox" id="panel-name-' + inputID + '" ></div></td>';
     htmlRow += '<td style="width:1px" id="icon-editLabel-' + inputID + '"><span class="btn-icon pwm-icon pwm-icon-edit"></span></td>';
     htmlRow += '<td style="background: #f6f9f8; border:1px solid #dae1e1; width:170px"><div style="" class="noWrapTextBox " id="' + inputID + 'label"><span>' + value['labels'][''] + '</span></div></td>';
 
-    var userDNtypeAllowed = options['type-userDN'] === 'show';
+    const userDNtypeAllowed = options['type-userDN'] === 'show';
     if (!PWM_MAIN.JSLibrary.isEmpty(options)) {
         htmlRow += '<td style="width:15px;">';
         htmlRow += '<select id="' + inputID + 'type">';
-        for (var optionItem in options) {
+        for (const optionItem in options) {
             //if (optionList[optionItem] !== 'userDN' || userDNtypeAllowed) {
-            var optionName = options[optionItem];
-            var selected = (optionName === PWM_VAR['clientSettingCache'][settingKey][iteration]['type']);
+            const optionName = options[optionItem];
+            const selected = (optionName === PWM_VAR['clientSettingCache'][settingKey][iteration]['type']);
             htmlRow += '<option value="' + optionName + '"' + (selected ? " selected" : "") + '>' + optionName + '</option>';
             //}
         }
@@ -108,7 +109,7 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         htmlRow += '</td>';
     }
 
-    var hideOptions = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'], 'Form_HideOptions');
+    const hideOptions = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'], 'Form_HideOptions');
     if (!hideOptions) {
         htmlRow += '<td class="noborder" style="min-width:90px;"><button id="' + inputID + 'optionsButton"><span class="btn-icon pwm-icon pwm-icon-sliders"/> Options</button></td>';
     }
@@ -127,7 +128,7 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
     htmlRow += '<td style="width:10px"><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="' + inputID + '-deleteRowButton"></span></td>';
 
     newTableRow.innerHTML = htmlRow;
-    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+    const parentDivElement = PWM_MAIN.getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
 
     UILibrary.addTextValueToElement("panel-name-" + inputID,value['name']);
@@ -161,7 +162,7 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
 };
 
 FormTableHandler.write = function(settingKey, finishFunction) {
-    var cachedSetting = PWM_VAR['clientSettingCache'][settingKey];
+    const cachedSetting = PWM_VAR['clientSettingCache'][settingKey];
     PWM_CFGEDIT.writeSetting(settingKey, cachedSetting, finishFunction);
 };
 
@@ -169,7 +170,7 @@ FormTableHandler.removeRow = function(keyName, iteration) {
     PWM_MAIN.showConfirmDialog({
         text:'Are you sure you wish to delete this item?',
         okAction:function(){
-            var currentValues = PWM_VAR['clientSettingCache'][keyName];
+            const currentValues = PWM_VAR['clientSettingCache'][keyName];
             currentValues.splice(iteration,1);
             FormTableHandler.write(keyName,function(){
                 FormTableHandler.init(keyName);
@@ -179,7 +180,7 @@ FormTableHandler.removeRow = function(keyName, iteration) {
 };
 
 FormTableHandler.move = function(settingKey, moveUp, iteration) {
-    var currentValues = PWM_VAR['clientSettingCache'][settingKey];
+    const currentValues = PWM_VAR['clientSettingCache'][settingKey];
     if (moveUp) {
         FormTableHandler.arrayMoveUtil(currentValues, iteration, iteration - 1);
     } else {
@@ -190,7 +191,7 @@ FormTableHandler.move = function(settingKey, moveUp, iteration) {
 };
 
 FormTableHandler.arrayMoveUtil = function(arr, fromIndex, toIndex) {
-    var element = arr[fromIndex];
+    const element = arr[fromIndex];
     arr.splice(fromIndex, 1);
     arr.splice(toIndex, 0, element);
 };
@@ -202,13 +203,13 @@ FormTableHandler.addRow = function(keyName) {
         regex:'^[a-zA-Z][a-zA-Z0-9-]*$',
         placeholder:'FieldName',
         completeFunction:function(value){
-            for (var i in PWM_VAR['clientSettingCache'][keyName]) {
+            for (const i in PWM_VAR['clientSettingCache'][keyName]) {
                 if (PWM_VAR['clientSettingCache'][keyName][i]['name'] === value) {
                     alert('field already exists');
                     return;
                 }
             }
-            var currentSize = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][keyName]);
+            const currentSize = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][keyName]);
             PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = FormTableHandler.newRowValue;
             PWM_VAR['clientSettingCache'][keyName][currentSize + 1].name = value;
             PWM_VAR['clientSettingCache'][keyName][currentSize + 1].labels = {'':value};
@@ -220,23 +221,23 @@ FormTableHandler.addRow = function(keyName) {
 };
 
 FormTableHandler.showOptionsDialog = function(keyName, iteration) {
-    var type = PWM_VAR['clientSettingCache'][keyName][iteration]['type'];
-    var settings = PWM_SETTINGS['settings'][keyName];
-    var currentValue = PWM_VAR['clientSettingCache'][keyName][iteration];
-    var options = PWM_SETTINGS['settings'][keyName]['options'];
+    const type = PWM_VAR['clientSettingCache'][keyName][iteration]['type'];
+    const settings = PWM_SETTINGS['settings'][keyName];
+    const currentValue = PWM_VAR['clientSettingCache'][keyName][iteration];
+    const options = PWM_SETTINGS['settings'][keyName]['options'];
 
 
-    var hideStandardOptions = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_HideStandardOptions') || type === 'photo';
-    var showRequired = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowRequiredOption');
-    var showUnique = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowUniqueOption') && type !== 'photo';
-    var showReadOnly = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowReadOnlyOption');
-    var showMultiValue = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowMultiValueOption');
-    var showConfirmation = type !== 'checkbox' && type !== 'select' && type != 'photo' && !hideStandardOptions;
-    var showSource = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowSource');
+    const hideStandardOptions = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_HideStandardOptions') || type === 'photo';
+    const showRequired = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowRequiredOption');
+    const showUnique = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowUniqueOption') && type !== 'photo';
+    const showReadOnly = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowReadOnlyOption');
+    const showMultiValue = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowMultiValueOption');
+    const showConfirmation = type !== 'checkbox' && type !== 'select' && type != 'photo' && !hideStandardOptions;
+    const showSource = PWM_MAIN.JSLibrary.arrayContains(settings['flags'],'Form_ShowSource');
 
 
-    var inputID = 'value_' + keyName + '_' + iteration + "_";
-    var bodyText = '<div style="max-height: 500px; overflow-y: auto"><table class="noborder">';
+    const inputID = 'value_' + keyName + '_' + iteration + "_";
+    let bodyText = '<div style="max-height: 500px; overflow-y: auto"><table class="noborder">';
     if (!hideStandardOptions || type === 'photo') {
         bodyText += '<tr>';
         bodyText += '<td id="' + inputID + '-label-description" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Description') + '">Description</td><td>';
@@ -276,7 +277,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             bodyText += '<td id="' + inputID + '-label-regex" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_Regex') + '">Regular Expression</td><td><input type="text" class="configStringInput" style="width:300px" id="' + inputID + 'regex' + '"/></td>';
             bodyText += '</tr><tr>';
 
-            var regexErrorValue = currentValue['regexErrors'][''];
+            const regexErrorValue = currentValue['regexErrors'][''];
             bodyText += '<td id="' + inputID + '-label-regexError" class="key" title="' + PWM_CONFIG.showString('Tooltip_FormOptions_RegexError') + '">Regular Expression<br/>Error Message</td><td>';
             bodyText += '<div class="noWrapTextBox" id="' + inputID + 'regexErrors"><span class="btn-icon pwm-icon pwm-icon-edit"></span><span>' + regexErrorValue + '...</span></div>';
             bodyText += '</td>';
@@ -311,8 +312,8 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
 
     bodyText += '</table></div>';
 
-    var initFormElements = function() {
-        var currentValue = PWM_VAR['clientSettingCache'][keyName][iteration];
+    const initFormElements = function() {
+        const currentValue = PWM_VAR['clientSettingCache'][keyName][iteration];
 
 
         PWM_MAIN.addEventHandler(inputID + 'editOptionsButton', 'click', function(){
@@ -327,7 +328,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             FormTableHandler.showDescriptionDialog(keyName, iteration);
         });
 
-        var descriptionValue = currentValue['description'][''];
+        const descriptionValue = currentValue['description'][''];
         UILibrary.addTextValueToElement(inputID + '-value', descriptionValue ? descriptionValue : "Edit");
 
         if (showRequired) {
@@ -414,10 +415,10 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             });
         }
         if (showSource) {
-            var nodeID = inputID + 'source';
+            const nodeID = inputID + 'source';
             PWM_MAIN.JSLibrary.setValueOfSelectElement(nodeID,currentValue['source']);
             PWM_MAIN.addEventHandler(nodeID,'change',function(){
-                var newValue = PWM_MAIN.JSLibrary.readValueOfSelectElement(nodeID);
+                const newValue = PWM_MAIN.JSLibrary.readValueOfSelectElement(nodeID);
                 currentValue['source'] = newValue;
                 FormTableHandler.write(keyName);
             });
@@ -436,17 +437,17 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
 };
 
 FormTableHandler.showLabelDialog = function(keyName, iteration) {
-    var finishAction = function(){ FormTableHandler.redraw(keyName); };
-    var title = 'Label for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
+    const finishAction = function(){ FormTableHandler.redraw(keyName); };
+    const title = 'Label for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
     FormTableHandler.multiLocaleStringDialog(keyName, iteration, 'labels', finishAction, title);
 };
 
 FormTableHandler.multiLocaleStringDialog = function(keyName, iteration, settingType, finishAction, titleText) {
-    var inputID = 'value_' + keyName + '_' + iteration + "_" + "label_";
-    var bodyText = '<table class="noborder" id="' + inputID + 'table">';
+    const inputID = 'value_' + keyName + '_' + iteration + "_" + "label_";
+    let bodyText = '<table class="noborder" id="' + inputID + 'table">';
     bodyText += '<tr>';
-    for (var localeName in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
-        var localeID = inputID + localeName;
+    for (const localeName in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
+        const localeID = inputID + localeName;
         bodyText += '<td>' + localeName + '</td>';
         bodyText += '<td><input style="width:420px" class="configStringInput" type="text" id="' + localeID + '-input"></input></td>';
         if (localeName !== '') {
@@ -463,14 +464,14 @@ FormTableHandler.multiLocaleStringDialog = function(keyName, iteration, settingT
             finishAction();
         },
         loadFunction:function(){
-            for (var iter in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
+            for (const iter in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
                 (function(localeName) {
-                    var value = PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName];
-                    var localeID = inputID + localeName;
+                    const value = PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName];
+                    const localeID = inputID + localeName;
                     PWM_MAIN.getObject(localeID + '-input').value = value;
                     PWM_MAIN.addEventHandler(localeID + '-input', 'input', function () {
-                        var inputElement = PWM_MAIN.getObject(localeID + '-input');
-                        var value = inputElement.value;
+                        const inputElement = PWM_MAIN.getObject(localeID + '-input');
+                        const value = inputElement.value;
                         PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName] = value;
                         FormTableHandler.write(keyName);
                     });
@@ -496,23 +497,23 @@ FormTableHandler.multiLocaleStringDialog = function(keyName, iteration, settingT
 
 
 FormTableHandler.showRegexErrorsDialog = function(keyName, iteration) {
-    var finishAction = function(){ FormTableHandler.showOptionsDialog(keyName, iteration); };
-    var title = 'Regular Expression Error Message for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
+    const finishAction = function(){ FormTableHandler.showOptionsDialog(keyName, iteration); };
+    const title = 'Regular Expression Error Message for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
     FormTableHandler.multiLocaleStringDialog(keyName, iteration, 'regexErrors', finishAction, title);
 };
 
 
 FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
-    var inputID = 'value_' + keyName + '_' + iteration + "_" + "selectOptions_";
-    var bodyText = '';
+    const inputID = 'value_' + keyName + '_' + iteration + "_" + "selectOptions_";
+    let bodyText = '';
     bodyText += '<table class="noborder" id="' + inputID + 'table"">';
     bodyText += '<tr>';
     bodyText += '<td><b>Value</b></td><td><b>Display Name</b></td>';
     bodyText += '</tr><tr>';
-    for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
+    for (const optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
         (function(counter) {
-            var value = PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][counter];
-            var optionID = inputID + counter;
+            const value = PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][counter];
+            const optionID = inputID + counter;
             bodyText += '<td>' + counter + '</td><td>' + value + '</td>';
             bodyText += '<td class="noborder" style="width:15px">';
             bodyText += '<span id="' + optionID + '-removeButton" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
@@ -526,10 +527,10 @@ FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
     bodyText += '<input class="configStringInput" style="width:200px" type="text" placeholder="Display Name" required id="addSelectOptionValue"/>';
     bodyText += '<button id="addSelectOptionButton"><span class="btn-icon pwm-icon pwm-icon-plus-square"/> Add</button>';
 
-    var initFormFields = function() {
-        for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
+    const initFormFields = function() {
+        for (const optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
             (function(counter) {
-                var optionID = inputID + counter;
+                const optionID = inputID + counter;
                 PWM_MAIN.addEventHandler(optionID + '-removeButton','click',function(){
                     FormTableHandler.removeSelectOptionsOption(keyName,iteration,counter);
                 });
@@ -537,8 +538,8 @@ FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
         }
 
         PWM_MAIN.addEventHandler('addSelectOptionButton','click',function(){
-            var value = PWM_MAIN.getObject('addSelectOptionName').value;
-            var display = PWM_MAIN.getObject('addSelectOptionValue').value;
+            const value = PWM_MAIN.getObject('addSelectOptionName').value;
+            const display = PWM_MAIN.getObject('addSelectOptionValue').value;
             FormTableHandler.addSelectOptionsOption(keyName, iteration, value, display);
         });
     };
@@ -577,21 +578,21 @@ FormTableHandler.removeSelectOptionsOption = function(keyName, iteration, option
 };
 
 FormTableHandler.showDescriptionDialog = function(keyName, iteration) {
-    var finishAction = function(){ FormTableHandler.showOptionsDialog(keyName, iteration); };
-    var title = 'Description for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
+    const finishAction = function(){ FormTableHandler.showOptionsDialog(keyName, iteration); };
+    const title = 'Description for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
     FormTableHandler.multiLocaleStringDialog(keyName, iteration, 'description', finishAction, title);
 };
 
 FormTableHandler.showMimeTypesDialog = function(keyName, iteration) {
-    var inputID = 'value_' + keyName + '_' + iteration + "_" + "selectOptions_";
-    var bodyText = '';
+    const inputID = 'value_' + keyName + '_' + iteration + "_" + "selectOptions_";
+    let bodyText = '';
     bodyText += '<table class="noborder" id="' + inputID + 'table"">';
     bodyText += '<tr>';
     bodyText += '</tr><tr>';
-    for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes']) {
+    for (const optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes']) {
         (function(optionName) {
-            var value = PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes'][optionName];
-            var optionID = inputID + optionName;
+            const value = PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes'][optionName];
+            const optionID = inputID + optionName;
             bodyText += '<td><div class="noWrapTextBox">' + value + '</div></td>';
             bodyText += '<td class="noborder" style="">';
             bodyText += '<span id="' + optionID + '-removeButton" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
@@ -612,9 +613,9 @@ FormTableHandler.showMimeTypesDialog = function(keyName, iteration) {
         }
     });
 
-    for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes']) {
+    for (const optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes']) {
         (function(optionName) {
-            var optionID = inputID + optionName;
+            const optionID = inputID + optionName;
             PWM_MAIN.addEventHandler(optionID + '-removeButton','click',function(){
                 delete PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes'][optionName];
                 FormTableHandler.write(keyName);
@@ -624,7 +625,7 @@ FormTableHandler.showMimeTypesDialog = function(keyName, iteration) {
     }
 
     PWM_MAIN.addEventHandler('addItemButton','click',function(){
-        var value = PWM_MAIN.getObject('addValue').value;
+        const value = PWM_MAIN.getObject('addValue').value;
 
         if (value === null || value.length < 1) {
             alert('Value field is required');

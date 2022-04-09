@@ -170,7 +170,7 @@ public class HttpsServerCertificateManager
             final PrivateKey key = entry.getPrivateKey();
             final List<X509Certificate> certificates = Arrays.asList( ( X509Certificate[] ) entry.getCertificateChain() );
 
-            LOGGER.debug( () -> "importing certificate chain: " + JsonFactory.get().serializeCollection( X509Utils.makeDebugInfoMap( certificates ) ) );
+            LOGGER.debug( () -> "importing certificate chain: " + JsonFactory.get().serializeCollection( X509CertInfo.makeDebugInfoMap( certificates ) ) );
             privateKeyCertificate = new PrivateKeyCertificate( certificates, key );
         }
         catch ( final Exception e )
