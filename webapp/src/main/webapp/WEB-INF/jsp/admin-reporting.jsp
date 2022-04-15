@@ -33,12 +33,12 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
-    <% final String PageName = JspUtility.localizedString(pageContext,"Title_DataAnalysis",Admin.class);%>
+    <% final String PageName = JspUtility.localizedString(pageContext,"Title_DirectoryReport",Admin.class);%>
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
     </jsp:include>
     <div id="centerbody">
-        <h1 id="page-content-title"><pwm:display key="Title_DataAnalysis" bundle="Admin"/></h1>
+        <h1 id="page-content-title"><pwm:display key="Title_DirectoryReport" bundle="Admin"/></h1>
         <%@ include file="fragment/admin-modular-nav.jsp" %>
         <table id="statusTable">
             <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>

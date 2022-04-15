@@ -109,9 +109,11 @@ PWM_ADMIN.initDownloadProcessReportZipForm = function() {
     PWM_MAIN.doQuery("#reportDownloadButton", function(node){
         PWM_MAIN.addEventHandler(node, "click", function() {
             PWM_MAIN.showConfirmDialog({title:"Report Status",text:PWM_ADMIN.showString('Confirm_Report_Start'),okAction:function(){
-                const url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','downloadReportZip');
-                window.location.href = url;
-            }});
+                    let url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','downloadReportZip');
+                    url = PWM_MAIN.addParamToUrl(url,'recordCount',PWM_MAIN.getObject('recordCount').value);
+                    url = PWM_MAIN.addParamToUrl(url,'recordType',PWM_MAIN.JSLibrary.readValueOfSelectElement('recordType'));
+                    window.location.href = url;
+                }});
         })
     });
     PWM_MAIN.doQuery("#reportCancelButton", function(node){
