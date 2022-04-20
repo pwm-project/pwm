@@ -94,7 +94,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
                         final OTPUserRecord otpConfig = decomposeOtpAttribute( decryptAttributeValue );
                         if ( otpConfig != null )
                         {
-                            LOGGER.debug( sessionLabel, () -> "found user OTP secret in LocalDB: " + otpConfig.toString() );
+                            LOGGER.debug( sessionLabel, () -> "found user OTP secret in LocalDB: " + otpConfig );
                             return Optional.of( otpConfig );
                         }
                     }
@@ -149,8 +149,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
         catch ( final PwmOperationalException ex )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp to localDB: " + ex.getMessage() );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( ex );
+            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo, ex );
             throw pwmOE;
         }
     }
@@ -185,8 +184,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
         catch ( final LocalDBException ex )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp to localDB: " + ex.getMessage() );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( ex );
+            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo, ex );
             throw pwmOE;
         }
     }

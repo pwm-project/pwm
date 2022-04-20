@@ -24,7 +24,6 @@ import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlElement;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -70,7 +69,6 @@ public class OptionListValue extends AbstractValue implements StoredValue
 
             @Override
             public OptionListValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
-                    throws PwmOperationalException
             {
                 final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final Set<String> values = new TreeSet<>();

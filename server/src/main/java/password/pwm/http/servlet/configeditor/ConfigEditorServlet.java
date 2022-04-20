@@ -763,7 +763,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             modifier.writeSetting( key, fileValue.get(), userIdentity );
             configManagerBean.setStoredConfiguration( modifier.newStoredConfiguration() );
             pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
-            LOGGER.trace( pwmRequest, () -> "file upload completed for setting " + key.toString() + ", file: "
+            LOGGER.trace( pwmRequest, () -> "file upload completed for setting " + key + ", file: "
                     + fileValue.get().toDebugJsonObject( pwmRequest.getLocale() ) );
         }
         else

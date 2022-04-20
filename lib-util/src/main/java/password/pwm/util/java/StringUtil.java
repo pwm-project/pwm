@@ -20,6 +20,7 @@
 
 package password.pwm.util.java;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -278,6 +279,7 @@ public abstract class StringUtil
         return StringEscapeUtils.escapeXml11( input );
     }
 
+    @SuppressFBWarnings( "EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS" )
     public static String urlEncode( final String input )
     {
         try
@@ -290,6 +292,7 @@ public abstract class StringUtil
         }
     }
 
+    @SuppressFBWarnings( "EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS" )
     public static String urlDecode( final String input )
     {
         try
@@ -309,6 +312,7 @@ public abstract class StringUtil
         return new String( base32.encode( input ), STRING_UTIL_CHARSET.toString() );
     }
 
+    @SuppressFBWarnings( "EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS" )
     public static byte[] base64Decode( final CharSequence input, final StringUtil.Base64Options... options )
             throws IOException
     {
@@ -337,6 +341,7 @@ public abstract class StringUtil
         }
     }
 
+    @SuppressFBWarnings( "EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS" )
     public static String base64Encode( final byte[] input, final StringUtil.Base64Options... options )
     {
         final byte[] compressedBytes;

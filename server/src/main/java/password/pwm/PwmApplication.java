@@ -545,7 +545,7 @@ public class PwmApplication
                 else
                 {
                     LOGGER.error( () -> "can not output tomcat configuration file, source file parameter '"
-                            + PwmEnvironment.ApplicationParameter.AutoWriteTomcatConfSourceFile.toString() + "' is not specified." );
+                            + PwmEnvironment.ApplicationParameter.AutoWriteTomcatConfSourceFile + "' is not specified." );
                     return;
                 }
             }

@@ -68,7 +68,7 @@
 <%---------------------- display fields for pwmRandom challenges using SIMPLE mode ----------------------------------------%>
 <% if (setupData.isSimpleMode()) {  %>
 <% // need to output all the random options for the javascript functions.
-    final List<String> questionTexts = new ArrayList<String>();
+    final List<String> questionTexts = new ArrayList<>();
     for (final String indexKey : setupData.getIndexedChallenges().keySet()) {
         final Challenge challenge = setupData.getIndexedChallenges().get(indexKey);
         if (!challenge.isRequired()) {

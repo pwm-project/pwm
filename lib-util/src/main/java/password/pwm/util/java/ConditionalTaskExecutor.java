@@ -53,14 +53,8 @@ public class ConditionalTaskExecutor
         {
             if ( predicate.getAsBoolean() )
             {
-                try
-                {
-                    task.run();
-                }
-                catch ( final Throwable t )
-                {
-                    throw new RuntimeException( t );
-                }
+
+                task.run();
             }
         }
         finally

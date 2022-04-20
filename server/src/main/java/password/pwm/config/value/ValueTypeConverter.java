@@ -141,7 +141,7 @@ public final class ValueTypeConverter
     {
         if ( PwmSettingSyntax.ACTION != setting.getSyntax() )
         {
-            throw new IllegalArgumentException( "may not read ACTION value for setting: " + setting.toString() );
+            throw new IllegalArgumentException( "may not read ACTION value for setting: " + setting );
         }
 
         return ( List<ActionConfiguration> ) storedValue.toNativeObject();
@@ -151,7 +151,7 @@ public final class ValueTypeConverter
     {
         if ( PwmSettingSyntax.X509CERT != setting.getSyntax() )
         {
-            throw new IllegalArgumentException( "may not read X509CERT value for setting: " + setting.toString() );
+            throw new IllegalArgumentException( "may not read X509CERT value for setting: " + setting );
         }
 
         return ( (X509CertificateValue) storedValue ).asX509Certificates();

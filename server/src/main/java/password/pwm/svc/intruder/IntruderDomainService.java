@@ -180,7 +180,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
             final IntruderSettings.TypeSettings typeSettings = intruderSettings.getTargetSettings().get( type );
             if ( typeSettings.isConfigured() )
             {
-                LOGGER.debug( getSessionLabel(), () -> "starting record manager for type '" + type + "' with settings: " + typeSettings.toString() );
+                LOGGER.debug( getSessionLabel(), () -> "starting record manager for type '" + type + "' with settings: " + typeSettings );
                 recordManagers.put( type, new IntruderRecordManagerImpl( pwmDomain, type, recordStore, intruderSettings ) );
             }
             else

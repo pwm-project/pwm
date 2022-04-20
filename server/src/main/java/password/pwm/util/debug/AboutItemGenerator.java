@@ -36,7 +36,7 @@ class AboutItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
     {
         final Map<PwmAboutProperty, String> infoBeanMap = PwmAboutProperty.makeInfoBean( debugItemInput.getPwmApplication() );
         final String jsonValue = JsonFactory.get().serializeMap( infoBeanMap, JsonProvider.Flag.PrettyPrint );

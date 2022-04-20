@@ -560,7 +560,7 @@ public class PwmLogger
             while ( length > 0 )
             {
                 final String line = buffer.substring( 0, length );
-                buffer.delete( 0, +length + 1 );
+                buffer.delete( 0, length + 1 );
                 doLogEvent( logLevel, sessionLabel, () -> line, null );
                 length = buffer.indexOf( "\n" );
             }

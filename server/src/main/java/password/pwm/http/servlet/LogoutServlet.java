@@ -245,7 +245,7 @@ public class LogoutServlet extends ControlledPwmServlet
             if ( matchedServlet != null )
             {
                 final PwmServletDefinition finalMatchedServlet = matchedServlet;
-                LOGGER.trace( pwmRequest, () -> "matched next url to servlet definition " + finalMatchedServlet.toString() );
+                LOGGER.trace( pwmRequest, () -> "matched next url to servlet definition " + finalMatchedServlet );
                 return Optional.of( basePath + matchedServlet.servletUrl() );
             }
             else

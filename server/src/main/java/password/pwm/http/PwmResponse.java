@@ -157,7 +157,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( () -> "unexpected error sending user to success page: " + e.toString() );
+            LOGGER.error( () -> "unexpected error sending user to success page: " + e );
         }
     }
 
@@ -202,7 +202,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( () -> "unexpected error sending user to error page: " + e.toString() );
+                LOGGER.error( () -> "unexpected error sending user to error page: " + e );
             }
         }
         else

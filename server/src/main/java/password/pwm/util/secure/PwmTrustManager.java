@@ -156,7 +156,7 @@ public class PwmTrustManager implements X509TrustManager
         if ( !passed )
         {
             final String errorMsg = "server certificate " + X509Utils.makeDebugText( testCertificate )
-                    + " is not signed by configured ROOT CA certificate(s): " + errorText.toString();
+                    + " is not signed by configured ROOT CA certificate(s): " + errorText;
             throw PwmUnrecoverableException.newException( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg );
         }
     }

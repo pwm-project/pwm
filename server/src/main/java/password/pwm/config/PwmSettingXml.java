@@ -120,7 +120,7 @@ public class PwmSettingXml
     {
         final String expression = "/settings/template[@key=\"" + template.toString() + "\"]";
         return XML_DOC_CACHE.get().evaluateXpathToElement( expression )
-                .orElseThrow( () -> new IllegalStateException( "PwmSetting.xml is missing template for key '" + template.toString() + "'" ) );
+                .orElseThrow( () -> new IllegalStateException( "PwmSetting.xml is missing template for key '" + template + "'" ) );
     }
 
     static Set<PwmSettingTemplate> parseTemplateAttribute( final XmlElement element )

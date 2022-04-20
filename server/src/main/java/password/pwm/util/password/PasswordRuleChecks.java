@@ -652,7 +652,7 @@ public class PasswordRuleChecks
                     errorList.add( new ErrorInformation( PwmError.PASSWORD_INVALID_CHAR ) );
                     if ( EXTRA_LOGGING )
                     {
-                        LOGGER.trace( () -> "password rejected, does not match configured regex pattern: " + pattern.toString() );
+                        LOGGER.trace( () -> "password rejected, does not match configured regex pattern: " + pattern );
                     }
                 }
             }
@@ -665,7 +665,7 @@ public class PasswordRuleChecks
                     errorList.add( new ErrorInformation( PwmError.PASSWORD_INVALID_CHAR ) );
                     if ( EXTRA_LOGGING )
                     {
-                        LOGGER.trace( () -> "password rejected, matches configured no-regex pattern: " + pattern.toString() );
+                        LOGGER.trace( () -> "password rejected, matches configured no-regex pattern: " + pattern );
                     }
                 }
             }

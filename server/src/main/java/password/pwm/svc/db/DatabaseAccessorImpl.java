@@ -116,7 +116,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
 
             if ( exists )
             {
-                final String sqlText = "UPDATE " + table.toString()
+                final String sqlText = "UPDATE " + table
                         + " SET " + DatabaseService.VALUE_COLUMN + "=? WHERE "
                         + DatabaseService.KEY_COLUMN + "=?";
 
@@ -125,7 +125,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             }
             else
             {
-                final String sqlText = "INSERT INTO " + table.toString()
+                final String sqlText = "INSERT INTO " + table
                         + "(" + DatabaseService.KEY_COLUMN + ", "
                         + DatabaseService.VALUE_COLUMN + ") VALUES(?,?)";
                 executeUpdate( sqlText, debugInfo, key, value );

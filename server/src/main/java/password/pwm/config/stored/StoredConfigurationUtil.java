@@ -80,7 +80,7 @@ public abstract class StoredConfigurationUtil
     {
         if ( !pwmSetting.getCategory().hasProfiles() && pwmSetting.getSyntax() != PwmSettingSyntax.PROFILE )
         {
-            throw new IllegalArgumentException( "cannot build profile list for non-profile setting " + pwmSetting.toString() );
+            throw new IllegalArgumentException( "cannot build profile list for non-profile setting " + pwmSetting );
         }
 
         final PwmSetting profileSetting;
@@ -116,7 +116,7 @@ public abstract class StoredConfigurationUtil
         final StoredValue storedValue = StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
         final List<String> settingValues = ValueTypeConverter.valueToStringArray( storedValue );
         return settingValues.stream()
-                .filter( value -> StringUtil.notEmpty( value ) )
+                .filter( StringUtil::notEmpty )
                 .collect( Collectors.toUnmodifiableList() );
     }
 

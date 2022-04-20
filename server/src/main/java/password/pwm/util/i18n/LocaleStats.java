@@ -202,7 +202,7 @@ public class LocaleStats
             {
                 if ( DEBUG_FLAG )
                 {
-                    LOGGER.trace( () -> "missing resource bundle: bundle=" + pwmLocaleBundle.getTheClass().getName() + ", locale=" + locale.toString() );
+                    LOGGER.trace( () -> "missing resource bundle: bundle=" + pwmLocaleBundle.getTheClass().getName() + ", locale=" + locale );
                 }
                 returnList.addAll( pwmLocaleBundle.getDisplayKeys() );
             }
@@ -216,7 +216,7 @@ public class LocaleStats
                     {
                         if ( DEBUG_FLAG )
                         {
-                            LOGGER.trace( () -> "missing resource: bundle=" + pwmLocaleBundle.getTheClass().toString() + ", locale=" + locale.toString() + "' key=" + key );
+                            LOGGER.trace( () -> "missing resource: bundle=" + pwmLocaleBundle.getTheClass() + ", locale=" + locale + "' key=" + key );
                         }
                         returnList.add( key );
                     }
@@ -227,8 +227,8 @@ public class LocaleStats
         {
             if ( DEBUG_FLAG )
             {
-                LOGGER.trace( () -> "error loading resource bundle for class='" + pwmLocaleBundle.getTheClass().toString()
-                        + ", locale=" + locale.toString() + "', error: " + e.getMessage() );
+                LOGGER.trace( () -> "error loading resource bundle for class='" + pwmLocaleBundle.getTheClass()
+                        + ", locale=" + locale + "', error: " + e.getMessage() );
             }
         }
         Collections.sort( returnList );

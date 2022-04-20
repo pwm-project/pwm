@@ -198,7 +198,7 @@ public class StoredSettingReader implements SettingReader
 
         if ( PwmSettingSyntax.PRIVATE_KEY != setting.getSyntax() )
         {
-            throw new IllegalArgumentException( "may not read PRIVATE_KEY value for setting: " + setting.toString() );
+            throw new IllegalArgumentException( "may not read PRIVATE_KEY value for setting: " + setting );
         }
 
         return ( PrivateKeyCertificate ) readSetting( setting ).toNativeObject();

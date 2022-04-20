@@ -235,11 +235,11 @@ public class SessionManager
                 final Permission.PermissionStatus finalStatus = status;
                 LOGGER.debug( pwmSession.getLabel(),
                         () -> String.format( "permission %s for user %s is %s",
-                                permission.toString(),
+                                permission,
                                 pwmSession.isAuthenticated()
                                         ? pwmSession.getUserInfo().getUserIdentity().toDelimitedKey()
                                         : "[unauthenticated]",
-                                finalStatus.toString() ) );
+                                finalStatus ) );
             }
         }
         return status == Permission.PermissionStatus.GRANTED;

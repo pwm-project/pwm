@@ -95,7 +95,7 @@ public class PwmIfTag extends BodyTagSupport
                         }
                         catch ( final ChaiUnavailableException e )
                         {
-                            LOGGER.error( () -> "error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage() );
+                            LOGGER.error( () -> "error testing jsp if '" + testEnum + "', error: " + e.getMessage() );
                         }
                     }
                     else

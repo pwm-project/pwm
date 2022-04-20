@@ -388,7 +388,7 @@ public class PwmSettingMetaDataReader
                     }
                     catch ( final PatternSyntaxException e )
                     {
-                        final String errorMsg = "error compiling regex constraints for setting " + pwmSetting.toString() + ", error: " + e.getMessage();
+                        final String errorMsg = "error compiling regex constraints for setting " + pwmSetting + ", error: " + e.getMessage();
                         LOGGER.error( () -> errorMsg, e );
                         throw new IllegalStateException( errorMsg, e );
                     }

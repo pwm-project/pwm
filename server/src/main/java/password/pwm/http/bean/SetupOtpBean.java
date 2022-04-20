@@ -94,7 +94,7 @@ public class SetupOtpBean extends PwmSessionBean
             catch ( final NoSuchAlgorithmException | NoSuchProviderException ex )
             {
                 random = new SecureRandom();
-                LOGGER.error( () -> ex.getMessage(), ex );
+                LOGGER.error( ex::getMessage, ex );
             }
             random.setSeed( ( new Date() ).getTime() );
             challenge = random.nextLong() % ( 1_000_000 );

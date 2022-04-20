@@ -69,7 +69,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter
                 {
                     try
                     {
-                        LOGGER.error( () -> e.getMessage() );
+                        LOGGER.error( e::getMessage );
                     }
                     catch ( final Exception ignore )
                     {

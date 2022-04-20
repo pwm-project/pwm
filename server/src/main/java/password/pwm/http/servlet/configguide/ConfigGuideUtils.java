@@ -254,7 +254,7 @@ public class ConfigGuideUtils
                         throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, configErrors.get( 0 ) ) );
                     }
                     ConfigGuideUtils.writeConfig( ContextManager.getContextManager( req.getSession() ), storedConfig );
-                    LOGGER.trace( pwmRequest, () -> "read config from file: " + storedConfig.toString() );
+                    LOGGER.trace( pwmRequest, () -> "read config from file: " + storedConfig );
                     final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
                     pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
                     req.getSession().invalidate();
@@ -271,7 +271,7 @@ public class ConfigGuideUtils
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file: no file present in upload" );
                 final RestResultBean restResultBean = RestResultBean.fromError( errorInformation, pwmRequest );
                 pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
-                LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
+                LOGGER.error( pwmRequest, errorInformation::toDebugStr );
             }
         }
     }

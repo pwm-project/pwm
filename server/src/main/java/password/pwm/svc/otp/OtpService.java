@@ -413,7 +413,7 @@ public class OtpService extends AbstractPwmService implements PwmService
         if ( attempts != successes )
         {
             // should be impossible to read here, but just in case.
-            final String errorMsg = "OTP secret write only partially successful; attempts=" + attempts + ", successes=" + successes + ", errors: " + errorMsgs.toString();
+            final String errorMsg = "OTP secret write only partially successful; attempts=" + attempts + ", successes=" + successes + ", errors: " + errorMsgs;
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, errorMsg );
             throw new PwmOperationalException( errorInfo );
         }
@@ -474,7 +474,7 @@ public class OtpService extends AbstractPwmService implements PwmService
         if ( attempts != successes )
         {
             // should be impossible to read here, but just in case.
-            final String errorMsg = "OTP secret clearing only partially successful; attempts=" + attempts + ", successes=" + successes + ", error: " + errorMsgs.toString();
+            final String errorMsg = "OTP secret clearing only partially successful; attempts=" + attempts + ", successes=" + successes + ", error: " + errorMsgs;
             //@todo: replace error message
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, errorMsg );
             throw new PwmOperationalException( errorInfo );

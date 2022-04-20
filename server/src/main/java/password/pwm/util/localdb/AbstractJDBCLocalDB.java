@@ -101,11 +101,11 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
                     statement = connection.createStatement();
                     statement.execute( sqlString );
                     connection.commit();
-                    LOGGER.debug( () -> "created table " + db.toString() + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
+                    LOGGER.debug( () -> "created table " + db + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
                 }
                 catch ( final SQLException ex )
                 {
-                    LOGGER.error( () -> "error creating new table " + db.toString() + ": " + ex.getMessage() );
+                    LOGGER.error( () -> "error creating new table " + db + ": " + ex.getMessage() );
                 }
                 finally
                 {
@@ -115,7 +115,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
 
             {
                 final Instant startTime = Instant.now();
-                final String indexName = db.toString() + "_IDX";
+                final String indexName = db + "_IDX";
                 final StringBuilder sqlString = new StringBuilder();
                 sqlString.append( "CREATE index " ).append( indexName );
                 sqlString.append( " ON " ).append( db );
@@ -327,7 +327,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
         PreparedStatement removeStatement = null;
 
         final String removeSqlString = "DELETE FROM " + db.toString() + " WHERE " + KEY_COLUMN + "=?";
-        final String insertSqlString = "INSERT INTO " + db.toString() + "(" + KEY_COLUMN + ", " + VALUE_COLUMN + ") VALUES(?,?)";
+        final String insertSqlString = "INSERT INTO " + db + "(" + KEY_COLUMN + ", " + VALUE_COLUMN + ") VALUES(?,?)";
 
         try
         {
@@ -437,7 +437,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
 
                 if ( !valueExists )
                 {
-                    final String insertSql = "INSERT INTO " + db.toString() + "(" + KEY_COLUMN + ", " + VALUE_COLUMN + ") VALUES(?,?)";
+                    final String insertSql = "INSERT INTO " + db + "(" + KEY_COLUMN + ", " + VALUE_COLUMN + ") VALUES(?,?)";
                     insertStatement = dbConnection.prepareStatement( insertSql );
                     insertStatement.setString( 1, key );
                     insertStatement.setString( 2, value );

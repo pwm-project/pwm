@@ -27,10 +27,9 @@ import org.jasig.cas.client.util.AbstractCasFilter;
 import org.jasig.cas.client.util.CommonUtils;
 import org.jasig.cas.client.util.XmlUtils;
 import org.jasig.cas.client.validation.Assertion;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.value.FileValue;
 import password.pwm.config.value.FileValue.FileContent;
 import password.pwm.config.value.FileValue.FileInformation;
 import password.pwm.error.ErrorInformation;
@@ -61,6 +60,7 @@ import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Map;
+import java.util.Optional;
 
 public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticationProvider
 {
@@ -162,7 +162,7 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
             final Map<FileInformation, FileContent> privatekey = pwmRequest.getDomainConfig().readSettingAsFile( PwmSetting.CAS_CLEARPASS_KEY );
             final String alg = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.CAS_CLEARPASS_ALGORITHM );
 
-            password = decryptPassword( alg, privatekey, encodedPsw );
+            password = decryptPassword( alg, privatekey, encodedPsw ).orElse( null );
         }
 
         // If using the old method
@@ -209,87 +209,57 @@ public class CASFilterAuthenticationProvider implements PwmHttpFilterAuthenticat
         return true;
     }
 
-    private static PasswordData decryptPassword( final String alg,
-                                                 final Map<FileInformation, FileContent> privatekey, final String encodedPsw )
+    private static Optional<PasswordData> decryptPassword(
+            final String alg,
+            final Map<FileInformation, FileContent> inputFileMap,
+            final String encodedPsw
+    )
     {
-        PasswordData password = null;
-
         if ( alg == null || alg.trim().isEmpty() )
         {
-            return password;
+            return Optional.empty();
         }
 
-        final byte[] privateKeyBytes;
-        if ( privatekey != null && !privatekey.isEmpty() )
+        if ( inputFileMap == null || inputFileMap.isEmpty() )
         {
-            final FileValue.FileContent fileContent = privatekey.values().iterator().next();
-            privateKeyBytes = fileContent.getContents().copyOf();
-        }
-        else
-        {
-            privateKeyBytes = null;
+            return Optional.empty();
         }
 
-        if ( privateKeyBytes != null )
+        final FileContent fileContent = inputFileMap.values().iterator().next();
+        final byte[] privateKeyBytes = fileContent.getContents().copyOf();
+
+        final PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec( privateKeyBytes );
+        try
         {
-            final PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec( privateKeyBytes );
-            try
+            final KeyFactory kf = KeyFactory.getInstance( alg );
+            final PrivateKey privateKey = kf.generatePrivate( spec );
+            final Cipher cipher = Cipher.getInstance( privateKey.getAlgorithm() );
+            final byte[] cred64 = StringUtil.base64Decode( encodedPsw );
+            cipher.init( Cipher.DECRYPT_MODE, privateKey );
+            final byte[] cipherData = cipher.doFinal( cred64 );
+            if ( cipherData != null )
             {
-                final KeyFactory kf = KeyFactory.getInstance( alg );
-                final PrivateKey privateKey = kf.generatePrivate( spec );
-                final Cipher cipher = Cipher.getInstance( privateKey.getAlgorithm() );
-                final byte[] cred64 = StringUtil.base64Decode( encodedPsw );
-                cipher.init( Cipher.DECRYPT_MODE, privateKey );
-                final byte[] cipherData = cipher.doFinal( cred64 );
-                if ( cipherData != null )
+                try
                 {
-                    try
-                    {
-                        password = new PasswordData( new String( cipherData, PwmConstants.DEFAULT_CHARSET ) );
-                    }
-                    catch ( final PwmUnrecoverableException e )
-                    {
-                        LOGGER.error( () -> "Decryption failed", e );
-                        return password;
-                    }
+                    return Optional.of( new PasswordData( new String( cipherData, PwmConstants.DEFAULT_CHARSET ) ) );
+                }
+                catch ( final PwmUnrecoverableException e )
+                {
+                    LOGGER.error( () -> "Decryption failed", e );
                 }
             }
-            catch ( final NoSuchAlgorithmException e1 )
-            {
-                LOGGER.error( () -> "Decryption failed", e1 );
-                return password;
-            }
-            catch ( final InvalidKeySpecException e1 )
-            {
-                LOGGER.error( () -> "Decryption failed", e1 );
-                return password;
-            }
-            catch ( final NoSuchPaddingException e1 )
-            {
-                LOGGER.error( () -> "Decryption failed", e1 );
-                return password;
-            }
-            catch ( final IOException e1 )
-            {
-                LOGGER.error( () -> "Decryption failed", e1 );
-                return password;
-            }
-            catch ( final InvalidKeyException e1 )
-            {
-                LOGGER.error( () -> "Decryption failed", e1 );
-                return password;
-            }
-            catch ( final IllegalBlockSizeException e )
-            {
-                LOGGER.error( () -> "Decryption failed", e );
-                return password;
-            }
-            catch ( final BadPaddingException e )
-            {
-                LOGGER.error( () -> "Decryption failed", e );
-                return password;
-            }
         }
-        return password;
+        catch ( final NoSuchAlgorithmException
+                | BadPaddingException
+                | IllegalBlockSizeException
+                | InvalidKeyException
+                | IOException
+                | NoSuchPaddingException
+                | InvalidKeySpecException e1 )
+        {
+            LOGGER.error( () -> "Decryption failed", e1 );
+        }
+
+        return Optional.empty();
     }
 }

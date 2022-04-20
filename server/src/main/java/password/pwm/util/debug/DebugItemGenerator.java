@@ -209,7 +209,7 @@ public class DebugItemGenerator
         }
         catch ( final Throwable e )
         {
-            final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e.toString();
+            final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e;
             LOGGER.error( sessionLabel, () -> errorMsg, e );
             debugGeneratorLogFile.appendLine( errorMsg );
             debugGeneratorLogFile.appendLine( JavaHelper.stackTraceToString( e ) );

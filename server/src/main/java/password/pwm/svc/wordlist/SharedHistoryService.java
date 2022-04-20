@@ -79,7 +79,7 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
 
     private LocalDB localDB;
     private String salt;
-    private long oldestEntry;
+    private Instant oldestEntry;
 
     private Settings settings = Settings.builder().build();
     private final Lock addWordLock = new ReentrantLock();
@@ -142,11 +142,7 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
 
     public Instant getOldestEntryTime( )
     {
-        if ( size() > 0 )
-        {
-            return Instant.ofEpochMilli( oldestEntry );
-        }
-        return null;
+       return oldestEntry;
     }
 
     public long size( )
@@ -212,12 +208,12 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
             final Optional<String> oldestEntryStr = localDB.get( META_DB, KEY_OLDEST_ENTRY );
             if ( oldestEntryStr.isPresent() )
             {
-                oldestEntry = Long.parseLong( oldestEntryStr.get() );
+                oldestEntry = Instant.ofEpochMilli( Long.parseLong( oldestEntryStr.get() ) );
                 LOGGER.trace( getSessionLabel(), () -> "oldest timestamp loaded from localDB, age is " + TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
             }
             else
             {
-                oldestEntry = 0;
+                oldestEntry = Instant.now();
                 LOGGER.trace( getSessionLabel(), () -> "no oldestEntry timestamp stored, will rescan" );
                 }
         }
@@ -359,12 +355,12 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
                 return;
             }
 
-            final long oldestEntryAge = System.currentTimeMillis() - oldestEntry;
+            final TimeDuration oldestEntryAge = TimeDuration.fromCurrent( oldestEntry );
             if ( settings.getMaxAge().isLongerThan( oldestEntryAge ) )
 
                 {
                 LOGGER.debug( getSessionLabel(), () -> "skipping wordDB reduce operation, eldestEntry="
-                        + TimeDuration.asCompactString( oldestEntryAge )
+                        + oldestEntryAge.asCompactString()
                         + ", maxAge="
                         + settings.getMaxAge().asCompactString() );
                 return;
@@ -373,7 +369,7 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
             final Instant startTime = Instant.now();
             final long initialSize = size();
             int removeCount = 0;
-            long localOldestEntry = System.currentTimeMillis();
+            Instant localOldestEntry = Instant.now();
 
             LOGGER.debug( getSessionLabel(), () -> "beginning wordDB reduce operation, examining " + initialSize
                     + " words for entries older than " + settings.getMaxAge().asCompactString() );
@@ -386,10 +382,9 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
                     final Map.Entry<String, String> entry = keyIterator.next();
                     final String key = entry.getKey();
                     final String value = entry.getValue();
-                    final long timeStamp = Long.parseLong( value );
-                    final long entryAge = System.currentTimeMillis() - timeStamp;
+                    final Instant entryTimestamp = Instant.ofEpochMilli( Long.parseLong( value ) );
 
-                    if ( settings.getMaxAge().isLongerThan( entryAge ) )
+                    if ( settings.getMaxAge().isLongerThan( TimeDuration.fromCurrent( entryTimestamp ) ) )
                     {
                         localDB.remove( WORDS_DB, key );
                         removeCount++;
@@ -402,7 +397,7 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
                     }
                     else
                     {
-                        localOldestEntry = timeStamp < localOldestEntry ? timeStamp : localOldestEntry;
+                        localOldestEntry = localOldestEntry.isBefore( entryTimestamp ) ? entryTimestamp : localOldestEntry;
                     }
                 }
             }
@@ -411,14 +406,14 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
             if ( status() == STATUS.OPEN )
             {
                 oldestEntry = localOldestEntry;
-                localDB.put( META_DB, KEY_OLDEST_ENTRY, Long.toString( oldestEntry ) );
+                localDB.put( META_DB, KEY_OLDEST_ENTRY, Long.toString( oldestEntry.getEpochSecond() ) );
             }
 
             {
                 final int finalRemove = removeCount;
                 LOGGER.debug( getSessionLabel(), () -> "completed wordDB reduce operation" + ", removed=" + finalRemove
                         + ", totalRemaining=" + size()
-                        + ", oldestEntry=" + TimeDuration.asCompactString( oldestEntry )
+                        + ", oldestEntry=" + oldestEntry
                         + " in ", () -> TimeDuration.fromCurrent( startTime ) );
             }
         }
@@ -527,4 +522,5 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
             return ServiceInfoBean.builder().build();
         }
     }
+
 }

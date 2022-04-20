@@ -133,12 +133,12 @@ public class PwmPasswordRuleValidator
             }
             catch ( final UnsupportedOperationException e )
             {
-                LOGGER.trace( () -> "Unsupported operation was thrown while validating password: " + e.toString() );
+                LOGGER.trace( () -> "Unsupported operation was thrown while validating password: " + e );
             }
             catch ( final ChaiUnavailableException e )
             {
                 StatisticsClient.incrementStat( pwmDomain.getPwmApplication(), Statistic.LDAP_UNAVAILABLE_COUNT );
-                LOGGER.warn( () -> "ChaiUnavailableException was thrown while validating password: " + e.toString() );
+                LOGGER.warn( () -> "ChaiUnavailableException was thrown while validating password: " + e );
                 throw e;
             }
             catch ( final ChaiPasswordPolicyException e )
@@ -146,7 +146,7 @@ public class PwmPasswordRuleValidator
                 final ChaiError passwordError = e.getErrorCode();
                 final PwmError pwmError = PwmError.forChaiError( passwordError ).orElse( PwmError.PASSWORD_UNKNOWN_VALIDATION );
                 final ErrorInformation info = new ErrorInformation( pwmError );
-                LOGGER.trace( () -> "ChaiPasswordPolicyException was thrown while validating password: " + e.toString() );
+                LOGGER.trace( () -> "ChaiPasswordPolicyException was thrown while validating password: " + e );
                 errorResults.add( info );
             }
         }

@@ -238,7 +238,7 @@ public class SecureEngine
                 workingValue = Arrays.copyOfRange( workingValue, 1, workingValue.length );
                 if ( workingValue.length <= nonceLength )
                 {
-                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, "incoming " + blockAlgorithm.toString() + " data is missing nonce" ) );
+                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, "incoming " + blockAlgorithm + " data is missing nonce" ) );
                 }
                 final byte[] nonce = Arrays.copyOfRange( workingValue, 0, nonceLength );
                 workingValue = Arrays.copyOfRange( workingValue, nonceLength, workingValue.length );

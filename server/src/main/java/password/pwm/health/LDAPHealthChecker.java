@@ -775,7 +775,7 @@ public class LDAPHealthChecker implements HealthSupplier
             // cache the error
             healthProperties.put( HealthService.HealthMonitorFlag.LdapVendorSameCheck, healthRecords );
 
-            LOGGER.warn( sessionLabel, () -> "multiple ldap vendors found: " + vendorMsg.toString() );
+            LOGGER.warn( sessionLabel, () -> "multiple ldap vendors found: " + vendorMsg );
         }
         else if ( discoveredVendors.size() == 1 )
         {

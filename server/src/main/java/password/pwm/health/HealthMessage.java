@@ -136,7 +136,7 @@ public enum HealthMessage
 
     public String getKey( )
     {
-        return HealthMessage.class.getSimpleName() + "_" + this.toString();
+        return HealthMessage.class.getSimpleName() + "_" + this;
     }
 
     public String getDescription(
