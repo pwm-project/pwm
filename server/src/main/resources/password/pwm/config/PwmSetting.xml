@@ -1611,7 +1611,7 @@
         <default/>
         <regex>^[a-zA-Z0-9.-]{1,1024}=.{1,1024}$</regex>
     </setting>
-    <setting hidden="false" key="network.ip.permittedRange" level="2" required="false">
+    <setting hidden="true" key="network.ip.permittedRange" level="2" required="false">
         <default>
             <value/>
         </default>

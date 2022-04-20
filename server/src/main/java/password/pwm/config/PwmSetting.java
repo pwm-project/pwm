@@ -583,8 +583,6 @@ public enum PwmSetting
             "network.allowMultiIPSession", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY ),
     REQUIRED_HEADERS(
             "network.requiredHttpHeaders", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY ),
-    IP_PERMITTED_RANGE(
-            "network.ip.permittedRange", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY ),
     SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT(
             "security.page.leaveNoticeTimeout", PwmSettingSyntax.NUMERIC, PwmSettingCategory.WEB_SECURITY ),
     SECURITY_PREVENT_FRAMING(
@@ -1268,6 +1266,9 @@ public enum PwmSetting
 
 
     // deprecated.
+    // deprecated 2022-04-20
+    IP_PERMITTED_RANGE(
+            "network.ip.permittedRange", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY ),
 
     // deprecated 2019-06-01
     PUBLIC_HEALTH_STATS_WEBSERVICES(

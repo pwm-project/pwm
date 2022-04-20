@@ -164,6 +164,8 @@ public class ConfigurationReader
                 this.configMode = PwmApplicationMode.ERROR;
                 throw new PwmUnrecoverableException( errorInformation );
             }
+
+            ConfigurationVerifier.verifyConfiguration( storedConfiguration );
         }
         catch ( final Exception e )
         {
