@@ -218,7 +218,7 @@ public class HelpdeskServletUtil
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        LOGGER.trace( pwmRequest, () -> "helpdesk detail view request for user details of " + userIdentity.toString() + " by actor " + actorUserIdentity.toString() );
+        LOGGER.trace( pwmRequest, () -> "helpdesk detail view request for user details of " + userIdentity.toString() + " by actor " + actorUserIdentity );
 
         final HelpdeskVerificationStateBean verificationStateBean = HelpdeskVerificationStateBean.fromClientString(
                 pwmRequest,

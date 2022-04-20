@@ -177,7 +177,7 @@ public class LocaleHelper
     {
         if ( !PwmDisplayBundle.class.isAssignableFrom( bundleClass ) )
         {
-            LOGGER.warn( () -> "attempt to resolve locale for non-DisplayBundleMarker class type " + bundleClass.toString() );
+            LOGGER.warn( () -> "attempt to resolve locale for non-DisplayBundleMarker class type " + bundleClass );
             return null;
         }
 

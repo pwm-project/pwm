@@ -119,7 +119,7 @@ public class LocalDBUtility
             {
                 if ( loopDB.isBackup() )
                 {
-                    csvPrinter.printComment( "Export of " + loopDB.toString() );
+                    csvPrinter.printComment( "Export of " + loopDB );
                     try ( LocalDB.LocalDBIterator<Map.Entry<String, String>> localDBIterator = localDB.iterator( loopDB ) )
                     {
                         while ( localDBIterator.hasNext() )

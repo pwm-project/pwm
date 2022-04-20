@@ -141,7 +141,7 @@ public class ApplianceStatusChecker implements HealthSupplier
         if ( StringUtil.isEmpty( tokenFile ) )
         {
             final String msg = "unable to determine appliance token, token file environment param "
-                    + PwmEnvironment.ApplicationParameter.ApplianceTokenFile.toString() + " is not set";
+                    + PwmEnvironment.ApplicationParameter.ApplianceTokenFile + " is not set";
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
         final String fileInput = readFileContents( tokenFile );
@@ -159,7 +159,7 @@ public class ApplianceStatusChecker implements HealthSupplier
         if ( StringUtil.isEmpty( hostnameFile ) )
         {
             final String msg = "unable to determine appliance hostname, hostname file environment param "
-                    + PwmEnvironment.ApplicationParameter.ApplianceHostnameFile.toString() + " is not set";
+                    + PwmEnvironment.ApplicationParameter.ApplianceHostnameFile + " is not set";
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
 

@@ -458,7 +458,7 @@ public class PasswordUtility
         }
         catch ( final ChaiPasswordPolicyException e )
         {
-            final String errorMsg = "error setting password for user '" + userIdentity.toDisplayString() + "'' " + e.toString();
+            final String errorMsg = "error setting password for user '" + userIdentity.toDisplayString() + "'' " + e;
             final Optional<PwmError> pwmError = PwmError.forChaiError( e.getErrorCode() );
             final ErrorInformation error = new ErrorInformation( pwmError.orElse( PwmError.PASSWORD_UNKNOWN_VALIDATION ), errorMsg );
             throw new PwmOperationalException( error );

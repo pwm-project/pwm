@@ -503,7 +503,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
-            LOGGER.error( pwmRequest, () -> e.getMessage(), e );
+            LOGGER.error( pwmRequest, e::getMessage, e );
         }
 
         return ProcessStatus.Halt;

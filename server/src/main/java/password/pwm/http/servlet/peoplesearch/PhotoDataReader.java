@@ -200,7 +200,7 @@ public class PhotoDataReader
             if ( finalData.isPresent() )
             {
                 LOGGER.trace( pwmRequest, () -> "user photo data received for " + userIdentity.toDisplayString()
-                        + " " + finalData.get().toString()
+                        + " " + finalData.get()
                         + " (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
             }
             else

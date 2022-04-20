@@ -141,7 +141,7 @@ public class PwmServiceManager
         }
         catch ( final Exception e )
         {
-            final String errorMsg = "unexpected error instantiating service class '" + serviceName + "', error: " + e.toString();
+            final String errorMsg = "unexpected error instantiating service class '" + serviceName + "', error: " + e;
             LOGGER.fatal( () -> errorMsg, e );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR, errorMsg ) );
         }

@@ -91,7 +91,6 @@ public abstract class AbstractValue implements StoredValue
     }
 
     protected static String b64encode( final ImmutableByteArray immutableByteArray )
-            throws PwmUnrecoverableException
     {
         final String input = StringUtil.base64Encode( immutableByteArray.copyOf(), StringUtil.Base64Options.GZIP );
         return "\n" + StringUtil.insertRepeatedLineBreaks( input, PwmConstants.XML_OUTPUT_LINE_WRAP_LENGTH ) + "\n";

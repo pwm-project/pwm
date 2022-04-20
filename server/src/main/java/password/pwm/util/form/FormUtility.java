@@ -295,7 +295,7 @@ public class FormUtility
 
         final CacheService cacheService = pwmDomain.getCacheService();
         final CacheKey cacheKey = CacheKey.newKey(
-                Validator.class, null, "attr_unique_check_" + filter.toString()
+                Validator.class, null, "attr_unique_check_" + filter
         );
         if ( allowResultCaching && cacheService != null )
         {

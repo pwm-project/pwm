@@ -245,13 +245,13 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
 
         if ( smsItem.getTo() == null || smsItem.getTo().length() < 1 )
         {
-            LOGGER.debug( () -> "discarding sms send event (no to address) " + smsItem.toString() );
+            LOGGER.debug( () -> "discarding sms send event (no to address) " + smsItem );
             return false;
         }
 
         if ( smsItem.getMessage() == null || smsItem.getMessage().length() < 1 )
         {
-            LOGGER.debug( () -> "discarding sms send event (no message) " + smsItem.toString() );
+            LOGGER.debug( () -> "discarding sms send event (no message) " + smsItem );
             return false;
         }
 

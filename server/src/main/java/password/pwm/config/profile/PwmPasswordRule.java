@@ -468,7 +468,7 @@ public enum PwmPasswordRule
 
     public String getLabel( final Locale locale, final DomainConfig config )
     {
-        final String key = "Rule_" + this.toString();
+        final String key = "Rule_" + this;
         try
         {
             return LocaleHelper.getLocalizedMessage( locale, key, config, Message.class );

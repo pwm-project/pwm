@@ -20,6 +20,8 @@
 
 package password.pwm.util.java;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -156,7 +158,13 @@ public class CollectionUtil
                 .collect( Collectors.toUnmodifiableList() );
     }
 
-    public static <K, V> Map<K, V> combineMaps( final List<Map<K, V>> maps )
+    /**
+     * Combines an ordered sequence of ordered maps.  Duplicate keys in later maps in the list will
+     * silently overwrite the earlier values.  The returned map will be unmodifiable as per
+     * {@link Collections#unmodifiableMap(Map)}.
+     */
+    @SuppressFBWarnings( "OCP_OVERLY_CONCRETE_PARAMETER" )
+    public static <K, V> Map<K, V> combineOrderedMaps( final List<Map<K, V>> maps )
     {
         final Map<K, V> returnMap = new LinkedHashMap<>();
         for ( final Map<K, V> loopMap : maps )

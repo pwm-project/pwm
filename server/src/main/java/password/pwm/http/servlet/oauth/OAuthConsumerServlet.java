@@ -189,7 +189,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             }
             catch ( final PwmUnrecoverableException e )
             {
-                final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
+                final String errorMsg = "unexpected error redirecting user to oauth page: " + e;
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
                 setLastError( pwmRequest, errorInformation );
                 LOGGER.error( errorInformation::toDebugStr );
@@ -206,7 +206,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         }
         catch ( final PwmException e )
         {
-            final String errorMsg = "unexpected error communicating with oauth server: " + e.toString();
+            final String errorMsg = "unexpected error communicating with oauth server: " + e;
             final ErrorInformation errorInformation = new ErrorInformation( e.getError(), errorMsg );
             setLastError( pwmRequest, errorInformation );
             LOGGER.error( errorInformation::toDebugStr );

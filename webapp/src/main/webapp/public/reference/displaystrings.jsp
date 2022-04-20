@@ -62,7 +62,7 @@
         </h2>
         <table>
             <% final ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getTheClass().getName()); %>
-            <% for (final String key : new TreeSet<String>(Collections.list(resourceBundle.getKeys()))) { %>
+            <% for (final String key : new TreeSet<>( Collections.list( resourceBundle.getKeys() ) )) { %>
             <% final Map<Locale,String> values = LocaleHelper.getUniqueLocalizations(pwmRequest != null ? pwmRequest.getDomainConfig() : null, bundle.getTheClass(), key, PwmConstants.DEFAULT_LOCALE); %>
             <% for (final Map.Entry<Locale,String> entry : values.entrySet()) { %>
             <% final Locale locale = entry.getKey(); %>

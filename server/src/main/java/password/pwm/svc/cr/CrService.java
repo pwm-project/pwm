@@ -157,7 +157,7 @@ public class CrService extends AbstractPwmService implements PwmService
                     else
                     {
                         final ChallengeSet finalReturnSet = returnSet;
-                        LOGGER.debug( sessionLabel, () -> "using nmas c/r policy for user " + theUser.getEntryDN() + ": " + finalReturnSet.toString() );
+                        LOGGER.debug( sessionLabel, () -> "using nmas c/r policy for user " + theUser.getEntryDN() + ": " + finalReturnSet );
 
                         final String challengeID = "nmasPolicy-" + userIdentity.toDelimitedKey();
 
@@ -171,7 +171,7 @@ public class CrService extends AbstractPwmService implements PwmService
                         );
 
                         LOGGER.debug( sessionLabel, () -> "using ldap c/r policy for user " + theUser.getEntryDN() + ": "
-                                + finalReturnSet.toString() );
+                                + finalReturnSet );
                         LOGGER.trace( sessionLabel, () -> "readUserChallengeProfile completed, result=" + JsonFactory.get().serialize( challengeProfile ),
                                 () -> TimeDuration.fromCurrent( methodStartTime ) );
 

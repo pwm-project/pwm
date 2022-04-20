@@ -127,11 +127,6 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
         return TimeDuration.fromCurrent( instant ).asCompactString();
     }
 
-    public static String asCompactString( final long ms )
-    {
-        return newTimeDuration( ms ).asCompactString();
-    }
-
     public long asMillis()
     {
         return ms;

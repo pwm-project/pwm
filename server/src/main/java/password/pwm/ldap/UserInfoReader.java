@@ -659,11 +659,11 @@ public class UserInfoReader implements UserInfo
                 if ( profileID.isPresent() )
                 {
                     returnMap.put( profileDefinition, profileID.get() );
-                    LOGGER.debug( sessionLabel, () -> "assigned " + profileDefinition.toString() + " profileID \"" + profileID.get() + "\" to " + userIdentity.toDisplayString() );
+                    LOGGER.debug( sessionLabel, () -> "assigned " + profileDefinition + " profileID \"" + profileID.get() + "\" to " + userIdentity.toDisplayString() );
                 }
                 else
                 {
-                    LOGGER.debug( sessionLabel, () -> profileDefinition.toString() + " has no matching profiles for user " + userIdentity.toDisplayString() );
+                    LOGGER.debug( sessionLabel, () -> profileDefinition + " has no matching profiles for user " + userIdentity.toDisplayString() );
                 }
             }
         }

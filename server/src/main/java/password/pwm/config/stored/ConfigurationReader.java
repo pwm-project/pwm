@@ -164,6 +164,8 @@ public class ConfigurationReader
                 this.configMode = PwmApplicationMode.ERROR;
                 throw new PwmUnrecoverableException( errorInformation );
             }
+
+            ConfigurationVerifier.verifyConfiguration( storedConfiguration );
         }
         catch ( final Exception e )
         {
@@ -240,7 +242,7 @@ public class ConfigurationReader
             if ( !backupDirectory.mkdirs() )
             {
                 throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL,
-                        "unable to create backup directory structure '" + backupDirectory.toString() + "'" ) );
+                        "unable to create backup directory structure '" + backupDirectory + "'" ) );
             }
         }
 

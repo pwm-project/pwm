@@ -37,7 +37,7 @@ public enum PwmThemeURL
 
     public String token( )
     {
-        return "%" + this.toString() + "%";
+        return "%" + this + "%";
     }
 
     public String getCssName( )

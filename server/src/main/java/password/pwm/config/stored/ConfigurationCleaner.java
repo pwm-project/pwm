@@ -212,7 +212,7 @@ public class ConfigurationCleaner
 
             for ( final String destProfile : targetProfiles )
             {
-                LOGGER.info( () -> "moving setting " + key.toString() + " without profile attribute to profile \"" + destProfile + "\"." );
+                LOGGER.info( () -> "moving setting " + key + " without profile attribute to profile \"" + destProfile + "\"." );
                 {
                     try
                     {
@@ -229,7 +229,7 @@ public class ConfigurationCleaner
 
             try
             {
-                LOGGER.info( () -> "removing setting " + key.toString() + " without profile" );
+                LOGGER.info( () -> "removing setting " + key + " without profile" );
                 modifier.deleteKey( key );
             }
             catch ( final PwmUnrecoverableException e )

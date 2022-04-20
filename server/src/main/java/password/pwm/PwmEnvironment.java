@@ -110,12 +110,12 @@ public class PwmEnvironment
 
         public String conicalJavaOptionSystemName( )
         {
-            return PwmConstants.PWM_APP_NAME.toLowerCase() + "." + this.toString();
+            return PwmConstants.PWM_APP_NAME.toLowerCase() + "." + this;
         }
 
         public String conicalEnvironmentSystemName( )
         {
-            return ( PwmConstants.PWM_APP_NAME.toLowerCase() + "_" + this.toString() ).toUpperCase();
+            return ( PwmConstants.PWM_APP_NAME.toLowerCase() + "_" + this ).toUpperCase();
         }
 
         public List<String> possibleNames( final String contextName )
@@ -128,7 +128,7 @@ public class PwmEnvironment
                         + "."
                         + contextName
                         + "."
-                        + this.toString();
+                        + this;
                 returnValues.add( value );
                 returnValues.add( value.toUpperCase() );
                 returnValues.add( value.replace( '.', '_' ) );
@@ -138,7 +138,7 @@ public class PwmEnvironment
                 // java property format <app>.<paramName> like pwm.applicationFlag
                 final String value = PwmConstants.PWM_APP_NAME.toLowerCase()
                         + "."
-                        + this.toString();
+                        + this;
                 returnValues.add( value );
                 returnValues.add( value.toUpperCase() );
                 returnValues.add( value.replace( '.', '_' ) );
@@ -310,7 +310,7 @@ public class PwmEnvironment
                 }
                 else
                 {
-                    LOGGER.warn( () -> "unknown " + EnvironmentParameter.applicationFlags.toString() + " value: " + input );
+                    LOGGER.warn( () -> "unknown " + EnvironmentParameter.applicationFlags + " value: " + input );
                 }
             }
             return returnFlags;

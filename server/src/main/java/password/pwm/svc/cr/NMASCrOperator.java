@@ -118,7 +118,7 @@ public class NMASCrOperator implements CrOperator
     private static final PwmLogger LOGGER = PwmLogger.forClass( NMASCrOperator.class );
 
     private final AtomicLoopIntIncrementer threadCounter = new AtomicLoopIntIncrementer();
-    private final List<NMASSessionThread> sessionMonitorThreads = Collections.synchronizedList( new ArrayList<NMASSessionThread>() );
+    private final List<NMASSessionThread> sessionMonitorThreads = Collections.synchronizedList( new ArrayList<>() );
     private final PwmDomain pwmDomain;
     private final TimeDuration maxThreadIdleTime;
     private final int maxThreadCount;
@@ -740,7 +740,7 @@ public class NMASCrOperator implements CrOperator
                 for ( final Callback callback : callbacks )
                 {
                     final String callbackClassname = callback.getClass().getName();
-                    LOGGER.trace( () -> "evaluating callback: " + callback.toString() + ", class=" + callbackClassname );
+                    LOGGER.trace( () -> "evaluating callback: " + callback + ", class=" + callbackClassname );
 
                     // note in some cases instanceof check fails due to classloader issues, using getName string comparison instead
                     if ( NMASCompletionCallback.class.getName().equals( callbackClassname ) )
@@ -774,7 +774,7 @@ public class NMASCrOperator implements CrOperator
                     else
                     {
                         unsupportedCallbackHasOccurred = true;
-                        LOGGER.trace( () -> "throwing UnsupportedCallbackException for " + callback.toString() + ", class=" + callback.getClass().getName() );
+                        LOGGER.trace( () -> "throwing UnsupportedCallbackException for " + callback + ", class=" + callback.getClass().getName() );
                         throw new UnsupportedCallbackException( callback );
                     }
                 }
@@ -983,7 +983,7 @@ public class NMASCrOperator implements CrOperator
                 }
                 else
                 {
-                    LOGGER.error( () -> "NMASLoginMonitor: LDAPException " + e.toString() );
+                    LOGGER.error( () -> "NMASLoginMonitor: LDAPException " + e );
                 }
                 setLoginState( NMASThreadState.COMPLETED );
                 final com.novell.security.nmas.client.NMASLoginResult localNMASLoginResult
@@ -1071,7 +1071,7 @@ public class NMASCrOperator implements CrOperator
             {
                 threadDebugInfo.append( "\n " ).append( thread.toDebugString() );
             }
-            LOGGER.trace( () -> threadDebugInfo.toString() );
+            LOGGER.trace( threadDebugInfo::toString );
         }
 
     }

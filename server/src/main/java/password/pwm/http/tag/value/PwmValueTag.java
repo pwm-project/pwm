@@ -105,7 +105,7 @@ public class PwmValueTag extends TagSupport
             }
             catch ( final Exception e )
             {
-                LOGGER.error( () -> "error executing value tag option '" + value.toString() + "', error: " + e.getMessage() );
+                LOGGER.error( () -> "error executing value tag option '" + value + "', error: " + e.getMessage() );
             }
         }
 

@@ -198,7 +198,7 @@ public abstract class StoredValueEncoder
             {
                 final String errorMsg = "unable to decrypt config password value for setting: " + e.getMessage();
                 final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
-                LOGGER.warn( () -> errorInfo.toDebugStr() );
+                LOGGER.warn( errorInfo::toDebugStr );
                 throw new PwmOperationalException( errorInfo );
             }
         }
@@ -250,7 +250,7 @@ public abstract class StoredValueEncoder
             {
                 final String errorMsg = "unable to decrypt password value for setting: " + e.getMessage();
                 final ErrorInformation errorInfo = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
-                LOGGER.warn( () -> errorInfo.toDebugStr() );
+                LOGGER.warn( errorInfo::toDebugStr );
                 throw new PwmOperationalException( errorInfo );
             }
         }

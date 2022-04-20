@@ -484,11 +484,11 @@ public class ContextManager implements Serializable
                     try
                     {
                         Files.move( source, dest );
-                        LOGGER.info( SESSION_LABEL, () -> "file " + source.toString() + " has been renamed to " + dest.toString() );
+                        LOGGER.info( SESSION_LABEL, () -> "file " + source + " has been renamed to " + dest );
                     }
                     catch ( final IOException e )
                     {
-                        LOGGER.error( SESSION_LABEL, () -> "error renaming file " + source.toString() + " to " + dest.toString() + ", error: " + e.getMessage() );
+                        LOGGER.error( SESSION_LABEL, () -> "error renaming file " + source + " to " + dest + ", error: " + e.getMessage() );
                     }
                 }
             }

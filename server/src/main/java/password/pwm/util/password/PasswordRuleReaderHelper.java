@@ -70,7 +70,7 @@ public class PasswordRuleReaderHelper
         else
         {
             // Strip off any thresholds from attribute (specified as: "attributeName:N", where N is a numeric value).
-            final List<String> strippedDisallowedAttributes = new ArrayList<String>();
+            final List<String> strippedDisallowedAttributes = new ArrayList<>();
 
             if ( disallowedAttributes != null )
             {

@@ -374,7 +374,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
         catch ( final ChaiOperationException e )
         {
-            final String errorMsg = "error while attempting to delete user " + userIdentity.toString() + ", error: " + e.getMessage();
+            final String errorMsg = "error while attempting to delete user " + userIdentity + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             LOGGER.debug( pwmRequest, () -> errorMsg );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );

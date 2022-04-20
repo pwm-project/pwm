@@ -42,6 +42,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.AutoSetLdapUserLanguage;
+import password.pwm.config.profile.AbstractProfile;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -226,7 +227,7 @@ public class LdapOperationsHelper
             }
         }
 
-        final String existingValue = GUIDHelper.readExistingGuidValue(
+        final String existingValue = GuidReaderUtil.readExistingGuidValue(
                 pwmDomain,
                 sessionLabel,
                 userIdentity,
@@ -242,11 +243,11 @@ public class LdapOperationsHelper
                 if ( ldapProfile.readSettingAsBoolean( PwmSetting.LDAP_GUID_AUTO_ADD ) )
                 {
                     LOGGER.trace( () -> "assigning new GUID to user " + userIdentity );
-                    return GUIDHelper.assignGuidToUser( pwmDomain, sessionLabel, userIdentity, guidAttributeName );
+                    return GuidReaderUtil.assignGuidToUser( pwmDomain, sessionLabel, userIdentity, guidAttributeName );
                 }
             }
-            final String errorMsg = "unable to resolve GUID value for user " + userIdentity.toString();
-            GUIDHelper.processError( errorMsg, throwExceptionOnError );
+            final String errorMsg = "unable to resolve GUID value for user " + userIdentity;
+            GuidReaderUtil.processError( errorMsg, throwExceptionOnError );
         }
 
         if ( enableCache )
@@ -429,7 +430,7 @@ public class LdapOperationsHelper
         }
     }
 
-    private static class GUIDHelper
+    private static class GuidReaderUtil
     {
         private static String readExistingGuidValue(
                 final PwmDomain pwmDomain,
@@ -441,35 +442,30 @@ public class LdapOperationsHelper
         {
             final ChaiUser theUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
             final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
-            final String guidAttributeName = ldapProfile.readSettingAsString( PwmSetting.LDAP_GUID_ATTRIBUTE );
+            final AbstractProfile.GuidMode guidMode = ldapProfile.readGuidMode();
 
-            if ( "DN".equalsIgnoreCase( guidAttributeName ) )
+            if ( guidMode == AbstractProfile.GuidMode.DN )
             {
                 return userIdentity.toDelimitedKey();
             }
 
-            if ( "VENDORGUID".equalsIgnoreCase( guidAttributeName ) )
+            if ( guidMode == AbstractProfile.GuidMode.VENDORGUID )
             {
-                try
-                {
-                    final String guidValue = theUser.readGUID();
-                    if ( guidValue != null && guidValue.length() > 1 )
-                    {
-                        LOGGER.trace( sessionLabel, () -> "read VENDORGUID value for user " + theUser + ": " + guidValue );
-                    }
-                    else
-                    {
-                        LOGGER.trace( sessionLabel, () -> "unable to find a VENDORGUID value for user " + theUser.getEntryDN() );
-                    }
-                    return guidValue;
-                }
-                catch ( final Exception e )
-                {
-                    final String errorMsg = "error while reading vendor GUID value for user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                    return processError( errorMsg, throwExceptionOnError );
-                }
+               return readVendorGuid( theUser, sessionLabel, throwExceptionOnError );
             }
 
+           return readAttributeGuid( ldapProfile, userIdentity, theUser, throwExceptionOnError );
+        }
+
+        private static String readAttributeGuid(
+                final LdapProfile ldapProfile,
+                final UserIdentity userIdentity,
+                final ChaiUser theUser,
+                final boolean throwExceptionOnError
+        )
+                throws PwmUnrecoverableException
+        {
+            final String guidAttributeName = ldapProfile.readSettingAsString( PwmSetting.LDAP_GUID_ATTRIBUTE );
             try
             {
                 return theUser.readStringAttribute( guidAttributeName );
@@ -483,6 +479,33 @@ public class LdapOperationsHelper
             catch ( final ChaiUnavailableException e )
             {
                 throw PwmUnrecoverableException.fromChaiException( e );
+            }
+        }
+
+        private static String readVendorGuid(
+                final ChaiUser theUser,
+                final SessionLabel sessionLabel,
+                final boolean throwExceptionOnError
+        )
+                throws PwmUnrecoverableException
+        {
+            try
+            {
+                final String guidValue = theUser.readGUID();
+                if ( guidValue != null && guidValue.length() > 1 )
+                {
+                    LOGGER.trace( sessionLabel, () -> "read VENDORGUID value for user " + theUser + ": " + guidValue );
+                }
+                else
+                {
+                    LOGGER.trace( sessionLabel, () -> "unable to find a VENDORGUID value for user " + theUser.getEntryDN() );
+                }
+                return guidValue;
+            }
+            catch ( final Exception e )
+            {
+                final String errorMsg = "error while reading vendor GUID value for user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                return processError( errorMsg, throwExceptionOnError );
             }
         }
 

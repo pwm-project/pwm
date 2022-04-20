@@ -562,11 +562,11 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
 
         if ( expirationDate.isAfter( futureDate ) )
         {
-            final String errorMsg = "expiration date must be sooner than " + futureDate.toString();
+            final String errorMsg = "expiration date must be sooner than " + futureDate;
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_FIELD_REQUIRED, errorMsg ) );
         }
 
-        LOGGER.trace( pwmRequest, () -> "read expiration date as " + expirationDate.toString() );
+        LOGGER.trace( pwmRequest, () -> "read expiration date as " + expirationDate );
         return expirationDate;
     }
 
