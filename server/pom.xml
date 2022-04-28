@@ -206,6 +206,12 @@
             <groupId>com.github.ldapchai</groupId>
             <artifactId>ldapchai</artifactId>
             <version>0.8.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jrivard.xmlchai</groupId>
@@ -248,9 +254,9 @@
             <version>0.9.60</version>
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
+            <groupId>ch.qos.reload4j</groupId>
+            <artifactId>reload4j</artifactId>
+            <version>1.2.20</version>
         </dependency>
         <dependency>
             <groupId>org.jasig.cas.client</groupId>
@@ -309,11 +315,6 @@
             <version>2.0.1</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-nop</artifactId>
-            <version>2.0.0-alpha7</version>
-        </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-core</artifactId>

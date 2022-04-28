@@ -210,9 +210,9 @@
             <version>4.5.13</version>
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
+            <groupId>ch.qos.reload4j</groupId>
+            <artifactId>reload4j</artifactId>
+            <version>1.2.20</version>
         </dependency>
         <dependency>
             <groupId>org.jdom</groupId>
