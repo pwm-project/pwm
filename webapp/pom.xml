@@ -2,14 +2,14 @@
 
     <parent>
         <groupId>org.pwm-project</groupId>
-        <artifactId>pwm-parent</artifactId>
+        <artifactId>pwm</artifactId>
         <version>2.1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>pwm</artifactId>
+    <artifactId>pwm-webapp</artifactId>
     <packaging>war</packaging>
 
     <name>PWM Password Self Service: Server WAR</name>
@@ -64,6 +64,7 @@
     </profiles>
 
     <build>
+        <finalName>pwm-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
