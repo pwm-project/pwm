@@ -20,17 +20,14 @@
 
 package password.pwm.util;
 
-import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.JavaHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
 
 public final class ServletUtility
 {
@@ -41,32 +38,14 @@ public final class ServletUtility
     public static String readRequestBodyAsString( final HttpServletRequest req, final int maxChars )
             throws IOException, PwmUnrecoverableException
     {
-        final StringWriter stringWriter = new StringWriter();
-        final Reader readerStream = new InputStreamReader(
-                req.getInputStream(),
-                PwmConstants.DEFAULT_CHARSET
-        );
+        final String value = JavaHelper.copyToString( req.getInputStream(), PwmConstants.DEFAULT_CHARSET, maxChars + 1 )
+                .orElse( "" );
 
-        try
+        if ( value.length() > maxChars )
         {
-            IOUtils.copy( readerStream, stringWriter );
-        }
-        catch ( final Exception e )
-        {
-            final String errorMsg = "error reading request body stream: " + e.getMessage();
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( readerStream );
-        }
-
-        final String stringValue = stringWriter.toString();
-        if ( stringValue.length() > maxChars )
-        {
-            final String msg = "input request body is to big, size=" + stringValue.length() + ", max=" + maxChars;
+            final String msg = "input request body is to big, size=" + value.length() + ", max=" + maxChars;
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
-        return stringValue;
+        return value;
     }
 }

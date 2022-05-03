@@ -24,8 +24,10 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -205,12 +207,25 @@ public class JavaHelper
     }
 
 
-    public static String copyToString( final InputStream input, final Charset charset )
+    public static Optional<String> copyToString( final InputStream input, final Charset charset, final int maximumLength )
             throws IOException
     {
-        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        JavaHelper.copy( input, byteArrayOutputStream );
-        return byteArrayOutputStream.toString( charset );
+        if ( input == null )
+        {
+            return Optional.empty();
+        }
+        final StringWriter stringWriter = new StringWriter();
+        final InputStreamReader reader = new InputStreamReader( input, charset );
+        IOUtils.copyLarge( reader, stringWriter, 0, maximumLength );
+        final String value = stringWriter.toString();
+        return ( value.length() > 0 )
+                ? Optional.of( value )
+                : Optional.empty();
+    }
+
+    public static void closeQuietly( final Closeable closable )
+    {
+        IOUtils.closeQuietly( closable );
     }
 
     public static ImmutableByteArray copyToBytes( final InputStream inputStream, final int maxLength )
@@ -510,7 +525,7 @@ public class JavaHelper
             throws IOException
     {
         try ( ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-             GZIPOutputStream gzipOutputStream = new GZIPOutputStream( byteArrayOutputStream ) )
+              GZIPOutputStream gzipOutputStream = new GZIPOutputStream( byteArrayOutputStream ) )
         {
             gzipOutputStream.write( bytes );
             gzipOutputStream.close();
@@ -574,7 +589,7 @@ public class JavaHelper
         }
         catch ( final InterruptedException e )
         {
-           /* ignore */
+            /* ignore */
         }
     }
 

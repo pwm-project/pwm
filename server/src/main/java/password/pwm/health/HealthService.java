@@ -73,7 +73,6 @@ public class HealthService extends AbstractPwmService implements PwmService
             new JavaChecker(),
             new ConfigurationChecker(),
             new LocalDBHealthChecker(),
-            new ApplianceStatusChecker(),
             new CertificateChecker() );
 
 

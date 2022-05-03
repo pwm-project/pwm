@@ -22,7 +22,6 @@ package password.pwm.http.servlet.configmanager;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmConstants;
@@ -419,11 +418,9 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                 pwmRequest.getDomainConfig().readAppProperty( AppProperty.DOWNLOAD_FILENAME_LDAP_PERMISSION_CSV )
         );
 
-        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() );
-        try
+        try ( CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() ) )
         {
 
-            final StoredConfiguration storedConfiguration = readCurrentConfiguration( pwmRequest );
             final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( pwmRequest.getDomainConfig() );
 
             for ( final LDAPPermissionCalculator.PermissionRecord permissionRecord : ldapPermissionCalculator.getPermissionRecords() )
@@ -445,10 +442,6 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             LOGGER.error( pwmRequest, errorInformation );
             pwmRequest.respondWithError( errorInformation );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( csvPrinter );
         }
     }
 }

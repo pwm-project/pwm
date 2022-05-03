@@ -145,19 +145,22 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
         {
             if ( SETTINGS_FILENAME.equals( zipEntry.getName() ) )
             {
-                final String stringData = JavaHelper.copyToString( zipInputStream, PwmConstants.DEFAULT_CHARSET );
+                final String stringData = JavaHelper.copyToString( zipInputStream, PwmConstants.DEFAULT_CHARSET, Integer.MAX_VALUE )
+                        .orElse( "" );
                 final List<SerializedValue> readComponents = JsonFactory.get().deserializeList( stringData, SerializedValue.class );
                 serializedValues.addAll( readComponents );
             }
             else if ( META_VALUES_FILENAME.equals( zipEntry.getName() ) )
             {
-                final String stringData = JavaHelper.copyToString( zipInputStream, PwmConstants.DEFAULT_CHARSET );
+                final String stringData = JavaHelper.copyToString( zipInputStream, PwmConstants.DEFAULT_CHARSET, Integer.MAX_VALUE )
+                        .orElse( "" );
                 final List<SerializedMetaValue> readMetaValues = JsonFactory.get().deserializeList( stringData, SerializedMetaValue.class );
                 serializedMetaValues.addAll( readMetaValues );
             }
             else if ( META_FILENAME.equals( zipEntry.getName() ) )
             {
-                final String stringData = JavaHelper.copyToString( zipInputStream, PwmConstants.DEFAULT_CHARSET );
+                final String stringData = JavaHelper.copyToString( zipInputStream, PwmConstants.DEFAULT_CHARSET, Integer.MAX_VALUE )
+                        .orElse( "" );
                 metaData = JsonFactory.get().deserialize( stringData, MetaData.class );
             }
             else if ( zipEntry.getName().endsWith( XREF_SUFFIX ) )

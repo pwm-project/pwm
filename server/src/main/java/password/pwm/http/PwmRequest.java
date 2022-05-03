@@ -24,7 +24,6 @@ import lombok.Value;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -52,12 +51,13 @@ import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.ImmutableByteArray;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmRequestID;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.ldap.UserInfo;
 import password.pwm.util.Validator;
+import password.pwm.util.java.ImmutableByteArray;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -69,7 +69,6 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -282,20 +281,18 @@ public class PwmRequest extends PwmHttpRequestWrapper
                 {
                     final FileItemStream item = iter.next();
                     final InputStream inputStream = item.openStream();
-                    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    final long length = IOUtils.copyLarge( inputStream, baos, 0, maxFileSize + 1 );
-                    if ( length > maxFileSize )
+                    final ImmutableByteArray fileContents = JavaHelper.copyToBytes( inputStream, maxFileSize + 1 );
+                    if ( fileContents.size() > maxFileSize )
                     {
                         final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "upload file size limit exceeded" );
                         LOGGER.error( this, errorInformation );
                         respondWithError( errorInformation );
                         return Collections.emptyMap();
                     }
-                    final byte[] outputFile = baos.toByteArray();
                     final FileUploadItem fileUploadItem = new FileUploadItem(
                             item.getName(),
                             item.getContentType(),
-                            ImmutableByteArray.of( outputFile )
+                            fileContents
                     );
                     returnObj.put( item.getFieldName(), fileUploadItem );
                 }
