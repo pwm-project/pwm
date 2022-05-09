@@ -82,7 +82,7 @@ public class SessionTrackService extends AbstractPwmService implements PwmServic
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         pwmSessions.clear();
     }

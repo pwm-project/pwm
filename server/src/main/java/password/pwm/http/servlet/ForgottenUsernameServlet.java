@@ -44,6 +44,7 @@ import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.intruder.IntruderServiceClient;
+import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.CaptchaUtility;
@@ -326,7 +327,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
 
         final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), sessionLabel, userInfo, null );
 
-        pwmDomain.getPwmApplication().sendSmsUsingQueue( toNumber, smsMessage, sessionLabel, macroRequest );
+        SmsQueueService.sendSmsUsingQueue( pwmDomain.getPwmApplication(), toNumber, smsMessage, sessionLabel, macroRequest );
         return null;
     }
 

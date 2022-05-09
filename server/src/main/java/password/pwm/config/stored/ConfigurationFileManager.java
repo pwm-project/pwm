@@ -57,13 +57,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Read the PWM configuration.
+ * Read and write the PWM configuration XML file from the filesystem.
  *
  * @author Jason D. Rivard
  */
-public class ConfigurationReader
+public class ConfigurationFileManager
 {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger( ConfigurationReader.class.getName() );
+    private static final PwmLogger LOGGER = PwmLogger.getLogger( ConfigurationFileManager.class.getName() );
 
     private final File configFile;
     private final String configFileChecksum;
@@ -75,7 +75,7 @@ public class ConfigurationReader
 
     private volatile boolean saveInProgress;
 
-    public ConfigurationReader( final File configFile ) throws PwmUnrecoverableException
+    public ConfigurationFileManager( final File configFile ) throws PwmUnrecoverableException
     {
         this.configFile = configFile;
 

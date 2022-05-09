@@ -72,15 +72,18 @@ public class PwmDomain
 
     private final PwmApplication pwmApplication;
     private final DomainID domainID;
-
     private final PwmServiceManager pwmServiceManager;
+    private final SessionLabel sessionLabel;
 
     public PwmDomain( final PwmApplication pwmApplication, final DomainID domainID )
     {
         this.pwmApplication = Objects.requireNonNull( pwmApplication );
         this.domainID = Objects.requireNonNull( domainID );
 
-        final SessionLabel sessionLabel = SessionLabel.builder().domain( domainID.stringValue() ).build();
+        this.sessionLabel = pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
+                ? SessionLabel.RUNTIME_LABEL.toBuilder().domain( domainID.stringValue() ).build()
+                : SessionLabel.SYSTEM_LABEL.toBuilder().domain( domainID.stringValue() ).build();
+
         this.pwmServiceManager = new PwmServiceManager( sessionLabel, pwmApplication, domainID, PwmServiceEnum.forScope( PwmSettingScope.DOMAIN ) );
     }
 
@@ -89,7 +92,7 @@ public class PwmDomain
 
     {
         final Instant startTime = Instant.now();
-        LOGGER.trace( () -> "initializing domain " + domainID.stringValue() );
+        LOGGER.trace( sessionLabel, () -> "initializing domain " + domainID.stringValue() );
         pwmServiceManager.initAllServices();
 
         {
@@ -97,7 +100,12 @@ public class PwmDomain
             pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailySummaryJob( this ), executorService, TimeDuration.ZERO );
         }
 
-        LOGGER.trace( () -> "completed initializing domain " + domainID.stringValue(), () -> TimeDuration.fromCurrent( startTime ) );
+        if ( Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
+        {
+            PwmApplicationUtil.outputConfigurationToLog( pwmApplication, domainID );
+        }
+
+        LOGGER.trace( sessionLabel, () -> "completed initializing domain " + domainID.stringValue(), () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     public DomainConfig getConfig( )
@@ -236,9 +244,14 @@ public class PwmDomain
         return ( UserHistoryService ) pwmServiceManager.getService( PwmServiceEnum.UserHistoryService );
     }
 
+    public SessionLabel getSessionLabel()
+    {
+        return sessionLabel;
+    }
+
     public void shutdown()
     {
-        LOGGER.trace( () -> "beginning shutdown domain " + domainID.stringValue() );
+        LOGGER.trace( sessionLabel, () -> "beginning shutdown domain " + domainID.stringValue() );
         pwmServiceManager.shutdownAllServices();
     }
 

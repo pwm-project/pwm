@@ -28,7 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.config.AppConfig;
 import password.pwm.config.stored.ConfigurationProperty;
-import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
@@ -193,12 +193,12 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     void initRequestAttributes( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final ConfigurationReader configurationReader = pwmRequest.getContextManager().getConfigReader();
+        final ConfigurationFileManager configurationFileManager = pwmRequest.getContextManager().getConfigReader();
         pwmRequest.setAttribute( PwmRequestAttribute.PageTitle, LocaleHelper.getLocalizedMessage( Config.Title_ConfigManager, pwmRequest ) );
         pwmRequest.setAttribute( PwmRequestAttribute.ApplicationPath, pwmRequest.getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath() );
-        pwmRequest.setAttribute( PwmRequestAttribute.ConfigFilename, configurationReader.getConfigFile().getAbsolutePath() );
+        pwmRequest.setAttribute( PwmRequestAttribute.ConfigFilename, configurationFileManager.getConfigFile().getAbsolutePath() );
         {
-            final Instant lastModifyTime = configurationReader.getStoredConfiguration().modifyTime();
+            final Instant lastModifyTime = configurationFileManager.getStoredConfiguration().modifyTime();
             final String output = lastModifyTime == null
                     ? LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest )
                     : StringUtil.toIsoDate( lastModifyTime );
@@ -208,7 +208,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         pwmRequest.setAttribute(
                 PwmRequestAttribute.ConfigHasPassword,
                 LocaleHelper.booleanString(
-                        StoredConfigurationUtil.hasPassword( configurationReader.getStoredConfiguration() ),
+                        StoredConfigurationUtil.hasPassword( configurationFileManager.getStoredConfiguration() ),
                         pwmRequest.getLocale(),
                         pwmRequest.getDomainConfig()
                 )

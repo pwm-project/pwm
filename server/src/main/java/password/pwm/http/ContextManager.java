@@ -31,8 +31,8 @@ import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.config.stored.ConfigurationProperty;
-import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -93,7 +93,7 @@ public class ContextManager implements Serializable
     private transient ScheduledExecutorService taskMaster;
 
     private transient volatile PwmApplication pwmApplication;
-    private transient ConfigurationReader configReader;
+    private transient ConfigurationFileManager configReader;
     private ErrorInformation startupErrorInformation;
 
     private final AtomicInteger restartCount = new AtomicInteger( 0 );
@@ -246,7 +246,7 @@ public class ContextManager implements Serializable
         {
             configurationFile = locateConfigurationFile( applicationPath, PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
 
-            configReader = new ConfigurationReader( configurationFile );
+            configReader = new ConfigurationFileManager( configurationFile );
             appConfig = configReader.getConfiguration();
 
             mode = startupErrorInformation == null ? configReader.getConfigMode() : PwmApplicationMode.ERROR;
@@ -338,7 +338,7 @@ public class ContextManager implements Serializable
     }
 
     private void checkConfigForAutoImportLdapCerts(
-            final ConfigurationReader configReader
+            final ConfigurationFileManager configReader
     )
     {
         if ( configReader == null || configReader.getStoredConfiguration() == null )
@@ -418,7 +418,7 @@ public class ContextManager implements Serializable
         taskMaster.schedule( new RestartFlagWatcher(), 0, TimeUnit.MILLISECONDS );
     }
 
-    public ConfigurationReader getConfigReader( )
+    public ConfigurationFileManager getConfigReader( )
     {
         return configReader;
     }
@@ -533,7 +533,7 @@ public class ContextManager implements Serializable
 
                 try
                 {
-                        reInitialize();
+                    reInitialize();
                 }
                 catch ( final Exception e )
                 {

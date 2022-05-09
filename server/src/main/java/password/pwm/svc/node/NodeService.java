@@ -114,7 +114,7 @@ public class NodeService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         if ( nodeMachine != null )
         {

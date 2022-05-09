@@ -130,7 +130,7 @@ public class ReportService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
         cancelFlag.set( true );
@@ -139,7 +139,7 @@ public class ReportService extends AbstractPwmService implements PwmService
 
         if ( userCacheService != null )
         {
-            userCacheService.close();
+            userCacheService.shutdown();
         }
 
         executorService = null;

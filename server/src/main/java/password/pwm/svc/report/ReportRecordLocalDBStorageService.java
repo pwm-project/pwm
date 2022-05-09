@@ -153,7 +153,7 @@ public class ReportRecordLocalDBStorageService extends AbstractPwmService implem
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
     }

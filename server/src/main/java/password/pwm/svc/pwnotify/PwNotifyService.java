@@ -209,7 +209,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
         JavaHelper.closeAndWaitExecutor( executorService, TimeDuration.of( 5, TimeDuration.Unit.SECONDS ) );

@@ -205,7 +205,7 @@ public class PwmServiceManager
         try
         {
             final Instant startTime = Instant.now();
-            serviceInstance.close();
+            serviceInstance.shutdown();
             final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
             LOGGER.trace( () -> "successfully closed service " + pwmServiceEnum.serviceName( domainID ) + " (" + timeDuration.asCompactString() + ")" );
         }

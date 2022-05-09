@@ -293,7 +293,7 @@ public class OtpService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         for ( final OtpOperator operator : operatorMap.values() )
         {

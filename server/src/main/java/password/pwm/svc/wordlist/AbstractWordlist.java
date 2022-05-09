@@ -292,7 +292,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         final TimeDuration closeWaitTime = TimeDuration.of( 1, TimeDuration.Unit.MINUTES );
 

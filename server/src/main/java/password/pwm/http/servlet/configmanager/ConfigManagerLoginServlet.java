@@ -30,7 +30,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.stored.ConfigurationProperty;
-import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
@@ -138,7 +138,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             throws PwmUnrecoverableException, IOException, ServletException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        final ConfigurationReader runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
+        final ConfigurationFileManager runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
         final StoredConfiguration storedConfig = runningConfigReader.getStoredConfiguration();
 
         final String password = pwmRequest.readParameterAsString( "password" );
@@ -321,7 +321,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             return;
         }
 
-        final ConfigurationReader runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
+        final ConfigurationFileManager runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
         final StoredConfiguration storedConfig = runningConfigReader.getStoredConfiguration();
 
         try

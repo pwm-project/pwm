@@ -91,7 +91,7 @@ public class UrlShortenerService extends AbstractPwmService implements PwmServic
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         setStatus( PwmService.STATUS.CLOSED );
     }

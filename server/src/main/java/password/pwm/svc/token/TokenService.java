@@ -61,6 +61,7 @@ import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.intruder.IntruderServiceClient;
+import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.DataStore;
@@ -342,7 +343,7 @@ public class TokenService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
         if ( executorService != null )
@@ -806,7 +807,7 @@ public class TokenService extends AbstractPwmService implements PwmService
             final PwmDomain pwmDomain = tokenSendInfo.getPwmDomain();
             pwmDomain.getIntruderService().mark( IntruderRecordType.TOKEN_DEST, smsNumber, tokenSendInfo.getSessionLabel() );
 
-            pwmDomain.getPwmApplication().sendSmsUsingQueue( smsNumber, modifiedMessage, tokenSendInfo.getSessionLabel(), tokenSendInfo.getMacroRequest() );
+            SmsQueueService.sendSmsUsingQueue( pwmDomain.getPwmApplication(), smsNumber, modifiedMessage, tokenSendInfo.getSessionLabel(), tokenSendInfo.getMacroRequest() );
             LOGGER.debug( tokenSendInfo.getSessionLabel(), () -> "token SMS added to send queue for " + smsNumber );
             return true;
         }

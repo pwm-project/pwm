@@ -187,7 +187,7 @@ public class DatabaseService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
 

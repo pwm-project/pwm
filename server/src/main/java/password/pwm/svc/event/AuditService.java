@@ -124,7 +124,7 @@ public class AuditService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         if ( syslogManager != null )
         {

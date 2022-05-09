@@ -33,19 +33,18 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class AbstractPwmService implements PwmService
 {
     private PwmApplication pwmApplication;
-    private final AtomicReference<PwmService.STATUS> status = new AtomicReference<>( PwmService.STATUS.CLOSED );
+    private volatile PwmService.STATUS status = PwmService.STATUS.CLOSED;
     private ErrorInformation startupError;
     private DomainID domainID;
     private SessionLabel sessionLabel;
 
     public final PwmService.STATUS status()
     {
-        return status.get();
+        return status;
     }
 
     public final void init( final PwmApplication pwmApplication, final DomainID domainID )
@@ -53,7 +52,9 @@ public abstract class AbstractPwmService implements PwmService
     {
         this.pwmApplication = Objects.requireNonNull( pwmApplication );
         this.domainID = Objects.requireNonNull( domainID );
-        this.sessionLabel = SessionLabel.forPwmService( this, domainID );
+        this.sessionLabel = domainID.isSystem()
+                ? pwmApplication.getSessionLabel()
+                : pwmApplication.domains().get( domainID ).getSessionLabel();
 
         if ( pwmApplication.checkConditions( openConditions() ) )
         {
@@ -71,8 +72,17 @@ public abstract class AbstractPwmService implements PwmService
 
     protected void setStatus( final PwmService.STATUS status )
     {
-        this.status.set( status );
+        this.status = Objects.requireNonNull( status );
     }
+
+    @Override
+    public void shutdown()
+    {
+        this.status = STATUS.CLOSED;
+        shutdownImpl();
+    }
+
+    protected abstract void shutdownImpl();
 
     public DomainID getDomainID()
     {

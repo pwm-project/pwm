@@ -72,7 +72,7 @@ public class LocalDBService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdown( )
     {
         //no-op
     }

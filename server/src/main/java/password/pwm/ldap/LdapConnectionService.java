@@ -171,7 +171,7 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
         logDebugInfo();

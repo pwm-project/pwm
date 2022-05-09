@@ -176,7 +176,7 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
     }

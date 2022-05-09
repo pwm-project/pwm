@@ -126,7 +126,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         if ( executor != null )
         {

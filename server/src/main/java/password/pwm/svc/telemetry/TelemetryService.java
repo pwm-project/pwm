@@ -222,7 +222,7 @@ public class TelemetryService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
 
     }

@@ -21,7 +21,6 @@
 package password.pwm.config;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
@@ -44,7 +43,6 @@ import password.pwm.config.profile.UpdateProfileProfile;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.FileValue;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.NamedSecretData;
@@ -57,10 +55,8 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.security.MessageDigest;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -115,7 +111,7 @@ public class DomainConfig implements SettingReader
                 ) ) );
 
         this.ldapProfiles = makeLdapProfileMap( this );
-        this.domainSecurityKey = makeDomainSecurityKey( appConfig, domainID );
+        this.domainSecurityKey = makeDomainSecurityKey( appConfig, settingReader.getValueHash() );
     }
 
     public AppConfig getAppConfig()
@@ -415,13 +411,12 @@ public class DomainConfig implements SettingReader
 
     private static PwmSecurityKey makeDomainSecurityKey(
             final AppConfig appConfig,
-            final DomainID domainID
+            final String valueHash
     )
     {
         try
         {
-            final String hashedData = valueHash( appConfig.getStoredConfiguration(), domainID );
-            final PwmSecurityKey domainKey = new PwmSecurityKey( hashedData );
+            final PwmSecurityKey domainKey = new PwmSecurityKey( valueHash );
             return appConfig.getSecurityKey().add( domainKey );
         }
         catch ( final PwmUnrecoverableException e )
@@ -430,19 +425,9 @@ public class DomainConfig implements SettingReader
         }
     }
 
-
-    private static String valueHash( final StoredConfiguration storedConfiguration, final DomainID domainID )
+    @Override
+    public String getValueHash()
     {
-        final MessageDigest messageDigest = PwmHashAlgorithm.SHA512.newMessageDigest();
-        messageDigest.update( domainID.stringValue().getBytes( PwmConstants.DEFAULT_CHARSET ) );
-
-        CollectionUtil.iteratorToStream( storedConfiguration.keys() )
-                .filter( key -> Objects.equals( key.getDomainID(), domainID ) )
-                .map( storedConfiguration::readStoredValue )
-                .flatMap( Optional::stream )
-                .map( StoredValue::valueHash )
-                .forEach( s -> messageDigest.update( s.getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
-
-        return JavaHelper.binaryArrayToHex( messageDigest.digest() );
+        return settingReader.getValueHash();
     }
 }

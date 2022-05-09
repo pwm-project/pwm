@@ -89,7 +89,7 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
         if ( executorService != null )

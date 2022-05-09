@@ -95,7 +95,7 @@ public class HttpClientService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close()
+    public void shutdownImpl()
     {
         for ( final PwmHttpClient pwmHttpClient : new HashSet<>( issuedClients.keySet() ) )
         {

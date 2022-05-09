@@ -186,7 +186,7 @@ public class HealthService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         if ( executorService != null )
         {

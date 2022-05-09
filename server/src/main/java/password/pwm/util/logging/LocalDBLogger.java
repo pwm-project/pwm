@@ -239,7 +239,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         final Instant startTime = Instant.now();
         int flushedEvents = 0;

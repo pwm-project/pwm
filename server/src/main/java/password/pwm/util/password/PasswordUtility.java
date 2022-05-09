@@ -79,6 +79,7 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.event.HelpdeskAuditRecord;
+import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
@@ -178,7 +179,7 @@ public class PasswordUtility
 
         message = message.replace( "%TOKEN%", newPassword.getStringValue() );
 
-        pwmDomain.getPwmApplication().sendSmsUsingQueue( toNumber, message, null, macroRequest );
+        SmsQueueService.sendSmsUsingQueue( pwmDomain.getPwmApplication(), toNumber, message, null, macroRequest );
         LOGGER.debug( () -> String.format( "password SMS added to send queue for %s", toNumber ) );
         return null;
     }

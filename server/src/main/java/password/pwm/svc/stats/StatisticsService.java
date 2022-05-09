@@ -317,7 +317,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         try
         {

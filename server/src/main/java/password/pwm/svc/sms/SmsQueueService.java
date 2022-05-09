@@ -57,6 +57,7 @@ import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.localdb.WorkQueueProcessor;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmRandom;
 
 import java.time.Instant;
@@ -74,6 +75,37 @@ import java.util.regex.Pattern;
 public class SmsQueueService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SmsQueueService.class );
+
+    public static void sendSmsUsingQueue(
+            final PwmApplication pwmApplication,
+            final String to,
+            final String message,
+            final SessionLabel sessionLabel,
+            final MacroRequest macroRequest
+    )
+    {
+        final SmsQueueService smsQueue = pwmApplication.getSmsQueue();
+        if ( smsQueue == null )
+        {
+            LOGGER.error( sessionLabel, () -> "SMS queue is unavailable, unable to send SMS to: " + to );
+            return;
+        }
+
+        final SmsItemBean smsItemBean = new SmsItemBean(
+                macroRequest.expandMacros( to ),
+                macroRequest.expandMacros( message ),
+                sessionLabel
+        );
+
+        try
+        {
+            smsQueue.addSmsToQueue( smsItemBean );
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            LOGGER.warn( () -> "unable to add sms to queue: " + e.getMessage() );
+        }
+    }
 
     public enum SmsNumberFormat
     {
@@ -259,7 +291,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         if ( workQueueProcessor != null )
         {
