@@ -65,12 +65,11 @@ import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.DataStore;
-import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.MiscUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
 import password.pwm.util.logging.PwmLogger;
@@ -83,8 +82,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
 
 /**
  * This PWM service is responsible for reading/writing tokens used for forgotten password,
@@ -95,10 +92,7 @@ import java.util.concurrent.ExecutorService;
  */
 public class TokenService extends AbstractPwmService implements PwmService
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( TokenService.class );
-
-    private ExecutorService executorService;
 
     private PwmDomain pwmDomain;
     private DomainConfig domainConfig;
@@ -220,15 +214,6 @@ public class TokenService extends AbstractPwmService implements PwmService
 
         verifyPwModifyTime = Boolean.parseBoolean( domainConfig.readAppProperty( AppProperty.TOKEN_VERIFY_PW_MODIFY_TIME ) );
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
-
-        {
-            final int cleanerFrequencySeconds = Integer.parseInt( domainConfig.readAppProperty( AppProperty.TOKEN_CLEANER_INTERVAL_SECONDS ) );
-            final TimeDuration cleanerFrequency = TimeDuration.of( cleanerFrequencySeconds, TimeDuration.Unit.SECONDS );
-            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), executorService, TimeDuration.MINUTE, cleanerFrequency );
-            LOGGER.trace( getSessionLabel(), () -> "token cleanup will occur every " + cleanerFrequency.asCompactString() );
-        }
-
         LOGGER.debug( getSessionLabel(), () -> "open" );
 
         return STATUS.OPEN;
@@ -346,10 +331,6 @@ public class TokenService extends AbstractPwmService implements PwmService
     public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
-        if ( executorService != null )
-        {
-            executorService.shutdown();
-        }
     }
 
     @Override
@@ -419,19 +400,15 @@ public class TokenService extends AbstractPwmService implements PwmService
         return random.alphaNumericString( randomChars, codeLength );
     }
 
-    private class CleanerTask extends TimerTask
+    void cleanup()
     {
-        @Override
-        public void run( )
+        try
         {
-            try
-            {
-                tokenMachine.cleanup();
-            }
-            catch ( final Exception e )
-            {
-                LOGGER.warn( getSessionLabel(), () -> "unexpected error while cleaning expired stored tokens: " + e.getMessage() );
-            }
+            tokenMachine.cleanup();
+        }
+        catch ( final Exception e )
+        {
+            LOGGER.warn( getSessionLabel(), () -> "unexpected error while cleaning expired stored tokens: " + e.getMessage() );
         }
     }
 

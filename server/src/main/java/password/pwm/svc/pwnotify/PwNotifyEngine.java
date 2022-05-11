@@ -56,10 +56,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PwNotifyEngine
@@ -382,16 +379,10 @@ public class PwNotifyEngine
 
     private ThreadPoolExecutor createExecutor( final PwmDomain pwmDomain )
     {
-        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmDomain.getPwmApplication(), this.getClass() ), true );
-        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-                1,
+        return PwmScheduler.makeMultiThreadExecutor(
                 10,
-                1,
-                TimeUnit.MINUTES,
-                new LinkedBlockingDeque<>(),
-                threadFactory
-        );
-        threadPoolExecutor.allowCoreThreadTimeOut( true );
-        return threadPoolExecutor;
+                pwmDomain.getPwmApplication(),
+                pwNotifyService.getSessionLabel(),
+                PwNotifyEngine.class );
     }
 }

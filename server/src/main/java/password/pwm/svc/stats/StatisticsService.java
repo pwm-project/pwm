@@ -29,10 +29,9 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
+import password.pwm.util.DailySummaryJob;
 import password.pwm.util.EventRateMeter;
-import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -55,7 +54,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 public class StatisticsService extends AbstractPwmService implements PwmService
@@ -79,8 +77,6 @@ public class StatisticsService extends AbstractPwmService implements PwmService
 
     private DailyKey currentDailyKey = DailyKey.forToday();
     private DailyKey initialDailyKey = DailyKey.forToday();
-
-    private ExecutorService executorService;
 
     private final StatisticsBundle statsCurrent = new StatisticsBundle();
     private StatisticsBundle statsDaily = new StatisticsBundle();
@@ -274,9 +270,9 @@ public class StatisticsService extends AbstractPwmService implements PwmService
 
         {
             // setup a timer to roll over at 0 Zulu and one to write current stats regularly
-            executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
-            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new FlushTask(), executorService, DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
-            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new NightlyTask(), executorService, TimeDuration.ZERO );
+            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailySummaryJob( pwmApplication ), getExecutorService(), TimeDuration.ZERO );
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new FlushTask(), getExecutorService(), DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
+            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new NightlyTask(), getExecutorService(), TimeDuration.ZERO );
         }
 
         return STATUS.OPEN;
@@ -327,8 +323,6 @@ public class StatisticsService extends AbstractPwmService implements PwmService
         {
             LOGGER.error( () -> "unexpected error closing: " + e.getMessage() );
         }
-
-        JavaHelper.closeAndWaitExecutor( executorService, TimeDuration.of( 3, TimeDuration.Unit.SECONDS ) );
 
         setStatus( STATUS.CLOSED );
     }

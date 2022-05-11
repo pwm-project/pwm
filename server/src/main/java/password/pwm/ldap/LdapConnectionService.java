@@ -41,11 +41,9 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
-import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.ConditionalTaskExecutor;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -64,7 +62,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -83,7 +80,6 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
     private final Map<String, Map<Integer, ChaiProvider>> proxyChaiProviders = new HashMap<>();
 
     private PwmDomain pwmDomain;
-    private ExecutorService executorService;
     private ChaiProviderFactory chaiProviderFactory;
     private AtomicLoopIntIncrementer slotIncrementer;
 
@@ -151,13 +147,6 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
         // read the lastLoginTime
         this.lastLdapErrors.putAll( pwmApplication.readLastLdapFailure( getDomainID() ) );
 
-        final long idleWeakTimeoutMS = JavaHelper.silentParseLong(
-                pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROXY_IDLE_THREAD_LOCAL_TIMEOUT_MS ),
-                60_000 );
-        final TimeDuration idleWeakTimeout = TimeDuration.of( idleWeakTimeoutMS, TimeDuration.Unit.MILLISECONDS );
-        this.executorService = PwmScheduler.makeBackgroundExecutor( pwmDomain.getPwmApplication(), this.getClass() );
-        pwmDomain.getPwmApplication().getPwmScheduler().scheduleFixedRateJob( new ThreadLocalCleaner(), executorService, idleWeakTimeout, idleWeakTimeout );
-
         final int connectionsPerProfile = maxSlotsPerProfile( pwmDomain );
         LOGGER.trace( () -> "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
         slotIncrementer = AtomicLoopIntIncrementer.builder().ceiling( connectionsPerProfile ).build();
@@ -190,7 +179,6 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
         lastLdapErrors.clear();
         iterateThreadLocals( container -> container.getProviderMap().clear() );
         threadLocalContainers.clear();
-        executorService.shutdown();
     }
 
     @Override
@@ -443,7 +431,7 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
         debugInfo.put( DebugKey.ThreadLocals, String.valueOf( threadLocalConnections.get( ) ) );
         debugInfo.put( DebugKey.CreatedProviders, String.valueOf( stats.get( StatKey.createdProxies ) ) );
         debugInfo.put( DebugKey.DiscardedThreadLocals, String.valueOf( stats.get( StatKey.clearedThreadLocals ) ) );
-        return Collections.unmodifiableMap( CollectionUtil.enumMapToStringMap( debugInfo ) );
+        return CollectionUtil.enumMapToStringMap( debugInfo );
     }
 
     @Data
@@ -454,38 +442,30 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
         private volatile String threadName;
     }
 
-    private class ThreadLocalCleaner implements Runnable
+    void cleanupIssuedThreadLocals()
     {
-        @Override
-        public void run()
-        {
-            cleanupIssuedThreadLocals();
-            debugLogger.conditionallyExecuteTask();
-        }
+        final TimeDuration maxIdleTime = TimeDuration.MINUTE;
 
-        private void cleanupIssuedThreadLocals()
+        iterateThreadLocals( container ->
         {
-            final TimeDuration maxIdleTime = TimeDuration.MINUTE;
-
-            iterateThreadLocals( container ->
+            if ( !container.getProviderMap().isEmpty() )
             {
-                if ( !container.getProviderMap().isEmpty() )
+                final Instant timestamp = container.getTimestamp();
+                final TimeDuration age = TimeDuration.fromCurrent( timestamp );
+                if ( age.isLongerThan( maxIdleTime ) )
                 {
-                    final Instant timestamp = container.getTimestamp();
-                    final TimeDuration age = TimeDuration.fromCurrent( timestamp );
-                    if ( age.isLongerThan( maxIdleTime ) )
+                    for ( final ChaiProvider chaiProvider : container.getProviderMap().values() )
                     {
-                        for ( final ChaiProvider chaiProvider : container.getProviderMap().values() )
-                        {
-                            LOGGER.trace( () -> "discarding idled connection id=" + chaiProvider.toString() + " from orphaned threadLocal, age="
-                                    + age.asCompactString() + ", thread=" + container.getThreadName() );
-                            stats.increment( StatKey.clearedThreadLocals );
-                        }
-                        container.getProviderMap().clear();
+                        LOGGER.trace( () -> "discarding idled connection id=" + chaiProvider.toString() + " from orphaned threadLocal, age="
+                                + age.asCompactString() + ", thread=" + container.getThreadName() );
+                        stats.increment( StatKey.clearedThreadLocals );
                     }
+                    container.getProviderMap().clear();
                 }
-            } );
-        }
+            }
+        } );
+
+        debugLogger.conditionallyExecuteTask();
     }
 
     private void iterateThreadLocals( final Consumer<ThreadLocalContainer> consumer )

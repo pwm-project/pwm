@@ -130,7 +130,7 @@ public class EmailService extends AbstractPwmService implements PwmService
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(
                 this.getPwmApplication(), this.getPwmApplication().getLocalDB(), LocalDB.DB.EMAIL_QUEUE );
 
-        workQueueProcessor = new WorkQueueProcessor<>( this.getPwmApplication(), localDBStoredQueue, settings, new EmailItemProcessor(), this.getClass() );
+        workQueueProcessor = new WorkQueueProcessor<>( this.getPwmApplication(), this.getSessionLabel(), localDBStoredQueue, settings, new EmailItemProcessor(), this.getClass() );
 
         connectionPool = new EmailConnectionPool( servers, emailServiceSettings );
 

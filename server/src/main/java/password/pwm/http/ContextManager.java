@@ -304,7 +304,7 @@ public class ContextManager implements Serializable
 
         taskMaster = Executors.newSingleThreadScheduledExecutor(
                 PwmScheduler.makePwmThreadFactory(
-                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-",
+                        PwmScheduler.makeThreadName( SESSION_LABEL, pwmApplication, this.getClass() ) + "-",
                         true
                 ) );
 

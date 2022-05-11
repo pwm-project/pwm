@@ -37,7 +37,6 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.DataStore;
-import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.TimeDuration;
@@ -45,7 +44,6 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 public class IntruderSystemService extends AbstractPwmService implements PwmService
@@ -54,8 +52,6 @@ public class IntruderSystemService extends AbstractPwmService implements PwmServ
 
     private IntruderRecordStore recordStore;
     private DataStorageMethod dataStorageMethod;
-
-    private ExecutorService executorService;
 
     @Override
     public STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID ) throws PwmException
@@ -67,8 +63,6 @@ public class IntruderSystemService extends AbstractPwmService implements PwmServ
             dataStorageMethod = dataStore.getDataStorageMethod();
 
             recordStore = new IntruderDataStore( this, dataStore, this::status );
-
-            executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
 
             scheduleCleaner();
         }
@@ -176,7 +170,7 @@ public class IntruderSystemService extends AbstractPwmService implements PwmServ
             }
         };
 
-        getPwmApplication().getPwmScheduler().scheduleFixedRateJob( cleanerJob, executorService, TimeDuration.SECONDS_10, cleanerRunFrequency );
+        getPwmApplication().getPwmScheduler().scheduleFixedRateJob( cleanerJob, getExecutorService(), TimeDuration.SECONDS_10, cleanerRunFrequency );
     }
 
     IntruderRecordStore getRecordStore()

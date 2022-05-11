@@ -21,6 +21,7 @@
 package password.pwm.svc.event;
 
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.localdb.LocalDB;
@@ -30,7 +31,7 @@ import java.util.Iterator;
 
 public interface AuditVault
 {
-    void init( PwmApplication pwmApplication, LocalDB localDB, AuditSettings settings )
+    void init( PwmApplication pwmApplication, SessionLabel sessionLabel, LocalDB localDB, AuditSettings settings )
             throws PwmException;
 
     void close( );

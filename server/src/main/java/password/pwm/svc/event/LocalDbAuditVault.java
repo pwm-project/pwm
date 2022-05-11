@@ -21,6 +21,7 @@
 package password.pwm.svc.event;
 
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmException;
 import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
@@ -35,7 +36,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
 import java.util.Iterator;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class LocalDbAuditVault implements AuditVault
 {
@@ -45,7 +46,7 @@ public class LocalDbAuditVault implements AuditVault
     private AuditSettings settings;
     private Instant oldestRecord;
 
-    private ExecutorService executorService;
+    private ScheduledExecutorService executorService;
     private volatile PwmService.STATUS status = PwmService.STATUS.CLOSED;
 
 
@@ -58,6 +59,7 @@ public class LocalDbAuditVault implements AuditVault
     @Override
     public void init(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
             final LocalDB localDB,
             final AuditSettings settings
     )
@@ -68,7 +70,7 @@ public class LocalDbAuditVault implements AuditVault
 
         readOldestRecord();
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundServiceExecutor( pwmApplication, sessionLabel, this.getClass() );
 
         status = PwmService.STATUS.OPEN;
         final TimeDuration jobFrequency = TimeDuration.of( 10, TimeDuration.Unit.MINUTES );

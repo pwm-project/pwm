@@ -290,7 +290,7 @@ class PwmApplicationUtil
         final Function<Map.Entry<String, String>, String> valueFormatter = entry ->
         {
             final String spacedValue = entry.getValue().replace( "\n", "\n   " );
-            return " " + entry.getKey() + "\n   " + spacedValue + "\n";
+            return " " + entry.getKey() + "\n   " + spacedValue;
         };
 
         final StoredConfiguration storedConfiguration = pwmApplication.getConfig().getStoredConfiguration();

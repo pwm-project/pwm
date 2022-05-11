@@ -24,6 +24,7 @@ import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -102,10 +103,11 @@ public final class WorkQueueProcessor<W extends Serializable>
 
     public WorkQueueProcessor(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
             final Deque<String> queue,
             final Settings settings,
             final ItemProcessor<W> itemProcessor,
-            final Class sourceClass
+            final Class<?> sourceClass
     )
     {
         this.settings = settings;
@@ -121,12 +123,12 @@ public final class WorkQueueProcessor<W extends Serializable>
 
         this.workerThread = new WorkerThread();
         workerThread.setDaemon( true );
-        workerThread.setName( PwmScheduler.makeThreadName( pwmApplication, sourceClass ) + "-worker-" );
+        workerThread.setName( PwmScheduler.makeThreadName( sessionLabel, pwmApplication, sourceClass ) + "-worker-" );
         workerThread.start();
 
         if ( settings.getPreThreads() > 0 )
         {
-            final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, sourceClass ), true );
+            final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( sessionLabel, pwmApplication, sourceClass ), true );
             executorService = new ThreadPoolExecutor(
                     1,
                     settings.getPreThreads(),

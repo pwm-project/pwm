@@ -164,7 +164,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
 
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SMS_QUEUE );
 
-        workQueueProcessor = new WorkQueueProcessor<>( pwmApplication, localDBStoredQueue, settings, new SmsItemProcessor(), this.getClass() );
+        workQueueProcessor = new WorkQueueProcessor<>( pwmApplication, getSessionLabel(), localDBStoredQueue, settings, new SmsItemProcessor(), this.getClass() );
 
         smsSendEngine = new SmsSendEngine( pwmApplication, pwmApplication.getConfig() );
 

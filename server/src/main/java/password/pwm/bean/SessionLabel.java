@@ -24,6 +24,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.svc.PwmService;
+import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 
@@ -33,6 +34,7 @@ public class SessionLabel implements Serializable
 {
     private static final String SYSTEM_LABEL_SESSION_ID = "#";
     private static final String RUNTIME_LABEL_SESSION_ID = "#";
+
     public static final SessionLabel SYSTEM_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( PwmConstants.PWM_APP_NAME ).build();
     public static final SessionLabel RUNTIME_LABEL = SessionLabel.builder().sessionID( RUNTIME_LABEL_SESSION_ID ).username( "internal" ).build();
     public static final SessionLabel TEST_SESSION_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "test" ).build();
@@ -56,4 +58,41 @@ public class SessionLabel implements Serializable
                 .domain( domainID.stringValue() )
                 .build();
     }
+
+    public String toDebugLabel( )
+    {
+        final StringBuilder sb = new StringBuilder();
+        final String sessionID = getSessionID();
+        final String username = getUsername();
+
+        if ( StringUtil.notEmpty( sessionID ) )
+        {
+            sb.append( sessionID );
+        }
+        if ( StringUtil.notEmpty( domain ) )
+        {
+            if ( sb.length() > 0 )
+            {
+                sb.append( ',' );
+            }
+            sb.append( domain );
+        }
+        if ( StringUtil.notEmpty( username ) )
+        {
+            if ( sb.length() > 0 )
+            {
+                sb.append( ',' );
+            }
+            sb.append( username );
+        }
+
+        if ( sb.length() > 0 )
+        {
+            sb.insert( 0, "{" );
+            sb.append( "} " );
+        }
+
+        return sb.toString();
+    }
+
 }

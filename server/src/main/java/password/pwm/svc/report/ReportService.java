@@ -47,8 +47,8 @@ import password.pwm.util.java.BlockingThreadPool;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.MiscUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
@@ -63,7 +63,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
@@ -78,7 +77,6 @@ public class ReportService extends AbstractPwmService implements PwmService
 
     private final AtomicBoolean cancelFlag = new AtomicBoolean( false );
     private ReportSummaryData summaryData = ReportSummaryData.newSummaryData( null );
-    private ExecutorService executorService;
 
     private ReportRecordLocalDBStorageService userCacheService;
     private ReportSettings settings = ReportSettings.builder().build();
@@ -119,11 +117,9 @@ public class ReportService extends AbstractPwmService implements PwmService
 
         dnQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, getPwmApplication().getLocalDB(), LocalDB.DB.REPORT_QUEUE );
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
-
         if ( !pwmApplication.getPwmEnvironment().isInternalRuntimeInstance() )
         {
-            executorService.submit( new InitializationTask() );
+            getExecutorService().submit( new InitializationTask() );
         }
 
         return STATUS.OPEN;
@@ -135,14 +131,10 @@ public class ReportService extends AbstractPwmService implements PwmService
         setStatus( STATUS.CLOSED );
         cancelFlag.set( true );
 
-        JavaHelper.closeAndWaitExecutor( executorService, TimeDuration.SECONDS_10 );
-
         if ( userCacheService != null )
         {
             userCacheService.shutdown();
         }
-
-        executorService = null;
     }
 
     private void writeReportStatus( )
@@ -186,8 +178,8 @@ public class ReportService extends AbstractPwmService implements PwmService
                         && localReportStatus.getCurrentProcess() != ReportStatusInfo.ReportEngineProcess.SearchLDAP
                 )
                 {
-                    executorService.execute( new ClearTask() );
-                    executorService.execute( new ReadLDAPTask() );
+                    getExecutorService().execute( new ClearTask() );
+                    getExecutorService().execute( new ReadLDAPTask() );
                 }
             }
             break;
@@ -202,7 +194,7 @@ public class ReportService extends AbstractPwmService implements PwmService
             case Clear:
             {
                 cancelFlag.set( true );
-                executorService.execute( new ClearTask() );
+                getExecutorService().execute( new ClearTask() );
             }
             break;
 
@@ -324,7 +316,7 @@ public class ReportService extends AbstractPwmService implements PwmService
             try
             {
                 readUserListFromLdap();
-                executorService.execute( new ProcessWorkQueueTask() );
+                getExecutorService().execute( new ProcessWorkQueueTask() );
             }
             catch ( final Exception e )
             {
@@ -333,11 +325,11 @@ public class ReportService extends AbstractPwmService implements PwmService
                 {
                     if ( ( ( PwmException ) e ).getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
                     {
-                        if ( executorService != null )
+                        if ( getExecutorService() != null )
                         {
                             LOGGER.error( getSessionLabel(),
                                     () -> "directory unavailable error during background SearchLDAP, will retry; error: " + e.getMessage() );
-                            getPwmApplication().getPwmScheduler().scheduleJob( new ReadLDAPTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
+                            getPwmApplication().getPwmScheduler().scheduleJob( new ReadLDAPTask(), getExecutorService(), TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                             errorProcessed = true;
                         }
                     }
@@ -447,11 +439,11 @@ public class ReportService extends AbstractPwmService implements PwmService
             {
                 if ( e.getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
                 {
-                    if ( executorService != null )
+                    if ( getExecutorService() != null )
                     {
                         LOGGER.error( getSessionLabel(), () -> "directory unavailable error during background ReadData, will retry; error: " + e.getMessage() );
                         getPwmApplication().getPwmScheduler().scheduleJob(
-                                new ProcessWorkQueueTask(), executorService, TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
+                                new ProcessWorkQueueTask(), getExecutorService(), TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                     }
                 }
                 else
@@ -491,7 +483,7 @@ public class ReportService extends AbstractPwmService implements PwmService
             try
             {
                 LOGGER.trace( getSessionLabel(), () -> "about to begin ldap processing with thread count of " + threadCount );
-                final String threadName = PwmScheduler.makeThreadName( getPwmApplication(), this.getClass() );
+                final String threadName = PwmScheduler.makeThreadName( getSessionLabel(), getPwmApplication(), this.getClass() );
                 final BlockingThreadPool threadService = new BlockingThreadPool( threadCount, threadName );
                 while ( status() == STATUS.OPEN && !dnQueue.isEmpty() && !cancelFlag.get() )
                 {
@@ -643,8 +635,8 @@ public class ReportService extends AbstractPwmService implements PwmService
 
             if ( settings.isDailyJobEnabled() )
             {
-                executorService.execute( new ClearTask() );
-                executorService.execute( new ReadLDAPTask() );
+                getExecutorService().execute( new ClearTask() );
+                getExecutorService().execute( new ReadLDAPTask() );
             }
         }
     }
@@ -674,7 +666,7 @@ public class ReportService extends AbstractPwmService implements PwmService
             if ( reportingEnabled )
             {
                 final TimeDuration jobOffset = TimeDuration.of( settings.getJobOffsetSeconds(), TimeDuration.Unit.SECONDS );
-                getPwmApplication().getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailyJobExecuteTask(), executorService, jobOffset );
+                getPwmApplication().getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailyJobExecuteTask(), getExecutorService(), jobOffset );
             }
         }
 
@@ -729,7 +721,7 @@ public class ReportService extends AbstractPwmService implements PwmService
             if ( !reportStatus.get().isReportComplete() && !dnQueue.isEmpty() )
             {
                 LOGGER.trace( getSessionLabel(), () -> "resuming report data processing" );
-                executorService.execute( new ProcessWorkQueueTask() );
+                getExecutorService().execute( new ProcessWorkQueueTask() );
             }
         }
     }
@@ -792,7 +784,7 @@ public class ReportService extends AbstractPwmService implements PwmService
         final Instant lastFinishDate = reportStatus.get().getFinishDate();
         if ( lastFinishDate != null && TimeDuration.fromCurrent( lastFinishDate ).isLongerThan( settings.getMaxCacheAge() ) )
         {
-            executorService.execute( new ClearTask() );
+            getExecutorService().execute( new ClearTask() );
         }
     }
 }

@@ -30,10 +30,7 @@ import password.pwm.util.PwmScheduler;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class PeopleSearchService extends AbstractPwmService implements PwmService
 {
@@ -45,15 +42,7 @@ public class PeopleSearchService extends AbstractPwmService implements PwmServic
     {
         final int maxThreadCount = 5;
 
-        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmApplication, PeopleSearchService.class ), true );
-        threadPoolExecutor = new ThreadPoolExecutor(
-                maxThreadCount,
-                maxThreadCount,
-                1,
-                TimeUnit.MINUTES,
-                new ArrayBlockingQueue<>( 5000 ),
-                threadFactory
-        );
+        threadPoolExecutor = PwmScheduler.makeMultiThreadExecutor( maxThreadCount, pwmApplication, getSessionLabel(), PeopleSearchService.class );
 
         return STATUS.OPEN;
     }

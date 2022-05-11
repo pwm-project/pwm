@@ -36,11 +36,11 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.PwmCallable;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.InputStream;
@@ -51,7 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
@@ -62,7 +62,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
 
     private WordlistConfiguration wordlistConfiguration;
     private WordlistBucket wordlistBucket;
-    private ExecutorService executorService;
+    private ScheduledExecutorService executorService;
     private volatile Set<WordType> wordTypesCache = null;
 
     private volatile ErrorInformation lastError;
@@ -121,7 +121,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
         }
 
         inhibitBackgroundImportFlag.set( false );
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundServiceExecutor( pwmApplication, getSessionLabel(), this.getClass() );
 
         if ( !pwmApplication.getPwmEnvironment().isInternalRuntimeInstance() )
         {

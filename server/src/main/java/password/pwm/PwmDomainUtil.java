@@ -24,7 +24,6 @@ import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -84,7 +83,7 @@ class PwmDomainUtil
                 .collect( Collectors.toUnmodifiableList() );
 
         final  List<Optional<PwmUnrecoverableException>> domainStartException = pwmApplication.getPwmScheduler()
-                .executeImmediateThreadPerJobAndAwaitCompletion( callables, "domain initializer" );
+                .executeImmediateThreadPerJobAndAwaitCompletion( PwmApplication.DOMAIN_STARTUP_THREADS, callables, pwmApplication.getSessionLabel(), PwmDomainUtil.class );
 
         final Optional<PwmUnrecoverableException> domainStartupException = domainStartException.stream()
                 .filter( Optional::isPresent )
@@ -169,13 +168,17 @@ class PwmDomainUtil
         // 1 minute later ( to avoid interrupting any in-progress requests, shutdown any obsoleted domains
         if ( !deletedDomains.isEmpty() )
         {
-            pwmApplication.getPwmScheduler().scheduleJob( () ->
+            pwmApplication.getPwmScheduler().immediateExecuteRunnableInNewThread( () ->
                     {
-                        LOGGER.debug( () -> "shutting down obsoleted domain services" );
+                        TimeDuration.MINUTE.pause();
+                        final Instant startTime = Instant.now();
+                        LOGGER.trace( pwmApplication.getSessionLabel(), () -> "shutting down obsoleted domain services" );
                         deletedDomains.forEach( PwmDomain::shutdown );
+                        LOGGER.debug( pwmApplication.getSessionLabel(), () -> "shut down obsoleted domain services completed",
+                                () -> TimeDuration.fromCurrent( startTime ) );
                     },
-                    PwmScheduler.makeSingleThreadExecutorService( pwmApplication, pwmApplication.getClass() ),
-                    TimeDuration.MINUTE );
+                    pwmApplication.getSessionLabel(),
+                    "obsoleted domain cleanup" );
         }
 
     }

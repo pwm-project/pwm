@@ -38,9 +38,11 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceEnum;
 import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
+import password.pwm.svc.cr.CrService;
 import password.pwm.svc.event.AuditService;
 import password.pwm.svc.httpclient.HttpClientService;
 import password.pwm.svc.intruder.IntruderDomainService;
+import password.pwm.svc.otp.OtpService;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
@@ -48,17 +50,12 @@ import password.pwm.svc.stats.StatisticsService;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.userhistory.UserHistoryService;
 import password.pwm.svc.wordlist.SharedHistoryService;
-import password.pwm.util.DailySummaryJob;
-import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.svc.cr.CrService;
-import password.pwm.svc.otp.OtpService;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
 
 /**
  * A repository for objects common to the servlet context.  A singleton
@@ -93,12 +90,8 @@ public class PwmDomain
     {
         final Instant startTime = Instant.now();
         LOGGER.trace( sessionLabel, () -> "initializing domain " + domainID.stringValue() );
-        pwmServiceManager.initAllServices();
 
-        {
-            final ExecutorService executorService = PwmScheduler.makeSingleThreadExecutorService( getPwmApplication(), DailySummaryJob.class );
-            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailySummaryJob( this ), executorService, TimeDuration.ZERO );
-        }
+        pwmServiceManager.initAllServices();
 
         if ( Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
         {
