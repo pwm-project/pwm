@@ -121,7 +121,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "unexpected error starting intruder manager: " + e.getMessage() );
             LOGGER.error( errorInformation::toDebugStr );
             setStartupError( errorInformation );
-            close();
+            shutdown();
             return STATUS.CLOSED;
         }
 
@@ -193,7 +193,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
 
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
     }

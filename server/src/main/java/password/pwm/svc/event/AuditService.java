@@ -108,7 +108,7 @@ public class AuditService extends AbstractPwmService implements PwmService
         {
             try
             {
-                syslogManager = new SyslogAuditService( pwmApplication );
+                syslogManager = new SyslogAuditService( pwmApplication, getSessionLabel() );
             }
             catch ( final Exception e )
             {
@@ -118,13 +118,13 @@ public class AuditService extends AbstractPwmService implements PwmService
         }
 
         auditVault = new LocalDbAuditVault();
-        auditVault.init( pwmApplication, pwmApplication.getLocalDB(), settings );
+        auditVault.init( pwmApplication, getSessionLabel(), pwmApplication.getLocalDB(), settings );
 
         return STATUS.OPEN;
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         if ( syslogManager != null )
         {

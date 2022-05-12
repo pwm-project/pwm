@@ -150,13 +150,13 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
 
         cleanerService = Executors.newSingleThreadScheduledExecutor(
                 PwmScheduler.makePwmThreadFactory(
-                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-cleaner-",
+                        PwmScheduler.makeThreadName( getSessionLabel(), pwmApplication, this.getClass() ) + "-cleaner-",
                         true
                 ) );
 
         writerService = Executors.newSingleThreadScheduledExecutor(
                 PwmScheduler.makePwmThreadFactory(
-                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-writer-",
+                        PwmScheduler.makeThreadName( getSessionLabel(), pwmApplication, this.getClass() ) + "-writer-",
                         true
                 ) );
 
@@ -239,7 +239,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         final Instant startTime = Instant.now();
         int flushedEvents = 0;

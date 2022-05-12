@@ -33,7 +33,7 @@ import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.http.servlet.configeditor.function.UserMatchViewerFunction;
 import password.pwm.config.stored.ConfigurationProperty;
-import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
@@ -106,7 +106,7 @@ public class ConfigGuideUtils
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final ConfigurationReader configReader = contextManager.getConfigReader();
+        final ConfigurationFileManager configReader = contextManager.getConfigReader();
         final PwmApplication pwmApplication = contextManager.getPwmApplication();
 
         try

@@ -22,14 +22,13 @@ package password.pwm.http.servlet.configmanager;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.config.AppConfig;
 import password.pwm.config.stored.ConfigurationProperty;
-import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
@@ -194,12 +193,12 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     void initRequestAttributes( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final ConfigurationReader configurationReader = pwmRequest.getContextManager().getConfigReader();
+        final ConfigurationFileManager configurationFileManager = pwmRequest.getContextManager().getConfigReader();
         pwmRequest.setAttribute( PwmRequestAttribute.PageTitle, LocaleHelper.getLocalizedMessage( Config.Title_ConfigManager, pwmRequest ) );
         pwmRequest.setAttribute( PwmRequestAttribute.ApplicationPath, pwmRequest.getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath() );
-        pwmRequest.setAttribute( PwmRequestAttribute.ConfigFilename, configurationReader.getConfigFile().getAbsolutePath() );
+        pwmRequest.setAttribute( PwmRequestAttribute.ConfigFilename, configurationFileManager.getConfigFile().getAbsolutePath() );
         {
-            final Instant lastModifyTime = configurationReader.getStoredConfiguration().modifyTime();
+            final Instant lastModifyTime = configurationFileManager.getStoredConfiguration().modifyTime();
             final String output = lastModifyTime == null
                     ? LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest )
                     : StringUtil.toIsoDate( lastModifyTime );
@@ -209,7 +208,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         pwmRequest.setAttribute(
                 PwmRequestAttribute.ConfigHasPassword,
                 LocaleHelper.booleanString(
-                        StoredConfigurationUtil.hasPassword( configurationReader.getStoredConfiguration() ),
+                        StoredConfigurationUtil.hasPassword( configurationFileManager.getStoredConfiguration() ),
                         pwmRequest.getLocale(),
                         pwmRequest.getDomainConfig()
                 )
@@ -419,11 +418,9 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                 pwmRequest.getDomainConfig().readAppProperty( AppProperty.DOWNLOAD_FILENAME_LDAP_PERMISSION_CSV )
         );
 
-        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() );
-        try
+        try ( CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() ) )
         {
 
-            final StoredConfiguration storedConfiguration = readCurrentConfiguration( pwmRequest );
             final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( pwmRequest.getDomainConfig() );
 
             for ( final LDAPPermissionCalculator.PermissionRecord permissionRecord : ldapPermissionCalculator.getPermissionRecords() )
@@ -445,10 +442,6 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             LOGGER.error( pwmRequest, errorInformation );
             pwmRequest.respondWithError( errorInformation );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( csvPrinter );
         }
     }
 }

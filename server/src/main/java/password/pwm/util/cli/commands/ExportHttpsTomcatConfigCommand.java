@@ -20,12 +20,12 @@
 
 package password.pwm.util.cli.commands;
 
-import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.TLSVersion;
 import password.pwm.util.cli.CliParameters;
+import password.pwm.util.java.JavaHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -118,7 +118,7 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
         )
                 throws IOException
         {
-            String fileContents = IOUtils.toString( sourceFile, PwmConstants.DEFAULT_CHARSET.toString() );
+            String fileContents = JavaHelper.copyToString( sourceFile, PwmConstants.DEFAULT_CHARSET, Integer.MAX_VALUE ).orElse( "" );
             fileContents = fileContents.replace( TOKEN_TLS_PROTOCOLS, getTlsProtocolsValue( appConfig ) );
             final String tlsCiphers = appConfig.readSettingAsString( PwmSetting.HTTPS_CIPHERS );
             fileContents = fileContents.replace( TOKEN_TLS_CIPHERS, tlsCiphers );

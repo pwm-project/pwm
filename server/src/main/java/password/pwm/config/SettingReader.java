@@ -62,4 +62,6 @@ public interface SettingReader
     PasswordData readSettingAsPassword( PwmSetting setting );
 
     Optional<Map<Locale, String>> readLocalizedBundle( PwmLocaleBundle className, String keyName );
+
+    String getValueHash();
 }

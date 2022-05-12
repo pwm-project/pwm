@@ -433,4 +433,10 @@ public class AppConfig implements SettingReader
         }
         return Collections.unmodifiableMap( localeFlagMap );
     }
+
+    @Override
+    public String getValueHash()
+    {
+        return settingReader.getValueHash();
+    }
 }

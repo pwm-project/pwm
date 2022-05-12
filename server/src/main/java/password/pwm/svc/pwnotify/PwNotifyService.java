@@ -38,7 +38,6 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PwmScheduler;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -51,13 +50,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 
 public class PwNotifyService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwNotifyService.class );
 
-    private ExecutorService executorService;
     private PwmDomain pwmDomain;
     private PwNotifyEngine engine;
     private PwNotifySettings settings;
@@ -141,11 +138,9 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
                     MiscUtil.unhandledSwitchStatement( storageMethod );
             }
 
-            executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
-
             engine = new PwNotifyEngine( this, pwmDomain, storageService, null );
 
-            pwmDomain.getPwmApplication().getPwmScheduler().scheduleFixedRateJob( new PwNotifyJob(), executorService, TimeDuration.MINUTE, TimeDuration.MINUTE );
+            pwmDomain.getPwmApplication().getPwmScheduler().scheduleFixedRateJob( new PwNotifyJob(), getExecutorService(), TimeDuration.MINUTE, TimeDuration.MINUTE );
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -209,10 +204,9 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
-        JavaHelper.closeAndWaitExecutor( executorService, TimeDuration.of( 5, TimeDuration.Unit.SECONDS ) );
     }
 
     @Override
@@ -262,7 +256,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
         if ( !isRunning() )
         {
             nextExecutionTime = Instant.now();
-            pwmDomain.getPwmApplication().getPwmScheduler().scheduleJob( new PwNotifyJob(), executorService, TimeDuration.ZERO );
+            pwmDomain.getPwmApplication().getPwmScheduler().scheduleJob( new PwNotifyJob(), getExecutorService(), TimeDuration.ZERO );
         }
     }
 

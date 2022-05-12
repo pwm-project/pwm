@@ -35,13 +35,12 @@ import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.sql.Connection;
@@ -58,7 +57,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 
 
 public class DatabaseService extends AbstractPwmService implements PwmService
@@ -79,8 +77,6 @@ public class DatabaseService extends AbstractPwmService implements PwmService
 
     private AtomicLoopIntIncrementer slotIncrementer;
     private final Map<Integer, DatabaseAccessorImpl> accessors = new ConcurrentHashMap<>();
-
-    private ExecutorService executorService;
 
     private final Map<DatabaseAboutProperty, String> debugInfo = new LinkedHashMap<>();
 
@@ -106,15 +102,11 @@ public class DatabaseService extends AbstractPwmService implements PwmService
     {
         this.dbConfiguration = DBConfiguration.fromConfiguration( getPwmApplication().getConfig() );
 
-
-
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
-
         final TimeDuration watchdogFrequency = TimeDuration.of(
                 Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) ),
                 TimeDuration.Unit.SECONDS );
 
-        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ConnectionMonitor(), executorService, watchdogFrequency, watchdogFrequency );
+        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ConnectionMonitor(), getExecutorService(), watchdogFrequency, watchdogFrequency );
 
         return dbInit();
     }
@@ -187,14 +179,9 @@ public class DatabaseService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
-
-        if ( executorService != null )
-        {
-            executorService.shutdown();
-        }
 
         clearCurrentAccessors();
 

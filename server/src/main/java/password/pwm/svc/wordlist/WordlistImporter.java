@@ -20,18 +20,18 @@
 
 package password.pwm.svc.wordlist;
 
-import org.apache.commons.io.IOUtils;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.ConditionalTaskExecutor;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.MiscUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.StatisticAverageBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
@@ -277,7 +277,7 @@ class WordlistImporter implements Runnable
         }
         finally
         {
-            IOUtils.closeQuietly( zipFileReader );
+            JavaHelper.closeQuietly( zipFileReader );
         }
     }
 

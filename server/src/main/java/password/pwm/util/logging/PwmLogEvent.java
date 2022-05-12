@@ -171,38 +171,14 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
 
     private String getDebugLabel( )
     {
-        final StringBuilder sb = new StringBuilder();
-        final String sessionID = getSessionID();
-        final String username = getUsername();
-
-        if ( StringUtil.notEmpty( sessionID ) )
-        {
-            sb.append( sessionID );
-        }
-        if ( StringUtil.notEmpty( domain ) )
-        {
-            if ( sb.length() > 0 )
-            {
-                sb.append( ',' );
-            }
-            sb.append( domain );
-        }
-        if ( StringUtil.notEmpty( username ) )
-        {
-            if ( sb.length() > 0 )
-            {
-                sb.append( ',' );
-            }
-            sb.append( username );
-        }
-
-        if ( sb.length() > 0 )
-        {
-            sb.insert( 0, "{" );
-            sb.append( "} " );
-        }
-
-        return sb.toString();
+        return SessionLabel.builder()
+                .sessionID( getSessionID() )
+                .requestID( getRequestID() )
+                .username( getUsername() )
+                .sourceAddress( getSourceAddress() )
+                .domain( getDomain() )
+                .build()
+                .toDebugLabel();
     }
 
     public String toLogString( )

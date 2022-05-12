@@ -94,7 +94,7 @@ public class NodeService extends AbstractPwmService implements PwmService
 
                 }
 
-                nodeMachine = new NodeMachine( pwmApplication, clusterDataServiceProvider, nodeServiceSettings );
+                nodeMachine = new NodeMachine( pwmApplication, getExecutorService(), clusterDataServiceProvider, nodeServiceSettings );
             }
         }
         catch ( final PwmUnrecoverableException e )
@@ -114,7 +114,7 @@ public class NodeService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         if ( nodeMachine != null )
         {

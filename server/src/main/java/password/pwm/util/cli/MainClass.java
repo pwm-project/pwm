@@ -30,7 +30,7 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.AppConfig;
-import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -190,7 +190,7 @@ public class MainClass
 
         final File configurationFile = locateConfigurationFile( applicationPath );
 
-        final ConfigurationReader configReader = loadConfiguration( configurationFile );
+        final ConfigurationFileManager configReader = loadConfiguration( configurationFile );
         final AppConfig config = configReader.getConfiguration();
 
         final PwmApplication pwmApplication;
@@ -217,7 +217,7 @@ public class MainClass
 
         final Writer outputStream = new OutputStreamWriter( System.out, PwmConstants.DEFAULT_CHARSET );
         return CliEnvironment.builder()
-                .configurationReader( configReader )
+                .configurationFileManager( configReader )
                 .configurationFile( configurationFile )
                 .config( config )
                 .applicationPath( applicationPath )
@@ -441,9 +441,9 @@ public class MainClass
         return LocalDBFactory.getInstance( databaseDirectory, readonly, null, config );
     }
 
-    private static ConfigurationReader loadConfiguration( final File configurationFile ) throws Exception
+    private static ConfigurationFileManager loadConfiguration( final File configurationFile ) throws Exception
     {
-        final ConfigurationReader reader = new ConfigurationReader( configurationFile );
+        final ConfigurationFileManager reader = new ConfigurationFileManager( configurationFile );
 
         if ( reader.getConfigMode() == PwmApplicationMode.ERROR )
         {

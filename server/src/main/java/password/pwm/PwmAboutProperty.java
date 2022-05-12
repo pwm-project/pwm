@@ -48,13 +48,13 @@ import java.util.stream.Collectors;
 public enum PwmAboutProperty
 {
 
-    app_version( null, pwmApplication -> PwmConstants.SERVLET_VERSION ),
-    app_chaiApiVersion( null, pwmApplication -> PwmConstants.CHAI_API_VERSION ),
-    app_currentTime( null, pwmApplication -> format( Instant.now() ) ),
-    app_startTime( null, pwmApplication -> format( pwmApplication.getStartupTime() ) ),
-    app_installTime( null, pwmApplication -> format( pwmApplication.getInstallTime() ) ),
-    app_siteUrl( null, pwmApplication -> pwmApplication.getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL ) ),
-    app_instanceID( null, PwmApplication::getInstanceID ),
+    app_version( "App Version", pwmApplication -> PwmConstants.SERVLET_VERSION ),
+    app_chaiApiVersion( "App Chai Version", pwmApplication -> PwmConstants.CHAI_API_VERSION ),
+    app_currentTime( "App Current Time", pwmApplication -> format( Instant.now() ) ),
+    app_startTime( "App Startup Time", pwmApplication -> format( pwmApplication.getStartupTime() ) ),
+    app_installTime( "App Install Time", pwmApplication -> format( pwmApplication.getInstallTime() ) ),
+    app_siteUrl( "App Site URL", pwmApplication -> pwmApplication.getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL ) ),
+    app_instanceID( "App InstanceID", PwmApplication::getInstanceID ),
     app_trialMode( null, pwmApplication -> Boolean.toString( PwmConstants.TRIAL_MODE ) ),
     app_mode_appliance( null, pwmApplication -> Boolean.toString( pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Appliance ) ) ),
     app_mode_docker( null, pwmApplication -> Boolean.toString( pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Docker ) ) ),
@@ -79,8 +79,9 @@ public enum PwmAboutProperty
     app_secureHashAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().getDefaultHashAlgorithm().toString() ),
     app_ldapProfileCount( null, pwmApplication -> Integer.toString( LdapConnectionService.totalLdapProfileCount( pwmApplication ) ) ),
     app_ldapConnectionCount( null, pwmApplication -> Long.toString( LdapConnectionService.totalLdapConnectionCount( pwmApplication ) ) ),
-    app_activeSessionCount( "Active Session Count", pwmApplication -> Integer.toString( pwmApplication.getSessionTrackService().sessionCount() ) ),
-    app_activeRequestCount( "Active Request Count", pwmApplication -> Integer.toString( pwmApplication.getActiveServletRequests().get() ) ),
+    app_activeSessionCount( "App Active Session Count", pwmApplication -> Integer.toString( pwmApplication.getSessionTrackService().sessionCount() ) ),
+    app_activeRequestCount( "App Active Request Count", pwmApplication -> Integer.toString( pwmApplication.getActiveServletRequests().get() ) ),
+    app_definedDomainCount( "App Defined Domain Count", pwmApplication -> Integer.toString( pwmApplication.domains().size() ) ),
 
     build_Time( "Build Time", pwmApplication -> PwmConstants.BUILD_TIME ),
     build_Number( "Build Number", pwmApplication -> PwmConstants.BUILD_NUMBER ),

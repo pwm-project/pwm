@@ -54,6 +54,7 @@ import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditServiceClient;
+import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.form.FormUtility;
@@ -285,7 +286,8 @@ class ActivateUserUtils
             return false;
         }
 
-        pwmRequest.getPwmApplication().sendSmsUsingQueue(
+        SmsQueueService.sendSmsUsingQueue(
+                pwmRequest.getPwmApplication(),
                 toSmsNumber,
                 message,
                 pwmRequest.getLabel(),

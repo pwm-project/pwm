@@ -40,6 +40,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SyslogOutputFormat;
@@ -89,9 +90,10 @@ public class SyslogAuditService
     private final AppConfig appConfig;
     private final PwmApplication pwmApplication;
     private final AuditFormatter auditFormatter;
+    private final SessionLabel sessionLabel;
 
 
-    SyslogAuditService( final PwmApplication pwmApplication )
+    SyslogAuditService( final PwmApplication pwmApplication, final SessionLabel sessionLabel )
             throws LocalDBException
     {
         this.pwmApplication = pwmApplication;
@@ -100,6 +102,7 @@ public class SyslogAuditService
         this.syslogInstances = makeSyslogIFs( appConfig );
         this.auditFormatter = makeAuditFormatter( appConfig );
         this.workQueueProcessor = makeWorkQueueProcessor( pwmApplication, appConfig );
+        this.sessionLabel = sessionLabel;
     }
 
     private WorkQueueProcessor<String> makeWorkQueueProcessor(
@@ -117,7 +120,7 @@ public class SyslogAuditService
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(
                 pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE );
 
-        return new WorkQueueProcessor<>( pwmApplication, localDBStoredQueue, settings, new SyslogItemProcessor(), this.getClass() );
+        return new WorkQueueProcessor<>( pwmApplication, sessionLabel, localDBStoredQueue, settings, new SyslogItemProcessor(), this.getClass() );
     }
 
     private static AuditFormatter makeAuditFormatter( final AppConfig appConfig )

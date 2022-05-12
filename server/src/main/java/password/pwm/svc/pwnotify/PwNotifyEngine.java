@@ -52,15 +52,11 @@ import java.io.Writer;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Queue;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PwNotifyEngine
@@ -158,15 +154,16 @@ public class PwNotifyEngine
             }
 
             log( "starting job, beginning ldap search" );
-            final Queue<UserIdentity> workQueue = new LinkedList<>( UserPermissionUtility.discoverMatchingUsers(
+            final Iterator<UserIdentity> workQueue = UserPermissionUtility.discoverMatchingUsers(
                     pwmDomain,
                     permissionList, pwNotifyService.getSessionLabel(), settings.getMaxLdapSearchSize(),
-                    settings.getSearchTimeout() ) );
+                    settings.getSearchTimeout()
+            );
 
             log( "ldap search complete, examining users..." );
 
             final ThreadPoolExecutor threadPoolExecutor = createExecutor( pwmDomain );
-            while ( workQueue.peek() != null )
+            while ( workQueue.hasNext() )
             {
                 if ( !checkIfRunningOnMaster() || pwNotifyService.status() == PwmService.STATUS.CLOSED )
                 {
@@ -175,7 +172,7 @@ public class PwNotifyEngine
                     throw PwmUnrecoverableException.newException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, msg );
                 }
 
-                threadPoolExecutor.submit( new ProcessJob( workQueue.poll() ) );
+                threadPoolExecutor.submit( new ProcessJob( workQueue.next() ) );
             }
 
             JavaHelper.closeAndWaitExecutor( threadPoolExecutor, TimeDuration.DAY );
@@ -382,16 +379,10 @@ public class PwNotifyEngine
 
     private ThreadPoolExecutor createExecutor( final PwmDomain pwmDomain )
     {
-        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmDomain.getPwmApplication(), this.getClass() ), true );
-        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-                1,
+        return PwmScheduler.makeMultiThreadExecutor(
                 10,
-                1,
-                TimeUnit.MINUTES,
-                new LinkedBlockingDeque<>(),
-                threadFactory
-        );
-        threadPoolExecutor.allowCoreThreadTimeOut( true );
-        return threadPoolExecutor;
+                pwmDomain.getPwmApplication(),
+                pwNotifyService.getSessionLabel(),
+                PwNotifyEngine.class );
     }
 }

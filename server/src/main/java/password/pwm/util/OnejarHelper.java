@@ -26,7 +26,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.java.StringUtil;
@@ -110,7 +110,7 @@ public class OnejarHelper
             throws Exception
     {
         final File configFile = new File( applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
-        final ConfigurationReader configReader = new ConfigurationReader( configFile );
+        final ConfigurationFileManager configReader = new ConfigurationFileManager( configFile );
         final AppConfig config = configReader.getConfiguration();
         final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
                 .config( config )

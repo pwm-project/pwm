@@ -58,8 +58,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.zip.ZipOutputStream;
@@ -73,12 +73,11 @@ public class HealthService extends AbstractPwmService implements PwmService
             new JavaChecker(),
             new ConfigurationChecker(),
             new LocalDBHealthChecker(),
-            new ApplianceStatusChecker(),
             new CertificateChecker() );
 
 
-    private ExecutorService executorService;
-    private ExecutorService supportZipWriterService;
+    private ScheduledExecutorService executorService;
+    private ScheduledExecutorService supportZipWriterService;
     private HealthMonitorSettings settings;
 
     private final Map<HealthMonitorFlag, Serializable> healthProperties = new ConcurrentHashMap<>();
@@ -122,8 +121,8 @@ public class HealthService extends AbstractPwmService implements PwmService
             return STATUS.CLOSED;
         }
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
-        supportZipWriterService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundServiceExecutor( pwmApplication, getSessionLabel(), this.getClass() );
+        supportZipWriterService = PwmScheduler.makeBackgroundServiceExecutor( pwmApplication, getSessionLabel(), this.getClass() );
         scheduleNextZipOutput();
 
         if ( settings.getThreadDumpInterval().as( TimeDuration.Unit.SECONDS ) > 0 )
@@ -165,7 +164,7 @@ public class HealthService extends AbstractPwmService implements PwmService
         {
             final Instant startTime = Instant.now();
             LOGGER.trace( () ->  "begin force immediate check" );
-            final Future future = getPwmApplication().getPwmScheduler().scheduleJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
+            final Future<?> future = getPwmApplication().getPwmScheduler().scheduleJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
             settings.getMaximumForceCheckWait().pause( future::isDone );
             final TimeDuration checkDuration = TimeDuration.fromCurrent( startTime );
             averageStats.update( AverageStatKey.checkProcessTime, checkDuration.asDuration() );
@@ -187,7 +186,7 @@ public class HealthService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         if ( executorService != null )
         {

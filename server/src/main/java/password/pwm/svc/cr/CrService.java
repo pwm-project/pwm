@@ -105,7 +105,7 @@ public class CrService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         for ( final CrOperator operator : operatorMap.values() )
         {

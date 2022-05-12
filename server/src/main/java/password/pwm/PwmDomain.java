@@ -38,9 +38,11 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceEnum;
 import password.pwm.svc.PwmServiceManager;
 import password.pwm.svc.cache.CacheService;
+import password.pwm.svc.cr.CrService;
 import password.pwm.svc.event.AuditService;
 import password.pwm.svc.httpclient.HttpClientService;
 import password.pwm.svc.intruder.IntruderDomainService;
+import password.pwm.svc.otp.OtpService;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
@@ -48,17 +50,12 @@ import password.pwm.svc.stats.StatisticsService;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.userhistory.UserHistoryService;
 import password.pwm.svc.wordlist.SharedHistoryService;
-import password.pwm.util.DailySummaryJob;
-import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.svc.cr.CrService;
-import password.pwm.svc.otp.OtpService;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
 
 /**
  * A repository for objects common to the servlet context.  A singleton
@@ -72,15 +69,18 @@ public class PwmDomain
 
     private final PwmApplication pwmApplication;
     private final DomainID domainID;
-
     private final PwmServiceManager pwmServiceManager;
+    private final SessionLabel sessionLabel;
 
     public PwmDomain( final PwmApplication pwmApplication, final DomainID domainID )
     {
         this.pwmApplication = Objects.requireNonNull( pwmApplication );
         this.domainID = Objects.requireNonNull( domainID );
 
-        final SessionLabel sessionLabel = SessionLabel.builder().domain( domainID.stringValue() ).build();
+        this.sessionLabel = pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
+                ? SessionLabel.RUNTIME_LABEL.toBuilder().domain( domainID.stringValue() ).build()
+                : SessionLabel.SYSTEM_LABEL.toBuilder().domain( domainID.stringValue() ).build();
+
         this.pwmServiceManager = new PwmServiceManager( sessionLabel, pwmApplication, domainID, PwmServiceEnum.forScope( PwmSettingScope.DOMAIN ) );
     }
 
@@ -89,15 +89,16 @@ public class PwmDomain
 
     {
         final Instant startTime = Instant.now();
-        LOGGER.trace( () -> "initializing domain " + domainID.stringValue() );
+        LOGGER.trace( sessionLabel, () -> "initializing domain " + domainID.stringValue() );
+
         pwmServiceManager.initAllServices();
 
+        if ( Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
         {
-            final ExecutorService executorService = PwmScheduler.makeSingleThreadExecutorService( getPwmApplication(), DailySummaryJob.class );
-            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailySummaryJob( this ), executorService, TimeDuration.ZERO );
+            PwmApplicationUtil.outputConfigurationToLog( pwmApplication, domainID );
         }
 
-        LOGGER.trace( () -> "completed initializing domain " + domainID.stringValue(), () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> "completed initializing domain " + domainID.stringValue(), () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     public DomainConfig getConfig( )
@@ -236,9 +237,14 @@ public class PwmDomain
         return ( UserHistoryService ) pwmServiceManager.getService( PwmServiceEnum.UserHistoryService );
     }
 
+    public SessionLabel getSessionLabel()
+    {
+        return sessionLabel;
+    }
+
     public void shutdown()
     {
-        LOGGER.trace( () -> "beginning shutdown domain " + domainID.stringValue() );
+        LOGGER.trace( sessionLabel, () -> "beginning shutdown domain " + domainID.stringValue() );
         pwmServiceManager.shutdownAllServices();
     }
 

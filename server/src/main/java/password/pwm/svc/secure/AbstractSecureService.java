@@ -118,7 +118,7 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
             throws PwmException;
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
     }
 

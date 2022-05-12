@@ -116,7 +116,7 @@ public class SessionStateService extends AbstractPwmService implements PwmServic
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
     }
 

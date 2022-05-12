@@ -20,7 +20,6 @@
 
 package password.pwm.svc.wordlist;
 
-import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
@@ -36,9 +35,9 @@ import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
@@ -247,7 +246,7 @@ class WordlistSource
         finally
         {
             closeStreams( pwmLogger, processId, sessionLabel, inputStream );
-            IOUtils.closeQuietly( zipInputStream );
+            JavaHelper.closeQuietly( zipInputStream );
         }
 
         bytes = zipInputStream.getByteCount();
@@ -315,7 +314,7 @@ class WordlistSource
         pwmLogger.trace( sessionLabel, () -> processIdLabel( processId ) + "beginning close of remote wordlist read process" );
         for ( final InputStream inputStream : inputStreams )
         {
-            IOUtils.closeQuietly( inputStream );
+            JavaHelper.closeQuietly( inputStream );
         }
         pwmLogger.trace( sessionLabel, () -> processIdLabel( processId ) + "completed close of remote wordlist read process",
                 () -> TimeDuration.fromCurrent( startClose ) );

@@ -21,7 +21,7 @@
 package password.pwm.util.cli.commands;
 
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.util.PasswordData;
@@ -64,8 +64,8 @@ public class ImportHttpsKeyStoreCommand extends AbstractCliCommand
         final String keyStorePassword = getOptionalPassword();
         final String inputAliasName = ( String ) cliEnvironment.getOptions().get( ALIAS_OPTIONNAME );
 
-        final ConfigurationReader configurationReader = new ConfigurationReader( cliEnvironment.getConfigurationFile() );
-        final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
+        final ConfigurationFileManager configurationFileManager = new ConfigurationFileManager( cliEnvironment.getConfigurationFile() );
+        final StoredConfiguration storedConfiguration = configurationFileManager.getStoredConfiguration();
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
 
         try ( FileInputStream fileInputStream = new FileInputStream( inputFile ) )
@@ -84,7 +84,7 @@ public class ImportHttpsKeyStoreCommand extends AbstractCliCommand
             return;
         }
 
-        configurationReader.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
+        configurationFileManager.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
         out( "success: keystore has been imported" );
     }
 
