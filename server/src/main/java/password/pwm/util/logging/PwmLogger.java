@@ -83,7 +83,7 @@ public class PwmLogger
         PwmLogger.fileAppender = rollingFileAppender;
     }
 
-    public static PwmLogger forClass( final Class className )
+    public static PwmLogger forClass( final Class<?> className )
     {
         return new PwmLogger( className.getName(), false );
     }
@@ -94,7 +94,7 @@ public class PwmLogger
     }
 
     public static PwmLogger forClass(
-            final Class className,
+            final Class<?> className,
             final boolean localDBDisabled
     )
     {

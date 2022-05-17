@@ -54,7 +54,6 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -148,17 +147,11 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
 
         setStatus( STATUS.OPEN );
 
-        cleanerService = Executors.newSingleThreadScheduledExecutor(
-                PwmScheduler.makePwmThreadFactory(
-                        PwmScheduler.makeThreadName( getSessionLabel(), pwmApplication, this.getClass() ) + "-cleaner-",
-                        true
-                ) );
+        cleanerService = PwmScheduler.makeBackgroundServiceExecutor(
+                pwmApplication, getSessionLabel(), LocalDBLogger.class, "cleaner" );
 
-        writerService = Executors.newSingleThreadScheduledExecutor(
-                PwmScheduler.makePwmThreadFactory(
-                        PwmScheduler.makeThreadName( getSessionLabel(), pwmApplication, this.getClass() ) + "-writer-",
-                        true
-                ) );
+        writerService = PwmScheduler.makeBackgroundServiceExecutor(
+                pwmApplication, getSessionLabel(), LocalDBLogger.class, "writer" );
 
         cleanerService.scheduleAtFixedRate( new CleanupTask(), 0, this.settings.cleanerFrequency().asMillis(), TimeUnit.MILLISECONDS );
 
@@ -197,6 +190,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
 
     private void scheduleNextFlush()
     {
+
         if ( tempMemoryEventQueue.size() > settings.getMaxBufferSize() / 2 )
         {
             writerService.schedule( new FlushTask(), 0, TimeUnit.SECONDS );

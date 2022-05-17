@@ -31,6 +31,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 
+import java.util.Collections;
 import java.util.List;
 
 public class LdapSystemService extends AbstractPwmService implements PwmService
@@ -56,7 +57,7 @@ public class LdapSystemService extends AbstractPwmService implements PwmService
     @Override
     protected List<HealthRecord> serviceHealthCheck()
     {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

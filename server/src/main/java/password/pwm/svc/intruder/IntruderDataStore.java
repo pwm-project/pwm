@@ -39,16 +39,20 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Supplier;
 
 class IntruderDataStore implements IntruderRecordStore
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( IntruderDataStore.class );
+    private static final long CLEANER_MIN_WRITE_COUNT = 1_000;
 
     private final DataStore dataStore;
     private final Supplier<PwmService.STATUS> serviceStatus;
     private final StatisticCounterBundle<DebugKeys> stats = new StatisticCounterBundle<>( DebugKeys.class );
     private final PwmService intruderService;
+
+    private final LongAdder writeCounter = new LongAdder();
 
     private Instant eldestRecord;
 
@@ -57,6 +61,7 @@ class IntruderDataStore implements IntruderRecordStore
         this.intruderService = intruderService;
         this.dataStore = dataStore;
         this.serviceStatus = serviceStatus;
+        writeCounter.add( CLEANER_MIN_WRITE_COUNT );
     }
 
     @Override
@@ -120,6 +125,7 @@ class IntruderDataStore implements IntruderRecordStore
         try
         {
             dataStore.put( key, jsonRecord );
+            writeCounter.increment();
         }
         catch ( final PwmDataStoreException e )
         {
@@ -220,6 +226,11 @@ class IntruderDataStore implements IntruderRecordStore
     @Override
     public void cleanup( final TimeDuration maxRecordAge )
     {
+        if ( writeCounter.longValue() < CLEANER_MIN_WRITE_COUNT )
+        {
+            return;
+        }
+
         if ( eldestRecord != null && TimeDuration.fromCurrent( eldestRecord ).isShorterThan( maxRecordAge ) )
         {
             LOGGER.trace( intruderService.getSessionLabel(), () -> "skipping table cleanup: eldest record is younger than max age" );
@@ -266,5 +277,7 @@ class IntruderDataStore implements IntruderRecordStore
                     + TimeDuration.compactFromCurrent( startTime ) + ", recordsExamined="
                     + finalExamined + ", recordsRemoved=" + finalRemoved );
         }
+
+        writeCounter.reset();
     }
 }

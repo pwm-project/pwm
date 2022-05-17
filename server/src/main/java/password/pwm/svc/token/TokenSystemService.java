@@ -31,6 +31,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
+import java.util.Collections;
 import java.util.List;
 
 public class TokenSystemService extends AbstractPwmService implements PwmService
@@ -59,7 +60,7 @@ public class TokenSystemService extends AbstractPwmService implements PwmService
     @Override
     protected List<HealthRecord> serviceHealthCheck()
     {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

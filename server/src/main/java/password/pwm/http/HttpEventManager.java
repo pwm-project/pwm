@@ -35,6 +35,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletRequestEvent;
 import javax.servlet.ServletRequestListener;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionActivationListener;
 import javax.servlet.http.HttpSessionEvent;
@@ -191,6 +192,16 @@ public class HttpEventManager implements
     @Override
     public void requestDestroyed( final ServletRequestEvent sre )
     {
+        try
+        {
+            final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) sre.getServletRequest(), null );
+            pwmRequest.cleanThreadLocals();
+        }
+        catch ( final Exception e )
+        {
+            LOGGER.debug( () -> "error cleaning request thread locals: " + e.getMessage() );
+        }
+
         ServletRequestListener.super.requestDestroyed( sre );
     }
 

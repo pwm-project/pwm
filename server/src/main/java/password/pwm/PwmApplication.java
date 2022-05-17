@@ -62,6 +62,7 @@ import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.MBeanUtility;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -268,6 +269,8 @@ public class PwmApplication
 
     private void postInitTasks()
     {
+        System.out.println( JavaHelper.stackTraceToString( new Throwable() ) );
+
         final Instant startTime = Instant.now();
 
         // send system audit event
@@ -282,15 +285,11 @@ public class PwmApplication
             LOGGER.warn( sessionLabel, () -> "error while clearing config manager-intruder-username from intruder table: " + e.getMessage() );
         }
 
-        if ( !pwmEnvironment.isInternalRuntimeInstance() )
-        {
-            PwmApplicationUtil.outputKeystore( this );
-            PwmApplicationUtil.outputTomcatConf( this );
-        }
+        PwmApplicationUtil.outputKeystore( this );
+        PwmApplicationUtil.outputTomcatConf( this );
 
-        if ( Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) )
-                && LOGGER.isEnabled( PwmLogLevel.TRACE )
-        )
+        if ( LOGGER.isEnabled( PwmLogLevel.TRACE )
+                && Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
         {
             PwmApplicationUtil.outputApplicationInfoToLog( this );
             PwmApplicationUtil.outputConfigurationToLog( this, DomainID.systemId() );
@@ -299,13 +298,9 @@ public class PwmApplication
 
         MBeanUtility.registerMBean( this );
 
-        getPwmScheduler().immediateExecuteRunnableInNewThread( () ->
-                {
-                    PwmSettingMetaDataReader.initCache();
-                    UserAgentUtils.initializeCache();
-                },
-                sessionLabel,
-                "initialize useragent cache" );
+        UserAgentUtils.initializeCache();
+
+        PwmSettingMetaDataReader.initCache();
 
         LOGGER.trace( sessionLabel, () -> "completed post init tasks", () -> TimeDuration.fromCurrent( startTime ) );
     }
@@ -389,19 +384,23 @@ public class PwmApplication
 
         MBeanUtility.unregisterMBean( this );
 
-        pwmServiceManager.shutdownAllServices();
-
         try
         {
             final List<Callable<Object>> callables = domains.values().stream()
                     .map( pwmDomain -> Executors.callable( pwmDomain::shutdown ) )
                     .collect( Collectors.toList() );
+
+            final Instant startDomainShutdown = Instant.now();
+            LOGGER.trace( sessionLabel, () -> "beginning shutdown of " + callables.size() + " running domains" );
             pwmScheduler.executeImmediateThreadPerJobAndAwaitCompletion( DOMAIN_STARTUP_THREADS, callables, sessionLabel, PwmApplication.class );
+            LOGGER.trace( sessionLabel, () -> "shutdown of " + callables.size() + " running domains completed", () -> TimeDuration.fromCurrent( startDomainShutdown ) );
         }
         catch ( final PwmUnrecoverableException e )
         {
             LOGGER.error( sessionLabel, () -> "error shutting down domain services: " + e.getMessage(), e );
         }
+
+        pwmServiceManager.shutdownAllServices();
 
         if ( localDBLogger != null )
         {

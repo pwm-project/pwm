@@ -76,6 +76,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -101,6 +102,8 @@ public class PwmRequest extends PwmHttpRequestWrapper
     private final Instant requestStartTime = Instant.now();
     private final DomainID domainID;
     private final Lock cspCreationLock = new ReentrantLock();
+
+    private final Set<ThreadLocal> threadLocals = new HashSet<>();
 
     private static final Lock CREATE_LOCK = new ReentrantLock();
 
@@ -712,4 +715,14 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return ( AccountInformationProfile ) getProfile( getPwmDomain(), ProfileDefinition.AccountInformation );
     }
 
+    public void registerThreadLocal( final ThreadLocal<?> threadLocal )
+    {
+        threadLocals.add( threadLocal );
+    }
+
+    public void cleanThreadLocals()
+    {
+        threadLocals.forEach( ThreadLocal::remove );
+        threadLocals.clear();
+    }
 }

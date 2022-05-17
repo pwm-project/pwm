@@ -134,7 +134,11 @@ public abstract class AbstractPwmService implements PwmService
 
         if ( status() == STATUS.OPEN )
         {
-            returnRecords.addAll( serviceHealthCheck() );
+            final List<HealthRecord> records = serviceHealthCheck();
+            if ( records != null )
+            {
+                returnRecords.addAll( records );
+            }
         }
 
         return returnRecords;

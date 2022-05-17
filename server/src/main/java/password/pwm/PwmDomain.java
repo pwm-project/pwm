@@ -51,6 +51,7 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.svc.userhistory.UserHistoryService;
 import password.pwm.svc.wordlist.SharedHistoryService;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
@@ -93,7 +94,9 @@ public class PwmDomain
 
         pwmServiceManager.initAllServices();
 
-        if ( Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
+        if ( LOGGER.isEnabled( PwmLogLevel.TRACE )
+                && !pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
+                && Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
         {
             PwmApplicationUtil.outputConfigurationToLog( pwmApplication, domainID );
         }
@@ -244,8 +247,11 @@ public class PwmDomain
 
     public void shutdown()
     {
+        final Instant startTime = Instant.now();
         LOGGER.trace( sessionLabel, () -> "beginning shutdown domain " + domainID.stringValue() );
+        TimeDuration.SECONDS_10.pause();
         pwmServiceManager.shutdownAllServices();
+        LOGGER.trace( sessionLabel, () -> "shutdown domain " + domainID.stringValue() + " completed", () -> TimeDuration.fromCurrent( startTime ) );
     }
 
     public DomainID getDomainID()
