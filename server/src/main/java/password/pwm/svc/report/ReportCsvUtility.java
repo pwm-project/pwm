@@ -20,14 +20,10 @@
 
 package password.pwm.svc.report;
 
-import com.novell.ldapchai.exception.ChaiOperationException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmApplication;
 import password.pwm.config.SettingReader;
-import password.pwm.error.PwmOperationalException;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.util.i18n.LocaleHelper;
@@ -72,7 +68,7 @@ public class ReportCsvUtility
     }
 
     public void outputToCsv( final OutputStream outputStream, final boolean includeHeader, final Locale locale )
-            throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
+            throws IOException
     {
         final SettingReader config = pwmApplication.getConfig();
 

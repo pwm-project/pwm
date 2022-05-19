@@ -45,7 +45,7 @@ public class UserReportCommand extends AbstractCliCommand
     @Override
     @SuppressFBWarnings( "DM_EXIT" )
     void doCommand( )
-            throws Exception
+            throws IOException
     {
         final File outputFile = ( File ) cliEnvironment.getOptions().get( OUTPUT_FILE_OPTIONNAME );
 
@@ -76,7 +76,6 @@ public class UserReportCommand extends AbstractCliCommand
         {
             out( "unable to open file '" + outputFile.getAbsolutePath() + "' for writing" );
             System.exit( -1 );
-            throw new Exception();
         }
 
         out( "report output complete." );

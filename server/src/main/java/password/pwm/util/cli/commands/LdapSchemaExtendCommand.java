@@ -21,22 +21,26 @@
 package password.pwm.util.cli.commands;
 
 
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiProviderFactory;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
+import password.pwm.util.cli.CliException;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.json.JsonProvider;
 import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 import password.pwm.util.secure.PwmTrustManager;
 import password.pwm.util.secure.X509CertInfo;
 import password.pwm.util.secure.X509Utils;
 
 import javax.net.ssl.X509TrustManager;
 import java.io.Console;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
@@ -52,7 +56,7 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
 
     @Override
     public void doCommand( )
-            throws Exception
+            throws IOException, CliException
     {
         final String ldapUrl = ( String ) cliEnvironment.getOptions().get( OPTION_LDAPURL );
         final String bindDN = ( String ) cliEnvironment.getOptions().get( OPTION_BIND_DN );
@@ -69,6 +73,19 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
             bindPW = new String( console.readPassword() );
         }
 
+        try
+        {
+            doSchemaExtension( ldapUrl, bindDN, bindPW );
+        }
+        catch ( final URISyntaxException | PwmOperationalException | ChaiUnavailableException | PwmUnrecoverableException e )
+        {
+            throw new CliException( "error during schema extension: " + e.getMessage(), e );
+        }
+    }
+
+    private void doSchemaExtension( final String ldapUrl, final String bindDN, final String bindPW )
+            throws URISyntaxException, PwmOperationalException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+    {
         final X509TrustManager trustManager;
         if ( isSecureLDAP( ldapUrl ) )
         {
@@ -85,7 +102,7 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
             trustManager = null;
         }
 
-        if ( !promptForContinue( "Proceeding may cause modificiations to your LDAP schema." ) )
+        if ( !promptForContinue( "Proceeding may cause modifications to your LDAP schema." ) )
         {
             return;
         }
@@ -123,7 +140,7 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
     }
 
     private List<X509Certificate> readCertificates( final String url )
-            throws URISyntaxException, PwmOperationalException
+            throws URISyntaxException, PwmOperationalException, IOException
     {
         if ( isSecureLDAP( url ) )
         {

@@ -20,6 +20,9 @@
 
 package password.pwm.util.debug;
 
+import password.pwm.error.PwmUnrecoverableException;
+
+import java.io.IOException;
 import java.io.OutputStream;
 
 interface DomainItemGenerator
@@ -30,5 +33,5 @@ interface DomainItemGenerator
     void outputItem(
             DomainDebugItemInput debugItemInput,
             OutputStream outputStream
-    ) throws Exception;
+    ) throws IOException, PwmUnrecoverableException;
 }

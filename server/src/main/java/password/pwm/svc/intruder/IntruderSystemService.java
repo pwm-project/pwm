@@ -31,7 +31,6 @@ import password.pwm.config.option.IntruderStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.AbstractPwmService;
@@ -116,7 +115,7 @@ public class IntruderSystemService extends AbstractPwmService implements PwmServ
     }
 
     public ClosableIterator<PublicIntruderRecord> allRecordIterator()
-            throws PwmUnrecoverableException, PwmOperationalException
+            throws PwmUnrecoverableException
     {
         final ClosableIterator<IntruderRecord> innerIterator = recordStore.iterator();
         return new ClosableIterator<>()

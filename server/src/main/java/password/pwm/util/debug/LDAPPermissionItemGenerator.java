@@ -22,10 +22,12 @@ package password.pwm.util.debug;
 
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.config.DomainConfig;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.LDAPPermissionCalculator;
 import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +41,8 @@ class LDAPPermissionItemGenerator implements DomainItemGenerator
     }
 
     @Override
-    public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException, PwmUnrecoverableException
     {
 
         final DomainConfig domainConfig = debugItemInput.getObfuscatedDomainConfig();

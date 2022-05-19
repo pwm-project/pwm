@@ -23,11 +23,13 @@ package password.pwm.util.debug;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.admin.UserDebugDataBean;
 import password.pwm.http.servlet.admin.UserDebugDataReader;
-import password.pwm.util.json.JsonProvider;
 import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +44,8 @@ class LdapRecentUserDebugGenerator implements DomainItemGenerator
     }
 
     @Override
-    public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException, PwmUnrecoverableException
     {
         final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
         final List<UserIdentity> recentUsers = pwmDomain.getPwmApplication().getSessionTrackService().getRecentLogins();

@@ -67,7 +67,6 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
 
 
     public static PwmLogEvent fromEncodedString( final String encodedString )
-            throws ClassNotFoundException, IOException
     {
         return JsonFactory.get().deserialize( encodedString, PwmLogEvent.class );
     }

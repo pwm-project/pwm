@@ -26,6 +26,7 @@ import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.json.JsonProvider;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
@@ -39,7 +40,7 @@ class AppPropertiesItemGenerator implements AppItemGenerator
 
     @Override
     public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
-            throws Exception
+            throws IOException
     {
         final AppConfig config = debugItemInput.getObfuscatedAppConfig();
         final Map<AppProperty, String> appPropertyMap = config.readAllAppProperties();

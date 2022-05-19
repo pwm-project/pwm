@@ -43,7 +43,6 @@ public class X509CertViewerFunction implements SettingUIFunction
             final StoredConfigKey key,
             final String extraData
     )
-            throws Exception
     {
         final List<Map<String, String>> certificateInfos = makeCertDebugMap( key, modifier );
         return ( Serializable ) certificateInfos;

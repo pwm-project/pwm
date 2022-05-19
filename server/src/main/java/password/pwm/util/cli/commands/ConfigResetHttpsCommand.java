@@ -28,16 +28,19 @@ import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.cli.CliParameters;
 
 import java.io.File;
+import java.io.IOException;
 
 public class ConfigResetHttpsCommand
         extends AbstractCliCommand
 {
     @Override
     public void doCommand( )
-            throws Exception
+            throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
         final File configurationFile = cliEnvironment.getConfigurationFile();
         if ( configurationFile == null || !configurationFile.exists() )

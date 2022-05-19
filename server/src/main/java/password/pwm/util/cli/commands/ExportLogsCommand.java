@@ -23,11 +23,13 @@ package password.pwm.util.cli.commands;
 import password.pwm.PwmConstants;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.logging.PwmLogEvent;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Collections;
@@ -38,7 +40,7 @@ public class ExportLogsCommand extends AbstractCliCommand
 
     @Override
     void doCommand( )
-            throws Exception
+            throws IOException, LocalDBException
     {
         final LocalDB localDB = this.cliEnvironment.getLocalDB();
         final LocalDBStoredQueue logQueue = LocalDBStoredQueue.createLocalDBStoredQueue( null, localDB,

@@ -48,6 +48,30 @@ public class CliParameters
         String getName( );
     }
 
+    public static Option newRequiredStringOption( final String name )
+    {
+        return  new CliParameters.Option()
+        {
+            @Override
+            public boolean isOptional()
+            {
+                return false;
+            }
+
+            @Override
+            public Type getType()
+            {
+                return Type.STRING;
+            }
+
+            @Override
+            public String getName()
+            {
+                return name;
+            }
+        };
+    }
+
     public static final Option REQUIRED_NEW_OUTPUT_FILE = new Option()
     {
         @Override

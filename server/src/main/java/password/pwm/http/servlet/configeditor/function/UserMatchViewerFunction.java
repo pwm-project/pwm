@@ -72,8 +72,9 @@ public class UserMatchViewerFunction implements SettingUIFunction
             final PwmRequest pwmRequest,
             final StoredConfigurationModifier storedConfiguration,
             final StoredConfigKey key,
-            final String extraData )
-            throws Exception
+            final String extraData
+    )
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
@@ -108,7 +109,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
             final StoredConfiguration storedConfiguration,
             final StoredConfigKey key
     )
-            throws Exception
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         final AppConfig config = new AppConfig( storedConfiguration );
         final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmDomain.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( config ) );

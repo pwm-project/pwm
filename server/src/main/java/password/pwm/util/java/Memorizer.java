@@ -20,6 +20,7 @@
 
 package password.pwm.util.java;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Value;
 
 import java.lang.reflect.InvocationHandler;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressFBWarnings( "THROWS_METHOD_THROWS_CLAUSE_THROWABLE" )
 public class Memorizer implements InvocationHandler
 {
     private final StatisticCounterBundle<DebugStats> stats = new StatisticCounterBundle<>( DebugStats.class );

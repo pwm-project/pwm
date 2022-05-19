@@ -109,7 +109,6 @@ class PwmDomainUtil
 
         @Override
         public Optional<PwmUnrecoverableException> call()
-                throws Exception
         {
             try
             {

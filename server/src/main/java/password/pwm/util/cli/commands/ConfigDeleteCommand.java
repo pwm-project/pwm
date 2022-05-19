@@ -23,12 +23,13 @@ package password.pwm.util.cli.commands;
 import password.pwm.util.cli.CliParameters;
 
 import java.io.File;
+import java.io.IOException;
 
 public class ConfigDeleteCommand extends AbstractCliCommand
 {
     @Override
     public void doCommand( )
-            throws Exception
+            throws IOException
     {
         final File configurationFile = cliEnvironment.getConfigurationFile();
         if ( configurationFile == null || !configurationFile.exists() )

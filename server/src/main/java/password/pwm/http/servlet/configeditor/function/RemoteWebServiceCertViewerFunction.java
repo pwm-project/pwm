@@ -43,7 +43,6 @@ public class RemoteWebServiceCertViewerFunction implements SettingUIFunction
             final StoredConfigKey key,
             final String extraData
     )
-            throws Exception
     {
         final Map<String, Object> parsedExtraData = JsonFactory.get().deserializeMap( extraData, String.class, Object.class );
         final int iteration = Integer.parseInt( parsedExtraData.get( "iteration" ).toString() );

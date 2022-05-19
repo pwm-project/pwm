@@ -144,10 +144,16 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClientProvider
 
     @Override
     public void close()
-            throws Exception
     {
         LOGGER.trace( () -> "closed client #" + clientID );
-        httpClient.close();
+        try
+        {
+            httpClient.close();
+        }
+        catch ( final IOException e )
+        {
+            LOGGER.trace( () -> "error closing ApacheHttpClient: " + e.getMessage() );
+        }
         open = false;
     }
 

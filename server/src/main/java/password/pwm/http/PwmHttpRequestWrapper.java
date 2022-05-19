@@ -32,8 +32,9 @@ import password.pwm.util.ServletUtility;
 import password.pwm.util.Validator;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.json.JsonFactory;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -54,6 +55,8 @@ import java.util.stream.Collectors;
 
 public class PwmHttpRequestWrapper
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmHttpRequestWrapper.class );
+
     private final HttpServletRequest httpServletRequest;
     private final AppConfig appConfig;
 
@@ -409,8 +412,16 @@ public class PwmHttpRequestWrapper
                 if ( cookie.getName() != null && cookie.getName().equals( cookieName ) )
                 {
                     final String rawCookieValue = cookie.getValue();
-                    final String decodedCookieValue = StringUtil.urlDecode( rawCookieValue );
-                    return Optional.of( Validator.sanitizeInputValue( appConfig, decodedCookieValue, maxChars ) );
+                    try
+                    {
+                        final String decodedCookieValue = StringUtil.urlDecode( rawCookieValue );
+                        return Optional.of( Validator.sanitizeInputValue( appConfig, decodedCookieValue, maxChars ) );
+                    }
+                    catch ( final IOException e )
+                    {
+                        LOGGER.trace( () -> "error decoding cookie value '" + cookie.getName()
+                                + "', error: " + e.getMessage() );
+                    }
                 }
             }
         }

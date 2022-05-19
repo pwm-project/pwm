@@ -34,9 +34,6 @@ import java.util.List;
 
 public interface PwmHttpClient extends AutoCloseable
 {
-    void close()
-            throws Exception;
-
     boolean isOpen();
 
     PwmHttpClientResponse makeRequest(

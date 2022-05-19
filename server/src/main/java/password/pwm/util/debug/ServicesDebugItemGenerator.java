@@ -22,10 +22,12 @@ package password.pwm.util.debug;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.admin.AppDashboardData;
-import password.pwm.util.json.JsonProvider;
 import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
@@ -38,7 +40,8 @@ class ServicesDebugItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException, PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
         final List<AppDashboardData.ServiceData> serviceDataList = AppDashboardData.makeServiceData( pwmApplication );

@@ -129,9 +129,9 @@ public class JavaPwmHttpClient implements PwmHttpClientProvider
     }
 
     @Override
-    public void close() throws Exception
+    public void close()
     {
-
+        // Java HttpClient has no close()
     }
 
     @Override

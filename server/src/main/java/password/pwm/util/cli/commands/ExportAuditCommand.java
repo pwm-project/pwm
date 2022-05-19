@@ -23,6 +23,7 @@ package password.pwm.util.cli.commands;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.error.PwmException;
 import password.pwm.svc.event.AuditService;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.PwmTimeUtil;
@@ -30,6 +31,7 @@ import password.pwm.util.java.TimeDuration;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
 
@@ -37,7 +39,7 @@ public class ExportAuditCommand extends AbstractCliCommand
 {
     @Override
     void doCommand( )
-            throws Exception
+            throws PwmException, IOException
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
         final AuditService auditManager = new AuditService();

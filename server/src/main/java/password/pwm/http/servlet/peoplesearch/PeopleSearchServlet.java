@@ -97,7 +97,8 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     }
 
     @Override
-    protected void nextStep( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+    protected void nextStep( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
     {
         if ( pwmRequest.getURL().isPublicUrl() )
         {
@@ -227,7 +228,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
     @ActionHandler( action = "photo" )
     public ProcessStatus processUserPhotoImageRequest( final PwmRequest pwmRequest )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+            throws PwmUnrecoverableException, IOException, ServletException
     {
         final String userKey = pwmRequest.readParameterAsString( PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation );
         if ( userKey.length() < 1 )

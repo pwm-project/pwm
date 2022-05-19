@@ -136,7 +136,7 @@ class IntruderDataStore implements IntruderRecordStore
 
     @Override
     public ClosableIterator<IntruderRecord> iterator()
-            throws PwmOperationalException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         try
         {
@@ -144,7 +144,7 @@ class IntruderDataStore implements IntruderRecordStore
         }
         catch ( final PwmDataStoreException e )
         {
-            throw new PwmOperationalException( PwmError.ERROR_INTERNAL, "iterator unavailable:" + e.getMessage() );
+            throw new PwmUnrecoverableException( PwmError.ERROR_INTERNAL, "iterator unavailable:" + e.getMessage() );
         }
     }
 

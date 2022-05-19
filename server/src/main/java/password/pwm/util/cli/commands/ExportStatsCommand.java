@@ -28,6 +28,7 @@ import password.pwm.util.java.TimeDuration;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Locale;
 
@@ -36,7 +37,7 @@ public class ExportStatsCommand extends AbstractCliCommand
 
     @Override
     void doCommand( )
-            throws Exception
+            throws IOException
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
         final StatisticsService statsManger = pwmApplication.getStatisticsManager();

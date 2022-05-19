@@ -22,6 +22,8 @@ package password.pwm.http.servlet.configeditor.function;
 
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 
 import java.io.Serializable;
@@ -36,6 +38,5 @@ public interface SettingUIFunction
             StoredConfigurationModifier modifier,
             StoredConfigKey key,
             String extraData
-    )
-            throws Exception;
+    ) throws PwmOperationalException, PwmUnrecoverableException;
 }

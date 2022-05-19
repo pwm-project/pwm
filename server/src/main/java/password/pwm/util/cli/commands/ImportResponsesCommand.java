@@ -22,6 +22,7 @@ package password.pwm.util.cli.commands;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChallengeSet;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
@@ -34,74 +35,92 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.util.cli.CliException;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.ws.server.rest.RestChallengesServer;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
+import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.util.Collections;
+import java.util.Iterator;
 
 public class ImportResponsesCommand extends AbstractCliCommand
 {
     @Override
     void doCommand( )
-            throws Exception
+            throws IOException, CliException
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
         final File inputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
-        try ( BufferedReader reader = new BufferedReader( new InputStreamReader( Files.newInputStream( inputFile.toPath() ),
-                PwmConstants.DEFAULT_CHARSET.toString() ) ) )
+
+        try
         {
-            out( "importing stored responses from " + inputFile.getAbsolutePath() + "...." );
-
-            int counter = 0;
-            String line;
-            final long startTime = System.currentTimeMillis();
-            while ( ( line = reader.readLine() ) != null )
-            {
-                counter++;
-                final RestChallengesServer.JsonChallengesData inputData;
-                inputData = JsonFactory.get().deserialize( line, RestChallengesServer.JsonChallengesData.class );
-
-                final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( SessionLabel.CLI_SESSION_LABEL, inputData.username );
-                final PwmDomain pwmDomain = figureDomain( userIdentity, pwmApplication );
-                final ChaiUser user = pwmDomain.getProxiedChaiUser( SessionLabel.CLI_SESSION_LABEL, userIdentity );
-                if ( user.exists() )
-                {
-                    out( "writing responses to user '" + user.getEntryDN() + "'" );
-                    try
-                    {
-                        final ChallengeProfile challengeProfile = pwmDomain.getCrService().readUserChallengeProfile(
-                                null, userIdentity, user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE );
-                        final ChallengeSet challengeSet = challengeProfile.getChallengeSet()
-                                .orElseThrow( () -> new PwmUnrecoverableException( PwmError.ERROR_NO_CHALLENGES.toInfo() ) );
-                        final String userGuid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, null, userIdentity, false );
-                        final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean( PwmConstants.DEFAULT_LOCALE, challengeSet.getIdentifier() );
-                        pwmDomain.getCrService().writeResponses( null, userIdentity, user, userGuid, responseInfoBean );
-                    }
-                    catch ( final Exception e )
-                    {
-                        out( "error writing responses to user '" + user.getEntryDN() + "', error: " + e.getMessage() );
-                        return;
-                    }
-                }
-                else
-                {
-                    out( "user '" + user.getEntryDN() + "' is not a valid userDN" );
-                    return;
-                }
-            }
-
-            out( "output complete, " + counter + " responses imported in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+            doImport( pwmApplication, inputFile );
+        }
+        catch ( final PwmUnrecoverableException | ChaiUnavailableException e )
+        {
+            throw new CliException( "error during response import command: " + e.getMessage(),  e );
         }
     }
 
-    private PwmDomain figureDomain( final UserIdentity userIdentity, final PwmApplication pwmApplication )
+    private void doImport( final PwmApplication pwmApplication,  final File inputFile )
+            throws IOException, PwmUnrecoverableException, ChaiUnavailableException
+    {
+        final Iterator<String> lineIterator = Files.lines( inputFile.toPath() ).iterator();
+
+        out( "importing stored responses from " + inputFile.getAbsolutePath() + "...." );
+
+        int counter = 0;
+        final Instant startTime = Instant.now();
+
+        for ( final String line = lineIterator.next(); lineIterator.hasNext(); )
+        {
+            counter++;
+            processInputLine( pwmApplication, line );
+        }
+
+        out( "output complete, " + counter + " responses imported in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+    }
+
+    private void processInputLine( final PwmApplication pwmApplication, final String line )
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException
+    {
+        final RestChallengesServer.JsonChallengesData inputData;
+        inputData = JsonFactory.get().deserialize( line, RestChallengesServer.JsonChallengesData.class );
+
+        final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( SessionLabel.CLI_SESSION_LABEL, inputData.username );
+        final PwmDomain pwmDomain = figureDomain( userIdentity, pwmApplication );
+        final ChaiUser user = pwmDomain.getProxiedChaiUser( SessionLabel.CLI_SESSION_LABEL, userIdentity );
+        if ( user.exists() )
+        {
+            out( "writing responses to user '" + user.getEntryDN() + "'" );
+            try
+            {
+                final ChallengeProfile challengeProfile = pwmDomain.getCrService().readUserChallengeProfile(
+                        null, userIdentity, user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE );
+                final ChallengeSet challengeSet = challengeProfile.getChallengeSet()
+                        .orElseThrow( () -> new PwmUnrecoverableException( PwmError.ERROR_NO_CHALLENGES.toInfo() ) );
+                final String userGuid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, null, userIdentity, false );
+                final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean( PwmConstants.DEFAULT_LOCALE, challengeSet.getIdentifier() );
+                pwmDomain.getCrService().writeResponses( null, userIdentity, user, userGuid, responseInfoBean );
+            }
+            catch ( final Exception e )
+            {
+                out( "error writing responses to user '" + user.getEntryDN() + "', error: " + e.getMessage() );
+            }
+        }
+        else
+        {
+            out( "user '" + user.getEntryDN() + "' is not a valid userDN" );
+        }
+    }
+
+    private static PwmDomain figureDomain( final UserIdentity userIdentity, final PwmApplication pwmApplication )
     {
         if ( pwmApplication.isMultiDomain() )
         {

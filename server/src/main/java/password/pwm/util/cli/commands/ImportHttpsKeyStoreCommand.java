@@ -24,6 +24,8 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.StringUtil;
@@ -31,17 +33,17 @@ import password.pwm.util.secure.HttpsServerCertificateManager;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class ImportHttpsKeyStoreCommand extends AbstractCliCommand
 {
-
     private static final String ALIAS_OPTIONNAME = "alias";
     private static final String FORMAT_OPTIONNAME = "format";
 
     @Override
     void doCommand( )
-            throws Exception
+            throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
         final File inputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
         if ( inputFile == null || !inputFile.exists() )
@@ -91,48 +93,8 @@ public class ImportHttpsKeyStoreCommand extends AbstractCliCommand
     @Override
     public CliParameters getCliParameters( )
     {
-
-        final CliParameters.Option aliasValueOption = new CliParameters.Option()
-        {
-            @Override
-            public boolean isOptional( )
-            {
-                return false;
-            }
-
-            @Override
-            public Type getType( )
-            {
-                return Type.STRING;
-            }
-
-            @Override
-            public String getName( )
-            {
-                return ALIAS_OPTIONNAME;
-            }
-        };
-
-        final CliParameters.Option formatValueOption = new CliParameters.Option()
-        {
-            @Override
-            public boolean isOptional( )
-            {
-                return false;
-            }
-
-            @Override
-            public Type getType( )
-            {
-                return Type.STRING;
-            }
-
-            @Override
-            public String getName( )
-            {
-                return FORMAT_OPTIONNAME;
-            }
-        };
+        final CliParameters.Option aliasValueOption = CliParameters.newRequiredStringOption( ALIAS_OPTIONNAME );
+        final CliParameters.Option formatValueOption = CliParameters.newRequiredStringOption( FORMAT_OPTIONNAME );
 
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ImportHttpsKeyStore";

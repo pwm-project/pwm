@@ -21,11 +21,14 @@
 package password.pwm.util.cli.commands;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import password.pwm.error.PwmException;
 import password.pwm.util.cli.CliEnvironment;
+import password.pwm.util.cli.CliException;
 import password.pwm.util.cli.CliParameters;
 
 import java.io.Console;
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.Scanner;
 
@@ -38,18 +41,16 @@ public abstract class AbstractCliCommand implements CliCommand
     }
 
     void out( final CharSequence out )
+            throws IOException
     {
-        if ( cliEnvironment != null && cliEnvironment.getDebugWriter() != null )
+        if ( cliEnvironment != null )
         {
-            try
+            final Writer debugWriter = cliEnvironment.getDebugWriter();
+            if ( debugWriter != null )
             {
-                cliEnvironment.getDebugWriter().append( out );
-                cliEnvironment.getDebugWriter().append( '\n' );
-                cliEnvironment.getDebugWriter().flush();
-            }
-            catch ( final IOException e )
-            {
-                throw new RuntimeException( "error writing debug output", e );
+                debugWriter.append( out );
+                debugWriter.append( '\n' );
+                debugWriter.flush();
             }
         }
     }
@@ -59,6 +60,7 @@ public abstract class AbstractCliCommand implements CliCommand
             final String cli,
             final CliEnvironment cliEnvironment
     )
+            throws CliException
     {
         this.cliEnvironment = cliEnvironment;
         try
@@ -67,7 +69,7 @@ public abstract class AbstractCliCommand implements CliCommand
         }
         catch ( final Exception e )
         {
-            throw new RuntimeException( e );
+            throw new CliException( "error executing command: " + e.getMessage() );
         }
     }
 
@@ -92,10 +94,11 @@ public abstract class AbstractCliCommand implements CliCommand
         return true;
     }
 
-    abstract void doCommand( ) throws Exception;
+    abstract void doCommand( ) throws IOException, PwmException, CliException;
 
     @SuppressFBWarnings( "DM_EXIT" )
     String promptForPassword( )
+            throws IOException
     {
         final Console console = System.console();
         console.writer().write( "enter password:" );
@@ -113,6 +116,7 @@ public abstract class AbstractCliCommand implements CliCommand
     }
 
     String getOptionalPassword( )
+            throws IOException
     {
         final String optionName = CliParameters.OPTIONAL_PASSWORD.getName();
         if ( cliEnvironment.getOptions().containsKey( optionName ) )

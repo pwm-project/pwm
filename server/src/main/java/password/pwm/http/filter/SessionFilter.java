@@ -328,21 +328,31 @@ public class SessionFilter extends AbstractPwmFilter
             {
                 for ( final String paramName : pwmRequest.parameterNames() )
                 {
-                    // check to make sure param is in query string
-                    if ( queryString.contains( StringUtil.urlDecode( paramName ) ) )
+                    try
                     {
-                        if ( !verificationParamName.equals( paramName ) )
+                        final String decodedParamName = StringUtil.urlDecode( paramName );
+
+                        // check to make sure param is in query string
+                        if ( queryString.contains( decodedParamName ) )
                         {
-                            // raw read of param value to avoid sanitization checks
-                            for ( final String value : req.getParameterValues( paramName ) )
+                            if ( !verificationParamName.equals( paramName ) )
                             {
-                                redirectURL = PwmURL.appendAndEncodeUrlParameters( redirectURL, paramName, value );
+                                // raw read of param value to avoid sanitization checks
+                                for ( final String value : req.getParameterValues( paramName ) )
+                                {
+                                    redirectURL = PwmURL.appendAndEncodeUrlParameters( redirectURL, paramName, value );
+                                }
                             }
                         }
+                        else
+                        {
+                            LOGGER.debug( () -> "dropping non-query string (body?) parameter '" + paramName + "' during redirect validation)" );
+                        }
                     }
-                    else
+                    catch ( final IOException e )
                     {
-                        LOGGER.debug( () -> "dropping non-query string (body?) parameter '" + paramName + "' during redirect validation)" );
+                        LOGGER.trace( () -> "error decoding cookie value '" + paramName
+                                + "', error: " + e.getMessage() );
                     }
                 }
             }

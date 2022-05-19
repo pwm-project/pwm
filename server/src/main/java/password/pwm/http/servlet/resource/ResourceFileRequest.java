@@ -37,6 +37,7 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.Arrays;
@@ -67,7 +68,7 @@ class ResourceFileRequest
             @NonNull final ResourceServletConfiguration resourceServletConfiguration,
             @NonNull final HttpServletRequest httpServletRequest
     )
-            throws PwmUnrecoverableException
+            throws PwmUnrecoverableException, IOException
     {
         this.domainConfig = domainConfig;
         this.resourceServletConfiguration = resourceServletConfiguration;
@@ -182,6 +183,7 @@ class ResourceFileRequest
             final DomainConfig domainConfig,
             final String inputResourcePathUri
     )
+            throws IOException
     {
         // URL-decode the file name (might contain spaces and on) and prepare file object.
         String effectiveUri = StringUtil.urlDecode( inputResourcePathUri );
@@ -212,7 +214,17 @@ class ResourceFileRequest
     )
             throws PwmUnrecoverableException
     {
-        final String effectiveUri = deriveEffectiveURI( domainConfig, inputResourcePathUri );
+        final String effectiveUri;
+        try
+        {
+            effectiveUri = deriveEffectiveURI( domainConfig, inputResourcePathUri );
+        }
+        catch ( final IOException e )
+        {
+            final String errorMsg = "i/o error during resource request resolution: " + e.getMessage();
+            LOGGER.trace( () -> errorMsg );
+            throw new PwmUnrecoverableException( PwmError.ERROR_INTERNAL, errorMsg );
+        }
 
         if ( !effectiveUri.startsWith( ResourceFileServlet.RESOURCE_PATH ) )
         {

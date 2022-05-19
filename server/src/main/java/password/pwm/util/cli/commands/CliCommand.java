@@ -26,11 +26,7 @@ import password.pwm.util.cli.CliParameters;
 
 public interface CliCommand
 {
-
-
     void execute( String cli, CliEnvironment cliEnvironment ) throws CliException;
 
     CliParameters getCliParameters( );
-
-
 }
