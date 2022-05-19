@@ -186,19 +186,20 @@ PWM_MAIN.initPage = function() {
         });
     }
 
-    for (var i = 0; i < PWM_GLOBAL['startupFunctions'].length; i++) {
-        try {
-            PWM_GLOBAL['startupFunctions'][i]();
-        } catch(e) {
-            console.error('error executing startup function: ' + e);
-        }
-    }
+    PWM_MAIN.JSLibrary.onPageLoad(function(){
+        PWM_MAIN.JSLibrary.forEachInArray(PWM_GLOBAL['startupFunctions'],function(startupFunction){
+            try {
+                startupFunction();
+            } catch(e) {
+                console.error('error executing startup function: ' + e);
+            }
+        })
+    });
 
     PWM_MAIN.TimestampHandler.initAllElements();
 
     ShowHidePasswordHandler.initAllForms();
-    var loadTime = window.performance.timing.domContentLoadedEventEnd-window.performance.timing.navigationStart;
-    PWM_MAIN.log('initPage completed [load time=' + loadTime + ']');
+    PWM_MAIN.log('initPage completed');
 };
 
 PWM_MAIN.initDisplayTabPreferences = function() {
@@ -1383,6 +1384,16 @@ PWM_MAIN.JSLibrary.removeElementFromDom = function(elementID) {
     var element = PWM_MAIN.getObject(elementID);
     if (element) {
         element.parentNode.removeChild(element);
+    }
+};
+
+PWM_MAIN.JSLibrary.onPageLoad = function(callback) {
+    if (document.readyState === "complete") {
+        callback();
+    } else {
+        window.addEventListener("load",function(event) {
+            callback();
+        }, false);
     }
 };
 
