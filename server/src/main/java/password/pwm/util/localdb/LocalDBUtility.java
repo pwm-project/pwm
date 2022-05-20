@@ -28,7 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.EventRateMeter;
-import password.pwm.util.ProgressInfo;
+import password.pwm.util.ProgressInfoCalculator;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.AverageTracker;
 import password.pwm.util.java.ConditionalTaskExecutor;
@@ -410,8 +410,8 @@ public class LocalDBUtility
             final Map<String, String> stats = new LinkedHashMap<>();
             if ( totalBytes > 0 && byteReaderCounter > 0 )
             {
-                final ProgressInfo progressInfo = new ProgressInfo( startTime, totalBytes, byteReaderCounter );
-                stats.put( "progress", progressInfo.debugOutput() );
+                final ProgressInfoCalculator progressInfoCalculator = ProgressInfoCalculator.createProgressInfo( startTime, totalBytes, byteReaderCounter );
+                stats.put( "progress", progressInfoCalculator.debugOutput() );
             }
 
             stats.put( "linesRead", Integer.toString( lineReaderCounter ) );

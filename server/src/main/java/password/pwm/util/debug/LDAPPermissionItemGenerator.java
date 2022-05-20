@@ -23,7 +23,7 @@ package password.pwm.util.debug;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.LDAPPermissionCalculator;
+import password.pwm.ldap.LdapPermissionCalculator;
 import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 
@@ -46,7 +46,7 @@ class LDAPPermissionItemGenerator implements DomainItemGenerator
     {
 
         final DomainConfig domainConfig = debugItemInput.getObfuscatedDomainConfig();
-        final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( domainConfig );
+        final LdapPermissionCalculator ldapPermissionCalculator = new LdapPermissionCalculator( domainConfig );
 
         final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
         {
@@ -59,7 +59,7 @@ class LDAPPermissionItemGenerator implements DomainItemGenerator
             csvPrinter.printComment( StringUtil.join( headerRow, "," ) );
         }
 
-        for ( final LDAPPermissionCalculator.PermissionRecord record : ldapPermissionCalculator.getPermissionRecords() )
+        for ( final LdapPermissionCalculator.PermissionRecord record : ldapPermissionCalculator.getPermissionRecords() )
         {
             final List<String> dataRow = new ArrayList<>();
             dataRow.add( record.getAttribute() );

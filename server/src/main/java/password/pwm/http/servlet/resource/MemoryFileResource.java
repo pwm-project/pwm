@@ -20,7 +20,7 @@
 
 package password.pwm.http.servlet.resource;
 
-import password.pwm.util.java.ImmutableByteArray;
+import password.pwm.data.ImmutableByteArray;
 
 import java.io.IOException;
 import java.io.InputStream;

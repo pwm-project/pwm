@@ -27,7 +27,7 @@ import password.pwm.bean.DomainID;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 
 import java.io.Serializable;
 import java.time.Instant;

@@ -28,7 +28,6 @@ import password.pwm.config.AppConfig;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
-import password.pwm.util.ServletUtility;
 import password.pwm.util.Validator;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;

@@ -53,7 +53,7 @@ import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
-import password.pwm.util.LDAPPermissionCalculator;
+import password.pwm.ldap.LdapPermissionCalculator;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.Percent;
 import password.pwm.util.logging.PwmLogger;
@@ -179,7 +179,7 @@ public class ConfigGuideUtils
 
         if ( configGuideBean.getStep() == GuideStep.LDAP_PERMISSIONS )
         {
-            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(
+            final LdapPermissionCalculator ldapPermissionCalculator = new LdapPermissionCalculator(
                     new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) ).getDomainConfigs().get( ConfigGuideForm.DOMAIN_ID ) );
             pwmRequest.setAttribute( PwmRequestAttribute.LdapPermissionItems, ldapPermissionCalculator );
         }

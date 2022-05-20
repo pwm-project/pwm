@@ -33,16 +33,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressFBWarnings( "THROWS_METHOD_THROWS_CLAUSE_THROWABLE" )
 public class CachingProxyWrapper
 {
-
     @Value
-    private static final class MethodSignature
+    private static class MethodSignature
     {
         private final Method method;
         private final Object[] arguments;
     }
 
     @Value
-    private static final class ResultWrapper
+    private static class ResultWrapper
     {
         private final Object result;
     }

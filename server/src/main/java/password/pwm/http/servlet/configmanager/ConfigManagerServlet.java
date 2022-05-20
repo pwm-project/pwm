@@ -56,7 +56,7 @@ import password.pwm.http.servlet.configguide.ConfigGuideUtils;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
-import password.pwm.util.LDAPPermissionCalculator;
+import password.pwm.ldap.LdapPermissionCalculator;
 import password.pwm.util.debug.DebugItemGenerator;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
@@ -402,7 +402,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     {
         final StoredConfiguration storedConfiguration = readCurrentConfiguration( pwmRequest );
         final AppConfig appConfig = new AppConfig( storedConfiguration );
-        final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( appConfig.getDomainConfigs().get( pwmRequest.getDomainID() ) );
+        final LdapPermissionCalculator ldapPermissionCalculator = new LdapPermissionCalculator( appConfig.getDomainConfigs().get( pwmRequest.getDomainID() ) );
         pwmRequest.setAttribute( PwmRequestAttribute.LdapPermissionItems, ldapPermissionCalculator );
         pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_PERMISSIONS );
     }
@@ -421,9 +421,9 @@ public class ConfigManagerServlet extends AbstractPwmServlet
         try ( CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() ) )
         {
 
-            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( pwmRequest.getDomainConfig() );
+            final LdapPermissionCalculator ldapPermissionCalculator = new LdapPermissionCalculator( pwmRequest.getDomainConfig() );
 
-            for ( final LDAPPermissionCalculator.PermissionRecord permissionRecord : ldapPermissionCalculator.getPermissionRecords() )
+            for ( final LdapPermissionCalculator.PermissionRecord permissionRecord : ldapPermissionCalculator.getPermissionRecords() )
             {
                 final String settingTxt = permissionRecord.getPwmSetting() == null
                         ? LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest )

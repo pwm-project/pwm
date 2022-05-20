@@ -24,7 +24,7 @@
 
 
 <%@ page import="password.pwm.bean.LocalSessionStateBean" %>
-<%@ page import="password.pwm.ldap.UserInfo" %>
+<%@ page import="password.pwm.user.UserInfo" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="java.sql.Date" %>
 <%@ page import="java.text.DateFormat" %>

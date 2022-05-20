@@ -41,7 +41,7 @@ import password.pwm.http.servlet.peoplesearch.bean.OrgChartDataBean;
 import password.pwm.http.servlet.peoplesearch.bean.PeopleSearchClientConfigBean;
 import password.pwm.http.servlet.peoplesearch.bean.SearchResultBean;
 import password.pwm.http.servlet.peoplesearch.bean.UserDetailBean;
-import password.pwm.ldap.PhotoDataBean;
+import password.pwm.bean.PhotoDataBean;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.MiscUtil;

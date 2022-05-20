@@ -18,10 +18,10 @@
  * limitations under the License.
  */
 
-package password.pwm.ldap;
+package password.pwm.bean;
 
 import lombok.Value;
-import password.pwm.util.java.ImmutableByteArray;
+import password.pwm.data.ImmutableByteArray;
 
 import java.io.Serializable;
 

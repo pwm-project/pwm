@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.ldap;
+package password.pwm.user;
 
 import com.novell.ldapchai.impl.edir.entry.EdirEntries;
 import lombok.Builder;
@@ -174,7 +174,7 @@ public class UserInfoBean implements UserInfo
     {
         if ( attributes.containsKey( attribute ) )
         {
-            return Collections.unmodifiableList( Collections.singletonList( attributes.get( attribute ) ) );
+            return Collections.singletonList( attributes.get( attribute ) );
         }
 
         return Collections.emptyList();

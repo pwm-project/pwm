@@ -22,7 +22,7 @@ package password.pwm.svc.userhistory;
 
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.svc.event.UserAuditRecord;
 
 import java.util.List;

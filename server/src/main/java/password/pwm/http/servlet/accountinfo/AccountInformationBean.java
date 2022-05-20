@@ -33,7 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.DisplayElement;
 import password.pwm.http.tag.PasswordRequirementsTag;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.ViewableUserInfoDisplayReader;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.util.form.FormUtility;

@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.util;
+package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiConstant;
 import lombok.Value;
@@ -59,16 +59,16 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
-public class LDAPPermissionCalculator implements Serializable
+public class LdapPermissionCalculator implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPPermissionCalculator.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( LdapPermissionCalculator.class );
 
     private final transient DomainConfig domainConfig;
     private final List<PermissionRecord> permissionRecords;
 
-    public LDAPPermissionCalculator( final DomainConfig domainConfig ) throws PwmUnrecoverableException
+    public LdapPermissionCalculator( final DomainConfig domainConfig ) throws PwmUnrecoverableException
     {
         this.domainConfig = Objects.requireNonNull( domainConfig );
         permissionRecords = figureRecords();

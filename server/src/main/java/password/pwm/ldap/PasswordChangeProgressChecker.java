@@ -33,7 +33,7 @@ import password.pwm.config.option.PasswordSyncCheckMode;
 import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
-import password.pwm.util.ProgressInfo;
+import password.pwm.util.ProgressInfoCalculator;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.json.JsonFactory;
@@ -230,8 +230,8 @@ public class PasswordChangeProgressChecker
         {
             final float pctComplete = figureAverageProgress( progressRecords );
             LOGGER.trace( pwmSession, () -> "percent complete: " + pctComplete );
-            final ProgressInfo progressInfo = new ProgressInfo( tracker.beginTime, 100, ( long ) pctComplete );
-            final Instant actualEstimate = progressInfo.estimatedCompletion();
+            final ProgressInfoCalculator progressInfoCalculator = ProgressInfoCalculator.createProgressInfo( tracker.beginTime, 100, ( long ) pctComplete );
+            final Instant actualEstimate = progressInfoCalculator.estimatedCompletion();
 
             if ( actualEstimate.isBefore( minCompletionTime ) )
             {

@@ -55,6 +55,7 @@ import password.pwm.svc.cr.CrService;
 import password.pwm.svc.otp.OTPUserRecord;
 import password.pwm.svc.otp.OtpService;
 import password.pwm.svc.pwnotify.PwNotifyUserStatus;
+import password.pwm.user.UserInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.i18n.LocaleHelper;
@@ -78,9 +79,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public class UserInfoReader implements UserInfo
+public class LdapUserInfoReader implements UserInfo
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( UserInfoReader.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( LdapUserInfoReader.class );
 
     private final UserIdentity userIdentity;
     private final PasswordData currentPassword;
@@ -96,7 +97,7 @@ public class UserInfoReader implements UserInfo
      */
     private UserInfo selfCachedReference;
 
-    private UserInfoReader(
+    private LdapUserInfoReader(
             final UserIdentity userIdentity,
             final PasswordData currentPassword,
             final SessionLabel sessionLabel,
@@ -129,7 +130,7 @@ public class UserInfoReader implements UserInfo
         final PwmDomain pwmDomain = pwmApplication.domains().get( userIdentity.getDomainID() );
         LdapOperationsHelper.addConfiguredUserObjectClass( sessionLabel, userIdentity, pwmDomain );
 
-        final UserInfoReader userInfo = new UserInfoReader( userIdentity, currentPassword, sessionLabel, locale, pwmApplication, chaiProvider );
+        final LdapUserInfoReader userInfo = new LdapUserInfoReader( userIdentity, currentPassword, sessionLabel, locale, pwmApplication, chaiProvider );
         final UserInfo selfCachedReference = CachingProxyWrapper.create( UserInfo.class, userInfo );
         userInfo.selfCachedReference = selfCachedReference;
         return selfCachedReference;

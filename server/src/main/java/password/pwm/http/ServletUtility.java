@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.util;
+package password.pwm.http;
 
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;

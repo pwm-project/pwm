@@ -21,6 +21,7 @@
 package password.pwm.util.java;
 
 import org.apache.commons.io.IOUtils;
+import password.pwm.data.ImmutableByteArray;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

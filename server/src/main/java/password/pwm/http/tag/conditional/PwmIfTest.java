@@ -36,7 +36,7 @@ import password.pwm.health.HealthService;
 import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.otp.OTPUserRecord;
 import password.pwm.util.java.StringUtil;

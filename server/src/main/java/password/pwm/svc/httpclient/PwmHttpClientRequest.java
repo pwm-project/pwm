@@ -26,7 +26,7 @@ import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.http.HttpEntityDataType;
 import password.pwm.http.HttpMethod;
-import password.pwm.util.java.ImmutableByteArray;
+import password.pwm.data.ImmutableByteArray;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.StringUtil;
 
