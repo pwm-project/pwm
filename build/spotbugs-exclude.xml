@@ -44,4 +44,24 @@
         <!-- overly aggressive check added in 4.4.1 -->
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+
+
+    <Match>
+        <!-- issue with spotbugs 4.7.0 -->
+        <!-- https://github.com/spotbugs/spotbugs/issues/2040 -->
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION" />
+    </Match>
+
+    <Match>
+        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION" />
+    </Match>
+
+    <Match>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION" />
+    </Match>
+
+    <Match>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_THROWABLE" />
+    </Match>
+
 </FindBugsFilter>
