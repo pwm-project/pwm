@@ -193,7 +193,7 @@ public class ShortcutServlet extends AbstractPwmServlet
                 final UserPermission userPermission = UserPermission.builder()
                         .type( UserPermissionType.ldapQuery )
                         .ldapQuery( item.getLdapQuery() )
-                        .ldapBase( userIdentity.getLdapProfileID() )
+                        .ldapBase( userIdentity.getUserDN() )
                         .build();
 
                 final boolean queryMatch = UserPermissionUtility.testUserPermission(
