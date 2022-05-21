@@ -3196,9 +3196,8 @@
         </default>
     </setting>
     <setting hidden="false" key="shortcut.httpHeaders" level="1">
-        <default>
-            <value><![CDATA[X-Shortcuts]]></value>
-        </default>
+        <example>X-Shortcuts</example>
+        <default/>
     </setting>
     <setting hidden="false" key="shortcut.newWindow" level="1">
         <default>
