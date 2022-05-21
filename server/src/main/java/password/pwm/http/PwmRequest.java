@@ -401,7 +401,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return pwmURL;
     }
 
-    public void debugHttpRequestToLog( final String extraText, final Supplier<TimeDuration> timeDuration )
+    public void debugHttpRequestToLog( final String extraText, final TimeDuration timeDuration )
             throws PwmUnrecoverableException
     {
         if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )

@@ -398,7 +398,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
         activity = Wordlist.Activity.Clearing;
         writeWordlistStatus( WordlistStatus.builder().build() );
         getWordlistBucket().clear();
-        getLogger().debug( getSessionLabel(), () -> "cleared stored wordlist", () -> TimeDuration.fromCurrent( startTime ) );
+        getLogger().debug( getSessionLabel(), () -> "cleared stored wordlist", TimeDuration.fromCurrent( startTime ) );
         setActivity( postCleanActivity );
     }
 

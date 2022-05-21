@@ -521,7 +521,7 @@ public class EmailService extends AbstractPwmService implements PwmService
             emailConnection.getEmailServer().getAverageSendTime().update( sendTime.asMillis() );
             lastSendError.set( null );
 
-            LOGGER.debug( () -> "sent email: " + emailItemBean.toDebugString(), () -> sendTime );
+            LOGGER.debug( () -> "sent email: " + emailItemBean.toDebugString(), sendTime );
             StatisticsClient.incrementStat( getPwmApplication(), Statistic.EMAIL_SEND_SUCCESSES );
         }
         catch ( final MessagingException | PwmException e )

@@ -222,7 +222,7 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
             LOGGER.debug( getSessionLabel(), () -> "open with " + size + " words"
                     + ", maxAgeMs=" + maxAge.asCompactString()
                     + ", oldestEntry=" + TimeDuration.fromCurrent( oldestEntry ).asCompactString(),
-                    () -> TimeDuration.fromCurrent( startTime ) );
+                    TimeDuration.fromCurrent( startTime ) );
         }
         catch ( final LocalDBException e )
         {
@@ -405,7 +405,7 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
                 LOGGER.debug( getSessionLabel(), () -> "completed wordDB reduce operation" + ", removed=" + finalRemove
                         + ", totalRemaining=" + size()
                         + ", oldestEntry=" + oldestEntry
-                        + " in ", () -> TimeDuration.fromCurrent( startTime ) );
+                        + " in ", TimeDuration.fromCurrent( startTime ) );
             }
         }
     }

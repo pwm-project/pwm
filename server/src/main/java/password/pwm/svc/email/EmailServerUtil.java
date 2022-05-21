@@ -395,7 +395,7 @@ public class EmailServerUtil
         }
 
         LOGGER.debug( () -> "connected to " + server.toDebugString() + " " + ( authenticated ? "(authenticated)" : "(unauthenticated)" ),
-                () -> TimeDuration.fromCurrent( startTime ) );
+                TimeDuration.fromCurrent( startTime ) );
 
         return transport;
     }

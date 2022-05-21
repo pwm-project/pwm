@@ -48,6 +48,6 @@ class LogJsonItemGenerator implements AppItemGenerator
         final Function<PwmLogEvent, String> logEventFormatter = JsonFactory.get()::serialize;
 
         LogDebugItemGenerator.outputLogs( debugItemInput.getPwmApplication(), outputStream, logEventFormatter );
-        LOGGER.trace( () -> "debug json output completed in ", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "debug json output completed in ", TimeDuration.fromCurrent( startTime ) );
     }
 }

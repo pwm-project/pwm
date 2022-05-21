@@ -104,7 +104,7 @@ public class DataStoreTokenMachine implements TokenMachine
         }
         {
             final long finalSize = size();
-            LOGGER.trace( () -> "completed record purge cycle; database size = " + finalSize, () -> TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( () -> "completed record purge cycle; database size = " + finalSize, TimeDuration.fromCurrent( startTime ) );
         }
     }
 

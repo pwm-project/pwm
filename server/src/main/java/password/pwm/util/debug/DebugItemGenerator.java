@@ -137,7 +137,7 @@ public class DebugItemGenerator
         {
             final String msg = "completed";
             debugGeneratorLogFile.appendLine( msg );
-            LOGGER.trace( sessionLabel, () -> msg, () ->  TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( sessionLabel, () -> msg, TimeDuration.fromCurrent( startTime ) );
         }
 
         try

@@ -95,7 +95,7 @@ class PwmDomainUtil
             throw domainStartupException.get();
         }
 
-        LOGGER.trace( () -> "completed domain initialization for domains", () -> TimeDuration.fromCurrent( domainInitStartTime ) );
+        LOGGER.trace( () -> "completed domain initialization for domains", TimeDuration.fromCurrent( domainInitStartTime ) );
     }
 
     private static class DomainInitializingCallable implements Callable<Optional<PwmUnrecoverableException>>
@@ -151,10 +151,20 @@ class PwmDomainUtil
             returnDomainMap.put( modifiedDomainID, newDomain );
         }
 
+        if ( newDomains.isEmpty() && deletedDomains.isEmpty() )
+        {
+            LOGGER.debug( pwmApplication.getSessionLabel(), () -> "no domain-level settings have been changed, restart of domain services is not required");
+        }
 
-        initDomains( pwmApplication, newDomains );
+        if ( !newDomains.isEmpty() )
+        {
+            initDomains( pwmApplication, newDomains );
+        }
 
-        processDeletedDomains( pwmApplication, deletedDomains );
+        if ( !deletedDomains.isEmpty() )
+        {
+            processDeletedDomains( pwmApplication, deletedDomains );
+        }
 
         return Collections.unmodifiableMap( returnDomainMap );
     }
@@ -174,7 +184,7 @@ class PwmDomainUtil
                         LOGGER.trace( pwmApplication.getSessionLabel(), () -> "shutting down obsoleted domain services" );
                         deletedDomains.forEach( PwmDomain::shutdown );
                         LOGGER.debug( pwmApplication.getSessionLabel(), () -> "shut down obsoleted domain services completed",
-                                () -> TimeDuration.fromCurrent( startTime ) );
+                                TimeDuration.fromCurrent( startTime ) );
                     },
                     pwmApplication.getSessionLabel(),
                     "obsoleted domain cleanup" );

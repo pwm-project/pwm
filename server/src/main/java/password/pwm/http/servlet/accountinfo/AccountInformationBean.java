@@ -97,7 +97,7 @@ public class AccountInformationBean implements Serializable
         ) );
         builder.passwordRules( makePasswordRules( pwmRequest ) );
 
-        LOGGER.trace( pwmRequest, () -> "generated account information bean in ", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( pwmRequest, () -> "generated account information bean in ", TimeDuration.fromCurrent( startTime ) );
         return builder.build();
     }
 

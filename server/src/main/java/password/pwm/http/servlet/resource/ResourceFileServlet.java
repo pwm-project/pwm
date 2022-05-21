@@ -155,7 +155,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
                 debugText = makeDebugText( fromCache, acceptsGzip, true );
             }
 
-            pwmRequest.debugHttpRequestToLog( debugText, () -> TimeDuration.fromCurrent( pwmRequest.getRequestStartTime() ) );
+            pwmRequest.debugHttpRequestToLog( debugText, TimeDuration.fromCurrent( pwmRequest.getRequestStartTime() ) );
 
             StatisticsClient.incrementStat( pwmDomain, Statistic.HTTP_RESOURCE_REQUESTS );
             resourceService.getAverageStats().update( ResourceServletService.AverageStat.cacheHitRatio, fromCache ? 1 : 0 );

@@ -217,7 +217,7 @@ public class JavaPwmHttpClient implements PwmHttpClientProvider
         httpClientService.getStats().increment( HttpClientService.StatsKey.responseBytes, pwmHttpClientResponse.size() );
         httpClientService.getStats().increment( HttpClientService.StatsKey.requestBytes, pwmHttpClientRequest.size() );
         LOGGER.trace( sessionLabel, () -> "client #" + clientID + " received response (id=" + pwmHttpClientRequest.getRequestID() + ") "
-                + pwmHttpClientResponse.toDebugString( pwmApplication, pwmHttpClientConfiguration ), () -> TimeDuration.fromCurrent( startTime ) );
+                + pwmHttpClientResponse.toDebugString( pwmApplication, pwmHttpClientConfiguration ), TimeDuration.fromCurrent( startTime ) );
     }
 
     private static Optional<HttpContentType> contentTypeForResponse( final HttpHeaders httpHeaders )

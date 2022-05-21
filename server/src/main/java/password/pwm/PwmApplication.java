@@ -219,10 +219,6 @@ public class PwmApplication
         installTime = fetchInstallDate( startupTime );
         LOGGER.debug( sessionLabel, () -> "this application instance first installed on " + StringUtil.toIsoDate( installTime ) );
 
-        LOGGER.debug( sessionLabel, () -> "application environment flags: " + JsonFactory.get().serializeCollection( pwmEnvironment.getFlags() ) );
-        LOGGER.debug( sessionLabel, () -> "application environment parameters: "
-                + JsonFactory.get().serializeMap( pwmEnvironment.getParameters(), PwmEnvironment.ApplicationParameter.class, String.class ) );
-
         pwmScheduler = new PwmScheduler( this );
 
         domains = PwmDomainUtil.createDomainInstances( this );
@@ -243,14 +239,13 @@ public class PwmApplication
 
             pwmScheduler.immediateExecuteRunnableInNewThread( this::postInitTasks, sessionLabel, this.getClass().getSimpleName() + " postInit tasks" );
         }
-
     }
 
     public void reInit( final PwmEnvironment pwmEnvironment )
             throws PwmException
     {
         final Instant startTime = Instant.now();
-        LOGGER.debug( sessionLabel, () -> "beginning application restart" );
+        LOGGER.trace( sessionLabel, () -> "beginning application restart" );
         final AppConfig oldConfig = this.pwmEnvironment.getConfig();
         this.pwmEnvironment = pwmEnvironment;
         final AppConfig newConfig = this.pwmEnvironment.getConfig();
@@ -259,12 +254,16 @@ public class PwmApplication
         {
             processPwmAppRestart( );
         }
+        else
+        {
+            LOGGER.debug( sessionLabel, () -> "no system-level settings have been changed, restart of system services is not required");
+        }
 
         domains = PwmDomainUtil.reInitDomains( this, newConfig, oldConfig );
 
         runtimeNonce = PwmRandom.getInstance().randomUUID().toString();
 
-        LOGGER.debug( sessionLabel, () -> "completed application restart", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.debug( sessionLabel, () -> "completed application restart with " + domains().size() + " domains", TimeDuration.fromCurrent( startTime ) );
     }
 
     private void postInitTasks()
@@ -288,6 +287,10 @@ public class PwmApplication
         PwmApplicationUtil.outputKeystore( this );
         PwmApplicationUtil.outputTomcatConf( this );
 
+        LOGGER.debug( sessionLabel, () -> "application environment flags: " + JsonFactory.get().serializeCollection( pwmEnvironment.getFlags() ) );
+        LOGGER.debug( sessionLabel, () -> "application environment parameters: "
+                + JsonFactory.get().serializeMap( pwmEnvironment.getParameters(), PwmEnvironment.ApplicationParameter.class, String.class ) );
+
         if ( LOGGER.isEnabled( PwmLogLevel.TRACE )
                 && Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
         {
@@ -302,7 +305,7 @@ public class PwmApplication
 
         PwmSettingMetaDataReader.initCache();
 
-        LOGGER.trace( sessionLabel, () -> "completed post init tasks", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> "completed post init tasks", TimeDuration.fromCurrent( startTime ) );
     }
 
     public static PwmApplication createPwmApplication( final PwmEnvironment pwmEnvironment )
@@ -393,7 +396,7 @@ public class PwmApplication
             final Instant startDomainShutdown = Instant.now();
             LOGGER.trace( sessionLabel, () -> "beginning shutdown of " + callables.size() + " running domains" );
             pwmScheduler.executeImmediateThreadPerJobAndAwaitCompletion( DOMAIN_STARTUP_THREADS, callables, sessionLabel, PwmApplication.class );
-            LOGGER.trace( sessionLabel, () -> "shutdown of " + callables.size() + " running domains completed", () -> TimeDuration.fromCurrent( startDomainShutdown ) );
+            LOGGER.trace( sessionLabel, () -> "shutdown of " + callables.size() + " running domains completed", TimeDuration.fromCurrent( startDomainShutdown ) );
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -425,7 +428,7 @@ public class PwmApplication
                 final TimeDuration closeLocalDbDuration = TimeDuration.fromCurrent( startCloseDbTime );
                 if ( closeLocalDbDuration.isLongerThan( TimeDuration.SECONDS_10 ) )
                 {
-                    LOGGER.info( sessionLabel, () -> "completed close of LocalDB", () -> closeLocalDbDuration );
+                    LOGGER.info( sessionLabel, () -> "completed close of LocalDB", closeLocalDbDuration );
                 }
             }
             catch ( final Exception e )
@@ -443,7 +446,7 @@ public class PwmApplication
         pwmScheduler.shutdown();
 
         LOGGER.info( sessionLabel, () -> PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION
-                + " closed for bidness, cya!", () -> TimeDuration.fromCurrent( startTime ) );
+                + " closed for bidness, cya!", TimeDuration.fromCurrent( startTime ) );
     }
 
     public String getInstanceID( )

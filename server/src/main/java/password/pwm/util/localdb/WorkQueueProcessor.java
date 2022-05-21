@@ -32,11 +32,11 @@ import password.pwm.util.EventRateMeter;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -56,7 +56,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
 
 /**
  * A work item queue manager.   Items submitted to the queue will eventually be worked on by the client side @code {@link ItemProcessor}.
@@ -223,7 +222,7 @@ public final class WorkQueueProcessor<W extends Serializable>
             final ProcessResult processResult = itemProcessor.process( itemWrapper.getWorkItem() );
             if ( processResult == ProcessResult.SUCCESS )
             {
-                logAndStatUpdateForSuccess( itemWrapper, () -> TimeDuration.fromCurrent( processStartTime ) );
+                logAndStatUpdateForSuccess( itemWrapper, TimeDuration.fromCurrent( processStartTime ) );
             }
             else if ( processResult == ProcessResult.RETRY || processResult == ProcessResult.NOOP )
             {
@@ -281,13 +280,13 @@ public final class WorkQueueProcessor<W extends Serializable>
         if ( attempts > 1 )
         {
             logger.trace( () -> "item submitted directly to queue: " + makeDebugText( itemWrapper ),
-                    () -> TimeDuration.fromCurrent( startTime ) );
+                    TimeDuration.fromCurrent( startTime ) );
         }
         else
         {
             final int finalAttempts = attempts;
             logger.debug( () -> "item submitted to queue after " + finalAttempts + " attempts: "
-                    + makeDebugText( itemWrapper ), () -> TimeDuration.fromCurrent( startTime ) );
+                    + makeDebugText( itemWrapper ), TimeDuration.fromCurrent( startTime ) );
         }
     }
 
@@ -485,7 +484,7 @@ public final class WorkQueueProcessor<W extends Serializable>
                         case SUCCESS:
                         {
                             removeQueueTop();
-                            logAndStatUpdateForSuccess( itemWrapper, () -> TimeDuration.fromCurrent( processStartTime ) );
+                            logAndStatUpdateForSuccess( itemWrapper, TimeDuration.fromCurrent( processStartTime ) );
                         }
                         break;
 
@@ -605,7 +604,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         private TimeDuration maxShutdownWaitTime = TimeDuration.of( 30, TimeDuration.Unit.SECONDS );
     }
 
-    private void logAndStatUpdateForSuccess( final ItemWrapper<W> itemWrapper, final Supplier<TimeDuration> processDuration )
+    private void logAndStatUpdateForSuccess( final ItemWrapper<W> itemWrapper, final TimeDuration processDuration )
             throws PwmOperationalException
     {
         final TimeDuration lagTime = TimeDuration.fromCurrent( itemWrapper.getDate() );

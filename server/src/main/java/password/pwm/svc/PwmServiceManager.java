@@ -124,7 +124,7 @@ public class PwmServiceManager
 
         initialized = true;
 
-        LOGGER.trace( sessionLabel, () -> logVerb + "ed services, " + statCounter.debugStats(), () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> logVerb + "ed services, " + statCounter.debugStats(), TimeDuration.fromCurrent( startTime ) );
     }
 
     private PwmService initService( final PwmServiceEnum pwmServiceEnum )
@@ -194,7 +194,7 @@ public class PwmServiceManager
         }
         initialized = false;
 
-        LOGGER.trace( sessionLabel, () -> "closed all services", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> "closed all services", TimeDuration.fromCurrent( startTime ) );
     }
 
     private void shutDownService( final PwmServiceEnum pwmServiceEnum, final PwmService serviceInstance )

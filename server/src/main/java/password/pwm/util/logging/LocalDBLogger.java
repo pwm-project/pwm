@@ -251,7 +251,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
         setStatus( STATUS.CLOSED );
 
         final int finalFlushedEvents = flushedEvents;
-        LOGGER.trace( () -> "LocalDBLogger close completed (flushed during close: " + finalFlushedEvents + ")", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "LocalDBLogger close completed (flushed during close: " + finalFlushedEvents + ")", TimeDuration.fromCurrent( startTime ) );
     }
 
     public int getStoredEventCount( )

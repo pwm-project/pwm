@@ -108,7 +108,7 @@ public class SettingDataMaker
 
         LOGGER.trace( sessionLabel, () -> "generated settingData with "
                 + settingData.getSettings().size() + " settings and "
-                + settingData.getCategories().size() + " categories", () -> TimeDuration.fromCurrent( startGenerateTime ) );
+                + settingData.getCategories().size() + " categories", TimeDuration.fromCurrent( startGenerateTime ) );
 
         return settingData;
     }

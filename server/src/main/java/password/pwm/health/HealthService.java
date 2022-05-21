@@ -169,7 +169,7 @@ public class HealthService extends AbstractPwmService implements PwmService
             final TimeDuration checkDuration = TimeDuration.fromCurrent( startTime );
             averageStats.update( AverageStatKey.checkProcessTime, checkDuration.asDuration() );
             counterStats.increment( CounterStatKey.checks );
-            LOGGER.trace( () ->  "exit force immediate check, done=" + future.isDone(), () -> checkDuration );
+            LOGGER.trace( () ->  "exit force immediate check, done=" + future.isDone(), checkDuration );
         }
 
         getPwmApplication().getPwmScheduler().scheduleJob( new UpdateJob(), executorService, settings.getNominalCheckInterval() );
@@ -244,7 +244,7 @@ public class HealthService extends AbstractPwmService implements PwmService
         }
 
         healthData = new HealthData( Collections.unmodifiableSet( new TreeSet<>( tempResults ) ), Instant.now() );
-        LOGGER.trace( () -> "completed health check execution #" + counter, () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "completed health check execution #" + counter, TimeDuration.fromCurrent( startTime ) );
     }
 
     private static List<Supplier<List<HealthRecord>>> gatherSuppliers(
@@ -319,7 +319,7 @@ public class HealthService extends AbstractPwmService implements PwmService
             {
                 final Instant startTime = Instant.now();
                 doHealthChecks();
-                LOGGER.trace( () -> "completed health check dredge", () -> TimeDuration.fromCurrent( startTime ) );
+                LOGGER.trace( () -> "completed health check dredge", TimeDuration.fromCurrent( startTime ) );
             }
             catch ( final Throwable e )
             {

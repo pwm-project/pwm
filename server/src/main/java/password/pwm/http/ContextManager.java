@@ -540,11 +540,7 @@ public class ContextManager implements Serializable
                     LOGGER.fatal( () -> "unexpected error during shutdown: " + e.getMessage(), e );
                 }
 
-
-                {
-                    final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                    LOGGER.info( SESSION_LABEL, () -> "application restart completed", () -> timeDuration );
-                }
+                LOGGER.info( SESSION_LABEL, () -> "application restart completed", TimeDuration.fromCurrent( startTime ) );
             }
             finally
             {

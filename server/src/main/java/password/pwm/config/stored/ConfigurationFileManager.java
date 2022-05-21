@@ -180,7 +180,7 @@ public class ConfigurationFileManager
         }
 
         final String fileSize = StringUtil.formatDiskSize( configFile.length() );
-        LOGGER.debug( () -> "configuration reading/parsing of " + fileSize + " complete", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.debug( () -> "configuration reading/parsing of " + fileSize + " complete", TimeDuration.fromCurrent( startTime ) );
 
 
         final Optional<String> configIsEditable = storedConfiguration.readConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE );
@@ -298,7 +298,7 @@ public class ConfigurationFileManager
         }
 
         final int finalChangeCount = changeCount;
-        LOGGER.debug( () -> "sent " + finalChangeCount + " audit notifications about changed settings", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.debug( () -> "sent " + finalChangeCount + " audit notifications about changed settings", TimeDuration.fromCurrent( startTime ) );
     }
 
     private void outputConfigurationFile(
@@ -322,7 +322,7 @@ public class ConfigurationFileManager
             StoredConfigurationFactory.output( storedConfiguration, fileOutputStream );
         }
 
-        LOGGER.info( () -> "saved configuration", () -> TimeDuration.fromCurrent( saveFileStartTime ) );
+        LOGGER.info( () -> "saved configuration", TimeDuration.fromCurrent( saveFileStartTime ) );
         if ( pwmApplication != null )
         {
             final String actualChecksum = StoredConfigurationUtil.valueHash( storedConfiguration );

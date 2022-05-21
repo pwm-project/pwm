@@ -135,7 +135,7 @@ public class SessionFilter extends AbstractPwmFilter
         }
 
         final TimeDuration requestExecuteTime = TimeDuration.fromCurrent( startTime );
-        pwmRequest.debugHttpRequestToLog( "completed", () -> requestExecuteTime );
+        pwmRequest.debugHttpRequestToLog( "completed", requestExecuteTime );
         pwmRequest.getPwmDomain().getStatisticsManager().updateAverageValue( AvgStatistic.AVG_REQUEST_PROCESS_TIME, requestExecuteTime.asMillis() );
         pwmRequest.getPwmSession().getSessionStateBean().getRequestCount().incrementAndGet();
         pwmRequest.getPwmSession().getSessionStateBean().getAvgRequestDuration().update( requestExecuteTime.asDuration() );

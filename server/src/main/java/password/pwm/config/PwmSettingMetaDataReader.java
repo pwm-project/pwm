@@ -202,7 +202,7 @@ public class PwmSettingMetaDataReader
             pwmSettingCategory.getLevel();
             pwmSettingCategory.getSettings();
         }
-        LOGGER.trace( () -> "completed PwmSetting xml cache initialization", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "completed PwmSetting xml cache initialization", TimeDuration.fromCurrent( startTime ) );
     }
 
     private static class InternalReader

@@ -164,7 +164,7 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
         {
             final Instant start = Instant.now();
             resourceNonce = makeResourcePathNonce();
-            LOGGER.trace( getSessionLabel(), () -> "calculated nonce", () -> TimeDuration.fromCurrent( start ) );
+            LOGGER.trace( getSessionLabel(), () -> "calculated nonce", TimeDuration.fromCurrent( start ) );
         }
         catch ( final Exception e )
         {
@@ -214,7 +214,7 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
 
         final Instant startTime = Instant.now();
         final String nonce = checksumAllResources( pwmDomain );
-        LOGGER.debug( getSessionLabel(), () -> "completed generation of nonce '" + nonce + "'", () ->  TimeDuration.fromCurrent( startTime ) );
+        LOGGER.debug( getSessionLabel(), () -> "completed generation of nonce '" + nonce + "'", TimeDuration.fromCurrent( startTime ) );
 
         final String noncePrefix = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
         return "/" + noncePrefix + nonce;

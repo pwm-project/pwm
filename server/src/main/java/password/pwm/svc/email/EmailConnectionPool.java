@@ -108,7 +108,7 @@ public class EmailConnectionPool
             final EmailConnection emailConnection = getSmtpTransport();
             LOGGER.trace( () -> "created new email connection " + emailConnection.getId()
                             + " to " + emailConnection.getEmailServer().getId(),
-                    () -> TimeDuration.fromCurrent( startTime ) );
+                    TimeDuration.fromCurrent( startTime ) );
             activeConnectionCounter.incrementAndGet();
             return emailConnection;
         }

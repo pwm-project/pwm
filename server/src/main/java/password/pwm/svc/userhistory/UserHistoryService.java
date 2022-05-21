@@ -169,7 +169,7 @@ public class UserHistoryService extends AbstractPwmService implements PwmService
     {
         final Instant startTime = Instant.now();
         final List<UserAuditRecord> results = userHistoryStore.readUserHistory( sessionLabel, userInfoBean );
-        LOGGER.trace( sessionLabel, () -> "read " + results.size() + " user history records", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> "read " + results.size() + " user history records", TimeDuration.fromCurrent( startTime ) );
         return results;
     }
 

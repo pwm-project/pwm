@@ -310,7 +310,7 @@ class PwmApplicationUtil
 
         final long itemCount = debugStrings.size();
         LOGGER.trace( pwmApplication.getSessionLabel(), () -> "--end current configuration output of " + itemCount + " items --",
-                () -> TimeDuration.fromCurrent( startTime ) );
+                TimeDuration.fromCurrent( startTime ) );
     }
 
     static void outputNonDefaultPropertiesToLog( final PwmApplication pwmApplication )
@@ -325,7 +325,7 @@ class PwmApplicationUtil
                     .map( entry -> "AppProperty: " + entry.getKey().getKey() + " -> " + entry.getValue() )
                     .map( s -> ( Supplier<CharSequence> ) () -> s )
                     .forEach( s -> LOGGER.trace( pwmApplication.getSessionLabel(), s ) );
-            LOGGER.trace( pwmApplication.getSessionLabel(), () -> "--end non-default app properties output--", () -> TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( pwmApplication.getSessionLabel(), () -> "--end non-default app properties output--", TimeDuration.fromCurrent( startTime ) );
         }
         else
         {
@@ -345,7 +345,7 @@ class PwmApplicationUtil
                     .map( entry -> "AppProperty: " + entry.getKey().getLabel() + " -> " + entry.getValue() )
                     .map( s -> ( Supplier<CharSequence> ) () -> s )
                     .forEach( s -> LOGGER.trace( pwmApplication.getSessionLabel(), s ) );
-            LOGGER.trace( pwmApplication.getSessionLabel(), () -> "--end application info--", () -> TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( pwmApplication.getSessionLabel(), () -> "--end application info--", TimeDuration.fromCurrent( startTime ) );
         }
         else
         {

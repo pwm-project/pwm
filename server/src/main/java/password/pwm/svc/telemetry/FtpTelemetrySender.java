@@ -172,7 +172,7 @@ public class FtpTelemetrySender implements TelemetrySender
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace( sessionLabel, () -> "completed transfer of " + fileBytes.length + " in ", () -> TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( sessionLabel, () -> "completed transfer of " + fileBytes.length + " in ", TimeDuration.fromCurrent( startTime ) );
         }
         catch ( final IOException e )
         {

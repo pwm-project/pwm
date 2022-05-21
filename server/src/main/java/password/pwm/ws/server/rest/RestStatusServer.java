@@ -102,7 +102,7 @@ public class RestStatusServer extends RestServlet
 
             final RestResultBean restResultBean = RestResultBean.withData( publicUserInfoBean, PublicUserInfoBean.class );
             LOGGER.debug( restRequest.getSessionLabel(), () -> "completed REST status request, result="
-                    + JsonFactory.get().serialize( restResultBean ), () -> TimeDuration.fromCurrent( startTime ) );
+                    + JsonFactory.get().serialize( restResultBean ), TimeDuration.fromCurrent( startTime ) );
             return restResultBean;
         }
         catch ( final PwmException e )

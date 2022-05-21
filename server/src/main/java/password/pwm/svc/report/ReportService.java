@@ -371,7 +371,7 @@ public class ReportService extends AbstractPwmService implements PwmService
                 LOGGER.trace(
                         getSessionLabel(),
                         () -> "completed ldap search process with for domain '" + pwmDomain.getDomainID() + "'",
-                        () -> TimeDuration.fromCurrent( loopStartTime ) );
+                        TimeDuration.fromCurrent( loopStartTime ) );
 
                 writeUsersToLocalDBQueue( searchResults );
             }
@@ -379,7 +379,7 @@ public class ReportService extends AbstractPwmService implements PwmService
             LOGGER.trace(
                     getSessionLabel(),
                     () -> "completed ldap search process with entries for " + getPwmApplication().domains().size() + " domains",
-                    () -> TimeDuration.fromCurrent( startTime ) );
+                    TimeDuration.fromCurrent( startTime ) );
 
         }
 
@@ -409,7 +409,7 @@ public class ReportService extends AbstractPwmService implements PwmService
                 transactionCalculator.recordLastTransactionDuration( TimeDuration.fromCurrent( loopStart ) );
             }
             LOGGER.trace( getSessionLabel(),
-                    () -> "completed transfer of ldap search results to work queue", () -> TimeDuration.fromCurrent( startTime ) );
+                    () -> "completed transfer of ldap search results to work queue", TimeDuration.fromCurrent( startTime ) );
         }
     }
 
@@ -556,7 +556,7 @@ public class ReportService extends AbstractPwmService implements PwmService
                 summaryData.update( newUserReportRecord.get() );
                 processRateMeter.markEvents( 1 );
 
-                LOGGER.trace( getSessionLabel(), () -> "stored cache for " + userIdentity, () -> TimeDuration.fromCurrent( startTime ) );
+                LOGGER.trace( getSessionLabel(), () -> "stored cache for " + userIdentity, TimeDuration.fromCurrent( startTime ) );
             }
         }
 

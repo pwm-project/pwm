@@ -192,7 +192,7 @@ public abstract class StoredConfigurationUtil
                 .collect( Collectors.toList() );
 
 
-        LOGGER.trace( () -> "StoredConfiguration validator completed", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "StoredConfiguration validator completed", TimeDuration.fromCurrent( startTime ) );
         return Collections.unmodifiableList( errorStrings );
     }
 
@@ -337,7 +337,7 @@ public abstract class StoredConfigurationUtil
                 .filter( hashTester )
                 .collect( Collectors.toUnmodifiableSet() );
 
-        LOGGER.trace( () -> "generated " + deltaReferences.size() + " changeLog items via compare", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "generated " + deltaReferences.size() + " changeLog items via compare", TimeDuration.fromCurrent( startTime ) );
 
         return deltaReferences;
     }
@@ -496,7 +496,7 @@ public abstract class StoredConfigurationUtil
         }
 
         LOGGER.trace( () -> "copied " + modifier.modificationCount() + " domain settings from '" + source + "' to '" + destination + "' domain",
-                () -> TimeDuration.fromCurrent( startTime ) );
+                TimeDuration.fromCurrent( startTime ) );
 
         return modifier.newStoredConfiguration();
     }
@@ -521,7 +521,7 @@ public abstract class StoredConfigurationUtil
             throw new IllegalStateException( e );
         }
 
-        LOGGER.trace( () -> "calculated StoredConfiguration hash: " + output, () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "calculated StoredConfiguration hash: " + output, TimeDuration.fromCurrent( startTime ) );
         return output;
     }
 

@@ -173,7 +173,7 @@ public class CrService extends AbstractPwmService implements PwmService
                         LOGGER.debug( sessionLabel, () -> "using ldap c/r policy for user " + theUser.getEntryDN() + ": "
                                 + finalReturnSet );
                         LOGGER.trace( sessionLabel, () -> "readUserChallengeProfile completed, result=" + JsonFactory.get().serialize( challengeProfile ),
-                                () -> TimeDuration.fromCurrent( methodStartTime ) );
+                                TimeDuration.fromCurrent( methodStartTime ) );
 
                         return challengeProfile;
                     }

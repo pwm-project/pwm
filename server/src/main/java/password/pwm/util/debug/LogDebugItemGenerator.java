@@ -82,6 +82,6 @@ class LogDebugItemGenerator implements AppItemGenerator
         final Function<PwmLogEvent, String> logEventFormatter = PwmLogEvent::toLogString;
 
         outputLogs( debugItemInput.getPwmApplication(), outputStream, logEventFormatter );
-        LOGGER.trace( () -> "debug log output completed in ", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "debug log output completed in ", TimeDuration.fromCurrent( startTime ) );
     }
 }

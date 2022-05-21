@@ -25,6 +25,7 @@ import lombok.Getter;
 import password.pwm.PwmAboutProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.management.Attribute;
@@ -78,7 +79,7 @@ public class MBeanUtility
         }
         catch ( final Exception e )
         {
-            LOGGER.debug( () -> "error unregistering mbean: " + e.getMessage() );
+            LOGGER.debug( () -> "error unregistering mbean: " + JavaHelper.readHostileExceptionMessage( e ) );
         }
     }
 

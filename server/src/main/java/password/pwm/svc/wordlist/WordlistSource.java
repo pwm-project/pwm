@@ -183,7 +183,7 @@ class WordlistSource
 
         final Map<HttpHeader, String> finalReturnResponses =  Collections.unmodifiableMap( returnResponses );
         pwmLogger.debug( sessionLabel, () -> "read remote header info for " + this.getWordlistSourceType() + " wordlist: "
-                + JsonFactory.get().serializeMap( finalReturnResponses ), () -> TimeDuration.fromCurrent( startTime ) );
+                + JsonFactory.get().serializeMap( finalReturnResponses ), TimeDuration.fromCurrent( startTime ) );
         return finalReturnResponses;
     }
 
@@ -285,7 +285,7 @@ class WordlistSource
                                 + getWordlistSourceType() + " wordlist"
                                 + " " + StringUtil.formatDiskSize( wordlistZipReader.getByteCount() ) + " read"
                                 + bytesPerSecondStr().orElse( "" ),
-                        () -> TimeDuration.fromCurrent( startTime ) );
+                        TimeDuration.fromCurrent( startTime ) );
             }
 
             private Optional<String> bytesPerSecondStr()
@@ -317,7 +317,7 @@ class WordlistSource
             JavaHelper.closeQuietly( inputStream );
         }
         pwmLogger.trace( sessionLabel, () -> processIdLabel( processId ) + "completed close of remote wordlist read process",
-                () -> TimeDuration.fromCurrent( startClose ) );
+                TimeDuration.fromCurrent( startClose ) );
     }
 
     private String processIdLabel( final int processId )

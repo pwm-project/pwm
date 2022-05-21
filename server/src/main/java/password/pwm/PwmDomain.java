@@ -101,7 +101,7 @@ public class PwmDomain
             PwmApplicationUtil.outputConfigurationToLog( pwmApplication, domainID );
         }
 
-        LOGGER.trace( sessionLabel, () -> "completed initializing domain " + domainID.stringValue(), () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> "completed initializing domain " + domainID.stringValue(), TimeDuration.fromCurrent( startTime ) );
     }
 
     public DomainConfig getConfig( )
@@ -251,7 +251,7 @@ public class PwmDomain
         LOGGER.trace( sessionLabel, () -> "beginning shutdown domain " + domainID.stringValue() );
         TimeDuration.SECONDS_10.pause();
         pwmServiceManager.shutdownAllServices();
-        LOGGER.trace( sessionLabel, () -> "shutdown domain " + domainID.stringValue() + " completed", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> "shutdown domain " + domainID.stringValue() + " completed", TimeDuration.fromCurrent( startTime ) );
     }
 
     public DomainID getDomainID()
