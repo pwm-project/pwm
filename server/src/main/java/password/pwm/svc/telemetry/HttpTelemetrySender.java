@@ -65,7 +65,7 @@ public class HttpTelemetrySender implements TelemetrySender
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
                 .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous )
                 .build();
-        final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
+        final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration, sessionLabel );
         final String body = JsonFactory.get().serialize( statsPublishBean );
         final Map<String, String> headers = new HashMap<>();
         headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() );
@@ -78,7 +78,7 @@ public class HttpTelemetrySender implements TelemetrySender
                 .build();
 
         LOGGER.trace( sessionLabel, () -> "preparing to send telemetry data to '" + settings.getUrl() + ")" );
-        pwmHttpClient.makeRequest( pwmHttpClientRequest, sessionLabel );
+        pwmHttpClient.makeRequest( pwmHttpClientRequest );
         LOGGER.trace( sessionLabel, () -> "sent telemetry data to '" + settings.getUrl() + ")" );
     }
 

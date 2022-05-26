@@ -367,7 +367,7 @@ public class UpdateProfileUtil
         // write values.
         LOGGER.info( sessionLabel, () -> "updating profile for " + userInfo.getUserIdentity() );
 
-        LdapOperationsHelper.writeFormValuesToLdap( theUser, formMap, macroRequest, false );
+        LdapOperationsHelper.writeFormValuesToLdap( sessionLabel, theUser, formMap, macroRequest, false );
 
         postUpdateActionsAndEmail( pwmDomain, sessionLabel, locale, userInfo.getUserIdentity(), updateProfileProfile );
 

@@ -186,6 +186,6 @@ public class CacheService extends AbstractPwmService implements PwmService
             traceOutput.append( ", histogram=" );
             traceOutput.append( JsonFactory.get().serializeMap( memoryCacheStore.storedClassHistogram( "" ) ) );
         }
-        LOGGER.trace( () -> traceOutput );
+        LOGGER.trace( getSessionLabel(), () -> traceOutput );
     }
 }

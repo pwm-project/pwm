@@ -220,7 +220,7 @@ public abstract class RestServlet extends HttpServlet
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( () -> "error while trying to log HTTP request data " + e.getMessage(), e );
+            LOGGER.error( sessionLabel, () -> "error while trying to log HTTP request data " + e.getMessage(), e );
         }
     }
 

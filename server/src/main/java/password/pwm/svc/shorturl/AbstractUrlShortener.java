@@ -21,6 +21,7 @@
 package password.pwm.svc.shorturl;
 
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmUnrecoverableException;
 
 public interface AbstractUrlShortener
@@ -36,6 +37,6 @@ public interface AbstractUrlShortener
      * @throws PwmUnrecoverableException if the operation fails
      */
 
-    String shorten( String input, PwmApplication pwmApplication )
+    String shorten( String input, PwmApplication pwmApplication, SessionLabel sessionLabel )
             throws PwmUnrecoverableException;
 }

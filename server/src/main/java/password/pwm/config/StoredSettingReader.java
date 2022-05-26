@@ -24,6 +24,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileDefinition;
@@ -321,7 +322,7 @@ public class StoredSettingReader implements SettingReader
 
         if ( setting.getFlags().contains( PwmSettingFlag.Deprecated ) )
         {
-            LOGGER.warn( () -> "attempt to read deprecated config setting: " + setting.toMenuLocationDebug( profileID, null ) );
+            LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "attempt to read deprecated config setting: " + setting.toMenuLocationDebug( profileID, null ) );
         }
 
         if ( StringUtil.isEmpty( profileID ) )

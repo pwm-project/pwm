@@ -118,7 +118,7 @@ public class HelpdeskVerificationOptionsBean implements Serializable
                 }
                 catch ( final PwmUnrecoverableException e )
                 {
-                    LOGGER.trace( () -> "error while calculating available token methods: " + e.getMessage() );
+                    LOGGER.trace( pwmRequest, () -> "error while calculating available token methods: " + e.getMessage() );
                 }
             }
             tokenDestinations = Collections.unmodifiableList( TokenDestinationItem.stripValues( returnList ) );

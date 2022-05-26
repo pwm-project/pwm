@@ -115,9 +115,9 @@ public class DisplayTag extends PwmAbstractTag
     public int doEndTag( )
             throws javax.servlet.jsp.JspTagException
     {
+        PwmRequest pwmRequest = null;
         try
         {
-            PwmRequest pwmRequest = null;
             try
             {
                 pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
@@ -143,19 +143,19 @@ public class DisplayTag extends PwmAbstractTag
         catch ( final PwmUnrecoverableException e )
         {
             {
-                LOGGER.debug( () -> "error while executing jsp display tag: " + e.getMessage() );
+                LOGGER.debug( pwmRequest, () -> "error while executing jsp display tag: " + e.getMessage() );
                 return EVAL_PAGE;
             }
         }
         catch ( final Exception e )
         {
-            LOGGER.debug( () -> "error while executing jsp display tag: " + e.getMessage(), e );
+            LOGGER.debug( pwmRequest, () -> "error while executing jsp display tag: " + e.getMessage(), e );
             throw new JspTagException( e.getMessage(), e );
         }
         return EVAL_PAGE;
     }
 
-    private Class readBundle( )
+    private Class<?> readBundle( )
     {
         if ( bundle == null || bundle.length() < 1 )
         {

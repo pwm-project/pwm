@@ -127,6 +127,11 @@ public class PwmServiceManager
         LOGGER.trace( sessionLabel, () -> logVerb + "ed services, " + statCounter.debugStats(), TimeDuration.fromCurrent( startTime ) );
     }
 
+    private String debugSvcType()
+    {
+        return ( domainID.isSystem() ? "system" : "domain" ) + " service";
+    }
+
     private PwmService initService( final PwmServiceEnum pwmServiceEnum )
             throws PwmUnrecoverableException
     {
@@ -134,6 +139,7 @@ public class PwmServiceManager
         final PwmService newServiceInstance;
 
         final String serviceName = pwmServiceEnum.serviceName( domainID );
+
         try
         {
             final Class<? extends PwmService> serviceClass = pwmServiceEnum.getPwmServiceClass();
@@ -141,7 +147,7 @@ public class PwmServiceManager
         }
         catch ( final Exception e )
         {
-            final String errorMsg = "unexpected error instantiating service class '" + serviceName + "', error: " + e;
+            final String errorMsg = "unexpected error instantiating " + debugSvcType() + " class '" + serviceName + "', error: " + e;
             LOGGER.fatal( () -> errorMsg, e );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR, errorMsg ) );
         }
@@ -151,16 +157,17 @@ public class PwmServiceManager
             LOGGER.trace( sessionLabel, () -> "initializing service " + serviceName );
             newServiceInstance.init( pwmApplication, domainID );
             final TimeDuration startupDuration = TimeDuration.fromCurrent( startTime );
-            LOGGER.debug( sessionLabel, () -> "completed initialization of service " + serviceName + " in " + startupDuration.asCompactString()
+            LOGGER.debug( sessionLabel, () -> "completed initialization of " + debugSvcType()
+                    + " " + serviceName + " in " + startupDuration.asCompactString()
                     + ", status=" + newServiceInstance.status() );
         }
         catch ( final PwmException e )
         {
-            LOGGER.warn( () -> "error instantiating service class '" + serviceName + "', service will remain unavailable, error: " + e.getMessage() );
+            LOGGER.warn( sessionLabel, () -> "error instantiating " + debugSvcType() + " class '" + serviceName + "', service will remain unavailable, error: " + e.getMessage() );
         }
         catch ( final Exception e )
         {
-            String errorMsg = "unexpected error instantiating service class '" + serviceName + "', cannot load, error: " + e.getMessage();
+            String errorMsg = "unexpected error instantiating " + debugSvcType() + " class '" + serviceName + "', cannot load, error: " + e.getMessage();
             if ( e.getCause() != null )
             {
                 errorMsg += ", cause: " + e.getCause();
@@ -200,18 +207,19 @@ public class PwmServiceManager
     private void shutDownService( final PwmServiceEnum pwmServiceEnum, final PwmService serviceInstance )
     {
 
-        LOGGER.trace( sessionLabel, () -> "closing service " + pwmServiceEnum.serviceName( domainID ) );
+        LOGGER.trace( sessionLabel, () -> "closing " + debugSvcType() + " " + pwmServiceEnum.serviceName( domainID ) );
 
         try
         {
             final Instant startTime = Instant.now();
             serviceInstance.shutdown();
             final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-            LOGGER.trace( () -> "successfully closed service " + pwmServiceEnum.serviceName( domainID ) + " (" + timeDuration.asCompactString() + ")" );
+            LOGGER.trace( sessionLabel, () -> "successfully closed " + debugSvcType() + " " + pwmServiceEnum.serviceName( domainID )
+                    + " (" + timeDuration.asCompactString() + ")" );
         }
         catch ( final Exception e )
         {
-            LOGGER.error( sessionLabel, () -> "error closing " + pwmServiceEnum.serviceName( domainID ) + ": " + e.getMessage(), e );
+            LOGGER.error( sessionLabel, () -> "error closing " + debugSvcType() + " " + pwmServiceEnum.serviceName( domainID ) + ": " + e.getMessage(), e );
         }
     }
 

@@ -23,7 +23,7 @@ package password.pwm;
 import lombok.Value;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
-import password.pwm.ldap.LdapConnectionService;
+import password.pwm.ldap.LdapDomainService;
 import password.pwm.svc.db.DatabaseService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.FileSystemUtility;
@@ -77,8 +77,8 @@ public enum PwmAboutProperty
     app_configurationRestartCounter( null, pwmApplication -> Integer.toString( pwmApplication.getPwmEnvironment().getContextManager().getRestartCount() ) ),
     app_secureBlockAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().getDefaultBlockAlgorithm().getLabel() ),
     app_secureHashAlgorithm( null, pwmApplication -> pwmApplication.getSecureService().getDefaultHashAlgorithm().toString() ),
-    app_ldapProfileCount( null, pwmApplication -> Integer.toString( LdapConnectionService.totalLdapProfileCount( pwmApplication ) ) ),
-    app_ldapConnectionCount( null, pwmApplication -> Long.toString( LdapConnectionService.totalLdapConnectionCount( pwmApplication ) ) ),
+    app_ldapProfileCount( null, pwmApplication -> Integer.toString( LdapDomainService.totalLdapProfileCount( pwmApplication ) ) ),
+    app_ldapConnectionCount( null, pwmApplication -> Long.toString( LdapDomainService.totalLdapConnectionCount( pwmApplication ) ) ),
     app_activeSessionCount( "App Active Session Count", pwmApplication -> Integer.toString( pwmApplication.getSessionTrackService().sessionCount() ) ),
     app_activeRequestCount( "App Active Request Count", pwmApplication -> Integer.toString( pwmApplication.getActiveServletRequests().get() ) ),
     app_definedDomainCount( "App Defined Domain Count", pwmApplication -> Integer.toString( pwmApplication.domains().size() ) ),

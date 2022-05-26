@@ -256,7 +256,7 @@ public class PwmApplication
         }
         else
         {
-            LOGGER.debug( sessionLabel, () -> "no system-level settings have been changed, restart of system services is not required");
+            LOGGER.debug( sessionLabel, () -> "no system-level settings have been changed, restart of system services is not required" );
         }
 
         domains = PwmDomainUtil.reInitDomains( this, newConfig, oldConfig );

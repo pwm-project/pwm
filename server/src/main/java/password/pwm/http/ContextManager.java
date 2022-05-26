@@ -246,7 +246,7 @@ public class ContextManager implements Serializable
         {
             configurationFile = locateConfigurationFile( applicationPath, PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
 
-            configReader = new ConfigurationFileManager( configurationFile );
+            configReader = new ConfigurationFileManager( configurationFile, SESSION_LABEL );
             appConfig = configReader.getConfiguration();
 
             mode = startupErrorInformation == null ? configReader.getConfigMode() : PwmApplicationMode.ERROR;
@@ -467,7 +467,7 @@ public class ContextManager implements Serializable
                             storedConfiguration = importer.readConfiguration( fileInputStream );
                         }
 
-                        configReader.saveConfiguration( storedConfiguration, pwmApplication, SESSION_LABEL );
+                        configReader.saveConfiguration( storedConfiguration, pwmApplication );
                         LOGGER.info( SESSION_LABEL, () -> "file " + silentPropertiesFile.getAbsolutePath() + " has been successfully imported and saved as configuration file" );
                         requestPwmApplicationRestart();
                         success = true;
@@ -768,7 +768,7 @@ public class ContextManager implements Serializable
                         + ConfigurationProperty.IMPORT_LDAP_CERTIFICATES.getKey() + "'"
                         + ", imported " + totalImportedCerts + " certificates" );
                 modifiedConfig.writeConfigProperty( ConfigurationProperty.IMPORT_LDAP_CERTIFICATES, "false" );
-                configReader.saveConfiguration( modifiedConfig.newStoredConfiguration(), pwmApplication, SESSION_LABEL );
+                configReader.saveConfiguration( modifiedConfig.newStoredConfiguration(), pwmApplication );
                 requestPwmApplicationRestart();
             }
             else

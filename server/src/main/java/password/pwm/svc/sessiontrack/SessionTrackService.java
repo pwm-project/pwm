@@ -273,7 +273,7 @@ public class SessionTrackService extends AbstractPwmService implements PwmServic
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( () -> "unexpected error reading username: " + e.getMessage(), e );
+                LOGGER.error( loopSession.getLabel(), () -> "unexpected error reading username: " + e.getMessage(), e );
             }
         }
 

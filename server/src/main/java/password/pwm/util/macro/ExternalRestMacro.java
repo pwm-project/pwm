@@ -92,8 +92,11 @@ class ExternalRestMacro extends AbstractMacro
 
             final String requestBody = JsonFactory.get().serializeMap( sendData );
             final String responseBody = RestClientHelper.makeOutboundRestWSCall( pwmDomain,
-                    PwmConstants.DEFAULT_LOCALE, url,
+                    macroRequestInfo.getSessionLabel(),
+                    PwmConstants.DEFAULT_LOCALE,
+                    url,
                     requestBody );
+
             final Map<String, Object> responseMap = JsonFactory.get().deserializeMap( responseBody, String.class, Object.class );
             if ( responseMap.containsKey( "output" ) )
             {

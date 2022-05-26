@@ -850,7 +850,7 @@ public class LDAPHealthChecker implements HealthSupplier
         {
             errorReachingServer = true;
             LOGGER.error( sessionLabel,
-                    () ->  "error during ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") check: " + e.getMessage() );
+                    () -> "error during ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") check: " + e.getMessage() );
         }
 
         if ( !errorReachingServer && pwmDomain.getPwmApplication().getHealthMonitor() != null )

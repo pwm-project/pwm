@@ -195,7 +195,7 @@ public class ShortcutServlet extends ControlledPwmServlet
 
         final Collection<String> configValues = pwmRequest.getDomainConfig().readSettingAsLocalizedStringArray( PwmSetting.SHORTCUT_ITEMS, pwmRequest.getLocale() );
         final List<ShortcutItem> configuredItems = configValues.stream()
-                .map( ShortcutItem::parsePwmConfigInput )
+                .map( ( String input ) -> ShortcutItem.parsePwmConfigInput( input, pwmRequest.getLabel() ) )
                 .collect( Collectors.toUnmodifiableList() );
 
 
@@ -218,7 +218,7 @@ public class ShortcutServlet extends ControlledPwmServlet
     {
         if ( StringUtil.caseIgnoreContains( labelsFromHeader, item.getLabel() ) )
         {
-            LOGGER.trace( () -> "adding the shortcut item '" + item.getLabel() + "' due to presence of configured headers in request" );
+            LOGGER.trace( pwmRequest, () -> "adding the shortcut item '" + item.getLabel() + "' due to presence of configured headers in request" );
             return true;
         }
 

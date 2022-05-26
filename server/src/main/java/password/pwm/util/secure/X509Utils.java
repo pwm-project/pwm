@@ -198,7 +198,7 @@ public class X509Utils
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
                 .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuousCertReader )
                 .build();
-        final PwmHttpClient pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
+        final PwmHttpClient pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration, sessionLabel );
         final PwmHttpClientRequest request = PwmHttpClientRequest.builder()
                 .method( HttpMethod.GET )
                 .url( uri.toString() )
@@ -209,7 +209,7 @@ public class X509Utils
         ErrorInformation requestError = null;
         try
         {
-            pwmHttpClient.makeRequest( request, sessionLabel );
+            pwmHttpClient.makeRequest( request );
         }
         catch ( final PwmException e )
         {

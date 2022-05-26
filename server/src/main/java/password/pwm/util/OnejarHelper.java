@@ -24,6 +24,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationFileManager;
@@ -110,7 +111,7 @@ public class OnejarHelper
             throws Exception
     {
         final File configFile = new File( applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
-        final ConfigurationFileManager configReader = new ConfigurationFileManager( configFile );
+        final ConfigurationFileManager configReader = new ConfigurationFileManager( configFile, SessionLabel.ONEJAR_LABEL );
         final AppConfig config = configReader.getConfiguration();
         final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
                 .config( config )

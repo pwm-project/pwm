@@ -32,7 +32,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.peoplesearch.PeopleSearchService;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.http.state.SessionStateService;
-import password.pwm.ldap.LdapConnectionService;
+import password.pwm.ldap.LdapDomainService;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceEnum;
@@ -154,9 +154,9 @@ public class PwmDomain
         return pwmApplication.determineIfDetailErrorMsgShown();
     }
 
-    public LdapConnectionService getLdapConnectionService( )
+    public LdapDomainService getLdapConnectionService( )
     {
-        return ( LdapConnectionService ) pwmServiceManager.getService( PwmServiceEnum.LdapConnectionService );
+        return ( LdapDomainService ) pwmServiceManager.getService( PwmServiceEnum.LdapConnectionService );
     }
 
     public AuditService getAuditService()

@@ -101,7 +101,7 @@ public class RestTokenDataClient implements RestClient
 
 
         final String jsonRequestData = JsonFactory.get().serializeMap( sendData );
-        final String responseBody = RestClientHelper.makeOutboundRestWSCall( pwmDomain, locale, url, jsonRequestData );
+        final String responseBody = RestClientHelper.makeOutboundRestWSCall( pwmDomain, sessionLabel, locale, url, jsonRequestData );
         return JsonFactory.get().deserialize( responseBody, TokenDestinationData.class );
     }
 

@@ -151,7 +151,7 @@ public class ConfigEditorServletUtils
                                     record.getDomainID(), k -> new ArrayList<>() )
                             .add( record.getDetail( locale, pwmRequest.getAppConfig() ) ) );
 
-            LOGGER.debug( () -> "config health check done in ", TimeDuration.fromCurrent( startTime ) );
+            LOGGER.debug( pwmRequest.getLabel(), () -> "config health check done in ", TimeDuration.fromCurrent( startTime ) );
 
             return Collections.unmodifiableMap( returnData );
         }

@@ -239,7 +239,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.warn( () -> "error loading saved stored cumulative statistics: " + e.getMessage() );
+                    LOGGER.warn( getSessionLabel(), () -> "error loading saved stored cumulative statistics: " + e.getMessage() );
                 }
             }
         }

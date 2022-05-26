@@ -507,7 +507,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         }
 
         final String body = pwmRequest.readRequestBodyAsString();
-        LOGGER.trace( () -> body );
+        LOGGER.trace( pwmRequest, () -> body );
         return ProcessStatus.Halt;
     }
 

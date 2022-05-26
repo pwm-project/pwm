@@ -101,11 +101,11 @@ public abstract class CommandServlet extends ControlledPwmServlet
         final String body = pwmRequest.readRequestBodyAsString();
         try
         {
-            LOGGER.trace( () -> "CSP Report: " + body );
+            LOGGER.trace( pwmRequest, () -> "CSP Report: " + body );
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error processing csp report: " + e.getMessage() + ", body=" + body );
+            LOGGER.error( pwmRequest, () -> "error processing csp report: " + e.getMessage() + ", body=" + body );
         }
         return ProcessStatus.Halt;
     }

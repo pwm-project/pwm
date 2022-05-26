@@ -47,6 +47,7 @@ public class RestClientHelper
 
     public static String makeOutboundRestWSCall(
             final PwmDomain pwmDomain,
+            final SessionLabel sessionLabel,
             final Locale locale,
             final String url,
             final String jsonRequestBody
@@ -56,7 +57,7 @@ public class RestClientHelper
         final PwmHttpClientConfiguration clientConfig = PwmHttpClientConfiguration.builder()
                 .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous )
                 .build();
-        final PwmHttpClient pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( clientConfig );
+        final PwmHttpClient pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( clientConfig, sessionLabel );
 
         final Map<String, String> httpPost = new LinkedHashMap<>();
         if ( locale != null )
@@ -78,7 +79,7 @@ public class RestClientHelper
         try
         {
             LOGGER.debug( () -> "beginning external rest call to: " + url + ", body: " + jsonRequestBody );
-            httpResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, SessionLabel.SYSTEM_LABEL  );
+            httpResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest );
             final String responseBody = httpResponse.getBody();
             LOGGER.trace( () -> "external rest call returned: " + httpResponse.getStatusPhrase()  );
             if ( httpResponse.getStatusCode() != 200 )

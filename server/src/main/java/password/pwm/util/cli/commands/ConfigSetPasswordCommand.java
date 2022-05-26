@@ -20,7 +20,6 @@
 
 package password.pwm.util.cli.commands;
 
-import password.pwm.bean.SessionLabel;
 import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -44,7 +43,7 @@ public class ConfigSetPasswordCommand extends AbstractCliCommand
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
         final String password = getOptionalPassword();
         StoredConfigurationUtil.setPassword( modifier, password );
-        configurationFileManager.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
+        configurationFileManager.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication() );
         out( "success: new password has been set" );
     }
 

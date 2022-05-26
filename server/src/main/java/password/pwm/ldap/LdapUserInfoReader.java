@@ -233,7 +233,7 @@ public class LdapUserInfoReader implements UserInfo
                 try
                 {
                     final PwmPasswordRuleValidator passwordRuleValidator = PwmPasswordRuleValidator.create( sessionLabel, pwmDomain, passwordPolicy );
-                    passwordRuleValidator.testPassword( currentPassword, null, selfCachedReference, chaiUser );
+                    passwordRuleValidator.testPassword( sessionLabel, currentPassword, null, selfCachedReference, chaiUser );
                 }
                 catch ( final PwmDataValidationException | PwmUnrecoverableException e )
                 {
@@ -429,7 +429,7 @@ public class LdapUserInfoReader implements UserInfo
     @Override
     public boolean isRequiresOtpConfig( ) throws PwmUnrecoverableException
     {
-        LOGGER.trace( sessionLabel, () ->  "checkOtp: beginning process to check if user OTP setup is required" );
+        LOGGER.trace( sessionLabel, () -> "checkOtp: beginning process to check if user OTP setup is required" );
 
         SetupOtpProfile setupOtpProfile = null;
         final Map<ProfileDefinition, String> profileIDs = selfCachedReference.getProfileIDs();

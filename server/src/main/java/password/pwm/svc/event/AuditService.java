@@ -93,13 +93,13 @@ public class AuditService extends AbstractPwmService implements PwmService
 
         if ( pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
-            LOGGER.warn( () -> "unable to start - Application is in read-only mode" );
+            LOGGER.warn( getSessionLabel(), () -> "unable to start - Application is in read-only mode" );
             return STATUS.CLOSED;
         }
 
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
-            LOGGER.warn( () -> "unable to start - LocalDB is not available" );
+            LOGGER.warn( getSessionLabel(), () -> "unable to start - LocalDB is not available" );
             return STATUS.CLOSED;
         }
 

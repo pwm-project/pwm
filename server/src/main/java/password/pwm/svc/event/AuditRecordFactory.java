@@ -306,7 +306,7 @@ public class AuditRecordFactory
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( () -> "unable to read userID for " + userIdentity + ", error: " + e.getMessage() );
+                LOGGER.warn( sessionLabel, () -> "unable to read userID for " + userIdentity + ", error: " + e.getMessage() );
             }
         }
 

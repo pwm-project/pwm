@@ -67,6 +67,8 @@ public class ConfigurationFileManager
 
     private final File configFile;
     private final String configFileChecksum;
+    private final SessionLabel sessionLabel;
+
     private AppConfig domainConfig;
     private StoredConfiguration storedConfiguration;
     private ErrorInformation configFileError;
@@ -75,9 +77,11 @@ public class ConfigurationFileManager
 
     private volatile boolean saveInProgress;
 
-    public ConfigurationFileManager( final File configFile ) throws PwmUnrecoverableException
+    public ConfigurationFileManager( final File configFile, final SessionLabel sessionLabel )
+            throws PwmUnrecoverableException
     {
         this.configFile = configFile;
+        this.sessionLabel = sessionLabel;
 
         this.configFileChecksum = readFileChecksum( configFile );
         try
@@ -88,7 +92,7 @@ public class ConfigurationFileManager
         catch ( final PwmUnrecoverableException e )
         {
             this.configFileError = e.getErrorInformation();
-            LOGGER.warn( () -> "error reading configuration file: " + e.getMessage() );
+            LOGGER.warn( sessionLabel, () -> "error reading configuration file: " + e.getMessage() );
         }
 
         if ( storedConfiguration == null )
@@ -96,7 +100,7 @@ public class ConfigurationFileManager
             this.storedConfiguration = StoredConfigurationFactory.newConfig();
         }
 
-        LOGGER.debug( () -> "configuration mode: " + configMode );
+        LOGGER.debug( sessionLabel, () -> "configuration mode: " + configMode );
     }
 
     public PwmApplicationMode getConfigMode( )
@@ -123,11 +127,11 @@ public class ConfigurationFileManager
 
     private StoredConfiguration readStoredConfig( ) throws PwmUnrecoverableException
     {
-        LOGGER.debug( () -> "loading configuration file: " + configFile );
+        LOGGER.debug( sessionLabel, () -> "loading configuration file: " + configFile );
 
         if ( !configFile.exists() )
         {
-            LOGGER.warn( () -> "configuration file '" + configFile.getAbsolutePath() + "' does not exist" );
+            LOGGER.warn( sessionLabel, () -> "configuration file '" + configFile.getAbsolutePath() + "' does not exist" );
             return null;
         }
 
@@ -180,7 +184,7 @@ public class ConfigurationFileManager
         }
 
         final String fileSize = StringUtil.formatDiskSize( configFile.length() );
-        LOGGER.debug( () -> "configuration reading/parsing of " + fileSize + " complete", TimeDuration.fromCurrent( startTime ) );
+        LOGGER.debug( sessionLabel, () -> "configuration reading/parsing of " + fileSize + " complete", TimeDuration.fromCurrent( startTime ) );
 
 
         final Optional<String> configIsEditable = storedConfiguration.readConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE );
@@ -198,8 +202,7 @@ public class ConfigurationFileManager
 
     public void saveConfiguration(
             final StoredConfiguration storedConfiguration,
-            final PwmApplication pwmApplication,
-            final SessionLabel sessionLabel
+            final PwmApplication pwmApplication
     )
             throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
@@ -248,12 +251,12 @@ public class ConfigurationFileManager
 
         if ( pwmApplication != null && pwmApplication.getAuditService() != null )
         {
-            auditModifiedSettings( pwmApplication, storedConfiguration, sessionLabel );
+            auditModifiedSettings( pwmApplication, storedConfiguration );
         }
 
         try
         {
-            outputConfigurationFile( storedConfiguration, pwmApplication, sessionLabel, backupRotations, backupDirectory );
+            outputConfigurationFile( storedConfiguration, pwmApplication, backupRotations, backupDirectory );
         }
         finally
         {
@@ -261,8 +264,7 @@ public class ConfigurationFileManager
         }
     }
 
-    private static void auditModifiedSettings( final PwmApplication pwmApplication, final StoredConfiguration newConfig, final SessionLabel sessionLabel )
-            throws PwmUnrecoverableException
+    private void auditModifiedSettings( final PwmApplication pwmApplication, final StoredConfiguration newConfig )
     {
         final Instant startTime = Instant.now();
 
@@ -286,7 +288,7 @@ public class ConfigurationFileManager
                     .orElse( "removed" );
 
             final String finalMsg = modifyMessage;
-            LOGGER.trace( () -> "sending audit notice: " + finalMsg );
+            LOGGER.trace( sessionLabel, () -> "sending audit notice: " + finalMsg );
 
             AuditServiceClient.submit( pwmApplication, sessionLabel, AuditRecordFactory.make( sessionLabel, pwmApplication ).createUserAuditRecord(
                     AuditEvent.MODIFY_CONFIGURATION,
@@ -298,13 +300,12 @@ public class ConfigurationFileManager
         }
 
         final int finalChangeCount = changeCount;
-        LOGGER.debug( () -> "sent " + finalChangeCount + " audit notifications about changed settings", TimeDuration.fromCurrent( startTime ) );
+        LOGGER.debug( sessionLabel, () -> "sent " + finalChangeCount + " audit notifications about changed settings", TimeDuration.fromCurrent( startTime ) );
     }
 
     private void outputConfigurationFile(
             final StoredConfiguration storedConfiguration,
             final PwmApplication pwmApplication,
-            final SessionLabel sessionLabel,
             final int backupRotations,
             final File backupDirectory
     )
@@ -322,14 +323,14 @@ public class ConfigurationFileManager
             StoredConfigurationFactory.output( storedConfiguration, fileOutputStream );
         }
 
-        LOGGER.info( () -> "saved configuration", TimeDuration.fromCurrent( saveFileStartTime ) );
+        LOGGER.info( sessionLabel, () -> "saved configuration", TimeDuration.fromCurrent( saveFileStartTime ) );
         if ( pwmApplication != null )
         {
             final String actualChecksum = StoredConfigurationUtil.valueHash( storedConfiguration );
             pwmApplication.writeAppAttribute( AppAttribute.CONFIG_HASH, actualChecksum );
         }
 
-        LOGGER.trace( () -> "renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath() );
+        LOGGER.trace( sessionLabel, () -> "renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath() );
         try
         {
             Files.move( tempWriteFile.toPath(), configFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE );

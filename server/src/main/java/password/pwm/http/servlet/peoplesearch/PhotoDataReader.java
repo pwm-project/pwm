@@ -227,7 +227,7 @@ public class PhotoDataReader
             throws PwmUnrecoverableException, PwmOperationalException
     {
         final Optional<String> overrideURL = getPhotoUrlOverride( userIdentity );
-        if ( !overrideURL.isPresent() )
+        if ( overrideURL.isEmpty() )
         {
             return Optional.empty();
         }
@@ -237,12 +237,12 @@ public class PhotoDataReader
             final PwmHttpClientConfiguration configuration = PwmHttpClientConfiguration.builder()
                     .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous )
                     .build();
-            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient( configuration );
+            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient( configuration, pwmRequest.getLabel() );
             final PwmHttpClientRequest clientRequest = PwmHttpClientRequest.builder()
                     .method( HttpMethod.GET )
                     .url( overrideURL.get() )
                     .build();
-            final PwmHttpClientResponse response = pwmHttpClient.makeRequest( clientRequest, pwmRequest.getLabel() );
+            final PwmHttpClientResponse response = pwmHttpClient.makeRequest( clientRequest );
             if ( response != null )
             {
                 final ImmutableByteArray bodyContents = response.getBinaryBody();

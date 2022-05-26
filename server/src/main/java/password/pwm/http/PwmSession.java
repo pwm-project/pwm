@@ -202,6 +202,7 @@ public class PwmSession implements Serializable
 
     public SessionLabel getLabel( )
     {
+        System.out.println();
         final LocalSessionStateBean ssBean = this.getSessionStateBean();
 
         UserIdentity userIdentity = null;

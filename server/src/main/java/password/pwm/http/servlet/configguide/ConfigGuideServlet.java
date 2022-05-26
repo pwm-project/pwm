@@ -479,7 +479,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             {
                 final GuideStep finalStep = step;
-                LOGGER.trace( () -> "setting current step to: " + finalStep );
+                LOGGER.trace( pwmRequest, () -> "setting current step to: " + finalStep );
             }
         }
 

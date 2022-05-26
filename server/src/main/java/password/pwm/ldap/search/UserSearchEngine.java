@@ -765,7 +765,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
 
     private void periodicDebugOutput( )
     {
-        LOGGER.trace( () -> "periodic debug status: " + StringUtil.mapToString( debugProperties() ) );
+        LOGGER.trace( getSessionLabel(), () -> "periodic debug status: " + StringUtil.mapToString( debugProperties() ) );
     }
 
     void log( final PwmLogLevel level, final SessionLabel sessionLabel, final int searchID, final int jobID, final String message )
@@ -812,7 +812,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
             final int threads = Math.min( maxThreads, ( endPoints ) * factor );
             final int minThreads = JavaHelper.rangeCheck( 1, 10, endPoints );
 
-            LOGGER.trace( () -> "initialized with threads min=" + minThreads + " max=" + threads );
+            LOGGER.trace( getSessionLabel(), () -> "initialized with threads min=" + minThreads + " max=" + threads );
 
             return PwmScheduler.makeMultiThreadExecutor( threads, getPwmApplication(), getSessionLabel(), UserSearchEngine.class );
         }

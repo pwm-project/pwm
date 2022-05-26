@@ -54,7 +54,7 @@ public class ConfigResetHttpsCommand
             return;
         }
 
-        final ConfigurationFileManager configurationFileManager = new ConfigurationFileManager( cliEnvironment.getConfigurationFile() );
+        final ConfigurationFileManager configurationFileManager = new ConfigurationFileManager( cliEnvironment.getConfigurationFile(), SessionLabel.CLI_SESSION_LABEL );
         final StoredConfiguration storedConfiguration = configurationFileManager.getStoredConfiguration();
 
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
@@ -63,7 +63,7 @@ public class ConfigResetHttpsCommand
             final StoredConfigKey key = StoredConfigKey.forSetting( setting, null, DomainID.systemId() );
             modifier.resetSetting( key, null );
         }
-        configurationFileManager.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
+        configurationFileManager.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication() );
         out( "success" );
     }
 

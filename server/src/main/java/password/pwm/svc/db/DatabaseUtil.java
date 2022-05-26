@@ -145,7 +145,7 @@ class DatabaseUtil
                     + "  " + DatabaseService.VALUE_COLUMN + " " + dbConfiguration.getColumnTypeValue() + " " + "\n"
                     + ")" + "\n";
 
-            LOGGER.trace( () ->  "attempting to execute the following sql statement:\n " + sqlString );
+            LOGGER.trace( () -> "attempting to execute the following sql statement:\n " + sqlString );
 
             Statement statement = null;
             try

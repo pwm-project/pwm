@@ -58,7 +58,6 @@ import password.pwm.user.UserInfo;
 import password.pwm.util.Validator;
 import password.pwm.data.ImmutableByteArray;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
@@ -85,7 +84,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
 
 public class PwmRequest extends PwmHttpRequestWrapper
 {
@@ -96,7 +94,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     private final PwmRequestID pwmRequestID;
 
     private final transient PwmApplication pwmApplication;
-    private final transient Supplier<SessionLabel> sessionLabelLazySupplier = new LazySupplier<>( this::makeSessionLabel );
+    private final SessionLabel sessionLabel;
 
     private final Set<PwmRequestFlag> flags = EnumSet.noneOf( PwmRequestFlag.class );
     private final Instant requestStartTime = Instant.now();
@@ -144,6 +142,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         this.pwmApplication = pwmApplication;
         this.pwmURL = PwmURL.create( this.getHttpServletRequest() );
         this.domainID = PwmHttpRequestWrapper.readDomainIdFromRequest( httpServletRequest );
+        this.sessionLabel = makeSessionLabel();
     }
 
     public PwmDomain getPwmDomain( )
@@ -158,7 +157,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public SessionLabel getLabel( )
     {
-        return sessionLabelLazySupplier.get();
+        return sessionLabel;
     }
 
     private SessionLabel makeSessionLabel( )

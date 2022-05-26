@@ -496,12 +496,12 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 {
                     final PwmSettingTemplate template = PwmSettingTemplate.valueOf( requestedTemplate );
                     modifier.writeConfigProperty( ConfigurationProperty.LDAP_TEMPLATE, template.toString() );
-                    LOGGER.trace( () -> "setting template to: " + requestedTemplate );
+                    LOGGER.trace( pwmRequest, () -> "setting template to: " + requestedTemplate );
                 }
                 catch ( final IllegalArgumentException e )
                 {
                     modifier.writeConfigProperty( ConfigurationProperty.LDAP_TEMPLATE, PwmSettingTemplate.DEFAULT.toString() );
-                    LOGGER.error( () -> "unknown template set request: " + requestedTemplate );
+                    LOGGER.error( pwmRequest, () -> "unknown template set request: " + requestedTemplate );
                 }
             }
         }
@@ -645,7 +645,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final StringBuilder output = new StringBuilder();
         output.append( "beginning SMS send process:\n" );
 
-        if ( !SmsQueueService.smsIsConfigured( config.getAppConfig() ) )
+        if ( !config.getAppConfig().isSmsConfigured() )
         {
             output.append( "SMS not configured." );
         }
@@ -711,7 +711,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
 
                 try
                 {
-                    EmailService.sendEmailSynchronous( emailServer.get(), testDomainConfig, testEmailItem, macroRequest );
+                    EmailService.sendEmailSynchronous( emailServer.get(), testDomainConfig, testEmailItem, macroRequest, pwmRequest.getLabel() );
                     output.append( "message delivered" );
                 }
                 catch ( final PwmException e )

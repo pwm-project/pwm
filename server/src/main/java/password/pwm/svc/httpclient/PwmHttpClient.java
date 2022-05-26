@@ -20,7 +20,6 @@
 
 package password.pwm.svc.httpclient;
 
-import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.secure.CertificateReadingTrustManager;
 
@@ -36,10 +35,7 @@ public interface PwmHttpClient extends AutoCloseable
 {
     boolean isOpen();
 
-    PwmHttpClientResponse makeRequest(
-            PwmHttpClientRequest clientRequest,
-            SessionLabel sessionLabel
-    )
+    PwmHttpClientResponse makeRequest( PwmHttpClientRequest clientRequest )
             throws PwmUnrecoverableException;
 
     InputStream streamForUrl( String inputUrl )

@@ -346,12 +346,12 @@ public class SessionFilter extends AbstractPwmFilter
                         }
                         else
                         {
-                            LOGGER.debug( () -> "dropping non-query string (body?) parameter '" + paramName + "' during redirect validation)" );
+                            LOGGER.debug( pwmRequest, () -> "dropping non-query string (body?) parameter '" + paramName + "' during redirect validation)" );
                         }
                     }
                     catch ( final IOException e )
                     {
-                        LOGGER.trace( () -> "error decoding cookie value '" + paramName
+                        LOGGER.trace( pwmRequest, () -> "error decoding cookie value '" + paramName
                                 + "', error: " + e.getMessage() );
                     }
                 }
@@ -549,7 +549,7 @@ public class SessionFilter extends AbstractPwmFilter
                 return ProcessStatus.Continue;
             }
 
-            LOGGER.warn( () -> "invalidating session due to dirty page leave time greater then configured timeout" );
+            LOGGER.warn( pwmRequest, () -> "invalidating session due to dirty page leave time greater then configured timeout" );
             pwmRequest.invalidateSession();
             pwmRequest.getPwmResponse().sendRedirect( pwmRequest.getHttpServletRequest().getRequestURI() );
             return ProcessStatus.Halt;

@@ -289,8 +289,8 @@ public class OAuthMachine
                     .certificates( CollectionUtil.isEmpty( certs ) ? null : certs )
                     .maskBodyDebugOutput( true )
                     .build();
-            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient( config );
-            pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, pwmRequest.getLabel() );
+            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient( config, pwmRequest.getLabel() );
+            pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest );
         }
         catch ( final PwmException e )
         {

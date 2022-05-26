@@ -216,14 +216,14 @@ public class ActionExecutor
                             .certificates( webAction.getCertificates() )
                             .build();
 
-                    client = pwmDomain.getHttpClientService().getPwmHttpClient( clientConfiguration );
+                    client = pwmDomain.getHttpClientService().getPwmHttpClient( clientConfiguration, sessionLabel );
                 }
                 else
                 {
-                    client = pwmDomain.getHttpClientService().getPwmHttpClient( );
+                    client = pwmDomain.getHttpClientService().getPwmHttpClient( sessionLabel );
                 }
             }
-            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest, sessionLabel );
+            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest );
 
             final List<Integer> successStatus = webAction.getSuccessStatus() == null
                     ? Collections.emptyList()

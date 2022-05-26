@@ -319,8 +319,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             final ContextManager contextManager = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession().getServletContext() );
             contextManager.getConfigReader().saveConfiguration(
                     storedConfiguration,
-                    pwmRequest.getPwmApplication(),
-                    pwmRequest.getLabel()
+                    pwmRequest.getPwmApplication()
             );
 
             contextManager.requestPwmApplicationRestart();

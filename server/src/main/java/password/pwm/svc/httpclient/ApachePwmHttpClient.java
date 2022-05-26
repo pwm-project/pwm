@@ -110,9 +110,11 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClientProvider
     private PwmApplication pwmApplication;
     private PwmHttpClientConfiguration pwmHttpClientConfiguration;
     private HttpClientService httpClientService;
+    private SessionLabel sessionLabel;
 
     private TrustManager[] trustManagers;
     private CloseableHttpClient httpClient;
+
 
     private volatile boolean open = true;
 
@@ -123,11 +125,13 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClientProvider
     public void init(
             final PwmApplication pwmApplication,
             final HttpClientService httpClientService,
-            final PwmHttpClientConfiguration pwmHttpClientConfiguration
+            final PwmHttpClientConfiguration pwmHttpClientConfiguration,
+            final SessionLabel sessionLabel
     )
             throws PwmUnrecoverableException
     {
         this.pwmApplication = Objects.requireNonNull( pwmApplication );
+        this.sessionLabel = sessionLabel;
         this.httpClientService = Objects.requireNonNull( httpClientService );
         this.pwmHttpClientConfiguration = pwmHttpClientConfiguration;
 
@@ -145,14 +149,14 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClientProvider
     @Override
     public void close()
     {
-        LOGGER.trace( () -> "closed client #" + clientID );
+        LOGGER.trace( sessionLabel, () -> "closed client #" + clientID );
         try
         {
             httpClient.close();
         }
         catch ( final IOException e )
         {
-            LOGGER.trace( () -> "error closing ApacheHttpClient: " + e.getMessage() );
+            LOGGER.trace( sessionLabel, () -> "error closing ApacheHttpClient: " + e.getMessage() );
         }
         open = false;
     }
@@ -245,14 +249,13 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClientProvider
 
     @Override
     public PwmHttpClientResponse makeRequest(
-            final PwmHttpClientRequest clientRequest,
-            final SessionLabel sessionLabel
+            final PwmHttpClientRequest clientRequest
     )
             throws PwmUnrecoverableException
     {
         try
         {
-            return makeRequestImpl( clientRequest, sessionLabel );
+            return makeRequestImpl( clientRequest );
         }
         catch ( final IOException e )
         {
@@ -261,8 +264,7 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClientProvider
     }
 
     private PwmHttpClientResponse makeRequestImpl(
-            final PwmHttpClientRequest clientRequest,
-            final SessionLabel sessionLabel
+            final PwmHttpClientRequest clientRequest
     )
             throws IOException, PwmUnrecoverableException
     {

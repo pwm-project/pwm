@@ -62,7 +62,7 @@ public abstract class HttpAuthenticationUtilities
             }
             catch ( final Throwable e )
             {
-                LOGGER.trace( () -> "could not load authentication class '" + method + "', will ignore (error: " + e.getMessage() + ")" );
+                LOGGER.error( () -> "could not load authentication class '" + method + "', will ignore (error: " + e.getMessage() + ")" );
             }
         }
         return Collections.unmodifiableMap( methods );

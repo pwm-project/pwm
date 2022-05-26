@@ -114,7 +114,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
     public void init( final PwmDomain pwmDomain, final UserInfo userInfo, final SessionLabel sessionLabel, final Locale locale )
             throws PwmUnrecoverableException
     {
-        pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( );
+        pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( sessionLabel );
         this.remoteSessionID = pwmDomain.getSecureService().pwmRandom().randomUUID().toString();
         this.userInfo = userInfo;
         this.sessionLabel = sessionLabel;
@@ -159,7 +159,7 @@ public class RemoteVerificationMethod implements VerificationMethodSystem
 
         try
         {
-            final PwmHttpClientResponse response = pwmHttpClient.makeRequest( pwmHttpClientRequest, this.sessionLabel );
+            final PwmHttpClientResponse response = pwmHttpClient.makeRequest( pwmHttpClientRequest );
             final String responseBodyStr = response.getBody();
             this.lastResponse = JsonFactory.get().deserialize( responseBodyStr, RemoteVerificationResponseBean.class );
         }

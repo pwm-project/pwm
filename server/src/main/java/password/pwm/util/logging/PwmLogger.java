@@ -333,14 +333,14 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.DEBUG, null, message, null );
     }
 
-    public void debug( final Supplier<CharSequence> message, final TimeDuration timeDuration )
-    {
-        doLogEvent( PwmLogLevel.DEBUG, null, message, null, timeDuration );
-    }
-
     public void debug( final PwmRequest pwmRequest, final Supplier<CharSequence> message )
     {
         doPwmRequestLogEvent( PwmLogLevel.DEBUG, pwmRequest, message, null, null );
+    }
+
+    public void debug( final PwmRequest pwmRequest, final Supplier<CharSequence> message, final Throwable exception )
+    {
+        doPwmRequestLogEvent( PwmLogLevel.DEBUG, pwmRequest, message, exception, null );
     }
 
     public void debug( final PwmRequest pwmRequest, final ErrorInformation errorInformation )
@@ -361,11 +361,6 @@ public class PwmLogger
     public void debug( final SessionLabel sessionLabel, final ErrorInformation errorInformation )
     {
         doLogEvent( PwmLogLevel.DEBUG, sessionLabel, convertErrorInformation( errorInformation ), null );
-    }
-
-    public void debug( final Supplier<CharSequence> message, final Throwable exception )
-    {
-        doPwmRequestLogEvent( PwmLogLevel.DEBUG, null, message, exception, null );
     }
 
     public void info( final Supplier<CharSequence> message )
@@ -466,6 +461,11 @@ public class PwmLogger
     public void warn( final PwmRequest pwmRequest, final Supplier<CharSequence> message )
     {
         doPwmRequestLogEvent( PwmLogLevel.WARN, pwmRequest, message, null, null );
+    }
+
+    public void warn( final SessionLabel sessionLabel, final Supplier<CharSequence> message, final Throwable exception )
+    {
+        doLogEvent( PwmLogLevel.WARN, sessionLabel, message, exception );
     }
 
     public void warn( final PwmRequest pwmRequest, final Supplier<CharSequence> message, final Throwable exception )

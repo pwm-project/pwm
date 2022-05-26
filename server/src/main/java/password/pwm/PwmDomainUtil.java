@@ -76,7 +76,7 @@ class PwmDomainUtil
             throws PwmUnrecoverableException
     {
         final Instant domainInitStartTime = Instant.now();
-        LOGGER.trace( () -> "beginning domain initializations" );
+        LOGGER.trace( pwmApplication.getSessionLabel(), () -> "beginning domain initializations" );
 
         final List<Callable<Optional<PwmUnrecoverableException>>> callables = domains.stream()
                 .map( DomainInitializingCallable::new )
@@ -95,7 +95,7 @@ class PwmDomainUtil
             throw domainStartupException.get();
         }
 
-        LOGGER.trace( () -> "completed domain initialization for domains", TimeDuration.fromCurrent( domainInitStartTime ) );
+        LOGGER.trace( pwmApplication.getSessionLabel(), () -> "completed domain initialization for domains", TimeDuration.fromCurrent( domainInitStartTime ) );
     }
 
     private static class DomainInitializingCallable implements Callable<Optional<PwmUnrecoverableException>>
@@ -153,7 +153,7 @@ class PwmDomainUtil
 
         if ( newDomains.isEmpty() && deletedDomains.isEmpty() )
         {
-            LOGGER.debug( pwmApplication.getSessionLabel(), () -> "no domain-level settings have been changed, restart of domain services is not required");
+            LOGGER.debug( pwmApplication.getSessionLabel(), () -> "no domain-level settings have been changed, restart of domain services is not required" );
         }
 
         if ( !newDomains.isEmpty() )

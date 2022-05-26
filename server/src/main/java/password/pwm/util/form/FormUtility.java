@@ -379,7 +379,7 @@ public class FormUtility
                     if ( compareResult )
                     {
                         final String label = labelMap.get( name );
-                        LOGGER.trace( sessionLabel, () ->  "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
+                        LOGGER.trace( sessionLabel, () -> "found duplicate value for attribute '" + label + "' on entry " + userIdentity );
                         final ErrorInformation error = new ErrorInformation( PwmError.ERROR_FIELD_DUPLICATE, null, new String[]
                                 {
                                         label,

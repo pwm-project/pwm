@@ -21,11 +21,17 @@
 package password.pwm.svc.httpclient;
 
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmUnrecoverableException;
 
 public interface PwmHttpClientProvider extends PwmHttpClient
 {
-    void init( PwmApplication pwmApplication, HttpClientService httpClientService, PwmHttpClientConfiguration pwmHttpClientConfiguration )
+    void init(
+            PwmApplication pwmApplication,
+            HttpClientService httpClientService,
+            PwmHttpClientConfiguration pwmHttpClientConfiguration,
+            SessionLabel sessionLabel
+    )
             throws PwmUnrecoverableException;
 
 }

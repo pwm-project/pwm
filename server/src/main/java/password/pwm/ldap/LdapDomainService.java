@@ -66,9 +66,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-public class LdapConnectionService extends AbstractPwmService implements PwmService
+public class LdapDomainService extends AbstractPwmService implements PwmService
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( LdapConnectionService.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( LdapDomainService.class );
 
     private final Map<String, ErrorInformation> lastLdapErrors = new ConcurrentHashMap<>();
     private final ThreadLocal<ThreadLocalContainer> threadLocalProvider = new ThreadLocal<>();
@@ -91,7 +91,7 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
     {
         return pwmApplication.domains().values().stream()
                 .map( PwmDomain::getLdapConnectionService )
-                .map( LdapConnectionService::connectionCount )
+                .map( LdapDomainService::connectionCount )
                 .map( Long::valueOf )
                 .reduce( 0L, Long::sum );
     }
@@ -142,13 +142,13 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
         this.chaiProviderFactory = ChaiProviderFactory.newProviderFactory();
 
         useThreadLocal = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROXY_USE_THREAD_LOCAL ) );
-        LOGGER.trace( () -> "threadLocal enabled: " + useThreadLocal );
+        LOGGER.trace( getSessionLabel(), () -> "threadLocal enabled: " + useThreadLocal );
 
         // read the lastLoginTime
         this.lastLdapErrors.putAll( pwmApplication.readLastLdapFailure( getDomainID() ) );
 
         final int connectionsPerProfile = maxSlotsPerProfile( pwmDomain );
-        LOGGER.trace( () -> "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
+        LOGGER.trace( getSessionLabel(), () -> "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
         slotIncrementer = AtomicLoopIntIncrementer.builder().ceiling( connectionsPerProfile ).build();
 
         for ( final LdapProfile ldapProfile : pwmDomain.getConfig().getLdapProfiles().values() )
@@ -164,7 +164,7 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
     {
         setStatus( STATUS.CLOSED );
         logDebugInfo();
-        LOGGER.trace( () -> "closing ldap proxy connections" );
+        LOGGER.trace( getSessionLabel(), () -> "closing ldap proxy connections" );
 
         try
         {
@@ -172,7 +172,7 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error closing ldap proxy connection: " + e.getMessage(), e );
+            LOGGER.error( getSessionLabel(), () -> "error closing ldap proxy connection: " + e.getMessage(), e );
         }
 
         proxyChaiProviders.clear();
@@ -456,7 +456,7 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
                 {
                     for ( final ChaiProvider chaiProvider : container.getProviderMap().values() )
                     {
-                        LOGGER.trace( () -> "discarding idled connection id=" + chaiProvider.toString() + " from orphaned threadLocal, age="
+                        LOGGER.trace( getSessionLabel(), () -> "discarding idled connection id=" + chaiProvider.toString() + " from orphaned threadLocal, age="
                                 + age.asCompactString() + ", thread=" + container.getThreadName() );
                         stats.increment( StatKey.clearedThreadLocals );
                     }

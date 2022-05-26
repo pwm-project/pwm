@@ -44,7 +44,6 @@ import password.pwm.i18n.Config;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.svc.sms.SmsQueueService;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -367,7 +366,7 @@ public class LdapPermissionCalculator implements Serializable
 
             case SMS_USER_PHONE_ATTRIBUTE:
             {
-                if ( !SmsQueueService.smsIsConfigured( domainConfig.getAppConfig() ) )
+                if ( !domainConfig.getAppConfig().isSmsConfigured() )
                 {
                     return Collections.emptyList();
                 }

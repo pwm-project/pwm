@@ -23,6 +23,7 @@ package password.pwm.svc.httpclient;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -110,13 +111,13 @@ public class HttpClientService extends AbstractPwmService implements PwmService
         }
     }
 
-    public PwmHttpClient getPwmHttpClient()
+    public PwmHttpClient getPwmHttpClient( final SessionLabel sessionLabel )
             throws PwmUnrecoverableException
     {
-        return this.getPwmHttpClient( PwmHttpClientConfiguration.builder().build() );
+        return this.getPwmHttpClient( PwmHttpClientConfiguration.builder().build(), sessionLabel );
     }
 
-    public PwmHttpClient getPwmHttpClient( final PwmHttpClientConfiguration pwmHttpClientConfiguration )
+    public PwmHttpClient getPwmHttpClient( final PwmHttpClientConfiguration pwmHttpClientConfiguration, final SessionLabel sessionLabel )
             throws PwmUnrecoverableException
     {
         Objects.requireNonNull( pwmHttpClientConfiguration );
@@ -135,7 +136,7 @@ public class HttpClientService extends AbstractPwmService implements PwmService
         try
         {
             final PwmHttpClientProvider newClient = httpClientClass.getDeclaredConstructor().newInstance();
-            newClient.init( getPwmApplication(), this, pwmHttpClientConfiguration );
+            newClient.init( getPwmApplication(), this, pwmHttpClientConfiguration, sessionLabel );
             issuedClients.put( newClient, null );
             threadLocal.set( newClient );
             stats.increment( StatsKey.createdClients );

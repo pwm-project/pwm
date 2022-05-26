@@ -20,6 +20,7 @@
 
 package password.pwm.svc.wordlist;
 
+import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -28,6 +29,7 @@ import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.Percent;
+import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.StatisticAverageBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -366,7 +368,8 @@ class WordlistImporter implements Runnable
         getLogger().info( this::makeStatString );
         final long wordlistSize = wordlistBucket.size();
 
-        getLogger().info( rootWordlist.getSessionLabel(), () -> "population complete, added " + wordlistSize
+        getLogger().info( rootWordlist.getSessionLabel(), () -> "population complete, added "
+                + PwmNumberFormat.forLocale( PwmConstants.DEFAULT_LOCALE ).format( wordlistSize )
                 + " total words", this.getImportDuration() );
 
         completed = true;

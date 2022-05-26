@@ -212,7 +212,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create(
                     pwmRequest.getLabel(), pwmRequest.getPwmDomain(), userInfo.getPasswordPolicy() );
             final PasswordData oldPassword = pwmRequest.getPwmSession().getLoginInfoBean().getUserCurrentPassword();
-            pwmPasswordRuleValidator.testPassword( password1, oldPassword, userInfo, theUser );
+            pwmPasswordRuleValidator.testPassword( pwmRequest.getLabel(), password1, oldPassword, userInfo, theUser );
         }
         catch ( final PwmDataValidationException e )
         {

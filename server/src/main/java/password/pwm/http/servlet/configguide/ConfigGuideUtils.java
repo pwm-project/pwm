@@ -31,9 +31,8 @@ import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
-import password.pwm.http.servlet.configeditor.function.UserMatchViewerFunction;
-import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationFileManager;
+import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
@@ -50,10 +49,11 @@ import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.ConfigGuideBean;
+import password.pwm.http.servlet.configeditor.function.UserMatchViewerFunction;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.LdapPermissionCalculator;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
-import password.pwm.ldap.LdapPermissionCalculator;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.Percent;
 import password.pwm.util.logging.PwmLogger;
@@ -115,7 +115,7 @@ public class ConfigGuideUtils
             // add a random security key
             StoredConfigurationUtil.initNewRandomSecurityKey( modifier );
 
-            configReader.saveConfiguration( modifier.newStoredConfiguration(), pwmApplication, null );
+            configReader.saveConfiguration( modifier.newStoredConfiguration(), pwmApplication );
 
             contextManager.requestPwmApplicationRestart();
         }

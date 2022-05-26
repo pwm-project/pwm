@@ -32,6 +32,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigKey;
@@ -131,11 +132,11 @@ public class PwmHttpClientTest
 
         // Obtain the HTTP client
         final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( tempAppPath.newFolder(), makeAppConfig( url, false, false ) );
-        final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient(  );
+        final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient( SessionLabel.TEST_SESSION_LABEL );
 
         // Execute the HTTP request
         final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
-        final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest, null );
+        final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest );
 
         // Verify the response
         final int responseStatusCode = response.getStatusCode();
@@ -165,14 +166,14 @@ public class PwmHttpClientTest
 
         // Obtain the HTTP client
         final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( tempAppPath.newFolder(), makeAppConfig( null, false, false ) );
-        final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient(  );
+        final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient( SessionLabel.TEST_SESSION_LABEL );
 
         // Execute the HTTP request
         final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
 
 
         // This should throw an exception, since we're doing https without setting SECURITY_HTTP_PROMISCUOUS_ENABLE, or setting certificates
-        httpClient.makeRequest( pwmHttpClientRequest, null );
+        httpClient.makeRequest( pwmHttpClientRequest );
     }
 
     /**
@@ -192,12 +193,12 @@ public class PwmHttpClientTest
         // Obtain the HTTP client
         final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( tempAppPath.newFolder(), makeAppConfig( null, true, false ) );
         final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(
-                PwmHttpClientConfiguration.builder().trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous ).build()
+                PwmHttpClientConfiguration.builder().trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous ).build(), SessionLabel.TEST_SESSION_LABEL
         );
 
         // Execute the HTTP request
         final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
-        final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest, null );
+        final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest );
 
         final int responseStatusCode = response.getStatusCode();
         Assert.assertEquals( 200, responseStatusCode );
@@ -225,12 +226,12 @@ public class PwmHttpClientTest
         final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( tempAppPath.newFolder(), makeAppConfig( null, false, true ) );
         final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient(
                 PwmHttpClientConfiguration.builder().trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
-                        .certificates( getWireMockSelfSignedCertificate() ).build()
+                        .certificates( getWireMockSelfSignedCertificate() ).build(), SessionLabel.TEST_SESSION_LABEL
         );
 
         // Execute the HTTP request
         final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
-        final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest, null );
+        final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest );
 
         // Verify the response
         final int responseStatusCode = response.getStatusCode();
@@ -259,14 +260,14 @@ public class PwmHttpClientTest
         final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( tempAppPath.newFolder(), makeAppConfig( proxyUrl, false, false ) );
         final PwmHttpClient httpClient = pwmDomain.getHttpClientService().getPwmHttpClient(
                 PwmHttpClientConfiguration.builder().trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
-                        .certificates( getWireMockSelfSignedCertificate() ).build()
+                        .certificates( getWireMockSelfSignedCertificate() ).build(), SessionLabel.TEST_SESSION_LABEL
         );
 
 
         // We are making a request to www.example.com, but our server on localhost will receive it
         final String url = "http://www.example.com/simpleHello";
         final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
-        final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest, null );
+        final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest );
 
         // Verify the response
         final int responseStatusCode = response.getStatusCode();

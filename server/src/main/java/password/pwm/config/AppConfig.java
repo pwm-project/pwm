@@ -24,6 +24,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.PrivateKeyCertificate;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.option.CertificateMatchingMode;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.EmailServerProfile;
@@ -358,6 +359,25 @@ public class AppConfig implements SettingReader
         return Collections.unmodifiableMap( appPropertyMap );
     }
 
+    public boolean isSmsConfigured()
+    {
+        final String gatewayUrl = readSettingAsString( PwmSetting.SMS_GATEWAY_URL );
+        final String gatewayUser = readSettingAsString( PwmSetting.SMS_GATEWAY_USER );
+        final PasswordData gatewayPass = readSettingAsPassword( PwmSetting.SMS_GATEWAY_PASSWORD );
+        if ( gatewayUrl == null || gatewayUrl.length() < 1 )
+        {
+            return false;
+        }
+
+        if ( gatewayUser != null && gatewayUser.length() > 0 && ( gatewayPass == null ) )
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+
     private static PwmSecurityKey makeAppSecurityKey( final AppConfig appConfig )
     {
         try
@@ -368,7 +388,7 @@ public class AppConfig implements SettingReader
             {
                 final String errorMsg = "Security Key value is not configured, will generate temp value for use by runtime instance";
                 final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-                LOGGER.warn( errorInfo::toDebugStr );
+                LOGGER.warn( SessionLabel.SYSTEM_LABEL, errorInfo::toDebugStr );
                 return new PwmSecurityKey( PwmRandom.getInstance().alphaNumericString( 1024 ) );
             }
             else

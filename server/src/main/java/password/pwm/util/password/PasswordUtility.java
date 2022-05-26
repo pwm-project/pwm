@@ -287,7 +287,7 @@ public class PasswordUtility
         try
         {
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create( pwmRequest.getLabel(), pwmDomain, userInfo.getPasswordPolicy() );
-            pwmPasswordRuleValidator.testPassword( newPassword, null, userInfo, pwmSession.getSessionManager().getActor( ) );
+            pwmPasswordRuleValidator.testPassword( pwmSession.getLabel(), newPassword, null, userInfo, pwmSession.getSessionManager().getActor( ) );
         }
         catch ( final PwmDataValidationException e )
         {
@@ -415,7 +415,7 @@ public class PasswordUtility
                     PwmPasswordRuleValidator.Flag.BypassLdapRuleCheck
             );
 
-            pwmPasswordRuleValidator.testPassword( newPassword, null, userInfo, theUser );
+            pwmPasswordRuleValidator.testPassword( sessionLabel, newPassword, null, userInfo, theUser );
         }
         catch ( final ChaiUnavailableException e )
         {
@@ -1114,7 +1114,7 @@ public class PasswordUtility
                 {
                     final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create( sessionLabel, pwmDomain, userInfo.getPasswordPolicy(), locale );
                     final PasswordData oldPassword = loginInfoBean == null ? null : loginInfoBean.getUserCurrentPassword();
-                    pwmPasswordRuleValidator.testPassword( password, oldPassword, userInfo, user );
+                    pwmPasswordRuleValidator.testPassword( pwmRequestContext.getSessionLabel(), password, oldPassword, userInfo, user );
                     pass = true;
                     if ( cacheService != null && cacheKey != null )
                     {
