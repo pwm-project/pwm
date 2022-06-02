@@ -55,7 +55,7 @@ public class SuccessMessageTag extends PwmAbstractTag
             {
                 if ( pwmRequest.isAuthenticated() )
                 {
-                    final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+                    final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
                     outputMsg = macroRequest.expandMacros( successMsg );
                 }
                 else

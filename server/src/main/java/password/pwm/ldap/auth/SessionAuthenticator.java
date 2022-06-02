@@ -371,7 +371,7 @@ public class SessionAuthenticator
         loginInfoBean.setUserIdentity( userIdentity );
 
         //update the session connection
-        pwmSession.getSessionManager().setChaiProvider( authenticationResult.getUserProvider() );
+        pwmSession.updateLdapAuthentication( pwmRequest.getPwmApplication(), userIdentity, authenticationResult );
 
         // update the actor user info bean
         {

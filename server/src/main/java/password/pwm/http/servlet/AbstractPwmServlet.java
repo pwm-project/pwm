@@ -262,6 +262,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         {
             final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
             pwmRequest.outputJsonResult( restResultBean );
+            pwmRequest.getPwmResponse().setStatus( 500 );
         }
         else
         {

@@ -289,7 +289,7 @@ public class OAuthMachine
                     .certificates( CollectionUtil.isEmpty( certs ) ? null : certs )
                     .maskBodyDebugOutput( true )
                     .build();
-            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient( config, pwmRequest.getLabel() );
+            final PwmHttpClient pwmHttpClient = pwmRequest.getClientConnectionHolder().getPwmHttpClient( config );
             pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest );
         }
         catch ( final PwmException e )
@@ -395,7 +395,7 @@ public class OAuthMachine
             LOGGER.error( sessionLabel, () -> "error while processing oauth token refresh: " + e.getMessage() );
         }
         LOGGER.error( sessionLabel, () -> "unable to refresh oauth token for user, unauthenticated session" );
-        pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
+        pwmRequest.getPwmSession().unAuthenticateUser( pwmRequest );
         return true;
     }
 

@@ -268,7 +268,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
                     LOGGER.error( pwmRequest, () -> errorMsg );
                     pwmRequest.respondWithError( errorInformation );
-                    pwmSession.unauthenticateUser( pwmRequest );
+                    pwmSession.unAuthenticateUser( pwmRequest );
                     return;
                 }
             }

@@ -701,7 +701,7 @@ class PeopleSearchDataReader
         final boolean useProxy = useProxy();
         return useProxy
                 ? pwmRequest.getPwmDomain().getProxiedChaiUser( pwmRequest.getLabel(), userIdentity )
-                : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
+                : pwmRequest.getClientConnectionHolder().getActor( userIdentity );
     }
 
     private UserSearchResults doDetailLookup(
@@ -840,7 +840,7 @@ class PeopleSearchDataReader
         if ( !useProxy() )
         {
             builder.ldapProfile( pwmRequest.getPwmSession().getUserInfo().getUserIdentity().getLdapProfileID() );
-            builder.chaiProvider( pwmRequest.getPwmSession().getSessionManager().getChaiProvider() );
+            builder.chaiProvider( pwmRequest.getClientConnectionHolder().getActorChaiProvider() );
         }
 
         final SearchRequestBean.SearchMode searchMode = searchRequest.getMode() == null

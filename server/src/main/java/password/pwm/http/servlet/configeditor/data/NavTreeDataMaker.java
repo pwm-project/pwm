@@ -326,6 +326,11 @@ public class NavTreeDataMaker
             }
         }
 
+        if ( category.isHidden() )
+        {
+            return false;
+        }
+
         for ( final PwmSettingCategory childCategory : category.getChildren() )
         {
             if ( categoryMatcher( domainID, childCategory, profile, storedConfiguration, navTreeSettings ) )

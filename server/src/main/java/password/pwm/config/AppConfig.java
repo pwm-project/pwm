@@ -41,7 +41,6 @@ import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -104,7 +103,6 @@ public class AppConfig implements SettingReader
     {
         this.storedConfiguration = storedConfiguration;
         this.settingReader = new StoredSettingReader( storedConfiguration, null, DomainID.systemId() );
-
         this.appPropertyOverrides = makeAppPropertyOverrides( settingReader );
 
         this.applicationSecurityKey = makeAppSecurityKey( this );
@@ -190,7 +188,7 @@ public class AppConfig implements SettingReader
     public Map<AppProperty, String> readAllAppProperties()
     {
           return Collections.unmodifiableMap( EnumSet.allOf( AppProperty.class ).stream()
-                  .collect( Collectors.toMap(
+                  .collect( CollectionUtil.collectorToLinkedMap(
                           Function.identity(),
                           this::readAppProperty
                   ) ) );
@@ -344,7 +342,7 @@ public class AppConfig implements SettingReader
         final Map<AppProperty, String> appPropertyMap = new EnumMap<>( AppProperty.class );
         for ( final Map.Entry<String, String> stringEntry : stringMap.entrySet() )
         {
-            JavaHelper.readEnumFromString( AppProperty.class, stringEntry.getKey() )
+            AppProperty.forKey( stringEntry.getKey() )
                     .ifPresent( appProperty ->
                     {
                        final String defaultValue = appProperty.getDefaultValue();

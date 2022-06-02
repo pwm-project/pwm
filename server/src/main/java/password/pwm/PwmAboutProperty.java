@@ -26,6 +26,7 @@ import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapDomainService;
 import password.pwm.svc.db.DatabaseService;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -37,13 +38,11 @@ import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public enum PwmAboutProperty
 {
@@ -80,7 +79,7 @@ public enum PwmAboutProperty
     app_ldapProfileCount( null, pwmApplication -> Integer.toString( LdapDomainService.totalLdapProfileCount( pwmApplication ) ) ),
     app_ldapConnectionCount( null, pwmApplication -> Long.toString( LdapDomainService.totalLdapConnectionCount( pwmApplication ) ) ),
     app_activeSessionCount( "App Active Session Count", pwmApplication -> Integer.toString( pwmApplication.getSessionTrackService().sessionCount() ) ),
-    app_activeRequestCount( "App Active Request Count", pwmApplication -> Integer.toString( pwmApplication.getActiveServletRequests().get() ) ),
+    app_activeRequestCount( "App Active Request Count", pwmApplication -> Integer.toString( pwmApplication.getTotalActiveServletRequests() ) ),
     app_definedDomainCount( "App Defined Domain Count", pwmApplication -> Integer.toString( pwmApplication.domains().size() ) ),
 
     build_Time( "Build Time", pwmApplication -> PwmConstants.BUILD_TIME ),
@@ -145,11 +144,9 @@ public enum PwmAboutProperty
                 .stream()
                 .map( aboutProp -> new Pair<>( aboutProp, readAboutValue( pwmApplication, aboutProp ) ) )
                 .filter( entry -> entry.getValue().isPresent() )
-                .collect( Collectors.toMap(
+                .collect( CollectionUtil.collectorToEnumMap( PwmAboutProperty.class,
                         Pair::getKey,
-                        entry -> entry.getValue().get(),
-                        ( k, k2 ) -> k,
-                        () -> new EnumMap<>( PwmAboutProperty.class ) ) ) );
+                        entry -> entry.getValue().get() ) ) );
 
     }
 

@@ -365,7 +365,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         // execute user delete operation
         final ChaiProvider provider = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY )
                 ? pwmDomain.getProxyChaiProvider( pwmRequest.getLabel(), userIdentity.getLdapProfileID() )
-                : pwmSession.getSessionManager().getChaiProvider();
+                : pwmRequest.getClientConnectionHolder().getActor().getChaiProvider();
 
 
         try

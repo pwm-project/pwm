@@ -196,7 +196,7 @@ public enum PwmIfTest
         {
             final PwmApplicationMode applicationMode = pwmRequest.getPwmDomain().getApplicationMode();
             final boolean configMode = applicationMode == PwmApplicationMode.CONFIGURATION;
-            final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
+            final boolean adminUser = pwmRequest.checkPermission( Permission.PWMADMIN );
             if ( Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CLIENT_WARNING_HEADER_SHOW ) ) )
             {
                 if ( configMode || PwmConstants.TRIAL_MODE )
@@ -244,10 +244,7 @@ public enum PwmIfTest
                 return false;
             }
 
-            return pwmRequest != null
-                    && pwmRequest.getPwmSession().getSessionManager().checkPermission(
-                    pwmRequest.getPwmDomain(),
-                    permission );
+            return pwmRequest != null && pwmRequest.checkPermission( permission );
         }
     }
 
@@ -363,7 +360,7 @@ public enum PwmIfTest
                 return true;
             }
 
-            final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
+            final boolean adminUser = pwmRequest.checkPermission( Permission.PWMADMIN );
             if ( adminUser )
             {
                 final HealthService healthService = pwmRequest.getPwmApplication().getHealthMonitor();
@@ -407,7 +404,7 @@ public enum PwmIfTest
 
             if ( pwmRequest.isAuthenticated() )
             {
-                if ( pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
+                if ( pwmRequest.checkPermission( Permission.PWMADMIN ) )
                 {
                     return true;
                 }

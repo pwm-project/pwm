@@ -122,7 +122,7 @@ class PwmDomainUtil
         }
     }
 
-    static Map<DomainID, PwmDomain> reInitDomains(
+    static void reInitDomains(
             final PwmApplication pwmApplication,
             final AppConfig newConfig,
             final AppConfig oldConfig
@@ -130,14 +130,19 @@ class PwmDomainUtil
             throws PwmUnrecoverableException
     {
         final Map<DomainModifyCategory, Set<DomainID>> categorizedDomains = categorizeDomainModifications( newConfig, oldConfig );
+        categorizedDomains.forEach( (  modifyCategory, domainIDSet ) -> domainIDSet.forEach( domainID ->
+                LOGGER.trace( pwmApplication.getSessionLabel(), () -> "domain '" + domainID
+                        + "' configuration modification detected as: " + modifyCategory ) ) );
 
         final Set<PwmDomain> deletedDomains = pwmApplication.domains().entrySet().stream()
                 .filter( e -> categorizedDomains.get( DomainModifyCategory.obsolete ).contains( e.getKey() ) )
                 .map( Map.Entry::getValue ).collect( Collectors.toSet() );
 
+
         final Set<PwmDomain> newDomains = pwmApplication.domains().entrySet().stream()
                 .filter( e -> categorizedDomains.get( DomainModifyCategory.created ).contains( e.getKey() ) )
                 .map( Map.Entry::getValue ).collect( Collectors.toSet() );
+
 
         final Map<DomainID, PwmDomain> returnDomainMap = new TreeMap<>( pwmApplication.domains().entrySet().stream()
                 .filter( e -> categorizedDomains.get( DomainModifyCategory.unchanged ).contains( e.getKey() ) )
@@ -145,11 +150,15 @@ class PwmDomainUtil
 
         for ( final DomainID modifiedDomainID : categorizedDomains.get( DomainModifyCategory.modified ) )
         {
+            LOGGER.trace( pwmApplication.getSessionLabel(), () -> "domain '" + modifiedDomainID
+                    + "' configuration has changed and requires a restart" );
             deletedDomains.add( pwmApplication.domains().get( modifiedDomainID ) );
             final PwmDomain newDomain = new PwmDomain( pwmApplication, modifiedDomainID );
             newDomains.add( newDomain );
             returnDomainMap.put( modifiedDomainID, newDomain );
         }
+
+        pwmApplication.setDomains( returnDomainMap );
 
         if ( newDomains.isEmpty() && deletedDomains.isEmpty() )
         {
@@ -165,8 +174,6 @@ class PwmDomainUtil
         {
             processDeletedDomains( pwmApplication, deletedDomains );
         }
-
-        return Collections.unmodifiableMap( returnDomainMap );
     }
 
     private static void processDeletedDomains(
@@ -174,22 +181,16 @@ class PwmDomainUtil
             final Set<PwmDomain> deletedDomains
     )
     {
-        // 1 minute later ( to avoid interrupting any in-progress requests, shutdown any obsoleted domains
-        if ( !deletedDomains.isEmpty() )
+        if ( deletedDomains.isEmpty() )
         {
-            pwmApplication.getPwmScheduler().immediateExecuteRunnableInNewThread( () ->
-                    {
-                        TimeDuration.MINUTE.pause();
-                        final Instant startTime = Instant.now();
-                        LOGGER.trace( pwmApplication.getSessionLabel(), () -> "shutting down obsoleted domain services" );
-                        deletedDomains.forEach( PwmDomain::shutdown );
-                        LOGGER.debug( pwmApplication.getSessionLabel(), () -> "shut down obsoleted domain services completed",
-                                TimeDuration.fromCurrent( startTime ) );
-                    },
-                    pwmApplication.getSessionLabel(),
-                    "obsoleted domain cleanup" );
+            return;
         }
 
+        final Instant startTime = Instant.now();
+        LOGGER.trace( pwmApplication.getSessionLabel(), () -> "shutting down obsoleted domain services" );
+        deletedDomains.forEach( PwmDomain::shutdown );
+        LOGGER.debug( pwmApplication.getSessionLabel(), () -> "shut down obsoleted domain services completed",
+                TimeDuration.fromCurrent( startTime ) );
     }
 
     enum DomainModifyCategory

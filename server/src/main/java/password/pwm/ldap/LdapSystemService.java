@@ -20,16 +20,12 @@
 
 package password.pwm.ldap;
 
-import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.TimeDuration;
 
 import java.util.Collections;
 import java.util.List;
@@ -39,11 +35,14 @@ public class LdapSystemService extends AbstractPwmService implements PwmService
     @Override
     protected STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID ) throws PwmException
     {
+        /*
         final long idleWeakTimeoutMS = JavaHelper.silentParseLong(
                 pwmApplication.getConfig().readAppProperty( AppProperty.LDAP_PROXY_IDLE_THREAD_LOCAL_TIMEOUT_MS ),
                 60_000 );
         final TimeDuration idleWeakTimeout = TimeDuration.of( idleWeakTimeoutMS, TimeDuration.Unit.MILLISECONDS );
         pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ThreadLocalCleaner(), getExecutorService(), idleWeakTimeout, idleWeakTimeout );
+
+         */
 
         return STATUS.OPEN;
     }
@@ -65,17 +64,4 @@ public class LdapSystemService extends AbstractPwmService implements PwmService
     {
         return null;
     }
-
-    private class ThreadLocalCleaner implements Runnable
-    {
-        @Override
-        public void run()
-        {
-            for ( final PwmDomain pwmDomain : getPwmApplication().domains().values() )
-            {
-                pwmDomain.getLdapConnectionService().cleanupIssuedThreadLocals();
-            }
-        }
-    }
-
 }

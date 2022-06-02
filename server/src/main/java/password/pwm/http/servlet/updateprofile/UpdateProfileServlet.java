@@ -359,7 +359,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             {
                 if ( !updateProfileBean.isAgreementPassed() )
                 {
-                    final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+                    final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
                     final String expandedText = macroRequest.expandMacros( updateProfileAgreementText );
                     pwmRequest.setAttribute( PwmRequestAttribute.AgreementText, expandedText );
                     pwmRequest.forwardToJsp( JspUrl.UPDATE_ATTRIBUTES_AGREEMENT );
@@ -424,13 +424,13 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         try
         {
             // write the form values
-            final ChaiUser theUser = pwmSession.getSessionManager().getActor( );
+            final ChaiUser theUser = pwmRequest.getClientConnectionHolder().getActor( );
             UpdateProfileUtil.doProfileUpdate(
                     pwmRequest.getPwmDomain(),
                     pwmRequest.getLabel(),
                     pwmRequest.getLocale(),
                     pwmSession.getUserInfo(),
-                    pwmSession.getSessionManager().getMacroMachine( ),
+                    pwmRequest.getMacroMachine( ),
                     updateProfileProfile,
                     updateProfileBean.getFormData(),
                     theUser

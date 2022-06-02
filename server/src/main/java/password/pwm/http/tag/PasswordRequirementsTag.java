@@ -575,7 +575,7 @@ public class PasswordRequirementsTag extends TagSupport
             final DomainConfig config = pwmDomain.getConfig();
             final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
-            pwmSession.getSessionManager().getMacroMachine( );
+            pwmRequest.getMacroMachine( );
 
             final PwmPasswordPolicy passwordPolicy;
             if ( getForm() != null && "newuser".equalsIgnoreCase( getForm() ) )
@@ -595,7 +595,7 @@ public class PasswordRequirementsTag extends TagSupport
             }
             else
             {
-                final MacroRequest macroRequest = pwmSession.getSessionManager().getMacroMachine( );
+                final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
 
                 final String pre = prepend != null && prepend.length() > 0 ? prepend : "";
                 final String sep = separator != null && separator.length() > 0 ? separator : "<br/>";

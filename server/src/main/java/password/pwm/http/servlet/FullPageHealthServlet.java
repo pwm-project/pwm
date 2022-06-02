@@ -87,7 +87,7 @@ public class FullPageHealthServlet extends ControlledPwmServlet
             throws PwmUnrecoverableException, IOException, ServletException
     {
         forwardToJSP( pwmRequest );
-        pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
+        pwmRequest.getPwmSession().unAuthenticateUser( pwmRequest );
     }
 
     @Override

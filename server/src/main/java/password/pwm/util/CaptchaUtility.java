@@ -167,7 +167,7 @@ public class CaptchaUtility
                     .build();
 
             LOGGER.debug( pwmRequest, () -> "sending reCaptcha verification request" );
-            final PwmHttpClient client = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient( pwmRequest.getLabel() );
+            final PwmHttpClient client = pwmRequest.getClientConnectionHolder().getPwmHttpClient( null );
             final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest );
 
             if ( clientResponse.getStatusCode() != HttpServletResponse.SC_OK )

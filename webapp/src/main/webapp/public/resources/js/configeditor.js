@@ -212,7 +212,7 @@ PWM_CFGEDIT.writeSetting = function(keyName, valueData, nextAction) {
     const errorFunction = function(error) {
         PWM_VAR['outstandingOperations']--;
         PWM_CFGEDIT.handleWorkingIcon();
-        PWM_MAIN.showDialog({title:PWM_MAIN.showString('Title_Error'),text:"Unable to communicate with server.  Please refresh page."});
+        PWM_MAIN.showErrorDialog(error);
         console.log("error writing setting " + keyName + ", reason: " + error)
     };
     PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,content:valueData});

@@ -22,11 +22,9 @@ package password.pwm.http.filter;
 
 import password.pwm.Permission;
 import password.pwm.PwmApplicationMode;
-import password.pwm.PwmDomain;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.logging.PwmLogger;
@@ -58,15 +56,11 @@ public class AuthorizationFilter extends AbstractPwmFilter
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-
         // if the user is not authenticated as a PWM Admin, redirect to error page.
         boolean hasPermission = false;
         try
         {
-            hasPermission = pwmSession.getSessionManager().checkPermission( pwmDomain, Permission.PWMADMIN );
+            hasPermission = pwmRequest.checkPermission( Permission.PWMADMIN );
         }
         catch ( final Exception e )
         {

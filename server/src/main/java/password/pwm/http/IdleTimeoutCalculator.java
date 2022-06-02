@@ -51,7 +51,7 @@ public class IdleTimeoutCalculator
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( IdleTimeoutCalculator.class );
 
-    public static MaxIdleTimeoutResult figureMaxSessionTimeout( final PwmDomain pwmDomain, final PwmSession pwmSession )
+    public static MaxIdleTimeoutResult figureMaxSessionTimeout( final PwmDomain pwmDomain, final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
         final DomainConfig domainConfig = pwmDomain.getConfig();
@@ -63,7 +63,7 @@ public class IdleTimeoutCalculator
                     TimeDuration.of( idleSetting, TimeDuration.Unit.SECONDS ) ) );
         }
 
-        if ( !pwmSession.isAuthenticated() )
+        if ( !pwmRequest.isAuthenticated() )
         {
             if ( pwmDomain.getApplicationMode() == PwmApplicationMode.NEW )
             {
@@ -91,9 +91,8 @@ public class IdleTimeoutCalculator
         }
         else
         {
-            final UserInfo userInfo = pwmSession.getUserInfo();
-            final boolean userIsAdmin = pwmSession.isAuthenticated()
-                    && pwmSession.getSessionManager().checkPermission( pwmDomain, Permission.PWMADMIN );
+            final UserInfo userInfo = pwmRequest.getPwmSession().getUserInfo();
+            final boolean userIsAdmin = pwmRequest.isAuthenticated() && pwmRequest.checkPermission( Permission.PWMADMIN );
             final Set<MaxIdleTimeoutResult> loggedInResults = figureMaxAuthUserTimeout( domainConfig, userInfo, userIsAdmin );
             results.addAll( loggedInResults );
         }
@@ -179,11 +178,10 @@ public class IdleTimeoutCalculator
     {
         final PwmURL pwmURL = pwmRequest.getURL();
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         if ( pwmURL.isResourceURL() )
         {
-            return figureMaxSessionTimeout( pwmDomain, pwmSession ).getIdleTimeout();
+            return figureMaxSessionTimeout( pwmDomain, pwmRequest ).getIdleTimeout();
         }
 
         for ( final IdleTimeoutCalculatorModule module : SERVLET_IDLE_CALCULATORS )

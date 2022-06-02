@@ -231,7 +231,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
         try
         {
             final String userGUID = pwmSession.getUserInfo().getUserGuid();
-            final ChaiUser theUser = pwmSession.getSessionManager().getActor( );
+            final ChaiUser theUser = pwmRequest.getClientConnectionHolder().getActor( );
             pwmDomain.getCrService().clearResponses( pwmRequest.getLabel(), pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID );
             pwmSession.reloadUserInfoBean( pwmRequest );
             pwmRequest.getPwmDomain().getSessionStateService().clearBean( pwmRequest, SetupResponsesBean.class );
@@ -445,7 +445,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final ChaiUser theUser = pwmSession.getSessionManager().getActor( );
+        final ChaiUser theUser = pwmRequest.getClientConnectionHolder().getActor( );
         final String userGUID = pwmSession.getUserInfo().getUserGuid();
         pwmDomain.getCrService().writeResponses( pwmRequest.getLabel(), pwmRequest.getUserInfoIfLoggedIn(), theUser, userGUID, responseInfoBean );
         pwmSession.reloadUserInfoBean( pwmRequest );

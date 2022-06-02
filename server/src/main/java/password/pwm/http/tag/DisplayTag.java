@@ -134,7 +134,7 @@ public class DisplayTag extends PwmAbstractTag
 
             if ( pwmRequest != null )
             {
-                final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+                final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
                 displayMessage = macroRequest.expandMacros( displayMessage );
             }
 

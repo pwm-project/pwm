@@ -62,16 +62,13 @@ import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.MBeanUtility;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.FileSystemUtility;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.LocalDBLogger;
-import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogManager;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmRandom;
 
 import java.io.File;
 import java.io.Serializable;
@@ -88,7 +85,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -98,10 +94,8 @@ public class PwmApplication
 
     static final int DOMAIN_STARTUP_THREADS = 10;
 
-    private final AtomicInteger activeServletRequests = new AtomicInteger( 0 );
-
     private volatile Map<DomainID, PwmDomain> domains = new HashMap<>();
-    private String runtimeNonce = PwmRandom.getInstance().randomUUID().toString();
+    private String runtimeNonce = PwmApplicationUtil.makeRuntimeNonce();
 
     private final SessionLabel sessionLabel;
     private final PwmServiceManager pwmServiceManager;
@@ -146,7 +140,7 @@ public class PwmApplication
 
     private void initRuntimeNonce()
     {
-        runtimeNonce = PwmRandom.getInstance().randomUUID().toString();
+        runtimeNonce = PwmApplicationUtil.makeRuntimeNonce();
     }
 
     private void initialize()
@@ -259,17 +253,15 @@ public class PwmApplication
             LOGGER.debug( sessionLabel, () -> "no system-level settings have been changed, restart of system services is not required" );
         }
 
-        domains = PwmDomainUtil.reInitDomains( this, newConfig, oldConfig );
+        PwmDomainUtil.reInitDomains( this, newConfig, oldConfig );
 
-        runtimeNonce = PwmRandom.getInstance().randomUUID().toString();
+        runtimeNonce = PwmApplicationUtil.makeRuntimeNonce();
 
         LOGGER.debug( sessionLabel, () -> "completed application restart with " + domains().size() + " domains", TimeDuration.fromCurrent( startTime ) );
     }
 
     private void postInitTasks()
     {
-        System.out.println( JavaHelper.stackTraceToString( new Throwable() ) );
-
         final Instant startTime = Instant.now();
 
         // send system audit event
@@ -287,17 +279,13 @@ public class PwmApplication
         PwmApplicationUtil.outputKeystore( this );
         PwmApplicationUtil.outputTomcatConf( this );
 
-        LOGGER.debug( sessionLabel, () -> "application environment flags: " + JsonFactory.get().serializeCollection( pwmEnvironment.getFlags() ) );
+        LOGGER.debug( sessionLabel, () -> "application environment flags: " + StringUtil.collectionToString( pwmEnvironment.getFlags() ) );
         LOGGER.debug( sessionLabel, () -> "application environment parameters: "
-                + JsonFactory.get().serializeMap( pwmEnvironment.getParameters(), PwmEnvironment.ApplicationParameter.class, String.class ) );
+                + StringUtil.mapToString( pwmEnvironment.getParameters() ) );
 
-        if ( LOGGER.isEnabled( PwmLogLevel.TRACE )
-                && Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
-        {
-            PwmApplicationUtil.outputApplicationInfoToLog( this );
-            PwmApplicationUtil.outputConfigurationToLog( this, DomainID.systemId() );
-            PwmApplicationUtil.outputNonDefaultPropertiesToLog( this );
-        }
+        PwmApplicationUtil.outputApplicationInfoToLog( this );
+        PwmApplicationUtil.outputConfigurationToLog( this, DomainID.systemId() );
+        PwmApplicationUtil.outputNonDefaultPropertiesToLog( this );
 
         MBeanUtility.registerMBean( this );
 
@@ -324,6 +312,11 @@ public class PwmApplication
         return domains;
     }
 
+    protected void setDomains( final Map<DomainID, PwmDomain> domains )
+    {
+        this.domains = Map.copyOf( domains );
+    }
+
     public AppConfig getConfig()
     {
         return pwmEnvironment.getConfig();
@@ -334,9 +327,10 @@ public class PwmApplication
         return pwmEnvironment;
     }
 
-    public AtomicInteger getActiveServletRequests( )
+    public int getTotalActiveServletRequests( )
     {
-        return activeServletRequests;
+        return domains().values().stream().map( domain -> domain.getActiveServletRequests().get() )
+                .reduce( 0, Integer::sum );
     }
 
     public PwmApplicationMode getApplicationMode( )
@@ -881,5 +875,6 @@ public class PwmApplication
 
         return conditions.stream().allMatch( ( c ) -> c.matches( this ) );
     }
+
 
 }

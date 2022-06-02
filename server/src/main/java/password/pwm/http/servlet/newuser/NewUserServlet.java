@@ -788,7 +788,7 @@ public class NewUserServlet extends ControlledPwmServlet
         final String configuredRedirectUrl = newUserProfile.readSettingAsString( PwmSetting.NEWUSER_REDIRECT_URL );
         if ( StringUtil.notEmpty( configuredRedirectUrl ) && StringUtil.isEmpty( pwmRequest.getPwmSession().getSessionStateBean().getForwardURL() ) )
         {
-            final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+            final MacroRequest macroRequest = pwmRequest.getMacroMachine();
             final String macroedUrl = macroRequest.expandMacros( configuredRedirectUrl );
             pwmRequest.getPwmResponse().sendRedirect( macroedUrl );
             return ProcessStatus.Halt;

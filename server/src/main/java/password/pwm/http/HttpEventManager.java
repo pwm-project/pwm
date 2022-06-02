@@ -35,7 +35,6 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletRequestEvent;
 import javax.servlet.ServletRequestListener;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionActivationListener;
 import javax.servlet.http.HttpSessionEvent;
@@ -96,7 +95,7 @@ public class HttpEventManager implements
                 if ( httpSession.getAttribute( PwmConstants.SESSION_ATTR_PWM_SESSION ) != null )
                 {
                     final String debugMsg = "destroyed session" + ": " + makeSessionDestroyedDebugMsg( pwmSession );
-                    pwmSession.unauthenticateUser( null );
+                    pwmSession.unAuthenticateUser( null );
 
                     final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession.getServletContext() );
                     if ( pwmApplication != null )
@@ -192,16 +191,6 @@ public class HttpEventManager implements
     @Override
     public void requestDestroyed( final ServletRequestEvent sre )
     {
-        try
-        {
-            final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) sre.getServletRequest(), null );
-            pwmRequest.cleanThreadLocals();
-        }
-        catch ( final Exception e )
-        {
-            LOGGER.debug( () -> "error cleaning request thread locals: " + e.getMessage() );
-        }
-
         ServletRequestListener.super.requestDestroyed( sre );
     }
 

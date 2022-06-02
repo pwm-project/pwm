@@ -165,7 +165,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
                 LOGGER.info( pwmRequest, errorInformation );
 
                 // log out their user
-                pwmSession.unauthenticateUser( pwmRequest );
+                pwmSession.unAuthenticateUser( pwmRequest );
 
                 // send en error to user.
                 pwmRequest.respondWithError( errorInformation, true );
@@ -192,7 +192,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
             return;
         }
 
-        if ( pwmSession.getSessionManager().isAuthenticatedWithoutPasswordAndBind() )
+        if ( pwmRequest.getClientConnectionHolder().isAuthenticatedWithoutPasswordAndBind() )
         {
             final Optional<PwmServletDefinition> pwmServletDefinition = pwmRequest.getURL().forServletDefinition();
             if ( pwmServletDefinition.isPresent() )

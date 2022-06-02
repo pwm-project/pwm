@@ -79,7 +79,7 @@ public class AuditRecordFactory
                 pwmRequest.getLabel(),
                 pwmRequest.getDomainID(),
                 pwmRequest.getPwmApplication(),
-                pwmRequest.getPwmSession().getSessionManager().getMacroMachine( ) );
+                pwmRequest.getMacroMachine() );
     }
 
     public static AuditRecordFactory make( final SessionLabel sessionLabel, final PwmDomain pwmDomain, final MacroRequest macroRequest )

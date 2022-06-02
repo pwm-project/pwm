@@ -285,6 +285,11 @@ class PwmApplicationUtil
 
     static void outputConfigurationToLog( final PwmApplication pwmApplication, final DomainID domainID )
     {
+        if ( !checkIfOutputDumpingEnabled( pwmApplication ) )
+        {
+            return;
+        }
+
         final Instant startTime = Instant.now();
 
         final Function<Map.Entry<String, String>, String> valueFormatter = entry ->
@@ -315,41 +320,56 @@ class PwmApplicationUtil
 
     static void outputNonDefaultPropertiesToLog( final PwmApplication pwmApplication )
     {
-        final Instant startTime = Instant.now();
+        final Map<String, String> data = pwmApplication.getConfig().readAllNonDefaultAppProperties().entrySet().stream()
+                .collect( CollectionUtil.collectorToLinkedMap(
+                        entry -> "AppProperty: " + entry.getKey().getKey(),
+                        Map.Entry::getValue ) );
 
-        final Map<AppProperty, String> nonDefaultProperties = pwmApplication.getConfig().readAllNonDefaultAppProperties();
-        if ( !CollectionUtil.isEmpty( nonDefaultProperties ) )
-        {
-            LOGGER.trace( pwmApplication.getSessionLabel(), () -> "--begin non-default app properties output--" );
-            nonDefaultProperties.entrySet().stream()
-                    .map( entry -> "AppProperty: " + entry.getKey().getKey() + " -> " + entry.getValue() )
-                    .map( s -> ( Supplier<CharSequence> ) () -> s )
-                    .forEach( s -> LOGGER.trace( pwmApplication.getSessionLabel(), s ) );
-            LOGGER.trace( pwmApplication.getSessionLabel(), () -> "--end non-default app properties output--", TimeDuration.fromCurrent( startTime ) );
-        }
-        else
-        {
-            LOGGER.trace( pwmApplication.getSessionLabel(), () -> "no non-default app properties in configuration" );
-        }
+        outputMapToLog( pwmApplication, data, "non-default app properties" );
     }
 
     static void outputApplicationInfoToLog( final PwmApplication pwmApplication )
     {
-        final Instant startTime = Instant.now();
+        final Map<String, String> data = PwmAboutProperty.makeInfoBean( pwmApplication ).entrySet().stream()
+                .collect( CollectionUtil.collectorToLinkedMap(
+                        entry -> "AboutProperty: " + entry.getKey().getLabel(),
+                        Map.Entry::getValue ) );
 
-        final Map<PwmAboutProperty, String> aboutProperties = PwmAboutProperty.makeInfoBean( pwmApplication );
-        if ( !CollectionUtil.isEmpty( aboutProperties ) )
+        outputMapToLog( pwmApplication, data, "about property info" );
+    }
+
+    private static void outputMapToLog(
+            final PwmApplication pwmApplication,
+            final Map<String, String> input,
+            final String label
+    )
+    {
+        LOGGER.trace( pwmApplication.getSessionLabel(), () -> "--begin " + label + "--" );
+
+        if ( !CollectionUtil.isEmpty( input ) )
         {
-            LOGGER.trace( pwmApplication.getSessionLabel(), () -> "--begin application info--" );
-            aboutProperties.entrySet().stream()
-                    .map( entry -> "AppProperty: " + entry.getKey().getLabel() + " -> " + entry.getValue() )
-                    .map( s -> ( Supplier<CharSequence> ) () -> s )
+            final String separator = " -> ";
+            input.entrySet().stream()
+                    .map( entry -> ( Supplier<CharSequence> ) () -> entry.getKey() + separator + entry.getValue() )
                     .forEach( s -> LOGGER.trace( pwmApplication.getSessionLabel(), s ) );
-            LOGGER.trace( pwmApplication.getSessionLabel(), () -> "--end application info--", TimeDuration.fromCurrent( startTime ) );
         }
         else
         {
-            LOGGER.trace( pwmApplication.getSessionLabel(), () -> "no non-default app properties in configuration" );
+            LOGGER.trace( pwmApplication.getSessionLabel(), () -> "no " + label + " values" );
         }
+
+        LOGGER.trace( pwmApplication.getSessionLabel(), () -> "--end " + label + "--" );
+    }
+
+    private static boolean checkIfOutputDumpingEnabled( final PwmApplication pwmApplication )
+    {
+        return LOGGER.isEnabled( PwmLogLevel.TRACE )
+                && !pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
+                && Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) );
+    }
+
+    static String makeRuntimeNonce()
+    {
+        return PwmRandom.getInstance().randomUUID().toString();
     }
 }

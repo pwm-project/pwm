@@ -111,7 +111,7 @@ public class EmailConnectionPool
             }
             final Instant startTime = Instant.now();
             final EmailConnection emailConnection = getSmtpTransport();
-            LOGGER.trace( sessionLabel, () -> "created new email connection " + emailConnection.getId()
+            LOGGER.trace( sessionLabel, () -> "created new email connection #" + emailConnection.getId()
                             + " to " + emailConnection.getEmailServer().getId(),
                     TimeDuration.fromCurrent( startTime ) );
             activeConnectionCounter.incrementAndGet();
@@ -128,14 +128,13 @@ public class EmailConnectionPool
         lock.lock();
         try
         {
-
             if ( connections.add( emailConnection ) )
             {
                 activeConnectionCounter.decrementAndGet();
             }
             else
             {
-                LOGGER.warn( sessionLabel, () -> "connection " + emailConnection.getId() + "returned but was already in oool" );
+                LOGGER.warn( sessionLabel, () -> "connection #" + emailConnection.getId() + "returned but was already in oool" );
             }
         }
         finally
@@ -148,7 +147,7 @@ public class EmailConnectionPool
     {
         if ( emailConnection.getSentItems() >= settings.getConnectionSendItemLimit() )
         {
-            LOGGER.trace( sessionLabel, () -> "email connection " + emailConnection.getId()
+            LOGGER.trace( sessionLabel, () -> "email connection #" + emailConnection.getId()
                     + " has sent " + emailConnection.getSentItems() + " and will be retired" );
             return false;
         }
@@ -156,14 +155,14 @@ public class EmailConnectionPool
         final TimeDuration connectionAge = TimeDuration.fromCurrent( emailConnection.getStartTime() );
         if ( connectionAge.isLongerThan( settings.getConnectionSendItemDuration() ) )
         {
-            LOGGER.trace( sessionLabel, () -> "email connection " + emailConnection.getId()
+            LOGGER.trace( sessionLabel, () -> "email connection #" + emailConnection.getId()
                     + " has lived " + connectionAge.asCompactString() + " and will be retired" );
             return false;
         }
 
         if ( !emailConnection.getTransport().isConnected() )
         {
-            LOGGER.trace( sessionLabel, () -> "email connection " + emailConnection.getId()
+            LOGGER.trace( sessionLabel, () -> "email connection #" + emailConnection.getId()
                     + " is no longer connected " + connectionAge.asCompactString() + " and will be retired" );
             return false;
 

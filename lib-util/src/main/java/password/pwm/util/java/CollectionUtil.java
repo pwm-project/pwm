@@ -189,4 +189,21 @@ public class CollectionUtil
                 LinkedHashMap::new
         );
     }
+
+    public static <T, K extends Enum<K>, U> Collector<T, ?, Map<K, U>> collectorToEnumMap(
+            final Class<K> keyClass,
+            final Function<? super T, ? extends K> keyMapper,
+            final Function<? super T, ? extends U> valueMapper
+    )
+    {
+        return Collectors.toMap(
+                keyMapper,
+                valueMapper,
+                ( key1, key2 ) ->
+                {
+                    throw new IllegalStateException( "Duplicate key " + key1 );
+                },
+                () -> new EnumMap<>( keyClass )
+        );
+    }
 }

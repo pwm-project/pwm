@@ -233,7 +233,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
         }
     }
 
-    SmsItemBean shortenMessageIfNeeded(
+    private SmsItemBean shortenMessageIfNeeded(
             final SmsItemBean smsItem,
             final SessionLabel sessionLabel
     )
@@ -249,7 +249,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
         return smsItem;
     }
 
-    boolean determineIfItemCanBeDelivered( final SmsItemBean smsItem )
+    private boolean determineIfItemCanBeDelivered( final SmsItemBean smsItem )
     {
         if ( !getPwmApplication().getConfig().isSmsConfigured() )
         {
@@ -329,7 +329,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
     }
 
 
-    protected static String smsDataEncode( final String data, final SmsDataEncoding encoding )
+    private static String smsDataEncode( final String data, final SmsDataEncoding encoding )
     {
         final String normalizedString = data == null ? "" : data;
 
@@ -413,7 +413,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
         ) );
     }
 
-    static String formatSmsNumber( final AppConfig config, final String smsNumber )
+    private static String formatSmsNumber( final AppConfig config, final String smsNumber )
     {
         final SmsNumberFormat format = config.readSettingAsEnum( PwmSetting.SMS_PHONE_NUMBER_FORMAT, SmsNumberFormat.class );
 
@@ -509,25 +509,9 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
 
             final PwmHttpClientRequest pwmHttpClientRequest = makeRequest( requestData, sessionLabel );
 
-            final PwmHttpClient pwmHttpClient;
-            {
-                if ( CollectionUtil.isEmpty( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) ) )
-                {
-                    pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( sessionLabel );
-                }
-                else
-                {
-                    final PwmHttpClientConfiguration clientConfiguration = PwmHttpClientConfiguration.builder()
-                            .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
-                            .certificates( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) )
-                            .build();
-
-                    pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( clientConfiguration, sessionLabel );
-                }
-            }
-
             try
             {
+                final PwmHttpClient pwmHttpClient = makePwmHttpClient( sessionLabel );
                 final PwmHttpClientResponse pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest );
                 final int resultCode = pwmHttpClientResponse.getStatusCode();
 
@@ -543,6 +527,24 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
                         PwmError.ERROR_SMS_SEND_ERROR,
                         "error while sending SMS, discarding message: " + e.getMessage() );
                 throw new PwmUnrecoverableException( errorInformation );
+            }
+        }
+
+        private PwmHttpClient makePwmHttpClient( final SessionLabel sessionLabel )
+                throws PwmUnrecoverableException
+        {
+            if ( CollectionUtil.isEmpty( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) ) )
+            {
+                return pwmApplication.getHttpClientService().getPwmHttpClient( sessionLabel );
+            }
+            else
+            {
+                final PwmHttpClientConfiguration clientConfiguration = PwmHttpClientConfiguration.builder()
+                        .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
+                        .certificates( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) )
+                        .build();
+
+                return pwmApplication.getHttpClientService().getPwmHttpClient( clientConfiguration, sessionLabel );
             }
         }
 

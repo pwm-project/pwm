@@ -525,7 +525,7 @@ public class ForgottenPasswordUtil
             final PwmSession pwmSession = pwmRequest.getPwmSession();
 
             // the user should not be authenticated, this is a safety method
-            pwmSession.unauthenticateUser( pwmRequest );
+            pwmSession.unAuthenticateUser( pwmRequest );
 
             // the password set flag should not have been set, this is a safety method
             pwmSession.getSessionStateBean().setPasswordModified( false );

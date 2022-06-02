@@ -62,7 +62,7 @@ public class AuditServiceClient
             throws PwmUnrecoverableException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmApplication().domains().get( userInfo.getUserIdentity().getDomainID() );
-        final MacroRequest macroRequest =  pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+        final MacroRequest macroRequest =  pwmRequest.getMacroMachine();
         final AuditRecordFactory auditRecordFactory = AuditRecordFactory.make( pwmRequest.getLabel(), pwmDomain, macroRequest );
         final UserAuditRecord auditRecord = auditRecordFactory.createUserAuditRecord( auditEvent, userInfo, pwmRequest.getPwmSession() );
         submit( pwmRequest, auditRecord );

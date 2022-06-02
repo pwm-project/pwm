@@ -172,7 +172,7 @@ public class AdminServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
+        if ( !pwmRequest.checkPermission( Permission.PWMADMIN ) )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED );
             pwmRequest.respondWithError( errorInformation );
@@ -346,7 +346,7 @@ public class AdminServlet extends ControlledPwmServlet
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
+        if ( !pwmRequest.checkPermission( Permission.PWMADMIN ) )
         {
             LOGGER.info( pwmRequest, () -> "unable to execute clear intruder records" );
             return ProcessStatus.Halt;

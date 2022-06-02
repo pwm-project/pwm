@@ -326,7 +326,7 @@ class NewUserUtils
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmDomain, userIdentity )
                         .setExpandPwmMacros( true )
-                        .setMacroMachine( pwmRequest.getPwmSession().getSessionManager().getMacroMachine( ) )
+                        .setMacroMachine( pwmRequest.getMacroMachine( ) )
                         .createActionExecutor();
 
                 actionExecutor.executeActions( actions, pwmRequest.getLabel() );
@@ -365,7 +365,7 @@ class NewUserUtils
             NewUserUtils.LOGGER.error( pwmRequest, () -> "error deleting ldap user account " + userDN + ", " + e.getMessage() );
         }
 
-        pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
+        pwmRequest.getPwmSession().unAuthenticateUser( pwmRequest );
     }
 
     static String determineUserDN(
@@ -477,7 +477,7 @@ class NewUserUtils
         pwmRequest.getPwmDomain().getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmSession.getUserInfo(),
-                pwmSession.getSessionManager().getMacroMachine( )
+                pwmRequest.getMacroMachine( )
         );
     }
 

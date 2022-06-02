@@ -1880,7 +1880,11 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
             if ( typeof response === "string" && handleAs === "json") {
                 response = JSON.parse( response );
             }
-            loadFunction(response);
+            if (xhr.status===200) {
+                loadFunction(response);
+            } else {
+                errorFunction(response)
+            }
         }
     };
     xhr.onerror = errorFunction;

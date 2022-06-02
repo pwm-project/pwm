@@ -252,7 +252,7 @@ class ActivateUserUtils
         pwmDomain.getPwmApplication().getEmailQueue().submitEmail(
                 configuredEmailSetting,
                 pwmSession.getUserInfo(),
-                pwmSession.getSessionManager().getMacroMachine( )
+                pwmRequest.getMacroMachine( )
         );
         return true;
     }
@@ -291,7 +291,7 @@ class ActivateUserUtils
                 toSmsNumber,
                 message,
                 pwmRequest.getLabel(),
-                pwmSession.getSessionManager().getMacroMachine( )
+                pwmRequest.getMacroMachine( )
         );
         return true;
     }

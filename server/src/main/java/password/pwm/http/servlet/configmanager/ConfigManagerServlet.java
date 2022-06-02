@@ -25,10 +25,9 @@ import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmConstants;
-import password.pwm.PwmDomain;
 import password.pwm.config.AppConfig;
-import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationFileManager;
+import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
@@ -47,7 +46,6 @@ import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmResponse;
-import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.filter.ConfigAccessFilter;
 import password.pwm.http.servlet.AbstractPwmServlet;
@@ -226,9 +224,6 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     private void restLockConfiguration( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-
         if ( PwmConstants.TRIAL_MODE )
         {
             final String msg = LocaleHelper.getLocalizedMessage( Admin.Notice_TrialRestrictConfig, pwmRequest );
@@ -239,8 +234,8 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             return;
         }
 
-        if ( !pwmSession.isAuthenticated()
-                || !pwmSession.getSessionManager().checkPermission( pwmDomain, Permission.PWMADMIN ) )
+        if ( !pwmRequest.isAuthenticated()
+                || !pwmRequest.checkPermission( Permission.PWMADMIN ) )
         {
             final ErrorInformation errorInfo = new ErrorInformation(
                     PwmError.ERROR_AUTHENTICATION_REQUIRED,

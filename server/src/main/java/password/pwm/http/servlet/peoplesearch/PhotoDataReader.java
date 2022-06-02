@@ -237,7 +237,7 @@ public class PhotoDataReader
             final PwmHttpClientConfiguration configuration = PwmHttpClientConfiguration.builder()
                     .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuous )
                     .build();
-            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient( configuration, pwmRequest.getLabel() );
+            final PwmHttpClient pwmHttpClient = pwmRequest.getClientConnectionHolder().getPwmHttpClient( configuration );
             final PwmHttpClientRequest clientRequest = PwmHttpClientRequest.builder()
                     .method( HttpMethod.GET )
                     .url( overrideURL.get() )
