@@ -228,7 +228,7 @@ StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
     editorOptions['completeFunction'] = okAction;
     editorOptions['value'] = iteration > -1 ? PWM_VAR['clientSettingCache'][settingKey][iteration] : '';
 
-    const isLdapDN = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'],'ldapDNsyntax');
+    const isLdapDN = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'],'ldapDnSyntax');
     if (isLdapDN) {
         UILibrary.editLdapDN(okAction,{currentDN: editorOptions['value']});
     } else {

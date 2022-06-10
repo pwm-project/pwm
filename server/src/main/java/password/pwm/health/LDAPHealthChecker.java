@@ -903,7 +903,7 @@ public class LDAPHealthChecker implements HealthSupplier
             {
                 if ( !pwmSetting.isHidden()
                         && pwmSetting.getCategory() == PwmSettingCategory.LDAP_PROFILE
-                        && pwmSetting.getFlags().contains( PwmSettingFlag.ldapDNsyntax )
+                        && pwmSetting.getFlags().contains( PwmSettingFlag.ldapDnSyntax )
                 )
                 {
                     for ( final String profile : config.getLdapProfiles().keySet() )

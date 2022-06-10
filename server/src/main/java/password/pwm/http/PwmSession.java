@@ -280,7 +280,10 @@ public class PwmSession implements Serializable
             this.getLoginInfoBean().setAuthenticated( false );
 
             // close out any outstanding connections
-            getClientConnectionHolder( pwmRequest.getPwmApplication() ).closeConnections();
+            if ( pwmRequest != null && clientConnectionHolder != null )
+            {
+                getClientConnectionHolder( pwmRequest.getPwmApplication() ).closeConnections();
+            }
             clientConnectionHolder = null;
 
             LOGGER.debug( pwmRequest, sb::toString );

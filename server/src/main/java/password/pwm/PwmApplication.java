@@ -25,7 +25,6 @@ import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingMetaDataReader;
 import password.pwm.config.PwmSettingScope;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -290,8 +289,6 @@ public class PwmApplication
         MBeanUtility.registerMBean( this );
 
         UserAgentUtils.initializeCache();
-
-        PwmSettingMetaDataReader.initCache();
 
         LOGGER.trace( sessionLabel, () -> "completed post init tasks", TimeDuration.fromCurrent( startTime ) );
     }

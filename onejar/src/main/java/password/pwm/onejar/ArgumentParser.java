@@ -114,7 +114,7 @@ public class ArgumentParser
     private Map<Argument, String> mapFromProperties( final String filename ) throws ArgumentParserException
     {
         final Properties props = new Properties();
-        try ( InputStream is = new FileInputStream( new File( filename ) ) )
+        try ( InputStream is = new FileInputStream( filename ) )
         {
             props.load( is );
         }

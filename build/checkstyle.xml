@@ -162,6 +162,7 @@
         <module name="UnusedImports"/>
         <module name="ImportControl">
             <property name="file" value="${basedir}/build/checkstyle-import.xml"/>
+            <property name="path" value="^.*[\\/]src[\\/]main[\\/].*$"/>
         </module>
 
 

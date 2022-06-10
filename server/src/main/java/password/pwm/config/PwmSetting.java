@@ -20,21 +20,30 @@
 
 package password.pwm.config;
 
-import lombok.Value;
+import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
+import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.StoredValue;
-import password.pwm.util.java.CollectionUtil;
+import password.pwm.config.value.ValueFactory;
+import password.pwm.i18n.Config;
+import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.macro.MacroRequest;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -1305,7 +1314,6 @@ public enum PwmSetting
     HELPDESK_ENABLE_OTP_VERIFY(
             "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_BASE ),;
 
-
     private static final Map<String, PwmSetting> KEY_MAP = Arrays.stream( values() )
             .collect( Collectors.toUnmodifiableMap( PwmSetting::getKey, Function.identity() ) );
 
@@ -1320,7 +1328,19 @@ public enum PwmSetting
     private final String key;
     private final PwmSettingSyntax syntax;
     private final PwmSettingCategory category;
-    private final PwmSettingMetaDataReader pwmSettingMetaDataReader;
+
+    private static final Map<PwmSetting, List<TemplateSetReference<StoredValue>>> DEFAULT_VALUE_CACHE = initDefaultValueCache();
+
+    private final transient Supplier<String> defaultMenuLocation = new LazySupplier<>(
+            () -> readMenuLocationDebug( this, null, PwmConstants.DEFAULT_LOCALE ) );
+
+    private final transient Supplier<String> defaultLocaleLabel = new LazySupplier<>(
+            () -> readLabel( this, PwmConstants.DEFAULT_LOCALE ) );
+
+    private final transient Supplier<String> defaultLocaleDescription = new LazySupplier<>(
+            () -> readDescription( this, PwmConstants.DEFAULT_LOCALE ) );
+
+
 
     PwmSetting(
             final String key,
@@ -1331,7 +1351,6 @@ public enum PwmSetting
         this.key = key;
         this.syntax = syntax;
         this.category = category;
-        this.pwmSettingMetaDataReader = new PwmSettingMetaDataReader( this );
     }
 
     public static Comparator<PwmSetting> menuLocationComparator()
@@ -1359,9 +1378,14 @@ public enum PwmSetting
         return syntax;
     }
 
+    private PwmSettingMetaData getPwmSettingMetaData()
+    {
+        return PwmSettingMetaData.forSetting( this );
+    }
+
     private List<TemplateSetReference<StoredValue>> getDefaultValue()
     {
-        return pwmSettingMetaDataReader.getDefaultValue();
+        return DEFAULT_VALUE_CACHE.get( this );
     }
 
     public StoredValue getDefaultValue( final PwmSettingTemplateSet templateSet )
@@ -1383,52 +1407,62 @@ public enum PwmSetting
 
     public Map<PwmSettingProperty, String> getProperties( )
     {
-        return pwmSettingMetaDataReader.getProperties();
+        return getPwmSettingMetaData().getProperties();
     }
 
     public Set<PwmSettingFlag> getFlags( )
     {
-        return pwmSettingMetaDataReader.getFlags();
+        return getPwmSettingMetaData().getFlags();
     }
 
     public Map<String, String> getOptions()
     {
-        return pwmSettingMetaDataReader.getOptions();
+        return getPwmSettingMetaData().getOptions();
     }
 
     public String getLabel( final Locale locale )
     {
-        return pwmSettingMetaDataReader.getLabel( locale );
+        if ( PwmConstants.DEFAULT_LOCALE.equals( locale ) )
+        {
+            return defaultLocaleLabel.get();
+        }
+
+        return readLabel( this, locale );
     }
 
     public String getDescription( final Locale locale )
     {
-        return pwmSettingMetaDataReader.getDescription( locale );
+        if ( PwmConstants.DEFAULT_LOCALE.equals( locale ) )
+        {
+            return defaultLocaleDescription.get();
+        }
+
+        return readDescription( this, locale );
     }
 
     public String getExample( final PwmSettingTemplateSet template )
     {
-        return pwmSettingMetaDataReader.getExample( template );
+        return TemplateSetReference.referenceForTempleSet( getPwmSettingMetaData().getExamples(), template );
     }
 
     public boolean isRequired( )
     {
-        return pwmSettingMetaDataReader.isRequired();
+        return getPwmSettingMetaData().isRequired();
     }
 
     public boolean isHidden( )
     {
-        return pwmSettingMetaDataReader.isHidden();
+        return getPwmSettingMetaData().isHidden();
     }
 
     public int getLevel( )
     {
-        return pwmSettingMetaDataReader.getLevel();
+        return getPwmSettingMetaData().getLevel();
     }
 
     public Pattern getRegExPattern( )
     {
-        return pwmSettingMetaDataReader.getRegExPattern();
+        return getPwmSettingMetaData().getPattern();
     }
 
     public static Optional<PwmSetting> forKey( final String key )
@@ -1441,12 +1475,19 @@ public enum PwmSetting
             final Locale locale
     )
     {
-        return pwmSettingMetaDataReader.toMenuLocationDebug( profileID, locale );
+        if ( PwmConstants.DEFAULT_LOCALE.equals( locale ) && StringUtil.isEmpty( profileID ) )
+        {
+            return defaultMenuLocation.get();
+        }
+        else
+        {
+            return readMenuLocationDebug( this, profileID, locale );
+        }
     }
 
     public Collection<LDAPPermissionInfo> getLDAPPermissionInfo()
     {
-        return pwmSettingMetaDataReader.getLDAPPermissionInfo();
+        return getPwmSettingMetaData().getLdapPermissionInfo();
     }
 
     public static List<PwmSetting> sortedValues()
@@ -1454,46 +1495,56 @@ public enum PwmSetting
         return SORTED_VALUES;
     }
 
-    @Value
-    static class TemplateSetReference<T>
+    private static Map<PwmSetting, List<TemplateSetReference<StoredValue>>> initDefaultValueCache()
     {
-        private final T reference;
-        private final Set<PwmSettingTemplate> settingTemplates;
-
-        static <T> T referenceForTempleSet(
-                final List<TemplateSetReference<T>> templateSetReferences,
-                final PwmSettingTemplateSet pwmSettingTemplateSet
-        )
+        final Map<PwmSetting, List<TemplateSetReference<StoredValue>>> map = new EnumMap<>( PwmSetting.class );
+        for ( final XmlElement settingElement : PwmSettingXml.readAllSettingXmlElements() )
         {
-            final PwmSettingTemplateSet effectiveTemplateSet = pwmSettingTemplateSet == null
-                    ? PwmSettingTemplateSet.getDefault()
-                    : pwmSettingTemplateSet;
-
-            if ( templateSetReferences == null || templateSetReferences.isEmpty() )
+            final List<TemplateSetReference<StoredValue>> returnObj = new ArrayList<>();
+            final PwmSetting pwmSetting = PwmSetting.forKey( settingElement.getAttribute( PwmSettingXml.XML_ATTRIBUTE_KEY ).orElseThrow() ).orElseThrow();
+            final List<XmlElement> defaultElements = settingElement.getChildren( PwmSettingXml.XML_ELEMENT_DEFAULT );
+            if ( pwmSetting.getSyntax() == PwmSettingSyntax.PASSWORD )
             {
-                throw new IllegalStateException( "templateSetReferences can not be null" );
+                returnObj.add( new TemplateSetReference<>( new PasswordValue( null ), Collections.emptySet() ) );
             }
-
-            if ( templateSetReferences.size() == 1 )
+            else
             {
-                return templateSetReferences.get( 0 ).getReference();
-            }
-
-            for ( int matchCountExamSize = templateSetReferences.size(); matchCountExamSize > 0; matchCountExamSize-- )
-            {
-                for ( final TemplateSetReference<T> templateSetReference : templateSetReferences )
+                for ( final XmlElement defaultElement : defaultElements )
                 {
-                    final Set<PwmSettingTemplate> temporarySet = CollectionUtil.copyToEnumSet( templateSetReference.getSettingTemplates(), PwmSettingTemplate.class );
-                    temporarySet.retainAll( effectiveTemplateSet.getTemplates() );
-                    final int matchCount = temporarySet.size();
-                    if ( matchCount == matchCountExamSize )
-                    {
-                        return templateSetReference.getReference();
-                    }
+                    final Set<PwmSettingTemplate> definedTemplates = PwmSettingXml.parseTemplateAttribute( defaultElement );
+                    final StoredValue storedValue = ValueFactory.fromXmlValues( pwmSetting, defaultElement, null );
+                    returnObj.add( new TemplateSetReference<>( storedValue, definedTemplates ) );
                 }
             }
-
-            return templateSetReferences.get( 0 ).getReference();
+            if ( returnObj.isEmpty() )
+            {
+                throw new IllegalStateException( "no default value for setting " + pwmSetting.getKey() );
+            }
+            map.put( pwmSetting, returnObj );
         }
+        return map;
+    }
+
+    private static String readLabel( final PwmSetting pwmSetting, final Locale locale )
+    {
+        return readStringProperty( password.pwm.i18n.PwmSetting.SETTING_LABEL_PREFIX + pwmSetting.getKey(), locale );
+    }
+
+    private static String readDescription( final PwmSetting pwmSetting, final Locale locale )
+    {
+        return readStringProperty( password.pwm.i18n.PwmSetting.SETTING_DESCRIPTION_PREFIX + pwmSetting.getKey(), locale );
+    }
+
+    private static String readStringProperty( final String key, final Locale locale )
+    {
+        final String storedText = LocaleHelper.getLocalizedMessage( locale, key, null, password.pwm.i18n.PwmSetting.class );
+        final MacroRequest macroRequest = MacroRequest.forStatic();
+        return macroRequest.expandMacros( storedText );
+    }
+
+    private static String readMenuLocationDebug( final PwmSetting pwmSetting, final String profileID, final Locale locale )
+    {
+        final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
+        return pwmSetting.getCategory().toMenuLocationDebug( profileID, locale ) + separator + pwmSetting.getLabel( locale );
     }
 }

@@ -19,17 +19,24 @@
   ~ limitations under the License.
   -->
 
-<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema
+        attributeFormDefault="unqualified"
+        elementFormDefault="qualified"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema">
     <xs:element name="settings">
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="setting" maxOccurs="unbounded" minOccurs="0">
                     <xs:complexType>
-                        <xs:choice maxOccurs="unbounded" minOccurs="0">
-                            <xs:element type="xs:string" name="label"/>
-                            <xs:element type="xs:string" name="description"/>
-                            <xs:element type="xs:string" name="regex"/>
-                            <xs:element name="default">
+                        <xs:sequence>
+                            <xs:element name="flags" minOccurs="0" maxOccurs="1">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element type="Flag_Type" name="flag" minOccurs="1" maxOccurs="unbounded"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="default" minOccurs="1" maxOccurs="unbounded">
                                 <xs:complexType mixed="true">
                                     <xs:sequence>
                                         <xs:element name="value" maxOccurs="unbounded" minOccurs="0">
@@ -42,10 +49,17 @@
                                             </xs:complexType>
                                         </xs:element>
                                     </xs:sequence>
+                                    <xs:attribute name="syntaxVersion" use="optional">
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:integer">
+                                                <xs:minInclusive value="0" />
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:attribute>
                                     <xs:attribute type="xs:string" name="template" use="optional"/>
                                 </xs:complexType>
                             </xs:element>
-                            <xs:element name="options">
+                            <xs:element name="options" maxOccurs="1" minOccurs="0">
                                 <xs:complexType>
                                     <xs:sequence>
                                         <xs:element name="option" maxOccurs="unbounded" minOccurs="0">
@@ -60,33 +74,129 @@
                                     </xs:sequence>
                                 </xs:complexType>
                             </xs:element>
-                        </xs:choice>
-                        <xs:attribute type="xs:string" name="key" use="optional"/>
-                        <xs:attribute type="xs:byte" name="level" use="optional"/>
-                        <xs:attribute type="xs:string" name="required" use="optional"/>
-                        <xs:attribute type="xs:string" name="hidden" use="optional"/>
+                            <xs:element name="properties" maxOccurs="1" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="property" maxOccurs="unbounded" minOccurs="1">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="xs:string">
+                                                        <xs:attribute type="xs:string" name="key" use="optional"/>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="example" minOccurs="0" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:simpleContent>
+                                        <xs:extension base="xs:string">
+                                            <xs:attribute type="xs:string" name="template" use="optional"/>
+                                        </xs:extension>
+                                    </xs:simpleContent>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element type="xs:string" name="regex" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="permission" maxOccurs="1" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="ldap" minOccurs="1" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:attribute type="Actor_Type" name="actor" use="required"/>
+                                                <xs:attribute type="Access_Type" name="access" use="required"/>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                        <xs:attribute type="xs:string" name="key" use="required"/>
+                        <xs:attribute type="xs:boolean" name="hidden" use="optional"/>
+                        <xs:attribute type="Level_Type" name="level" use="optional"/>
+                        <xs:attribute type="xs:boolean" name="required" use="optional"/>
                     </xs:complexType>
                 </xs:element>
                 <xs:element name="category" maxOccurs="unbounded" minOccurs="0">
-                    <xs:complexType>
+                    <xs:complexType mixed="true">
                         <xs:sequence>
-                            <xs:element type="xs:string" name="label"/>
-                            <xs:element type="xs:string" name="description"/>
+                            <xs:element name="profile" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:simpleContent>
+                                        <xs:extension base="xs:string">
+                                            <xs:attribute type="xs:string" name="setting" use="optional"/>
+                                        </xs:extension>
+                                    </xs:simpleContent>
+                                </xs:complexType>
+                            </xs:element>
                         </xs:sequence>
-                        <xs:attribute type="xs:string" name="key" use="optional"/>
-                        <xs:attribute type="xs:byte" name="level" use="optional"/>
-                        <xs:attribute type="xs:string" name="hidden" use="optional"/>
-                    </xs:complexType>
-                </xs:element>
-                <xs:element name="template" maxOccurs="unbounded" minOccurs="0">
-                    <xs:complexType>
-                        <xs:sequence>
-                            <xs:element type="xs:string" name="label"/>
-                        </xs:sequence>
-                        <xs:attribute type="xs:string" name="key" use="optional"/>
+                        <xs:attribute type="xs:boolean" name="hidden" use="required"/>
+                        <xs:attribute type="Scope_Type" name="scope" use="required"/>
+                        <xs:attribute type="xs:string" name="key" use="required"/>
+                        <xs:attribute type="Level_Type" name="level" use="optional"/>
                     </xs:complexType>
                 </xs:element>
             </xs:sequence>
         </xs:complexType>
+        <xs:unique name="unique-setting-key">
+            <xs:selector xpath="setting"/>
+            <xs:field xpath="@key"/>
+        </xs:unique>
+        <xs:unique name="unique-category-key">
+            <xs:selector xpath="category"/>
+            <xs:field xpath="@key"/>
+        </xs:unique>
     </xs:element>
+    <xs:simpleType name="Actor_Type">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="self" />
+            <xs:enumeration value="self_other" />
+            <xs:enumeration value="proxy" />
+            <xs:enumeration value="guestManager" />
+            <xs:enumeration value="helpdesk" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="Access_Type">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="read" />
+            <xs:enumeration value="write" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="Level_Type">
+        <xs:restriction base="xs:integer">
+            <xs:minInclusive value="0" />
+            <xs:maxInclusive value="2" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="Scope_Type">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="SYSTEM" />
+            <xs:enumeration value="DOMAIN" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="Flag_Type">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MacroSupport" />
+            <xs:enumeration value="ldapDnSyntax" />
+            <xs:enumeration value="emailSyntax" />
+            <xs:enumeration value="NoDefault" />
+            <xs:enumeration value="MultiDomain" />
+            <xs:enumeration value="ReloadEditorOnModify" />
+            <xs:enumeration value="Select_AllowUserInput" />
+            <xs:enumeration value="Permission_HideGroups" />
+            <xs:enumeration value="Permission_HideMatch" />
+            <xs:enumeration value="Form_HideOptions" />
+            <xs:enumeration value="Form_ShowUniqueOption" />
+            <xs:enumeration value="Form_ShowReadOnlyOption" />
+            <xs:enumeration value="Form_ShowRequiredOption" />
+            <xs:enumeration value="Form_ShowMultiValueOption" />
+            <xs:enumeration value="Form_HideStandardOptions" />
+            <xs:enumeration value="Form_ShowSource" />
+            <xs:enumeration value="Verification_HideMinimumOptional" />
+            <xs:enumeration value="WebService_NoBody" />
+            <xs:enumeration value="Sorted" />
+            <xs:enumeration value="Deprecated" />
+        </xs:restriction>
+    </xs:simpleType>
 </xs:schema>

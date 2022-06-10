@@ -41,6 +41,7 @@ import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -59,10 +60,13 @@ public class PwmSettingTest
                 .pwmSecurityKey( pwmSecurityKey )
                 .storedValueEncoderMode( StoredValueEncoder.Mode.ENCODED )
                 .build();
+
+        final List<PwmSettingTemplateSet> allPwmSettingTemplates = PwmSettingTemplateSet.allValues();
+
         for ( final PwmSetting pwmSetting : PwmSetting.values() )
         {
             //System.out.println( pwmSetting.name() + " " + pwmSetting.getKey()  );
-            for ( final PwmSettingTemplateSet templateSet : PwmSettingTemplateSet.allValues() )
+            for ( final PwmSettingTemplateSet templateSet : allPwmSettingTemplates )
             {
                 final StoredValue storedValue = pwmSetting.getDefaultValue( templateSet );
                 storedValue.toNativeObject();
@@ -212,4 +216,28 @@ public class PwmSettingTest
         final List<PwmSetting> list = PwmSetting.sortedValues();
         Assert.assertEquals( list.size(), PwmSetting.values().length );
     }
+
+
+    @Test
+    public void testAllSettingMethods()
+    {
+        for ( final PwmSetting pwmSetting : EnumSet.allOf( PwmSetting.class ) )
+        {
+            pwmSetting.getProperties();
+            pwmSetting.getFlags();
+            pwmSetting.getOptions();
+            pwmSetting.getLabel( PwmConstants.DEFAULT_LOCALE );
+            pwmSetting.getDescription( PwmConstants.DEFAULT_LOCALE );
+            pwmSetting.isRequired();
+            pwmSetting.isHidden();
+            pwmSetting.getLevel();
+            pwmSetting.getRegExPattern();
+            pwmSetting.getLDAPPermissionInfo();
+            PwmSettingTemplateSet.allValues().forEach( pwmSetting::getDefaultValue );
+            PwmSettingTemplateSet.allValues().forEach( pwmSetting::getExample );
+
+            pwmSetting.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
+        }
+    }
+
 }

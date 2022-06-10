@@ -66,7 +66,7 @@ public enum PwmSettingTemplate
     public boolean isHidden( )
     {
         final XmlElement templateElement = readTemplateElement( this );
-        final Optional<String> requiredAttribute = templateElement.getAttribute( "hidden" );
+        final Optional<String> requiredAttribute = templateElement.getAttribute( PwmSettingXml.XML_ELEMENT_HIDDEN );
         return requiredAttribute.isPresent() && "true".equalsIgnoreCase( requiredAttribute.get() );
     }
 
