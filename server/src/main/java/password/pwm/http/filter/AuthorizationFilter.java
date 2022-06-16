@@ -31,6 +31,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Authorization servlet filter.  Manages PWM authorization levels.  Primarily,
@@ -56,6 +57,20 @@ public class AuthorizationFilter extends AbstractPwmFilter
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
+        if ( mode == PwmApplicationMode.CONFIGURATION )
+        {
+            final Optional<PwmServletDefinition> pwmServletDefinition = pwmRequest.getURL().forServletDefinition();
+            if ( pwmServletDefinition.isPresent() )
+            {
+                if ( pwmServletDefinition.get().getFlags().contains( PwmServletDefinition.Flag.RequiresConfigAuth )
+                        || pwmServletDefinition.get() == PwmServletDefinition.ConfigManager_Login )
+                {
+                    chain.doFilter();
+                    return;
+                }
+            }
+        }
+
         // if the user is not authenticated as a PWM Admin, redirect to error page.
         boolean hasPermission = false;
         try

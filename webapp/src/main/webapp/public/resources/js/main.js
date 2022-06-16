@@ -718,14 +718,20 @@ PWM_MAIN.showWaitDialog = function(options) {
 
     options = options || {};
     options['title'] = options['title'] || '';
+    var progressBar = options['progressBar'];
 
     var waitOverlayDiv = document.createElement('div');
     waitOverlayDiv.setAttribute('id','wait-overlay');
     document.body.appendChild(waitOverlayDiv);
 
+    var htmlContent = '<span>' + options['title'] + '</span>';
+    htmlContent += progressBar
+        ? '<progress value="-1" id="wait-progress"/>'
+        : '<div id="wait-overlay-inner"></div>';
+
     var waitOverlayMessage = document.createElement('div');
     waitOverlayMessage.setAttribute('id','wait-overlay-message');
-    waitOverlayMessage.innerHTML = '<span>' + options['title'] + '</span><div id="wait-overlay-inner"></div>';
+    waitOverlayMessage.innerHTML = htmlContent;
     document.body.appendChild(waitOverlayMessage);
 
     if ('loadFunction' in options) {

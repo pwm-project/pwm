@@ -20,8 +20,6 @@
 
 package password.pwm.http.servlet.configeditor;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
@@ -307,20 +305,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
 
         pwmRequest.outputJsonResult( RestResultBean.withData( readSettingResponse, ReadSettingResponse.class ) );
         return ProcessStatus.Halt;
-    }
-
-    @Value
-    @Builder
-    static class ReadSettingResponse implements Serializable
-    {
-        private final boolean isDefault;
-        private final String key;
-        private final String category;
-        private final Instant modifyTime;
-        private final UserIdentity modifyUser;
-        private final String syntax;
-        private final Object value;
-        private final Map<String, String> options;
     }
 
     @ActionHandler( action = "writeSetting" )

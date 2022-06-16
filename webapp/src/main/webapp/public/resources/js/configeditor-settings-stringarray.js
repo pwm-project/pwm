@@ -141,7 +141,8 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
         rowHtml += '</td>';
     }
 
-    const showDeleteButtons = (itemCount > 1 || (!settingInfo['required'])) && (settingProperties['Minimum'] && itemCount > settingProperties['Minimum'])
+    const minValuesRequired = settingProperties['Minimum'] ? settingProperties['Minimum'] : settingInfo['required'] ? 1 : 0;
+    const showDeleteButtons = itemCount > minValuesRequired;
     const deleteButtonID = 'button-' + settingKey + '-' + iteration + '-delete';
     if (showDeleteButtons) {
         rowHtml += '<td class="noborder nopadding" style="width:10px" title="Delete">';

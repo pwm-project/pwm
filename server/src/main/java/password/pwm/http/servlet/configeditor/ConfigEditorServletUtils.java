@@ -163,7 +163,7 @@ public class ConfigEditorServletUtils
         return Collections.emptyMap();
     }
 
-    static ConfigEditorServlet.ReadSettingResponse handleLocaleBundleReadSetting(
+    static ReadSettingResponse handleLocaleBundleReadSetting(
             final PwmRequest pwmRequest,
             final StoredConfiguration storedConfig,
             final StoredConfigKey key
@@ -172,7 +172,7 @@ public class ConfigEditorServletUtils
             throws PwmUnrecoverableException
     {
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
-        final ConfigEditorServlet.ReadSettingResponse.ReadSettingResponseBuilder builder = ConfigEditorServlet.ReadSettingResponse.builder();
+        final ReadSettingResponse.ReadSettingResponseBuilder builder = ReadSettingResponse.builder();
         final PwmLocaleBundle pwmLocaleBundle = key.toLocaleBundle();
         final String keyName = key.getProfileID();
         final Map<String, String> bundleMap = storedConfig.readLocaleBundleMap( pwmLocaleBundle, keyName, domainID );
@@ -209,14 +209,14 @@ public class ConfigEditorServletUtils
         return builder.build();
     }
 
-    static ConfigEditorServlet.ReadSettingResponse handleReadSetting(
+    static ReadSettingResponse handleReadSetting(
             final PwmRequest pwmRequest,
             final StoredConfiguration storedConfig,
             final StoredConfigKey key
     )
             throws PwmUnrecoverableException
     {
-        final ConfigEditorServlet.ReadSettingResponse.ReadSettingResponseBuilder builder = ConfigEditorServlet.ReadSettingResponse.builder();
+        final ReadSettingResponse.ReadSettingResponseBuilder builder = ReadSettingResponse.builder();
 
         final PwmSetting pwmSetting = key.toPwmSetting();
         final boolean isDefault = StoredConfigurationUtil.isDefaultValue( storedConfig, key );

@@ -50,7 +50,11 @@ public class PeopleSearchService extends AbstractPwmService implements PwmServic
     @Override
     public void shutdownImpl()
     {
-        threadPoolExecutor.shutdown();
+        if ( threadPoolExecutor != null )
+        {
+            threadPoolExecutor.shutdown();
+            threadPoolExecutor = null;
+        }
     }
 
     @Override

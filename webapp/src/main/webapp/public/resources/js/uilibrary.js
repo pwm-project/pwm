@@ -493,19 +493,10 @@ UILibrary.uploadFileDialog = function(options) {
         if (data.lengthComputable) {
             var decimal = data.loaded / data.total;
             console.log('upload progress: ' + decimal);
-            require(["dijit/registry"],function(registry){
-                var progressBar = registry.byId('progressBar');
-                if (progressBar) {
-                    progressBar.set("maximum", 100);
-                    progressBar.set("indeterminate", false);
-                    progressBar.set("value", decimal * 100);
-                }
-                var html5Bar = PWM_MAIN.getObject("wait");
-                if (html5Bar) {
-                    html5Bar.setAttribute("max", 100);
-                    html5Bar.setAttribute("value", decimal * 100);
-                }
-            });
+            var waitProgressObject = PWM_MAIN.getObject('wait-progress');
+            if (waitProgressObject) {
+                waitProgressObject.setAttribute('value', decimal.toString());
+            }
         } else {
             console.log('progressFunction: no data');
             return;
@@ -554,7 +545,7 @@ UILibrary.uploadFileDialog = function(options) {
         xhr.send(fd);
         PWM_GLOBAL['inhibitHealthUpdate'] = true;
         PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
-        PWM_MAIN.showWaitDialog({title:PWM_MAIN.showString('Display_Uploading')});
+        PWM_MAIN.showWaitDialog({title:PWM_MAIN.showString('Display_Uploading'),progressBar:true});
     };
 
     completeFunction = 'completeFunction' in options ? options['completeFunction'] : completeFunction;

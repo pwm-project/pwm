@@ -238,6 +238,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         final String outputString = restResultBean.toJson( pwmRequest.isPrettyPrintJsonParameterTrue() );
         resp.setContentType( HttpContentType.json.getHeaderValueWithEncoding() );
         resp.getWriter().print( outputString );
+        resp.getWriter().close();
     }
 
 
