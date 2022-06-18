@@ -120,7 +120,7 @@ docker load --input=pwm-docker-image-v2.0.0.tar
 1. Create docker image named _mypwm_, map to the server's 8443 port, and set the config volume to use the server's
 local file system _/home/user/pwm-config_ folder:
 ```
-docker create --name mypwm -p '8443:8443' pwm/pwm-webapp -v '/config:/home/user/pwm-config
+docker create --name mypwm -p '8443:8443' pwm/pwm-webapp -v '/config:/home/user/pwm-config'
 ```
 
 1. Start the _mypwm_ container:
