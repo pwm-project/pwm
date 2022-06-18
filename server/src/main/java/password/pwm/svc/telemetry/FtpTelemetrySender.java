@@ -32,7 +32,7 @@ import password.pwm.bean.TelemetryPublishBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonProvider;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
@@ -80,7 +80,7 @@ public class FtpTelemetrySender implements TelemetrySender
                 break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( settings.getFtpMode() );
+                MiscUtil.unhandledSwitchStatement( settings.getFtpMode() );
                 throw new UnsupportedOperationException();
         }
 
@@ -172,7 +172,7 @@ public class FtpTelemetrySender implements TelemetrySender
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TELEMETRY_SEND_ERROR, msg ) );
             }
 
-            LOGGER.trace( sessionLabel, () -> "completed transfer of " + fileBytes.length + " in ", () -> TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( sessionLabel, () -> "completed transfer of " + fileBytes.length + " in ", TimeDuration.fromCurrent( startTime ) );
         }
         catch ( final IOException e )
         {

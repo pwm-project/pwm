@@ -129,7 +129,7 @@ public class PwmSecurityKey
 
     public PwmSecurityKey add( final PwmSecurityKey otherKey )
     {
-        final byte[] newKeyMaterial = JavaHelper.addByteArrays( this.keyData, otherKey.keyData );
+        final byte[] newKeyMaterial = JavaHelper.concatByteArrays( this.keyData, otherKey.keyData );
         return new PwmSecurityKey( newKeyMaterial );
     }
 

@@ -30,6 +30,7 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.util.Validator;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -138,6 +139,6 @@ class LdapQueryHelper implements PermissionTypeHelper
                     "userPermission of type " + UserPermissionType.ldapQuery + " must have a ldapQuery value" );
         }
 
-        StringUtil.validateLdapSearchFilter( userPermission.getLdapQuery() );
+        Validator.validateLdapSearchFilter( userPermission.getLdapQuery() );
     }
 }

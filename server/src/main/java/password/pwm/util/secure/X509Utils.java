@@ -28,6 +28,7 @@ import password.pwm.config.option.CertificateMatchingMode;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
@@ -46,12 +47,16 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.security.PrivateKey;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -60,10 +65,8 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -77,10 +80,26 @@ public class X509Utils
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( X509Utils.class );
 
+    public enum ReadCertificateFlag
+    {
+        ReadOnlyRootCA
+    }
+
+    public enum DebugInfoFlag
+    {
+        IncludeCertificateDetail
+    }
+
+
+    enum KeyDebugInfoKey
+    {
+        algorithm,
+        format,
+    }
+
     private X509Utils()
     {
     }
-
 
     public static List<X509Certificate> readRemoteCertificates(
             final URI uri,
@@ -179,7 +198,7 @@ public class X509Utils
         final PwmHttpClientConfiguration pwmHttpClientConfiguration = PwmHttpClientConfiguration.builder()
                 .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.promiscuousCertReader )
                 .build();
-        final PwmHttpClient pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
+        final PwmHttpClient pwmHttpClient = pwmDomain.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration, sessionLabel );
         final PwmHttpClientRequest request = PwmHttpClientRequest.builder()
                 .method( HttpMethod.GET )
                 .url( uri.toString() )
@@ -190,7 +209,7 @@ public class X509Utils
         ErrorInformation requestError = null;
         try
         {
-            pwmHttpClient.makeRequest( request, sessionLabel );
+            pwmHttpClient.makeRequest( request );
         }
         catch ( final PwmException e )
         {
@@ -264,33 +283,31 @@ public class X509Utils
     }
 
     public static String makeDetailText( final X509Certificate x509Certificate )
-            throws CertificateEncodingException, PwmUnrecoverableException
     {
-        return x509Certificate.toString()
-                + "\nMD5: " + hash( x509Certificate, PwmHashAlgorithm.MD5 )
-                + "\nSHA1: " + hash( x509Certificate, PwmHashAlgorithm.SHA1 )
-                + "\nSHA2-256: " + hash( x509Certificate, PwmHashAlgorithm.SHA256 )
-                + "\nSHA2-512: " + hash( x509Certificate, PwmHashAlgorithm.SHA512 )
-                + "\n:IsRootCA: " + certIsRootCA( x509Certificate );
+        final StringBuilder sb = new StringBuilder();
+        X509CertInfo.makeDebugInfoMapImpl( x509Certificate ).forEach( ( key, value ) ->
+        {
+            sb.append( key );
+            sb.append( ": " );
+            sb.append( value );
+            sb.append( "\n" );
+        } );
+
+        sb.append( x509Certificate );
+        sb.append( "\n" );
+        return sb.toString();
     }
 
     public static String makeDebugTexts( final List<X509Certificate> x509Certificates )
     {
-        final StringBuilder sb = new StringBuilder();
-        sb.append( "Certificates: " );
-        for ( final X509Certificate x509Certificate : x509Certificates )
-        {
-            sb.append( '[' );
-            sb.append( makeDebugText( x509Certificate ) );
-            sb.append( ']' );
-
-        }
-        return sb.toString();
+        return x509Certificates.stream()
+                .map( x509Certificate -> '[' + makeDebugText( x509Certificate ) + ']' )
+                .collect( Collectors.joining( "", "Certificates: ", "" ) );
     }
 
     public static String makeDebugText( final X509Certificate x509Certificate )
     {
-        return "subject=" + x509Certificate.getSubjectDN().getName() + ", serial=" + x509Certificate.getSerialNumber();
+        return "subject=" + X509CertDataParser.readCertSubject( x509Certificate ) + ", serial=" + x509Certificate.getSerialNumber();
     }
 
     public static List<X509Certificate> certificatesFromBase64s( final Collection<String> b64certificates )
@@ -337,80 +354,27 @@ public class X509Utils
                 .collect( Collectors.toList() );
     }
 
-    enum CertDebugInfoKey
+    public static void outputKeystore(
+            final KeyStore keyStore,
+            final File keyStoreFile,
+            final String password
+    )
+            throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException
     {
-        subject,
-        serial,
-        issuer,
-        issueDate,
-        expireDate,
-        md5Hash,
-        sha1Hash,
-        sha512Hash,
-        detail,
-    }
+        final ByteArrayOutputStream outputContents = new ByteArrayOutputStream();
+        keyStore.store( outputContents, password.toCharArray() );
 
-    public enum ReadCertificateFlag
-    {
-        ReadOnlyRootCA
-    }
-
-    public enum DebugInfoFlag
-    {
-        IncludeCertificateDetail
-    }
-
-    public static List<Map<String, String>> makeDebugInfoMap( final List<X509Certificate> certificates, final DebugInfoFlag... flags )
-    {
-        final List<Map<String, String>> returnList = new ArrayList<>();
-        if ( certificates != null )
+        if ( keyStoreFile.exists() )
         {
-            for ( final X509Certificate cert : certificates )
-            {
-                returnList.add( makeDebugInfoMap( cert, flags ) );
-            }
+            Files.delete( keyStoreFile.toPath() );
         }
-        return returnList;
-    }
 
-    public static Map<String, String> makeDebugInfoMap( final X509Certificate cert, final DebugInfoFlag... flags )
-    {
-        final Map<String, String> returnMap = new LinkedHashMap<>();
-        returnMap.put( CertDebugInfoKey.subject.toString(), cert.getSubjectDN().toString() );
-        returnMap.put( CertDebugInfoKey.serial.toString(), X509Utils.hexSerial( cert ) );
-        returnMap.put( CertDebugInfoKey.issuer.toString(), cert.getIssuerDN().toString() );
-        returnMap.put( CertDebugInfoKey.issueDate.toString(), JavaHelper.toIsoDate( cert.getNotBefore() ) );
-        returnMap.put( CertDebugInfoKey.expireDate.toString(), JavaHelper.toIsoDate( cert.getNotAfter() ) );
-        try
+        try ( OutputStream fileOutputStream = Files.newOutputStream( keyStoreFile.toPath() ) )
         {
-            returnMap.put( CertDebugInfoKey.md5Hash.toString(), hash( cert, PwmHashAlgorithm.MD5 ) );
-            returnMap.put( CertDebugInfoKey.sha1Hash.toString(), hash( cert, PwmHashAlgorithm.SHA1 ) );
-            returnMap.put( CertDebugInfoKey.sha512Hash.toString(), hash( cert, PwmHashAlgorithm.SHA512 ) );
-            if ( JavaHelper.enumArrayContainsValue( flags, DebugInfoFlag.IncludeCertificateDetail ) )
-            {
-                returnMap.put( CertDebugInfoKey.detail.toString(), X509Utils.makeDetailText( cert ) );
-            }
+            fileOutputStream.write( outputContents.toByteArray() );
         }
-        catch ( final PwmUnrecoverableException | CertificateEncodingException e )
-        {
-            LOGGER.warn( () -> "error generating hash for certificate: " + e.getMessage() );
-        }
-        return returnMap;
     }
 
-    enum KeyDebugInfoKey
-    {
-        algorithm,
-        format,
-    }
-
-    public static Map<String, String> makeDebugInfoMap( final PrivateKey key )
-    {
-        final Map<String, String> returnMap = new LinkedHashMap<>();
-        returnMap.put( KeyDebugInfoKey.algorithm.toString(), key.getAlgorithm() );
-        returnMap.put( KeyDebugInfoKey.format.toString(), key.getFormat() );
-        return returnMap;
-    }
 
     public static X509Certificate certificateFromBase64( final String b64encodedStr )
             throws CertificateException, IOException
@@ -436,7 +400,7 @@ public class X509Utils
 
         for ( final X509Certificate certificate : certificates )
         {
-            if ( certIsRootCA( certificate ) )
+            if ( X509CertDataParser.certIsSigningKey( certificate ) )
             {
                 returnList.add( certificate );
             }
@@ -448,21 +412,6 @@ public class X509Utils
         }
 
         return Optional.empty();
-    }
-
-    private static boolean certIsRootCA( final X509Certificate certificate )
-    {
-        final int keyCertSignBitPosition = 5;
-        final boolean[] keyUsages = certificate.getKeyUsage();
-        if ( keyUsages != null && keyUsages.length > keyCertSignBitPosition - 1 )
-        {
-            if ( keyUsages[keyCertSignBitPosition] )
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     public static TrustManager[] getDefaultJavaTrustManager( final AppConfig appConfig )
@@ -483,7 +432,6 @@ public class X509Utils
     }
 
     public static String hash( final X509Certificate certificate, final PwmHashAlgorithm pwmHashAlgorithm )
-            throws PwmUnrecoverableException
     {
         try
         {
@@ -491,7 +439,8 @@ public class X509Utils
         }
         catch ( final CertificateEncodingException e )
         {
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, "unexpected error encoding certificate: " + e.getMessage() );
+            throw new PwmInternalException( new ErrorInformation( PwmError.ERROR_INTERNAL,
+                    "unexpected error encoding certificate: " + e.getMessage() ) );
         }
     }
 
@@ -522,5 +471,4 @@ public class X509Utils
         }
         return Collections.unmodifiableSet( resultCertificates );
     }
-
 }

@@ -25,7 +25,7 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
-<%@ page import="password.pwm.ldap.UserInfo"%>
+<%@ page import="password.pwm.user.UserInfo"%>
 <%@ page import="password.pwm.svc.otp.OTPUserRecord" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>

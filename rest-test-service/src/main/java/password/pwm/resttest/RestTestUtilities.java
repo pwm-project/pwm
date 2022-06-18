@@ -21,6 +21,7 @@
 package password.pwm.resttest;
 
 import org.apache.commons.io.IOUtils;
+import password.pwm.util.java.JavaHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -51,7 +52,7 @@ public class RestTestUtilities
         }
         finally
         {
-            IOUtils.closeQuietly( readerStream );
+            JavaHelper.closeQuietly( readerStream );
         }
 
         return stringWriter.toString();

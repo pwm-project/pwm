@@ -20,23 +20,25 @@
 
 package password.pwm.util.cli.commands;
 
-import password.pwm.bean.SessionLabel;
+import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.config.stored.ConfigurationProperty;
-import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.cli.CliParameters;
 
+import java.io.IOException;
 import java.util.Optional;
 
 public class ConfigUnlockCommand extends AbstractCliCommand
 {
     @Override
     public void doCommand( )
-            throws Exception
+            throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
-        final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
-        final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
+        final ConfigurationFileManager configurationFileManager = cliEnvironment.getConfigurationFileManager();
+        final StoredConfiguration storedConfiguration = configurationFileManager.getStoredConfiguration();
 
         final Optional<String> configIsEditable = storedConfiguration.readConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE );
         if ( configIsEditable.isPresent() && Boolean.parseBoolean( configIsEditable.get() ) )
@@ -47,7 +49,7 @@ public class ConfigUnlockCommand extends AbstractCliCommand
 
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
         modifier.writeConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE, Boolean.toString( true ) );
-        configurationReader.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
+        configurationFileManager.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication() );
         out( "success: configuration has been unlocked" );
     }
 

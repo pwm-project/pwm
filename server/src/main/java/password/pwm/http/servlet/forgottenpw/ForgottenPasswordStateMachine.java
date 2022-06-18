@@ -55,7 +55,7 @@ import password.pwm.http.bean.ForgottenPasswordStage;
 import password.pwm.http.tag.PasswordRequirementsTag;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.auth.AuthenticationUtility;
 import password.pwm.ldap.auth.SessionAuthenticator;

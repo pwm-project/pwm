@@ -43,7 +43,7 @@ public enum HealthTopic
 
     public String getKey( )
     {
-        return HealthTopic.class.getSimpleName() + "_" + this.toString();
+        return HealthTopic.class.getSimpleName() + "_" + this;
     }
 
     public String getDescription( final Locale locale, final SettingReader config )

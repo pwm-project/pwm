@@ -21,6 +21,7 @@
 package password.pwm.config.value.data;
 
 import lombok.Value;
+import password.pwm.bean.SessionLabel;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -36,7 +37,7 @@ public class ShortcutItem implements Serializable
     private final String ldapQuery;
     private final String description;
 
-    public static ShortcutItem parsePwmConfigInput( final String input )
+    public static ShortcutItem parsePwmConfigInput( final String input, final SessionLabel sessionLabel )
     {
         if ( input != null && input.length() > 0 )
         {
@@ -52,14 +53,14 @@ public class ShortcutItem implements Serializable
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( () -> "malformed ShortcutItem configuration value of '" + input + "', " + e.getMessage() );
+                LOGGER.warn( sessionLabel, () -> "malformed ShortcutItem configuration value of '" + input + "', " + e.getMessage() );
             }
         }
         throw new IllegalArgumentException( "malformed ShortcutItem configuration value of '" + input + "'" );
     }
 
 
-    public static ShortcutItem parseHeaderInput( final String input )
+    public static ShortcutItem parseHeaderInput( final String input, final SessionLabel sessionLabel )
     {
         if ( input != null && input.length() > 0 )
         {
@@ -75,7 +76,7 @@ public class ShortcutItem implements Serializable
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( () -> "malformed ShortcutItem configuration value of '" + input + "', " + e.getMessage() );
+                LOGGER.warn( sessionLabel, () -> "malformed ShortcutItem configuration value of '" + input + "', " + e.getMessage() );
             }
         }
         throw new IllegalArgumentException( "malformed ShortcutItem configuration value of '" + input + "'" );

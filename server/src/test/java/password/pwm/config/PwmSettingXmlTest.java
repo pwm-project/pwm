@@ -28,8 +28,14 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.xml.sax.SAXParseException;
 import password.pwm.util.java.JavaHelper;
 
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
@@ -122,6 +128,25 @@ public class PwmSettingXmlTest
             final String errorMsg = "PwmSetting.xml contains category/profile@setting key of '"
                     + settingKey + "' which does not exist in PwmSetting.java";
             Assert.assertTrue( errorMsg, setting.isPresent() );
+        }
+    }
+
+    @Test
+    public void testPwmSettingXmlFileSchema()
+            throws Exception
+    {
+        try
+        {
+            final InputStream xsdInputStream = PwmSetting.class.getClassLoader().getResourceAsStream( "password/pwm/config/PwmSetting.xsd" );
+            final InputStream xmlInputStream = PwmSetting.class.getClassLoader().getResourceAsStream( "password/pwm/config/PwmSetting.xml" );
+            final SchemaFactory factory = SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI );
+            final Schema schema = factory.newSchema( new StreamSource( xsdInputStream ) );
+            final Validator validator = schema.newValidator();
+            validator.validate( new StreamSource( xmlInputStream ) );
+        }
+        catch ( final SAXParseException e )
+        {
+            Assert.fail( "PwmSetting.xml schema violation: " + e.toString() );
         }
     }
 }

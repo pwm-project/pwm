@@ -46,7 +46,8 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
             final PwmRequest pwmRequest,
             final StoredConfigurationModifier modifier,
             final StoredConfigKey key,
-            final String extraData )
+            final String extraData
+    )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();

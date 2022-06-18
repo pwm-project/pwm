@@ -26,6 +26,7 @@ import password.pwm.util.java.JavaHelper;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public enum PwmSettingTemplate
 {
@@ -34,6 +35,7 @@ public enum PwmSettingTemplate
     ORACLE_DS( Type.LDAP_VENDOR ),
     DEFAULT( Type.LDAP_VENDOR ),
     NOVL_IDM( Type.LDAP_VENDOR ),
+    DIRECTORY_SERVER_389( Type.LDAP_VENDOR ),
     OPEN_LDAP( Type.LDAP_VENDOR ),
 
     LOCALDB( Type.STORAGE ),
@@ -64,7 +66,7 @@ public enum PwmSettingTemplate
     public boolean isHidden( )
     {
         final XmlElement templateElement = readTemplateElement( this );
-        final Optional<String> requiredAttribute = templateElement.getAttribute( "hidden" );
+        final Optional<String> requiredAttribute = templateElement.getAttribute( PwmSettingXml.XML_ELEMENT_HIDDEN );
         return requiredAttribute.isPresent() && "true".equalsIgnoreCase( requiredAttribute.get() );
     }
 
@@ -78,11 +80,28 @@ public enum PwmSettingTemplate
         return element;
     }
 
+    public static Set<PwmSettingTemplate> valuesForType( final Type type )
+    {
+        return JavaHelper.readEnumsFromPredicate( PwmSettingTemplate.class, t -> t.getType() == type );
+    }
+
     public enum Type
     {
-        LDAP_VENDOR,
-        STORAGE,
-        DB_VENDOR,;
+        LDAP_VENDOR( PwmSetting.TEMPLATE_LDAP ),
+        STORAGE( PwmSetting.TEMPLATE_STORAGE ),
+        DB_VENDOR( PwmSetting.DB_VENDOR_TEMPLATE ),;
+
+        private final PwmSetting pwmSetting;
+
+        Type( final PwmSetting pwmSetting )
+        {
+            this.pwmSetting = pwmSetting;
+        }
+
+        public PwmSetting getPwmSetting()
+        {
+            return pwmSetting;
+        }
 
         // done using map instead of static values to avoid initialization circularity bug
         public PwmSettingTemplate getDefaultValue( )

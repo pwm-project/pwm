@@ -41,6 +41,7 @@ import password.pwm.svc.wordlist.WordlistStatus;
 import password.pwm.svc.wordlist.WordlistType;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -120,7 +121,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                     return;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( processAction.get() );
+                    MiscUtil.unhandledSwitchStatement( processAction.get() );
             }
             return;
         }
@@ -247,7 +248,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                                 wordlistType.name() + "_populationTimestamp",
                                 DisplayElement.Type.timestamp,
                                 "Population Timestamp",
-                                JavaHelper.toIsoDate( wordlistStatus.getStoreDate() ) ) );
+                                StringUtil.toIsoDate( wordlistStatus.getStoreDate() ) ) );
                     }
                     if ( wordlistStatus.getRemoteInfo() != null && StringUtil.notEmpty( wordlistStatus.getRemoteInfo().getHash() ) )
                     {
@@ -269,7 +270,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                             wordlistType.name() + "_lastImportAttempt",
                             DisplayElement.Type.timestamp,
                             "Last Import Attempt",
-                            JavaHelper.toIsoDate( wordlist.getAutoImportError().getDate() ) ) );
+                            StringUtil.toIsoDate( wordlist.getAutoImportError().getDate() ) ) );
                 }
 
                 if ( activity == Wordlist.Activity.Importing )

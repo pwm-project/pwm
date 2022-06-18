@@ -36,7 +36,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.java.CollectionUtil;
@@ -118,7 +118,7 @@ public class HelpdeskVerificationOptionsBean implements Serializable
                 }
                 catch ( final PwmUnrecoverableException e )
                 {
-                    LOGGER.trace( () -> "error while calculating available token methods: " + e.getMessage() );
+                    LOGGER.trace( pwmRequest, () -> "error while calculating available token methods: " + e.getMessage() );
                 }
             }
             tokenDestinations = Collections.unmodifiableList( TokenDestinationItem.stripValues( returnList ) );
@@ -176,14 +176,14 @@ public class HelpdeskVerificationOptionsBean implements Serializable
             final Map<VerificationMethodValue.EnabledState, Collection<IdentityVerificationMethod>> returnMap
                     = new EnumMap<>( VerificationMethodValue.EnabledState.class );
             {
-                final Set<IdentityVerificationMethod> optionalMethods = CollectionUtil.copiedEnumSet(
+                final Set<IdentityVerificationMethod> optionalMethods = CollectionUtil.copyToEnumSet(
                         helpdeskProfile.readOptionalVerificationMethods(),
                         IdentityVerificationMethod.class );
                 optionalMethods.removeAll( unavailableMethods );
                 returnMap.put( VerificationMethodValue.EnabledState.optional, optionalMethods );
             }
             {
-                final Set<IdentityVerificationMethod> requiredMethods = CollectionUtil.copiedEnumSet(
+                final Set<IdentityVerificationMethod> requiredMethods = CollectionUtil.copyToEnumSet(
                         helpdeskProfile.readRequiredVerificationMethods(),
                         IdentityVerificationMethod.class );
                 requiredMethods.removeAll( unavailableMethods );

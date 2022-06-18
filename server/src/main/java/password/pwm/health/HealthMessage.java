@@ -35,6 +35,7 @@ public enum HealthMessage
     LDAP_AD_Unsecure( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_AD_StaticIP( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_AdminUserOk( HealthStatus.GOOD, HealthTopic.LDAP ),
+    LDAP_AdminNotInContext( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_ProxyTestSameUser( HealthStatus.WARN, HealthTopic.Configuration ),
     LDAP_ProxyUserOk( HealthStatus.GOOD, HealthTopic.LDAP ),
     LDAP_ProxyUserPwExpired( HealthStatus.WARN, HealthTopic.LDAP ),
@@ -136,7 +137,7 @@ public enum HealthMessage
 
     public String getKey( )
     {
-        return HealthMessage.class.getSimpleName() + "_" + this.toString();
+        return HealthMessage.class.getSimpleName() + "_" + this;
     }
 
     public String getDescription(

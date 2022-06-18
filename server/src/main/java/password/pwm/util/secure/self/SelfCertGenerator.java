@@ -20,11 +20,14 @@
 
 package password.pwm.util.secure.self;
 
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -33,7 +36,7 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import password.pwm.svc.secure.SystemSecureService;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.logging.PwmLogger;
 
@@ -53,12 +56,12 @@ class SelfCertGenerator
 
     private static volatile boolean bouncyCastleInitialized;
 
-    private final Settings settings;
-    private final SystemSecureService secureService;
+    private final SelfCertSettings settings;
+    private final SecureRandom secureRandom;
 
-    SelfCertGenerator( final Settings settings,  final SystemSecureService secureService )
+    SelfCertGenerator( final SelfCertSettings settings, final SecureRandom secureRandom )
     {
-        this.secureService = secureService;
+        this.secureRandom = secureRandom == null ? new SecureRandom() : secureRandom;
         this.settings = settings;
     }
 
@@ -104,7 +107,6 @@ class SelfCertGenerator
         certGen.addExtension( Extension.basicConstraints, true, basic.getEncoded() );
 
         // add subject alternate name
-        /*
         {
             final ASN1Encodable[] subjectAlternativeNames = new ASN1Encodable[]
                 {
@@ -113,7 +115,6 @@ class SelfCertGenerator
             final DERSequence subjectAlternativeNamesExtension = new DERSequence( subjectAlternativeNames );
             certGen.addExtension( Extension.subjectAlternativeName, false, subjectAlternativeNamesExtension );
         }
-        */
 
 
         // sign and key encipher
@@ -135,7 +136,7 @@ class SelfCertGenerator
 
     private BigInteger makeSerialNumber()
     {
-        final PwmDateFormat formatter = PwmDateFormat.newPwmDateFormat( "yyyyMMddhhmmss" );
+        final PwmDateFormat formatter = MiscUtil.newPwmDateFormat( "yyyyMMddhhmmss" );
         final String serNumStr = formatter.format( Instant.now() );
         return new BigInteger( serNumStr );
     }
@@ -144,7 +145,7 @@ class SelfCertGenerator
         throws Exception
     {
         final KeyPairGenerator kpGen = KeyPairGenerator.getInstance( settings.getKeyAlg(), "BC" );
-        kpGen.initialize( settings.getKeySize(), secureService == null ? new SecureRandom() : secureService.pwmRandom() );
+        kpGen.initialize( settings.getKeySize(), secureRandom );
         return kpGen.generateKeyPair();
     }
 

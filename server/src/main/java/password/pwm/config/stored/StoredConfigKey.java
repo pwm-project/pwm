@@ -28,7 +28,7 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
@@ -105,7 +105,7 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
         return new StoredConfigKey( RecordType.SETTING, domainID, pwmSetting.getKey(), profileID );
     }
 
-    static StoredConfigKey forLocaleBundle( final PwmLocaleBundle localeBundle, final String key, final DomainID domainID )
+    public static StoredConfigKey forLocaleBundle( final PwmLocaleBundle localeBundle, final String key, final DomainID domainID )
     {
         return new StoredConfigKey( RecordType.LOCALE_BUNDLE, domainID, localeBundle.getKey(), key );
     }
@@ -173,7 +173,7 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
                 break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( recordType );
+                MiscUtil.unhandledSwitchStatement( recordType );
         }
     }
 
@@ -205,7 +205,7 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
                         + this.getProfileID();
 
             default:
-                JavaHelper.unhandledSwitchStatement( recordType );
+                MiscUtil.unhandledSwitchStatement( recordType );
         }
 
         throw new IllegalStateException(  );
@@ -293,7 +293,7 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
                 return PwmSettingSyntax.LOCALIZED_STRING_ARRAY;
 
             default:
-                JavaHelper.unhandledSwitchStatement( getRecordType() );
+                MiscUtil.unhandledSwitchStatement( getRecordType() );
                 throw new IllegalStateException();
         }
     }

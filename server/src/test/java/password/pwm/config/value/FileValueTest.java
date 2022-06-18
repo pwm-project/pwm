@@ -31,7 +31,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationCleanerTest;
 import password.pwm.config.stored.XmlOutputProcessData;
-import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.data.ImmutableByteArray;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 

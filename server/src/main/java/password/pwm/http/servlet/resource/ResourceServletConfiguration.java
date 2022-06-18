@@ -22,20 +22,19 @@ package password.pwm.http.servlet.resource;
 
 import lombok.Value;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
-import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.json.JsonFactory;
+import password.pwm.data.ImmutableByteArray;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -54,6 +53,9 @@ import java.util.zip.ZipInputStream;
 class ResourceServletConfiguration
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ResourceServletConfiguration.class );
+
+    private static final int MAX_RESOURCE_SIZE = 10_000_000;
+    private static final int MAX_RESOURCE_COUNT = 1000;
 
     // settings with default values, values are set by app properties.
     private int maxCacheItems;
@@ -180,7 +182,10 @@ class ResourceServletConfiguration
         return new ResourceServletConfiguration();
     }
 
-    private static Map<String, FileResource> makeMemoryFileMapFromZipInput( final SessionLabel sessionLabel, final ImmutableByteArray content )
+    private static Map<String, FileResource> makeMemoryFileMapFromZipInput(
+            final SessionLabel sessionLabel,
+            final ImmutableByteArray content
+    )
             throws IOException
     {
         final ZipInputStream stream = new ZipInputStream( content.newByteArrayInputStream() );
@@ -193,11 +198,22 @@ class ResourceServletConfiguration
             {
                 final String name = entry.getName();
                 final Instant lastModified = Instant.ofEpochMilli( entry.getTime() );
-                final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                IOUtils.copy( stream, byteArrayOutputStream );
-                final ImmutableByteArray contents = ImmutableByteArray.of( byteArrayOutputStream.toByteArray() );
-                memoryMap.put( name, new MemoryFileResource( name, contents, lastModified ) );
+                final ImmutableByteArray contents = JavaHelper.copyToBytes( stream, MAX_RESOURCE_SIZE + 1 );
+                if ( contents.size() > MAX_RESOURCE_COUNT )
                 {
+                    final String entryName = entry.getName();
+                    LOGGER.error( () -> "ignoring resource bundle zip file entry '" + entryName
+                            + "' due to size being greater than max of " + MAX_RESOURCE_SIZE + " bytes " );
+                }
+                else if ( memoryMap.size() > MAX_RESOURCE_COUNT )
+                {
+                    final String entryName = entry.getName();
+                    LOGGER.error( () -> "ignoring resource bundle zip file entry '" + entryName
+                            + "' due to total resource count being greater than max of " + MAX_RESOURCE_COUNT );
+                }
+                else
+                {
+                    memoryMap.put( name, new MemoryFileResource( name, contents, lastModified ) );
                     final String finalEntry = entry.getName();
                     LOGGER.trace( sessionLabel, () -> "discovered file in configured resource bundle: " + finalEntry );
                 }

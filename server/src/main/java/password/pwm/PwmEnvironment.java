@@ -23,6 +23,7 @@ package password.pwm;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -110,12 +111,12 @@ public class PwmEnvironment
 
         public String conicalJavaOptionSystemName( )
         {
-            return PwmConstants.PWM_APP_NAME.toLowerCase() + "." + this.toString();
+            return PwmConstants.PWM_APP_NAME.toLowerCase() + "." + this;
         }
 
         public String conicalEnvironmentSystemName( )
         {
-            return ( PwmConstants.PWM_APP_NAME.toLowerCase() + "_" + this.toString() ).toUpperCase();
+            return ( PwmConstants.PWM_APP_NAME.toLowerCase() + "_" + this ).toUpperCase();
         }
 
         public List<String> possibleNames( final String contextName )
@@ -128,7 +129,7 @@ public class PwmEnvironment
                         + "."
                         + contextName
                         + "."
-                        + this.toString();
+                        + this;
                 returnValues.add( value );
                 returnValues.add( value.toUpperCase() );
                 returnValues.add( value.replace( '.', '_' ) );
@@ -138,7 +139,7 @@ public class PwmEnvironment
                 // java property format <app>.<paramName> like pwm.applicationFlag
                 final String value = PwmConstants.PWM_APP_NAME.toLowerCase()
                         + "."
-                        + this.toString();
+                        + this;
                 returnValues.add( value );
                 returnValues.add( value.toUpperCase() );
                 returnValues.add( value.replace( '.', '_' ) );
@@ -168,7 +169,7 @@ public class PwmEnvironment
         }
         if ( applicationPathIsWebInfPath )
         {
-            LOGGER.trace( () -> "applicationPath appears to be servlet /WEB-INF directory" );
+            LOGGER.trace( SessionLabel.SYSTEM_LABEL, () -> "applicationPath appears to be servlet /WEB-INF directory" );
         }
     }
 
@@ -196,7 +197,7 @@ public class PwmEnvironment
             );
         }
 
-        LOGGER.trace( () -> "examining applicationPath of " + applicationPath.getAbsolutePath() + "" );
+        LOGGER.trace( SessionLabel.SYSTEM_LABEL, () -> "examining applicationPath of " + applicationPath.getAbsolutePath() + "" );
 
         if ( !applicationPath.exists() )
         {
@@ -223,7 +224,7 @@ public class PwmEnvironment
         }
 
         final File infoFile = new File( applicationPath.getAbsolutePath() + File.separator + PwmConstants.APPLICATION_PATH_INFO_FILE );
-        LOGGER.trace( () -> "checking " + infoFile.getAbsolutePath() + " status" );
+        LOGGER.trace( SessionLabel.SYSTEM_LABEL, () -> "checking " + infoFile.getAbsolutePath() + " status" );
         if ( infoFile.exists() )
         {
             final String errorMsg = "The file " + infoFile.getAbsolutePath() + " exists, and an applicationPath was not explicitly specified."
@@ -310,7 +311,7 @@ public class PwmEnvironment
                 }
                 else
                 {
-                    LOGGER.warn( () -> "unknown " + EnvironmentParameter.applicationFlags.toString() + " value: " + input );
+                    LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "unknown " + EnvironmentParameter.applicationFlags + " value: " + input );
                 }
             }
             return returnFlags;
@@ -330,7 +331,7 @@ public class PwmEnvironment
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( () -> "error reading properties file '" + input + "' specified by environment setting "
+                LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "error reading properties file '" + input + "' specified by environment setting "
                         + EnvironmentParameter.applicationParamFile + ", error: " + e.getMessage() );
             }
 
@@ -347,14 +348,14 @@ public class PwmEnvironment
                     }
                     else
                     {
-                        LOGGER.warn( () -> "unknown " + EnvironmentParameter.applicationParamFile + " value: " + input );
+                        LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "unknown " + EnvironmentParameter.applicationParamFile + " value: " + input );
                     }
                 }
                 return Collections.unmodifiableMap( returnParams );
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( () -> "unable to parse jason value of " + EnvironmentParameter.applicationParamFile + ", error: " + e.getMessage() );
+                LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "unable to parse jason value of " + EnvironmentParameter.applicationParamFile + ", error: " + e.getMessage() );
             }
 
             return Collections.emptyMap();
@@ -365,7 +366,7 @@ public class PwmEnvironment
     {
         if ( PwmConstants.TRIAL_MODE && mode == PwmApplicationMode.RUNNING )
         {
-            LOGGER.info( () -> "application is in trial mode" );
+            LOGGER.info( SessionLabel.SYSTEM_LABEL, () -> "application is in trial mode" );
             return PwmApplicationMode.CONFIGURATION;
         }
 

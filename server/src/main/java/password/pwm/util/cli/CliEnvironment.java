@@ -24,7 +24,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.config.AppConfig;
-import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.util.localdb.LocalDB;
 
 import java.io.File;
@@ -35,7 +35,7 @@ import java.util.Map;
 @Builder( toBuilder = true )
 public class CliEnvironment
 {
-    final ConfigurationReader configurationReader;
+    final ConfigurationFileManager configurationFileManager;
     final File configurationFile;
     final AppConfig config;
     final File applicationPath;

@@ -126,7 +126,7 @@ public class UserPermissionUtility
         LOGGER.debug( sessionLabel, () -> "user " + userIdentity.toDisplayString() + " is "
                         + ( match ? "" : "not " )
                         + "a match for permission '" + userPermission + "'",
-                () -> TimeDuration.fromCurrent( startTime ) );
+                TimeDuration.fromCurrent( startTime ) );
         return match;
     }
 
@@ -230,7 +230,7 @@ public class UserPermissionUtility
             LOGGER.debug(
                     sessionLabel,
                     () -> "stripped " + removedValues + " user(s) from set of " + userIdentities.size() + " permission matches",
-                    () -> TimeDuration.fromCurrent( startTime ) );
+                    TimeDuration.fromCurrent( startTime ) );
         }
         return Collections.unmodifiableList( output );
     }

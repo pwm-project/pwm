@@ -29,7 +29,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 
 import java.util.Locale;

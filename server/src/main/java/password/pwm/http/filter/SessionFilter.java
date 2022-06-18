@@ -135,10 +135,10 @@ public class SessionFilter extends AbstractPwmFilter
         }
 
         final TimeDuration requestExecuteTime = TimeDuration.fromCurrent( startTime );
-        pwmRequest.debugHttpRequestToLog( "completed", () -> requestExecuteTime );
+        pwmRequest.debugHttpRequestToLog( "completed", requestExecuteTime );
         pwmRequest.getPwmDomain().getStatisticsManager().updateAverageValue( AvgStatistic.AVG_REQUEST_PROCESS_TIME, requestExecuteTime.asMillis() );
         pwmRequest.getPwmSession().getSessionStateBean().getRequestCount().incrementAndGet();
-        pwmRequest.getPwmSession().getSessionStateBean().getAvgRequestDuration().update( requestExecuteTime );
+        pwmRequest.getPwmSession().getSessionStateBean().getAvgRequestDuration().update( requestExecuteTime.asDuration() );
     }
 
     private ProcessStatus handleStandardRequestOperations(
@@ -328,21 +328,31 @@ public class SessionFilter extends AbstractPwmFilter
             {
                 for ( final String paramName : pwmRequest.parameterNames() )
                 {
-                    // check to make sure param is in query string
-                    if ( queryString.contains( StringUtil.urlDecode( paramName ) ) )
+                    try
                     {
-                        if ( !verificationParamName.equals( paramName ) )
+                        final String decodedParamName = StringUtil.urlDecode( paramName );
+
+                        // check to make sure param is in query string
+                        if ( queryString.contains( decodedParamName ) )
                         {
-                            // raw read of param value to avoid sanitization checks
-                            for ( final String value : req.getParameterValues( paramName ) )
+                            if ( !verificationParamName.equals( paramName ) )
                             {
-                                redirectURL = PwmURL.appendAndEncodeUrlParameters( redirectURL, paramName, value );
+                                // raw read of param value to avoid sanitization checks
+                                for ( final String value : req.getParameterValues( paramName ) )
+                                {
+                                    redirectURL = PwmURL.appendAndEncodeUrlParameters( redirectURL, paramName, value );
+                                }
                             }
                         }
+                        else
+                        {
+                            LOGGER.debug( pwmRequest, () -> "dropping non-query string (body?) parameter '" + paramName + "' during redirect validation)" );
+                        }
                     }
-                    else
+                    catch ( final IOException e )
                     {
-                        LOGGER.debug( () -> "dropping non-query string (body?) parameter '" + paramName + "' during redirect validation)" );
+                        LOGGER.trace( pwmRequest, () -> "error decoding cookie value '" + paramName
+                                + "', error: " + e.getMessage() );
                     }
                 }
             }
@@ -539,7 +549,7 @@ public class SessionFilter extends AbstractPwmFilter
                 return ProcessStatus.Continue;
             }
 
-            LOGGER.warn( () -> "invalidating session due to dirty page leave time greater then configured timeout" );
+            LOGGER.warn( pwmRequest, () -> "invalidating session due to dirty page leave time greater then configured timeout" );
             pwmRequest.invalidateSession();
             pwmRequest.getPwmResponse().sendRedirect( pwmRequest.getHttpServletRequest().getRequestURI() );
             return ProcessStatus.Halt;

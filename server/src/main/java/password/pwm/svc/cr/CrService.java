@@ -105,7 +105,7 @@ public class CrService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         for ( final CrOperator operator : operatorMap.values() )
         {
@@ -156,9 +156,6 @@ public class CrService extends AbstractPwmService implements PwmService
                     }
                     else
                     {
-                        final ChallengeSet finalReturnSet = returnSet;
-                        LOGGER.debug( sessionLabel, () -> "using nmas c/r policy for user " + theUser.getEntryDN() + ": " + finalReturnSet.toString() );
-
                         final String challengeID = "nmasPolicy-" + userIdentity.toDelimitedKey();
 
                         final ChallengeProfile challengeProfile = ChallengeProfile.createChallengeProfile(
@@ -170,10 +167,33 @@ public class CrService extends AbstractPwmService implements PwmService
                                 0
                         );
 
-                        LOGGER.debug( sessionLabel, () -> "using ldap c/r policy for user " + theUser.getEntryDN() + ": "
-                                + finalReturnSet.toString() );
-                        LOGGER.trace( sessionLabel, () -> "readUserChallengeProfile completed, result=" + JsonFactory.get().serialize( challengeProfile ),
-                                () -> TimeDuration.fromCurrent( methodStartTime ) );
+                        {
+                            final Optional<ChallengeSet> challengeSet = challengeProfile.getChallengeSet();
+                            if ( challengeSet.isPresent() )
+                            {
+                                LOGGER.debug( sessionLabel, () -> "using nmas ldap c/r policy for user " + theUser.getEntryDN() + ": "
+                                        + JsonFactory.get().serialize( challengeSet.get().asChallengeSetBean() ) );
+                            }
+                            else
+                            {
+                                LOGGER.debug( sessionLabel, () -> "nmas ldap c/r policy for user is empty" );
+                            }
+                        }
+                        {
+                            final Optional<ChallengeSet> challengeSet = challengeProfile.getHelpdeskChallengeSet();
+                            if ( challengeSet.isPresent() )
+                            {
+                                LOGGER.debug( sessionLabel, () -> "using nmas ldap c/r helpdesk policy for user " + theUser.getEntryDN() + ": "
+                                        + JsonFactory.get().serialize( challengeSet.get().asChallengeSetBean() ) );
+                            }
+                            else
+                            {
+                                LOGGER.debug( sessionLabel, () -> "nmas ldap c/r helpdesk policy for user is empty" );
+                            }
+                        }
+
+                        LOGGER.trace( sessionLabel, () -> "readUserChallengeProfile completed",
+                                TimeDuration.fromCurrent( methodStartTime ) );
 
                         return challengeProfile;
                     }

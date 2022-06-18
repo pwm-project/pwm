@@ -44,7 +44,7 @@
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br/>
             <div class="setting_outline">
-                <div class="setting_title">LDAP Login Root Context</div>
+                <div class="setting_title"><pwm:display key="ldap_context_title" bundle="ConfigGuide"/></div>
                 <div class="setting_body">
                     <p><pwm:display key="ldap_context_description" bundle="ConfigGuide"/></p>
                     <br/>
@@ -88,9 +88,6 @@
 
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_VAR['originalHealthBody'] = PWM_MAIN.getObject('healthBody').innerHTML;
-            require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
-                dojoParser.parse();
-            });
             checkIfNextEnabled();
 
             PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});

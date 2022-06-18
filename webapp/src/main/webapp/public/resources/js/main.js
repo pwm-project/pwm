@@ -186,19 +186,20 @@ PWM_MAIN.initPage = function() {
         });
     }
 
-    for (var i = 0; i < PWM_GLOBAL['startupFunctions'].length; i++) {
-        try {
-            PWM_GLOBAL['startupFunctions'][i]();
-        } catch(e) {
-            console.error('error executing startup function: ' + e);
-        }
-    }
+    PWM_MAIN.JSLibrary.onPageLoad(function(){
+        PWM_MAIN.JSLibrary.forEachInArray(PWM_GLOBAL['startupFunctions'],function(startupFunction){
+            try {
+                startupFunction();
+            } catch(e) {
+                console.error('error executing startup function: ' + e);
+            }
+        })
+    });
 
     PWM_MAIN.TimestampHandler.initAllElements();
 
     ShowHidePasswordHandler.initAllForms();
-    var loadTime = window.performance.timing.domContentLoadedEventEnd-window.performance.timing.navigationStart;
-    PWM_MAIN.log('initPage completed [load time=' + loadTime + ']');
+    PWM_MAIN.log('initPage completed');
 };
 
 PWM_MAIN.initDisplayTabPreferences = function() {
@@ -717,14 +718,20 @@ PWM_MAIN.showWaitDialog = function(options) {
 
     options = options || {};
     options['title'] = options['title'] || '';
+    var progressBar = options['progressBar'];
 
     var waitOverlayDiv = document.createElement('div');
     waitOverlayDiv.setAttribute('id','wait-overlay');
     document.body.appendChild(waitOverlayDiv);
 
+    var htmlContent = '<span>' + options['title'] + '</span>';
+    htmlContent += progressBar
+        ? '<progress value="-1" id="wait-progress"/>'
+        : '<div id="wait-overlay-inner"></div>';
+
     var waitOverlayMessage = document.createElement('div');
     waitOverlayMessage.setAttribute('id','wait-overlay-message');
-    waitOverlayMessage.innerHTML = '<span>' + options['title'] + '</span><div id="wait-overlay-inner"></div>';
+    waitOverlayMessage.innerHTML = htmlContent;
     document.body.appendChild(waitOverlayMessage);
 
     if ('loadFunction' in options) {
@@ -1308,6 +1315,15 @@ PWM_MAIN.JSLibrary.removeFromArray = function(array,element) {
     }
 };
 
+PWM_MAIN.JSLibrary.getParameterByName = function(name, url = window.location.href) {
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
 PWM_MAIN.JSLibrary.readValueOfSelectElement = function(nodeID) {
     var element = PWM_MAIN.getObject(nodeID);
     if (element && element.options && element.selectedIndex >= 0) {
@@ -1383,6 +1399,16 @@ PWM_MAIN.JSLibrary.removeElementFromDom = function(elementID) {
     var element = PWM_MAIN.getObject(elementID);
     if (element) {
         element.parentNode.removeChild(element);
+    }
+};
+
+PWM_MAIN.JSLibrary.onPageLoad = function(callback) {
+    if (document.readyState === "complete") {
+        callback();
+    } else {
+        window.addEventListener("load",function(event) {
+            callback();
+        }, false);
     }
 };
 
@@ -1860,7 +1886,11 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
             if ( typeof response === "string" && handleAs === "json") {
                 response = JSON.parse( response );
             }
-            loadFunction(response);
+            if (xhr.status===200) {
+                loadFunction(response);
+            } else {
+                errorFunction(response)
+            }
         }
     };
     xhr.onerror = errorFunction;

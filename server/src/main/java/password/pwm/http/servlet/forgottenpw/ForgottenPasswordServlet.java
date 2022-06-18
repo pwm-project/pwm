@@ -63,7 +63,7 @@ import password.pwm.http.servlet.oauth.OAuthMachine;
 import password.pwm.http.servlet.oauth.OAuthSettings;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.AuthenticationUtility;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
@@ -84,6 +84,7 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -280,7 +281,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                         break;
 
                     default:
-                        JavaHelper.unhandledSwitchStatement( actionChoice );
+                        MiscUtil.unhandledSwitchStatement( actionChoice );
                 }
             }
         }
@@ -317,7 +318,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                 break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( resetType );
+                MiscUtil.unhandledSwitchStatement( resetType );
 
         }
 
@@ -1011,7 +1012,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         final String agreementMsg = forgottenPasswordProfile.readSettingAsLocalizedString( PwmSetting.RECOVERY_AGREEMENT_MESSAGE, pwmRequest.getLocale() );
         if ( StringUtil.notEmpty( agreementMsg ) && !forgottenPasswordBean.isAgreementPassed() )
         {
-            final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+            final MacroRequest macroRequest = pwmRequest.getMacroMachine();
             final String expandedText = macroRequest.expandMacros( agreementMsg );
             pwmRequest.setAttribute( PwmRequestAttribute.AgreementText, expandedText );
             pwmRequest.forwardToJsp( JspUrl.RECOVER_USER_AGREEMENT );
@@ -1246,7 +1247,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             pwmSession.getLoginInfoBean().getLoginFlags().add( LoginInfoBean.LoginFlag.forcePwChange );
 
             // redirect user to change password screen.
-            pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.PublicChangePassword.servletUrlName() );
+            pwmRequest.getPwmResponse().sendRedirect( PwmServletDefinition.PublicChangePassword );
         }
         catch ( final PwmUnrecoverableException e )
         {

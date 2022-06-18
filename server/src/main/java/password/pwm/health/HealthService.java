@@ -58,8 +58,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.zip.ZipOutputStream;
@@ -73,12 +73,11 @@ public class HealthService extends AbstractPwmService implements PwmService
             new JavaChecker(),
             new ConfigurationChecker(),
             new LocalDBHealthChecker(),
-            new ApplianceStatusChecker(),
             new CertificateChecker() );
 
 
-    private ExecutorService executorService;
-    private ExecutorService supportZipWriterService;
+    private ScheduledExecutorService executorService;
+    private ScheduledExecutorService supportZipWriterService;
     private HealthMonitorSettings settings;
 
     private final Map<HealthMonitorFlag, Serializable> healthProperties = new ConcurrentHashMap<>();
@@ -122,13 +121,17 @@ public class HealthService extends AbstractPwmService implements PwmService
             return STATUS.CLOSED;
         }
 
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
-        supportZipWriterService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundServiceExecutor( pwmApplication, getSessionLabel(), this.getClass() );
+        supportZipWriterService = PwmScheduler.makeBackgroundServiceExecutor( pwmApplication, getSessionLabel(), this.getClass() );
         scheduleNextZipOutput();
 
         if ( settings.getThreadDumpInterval().as( TimeDuration.Unit.SECONDS ) > 0 )
         {
-            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ThreadDumpLogger(), executorService, TimeDuration.SECOND, settings.getThreadDumpInterval() );
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob(
+                    new ThreadDumpLogger( getSessionLabel() ),
+                    executorService,
+                    TimeDuration.SECOND,
+                    settings.getThreadDumpInterval() );
         }
 
         return STATUS.OPEN;
@@ -164,13 +167,13 @@ public class HealthService extends AbstractPwmService implements PwmService
         if ( healthData.recordsAreOutdated() )
         {
             final Instant startTime = Instant.now();
-            LOGGER.trace( () ->  "begin force immediate check" );
-            final Future future = getPwmApplication().getPwmScheduler().scheduleJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
+            LOGGER.trace( getSessionLabel(), () -> "begin force immediate check" );
+            final Future<?> future = getPwmApplication().getPwmScheduler().scheduleJob( new ImmediateJob(), executorService, TimeDuration.ZERO );
             settings.getMaximumForceCheckWait().pause( future::isDone );
             final TimeDuration checkDuration = TimeDuration.fromCurrent( startTime );
-            averageStats.update( AverageStatKey.checkProcessTime, checkDuration );
+            averageStats.update( AverageStatKey.checkProcessTime, checkDuration.asDuration() );
             counterStats.increment( CounterStatKey.checks );
-            LOGGER.trace( () ->  "exit force immediate check, done=" + future.isDone(), () -> checkDuration );
+            LOGGER.trace( getSessionLabel(), () -> "exit force immediate check, done=" + future.isDone(), checkDuration );
         }
 
         getPwmApplication().getPwmScheduler().scheduleJob( new UpdateJob(), executorService, settings.getNominalCheckInterval() );
@@ -187,7 +190,7 @@ public class HealthService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         if ( executorService != null )
         {
@@ -222,7 +225,7 @@ public class HealthService extends AbstractPwmService implements PwmService
         }
 
         final Instant startTime = Instant.now();
-        LOGGER.trace( () -> "beginning health check execution #" + counter  );
+        LOGGER.trace( getSessionLabel(), () -> "beginning health check execution #" + counter  );
         final List<HealthRecord> tempResults = new ArrayList<>();
 
         for ( final Supplier<List<HealthRecord>> loopSupplier : gatherSuppliers( getPwmApplication(), getSessionLabel() ) )
@@ -239,16 +242,16 @@ public class HealthService extends AbstractPwmService implements PwmService
             {
                 if ( status() == STATUS.OPEN )
                 {
-                    LOGGER.warn( () -> "unexpected error during healthCheck: " + e.getMessage(), e );
+                    LOGGER.warn( getSessionLabel(), () -> "unexpected error during healthCheck: " + e.getMessage(), e );
                 }
             }
         }
 
         healthData = new HealthData( Collections.unmodifiableSet( new TreeSet<>( tempResults ) ), Instant.now() );
-        LOGGER.trace( () -> "completed health check execution #" + counter, () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( getSessionLabel(), () -> "completed health check execution #" + counter, TimeDuration.fromCurrent( startTime ) );
     }
 
-    private static List<Supplier<List<HealthRecord>>> gatherSuppliers(
+    private List<Supplier<List<HealthRecord>>> gatherSuppliers(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel
     )
@@ -270,7 +273,7 @@ public class HealthService extends AbstractPwmService implements PwmService
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.warn( () -> "unexpected error during healthCheck: " + e.getMessage(), e );
+                    LOGGER.warn( getSessionLabel(), () -> "unexpected error during healthCheck: " + e.getMessage(), e );
                 }
             }
         }
@@ -320,11 +323,11 @@ public class HealthService extends AbstractPwmService implements PwmService
             {
                 final Instant startTime = Instant.now();
                 doHealthChecks();
-                LOGGER.trace( () -> "completed health check dredge", () -> TimeDuration.fromCurrent( startTime ) );
+                LOGGER.trace( getSessionLabel(), () -> "completed health check dredge", TimeDuration.fromCurrent( startTime ) );
             }
             catch ( final Throwable e )
             {
-                LOGGER.error( () -> "error during health check execution: " + e.getMessage(), e );
+                LOGGER.error( getSessionLabel(), () -> "error during health check execution: " + e.getMessage(), e );
             }
         }
     }
@@ -394,7 +397,7 @@ public class HealthService extends AbstractPwmService implements PwmService
 
             final File supportPath = new File( appPath.getPath() + File.separator + "support" );
 
-            FileSystemUtility.mkdirs( supportPath );
+            Files.createDirectories( supportPath.toPath() );
 
             final File supportFile = new File ( supportPath.getPath() + File.separator + debugItemGenerator.getFilename() );
 
@@ -417,6 +420,13 @@ public class HealthService extends AbstractPwmService implements PwmService
     {
         private static final PwmLogger LOGGER = PwmLogger.forClass( ThreadDumpLogger.class );
         private static final AtomicLoopIntIncrementer COUNTER = new AtomicLoopIntIncrementer();
+
+        private final SessionLabel sessionLabel;
+
+        ThreadDumpLogger( final SessionLabel sessionLabel )
+        {
+            this.sessionLabel = sessionLabel;
+        }
 
         @Override
         public void run()
@@ -449,7 +459,7 @@ public class HealthService extends AbstractPwmService implements PwmService
 
         private void output( final CharSequence output )
         {
-            LOGGER.trace( () -> output );
+            LOGGER.trace( sessionLabel, () -> output );
         }
     }
 }

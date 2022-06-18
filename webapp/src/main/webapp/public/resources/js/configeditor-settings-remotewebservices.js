@@ -38,7 +38,7 @@ RemoteWebServiceHandler.httpMethodOptions = [
 
 RemoteWebServiceHandler.init = function(keyName) {
     console.log('RemoteWebServiceHandler init for ' + keyName);
-    var parentDiv = 'table_setting_' + keyName;
+    const parentDiv = 'table_setting_' + keyName;
     PWM_CFGEDIT.clearDivElements(parentDiv, true);
     PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         PWM_VAR['clientSettingCache'][keyName] = resultValue;
@@ -48,17 +48,17 @@ RemoteWebServiceHandler.init = function(keyName) {
 
 RemoteWebServiceHandler.redraw = function(keyName) {
     console.log('RemoteWebServiceHandler redraw for ' + keyName);
-    var resultValue = PWM_VAR['clientSettingCache'][keyName];
-    var parentDiv = 'table_setting_' + keyName;
+    const resultValue = PWM_VAR['clientSettingCache'][keyName];
+    const parentDiv = 'table_setting_' + keyName;
     PWM_CFGEDIT.clearDivElements(parentDiv, false);
-    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+    const parentDivElement = PWM_MAIN.getObject(parentDiv);
 
-    var html = '';
+    let html = '';
     if (!PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
         html += '<table class="noborder">';
         html += '<tr><td>Name</td><td>URL</td></tr>';
 
-        for (var loop in resultValue) {
+        for (const loop in resultValue) {
             (function (loop) {
                 html += RemoteWebServiceHandler.drawRow(keyName, loop, resultValue[loop]);
             })(loop);
@@ -67,15 +67,15 @@ RemoteWebServiceHandler.redraw = function(keyName) {
         html += '</table>';
     }
 
-    var rowCount = PWM_MAIN.JSLibrary.itemCount(resultValue);
-    var maxRowCount = PWM_SETTINGS['settings'][keyName]['properties']['Maximum'];
+    const rowCount = PWM_MAIN.JSLibrary.itemCount(resultValue);
+    const maxRowCount = PWM_SETTINGS['settings'][keyName]['properties']['Maximum'];
     if (maxRowCount > 0 && rowCount < maxRowCount) {
         html += '<br/><button class="btn" id="button-' + keyName + '-addValue"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Service</button>';
     }
 
     parentDivElement.innerHTML = html;
 
-    for (var i in resultValue) {
+    for (const i in resultValue) {
         html += RemoteWebServiceHandler.addRowHandlers(keyName, i, resultValue[i]);
     }
 
@@ -85,12 +85,12 @@ RemoteWebServiceHandler.redraw = function(keyName) {
 };
 
 RemoteWebServiceHandler.drawRow = function(settingKey, iteration) {
-    var inputID = 'value_' + settingKey + '_' + iteration + "_";
+    const inputID = 'value_' + settingKey + '_' + iteration + "_";
 
-    var newTableRow = document.createElement("tr");
+    const newTableRow = document.createElement("tr");
     newTableRow.setAttribute("style", "border-width: 0");
 
-    var htmlRow = '<tr>';
+    let htmlRow = '<tr>';
     htmlRow += '<td class="border">';
     htmlRow += '<div class="noWrapTextBox" style="width:50px" id="display-' + inputID + '-name" ></div>';
     htmlRow += '</td><td>';
@@ -104,7 +104,7 @@ RemoteWebServiceHandler.drawRow = function(settingKey, iteration) {
 };
 
 RemoteWebServiceHandler.addRowHandlers = function(settingKey, iteration, value) {
-    var inputID = 'value_' + settingKey + '_' + iteration + "_";
+    const inputID = 'value_' + settingKey + '_' + iteration + "_";
     UILibrary.addTextValueToElement('display-' + inputID + '-name',value['name']);
     UILibrary.addTextValueToElement('display-' + inputID + '-url',value['url']);
     UILibrary.addTextValueToElement('display-' + inputID + '-description',value['description']);
@@ -118,7 +118,7 @@ RemoteWebServiceHandler.addRowHandlers = function(settingKey, iteration, value) 
 };
 
 RemoteWebServiceHandler.write = function(settingKey, finishFunction) {
-    var cachedSetting = PWM_VAR['clientSettingCache'][settingKey];
+    const cachedSetting = PWM_VAR['clientSettingCache'][settingKey];
     PWM_CFGEDIT.writeSetting(settingKey, cachedSetting, finishFunction);
 };
 
@@ -142,7 +142,7 @@ RemoteWebServiceHandler.addRow = function(keyName) {
         instructions:'Please enter a descriptive name for the web service.',
         placeholder:'Name',
         completeFunction:function(value){
-            var currentSize = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][keyName]);
+            const currentSize = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][keyName]);
             PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = RemoteWebServiceHandler.defaultValue;
             PWM_VAR['clientSettingCache'][keyName][currentSize + 1].name = value;
 
@@ -159,23 +159,23 @@ RemoteWebServiceHandler.addRow = function(keyName) {
 };
 
 RemoteWebServiceHandler.showOptionsDialog = function(keyName, iteration) {
-    var inputID = 'value_' + keyName + '_' + iteration + "_";
-    var value = PWM_VAR['clientSettingCache'][keyName][iteration];
-    var titleText = 'Web Service options for ' + value['name'];
-    var bodyText = '<table class="noborder">';
+    const inputID = 'value_' + keyName + '_' + iteration + "_";
+    const value = PWM_VAR['clientSettingCache'][keyName][iteration];
+    const titleText = 'Web Service options for ' + value['name'];
+    let bodyText = '<table class="noborder">';
 
-    var hasMethodType = 'MethodType' in PWM_SETTINGS['settings'][keyName]['properties'];
-    var showBody = value['method'] !== 'get' && !(PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'], 'WebService_NoBody'));
+    const hasMethodType = 'MethodType' in PWM_SETTINGS['settings'][keyName]['properties'];
+    const showBody = value['method'] !== 'get' && !(PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'], 'WebService_NoBody'));
 
     bodyText += '<tr>';
     bodyText += '<td class="key">HTTP Method</td><td class="noborder" ><select id="select-' + inputID + '-method"'
         + (hasMethodType ? ' disabled' : '')
         + '>';
 
-    for (var optionItem in RemoteWebServiceHandler.httpMethodOptions) {
-        var label = RemoteWebServiceHandler.httpMethodOptions[optionItem]['label'];
-        var optionValue = RemoteWebServiceHandler.httpMethodOptions[optionItem]['value'];
-        var selected = optionValue === value['method'];
+    for (const optionItem in RemoteWebServiceHandler.httpMethodOptions) {
+        const label = RemoteWebServiceHandler.httpMethodOptions[optionItem]['label'];
+        const optionValue = RemoteWebServiceHandler.httpMethodOptions[optionItem]['value'];
+        const selected = optionValue === value['method'];
         bodyText += '<option value="' + optionValue + '"' + (selected ? ' selected' : '') + '>' + label + '</option>';
     }
     bodyText += '</td>';
@@ -220,7 +220,7 @@ RemoteWebServiceHandler.showOptionsDialog = function(keyName, iteration) {
             });
 
             PWM_MAIN.addEventHandler('select-' + inputID + '-method','change',function(){
-                var methodValue = PWM_MAIN.getObject('select-' + inputID + '-method').value;
+                const methodValue = PWM_MAIN.getObject('select-' + inputID + '-method').value;
                 if (methodValue === 'get') {
                     value['body'] = '';
                 }
@@ -254,9 +254,10 @@ RemoteWebServiceHandler.showOptionsDialog = function(keyName, iteration) {
             });
             if (value['certificates']) {
                 PWM_MAIN.addEventHandler('button-' + inputID + '-certDetail','click',function(){
-                    var extraData = JSON.stringify({iteration:iteration});
+                    let extraData = JSON.stringify({iteration:iteration,keyName:keyName});
+                    debugger;
                     PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.http.servlet.configeditor.function.RemoteWebServiceCertViewerFunction',
-                        ActionHandler.showCertificateViewerDialog, extraData)
+                        RemoteWebServiceHandler.showCertificateViewerDialog, extraData)
 
                 });
                 PWM_MAIN.addEventHandler('button-' + inputID + '-clearCertificates','click',function() {
@@ -270,8 +271,8 @@ RemoteWebServiceHandler.showOptionsDialog = function(keyName, iteration) {
                 });
             } else {
                 PWM_MAIN.addEventHandler('button-' + inputID + '-importCertificates','click',function() {
-                    var dataHandler = function(data) {
-                        var msgBody = '<div style="max-height: 400px; overflow-y: auto">' + data['successMessage'] + '</div>';
+                    const dataHandler = function(data) {
+                        const msgBody = '<div style="max-height: 400px; overflow-y: auto">' + data['successMessage'] + '</div>';
                         PWM_MAIN.showDialog({width:700,title: 'Results', text: msgBody, okAction: function () {
                             PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
                                 PWM_VAR['clientSettingCache'][keyName] = resultValue;
@@ -290,16 +291,16 @@ RemoteWebServiceHandler.showOptionsDialog = function(keyName, iteration) {
 
 
 RemoteWebServiceHandler.showHeadersDialog = function(keyName, iteration) {
-    var settingValue = PWM_VAR['clientSettingCache'][keyName][iteration];
-    var inputID = 'value_' + keyName + '_' + iteration + "_" + "headers_";
+    const settingValue = PWM_VAR['clientSettingCache'][keyName][iteration];
+    const inputID = 'value_' + keyName + '_' + iteration + "_" + "headers_";
 
-    var bodyText = '';
+    let bodyText = '';
     bodyText += '<table class="noborder">';
     bodyText += '<tr><td><b>Name</b></td><td><b>Value</b></td></tr>';
-    for (var iter in settingValue['headers']) {
+    for (const iter in settingValue['headers']) {
         (function(headerName) {
-            var value = settingValue['headers'][headerName];
-            var optionID = inputID + headerName;
+            const value = settingValue['headers'][headerName];
+            const optionID = inputID + headerName;
             bodyText += '<tr><td class="border">' + headerName + '</td><td class="border">' + value + '</td>';
             bodyText += '<td style="width:15px;"><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="button-' + optionID + '-deleteRow"></span></td>';
             bodyText += '</tr>';
@@ -315,9 +316,9 @@ RemoteWebServiceHandler.showHeadersDialog = function(keyName, iteration) {
             RemoteWebServiceHandler.showOptionsDialog(keyName,iteration);
         },
         loadFunction: function() {
-            for (var iter in settingValue['headers']) {
+            for (const iter in settingValue['headers']) {
                 (function(headerName) {
-                    var headerID = inputID + headerName;
+                    const headerID = inputID + headerName;
                     PWM_MAIN.addEventHandler('button-' + headerID + '-deleteRow', 'click', function () {
                         delete settingValue['headers'][headerName];
                         RemoteWebServiceHandler.write(keyName);
@@ -333,12 +334,12 @@ RemoteWebServiceHandler.showHeadersDialog = function(keyName, iteration) {
 };
 
 RemoteWebServiceHandler.addHeader = function(keyName, iteration) {
-    var body = '<table class="noborder">';
+    let body = '<table class="noborder">';
     body += '<tr><td>Name</td><td><input class="configStringInput" id="newHeaderName" style="width:300px"/></td></tr>';
     body += '<tr><td>Value</td><td><input class="configStringInput" id="newHeaderValue" style="width:300px"/></td></tr>';
     body += '</table>';
 
-    var updateFunction = function(){
+    const updateFunction = function(){
         PWM_MAIN.getObject('dialog_ok_button').disabled = true;
         PWM_VAR['newHeaderName'] = PWM_MAIN.getObject('newHeaderName').value;
         PWM_VAR['newHeaderValue'] = PWM_MAIN.getObject('newHeaderValue').value;
@@ -360,7 +361,7 @@ RemoteWebServiceHandler.addHeader = function(keyName, iteration) {
             });
             updateFunction();
         },okAction:function(){
-            var headers = PWM_VAR['clientSettingCache'][keyName][iteration]['headers'];
+            const headers = PWM_VAR['clientSettingCache'][keyName][iteration]['headers'];
             headers[PWM_VAR['newHeaderName']] = PWM_VAR['newHeaderValue'];
             RemoteWebServiceHandler.write(keyName);
             RemoteWebServiceHandler.showHeadersDialog(keyName, iteration);
@@ -368,5 +369,27 @@ RemoteWebServiceHandler.addHeader = function(keyName, iteration) {
             RemoteWebServiceHandler.showHeadersDialog(keyName, iteration);
         }
     });
+};
 
+RemoteWebServiceHandler.showCertificateViewerDialog = function(data,extraDataJson) {
+    let extraData = JSON.parse(extraDataJson)
+    let keyName = extraData['keyName'];
+    let certInfos = data['data'];
+    let bodyText = '';
+    for (let i in certInfos) {
+        bodyText += X509CertificateHandler.certificateToHtml(certInfos[i],keyName,i);
+    }
+    let cancelFunction = function(){ RemoteWebServiceHandler.showOptionsDialog(keyName, extraData['iteration'])};
+    let loadFunction = function(){
+        for (let i in certInfos) {
+            X509CertificateHandler.certHtmlActions(certInfos[i],keyName,i);
+        }
+    };
+    PWM_MAIN.showDialog({
+        title:'Certificate Detail',
+        dialogClass: 'wide',
+        text:bodyText,
+        okAction:cancelFunction,
+        loadFunction:loadFunction
+    });
 };

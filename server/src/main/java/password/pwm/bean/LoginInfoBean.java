@@ -46,7 +46,6 @@ import java.util.Set;
 @Data
 public class LoginInfoBean implements Serializable
 {
-
     public enum LoginFlag
     {
         skipOtp,

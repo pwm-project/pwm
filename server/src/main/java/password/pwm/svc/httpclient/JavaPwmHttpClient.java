@@ -34,7 +34,7 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpEntityDataType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
-import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.data.ImmutableByteArray;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
@@ -79,6 +79,7 @@ public class JavaPwmHttpClient implements PwmHttpClientProvider
     private HttpClient httpClient;
     private TrustManager[] trustManagers;
     private PwmHttpClientConfiguration pwmHttpClientConfiguration;
+    private SessionLabel sessionLabel;
 
     private final int clientID = CLIENT_COUNTER.next();
 
@@ -89,12 +90,14 @@ public class JavaPwmHttpClient implements PwmHttpClientProvider
     public void init(
             final PwmApplication pwmApplication,
             final HttpClientService httpClientService,
-            final PwmHttpClientConfiguration pwmHttpClientConfiguration
+            final PwmHttpClientConfiguration pwmHttpClientConfiguration,
+            final SessionLabel sessionLabel
     )
             throws PwmUnrecoverableException
     {
         this.pwmApplication = Objects.requireNonNull( pwmApplication );
         this.pwmHttpClientConfiguration = pwmHttpClientConfiguration;
+        this.sessionLabel = sessionLabel;
         this.httpClientService = Objects.requireNonNull( httpClientService );
         final AppConfig appConfig = pwmApplication.getConfig();
         final HttpTrustManagerHelper trustManagerHelper = new HttpTrustManagerHelper( pwmApplication.getConfig(), pwmHttpClientConfiguration );
@@ -129,9 +132,9 @@ public class JavaPwmHttpClient implements PwmHttpClientProvider
     }
 
     @Override
-    public void close() throws Exception
+    public void close()
     {
-
+        // Java HttpClient has no close()
     }
 
     @Override
@@ -141,7 +144,7 @@ public class JavaPwmHttpClient implements PwmHttpClientProvider
     }
 
     @Override
-    public PwmHttpClientResponse makeRequest( final PwmHttpClientRequest clientRequest, final SessionLabel sessionLabel )
+    public PwmHttpClientResponse makeRequest( final PwmHttpClientRequest clientRequest )
             throws PwmUnrecoverableException
     {
         try
@@ -174,7 +177,7 @@ public class JavaPwmHttpClient implements PwmHttpClientProvider
 
             final PwmHttpClientResponse pwmHttpClientResponse = builder.build();
 
-            logResponse( clientRequest, pwmHttpClientResponse, startTime, sessionLabel );
+            logResponse( clientRequest, pwmHttpClientResponse, startTime );
 
             return pwmHttpClientResponse;
 
@@ -209,15 +212,14 @@ public class JavaPwmHttpClient implements PwmHttpClientProvider
     private void logResponse(
             final PwmHttpClientRequest pwmHttpClientRequest,
             final PwmHttpClientResponse pwmHttpClientResponse,
-            final Instant startTime,
-            final SessionLabel sessionLabel
+            final Instant startTime
     )
     {
         StatisticsClient.incrementStat( pwmApplication, Statistic.HTTP_CLIENT_REQUESTS );
         httpClientService.getStats().increment( HttpClientService.StatsKey.responseBytes, pwmHttpClientResponse.size() );
         httpClientService.getStats().increment( HttpClientService.StatsKey.requestBytes, pwmHttpClientRequest.size() );
         LOGGER.trace( sessionLabel, () -> "client #" + clientID + " received response (id=" + pwmHttpClientRequest.getRequestID() + ") "
-                + pwmHttpClientResponse.toDebugString( pwmApplication, pwmHttpClientConfiguration ), () -> TimeDuration.fromCurrent( startTime ) );
+                + pwmHttpClientResponse.toDebugString( pwmApplication, pwmHttpClientConfiguration ), TimeDuration.fromCurrent( startTime ) );
     }
 
     private static Optional<HttpContentType> contentTypeForResponse( final HttpHeaders httpHeaders )

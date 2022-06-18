@@ -31,8 +31,8 @@ import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.config.stored.ConfigurationProperty;
-import password.pwm.config.stored.ConfigurationReader;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
@@ -47,6 +47,7 @@ import password.pwm.util.PropertyConfigurationImporter;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -92,7 +93,7 @@ public class ContextManager implements Serializable
     private transient ScheduledExecutorService taskMaster;
 
     private transient volatile PwmApplication pwmApplication;
-    private transient ConfigurationReader configReader;
+    private transient ConfigurationFileManager configReader;
     private ErrorInformation startupErrorInformation;
 
     private final AtomicInteger restartCount = new AtomicInteger( 0 );
@@ -245,7 +246,7 @@ public class ContextManager implements Serializable
         {
             configurationFile = locateConfigurationFile( applicationPath, PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
 
-            configReader = new ConfigurationReader( configurationFile );
+            configReader = new ConfigurationFileManager( configurationFile, SESSION_LABEL );
             appConfig = configReader.getConfiguration();
 
             mode = startupErrorInformation == null ? configReader.getConfigMode() : PwmApplicationMode.ERROR;
@@ -303,7 +304,7 @@ public class ContextManager implements Serializable
 
         taskMaster = Executors.newSingleThreadScheduledExecutor(
                 PwmScheduler.makePwmThreadFactory(
-                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-",
+                        PwmScheduler.makeThreadName( SESSION_LABEL, pwmApplication, this.getClass() ) + "-",
                         true
                 ) );
 
@@ -337,7 +338,7 @@ public class ContextManager implements Serializable
     }
 
     private void checkConfigForAutoImportLdapCerts(
-            final ConfigurationReader configReader
+            final ConfigurationFileManager configReader
     )
     {
         if ( configReader == null || configReader.getStoredConfiguration() == null )
@@ -354,7 +355,7 @@ public class ContextManager implements Serializable
         }
 
         LOGGER.info( SESSION_LABEL, () -> "configuration file contains property \"" + ConfigurationProperty.IMPORT_LDAP_CERTIFICATES.getKey()
-                + "\"=true, will import attempt ldap certificate import every " + RESTART_DELAY.asLongString() + " until successful" );
+                + "\"=true, will import attempt ldap certificate import every " + PwmTimeUtil.asLongString( RESTART_DELAY ) + " until successful" );
         taskMaster.scheduleWithFixedDelay( new AutoImportLdapCertJob(), RESTART_DELAY.asMillis(), RESTART_DELAY.asMillis(), TimeUnit.MILLISECONDS );
     }
 
@@ -417,7 +418,7 @@ public class ContextManager implements Serializable
         taskMaster.schedule( new RestartFlagWatcher(), 0, TimeUnit.MILLISECONDS );
     }
 
-    public ConfigurationReader getConfigReader( )
+    public ConfigurationFileManager getConfigReader( )
     {
         return configReader;
     }
@@ -466,7 +467,7 @@ public class ContextManager implements Serializable
                             storedConfiguration = importer.readConfiguration( fileInputStream );
                         }
 
-                        configReader.saveConfiguration( storedConfiguration, pwmApplication, SESSION_LABEL );
+                        configReader.saveConfiguration( storedConfiguration, pwmApplication );
                         LOGGER.info( SESSION_LABEL, () -> "file " + silentPropertiesFile.getAbsolutePath() + " has been successfully imported and saved as configuration file" );
                         requestPwmApplicationRestart();
                         success = true;
@@ -483,11 +484,11 @@ public class ContextManager implements Serializable
                     try
                     {
                         Files.move( source, dest );
-                        LOGGER.info( SESSION_LABEL, () -> "file " + source.toString() + " has been renamed to " + dest.toString() );
+                        LOGGER.info( SESSION_LABEL, () -> "file " + source + " has been renamed to " + dest );
                     }
                     catch ( final IOException e )
                     {
-                        LOGGER.error( SESSION_LABEL, () -> "error renaming file " + source.toString() + " to " + dest.toString() + ", error: " + e.getMessage() );
+                        LOGGER.error( SESSION_LABEL, () -> "error renaming file " + source + " to " + dest + ", error: " + e.getMessage() );
                     }
                 }
             }
@@ -532,18 +533,14 @@ public class ContextManager implements Serializable
 
                 try
                 {
-                        reInitialize();
+                    reInitialize();
                 }
                 catch ( final Exception e )
                 {
                     LOGGER.fatal( () -> "unexpected error during shutdown: " + e.getMessage(), e );
                 }
 
-
-                {
-                    final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                    LOGGER.info( SESSION_LABEL, () -> "application restart completed", () -> timeDuration );
-                }
+                LOGGER.info( SESSION_LABEL, () -> "application restart completed", TimeDuration.fromCurrent( startTime ) );
             }
             finally
             {
@@ -557,7 +554,7 @@ public class ContextManager implements Serializable
             final TimeDuration maxRequestWaitTime = TimeDuration.of(
                     Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.APPLICATION_RESTART_MAX_REQUEST_WAIT_MS ) ),
                     TimeDuration.Unit.MILLISECONDS );
-            final int startingRequestInProgress = pwmApplication.getActiveServletRequests().get();
+            final int startingRequestInProgress = pwmApplication.getTotalActiveServletRequests();
 
             if ( startingRequestInProgress == 0 )
             {
@@ -566,10 +563,10 @@ public class ContextManager implements Serializable
 
             LOGGER.trace( SESSION_LABEL, () -> "waiting up to " + maxRequestWaitTime.asCompactString()
                     + " for " + startingRequestInProgress  + " requests to complete." );
-            maxRequestWaitTime.pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> pwmApplication.getActiveServletRequests().get() == 0
+            maxRequestWaitTime.pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> pwmApplication.getTotalActiveServletRequests() == 0
             );
 
-            final int requestsInProgress = pwmApplication.getActiveServletRequests().get();
+            final int requestsInProgress = pwmApplication.getTotalActiveServletRequests();
             final TimeDuration waitTime = TimeDuration.fromCurrent( startTime  );
             LOGGER.trace( SESSION_LABEL, () -> "after " + waitTime.asCompactString() + ", " + requestsInProgress
                     + " requests in progress, proceeding with restart" );
@@ -609,7 +606,7 @@ public class ContextManager implements Serializable
 
     private static void outputError( final String outputText )
     {
-        final String msg = PwmConstants.PWM_APP_NAME + " " + JavaHelper.toIsoDate( Instant.now() ) + " " + outputText;
+        final String msg = PwmConstants.PWM_APP_NAME + " " + StringUtil.toIsoDate( Instant.now() ) + " " + outputText;
         System.out.println( msg );
         System.out.println( msg );
     }
@@ -771,7 +768,7 @@ public class ContextManager implements Serializable
                         + ConfigurationProperty.IMPORT_LDAP_CERTIFICATES.getKey() + "'"
                         + ", imported " + totalImportedCerts + " certificates" );
                 modifiedConfig.writeConfigProperty( ConfigurationProperty.IMPORT_LDAP_CERTIFICATES, "false" );
-                configReader.saveConfiguration( modifiedConfig.newStoredConfiguration(), pwmApplication, SESSION_LABEL );
+                configReader.saveConfiguration( modifiedConfig.newStoredConfiguration(), pwmApplication );
                 requestPwmApplicationRestart();
             }
             else

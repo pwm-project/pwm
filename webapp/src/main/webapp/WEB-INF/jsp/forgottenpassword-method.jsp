@@ -33,7 +33,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-    final Set<IdentityVerificationMethod> methods = new LinkedHashSet<IdentityVerificationMethod>((Set<IdentityVerificationMethod>) JspUtility.getAttribute(pageContext, PwmRequestAttribute.AvailableAuthMethods));
+    final Set<IdentityVerificationMethod> methods = new LinkedHashSet<>( ( Set<IdentityVerificationMethod> ) JspUtility.getAttribute( pageContext, PwmRequestAttribute.AvailableAuthMethods ) );
 %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>

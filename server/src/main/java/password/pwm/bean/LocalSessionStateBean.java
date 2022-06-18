@@ -21,7 +21,7 @@
 package password.pwm.bean;
 
 import lombok.Data;
-import password.pwm.ldap.UserInfoBean;
+import password.pwm.user.UserInfoBean;
 import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.TimeDuration;
 
@@ -68,7 +68,7 @@ public class LocalSessionStateBean implements Serializable
 
     private final AtomicInteger intruderAttempts = new AtomicInteger( 0 );
     private final AtomicInteger requestCount = new AtomicInteger( 0 );
-    private final MovingAverage avgRequestDuration = new MovingAverage( TimeDuration.DAY );
+    private final MovingAverage avgRequestDuration = new MovingAverage( TimeDuration.DAY.asDuration() );
     private boolean oauthInProgress;
 
     private boolean sessionIdRecycleNeeded;

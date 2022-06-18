@@ -41,7 +41,7 @@ import password.pwm.http.servlet.oauth.OAuthMachine;
 import password.pwm.http.servlet.oauth.OAuthSettings;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.PasswordChangeProgressChecker;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.i18n.LocaleHelper;
@@ -165,7 +165,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
                 LOGGER.info( pwmRequest, errorInformation );
 
                 // log out their user
-                pwmSession.unauthenticateUser( pwmRequest );
+                pwmSession.unAuthenticateUser( pwmRequest );
 
                 // send en error to user.
                 pwmRequest.respondWithError( errorInformation, true );
@@ -192,7 +192,7 @@ public class AuthenticationFilter extends AbstractPwmFilter
             return;
         }
 
-        if ( pwmSession.getSessionManager().isAuthenticatedWithoutPasswordAndBind() )
+        if ( pwmRequest.getClientConnectionHolder().isAuthenticatedWithoutPasswordAndBind() )
         {
             final Optional<PwmServletDefinition> pwmServletDefinition = pwmRequest.getURL().forServletDefinition();
             if ( pwmServletDefinition.isPresent() )

@@ -26,7 +26,7 @@ import password.pwm.Permission;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.svc.pwnotify.PwNotifyUserStatus;
 
 import java.io.Serializable;

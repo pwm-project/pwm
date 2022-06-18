@@ -37,7 +37,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.ldap.permission.UserPermissionUtility;
@@ -218,7 +218,7 @@ public class HelpdeskServletUtil
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        LOGGER.trace( pwmRequest, () -> "helpdesk detail view request for user details of " + userIdentity.toString() + " by actor " + actorUserIdentity.toString() );
+        LOGGER.trace( pwmRequest, () -> "helpdesk detail view request for user details of " + userIdentity.toString() + " by actor " + actorUserIdentity );
 
         final HelpdeskVerificationStateBean verificationStateBean = HelpdeskVerificationStateBean.fromClientString(
                 pwmRequest,
@@ -330,7 +330,7 @@ public class HelpdeskServletUtil
         final boolean useProxy = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY );
         return useProxy
                 ? pwmRequest.getPwmDomain().getProxiedChaiUser( pwmRequest.getLabel(), userIdentity )
-                : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
+                : pwmRequest.getClientConnectionHolder().getActor( userIdentity );
     }
 
     static UserInfo getTargetUserInfo(

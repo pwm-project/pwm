@@ -24,10 +24,10 @@ import password.pwm.PwmConstants;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 
+import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.util.Locale;
 
 class ConfigurationDebugTextItemGenerator implements AppItemGenerator
@@ -39,32 +39,38 @@ class ConfigurationDebugTextItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException
     {
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
         final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedAppConfig().getStoredConfiguration();
 
-        final StringWriter writer = new StringWriter();
-        writer.write( "Configuration Debug Output for "
+        final String headerString = "Configuration Debug Output for "
                 + PwmConstants.PWM_APP_NAME + " "
-                + PwmConstants.SERVLET_VERSION + "\n" );
-        writer.write( "Timestamp: " + JavaHelper.toIsoDate( storedConfiguration.modifyTime() ) + "\n" );
-        writer.write( "This file is " + PwmConstants.DEFAULT_CHARSET.displayName() + " encoded\n" );
-        writer.write( '\n' );
+                + PwmConstants.SERVLET_VERSION + "\n"
+                +  "Timestamp: " + StringUtil.toIsoDate( storedConfiguration.modifyTime() ) + "\n"
+                +  "This file is " + PwmConstants.DEFAULT_CHARSET.displayName() + " encoded\n"
+                + '\n';
+        DebugItemGenerator.writeString( outputStream, headerString );
 
         CollectionUtil.iteratorToStream( storedConfiguration.keys() )
                 .filter( k -> k.isRecordType( StoredConfigKey.RecordType.SETTING ) )
-                .forEach( storedConfigKey ->
-                {
-                    final String key = storedConfigKey.toPwmSetting().toMenuLocationDebug( storedConfigKey.getProfileID(), locale );
-                    final String value = storedConfiguration.readStoredValue( storedConfigKey ).orElseThrow().toDebugString( locale );
-                    writer.write( ">> Setting > " + key );
-                    writer.write( '\n' );
-                    writer.write( value );
-                    writer.write( '\n' );
-                    writer.write( '\n' );
-                } );
+                .map( storedConfigKey -> settingDebugOutput( locale, storedConfiguration, storedConfigKey ) )
+                .forEach( line -> DebugItemGenerator.writeString( outputStream, line ) );
 
-        outputStream.write( writer.toString().getBytes( PwmConstants.DEFAULT_CHARSET ) );
+    }
+
+    private static String settingDebugOutput(
+            final Locale locale,
+            final StoredConfiguration storedConfiguration,
+            final StoredConfigKey storedConfigKey )
+    {
+        final String key = storedConfigKey.toPwmSetting().toMenuLocationDebug( storedConfigKey.getProfileID(), locale );
+        final String value = storedConfiguration.readStoredValue( storedConfigKey ).orElseThrow().toDebugString( locale );
+        return  ">> Setting > " + key
+                + '\n'
+                + value
+                + '\n'
+                + '\n';
     }
 }

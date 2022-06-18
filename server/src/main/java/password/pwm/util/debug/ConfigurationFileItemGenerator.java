@@ -23,8 +23,10 @@ package password.pwm.util.debug;
 import password.pwm.PwmConstants;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 
 class ConfigurationFileItemGenerator implements AppItemGenerator
@@ -36,7 +38,8 @@ class ConfigurationFileItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException, PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedAppConfig().getStoredConfiguration();
 

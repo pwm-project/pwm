@@ -87,7 +87,7 @@ public class NavTreeDataMaker
         LOGGER.trace( () -> "generated " + navigationData.size()
                         + " navTreeItems for display menu with settings"
                         + JsonFactory.get().serialize( navTreeSettings ),
-                () -> TimeDuration.fromCurrent( startTime ) );
+                TimeDuration.fromCurrent( startTime ) );
         return Collections.unmodifiableList( navigationData );
     }
 
@@ -324,6 +324,11 @@ public class NavTreeDataMaker
             {
                 return false;
             }
+        }
+
+        if ( category.isHidden() )
+        {
+            return false;
         }
 
         for ( final PwmSettingCategory childCategory : category.getChildren() )

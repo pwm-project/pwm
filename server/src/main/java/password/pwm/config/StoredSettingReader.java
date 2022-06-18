@@ -20,9 +20,11 @@
 
 package password.pwm.config;
 
+import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileDefinition;
@@ -49,8 +51,10 @@ import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
 
 import java.lang.reflect.InvocationTargetException;
+import java.security.MessageDigest;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -74,12 +78,14 @@ public class StoredSettingReader implements SettingReader
     private final DomainID domainID;
 
     private final Map<ProfileDefinition, Map> profileCache;
+    private final String valueHash;
 
     public StoredSettingReader( final StoredConfiguration storedConfiguration, final String profileID, final DomainID domainID )
     {
         this.storedConfiguration = Objects.requireNonNull( storedConfiguration );
         this.profileID = profileID;
         this.domainID = Objects.requireNonNull( domainID );
+        this.valueHash = valueHash( storedConfiguration, domainID );
         this.profileCache = profileID == null
                 ? ProfileReader.makeCacheMap( storedConfiguration, domainID )
                 : Collections.emptyMap();
@@ -198,7 +204,7 @@ public class StoredSettingReader implements SettingReader
 
         if ( PwmSettingSyntax.PRIVATE_KEY != setting.getSyntax() )
         {
-            throw new IllegalArgumentException( "may not read PRIVATE_KEY value for setting: " + setting.toString() );
+            throw new IllegalArgumentException( "may not read PRIVATE_KEY value for setting: " + setting );
         }
 
         return ( PrivateKeyCertificate ) readSetting( setting ).toNativeObject();
@@ -316,7 +322,7 @@ public class StoredSettingReader implements SettingReader
 
         if ( setting.getFlags().contains( PwmSettingFlag.Deprecated ) )
         {
-            LOGGER.warn( () -> "attempt to read deprecated config setting: " + setting.toMenuLocationDebug( profileID, null ) );
+            LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "attempt to read deprecated config setting: " + setting.toMenuLocationDebug( profileID, null ) );
         }
 
         if ( StringUtil.isEmpty( profileID ) )
@@ -350,5 +356,26 @@ public class StoredSettingReader implements SettingReader
                 entry -> LocaleHelper.parseLocaleString( entry.getKey() ),
                 Map.Entry::getValue
         ) ) );
+    }
+
+    @Override
+    public String getValueHash()
+    {
+        return valueHash;
+    }
+
+    private static String valueHash( final StoredConfiguration storedConfiguration, final DomainID domainID )
+    {
+        final MessageDigest messageDigest = PwmHashAlgorithm.SHA512.newMessageDigest();
+        messageDigest.update( domainID.stringValue().getBytes( PwmConstants.DEFAULT_CHARSET ) );
+
+        CollectionUtil.iteratorToStream( storedConfiguration.keys() )
+                .filter( key -> Objects.equals( key.getDomainID(), domainID ) )
+                .map( storedConfiguration::readStoredValue )
+                .flatMap( Optional::stream )
+                .map( StoredValue::valueHash )
+                .forEach( s -> messageDigest.update( s.getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
+
+        return JavaHelper.binaryArrayToHex( messageDigest.digest() );
     }
 }

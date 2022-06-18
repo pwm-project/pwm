@@ -26,7 +26,7 @@ var PWM_GLOBAL = PWM_GLOBAL || {};
 
 PWM_GUIDE.selectTemplate = function(template) {
     PWM_MAIN.showWaitDialog({title:'Loading...',loadFunction:function() {
-            var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','selectTemplate');
+            let url = PWM_MAIN.addParamToUrl(window.location.href, 'processAction', 'selectTemplate');
             url = PWM_MAIN.addParamToUrl(url, 'template', template);
             PWM_MAIN.showDialog(url,function(result){
                 if (!result['error']) {
@@ -41,11 +41,11 @@ PWM_GUIDE.selectTemplate = function(template) {
 };
 
 PWM_GUIDE.updateForm = function() {
-    var formJson = PWM_MAIN.JSLibrary.formToValueMap('configForm');
-    var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','updateForm');
-    var loadFunction = function() {
+    const formJson = PWM_MAIN.JSLibrary.formToValueMap('configForm');
+    const url = PWM_MAIN.addParamToUrl(window.location.href, 'processAction', 'updateForm');
+    const loadFunction = function () {
         PWM_MAIN.log("sent form params to server: " + formJson);
-    }
+    };
     PWM_MAIN.ajaxRequest(url,loadFunction,{content:formJson});
 };
 
@@ -53,9 +53,9 @@ PWM_GUIDE.gotoStep = function(step) {
     PWM_MAIN.showWaitDialog({loadFunction:function(){
             //preload in case of server restart
             PWM_MAIN.preloadAll(function(){
-                var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','gotoStep');
+                let url = PWM_MAIN.addParamToUrl(window.location.href, 'processAction', 'gotoStep');
                 url = PWM_MAIN.addParamToUrl(url, 'step', step);
-                var loadFunction = function(result) {
+                const loadFunction = function (result) {
                     if (result['error']) {
                         PWM_MAIN.showErrorDialog(result);
                         return;
@@ -73,9 +73,9 @@ PWM_GUIDE.gotoStep = function(step) {
 };
 
 PWM_GUIDE.setUseConfiguredCerts = function(value) {
-    var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','useConfiguredCerts');
+    let url = PWM_MAIN.addParamToUrl(window.location.href, 'processAction', 'useConfiguredCerts');
     url = PWM_MAIN.addParamToUrl(url, 'value', value);
-    var loadFunction = function(result) {
+    const loadFunction = function (result) {
         if (result['error']) {
             PWM_MAIN.showError(result['errorDetail']);
         }
@@ -86,15 +86,17 @@ PWM_GUIDE.setUseConfiguredCerts = function(value) {
 PWM_GUIDE.extendSchema = function() {
     PWM_MAIN.showConfirmDialog({text:"Are you sure you want to extend the LDAP schema?",okAction:function(){
             PWM_MAIN.showWaitDialog({loadFunction:function() {
-                    var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','extendSchema');
-                    var loadFunction = function(result) {
+                    const url = PWM_MAIN.addParamToUrl(window.location.href, 'processAction', 'extendSchema');
+                    const loadFunction = function (result) {
                         if (result['error']) {
                             PWM_MAIN.showError(result['errorDetail']);
                         } else {
-                            var output = '<pre>' + result['data'] + '</pre>';
-                            PWM_MAIN.showDialog({title:"Results",text:output,okAction:function(){
+                            const output = '<pre>' + result['data'] + '</pre>';
+                            PWM_MAIN.showDialog({
+                                title: "Results", text: output, okAction: function () {
                                     window.location.reload();
-                                }});
+                                }
+                            });
                         }
                     };
                     PWM_MAIN.ajaxRequest(url,loadFunction);
@@ -105,24 +107,25 @@ PWM_GUIDE.extendSchema = function() {
 PWM_GUIDE.skipGuide = function() {
     PWM_MAIN.preloadAll(function(){
         PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('Confirm_SkipGuide'),okAction:function() {
-
-                var skipGuideFunction = function(password) {
-                    var contents = {};
+                const skipGuideFunction = function (password) {
+                    const contents = {};
                     contents['password'] = password;
-                    var url = PWM_MAIN.addParamToUrl(window.location.href,'processAction','skipGuide');
-                    var loadFunction = function(result) {
+                    const url = PWM_MAIN.addParamToUrl(window.location.href, 'processAction', 'skipGuide');
+                    const loadFunction = function (result) {
                         if (result['error']) {
                             PWM_MAIN.showError(result['errorDetail']);
                         } else {
-                            PWM_MAIN.showWaitDialog({loadFunction:function(){
+                            PWM_MAIN.showWaitDialog({
+                                loadFunction: function () {
                                     PWM_CONFIG.waitForRestart();
-                                }});
+                                }
+                            });
                         }
                     };
-                    PWM_MAIN.ajaxRequest(url,loadFunction,{content:contents});
+                    PWM_MAIN.ajaxRequest(url, loadFunction, {content: contents});
                 };
 
-                var text = 'Set Configuration Password';
+                const text = 'Set Configuration Password';
                 UILibrary.passwordDialogPopup({minimumLength:8, title:text, writeFunction:skipGuideFunction});
             }});
     });

@@ -22,13 +22,12 @@ package password.pwm.util.debug;
 
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
-import password.pwm.ldap.LdapConnectionService;
-import password.pwm.util.json.JsonProvider;
+import password.pwm.ldap.LdapDomainService;
 import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 
+import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.List;
 
 class LdapConnectionsDebugItemGenerator implements DomainItemGenerator
@@ -40,12 +39,12 @@ class LdapConnectionsDebugItemGenerator implements DomainItemGenerator
     }
 
     @Override
-    public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException
     {
         final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
-        final List<LdapConnectionService.ConnectionInfo> connectionInfos = pwmDomain.getLdapConnectionService().getConnectionInfos();
-        final Writer writer = new OutputStreamWriter( outputStream, PwmConstants.DEFAULT_CHARSET );
-        writer.write( JsonFactory.get().serializeCollection( connectionInfos, JsonProvider.Flag.PrettyPrint ) );
-        writer.flush();
+        final List<LdapDomainService.ConnectionInfo> connectionInfos = pwmDomain.getLdapConnectionService().getConnectionInfos();
+        final String jsonString = JsonFactory.get().serializeCollection( connectionInfos, JsonProvider.Flag.PrettyPrint );
+        outputStream.write( jsonString.getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }
 }

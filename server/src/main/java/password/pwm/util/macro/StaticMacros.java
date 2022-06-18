@@ -159,7 +159,7 @@ public abstract class StaticMacros
                         return StringUtil.base64Encode( input.getBytes( PwmConstants.DEFAULT_CHARSET ) );
 
                     default:
-                        throw new MacroParseException( "unimplemented encodeType '" + this.toString() + "' for Encode macro" );
+                        throw new MacroParseException( "unimplemented encodeType '" + this + "' for Encode macro" );
                 }
             }
 
@@ -251,7 +251,7 @@ public abstract class StaticMacros
                         return doHash( input, PwmHashAlgorithm.SHA512 );
 
                     default:
-                        throw new MacroParseException( "unimplemented hashtype '" + this.toString() + "' for Hash macro" );
+                        throw new MacroParseException( "unimplemented hashtype '" + this + "' for Hash macro" );
                 }
             }
 
@@ -351,7 +351,7 @@ public abstract class StaticMacros
                                 : input.toLowerCase();
 
                     default:
-                        throw new MacroParseException( "unimplemented casetype '" + this.toString() + "' for Case macro" );
+                        throw new MacroParseException( "unimplemented casetype '" + this + "' for Case macro" );
                 }
             }
 

@@ -166,7 +166,7 @@ public class LdapCrOperator implements CrOperator
                     responseInfoBean.getCsIdentifier()
             );
             ChaiCrFactory.writeChaiResponseSet( responseSet, theUser );
-            LOGGER.info( sessionLabel, () -> "saved responses for user to chai-ldap format", () -> TimeDuration.fromCurrent( startTime ) );
+            LOGGER.info( sessionLabel, () -> "saved responses for user to chai-ldap format", TimeDuration.fromCurrent( startTime ) );
         }
         catch ( final ChaiException e )
         {

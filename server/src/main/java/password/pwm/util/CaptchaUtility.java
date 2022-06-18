@@ -167,8 +167,8 @@ public class CaptchaUtility
                     .build();
 
             LOGGER.debug( pwmRequest, () -> "sending reCaptcha verification request" );
-            final PwmHttpClient client = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient();
-            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest, pwmRequest.getLabel()  );
+            final PwmHttpClient client = pwmRequest.getClientConnectionHolder().getPwmHttpClient( null );
+            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest );
 
             if ( clientResponse.getStatusCode() != HttpServletResponse.SC_OK )
             {
@@ -216,7 +216,7 @@ public class CaptchaUtility
         catch ( final Exception e )
         {
             final String errorMsg = "unexpected error during reCaptcha API execution: " + e.getMessage();
-            LOGGER.error( () -> errorMsg, e );
+            LOGGER.error( pwmRequest, () -> errorMsg, e );
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CAPTCHA_API_ERROR, errorMsg );
             throw new PwmUnrecoverableException( errorInfo, e );
         }

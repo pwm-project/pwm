@@ -32,7 +32,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
@@ -103,7 +103,7 @@ public class SessionStateService extends AbstractPwmService implements PwmServic
                             break;
 
                         default:
-                            JavaHelper.unhandledSwitchStatement( loginSessionMode );
+                            MiscUtil.unhandledSwitchStatement( loginSessionMode );
                     }
                 }
                 sessionLoginProvider.init( pwmApplication );
@@ -116,7 +116,7 @@ public class SessionStateService extends AbstractPwmService implements PwmServic
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
     }
 
@@ -198,7 +198,7 @@ public class SessionStateService extends AbstractPwmService implements PwmServic
         }
         catch ( final ReflectiveOperationException e )
         {
-            LOGGER.warn( () -> "unexpected reflective error reading session bean: " + e.getMessage(), e );
+            LOGGER.warn( getSessionLabel(), () -> "unexpected reflective error reading session bean: " + e.getMessage(), e );
         }
         return false;
     }

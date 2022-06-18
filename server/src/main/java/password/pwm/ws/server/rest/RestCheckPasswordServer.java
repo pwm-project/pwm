@@ -34,7 +34,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
@@ -219,7 +219,7 @@ public class RestCheckPasswordServer extends RestServlet
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
-            LOGGER.error( restRequest.getSessionLabel(), () -> errorInformation.toDebugStr(), e );
+            LOGGER.error( restRequest.getSessionLabel(), errorInformation::toDebugStr, e );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }

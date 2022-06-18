@@ -68,7 +68,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.permission.UserPermissionUtility;
@@ -79,13 +79,14 @@ import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.event.HelpdeskAuditRecord;
+import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -178,7 +179,7 @@ public class PasswordUtility
 
         message = message.replace( "%TOKEN%", newPassword.getStringValue() );
 
-        pwmDomain.getPwmApplication().sendSmsUsingQueue( toNumber, message, null, macroRequest );
+        SmsQueueService.sendSmsUsingQueue( pwmDomain.getPwmApplication(), toNumber, message, null, macroRequest );
         LOGGER.debug( () -> String.format( "password SMS added to send queue for %s", toNumber ) );
         return null;
     }
@@ -286,7 +287,7 @@ public class PasswordUtility
         try
         {
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create( pwmRequest.getLabel(), pwmDomain, userInfo.getPasswordPolicy() );
-            pwmPasswordRuleValidator.testPassword( newPassword, null, userInfo, pwmSession.getSessionManager().getActor( ) );
+            pwmPasswordRuleValidator.testPassword( pwmSession.getLabel(), newPassword, null, userInfo, pwmRequest.getClientConnectionHolder().getActor( ) );
         }
         catch ( final PwmDataValidationException e )
         {
@@ -301,7 +302,7 @@ public class PasswordUtility
         boolean setPasswordWithoutOld = false;
         if ( oldPassword == null )
         {
-            if ( pwmSession.getSessionManager().getActor( ).getChaiProvider().getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY )
+            if ( pwmRequest.getClientConnectionHolder().getActor( ).getChaiProvider().getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY )
             {
                 setPasswordWithoutOld = true;
             }
@@ -318,7 +319,7 @@ public class PasswordUtility
             }
         }
 
-        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+        final ChaiProvider provider = pwmRequest.getClientConnectionHolder().getActorChaiProvider();
 
         setPassword( pwmDomain, pwmRequest.getLabel(), provider, userInfo, setPasswordWithoutOld ? null : oldPassword, newPassword );
 
@@ -329,7 +330,7 @@ public class PasswordUtility
         pwmSession.getLoginInfoBean().setUserCurrentPassword( newPassword );
 
         //close any outstanding ldap connections (since they cache the old password)
-        pwmSession.getSessionManager().updateUserPassword( userInfo.getUserIdentity(), newPassword );
+        pwmRequest.getClientConnectionHolder().updateUserLdapPassword( userInfo.getUserIdentity(), newPassword );
 
         // clear the "requires new password flag"
         pwmSession.getLoginInfoBean().getLoginFlags().remove( LoginInfoBean.LoginFlag.forcePwChange );
@@ -341,7 +342,7 @@ public class PasswordUtility
         pwmSession.reloadUserInfoBean( pwmRequest );
 
         // create a proxy user object for pwm to update/read the user.
-        final ChaiUser proxiedUser = pwmSession.getSessionManager().getActor();
+        final ChaiUser proxiedUser = pwmRequest.getClientConnectionHolder().getActor();
 
         // update statistics
         {
@@ -414,7 +415,7 @@ public class PasswordUtility
                     PwmPasswordRuleValidator.Flag.BypassLdapRuleCheck
             );
 
-            pwmPasswordRuleValidator.testPassword( newPassword, null, userInfo, theUser );
+            pwmPasswordRuleValidator.testPassword( sessionLabel, newPassword, null, userInfo, theUser );
         }
         catch ( final ChaiUnavailableException e )
         {
@@ -458,7 +459,7 @@ public class PasswordUtility
         }
         catch ( final ChaiPasswordPolicyException e )
         {
-            final String errorMsg = "error setting password for user '" + userIdentity.toDisplayString() + "'' " + e.toString();
+            final String errorMsg = "error setting password for user '" + userIdentity.toDisplayString() + "'' " + e;
             final Optional<PwmError> pwmError = PwmError.forChaiError( e.getErrorCode() );
             final ErrorInformation error = new ErrorInformation( pwmError.orElse( PwmError.PASSWORD_UNKNOWN_VALIDATION ), errorMsg );
             throw new PwmOperationalException( error );
@@ -732,7 +733,7 @@ public class PasswordUtility
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmDomain, userIdentity )
                         .setExpandPwmMacros( true )
-                        .setMacroMachine( pwmRequest.getPwmSession().getSessionManager().getMacroMachine( ) )
+                        .setMacroMachine( pwmRequest.getMacroMachine() )
                         .createActionExecutor();
                 actionExecutor.executeActions( configValues, pwmRequest.getLabel() );
             }
@@ -827,7 +828,7 @@ public class PasswordUtility
                 return judgePasswordStrengthUsingTraditionalAlgorithm( password );
 
             default:
-                JavaHelper.unhandledSwitchStatement( strengthMeterType );
+                MiscUtil.unhandledSwitchStatement( strengthMeterType );
         }
 
         return -1;
@@ -962,7 +963,7 @@ public class PasswordUtility
                 throw new IllegalStateException( "unknown policy source defined: " + ppSource.name() );
         }
 
-        LOGGER.trace( pwmSession, () -> "readPasswordPolicyForUser completed", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( pwmSession, () -> "readPasswordPolicyForUser completed", TimeDuration.fromCurrent( startTime ) );
         return returnPolicy;
     }
 
@@ -1113,7 +1114,7 @@ public class PasswordUtility
                 {
                     final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create( sessionLabel, pwmDomain, userInfo.getPasswordPolicy(), locale );
                     final PasswordData oldPassword = loginInfoBean == null ? null : loginInfoBean.getUserCurrentPassword();
-                    pwmPasswordRuleValidator.testPassword( password, oldPassword, userInfo, user );
+                    pwmPasswordRuleValidator.testPassword( pwmRequestContext.getSessionLabel(), password, oldPassword, userInfo, user );
                     pass = true;
                     if ( cacheService != null && cacheKey != null )
                     {
@@ -1291,7 +1292,7 @@ public class PasswordUtility
             final Instant chaiReadDate = theUser.readPasswordModificationDate();
             if ( chaiReadDate != null )
             {
-                LOGGER.trace( sessionLabel, () -> "read last user password change timestamp (via chai) as: " + JavaHelper.toIsoDate( chaiReadDate ) );
+                LOGGER.trace( sessionLabel, () -> "read last user password change timestamp (via chai) as: " + StringUtil.toIsoDate( chaiReadDate ) );
                 return chaiReadDate;
             }
         }
@@ -1307,7 +1308,7 @@ public class PasswordUtility
             try
             {
                 final Instant pwmPwdLastModified = theUser.readDateAttribute( pwmLastSetAttr );
-                LOGGER.trace( sessionLabel, () -> "read pwmPasswordChangeTime as: " + ( pwmPwdLastModified == null ? "n/a" : JavaHelper.toIsoDate( pwmPwdLastModified ) ) );
+                LOGGER.trace( sessionLabel, () -> "read pwmPasswordChangeTime as: " + ( pwmPwdLastModified == null ? "n/a" : StringUtil.toIsoDate( pwmPwdLastModified ) ) );
                 return pwmPwdLastModified;
             }
             catch ( final ChaiOperationException e )
@@ -1352,11 +1353,11 @@ public class PasswordUtility
         final Instant allowedChangeDate = Instant.ofEpochMilli( lastModified.toEpochMilli() + minimumLifetime.asMillis() );
         final TimeDuration passwordAge = TimeDuration.fromCurrent( lastModified );
         final String msg = "last password change was at "
-                + JavaHelper.toIsoDate( lastModified )
+                + StringUtil.toIsoDate( lastModified )
                 + " and is too recent (" + passwordAge.asCompactString()
                 + " ago), password cannot be changed within minimum lifetime of "
                 + minimumLifetime.asCompactString()
-                + ", next eligible time to change is after " + JavaHelper.toIsoDate( allowedChangeDate );
+                + ", next eligible time to change is after " + StringUtil.toIsoDate( allowedChangeDate );
         throw PwmUnrecoverableException.newException( PwmError.PASSWORD_TOO_SOON, msg );
 
     }
@@ -1382,8 +1383,8 @@ public class PasswordUtility
                     final Instant date = OracleDSEntries.convertZuluToDate( oracleDSPrePasswordAllowChangeTime );
                     if ( Instant.now().isBefore( date ) )
                     {
-                        LOGGER.debug( () -> "discovered oracleds allowed change time is set to: " + JavaHelper.toIsoDate( date ) + ", won't permit password change" );
-                        final String errorMsg = "change not permitted until " + JavaHelper.toIsoDate( date );
+                        LOGGER.debug( () -> "discovered oracleds allowed change time is set to: " + StringUtil.toIsoDate( date ) + ", won't permit password change" );
+                        final String errorMsg = "change not permitted until " + StringUtil.toIsoDate( date );
                         final ErrorInformation errorInformation = new ErrorInformation( PwmError.PASSWORD_TOO_SOON, errorMsg );
                         throw new PwmUnrecoverableException( errorInformation );
                     }
@@ -1415,7 +1416,7 @@ public class PasswordUtility
 
         final TimeDuration passwordAge = TimeDuration.fromCurrent( lastModified );
         LOGGER.trace( sessionLabel, () -> "beginning check for minimum lifetime, lastModified="
-                + JavaHelper.toIsoDate( lastModified )
+                + StringUtil.toIsoDate( lastModified )
                 + ", minimumLifetimeSeconds=" + minimumLifetime.asCompactString()
                 + ", passwordAge=" + passwordAge.asCompactString() );
 

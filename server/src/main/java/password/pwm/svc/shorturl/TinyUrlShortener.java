@@ -21,6 +21,7 @@
 package password.pwm.svc.shorturl;
 
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.svc.httpclient.PwmHttpClient;
@@ -49,19 +50,19 @@ public class TinyUrlShortener extends BasicUrlShortener
     }
 
     @Override
-    public String shorten( final String input, final PwmApplication pwmApplication )
+    public String shorten( final String input, final PwmApplication pwmApplication, final SessionLabel sessionLabel )
             throws PwmUnrecoverableException
     {
         LOGGER.debug( () -> "Trying to shorten url: " + input );
         final String encodedUrl = StringUtil.urlEncode( input );
         final String callUrl = apiUrl + encodedUrl;
-        final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient(  );
+        final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( sessionLabel );
 
         final PwmHttpClientRequest request = PwmHttpClientRequest.builder()
                 .method( HttpMethod.GET )
                 .url( callUrl )
                 .build();
-        final PwmHttpClientResponse httpResponse = pwmHttpClient.makeRequest( request, null );
+        final PwmHttpClientResponse httpResponse = pwmHttpClient.makeRequest( request );
         final int httpResponseCode = httpResponse.getStatusCode();
         if ( httpResponseCode == 200 )
         {

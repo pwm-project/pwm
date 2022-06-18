@@ -35,17 +35,17 @@ UserPermissionHandler.init = function(keyName) {
 };
 
 UserPermissionHandler.draw = function(keyName) {
-    var resultValue = PWM_VAR['clientSettingCache'][keyName];
-    var parentDiv = 'table_setting_' + keyName;
-    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+    const resultValue = PWM_VAR['clientSettingCache'][keyName];
+    const parentDiv = 'table_setting_' + keyName;
+    const parentDivElement = PWM_MAIN.getObject(parentDiv);
 
     while (parentDivElement.firstChild) {
         parentDivElement.removeChild(parentDivElement.firstChild);
     }
 
-    var htmlBody = '';
+    let htmlBody = '';
     if (resultValue.length > 0) {
-        for (var iteration in resultValue) {
+        for (const iteration in resultValue) {
             (function (rowKey) {
                 if (htmlBody.length > 0) {
                     htmlBody += '<br/><br/><div style="clear:both; text-align:center">OR</span></div>'
@@ -60,7 +60,7 @@ UserPermissionHandler.draw = function(keyName) {
     htmlBody += '<button class="btn" id="button-' + keyName + '-addPermission">'
         + '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>' + PWM_CONFIG.showString('Button_AddPermission') + '</button>';
 
-    var hideMatch = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'], 'Permission_HideMatch')
+    const hideMatch = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'], 'Permission_HideMatch')
         || resultValue.length === 0;
     if (!hideMatch) {
         htmlBody += '<button id="button-' + keyName + '-viewMatches" class="btn">'
@@ -69,15 +69,15 @@ UserPermissionHandler.draw = function(keyName) {
 
     parentDivElement.innerHTML = htmlBody;
 
-    for (var iteration in resultValue) {
+    for (const iteration in resultValue) {
         (function(rowKey) {
             UserPermissionHandler.addRowHandlers(resultValue, keyName, rowKey);
         }(iteration));
     }
 
     PWM_MAIN.addEventHandler('button-' + keyName + '-viewMatches','click',function(){
-        var dataHandler = function(data) {
-            var html = PWM_CONFIG.convertListOfIdentitiesToHtml(data['data']);
+        const dataHandler = function(data) {
+            const html = PWM_CONFIG.convertListOfIdentitiesToHtml(data['data']);
             PWM_MAIN.showDialog({title:'Matches',text:html,dialogClass:'wide',showOk:false,showClose:true});
         };
         PWM_CFGEDIT.executeSettingFunction(keyName, 'password.pwm.http.servlet.configeditor.function.UserMatchViewerFunction', dataHandler, null)
@@ -89,11 +89,11 @@ UserPermissionHandler.draw = function(keyName) {
 };
 
 UserPermissionHandler.drawRow = function(keyName, resultValue, rowKey) {
-    var inputID = "value-" + keyName + "-" + rowKey;
-    var type = resultValue[rowKey]['type'];
+    const inputID = "value-" + keyName + "-" + rowKey;
+    const type = resultValue[rowKey]['type'];
 
-    var htmlBody = '<div class="setting_item_value_wrapper" style="float:left; width: 560px;">';
-    var profileLabelKey = (type === 'ldapAllUsers') ? 'Setting_Permission_Profile_AllUsers' : 'Setting_Permission_Profile';
+    let htmlBody = '<div class="setting_item_value_wrapper" style="float:left; width: 560px;">';
+    const profileLabelKey = (type === 'ldapAllUsers') ? 'Setting_Permission_Profile_AllUsers' : 'Setting_Permission_Profile';
 
     htmlBody += '<table class="noborder">'
         + '<tr><td style="width:200px" id="' + inputID + '_profileHeader' + '">' + PWM_CONFIG.showString(profileLabelKey) + '</td>'
@@ -119,7 +119,7 @@ UserPermissionHandler.drawRow = function(keyName, resultValue, rowKey) {
                 + '</tr>';
         }
 
-        var rowLabelKey = (type === 'ldapGroup') ? 'Setting_Permission_Base_Group' :
+        const rowLabelKey = (type === 'ldapGroup') ? 'Setting_Permission_Base_Group' :
             (type === 'ldapUser') ? 'Setting_Permission_Base_User' : 'Setting_Permission_Base'
         htmlBody += '<tr>'
             + '<td><span id="' + inputID + '_BaseHeader' + '">'
@@ -137,20 +137,20 @@ UserPermissionHandler.drawRow = function(keyName, resultValue, rowKey) {
 };
 
 UserPermissionHandler.addRowHandlers = function( resultValue, keyName, rowKey) {
-    var inputID = "value-" + keyName + "-" + rowKey;
+    const inputID = "value-" + keyName + "-" + rowKey;
 
-    var profileDataList = PWM_MAIN.getObject(inputID + "-datalist");
-    var profileIdList = PWM_SETTINGS['var']['ldapProfileIds'];
-    for (var i in profileIdList) {
-        var option = document.createElement('option');
+    const profileDataList = PWM_MAIN.getObject(inputID + "-datalist");
+    const profileIdList = PWM_SETTINGS['var']['ldapProfileIds'];
+    for (const i in profileIdList) {
+        const option = document.createElement('option');
         option.value = profileIdList[i];
         profileDataList.appendChild(option);
     }
 
-    var currentProfile = PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapProfileID'];
+    let currentProfile = PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapProfileID'];
     currentProfile = currentProfile === undefined ? '' : currentProfile;
-    var profileSelectNewValueFunction = function(newValue, writeNewValue) {
-        var allProfilesEnabled = !newValue || newValue === 'all' || newValue === '';
+    const profileSelectNewValueFunction = function(newValue, writeNewValue) {
+        const allProfilesEnabled = !newValue || newValue === 'all' || newValue === '';
         if (allProfilesEnabled) {
             PWM_MAIN.JSLibrary.setValueOfSelectElement(inputID + '-profileSelect', 'all');
             PWM_MAIN.addCssClass( inputID + '-profileWrapper', 'hidden');
@@ -180,7 +180,7 @@ UserPermissionHandler.addRowHandlers = function( resultValue, keyName, rowKey) {
 
     if (resultValue[rowKey]['type'] !== 'ldapGroup') {
         UILibrary.addTextValueToElement(inputID + '-query', PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapQuery']);
-        var queryEditor = function(){
+        const queryEditor = function(){
             UILibrary.stringEditorDialog({
                 value:PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapQuery'],
                 completeFunction:function(value) {
@@ -198,8 +198,8 @@ UserPermissionHandler.addRowHandlers = function( resultValue, keyName, rowKey) {
         });
     }
 
-    var currentBaseValue = ('ldapBase' in resultValue[rowKey]) ? resultValue[rowKey]['ldapBase'] : "";
-    var baseEditor = function(){
+    const currentBaseValue = ('ldapBase' in resultValue[rowKey]) ? resultValue[rowKey]['ldapBase'] : "";
+    const baseEditor = function(){
         UILibrary.editLdapDN(function(value, ldapProfileID) {
             PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapProfileID'] = ldapProfileID;
             PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapBase'] = value;
@@ -216,8 +216,8 @@ UserPermissionHandler.addRowHandlers = function( resultValue, keyName, rowKey) {
         baseEditor();
     });
 
-    var deleteButtonID = 'button-' + inputID + '-deleteRow';
-    var hasID = PWM_MAIN.getObject(deleteButtonID) ? "YES" : "NO";
+    const deleteButtonID = 'button-' + inputID + '-deleteRow';
+    const hasID = PWM_MAIN.getObject(deleteButtonID) ? "YES" : "NO";
     console.log("addEventHandler row: " + deleteButtonID + " rowKey=" + rowKey + " hasID="+hasID);
     PWM_MAIN.addEventHandler(deleteButtonID,'click',function(){
         console.log("delete row: " + inputID + " rowKey=" + rowKey + " hasID="+hasID);
@@ -243,7 +243,7 @@ UserPermissionHandler.addRowHandlers = function( resultValue, keyName, rowKey) {
 }
 
 UserPermissionHandler.write = function(settingKey,redraw) {
-    var nextFunction = function(){
+    const nextFunction = function(){
         if (redraw) {
             UserPermissionHandler.draw(settingKey);
         }
@@ -252,8 +252,8 @@ UserPermissionHandler.write = function(settingKey,redraw) {
 };
 
 UserPermissionHandler.addPermission = function(keyName) {
-    var bodyHtml = '<div><p>' + PWM_CONFIG.showString('MenuDisplay_Permissions') + '</p></div><table class="">'
-    var hideGroup = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'], 'Permission_HideGroups');
+    let bodyHtml = '<div><p>' + PWM_CONFIG.showString('MenuDisplay_Permissions') + '</p></div><table class="">'
+    const hideGroup = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][keyName]['flags'], 'Permission_HideGroups');
     bodyHtml += '<tr><td><button class="btn" id="button-' + keyName + '-addAllUsersValue">'
         + '<span class="btn-icon pwm-icon pwm-icon-plus-square"></span>' + PWM_CONFIG.showString('MenuItem_Permission_AllUsers')
         + '</button></td><td>' + PWM_CONFIG.showString('MenuDisplay_Permission_AllUsers') + '</td></tr>';
@@ -271,13 +271,13 @@ UserPermissionHandler.addPermission = function(keyName) {
 
     bodyHtml += '</table>';
 
-    var completeAddPermission = function(template) {
+    const completeAddPermission = function(template) {
         PWM_VAR['clientSettingCache'][keyName].push(PWM_MAIN.copyObject(template));
         PWM_MAIN.closeWaitDialog();
         UserPermissionHandler.write(keyName, true);
     }
 
-    var dialogOptions = {};
+    const dialogOptions = {};
     dialogOptions.title = PWM_CONFIG.showString('Button_AddPermission');
     dialogOptions.text = bodyHtml;
     dialogOptions.showCancel = false;

@@ -32,7 +32,7 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
@@ -216,14 +216,14 @@ public class RestSetPasswordServer extends RestServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( () -> "error during set password REST operation: " + e.getMessage() );
+            LOGGER.error( restRequest.getSessionLabel(), () -> "error during set password REST operation: " + e.getMessage() );
             return RestResultBean.fromError( restRequest, e.getErrorInformation() );
         }
         catch ( final Exception e )
         {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMessage );
-            LOGGER.error( () -> "error during set password REST operation: " + e.getMessage(), e );
+            LOGGER.error( restRequest.getSessionLabel(), () -> "error during set password REST operation: " + e.getMessage(), e );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
     }

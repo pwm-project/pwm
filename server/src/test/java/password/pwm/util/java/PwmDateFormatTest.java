@@ -31,14 +31,14 @@ public class PwmDateFormatTest
     @Test
     public void testDateFormat() throws ParseException
     {
-        final PwmDateFormat pwmDateFormat = PwmDateFormat.newPwmDateFormat( "yyyyMMddhhmmss" );
+        final PwmDateFormat pwmDateFormat = MiscUtil.newPwmDateFormat( "yyyyMMddhhmmss" );
         Assert.assertEquals( "19700101120000", pwmDateFormat.format( Instant.ofEpochMilli( 0 ) ) );
     }
 
     @Test
     public void testDateParse() throws ParseException
     {
-        final PwmDateFormat pwmDateFormat = PwmDateFormat.newPwmDateFormat( "yyyyMMddhhmmss" );
+        final PwmDateFormat pwmDateFormat = MiscUtil.newPwmDateFormat( "yyyyMMddhhmmss" );
         Assert.assertEquals( Instant.ofEpochMilli( 0 ), pwmDateFormat.parse( "19700101120000" ) );
     }
 }

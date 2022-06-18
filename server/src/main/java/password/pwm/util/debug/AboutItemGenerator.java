@@ -21,27 +21,25 @@
 package password.pwm.util.debug;
 
 import password.pwm.PwmAboutProperty;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 
 import java.io.OutputStream;
-import java.time.Instant;
 import java.util.Map;
-import java.util.Properties;
 
 class AboutItemGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
     {
-        return "about.properties";
+        return "about.json";
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
     {
-        final Properties outputProps = JavaHelper.newSortedProperties();
-        final Map<PwmAboutProperty, String> infoBean = PwmAboutProperty.makeInfoBean( debugItemInput.getPwmApplication() );
-        outputProps.putAll( PwmAboutProperty.toStringMap( infoBean ) );
-        outputProps.store( outputStream, JavaHelper.toIsoDate( Instant.now() ) );
+        final Map<PwmAboutProperty, String> infoBeanMap = PwmAboutProperty.makeInfoBean( debugItemInput.getPwmApplication() );
+        final String jsonValue = JsonFactory.get().serializeMap( infoBeanMap, JsonProvider.Flag.PrettyPrint );
+        DebugItemGenerator.writeString( outputStream, jsonValue );
     }
 }

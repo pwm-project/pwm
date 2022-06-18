@@ -37,6 +37,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
@@ -46,6 +47,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.TimeZone;
@@ -64,6 +66,7 @@ class GsonJsonAdaptors
         gsonBuilder.registerTypeAdapter( PwmLdapVendorTypeAdaptor.class, new PwmLdapVendorTypeAdaptor() );
         gsonBuilder.registerTypeAdapter( DomainID.class, new DomainIDTypeAdaptor() );
         gsonBuilder.registerTypeAdapter( LongAdder.class, new LongAdderTypeAdaptor() );
+        gsonBuilder.registerTypeAdapter( TimeDuration.class, new TimeDurationAdaptor() );
         return gsonBuilder;
     }
 
@@ -172,7 +175,7 @@ class GsonJsonAdaptors
         @Override
         public JsonElement serialize( final Instant instant, final Type type, final JsonSerializationContext jsonSerializationContext )
         {
-            return new JsonPrimitive( JavaHelper.toIsoDate( instant ) );
+            return new JsonPrimitive( StringUtil.toIsoDate( instant ) );
         }
 
         @Override
@@ -273,6 +276,22 @@ class GsonJsonAdaptors
         public JsonElement serialize( final LongAdder src, final Type typeOfSrc, final JsonSerializationContext context )
         {
             return new JsonPrimitive( src.longValue() );
+        }
+    }
+
+    private static class TimeDurationAdaptor implements JsonSerializer<TimeDuration>, JsonDeserializer<TimeDuration>
+    {
+        @Override
+        public TimeDuration deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
+        {
+            final String stringValue = json.getAsString();
+            return TimeDuration.fromDuration( Duration.parse( stringValue ) );
+        }
+
+        @Override
+        public JsonElement serialize( final TimeDuration src, final Type typeOfSrc, final JsonSerializationContext context )
+        {
+            return new JsonPrimitive( src.asDuration().toString() );
         }
     }
 }

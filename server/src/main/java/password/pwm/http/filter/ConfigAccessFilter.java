@@ -23,7 +23,7 @@ package password.pwm.http.filter;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplicationMode;
-import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
@@ -99,7 +99,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
     )
             throws IOException, PwmUnrecoverableException, ServletException
     {
-        final ConfigurationReader runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
+        final ConfigurationFileManager runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
         final StoredConfiguration storedConfig = runningConfigReader.getStoredConfiguration();
 
         checkPreconditions( pwmRequest, storedConfig );
@@ -143,7 +143,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
                 throw new PwmUnrecoverableException( PwmError.ERROR_AUTHENTICATION_REQUIRED );
             }
 
-            if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
+            if ( !pwmRequest.checkPermission( Permission.PWMADMIN ) )
             {
                 throw new PwmUnrecoverableException( PwmError.ERROR_UNAUTHORIZED );
             }

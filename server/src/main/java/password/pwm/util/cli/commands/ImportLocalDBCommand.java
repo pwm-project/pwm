@@ -26,13 +26,14 @@ import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBUtility;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 
 public class ImportLocalDBCommand extends AbstractCliCommand
 {
     @Override
     void doCommand( )
-            throws Exception
+            throws IOException
     {
         final LocalDB localDB = cliEnvironment.getLocalDB();
 

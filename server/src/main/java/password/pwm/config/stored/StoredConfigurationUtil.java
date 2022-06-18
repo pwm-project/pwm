@@ -41,7 +41,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -80,7 +80,7 @@ public abstract class StoredConfigurationUtil
     {
         if ( !pwmSetting.getCategory().hasProfiles() && pwmSetting.getSyntax() != PwmSettingSyntax.PROFILE )
         {
-            throw new IllegalArgumentException( "cannot build profile list for non-profile setting " + pwmSetting.toString() );
+            throw new IllegalArgumentException( "cannot build profile list for non-profile setting " + pwmSetting );
         }
 
         final PwmSetting profileSetting;
@@ -116,7 +116,7 @@ public abstract class StoredConfigurationUtil
         final StoredValue storedValue = StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
         final List<String> settingValues = ValueTypeConverter.valueToStringArray( storedValue );
         return settingValues.stream()
-                .filter( value -> StringUtil.notEmpty( value ) )
+                .filter( StringUtil::notEmpty )
                 .collect( Collectors.toUnmodifiableList() );
     }
 
@@ -149,6 +149,10 @@ public abstract class StoredConfigurationUtil
         {
             modifier.writeConfigProperty( ConfigurationProperty.PASSWORD_HASH, PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT );
         }
+
+        final PasswordValue passwordValue = new PasswordValue( new PasswordData( PwmRandom.getInstance().alphaNumericString( 256 ) ) );
+        final StoredConfigKey storedConfigKey = StoredConfigKey.forSetting( PwmSetting.PWM_SECURITY_KEY, null, DomainID.systemId() );
+        modifier.writeSetting( storedConfigKey, passwordValue, null );
 
         return modifier.newStoredConfiguration();
     }
@@ -188,7 +192,7 @@ public abstract class StoredConfigurationUtil
                 .collect( Collectors.toList() );
 
 
-        LOGGER.trace( () -> "StoredConfiguration validator completed", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "StoredConfiguration validator completed", TimeDuration.fromCurrent( startTime ) );
         return Collections.unmodifiableList( errorStrings );
     }
 
@@ -333,7 +337,7 @@ public abstract class StoredConfigurationUtil
                 .filter( hashTester )
                 .collect( Collectors.toUnmodifiableSet() );
 
-        LOGGER.trace( () -> "generated " + deltaReferences.size() + " changeLog items via compare", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "generated " + deltaReferences.size() + " changeLog items via compare", TimeDuration.fromCurrent( startTime ) );
 
         return deltaReferences;
     }
@@ -367,7 +371,7 @@ public abstract class StoredConfigurationUtil
                 return new StringValue( "" );
 
             default:
-                JavaHelper.unhandledSwitchStatement( key );
+                MiscUtil.unhandledSwitchStatement( key );
         }
 
         throw new IllegalStateException();
@@ -491,8 +495,8 @@ public abstract class StoredConfigurationUtil
             modifier.writeSetting( key, value, userIdentity );
         }
 
-        LOGGER.trace( () -> "copied " + modifier.modifications() + " domain settings from '" + source + "' to '" + destination + "' domain",
-                () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "copied " + modifier.modificationCount() + " domain settings from '" + source + "' to '" + destination + "' domain",
+                TimeDuration.fromCurrent( startTime ) );
 
         return modifier.newStoredConfiguration();
     }
@@ -517,7 +521,7 @@ public abstract class StoredConfigurationUtil
             throw new IllegalStateException( e );
         }
 
-        LOGGER.trace( () -> "calculated StoredConfiguration hash: " + output, () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "calculated StoredConfiguration hash: " + output, TimeDuration.fromCurrent( startTime ) );
         return output;
     }
 

@@ -143,7 +143,7 @@ class MoshiJsonServiceProvider implements JsonProvider
         }
         catch ( final IOException e )
         {
-            throw new RuntimeException( e.getMessage(), e );
+            throw new IllegalStateException( e.getMessage(), e );
         }
     }
 
@@ -154,7 +154,7 @@ class MoshiJsonServiceProvider implements JsonProvider
         return jsonAdapter.toJson( object );
     }
 
-    static Class unknownClassResolver( final Object srcObject )
+    static Class<?> unknownClassResolver( final Object srcObject )
     {
         if ( srcObject instanceof List )
         {

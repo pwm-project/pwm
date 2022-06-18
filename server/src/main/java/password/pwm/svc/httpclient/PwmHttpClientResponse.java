@@ -25,7 +25,7 @@ import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpEntityDataType;
-import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.data.ImmutableByteArray;
 
 import java.io.Serializable;
 import java.util.Map;

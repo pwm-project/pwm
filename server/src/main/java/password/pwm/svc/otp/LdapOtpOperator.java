@@ -130,7 +130,7 @@ public class LdapOtpOperator extends AbstractOtpOperator
             }
             final ChaiUser theUser = pwmRequest == null
                     ? pwmDomain.getProxiedChaiUser( null, userIdentity )
-                    : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
+                    : pwmRequest.getClientConnectionHolder().getActor( userIdentity );
             theUser.writeStringAttribute( ldapStorageAttribute, value );
             LOGGER.info( () -> "saved OTP secret for user to chai-ldap format" );
         }
@@ -148,8 +148,7 @@ public class LdapOtpOperator extends AbstractOtpOperator
                 errorMsg = "error writing OTP secret to ldap attribute '" + ldapStorageAttribute + "': " + ex.getMessage();
             }
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, errorMsg );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( ex );
+            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo, ex );
             throw pwmOE;
         }
     }
@@ -192,8 +191,7 @@ public class LdapOtpOperator extends AbstractOtpOperator
                 errorMsg = "error clearing OTP secret to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
             }
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, errorMsg );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( e );
+            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo, e );
             throw pwmOE;
         }
         catch ( final ChaiUnavailableException e )

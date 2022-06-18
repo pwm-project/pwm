@@ -43,7 +43,7 @@ import password.pwm.http.bean.DisplayElement;
 import password.pwm.http.servlet.accountinfo.AccountInformationBean;
 import password.pwm.http.tag.PasswordRequirementsTag;
 import password.pwm.i18n.Display;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.ViewableUserInfoDisplayReader;
 import password.pwm.util.i18n.LocaleHelper;

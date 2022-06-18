@@ -23,7 +23,7 @@ package password.pwm.receiver;
 import javax.servlet.annotation.WebServlet;
 
 @WebServlet(
-        name = "TelemetryViewer",
+        name = "CsvDownloadServlet",
         urlPatterns = {
                 "/csv",
         }

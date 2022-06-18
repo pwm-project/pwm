@@ -81,7 +81,7 @@ public class DbOtpOperator extends AbstractOtpOperator
                         final OTPUserRecord otpConfig = decomposeOtpAttribute( decryptAttributeValue );
                         if ( otpConfig != null )
                         {
-                            LOGGER.debug( sessionLabel, () -> "found user OTP secret in db: " + otpConfig.toString() );
+                            LOGGER.debug( sessionLabel, () -> "found user OTP secret in db: " + otpConfig );
                             return Optional.of( otpConfig );
                         }
                     }
@@ -128,8 +128,7 @@ public class DbOtpOperator extends AbstractOtpOperator
         catch ( final PwmOperationalException ex )
         {
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp to db: " + ex.getMessage() );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( ex );
+            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo, ex );
             throw pwmOE;
         }
     }
@@ -166,8 +165,7 @@ public class DbOtpOperator extends AbstractOtpOperator
                     PwmError.ERROR_WRITING_OTP_SECRET,
                     "unexpected error saving otp to db: " + ex.getMessage()
             );
-            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo );
-            pwmOE.initCause( ex );
+            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException( errorInfo, ex );
             throw pwmOE;
         }
     }

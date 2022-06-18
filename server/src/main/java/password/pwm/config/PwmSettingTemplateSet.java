@@ -24,8 +24,6 @@ import lombok.Value;
 import password.pwm.util.java.CollectionUtil;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +36,7 @@ public class PwmSettingTemplateSet implements Serializable
 
     public PwmSettingTemplateSet( final Set<PwmSettingTemplate> templates )
     {
-        final Set<PwmSettingTemplate> workingSet = CollectionUtil.copiedEnumSet( templates, PwmSettingTemplate.class );
+        final Set<PwmSettingTemplate> workingSet = CollectionUtil.copyToEnumSet( templates, PwmSettingTemplate.class );
 
         final Set<PwmSettingTemplate.Type> seenTypes = workingSet.stream()
                 .map( PwmSettingTemplate::getType )
@@ -47,7 +45,7 @@ public class PwmSettingTemplateSet implements Serializable
         workingSet.addAll( EnumSet.allOf( PwmSettingTemplate.Type.class ).stream()
                 .filter( type -> !seenTypes.contains( type ) )
                 .map( PwmSettingTemplate.Type::getDefaultValue )
-                .collect( Collectors.toSet( ) ) );
+                .collect( Collectors.toUnmodifiableSet( ) ) );
 
         this.templates = Set.copyOf( workingSet );
     }
@@ -73,15 +71,8 @@ public class PwmSettingTemplateSet implements Serializable
      */
     public static List<PwmSettingTemplateSet> allValues()
     {
-        final List<PwmSettingTemplateSet> templateSets = new ArrayList<>();
-
-        for ( final PwmSettingTemplate template : EnumSet.allOf( PwmSettingTemplate.class ) )
-        {
-            final PwmSettingTemplateSet templateSet = new PwmSettingTemplateSet( Collections.singleton( template ) );
-            templateSets.add( templateSet );
-        }
-
-        templateSets.add( getDefault() );
-        return Collections.unmodifiableList( templateSets );
+        return EnumSet.allOf( PwmSettingTemplate.class ).stream()
+                .map( pwmSettingTemplate -> new PwmSettingTemplateSet( Set.of( pwmSettingTemplate ) ) )
+                .collect( Collectors.toUnmodifiableList() );
     }
 }

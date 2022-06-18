@@ -20,13 +20,15 @@
 
 package password.pwm.util.cli.commands;
 
-import password.pwm.bean.SessionLabel;
-import password.pwm.config.stored.ConfigurationReader;
+import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.stored.StoredConfigurationUtil;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.cli.CliParameters;
 
+import java.io.IOException;
 import java.util.Collections;
 
 public class ConfigSetPasswordCommand extends AbstractCliCommand
@@ -34,14 +36,14 @@ public class ConfigSetPasswordCommand extends AbstractCliCommand
 
     @Override
     public void doCommand( )
-            throws Exception
+            throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
-        final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
-        final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
+        final ConfigurationFileManager configurationFileManager = cliEnvironment.getConfigurationFileManager();
+        final StoredConfiguration storedConfiguration = configurationFileManager.getStoredConfiguration();
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
         final String password = getOptionalPassword();
         StoredConfigurationUtil.setPassword( modifier, password );
-        configurationReader.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication(), SessionLabel.CLI_SESSION_LABEL );
+        configurationFileManager.saveConfiguration( modifier.newStoredConfiguration(), cliEnvironment.getPwmApplication() );
         out( "success: new password has been set" );
     }
 

@@ -27,7 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
-import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.data.ImmutableByteArray;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;

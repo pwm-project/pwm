@@ -57,6 +57,7 @@ import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.localdb.WorkQueueProcessor;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmRandom;
 
 import java.time.Instant;
@@ -74,6 +75,37 @@ import java.util.regex.Pattern;
 public class SmsQueueService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SmsQueueService.class );
+
+    public static void sendSmsUsingQueue(
+            final PwmApplication pwmApplication,
+            final String to,
+            final String message,
+            final SessionLabel sessionLabel,
+            final MacroRequest macroRequest
+    )
+    {
+        final SmsQueueService smsQueue = pwmApplication.getSmsQueue();
+        if ( smsQueue == null )
+        {
+            LOGGER.error( sessionLabel, () -> "SMS queue is unavailable, unable to send SMS to: " + to );
+            return;
+        }
+
+        final SmsItemBean smsItemBean = new SmsItemBean(
+                macroRequest.expandMacros( to ),
+                macroRequest.expandMacros( message ),
+                sessionLabel
+        );
+
+        try
+        {
+            smsQueue.addSmsToQueue( smsItemBean, sessionLabel );
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            LOGGER.warn( sessionLabel, () -> "unable to add sms to queue: " + e.getMessage() );
+        }
+    }
 
     public enum SmsNumberFormat
     {
@@ -117,7 +149,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
     {
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
-            LOGGER.warn( () -> "localdb is not open,  will remain closed" );
+            LOGGER.warn( getSessionLabel(), () -> "localdb is not open,  will remain closed" );
             return STATUS.CLOSED;
         }
 
@@ -132,7 +164,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
 
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SMS_QUEUE );
 
-        workQueueProcessor = new WorkQueueProcessor<>( pwmApplication, localDBStoredQueue, settings, new SmsItemProcessor(), this.getClass() );
+        workQueueProcessor = new WorkQueueProcessor<>( pwmApplication, getSessionLabel(), localDBStoredQueue, settings, new SmsItemProcessor(), this.getClass() );
 
         smsSendEngine = new SmsSendEngine( pwmApplication, pwmApplication.getConfig() );
 
@@ -182,10 +214,10 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
         }
     }
 
-    public void addSmsToQueue( final SmsItemBean smsItem )
+    public void addSmsToQueue( final SmsItemBean smsItem, final SessionLabel sessionLabel )
             throws PwmUnrecoverableException
     {
-        final SmsItemBean shortenedBean = shortenMessageIfNeeded( smsItem );
+        final SmsItemBean shortenedBean = shortenMessageIfNeeded( smsItem, sessionLabel );
         if ( !determineIfItemCanBeDelivered( shortenedBean ) )
         {
             return;
@@ -197,12 +229,13 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error writing to LocalDB queue, discarding sms send request: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "error writing to LocalDB queue, discarding sms send request: " + e.getMessage() );
         }
     }
 
-    SmsItemBean shortenMessageIfNeeded(
-            final SmsItemBean smsItem
+    private SmsItemBean shortenMessageIfNeeded(
+            final SmsItemBean smsItem,
+            final SessionLabel sessionLabel
     )
             throws PwmUnrecoverableException
     {
@@ -210,48 +243,28 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
         if ( shorten )
         {
             final String message = smsItem.getMessage();
-            final String shortenedMessage = getPwmApplication().getUrlShortener().shortenUrlInText( message );
+            final String shortenedMessage = getPwmApplication().getUrlShortener().shortenUrlInText( message, sessionLabel );
             return new SmsItemBean( smsItem.getTo(), shortenedMessage, smsItem.getSessionLabel() );
         }
         return smsItem;
     }
 
-    public static boolean smsIsConfigured( final AppConfig config )
+    private boolean determineIfItemCanBeDelivered( final SmsItemBean smsItem )
     {
-        final String gatewayUrl = config.readSettingAsString( PwmSetting.SMS_GATEWAY_URL );
-        final String gatewayUser = config.readSettingAsString( PwmSetting.SMS_GATEWAY_USER );
-        final PasswordData gatewayPass = config.readSettingAsPassword( PwmSetting.SMS_GATEWAY_PASSWORD );
-        if ( gatewayUrl == null || gatewayUrl.length() < 1 )
-        {
-            LOGGER.debug( () -> "SMS gateway url is not configured" );
-            return false;
-        }
-
-        if ( gatewayUser != null && gatewayUser.length() > 0 && ( gatewayPass == null ) )
-        {
-            LOGGER.debug( () -> "SMS gateway user configured, but no password provided" );
-            return false;
-        }
-
-        return true;
-    }
-
-    boolean determineIfItemCanBeDelivered( final SmsItemBean smsItem )
-    {
-        if ( !smsIsConfigured( getPwmApplication().getConfig() ) )
+        if ( !getPwmApplication().getConfig().isSmsConfigured() )
         {
             return false;
         }
 
         if ( smsItem.getTo() == null || smsItem.getTo().length() < 1 )
         {
-            LOGGER.debug( () -> "discarding sms send event (no to address) " + smsItem.toString() );
+            LOGGER.debug( () -> "discarding sms send event (no to address) " + smsItem );
             return false;
         }
 
         if ( smsItem.getMessage() == null || smsItem.getMessage().length() < 1 )
         {
-            LOGGER.debug( () -> "discarding sms send event (no message) " + smsItem.toString() );
+            LOGGER.debug( () -> "discarding sms send event (no message) " + smsItem );
             return false;
         }
 
@@ -259,7 +272,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         if ( workQueueProcessor != null )
         {
@@ -316,7 +329,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
     }
 
 
-    protected static String smsDataEncode( final String data, final SmsDataEncoding encoding )
+    private static String smsDataEncode( final String data, final SmsDataEncoding encoding )
     {
         final String normalizedString = data == null ? "" : data;
 
@@ -400,7 +413,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
         ) );
     }
 
-    static String formatSmsNumber( final AppConfig config, final String smsNumber )
+    private static String formatSmsNumber( final AppConfig config, final String smsNumber )
     {
         final SmsNumberFormat format = config.readSettingAsEnum( PwmSetting.SMS_PHONE_NUMBER_FORMAT, SmsNumberFormat.class );
 
@@ -470,11 +483,16 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
     private static class SmsSendEngine
     {
         private static final PwmLogger LOGGER = PwmLogger.forClass( SmsSendEngine.class );
+
         private final PwmApplication pwmApplication;
         private final AppConfig config;
+
         private String lastResponseBody;
 
-        private SmsSendEngine( final PwmApplication pwmApplication, final AppConfig domainConfig )
+        private SmsSendEngine(
+                final PwmApplication pwmApplication,
+                final AppConfig domainConfig
+        )
         {
             this.pwmApplication = pwmApplication;
             this.config = domainConfig;
@@ -485,39 +503,23 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
         {
             lastResponseBody = null;
 
-            final String requestData = makeRequestData( to, message );
+            final String requestData = makeRequestData( to, message, sessionLabel );
 
-            LOGGER.trace( () -> "preparing to send SMS data: " + requestData );
+            LOGGER.trace( sessionLabel, () -> "preparing to send SMS data: " + requestData );
 
-            final PwmHttpClientRequest pwmHttpClientRequest = makeRequest( requestData );
-
-            final PwmHttpClient pwmHttpClient;
-            {
-                if ( CollectionUtil.isEmpty( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) ) )
-                {
-                    pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( );
-                }
-                else
-                {
-                    final PwmHttpClientConfiguration clientConfiguration = PwmHttpClientConfiguration.builder()
-                            .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
-                            .certificates( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) )
-                            .build();
-
-                    pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( clientConfiguration );
-                }
-            }
+            final PwmHttpClientRequest pwmHttpClientRequest = makeRequest( requestData, sessionLabel );
 
             try
             {
-                final PwmHttpClientResponse pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, sessionLabel );
+                final PwmHttpClient pwmHttpClient = makePwmHttpClient( sessionLabel );
+                final PwmHttpClientResponse pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest );
                 final int resultCode = pwmHttpClientResponse.getStatusCode();
 
                 final String responseBody = pwmHttpClientResponse.getBody();
                 lastResponseBody = responseBody;
 
                 determineIfResultSuccessful( config, resultCode, responseBody );
-                LOGGER.debug( () -> "SMS send successful, HTTP status: " + resultCode );
+                LOGGER.debug( sessionLabel, () -> "SMS send successful, HTTP status: " + resultCode );
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -528,9 +530,28 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
             }
         }
 
+        private PwmHttpClient makePwmHttpClient( final SessionLabel sessionLabel )
+                throws PwmUnrecoverableException
+        {
+            if ( CollectionUtil.isEmpty( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) ) )
+            {
+                return pwmApplication.getHttpClientService().getPwmHttpClient( sessionLabel );
+            }
+            else
+            {
+                final PwmHttpClientConfiguration clientConfiguration = PwmHttpClientConfiguration.builder()
+                        .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
+                        .certificates( config.readSettingAsCertificate( PwmSetting.SMS_GATEWAY_CERTIFICATES ) )
+                        .build();
+
+                return pwmApplication.getHttpClientService().getPwmHttpClient( clientConfiguration, sessionLabel );
+            }
+        }
+
         private String makeRequestData(
                 final String to,
-                final String message
+                final String message,
+                final SessionLabel sessionLabel
         )
         {
 
@@ -538,7 +559,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
 
             String requestData = config.readSettingAsString( PwmSetting.SMS_REQUEST_DATA );
 
-            requestData = applyUserPassTokens( requestData );
+            requestData = applyUserPassTokens( requestData, sessionLabel );
 
             // Replace strings in requestData
             {
@@ -560,7 +581,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
             return requestData;
         }
 
-        private String applyUserPassTokens( final String input )
+        private String applyUserPassTokens( final String input, final SessionLabel sessionLabel )
         {
             final SmsDataEncoding encoding = config.readSettingAsEnum( PwmSetting.SMS_REQUEST_CONTENT_ENCODING, SmsDataEncoding.class );
 
@@ -578,14 +599,15 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( () -> "unable to read sms password while reading configuration: " + e.getMessage() );
+                LOGGER.error( sessionLabel, () -> "unable to read sms password while reading configuration: " + e.getMessage() );
             }
 
             return modifiableText;
         }
 
         private PwmHttpClientRequest makeRequest(
-                final String requestData
+                final String requestData,
+                final SessionLabel sessionLabel
         )
                 throws PwmUnrecoverableException
         {
@@ -625,12 +647,12 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
                         {
                             final String headerName = matcher.group( 1 );
                             final String headerValue = matcher.group( 2 );
-                            final String tokenizedValue = applyUserPassTokens( headerValue );
+                            final String tokenizedValue = applyUserPassTokens( headerValue, sessionLabel );
                             headers.put( headerName, tokenizedValue );
                         }
                         else
                         {
-                            LOGGER.warn( () -> "Cannot parse HTTP header: " + header );
+                            LOGGER.warn( sessionLabel, () -> "Cannot parse HTTP header: " + header );
                         }
                     }
                 }

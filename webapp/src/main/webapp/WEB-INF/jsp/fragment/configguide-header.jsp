@@ -48,4 +48,6 @@
 <pwm:script-ref url="/public/resources/js/configeditor.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 <pwm:script-ref url="/public/resources/js/uilibrary.js"/>
-<progress style="opacity: 0.5; width:96%; height:7px; padding: 0; margin: 0 1%;" value="<%=pctComplete%>" max="100"></progress>
+<div class="headerProgressBar">
+    <progress value="<%=pctComplete%>" max="100">100%</progress>
+</div>

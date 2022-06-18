@@ -37,7 +37,7 @@ interface IntruderRecordStore
 
     void write( String key, IntruderRecord record ) throws PwmOperationalException, PwmUnrecoverableException;
 
-    ClosableIterator<IntruderRecord> iterator( ) throws PwmOperationalException, PwmUnrecoverableException;
+    ClosableIterator<IntruderRecord> iterator( ) throws PwmUnrecoverableException;
 
     void cleanup( TimeDuration maxRecordAge ) throws LocalDBException;
 

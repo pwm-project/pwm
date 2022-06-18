@@ -36,7 +36,7 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.bean.ForgottenPasswordStage;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.CollectionUtil;
@@ -234,7 +234,7 @@ class ForgottenPasswordStageProcessor
 
                     // for rest method, fail if any required methods are not supported
                     {
-                        final Set<IdentityVerificationMethod> tempSet = CollectionUtil.copiedEnumSet( remainingAvailableOptionalMethods, IdentityVerificationMethod.class );
+                        final Set<IdentityVerificationMethod> tempSet = CollectionUtil.copyToEnumSet( remainingAvailableOptionalMethods, IdentityVerificationMethod.class );
                         tempSet.removeAll( ForgottenPasswordStateMachine.supportedVerificationMethods() );
                         if ( !tempSet.isEmpty() )
                         {

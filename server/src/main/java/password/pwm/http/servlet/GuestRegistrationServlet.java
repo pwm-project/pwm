@@ -48,7 +48,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.GuestRegistrationBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
@@ -57,6 +57,7 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.FormMap;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -146,7 +147,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
             );
         }
 
-        if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmDomain, Permission.GUEST_REGISTRATION ) )
+        if ( !pwmRequest.checkPermission( Permission.GUEST_REGISTRATION ) )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_UNAUTHORIZED ) );
         }
@@ -220,7 +221,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
             FormUtility.validateFormValues( config, formValues, ssBean.getLocale() );
 
             //read current values from user.
-            final ChaiUser theGuest = pwmSession.getSessionManager().getActor( guestRegistrationBean.getUpdateUserIdentity() );
+            final ChaiUser theGuest = pwmRequest.getClientConnectionHolder().getActor( guestRegistrationBean.getUpdateUserIdentity() );
 
             // check unique fields against ldap
             FormUtility.validateFormValueUniqueness(
@@ -234,7 +235,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
             final Instant expirationDate = readExpirationFromRequest( pwmRequest );
 
             // Update user attributes
-            LdapOperationsHelper.writeFormValuesToLdap( theGuest, formValues, pwmSession.getSessionManager().getMacroMachine( ), false );
+            LdapOperationsHelper.writeFormValuesToLdap( pwmRequest.getLabel(), theGuest, formValues, pwmRequest.getMacroMachine( ), false );
 
             // Write expirationDate
             if ( expirationDate != null )
@@ -301,7 +302,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
         LOGGER.trace( pwmRequest, () -> "Enter: handleSearchRequest(...)" );
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider();
+        final ChaiProvider chaiProvider = pwmRequest.getClientConnectionHolder().getActorChaiProvider();
         final DomainConfig config = pwmDomain.getConfig();
 
         final String adminDnAttribute = config.readSettingAsString( PwmSetting.GUEST_ADMIN_ATTRIBUTE );
@@ -339,7 +340,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
                         pwmRequest.getLabel(),
                         pwmRequest.getLocale(),
                         theGuest,
-                        pwmSession.getSessionManager().getChaiProvider()
+                        pwmRequest.getClientConnectionHolder().getActorChaiProvider()
                 );
                 final Map<String, String> userAttrValues = guestUserInfo.readStringAttributes( involvedAttrs );
                 if ( origAdminOnly && adminDnAttribute != null && adminDnAttribute.length() > 0 )
@@ -427,7 +428,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
             final String guestUserDN = determineUserDN( formValues, config );
 
             // read a chai provider to make the user
-            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+            final ChaiProvider provider = pwmRequest.getClientConnectionHolder().getActorChaiProvider();
 
             // set up the user creation attributes
             final Map<String, String> createAttributes = new HashMap<>();
@@ -561,11 +562,11 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
 
         if ( expirationDate.isAfter( futureDate ) )
         {
-            final String errorMsg = "expiration date must be sooner than " + futureDate.toString();
+            final String errorMsg = "expiration date must be sooner than " + futureDate;
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_FIELD_REQUIRED, errorMsg ) );
         }
 
-        LOGGER.trace( pwmRequest, () -> "read expiration date as " + expirationDate.toString() );
+        LOGGER.trace( pwmRequest, () -> "read expiration date as " + expirationDate );
         return expirationDate;
     }
 
@@ -675,7 +676,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
 
     private void calculateFutureDateFlags( final PwmRequest pwmRequest, final GuestRegistrationBean guestRegistrationBean )
     {
-        final PwmDateFormat dateFormat = PwmDateFormat.newPwmDateFormat( "yyyy-MM-dd" );
+        final PwmDateFormat dateFormat = MiscUtil.newPwmDateFormat( "yyyy-MM-dd" );
 
         final long maxValidDays = pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.GUEST_MAX_VALID_DAYS );
         pwmRequest.setAttribute( PwmRequestAttribute.GuestMaximumValidDays, String.valueOf( maxValidDays ) );

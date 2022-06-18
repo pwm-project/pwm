@@ -216,14 +216,14 @@ public class ActionExecutor
                             .certificates( webAction.getCertificates() )
                             .build();
 
-                    client = pwmDomain.getHttpClientService().getPwmHttpClient( clientConfiguration );
+                    client = pwmDomain.getHttpClientService().getPwmHttpClient( clientConfiguration, sessionLabel );
                 }
                 else
                 {
-                    client = pwmDomain.getHttpClientService().getPwmHttpClient( );
+                    client = pwmDomain.getHttpClientService().getPwmHttpClient( sessionLabel );
                 }
             }
-            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest, sessionLabel );
+            final PwmHttpClientResponse clientResponse = client.makeRequest( clientRequest );
 
             final List<Integer> successStatus = webAction.getSuccessStatus() == null
                     ? Collections.emptyList()
@@ -274,7 +274,7 @@ public class ActionExecutor
                 : attrValue;
 
 
-        LOGGER.trace( sessionLabel, () -> "beginning ldap " + effectiveLdapMethod.toString() + " operation on " + theUser.getEntryDN() + ", attribute " + attrName );
+        LOGGER.trace( sessionLabel, () -> "beginning ldap " + effectiveLdapMethod + " operation on " + theUser.getEntryDN() + ", attribute " + attrName );
         switch ( effectiveLdapMethod )
         {
             case replace:
@@ -288,8 +288,7 @@ public class ActionExecutor
                 {
                     final String errorMsg = "error setting '" + attrName + "' attribute on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-                    final PwmOperationalException newException = new PwmOperationalException( errorInformation );
-                    newException.initCause( e );
+                    final PwmOperationalException newException = new PwmOperationalException( errorInformation, e );
                     throw newException;
                 }
             }
@@ -306,8 +305,7 @@ public class ActionExecutor
                 {
                     final String errorMsg = "error adding '" + attrName + "' attribute value from user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-                    final PwmOperationalException newException = new PwmOperationalException( errorInformation );
-                    newException.initCause( e );
+                    final PwmOperationalException newException = new PwmOperationalException( errorInformation, e );
                     throw newException;
                 }
 
@@ -325,8 +323,7 @@ public class ActionExecutor
                 {
                     final String errorMsg = "error deleting '" + attrName + "' attribute value on user " + theUser.getEntryDN() + ", error: " + e.getMessage();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-                    final PwmOperationalException newException = new PwmOperationalException( errorInformation );
-                    newException.initCause( e );
+                    final PwmOperationalException newException = new PwmOperationalException( errorInformation, e );
                     throw newException;
                 }
             }

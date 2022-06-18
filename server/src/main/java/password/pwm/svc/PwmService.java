@@ -53,7 +53,7 @@ public interface PwmService
 
     void init( PwmApplication pwmApplication, DomainID domainID ) throws PwmException;
 
-    void close( );
+    void shutdown( );
 
     List<HealthRecord> healthCheck( );
 

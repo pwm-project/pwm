@@ -35,7 +35,6 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
-import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -51,7 +50,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -67,19 +65,17 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
     private static final String DATA_FORMAT_VERSION = "2";
 
     // 1 hour
-    private static final int MIN_CLEANER_FREQUENCY = 1000 * 60 * 60;
+    private static final TimeDuration MIN_CLEANER_FREQUENCY = TimeDuration.HOUR;
 
     // 1 day
-    private static final int MAX_CLEANER_FREQUENCY = 1000 * 60 * 60 * 24;
+    private static final TimeDuration MAX_CLEANER_FREQUENCY = TimeDuration.DAY;
 
     private static final LocalDB.DB META_DB = LocalDB.DB.SHAREDHISTORY_META;
     private static final LocalDB.DB WORDS_DB = LocalDB.DB.SHAREDHISTORY_WORDS;
 
-    private ExecutorService executorService;
-
     private LocalDB localDB;
     private String salt;
-    private long oldestEntry;
+    private Instant oldestEntry;
 
     private Settings settings = Settings.builder().build();
     private final Lock addWordLock = new ReentrantLock();
@@ -89,13 +85,9 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
-        if ( executorService != null )
-        {
-            executorService.shutdown();
-        }
         localDB = null;
     }
 
@@ -142,11 +134,7 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
 
     public Instant getOldestEntryTime( )
     {
-        if ( size() > 0 )
-        {
-            return Instant.ofEpochMilli( oldestEntry );
-        }
-        return null;
+       return oldestEntry;
     }
 
     public long size( )
@@ -191,7 +179,7 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
         }
     }
 
-    private void init( final PwmApplication pwmApplication, final TimeDuration maxAge )
+    private void initImpl( final PwmApplication pwmApplication, final TimeDuration maxAge )
     {
         final Instant startTime = Instant.now();
 
@@ -201,7 +189,7 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error checking db version", e );
+            LOGGER.error( getSessionLabel(), () -> "error checking db version", e );
             setStatus( STATUS.CLOSED );
             return;
         }
@@ -212,18 +200,18 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
             final Optional<String> oldestEntryStr = localDB.get( META_DB, KEY_OLDEST_ENTRY );
             if ( oldestEntryStr.isPresent() )
             {
-                oldestEntry = Long.parseLong( oldestEntryStr.get() );
+                oldestEntry = Instant.ofEpochMilli( Long.parseLong( oldestEntryStr.get() ) );
                 LOGGER.trace( getSessionLabel(), () -> "oldest timestamp loaded from localDB, age is " + TimeDuration.fromCurrent( oldestEntry ).asCompactString() );
             }
             else
             {
-                oldestEntry = 0;
+                oldestEntry = Instant.now();
                 LOGGER.trace( getSessionLabel(), () -> "no oldestEntry timestamp stored, will rescan" );
                 }
         }
         catch ( final LocalDBException e )
         {
-            LOGGER.error( () -> "unexpected error loading oldest-entry meta record, will remain closed: " + e.getMessage(), e );
+            LOGGER.error( getSessionLabel(), () -> "unexpected error loading oldest-entry meta record, will remain closed: " + e.getMessage(), e );
             setStatus( STATUS.CLOSED );
             return;
         }
@@ -234,7 +222,7 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
             LOGGER.debug( getSessionLabel(), () -> "open with " + size + " words"
                     + ", maxAgeMs=" + maxAge.asCompactString()
                     + ", oldestEntry=" + TimeDuration.fromCurrent( oldestEntry ).asCompactString(),
-                    () -> TimeDuration.fromCurrent( startTime ) );
+                    TimeDuration.fromCurrent( startTime ) );
         }
         catch ( final LocalDBException e )
         {
@@ -248,12 +236,11 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
 
         if ( pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING || pwmApplication.getApplicationMode() == PwmApplicationMode.CONFIGURATION )
         {
-            final long frequencyMs = JavaHelper.rangeCheck( MIN_CLEANER_FREQUENCY, MAX_CLEANER_FREQUENCY, maxAge.asMillis() );
+            final long frequencyMs = JavaHelper.rangeCheck( MIN_CLEANER_FREQUENCY.asMillis(), MAX_CLEANER_FREQUENCY.asMillis(), maxAge.asMillis() );
             final TimeDuration frequency = TimeDuration.of( frequencyMs, TimeDuration.Unit.MILLISECONDS );
 
             LOGGER.debug( () -> "scheduling cleaner task to run once every " + frequency.asCompactString() );
-            executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
-            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), executorService, null, frequency );
+            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), getExecutorService(), TimeDuration.ZERO, frequency );
         }
     }
 
@@ -359,12 +346,12 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
                 return;
             }
 
-            final long oldestEntryAge = System.currentTimeMillis() - oldestEntry;
+            final TimeDuration oldestEntryAge = TimeDuration.fromCurrent( oldestEntry );
             if ( settings.getMaxAge().isLongerThan( oldestEntryAge ) )
 
                 {
                 LOGGER.debug( getSessionLabel(), () -> "skipping wordDB reduce operation, eldestEntry="
-                        + TimeDuration.asCompactString( oldestEntryAge )
+                        + oldestEntryAge.asCompactString()
                         + ", maxAge="
                         + settings.getMaxAge().asCompactString() );
                 return;
@@ -373,7 +360,7 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
             final Instant startTime = Instant.now();
             final long initialSize = size();
             int removeCount = 0;
-            long localOldestEntry = System.currentTimeMillis();
+            Instant localOldestEntry = Instant.now();
 
             LOGGER.debug( getSessionLabel(), () -> "beginning wordDB reduce operation, examining " + initialSize
                     + " words for entries older than " + settings.getMaxAge().asCompactString() );
@@ -386,10 +373,9 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
                     final Map.Entry<String, String> entry = keyIterator.next();
                     final String key = entry.getKey();
                     final String value = entry.getValue();
-                    final long timeStamp = Long.parseLong( value );
-                    final long entryAge = System.currentTimeMillis() - timeStamp;
+                    final Instant entryTimestamp = Instant.ofEpochMilli( Long.parseLong( value ) );
 
-                    if ( settings.getMaxAge().isLongerThan( entryAge ) )
+                    if ( settings.getMaxAge().isLongerThan( TimeDuration.fromCurrent( entryTimestamp ) ) )
                     {
                         localDB.remove( WORDS_DB, key );
                         removeCount++;
@@ -402,7 +388,7 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
                     }
                     else
                     {
-                        localOldestEntry = timeStamp < localOldestEntry ? timeStamp : localOldestEntry;
+                        localOldestEntry = localOldestEntry.isBefore( entryTimestamp ) ? entryTimestamp : localOldestEntry;
                     }
                 }
             }
@@ -411,15 +397,15 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
             if ( status() == STATUS.OPEN )
             {
                 oldestEntry = localOldestEntry;
-                localDB.put( META_DB, KEY_OLDEST_ENTRY, Long.toString( oldestEntry ) );
+                localDB.put( META_DB, KEY_OLDEST_ENTRY, Long.toString( oldestEntry.getEpochSecond() ) );
             }
 
             {
                 final int finalRemove = removeCount;
                 LOGGER.debug( getSessionLabel(), () -> "completed wordDB reduce operation" + ", removed=" + finalRemove
                         + ", totalRemaining=" + size()
-                        + ", oldestEntry=" + TimeDuration.asCompactString( oldestEntry )
-                        + " in ", () -> TimeDuration.fromCurrent( startTime ) );
+                        + ", oldestEntry=" + oldestEntry
+                        + " in ", TimeDuration.fromCurrent( startTime ) );
             }
         }
     }
@@ -480,8 +466,10 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
         pwmApplication.getPwmScheduler().immediateExecuteRunnableInNewThread( () ->
         {
             LOGGER.debug( getSessionLabel(), () -> "starting up in background thread" );
-            init( pwmApplication, settings.getMaxAge() );
-        }, "shared history initializer" );
+            initImpl( pwmApplication, settings.getMaxAge() );
+        },
+                getSessionLabel(),
+                "shared history initializer" );
 
         return STATUS.OPEN;
     }
@@ -527,4 +515,5 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
             return ServiceInfoBean.builder().build();
         }
     }
+
 }

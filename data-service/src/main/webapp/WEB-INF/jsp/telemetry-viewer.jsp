@@ -26,6 +26,7 @@
 <%@ page import="java.time.Instant" %>
 <%@ page import="password.pwm.receiver.PwmReceiverApp" %>
 <%@ page import="password.pwm.receiver.ContextManager" %>
+<%@ page import="password.pwm.util.java.StringUtil" %>
 
 <!DOCTYPE html>
 <%@ page contentType="text/html" %>
@@ -34,10 +35,12 @@
 <html>
 <head>
     <title>Telemetry Data</title>
+    <link href="data-service-style.css" rel="stylesheet" type="text/css"/>
+    <script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
 </head>
 <body>
 <div>
-    Current Time: <%=Instant.now().toString()%>
+    Current Time: <%=StringUtil.toIsoDate( Instant.now() )%>
     <br/>
     <% if (app.getSettings().isFtpEnabled()) {%>
     <% Instant lastIngest = app.getStatus().getLastFtpIngest(); %>
@@ -62,7 +65,7 @@
     </form>
 
     <h2>Versions</h2>
-    <table border="1">
+    <table class="sortable">
         <tr>
             <td><b>Version</b></td>
             <td><b>Count</b></td>
@@ -75,7 +78,7 @@
         <% } %>
     </table>
     <h2>LDAP Vendors</h2>
-    <table border="1">
+    <table class="sortable">
         <tr>
             <td><b>Ldap</b></td>
             <td><b>Count</b></td>
@@ -88,7 +91,7 @@
         <% } %>
     </table>
     <h2>App Servers</h2>
-    <table border="1">
+    <table class="sortable">
         <tr>
             <td><b>App Server Info</b></td>
             <td><b>Count</b></td>
@@ -101,7 +104,7 @@
         <% } %>
     </table>
     <h2>OS Vendors</h2>
-    <table border="1">
+    <table class="sortable">
         <tr>
             <td><b>OS Vendor</b></td>
             <td><b>Count</b></td>
@@ -114,7 +117,7 @@
         <% } %>
     </table>
     <h2>DB Vendors</h2>
-    <table border="1">
+    <table class="sortable">
         <tr>
             <td><b>DB Vendor</b></td>
             <td><b>Count</b></td>
@@ -127,7 +130,7 @@
         <% } %>
     </table>
     <h2>Java VMs</h2>
-    <table border="1">
+    <table class="sortable">
         <tr>
             <td><b>Java VM</b></td>
             <td><b>Count</b></td>
@@ -140,7 +143,7 @@
         <% } %>
     </table>
     <h2>Settings</h2>
-    <table border="1">
+    <table class="sortable">
         <tr>
             <td><b>Setting</b></td>
             <td><b>Count</b></td>
@@ -153,7 +156,7 @@
         <% } %>
     </table>
     <h2>Statistics</h2>
-    <table border="1">
+    <table class="sortable">
         <tr>
             <td><b>Statistic</b></td>
             <td><b>Count</b></td>
@@ -166,8 +169,9 @@
         <% } %>
     </table>
     <br/>
+    <%--
     <h2>Summary Data</h2>
-    <table border="1">
+    <table>
         <tr>
             <td><b>SiteHash</b></td>
             <td><b>Description</b></td>
@@ -198,6 +202,7 @@
         </tr>
         <% } %>
     </table>
+    --%>
 </div>
 </body>
 </html>

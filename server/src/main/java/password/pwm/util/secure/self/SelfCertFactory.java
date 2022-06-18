@@ -23,11 +23,13 @@ package password.pwm.util.secure.self;
 import password.pwm.AppAttribute;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.secure.SystemSecureService;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmRandom;
 
 import java.io.IOException;
 import java.net.URI;
@@ -49,16 +51,24 @@ public class SelfCertFactory
             final PasswordData password,
             final String alias
     )
-        throws Exception
+            throws PwmUnrecoverableException
     {
-        final Settings settings = Settings.fromConfiguration( pwmApplication.getConfig() );
+        final SelfCertSettings settings = SelfCertSettings.fromConfiguration( pwmApplication.getConfig() );
 
         final Optional<StoredCertData> existingCert = loadExistingStoredCert( pwmApplication );
         if ( existingCert.isPresent() )
         {
             if ( evaluateExistingStoredCert( existingCert.get(), settings ) )
             {
-                return storedCertToKeyStore( existingCert.get(), alias, password );
+                try
+                {
+                    return storedCertToKeyStore( existingCert.get(), alias, password );
+                }
+                catch ( final Exception e )
+                {
+                    final String errorMsg = "error reading existing stored certificate: " + e.getMessage();
+                    throw PwmUnrecoverableException.newException( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg  );
+                }
             }
         }
 
@@ -70,16 +80,26 @@ public class SelfCertFactory
     }
 
     public static KeyStore generateNewCert(
-        final Settings settings,
+        final SelfCertSettings settings,
         final SystemSecureService domainSecureService,
         final PasswordData password,
         final String alias
     )
-        throws Exception
+            throws PwmUnrecoverableException
     {
-        final SelfCertGenerator selfCertGenerator = new SelfCertGenerator( settings, domainSecureService );
-        final StoredCertData storedCertData = selfCertGenerator.generateNewCertificate( makeSubjectName( settings ) );
-        return storedCertToKeyStore( storedCertData, alias, password );
+        try
+        {
+            final SelfCertGenerator selfCertGenerator = new SelfCertGenerator(
+                    settings,
+                    domainSecureService == null ? PwmRandom.getInstance() : domainSecureService.pwmRandom() );
+            final StoredCertData storedCertData = selfCertGenerator.generateNewCertificate( makeSubjectName( settings ) );
+            return storedCertToKeyStore( storedCertData, alias, password );
+        }
+        catch ( final Exception e )
+        {
+            final String errorMsg = "error generating new certificate: " + e.getMessage();
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg  );
+        }
     }
 
     private static Optional<StoredCertData> loadExistingStoredCert( final PwmApplication pwmApplication )
@@ -87,7 +107,7 @@ public class SelfCertFactory
         return pwmApplication.readAppAttribute( AppAttribute.HTTPS_SELF_CERT, StoredCertData.class );
     }
 
-    private static boolean evaluateExistingStoredCert( final StoredCertData storedCertData, final Settings settings )
+    private static boolean evaluateExistingStoredCert( final StoredCertData storedCertData, final SelfCertSettings settings )
     {
         final String cnName = makeSubjectName( settings );
         if ( !cnName.equals( storedCertData.getX509Certificate().getSubjectDN().getName() ) )
@@ -109,8 +129,13 @@ public class SelfCertFactory
         return true;
     }
 
-    private static String makeSubjectName( final Settings settings )
+    private static String makeSubjectName( final SelfCertSettings settings )
     {
+        if ( !StringUtil.isEmpty( settings.getSubjectAlternateName() ) )
+        {
+            return settings.getSubjectAlternateName();
+        }
+
         String cnName = PwmConstants.PWM_APP_NAME.toLowerCase() + ".example.com";
         {
             final String siteURL = settings.getSiteUrl();

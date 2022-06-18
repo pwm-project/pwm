@@ -95,7 +95,7 @@ public class HttpEventManager implements
                 if ( httpSession.getAttribute( PwmConstants.SESSION_ATTR_PWM_SESSION ) != null )
                 {
                     final String debugMsg = "destroyed session" + ": " + makeSessionDestroyedDebugMsg( pwmSession );
-                    pwmSession.unauthenticateUser( null );
+                    pwmSession.unAuthenticateUser( null );
 
                     final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession.getServletContext() );
                     if ( pwmApplication != null )
@@ -183,7 +183,7 @@ public class HttpEventManager implements
             final TimeDuration timeDuration = TimeDuration.between( startTime, lastAccessedTime );
             debugItems.put( "firstToLastRequestInterval", timeDuration.asCompactString() );
         }
-        final TimeDuration avgReqDuration =  sessionStateBean.getAvgRequestDuration().getAverageAsDuration();
+        final TimeDuration avgReqDuration =  TimeDuration.fromDuration( sessionStateBean.getAvgRequestDuration().getAverageAsDuration() );
         debugItems.put( "avgRequestDuration", avgReqDuration.asCompactString() );
         return StringUtil.mapToString( debugItems );
     }

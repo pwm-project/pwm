@@ -69,13 +69,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 
 public class UserSearchEngine extends AbstractPwmService implements PwmService
@@ -101,7 +98,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
 
     private final ConditionalTaskExecutor debugOutputTask = ConditionalTaskExecutor.forPeriodicTask(
             this::periodicDebugOutput,
-            TimeDuration.of( 1, TimeDuration.Unit.MINUTES )
+            TimeDuration.of( 1, TimeDuration.Unit.MINUTES ).asDuration()
     );
 
     public UserSearchEngine( )
@@ -126,7 +123,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         if ( executor != null )
         {
@@ -768,7 +765,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
 
     private void periodicDebugOutput( )
     {
-        LOGGER.trace( () -> "periodic debug status: " + StringUtil.mapToString( debugProperties() ) );
+        LOGGER.trace( getSessionLabel(), () -> "periodic debug status: " + StringUtil.mapToString( debugProperties() ) );
     }
 
     void log( final PwmLogLevel level, final SessionLabel sessionLabel, final int searchID, final int jobID, final String message )
@@ -787,7 +784,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
         return idMsg;
     }
 
-    private static ThreadPoolExecutor createExecutor( final PwmDomain pwmDomain )
+    private ThreadPoolExecutor createExecutor( final PwmDomain pwmDomain )
     {
         final DomainConfig domainConfig = pwmDomain.getConfig();
 
@@ -813,19 +810,11 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
             final int factor = Integer.parseInt( domainConfig.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_FACTOR ) );
             final int maxThreads = Integer.parseInt( domainConfig.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_THREAD_MAX ) );
             final int threads = Math.min( maxThreads, ( endPoints ) * factor );
-            final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmDomain.getPwmApplication(), UserSearchEngine.class ), true );
             final int minThreads = JavaHelper.rangeCheck( 1, 10, endPoints );
 
-            LOGGER.trace( () -> "initialized with threads min=" + minThreads + " max=" + threads );
+            LOGGER.trace( getSessionLabel(), () -> "initialized with threads min=" + minThreads + " max=" + threads );
 
-            return new ThreadPoolExecutor(
-                    minThreads,
-                    threads,
-                    1,
-                    TimeUnit.MINUTES,
-                    new ArrayBlockingQueue<>( threads ),
-                    threadFactory
-            );
+            return PwmScheduler.makeMultiThreadExecutor( threads, getPwmApplication(), getSessionLabel(), UserSearchEngine.class );
         }
         return null;
     }

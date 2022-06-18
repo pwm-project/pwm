@@ -24,7 +24,7 @@ import com.google.gson.annotations.SerializedName;
 import lombok.Value;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 
 import java.io.Serializable;
@@ -79,8 +79,8 @@ public class TokenPayload implements Serializable
     public String toDebugString( )
     {
         final Map<String, String> debugMap = new HashMap<>();
-        debugMap.put( "issueTime", JavaHelper.toIsoDate( issueTime ) );
-        debugMap.put( "expiration", JavaHelper.toIsoDate( expiration ) );
+        debugMap.put( "issueTime", StringUtil.toIsoDate( issueTime ) );
+        debugMap.put( "expiration", StringUtil.toIsoDate( expiration ) );
         debugMap.put( "name", getName() );
         if ( getUserIdentity() != null )
         {

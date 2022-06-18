@@ -20,6 +20,7 @@
 
 package password.pwm.util.java;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Value;
 
 import java.lang.reflect.InvocationHandler;
@@ -29,18 +30,18 @@ import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@SuppressFBWarnings( "THROWS_METHOD_THROWS_CLAUSE_THROWABLE" )
 public class CachingProxyWrapper
 {
-
     @Value
-    private static final class MethodSignature
+    private static class MethodSignature
     {
         private final Method method;
         private final Object[] arguments;
     }
 
     @Value
-    private static final class ResultWrapper
+    private static class ResultWrapper
     {
         private final Object result;
     }
@@ -67,7 +68,8 @@ public class CachingProxyWrapper
         }
 
         @Override
-        public Object invoke( final Object proxy, final Method method, final Object[] args ) throws Throwable
+        public Object invoke( final Object proxy, final Method method, final Object[] args )
+                throws Throwable
         {
 
             final MethodSignature methodSignature = new MethodSignature( method, args );

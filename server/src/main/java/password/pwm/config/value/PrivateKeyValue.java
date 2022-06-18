@@ -26,11 +26,13 @@ import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
+import password.pwm.util.secure.X509CertInfo;
 import password.pwm.util.secure.X509Utils;
 
 import java.io.Serializable;
@@ -200,7 +202,7 @@ public class PrivateKeyValue extends AbstractValue
             }
             catch ( final Exception e )
             {
-                throw new RuntimeException( "missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage() );
+                throw new PwmInternalException( "missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage() );
             }
         }
         return Collections.singletonList( valueElement );
@@ -211,8 +213,8 @@ public class PrivateKeyValue extends AbstractValue
     {
         if ( privateKeyCertificate != null )
         {
-            return "PrivateKeyCertificate: key=" + JsonFactory.get().serializeMap( X509Utils.makeDebugInfoMap( privateKeyCertificate.getKey() ) )
-                    + ", certificates=" + JsonFactory.get().serializeCollection( X509Utils.makeDebugInfoMap( privateKeyCertificate.getCertificates() ) );
+            return "PrivateKeyCertificate: key=" + JsonFactory.get().serializeMap( X509CertInfo.makeDebugInfoMap( privateKeyCertificate.getKey() ) )
+                    + ", certificates=" + JsonFactory.get().serializeCollection( X509CertInfo.makeDebugInfoMap( privateKeyCertificate.getCertificates() ) );
         }
         return "";
     }
@@ -230,7 +232,7 @@ public class PrivateKeyValue extends AbstractValue
                 }
                 : null;
         final Map<String, Object> returnMap = new LinkedHashMap<>();
-        returnMap.put( "certificates", X509Utils.makeDebugInfoMap( privateKeyCertificate.getCertificates(), flags ) );
+        returnMap.put( "certificates", X509CertInfo.makeDebugInfoMap( privateKeyCertificate.getCertificates(), flags ) );
         final Map<String, Object> privateKeyInfo = new LinkedHashMap<>();
         privateKeyInfo.put( "algorithm", privateKeyCertificate.getKey().getAlgorithm() );
         privateKeyInfo.put( "format", privateKeyCertificate.getKey().getFormat() );

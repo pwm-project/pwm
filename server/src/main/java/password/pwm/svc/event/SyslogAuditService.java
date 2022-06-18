@@ -40,6 +40,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SyslogOutputFormat;
@@ -52,7 +53,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthTopic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
@@ -89,9 +90,10 @@ public class SyslogAuditService
     private final AppConfig appConfig;
     private final PwmApplication pwmApplication;
     private final AuditFormatter auditFormatter;
+    private final SessionLabel sessionLabel;
 
 
-    SyslogAuditService( final PwmApplication pwmApplication )
+    SyslogAuditService( final PwmApplication pwmApplication, final SessionLabel sessionLabel )
             throws LocalDBException
     {
         this.pwmApplication = pwmApplication;
@@ -100,6 +102,7 @@ public class SyslogAuditService
         this.syslogInstances = makeSyslogIFs( appConfig );
         this.auditFormatter = makeAuditFormatter( appConfig );
         this.workQueueProcessor = makeWorkQueueProcessor( pwmApplication, appConfig );
+        this.sessionLabel = sessionLabel;
     }
 
     private WorkQueueProcessor<String> makeWorkQueueProcessor(
@@ -117,7 +120,7 @@ public class SyslogAuditService
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(
                 pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE );
 
-        return new WorkQueueProcessor<>( pwmApplication, localDBStoredQueue, settings, new SyslogItemProcessor(), this.getClass() );
+        return new WorkQueueProcessor<>( pwmApplication, sessionLabel, localDBStoredQueue, settings, new SyslogItemProcessor(), this.getClass() );
     }
 
     private static AuditFormatter makeAuditFormatter( final AppConfig appConfig )
@@ -132,7 +135,7 @@ public class SyslogAuditService
                 return new CEFAuditFormatter();
 
             default:
-                JavaHelper.unhandledSwitchStatement( syslogOutputFormat );
+                MiscUtil.unhandledSwitchStatement( syslogOutputFormat );
                 throw new IllegalStateException();
         }
     }
@@ -252,7 +255,7 @@ public class SyslogAuditService
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.warn( () -> "unable to add syslog message to queue: " + e.getMessage() );
+            LOGGER.warn( sessionLabel, () -> "unable to add syslog message to queue: " + e.getMessage() );
         }
     }
 

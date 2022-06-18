@@ -36,11 +36,11 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.PwmCallable;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.InputStream;
@@ -51,7 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BooleanSupplier;
@@ -62,7 +62,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
 
     private WordlistConfiguration wordlistConfiguration;
     private WordlistBucket wordlistBucket;
-    private ExecutorService executorService;
+    private ScheduledExecutorService executorService;
     private volatile Set<WordType> wordTypesCache = null;
 
     private volatile ErrorInformation lastError;
@@ -72,7 +72,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
     private final ReentrantLock backgroundImportRunning = new ReentrantLock();
     private final WordlistStatistics statistics = new WordlistStatistics();
     private final ConditionalTaskExecutor statsOutput = ConditionalTaskExecutor.forPeriodicTask( this::outputStats,
-            TimeDuration.of( 5, TimeDuration.Unit.MINUTES ) );
+            TimeDuration.of( 5, TimeDuration.Unit.MINUTES ).asDuration() );
 
     private volatile Activity activity = Wordlist.Activity.Idle;
 
@@ -121,7 +121,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
         }
 
         inhibitBackgroundImportFlag.set( false );
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, this.getClass() );
+        executorService = PwmScheduler.makeBackgroundServiceExecutor( pwmApplication, getSessionLabel(), this.getClass() );
 
         if ( !pwmApplication.getPwmEnvironment().isInternalRuntimeInstance() )
         {
@@ -173,7 +173,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
         }
 
         getStatistics().getAverageStats().update( WordlistStatistics.AverageStat.avgWordCheckLength, word.length() );
-        getStatistics().getAverageStats().update( WordlistStatistics.AverageStat.wordCheckTimeMS, TimeDuration.fromCurrent( startTime ) );
+        getStatistics().getAverageStats().update( WordlistStatistics.AverageStat.wordCheckTimeMS, TimeDuration.fromCurrent( startTime ).asDuration() );
         getStatistics().getCounterStats().increment( WordlistStatistics.CounterStat.wordChecks );
         if ( result )
         {
@@ -239,7 +239,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
 
         statsOutput.conditionallyExecuteTask();
 
-        getStatistics().getAverageStats().update( WordlistStatistics.AverageStat.chunkCheckTimeMS, TimeDuration.fromCurrent( startTime ) );
+        getStatistics().getAverageStats().update( WordlistStatistics.AverageStat.chunkCheckTimeMS, TimeDuration.fromCurrent( startTime ).asDuration() );
         getStatistics().getCounterStats().increment( WordlistStatistics.CounterStat.chunkChecks );
         if ( results )
         {
@@ -292,7 +292,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         final TimeDuration closeWaitTime = TimeDuration.of( 1, TimeDuration.Unit.MINUTES );
 
@@ -323,7 +323,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
                     HealthMessage.Wordlist_AutoImportFailure,
                     wordlistConfiguration.getWordlistFilenameSetting().toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ),
                     autoImportError.getDetailedErrorMsg(),
-                    JavaHelper.toIsoDate( autoImportError.getDate() )
+                    StringUtil.toIsoDate( autoImportError.getDate() )
             );
             returnList.add( healthRecord );
         }
@@ -398,7 +398,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
         activity = Wordlist.Activity.Clearing;
         writeWordlistStatus( WordlistStatus.builder().build() );
         getWordlistBucket().clear();
-        getLogger().debug( getSessionLabel(), () -> "cleared stored wordlist", () -> TimeDuration.fromCurrent( startTime ) );
+        getLogger().debug( getSessionLabel(), () -> "cleared stored wordlist", TimeDuration.fromCurrent( startTime ) );
         setActivity( postCleanActivity );
     }
 

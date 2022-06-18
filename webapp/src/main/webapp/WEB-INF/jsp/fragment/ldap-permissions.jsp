@@ -26,7 +26,7 @@
 <%@ page import="password.pwm.config.LDAPPermissionInfo" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.PwmRequest" %>
-<%@ page import="password.pwm.util.LDAPPermissionCalculator" %>
+<%@ page import="password.pwm.ldap.LdapPermissionCalculator" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Set" %>
@@ -37,13 +37,13 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 
-<% final LDAPPermissionCalculator outputData = (LDAPPermissionCalculator)JspUtility.getAttribute(pageContext, PwmRequestAttribute.LdapPermissionItems); %>
+<% final LdapPermissionCalculator outputData = ( LdapPermissionCalculator )JspUtility.getAttribute(pageContext, PwmRequestAttribute.LdapPermissionItems); %>
 <p>
     <pwm:display key="Display_LdapPermissionRecommendations" bundle="Config"/>
 </p>
 <h1>Attribute Permissions</h1>
 <% for (final LDAPPermissionInfo.Actor actor : LDAPPermissionInfo.Actor.values()) { %>
-<% final Map<String,Map<LDAPPermissionInfo.Access,List<LDAPPermissionCalculator.PermissionRecord>>> baseMap = outputData.getPermissionsByActor(actor); %>
+<% final Map<String,Map<LDAPPermissionInfo.Access,List<LdapPermissionCalculator.PermissionRecord>>> baseMap = outputData.getPermissionsByActor(actor); %>
 <% if (!baseMap.isEmpty()) { %>
 <h2>
     <%=actor.getLabel(JspUtility.locale(request),JspUtility.getPwmRequest(pageContext).getDomainConfig())%>
@@ -57,7 +57,7 @@
         <td class="title">Access</td>
         <td class="title">Associated Configuration Setting</td>
     </tr>
-    <% for (final Map.Entry<String,Map<LDAPPermissionInfo.Access,List<LDAPPermissionCalculator.PermissionRecord>>> entry : baseMap.entrySet()) { %>
+    <% for (final Map.Entry<String,Map<LDAPPermissionInfo.Access,List<LdapPermissionCalculator.PermissionRecord>>> entry : baseMap.entrySet()) { %>
     <% final String attribute = entry.getKey(); %>
     <% for (final LDAPPermissionInfo.Access access : entry.getValue().keySet()) { %>
     <tr>
@@ -69,8 +69,8 @@
         </td>
         <td style="text-align: left">
             <%
-                final Set<String> menuLocations = new TreeSet<String>();
-                for (final LDAPPermissionCalculator.PermissionRecord record : entry.getValue().get(access)) {
+                final Set<String> menuLocations = new TreeSet<>();
+                for (final LdapPermissionCalculator.PermissionRecord record : entry.getValue().get(access)) {
                     if (record.getPwmSetting() != null) {
                         menuLocations.add(record.getPwmSetting().toMenuLocationDebug(record.getProfile(), JspUtility.locale(request)));
                     } else {

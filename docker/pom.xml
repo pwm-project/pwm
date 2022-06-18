@@ -2,7 +2,7 @@
 
     <parent>
         <groupId>org.pwm-project</groupId>
-        <artifactId>pwm-parent</artifactId>
+        <artifactId>pwm</artifactId>
         <version>2.1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -16,6 +16,7 @@
     <name>PWM Password Self Service: Docker Image</name>
 
     <properties>
+        <dockerImageTag>pwm/pwm-webapp</dockerImageTag>
         <skipDocker>false</skipDocker>
     </properties>
 
@@ -33,7 +34,7 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>make-docker-image</id>
@@ -48,6 +49,10 @@
                             </from>
                             <to>
                                 <image>${dockerImageTag}</image>
+                                <tags>
+                                    <tag>latest</tag>
+                                    <tag>${project.version}</tag>
+                                </tags>
                             </to>
                             <outputPaths>
                                 <tar>target/pwm-docker-image-${project.version}.tar</tar>

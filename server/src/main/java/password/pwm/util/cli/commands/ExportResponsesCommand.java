@@ -22,20 +22,25 @@ package password.pwm.util.cli.commands;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ResponseSet;
+import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.util.cli.CliException;
 import password.pwm.util.cli.CliParameters;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.ws.server.rest.RestChallengesServer;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.time.Instant;
@@ -48,7 +53,7 @@ public class ExportResponsesCommand extends AbstractCliCommand
 
     @Override
     void doCommand( )
-            throws Exception
+            throws IOException, CliException
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
@@ -61,17 +66,26 @@ public class ExportResponsesCommand extends AbstractCliCommand
         {
             for ( final PwmDomain pwmDomain : pwmApplication.domains().values() )
             {
-                counter += doExport( pwmDomain, writer );
+                try
+                {
+                    counter += doExport( pwmDomain, writer );
+                }
+                catch ( final PwmUnrecoverableException | PwmOperationalException | ChaiValidationException e )
+                {
+                    throw new CliException( "error during export responses: " + e.getMessage(), e );
+                }
             }
         }
 
         out( "output complete, " + counter + " responses exported " + TimeDuration.fromCurrent( startTime ).asCompactString() );
     }
 
-    private long doExport( final PwmDomain pwmDomain, final Writer writer ) throws Exception
+    private long doExport(
+            final PwmDomain pwmDomain,
+            final Writer writer
+    )
+            throws PwmUnrecoverableException, PwmOperationalException, IOException, ChaiValidationException
     {
-        final String systemRecordDelimiter = System.getProperty( "line.separator" );
-
         final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
         final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                 .searchTimeout( TimeDuration.MINUTE )
@@ -89,27 +103,39 @@ public class ExportResponsesCommand extends AbstractCliCommand
         int counter = 0;
         for ( final UserIdentity identity : results.keySet() )
         {
-            final ChaiUser user = pwmDomain.getProxiedChaiUser( SessionLabel.CLI_SESSION_LABEL, identity );
-            final Optional<ResponseSet> responseSet = pwmDomain.getCrService().readUserResponseSet( null, identity, user );
-            if ( responseSet.isPresent() )
-            {
-                counter++;
-                out( "found responses for '" + user + "', writing to output." );
-                final RestChallengesServer.JsonChallengesData outputData = new RestChallengesServer.JsonChallengesData();
-                outputData.challenges = responseSet.get().asChallengeBeans( true );
-                outputData.helpdeskChallenges = responseSet.get().asHelpdeskChallengeBeans( true );
-                outputData.minimumRandoms = responseSet.get().getChallengeSet().minimumResponses();
-                outputData.username = identity.toDelimitedKey();
-                writer.write( JsonFactory.get().serialize( outputData ) );
-                writer.write( systemRecordDelimiter );
-            }
-            else
-            {
-                out( "skipping '" + user.toString() + "', no stored responses." );
-            }
+            counter++;
+            outputUser( pwmDomain, identity, writer );
+
         }
         return counter;
+    }
 
+    private void outputUser(
+            final PwmDomain pwmDomain,
+            final UserIdentity identity,
+            final Writer writer
+    )
+            throws PwmUnrecoverableException, ChaiValidationException, IOException
+    {
+        final String systemRecordDelimiter = System.getProperty( "line.separator" );
+
+        final ChaiUser user = pwmDomain.getProxiedChaiUser( SessionLabel.CLI_SESSION_LABEL, identity );
+        final Optional<ResponseSet> responseSet = pwmDomain.getCrService().readUserResponseSet( null, identity, user );
+        if ( responseSet.isPresent() )
+        {
+            out( "found responses for '" + user + "', writing to output." );
+            final RestChallengesServer.JsonChallengesData outputData = new RestChallengesServer.JsonChallengesData();
+            outputData.challenges = responseSet.get().asChallengeBeans( true );
+            outputData.helpdeskChallenges = responseSet.get().asHelpdeskChallengeBeans( true );
+            outputData.minimumRandoms = responseSet.get().getChallengeSet().minimumResponses();
+            outputData.username = identity.toDelimitedKey();
+            writer.write( JsonFactory.get().serialize( outputData ) );
+            writer.write( systemRecordDelimiter );
+        }
+        else
+        {
+            out( "skipping '" + user.toString() + "', no stored responses." );
+        }
     }
 
     @Override

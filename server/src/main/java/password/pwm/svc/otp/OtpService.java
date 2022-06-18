@@ -46,7 +46,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -201,7 +201,7 @@ public class OtpService extends AbstractPwmService implements PwmService
                 break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( settings.getOtpType() );
+                MiscUtil.unhandledSwitchStatement( settings.getOtpType() );
         }
 
         final List<String> rawRecoveryCodes;
@@ -293,7 +293,7 @@ public class OtpService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         for ( final OtpOperator operator : operatorMap.values() )
         {
@@ -354,8 +354,8 @@ public class OtpService extends AbstractPwmService implements PwmService
                     ? "no otp record found for user " + userIdentity.toDisplayString()
                     : "loaded otp record for user " + userIdentity.toDisplayString()
                     + " [recordType=" + finalOtpConfig.getType() + ", identifier=" + finalOtpConfig.getIdentifier() + ", timestamp="
-                    + JavaHelper.toIsoDate( finalOtpConfig.getTimestamp() ) + "]";
-            LOGGER.trace( sessionLabel, msg, () -> TimeDuration.fromCurrent(  methodStartTime ) );
+                    + StringUtil.toIsoDate( finalOtpConfig.getTimestamp() ) + "]";
+            LOGGER.trace( sessionLabel, msg, TimeDuration.fromCurrent(  methodStartTime ) );
         }
 
         return otpConfig;
@@ -413,7 +413,7 @@ public class OtpService extends AbstractPwmService implements PwmService
         if ( attempts != successes )
         {
             // should be impossible to read here, but just in case.
-            final String errorMsg = "OTP secret write only partially successful; attempts=" + attempts + ", successes=" + successes + ", errors: " + errorMsgs.toString();
+            final String errorMsg = "OTP secret write only partially successful; attempts=" + attempts + ", successes=" + successes + ", errors: " + errorMsgs;
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, errorMsg );
             throw new PwmOperationalException( errorInfo );
         }
@@ -474,7 +474,7 @@ public class OtpService extends AbstractPwmService implements PwmService
         if ( attempts != successes )
         {
             // should be impossible to read here, but just in case.
-            final String errorMsg = "OTP secret clearing only partially successful; attempts=" + attempts + ", successes=" + successes + ", error: " + errorMsgs.toString();
+            final String errorMsg = "OTP secret clearing only partially successful; attempts=" + attempts + ", successes=" + successes + ", error: " + errorMsgs;
             //@todo: replace error message
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, errorMsg );
             throw new PwmOperationalException( errorInfo );

@@ -28,7 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.data.ImmutableByteArray;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;

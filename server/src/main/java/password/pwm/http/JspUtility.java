@@ -203,7 +203,7 @@ public abstract class JspUtility
         {
             return LocaleHelper.valueNotApplicable( pwmRequest.getLocale() );
         }
-        return "<span class=\"timestamp\">" + instant.toString() + "</span>";
+        return "<span class=\"timestamp\">" + instant + "</span>";
     }
 
     public static String localizedString( final PageContext pageContext, final String key, final Class<? extends PwmDisplayBundle> bundleClass, final String... values )

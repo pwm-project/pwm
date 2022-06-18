@@ -152,7 +152,7 @@ public abstract class RestServlet extends HttpServlet
 
         outputRestResultBean( restResultBean, req, resp );
         final boolean success = restResultBean != null && !restResultBean.isError();
-        LOGGER.trace( sessionLabel, () -> "completed rest invocation, success=" + success, () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> "completed rest invocation, success=" + success, TimeDuration.fromCurrent( startTime ) );
     }
 
    private RestResultBean executeRequest(
@@ -220,7 +220,7 @@ public abstract class RestServlet extends HttpServlet
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( () -> "error while trying to log HTTP request data " + e.getMessage(), e );
+            LOGGER.error( sessionLabel, () -> "error while trying to log HTTP request data " + e.getMessage(), e );
         }
     }
 

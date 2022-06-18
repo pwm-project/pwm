@@ -32,6 +32,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.StatisticAverageBundle;
 import password.pwm.util.java.StatisticCounterBundle;
@@ -53,10 +54,10 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -81,7 +82,11 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
     private final StatisticCounterBundle<CounterStat> stats = new StatisticCounterBundle<>( CounterStat.class );
     private final StatisticAverageBundle<AverageStat> averages = new StatisticAverageBundle<>( AverageStat.class );
 
-    private final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask( this::periodicDebugOutput, TimeDuration.MINUTE );
+    private final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask(
+            this::periodicDebugOutput, TimeDuration.MINUTE.asDuration() );
+
+    private static final int LOG_OUTPUT_INCREMENTS = 10_000;
+    private final AtomicLong lastLogOutput = new AtomicLong( LOG_OUTPUT_INCREMENTS );
 
     enum CounterStat
     {
@@ -147,17 +152,11 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
 
         setStatus( STATUS.OPEN );
 
-        cleanerService = Executors.newSingleThreadScheduledExecutor(
-                PwmScheduler.makePwmThreadFactory(
-                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-cleaner-",
-                        true
-                ) );
+        cleanerService = PwmScheduler.makeBackgroundServiceExecutor(
+                pwmApplication, getSessionLabel(), LocalDBLogger.class, "cleaner" );
 
-        writerService = Executors.newSingleThreadScheduledExecutor(
-                PwmScheduler.makePwmThreadFactory(
-                        PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-writer-",
-                        true
-                ) );
+        writerService = PwmScheduler.makeBackgroundServiceExecutor(
+                pwmApplication, getSessionLabel(), LocalDBLogger.class, "writer" );
 
         cleanerService.scheduleAtFixedRate( new CleanupTask(), 0, this.settings.cleanerFrequency().asMillis(), TimeUnit.MILLISECONDS );
 
@@ -196,6 +195,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
 
     private void scheduleNextFlush()
     {
+
         if ( tempMemoryEventQueue.size() > settings.getMaxBufferSize() / 2 )
         {
             writerService.schedule( new FlushTask(), 0, TimeUnit.SECONDS );
@@ -220,10 +220,11 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
             debugData.put( "EventsTailAge", tailAge == null ? "n/a" : TimeDuration.fromCurrent( tailAge ).asCompactString() );
         }
 
+        final TimeDuration latency = TimeDuration.of( (long) averages.getAverage( AverageStat.avgFlushLatency ), TimeDuration.Unit.MILLISECONDS );
         debugData.put( "EventsStored", String.valueOf( localDBListQueue.size() ) );
-        debugData.put( "ConfiguredMaxEvents", PwmNumberFormat.forDefaultLocale().format( settings.getMaxEvents() ) );
+        debugData.put( "ConfiguredMaxEvents", MiscUtil.forDefaultLocale().format( settings.getMaxEvents() ) );
         debugData.put( "ConfiguredMaxAge", settings.getMaxAge().asCompactString() );
-        debugData.put( "BufferAverageLatency", averages.getFormattedAverage( AverageStat.avgFlushLatency ) );
+        debugData.put( "BufferAverageLatency", latency.asCompactString() );
         debugData.put( "BufferAverageSize", averages.getFormattedAverage( AverageStat.avgFlushCount ) );
         debugData.put( "BufferItemCount", String.valueOf( tempMemoryEventQueue.size() ) );
 
@@ -234,18 +235,23 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
 
     private void periodicDebugOutput()
     {
-        LOGGER.trace( () -> "periodic debug output: " + StringUtil.mapToString( debugStats() ) );
+        if ( lastLogOutput.get() + stats.get( CounterStat.EventsWritten ) > LOG_OUTPUT_INCREMENTS )
+        {
+            LOGGER.trace( () -> "periodic debug output: " + StringUtil.mapToString( debugStats() ) );
+            lastLogOutput.set( stats.get( CounterStat.EventsWritten ) );
+        }
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         final Instant startTime = Instant.now();
-        int flushedEvents = 0;
+
+        final int flushedEvents;
         if ( status() != STATUS.CLOSED )
         {
             LOGGER.trace( () -> "LocalDBLogger closing" );
-            flushedEvents += tempMemoryEventQueue.size();
+            flushedEvents = tempMemoryEventQueue.size();
             if ( cleanerService != null )
             {
                 cleanerService.shutdown();
@@ -253,10 +259,21 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
             writerService.execute( new FlushTask() );
             JavaHelper.closeAndWaitExecutor( writerService, TimeDuration.SECONDS_10 );
         }
+        else
+        {
+            flushedEvents = 0;
+        }
+
         setStatus( STATUS.CLOSED );
 
-        final int finalFlushedEvents = flushedEvents;
-        LOGGER.trace( () -> "LocalDBLogger close completed (flushed during close: " + finalFlushedEvents + ")", () -> TimeDuration.fromCurrent( startTime ) );
+        if ( flushedEvents > 0 )
+        {
+            LOGGER.trace( () -> "LocalDBLogger close completed (flushed during close: " + flushedEvents + ")", TimeDuration.fromCurrent( startTime ) );
+        }
+        else
+        {
+            LOGGER.trace( () -> "LocalDBLogger close completed", TimeDuration.fromCurrent( startTime ) );
+        }
     }
 
     public int getStoredEventCount( )
@@ -487,7 +504,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
 
             stats.increment( CounterStat.BufferFlushCycles );
             stats.increment( CounterStat.EventsWritten, localBuffer.size() );
-            averages.update( AverageStat.avgFlushLatency, TimeDuration.fromCurrent( eldestEntry ) );
+            averages.update( AverageStat.avgFlushLatency, TimeDuration.fromCurrent( eldestEntry ).asDuration() );
             averages.update( AverageStat.avgFlushCount, localBuffer.size() );
         }
         catch ( final Exception e )
@@ -568,7 +585,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
         final int eventCount = getStoredEventCount();
         if ( eventCount > settings.getMaxEvents() + 5000 )
         {
-            final PwmNumberFormat numberFormat = PwmNumberFormat.forDefaultLocale();
+            final PwmNumberFormat numberFormat = MiscUtil.forDefaultLocale();
             healthRecords.add( HealthRecord.forMessage(
                     DomainID.systemId(),
                     HealthMessage.LocalDBLogger_HighRecordCount,

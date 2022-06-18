@@ -118,7 +118,7 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
             throws PwmException;
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
     }
 
@@ -139,7 +139,7 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
     public ServiceInfoBean serviceInfo( )
     {
         return ServiceInfoBean.builder()
-                .debugProperties( CollectionUtil.combineMaps( List.of(
+                .debugProperties( CollectionUtil.combineOrderedMaps( List.of(
                         stats.debugStats(),
                         CollectionUtil.enumMapToStringMap( debugData() ) ) ) )
                 .build();

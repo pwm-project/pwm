@@ -202,15 +202,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             stackTraceText = errorStack.toString();
         }
 
-        String stackTraceHash = "hash";
-        try
-        {
-            stackTraceHash = SecureEngine.hash( stackTraceText, PwmHashAlgorithm.SHA1 );
-        }
-        catch ( final PwmUnrecoverableException e1 )
-        {
-            /* */
-        }
+        final String stackTraceHash = SecureEngine.hash( stackTraceText, PwmHashAlgorithm.SHA1 );
         final String errorMsg = "unexpected error processing request: " + JavaHelper.readHostileExceptionMessage( e ) + " [" + stackTraceHash + "]";
 
         LOGGER.error( pwmRequest, () -> errorMsg, e );
@@ -270,6 +262,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
         {
             final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
             pwmRequest.outputJsonResult( restResultBean );
+            pwmRequest.getPwmResponse().setStatus( 500 );
         }
         else
         {

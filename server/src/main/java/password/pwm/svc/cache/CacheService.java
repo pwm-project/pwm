@@ -75,14 +75,13 @@ public class CacheService extends AbstractPwmService implements PwmService
         memoryCacheStore = new MemoryCacheStore( maxMemItems );
         this.traceDebugOutputter = ConditionalTaskExecutor.forPeriodicTask(
                 this::outputTraceInfo,
-                TimeDuration.MINUTE
-        );
+                TimeDuration.MINUTE.asDuration() );
 
         return STATUS.OPEN;
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
     }
@@ -187,6 +186,6 @@ public class CacheService extends AbstractPwmService implements PwmService
             traceOutput.append( ", histogram=" );
             traceOutput.append( JsonFactory.get().serializeMap( memoryCacheStore.storedClassHistogram( "" ) ) );
         }
-        LOGGER.trace( () -> traceOutput );
+        LOGGER.trace( getSessionLabel(), () -> traceOutput );
     }
 }

@@ -26,8 +26,8 @@ import password.pwm.PwmEnvironment;
 import password.pwm.config.PwmSetting;
 import password.pwm.http.ContextManager;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmDateFormat;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
@@ -161,7 +161,7 @@ public class SystemMacros
 
             if ( "DateTime".equalsIgnoreCase( param ) )
             {
-                return JavaHelper.toIsoDate( Instant.now() );
+                return StringUtil.toIsoDate( Instant.now() );
             }
             else if ( "Date".equalsIgnoreCase( param ) )
             {

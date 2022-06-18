@@ -26,8 +26,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.PwmScheduler;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -37,14 +35,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 
 class NodeMachine
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( NodeMachine.class );
 
     private final PwmApplication pwmApplication;
-    private final ExecutorService executorService;
     private final NodeDataServiceProvider clusterDataServiceProvider;
 
     private ErrorInformation lastError;
@@ -56,6 +53,7 @@ class NodeMachine
 
     NodeMachine(
             final PwmApplication pwmApplication,
+            final ScheduledExecutorService executorService,
             final NodeDataServiceProvider clusterDataServiceProvider,
             final NodeServiceSettings nodeServiceSettings
     )
@@ -64,14 +62,11 @@ class NodeMachine
         this.clusterDataServiceProvider = clusterDataServiceProvider;
         this.settings = nodeServiceSettings;
 
-        this.executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, NodeMachine.class );
-
         pwmApplication.getPwmScheduler().scheduleFixedRateJob( new HeartbeatProcess(), executorService, settings.getHeartbeatInterval(), settings.getHeartbeatInterval() );
     }
 
     public void close( )
     {
-        JavaHelper.closeAndWaitExecutor( executorService, TimeDuration.SECOND );
     }
 
 

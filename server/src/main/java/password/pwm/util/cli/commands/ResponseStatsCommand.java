@@ -35,15 +35,18 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.svc.cr.CrService;
+import password.pwm.util.cli.CliException;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.ConditionalTaskExecutor;
-import password.pwm.util.json.JsonProvider;
-import password.pwm.util.json.JsonFactory;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.svc.cr.CrService;
+import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,14 +61,21 @@ public class ResponseStatsCommand extends AbstractCliCommand
 
     @Override
     void doCommand( )
-            throws Exception
+            throws IOException, CliException
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
         final ResponseStats responseStats = new ResponseStats();
 
         for ( final PwmDomain pwmDomain : pwmApplication.domains().values() )
         {
-            makeStatistics( pwmDomain, responseStats );
+            try
+            {
+                makeStatistics( pwmDomain, responseStats );
+            }
+            catch ( final PwmUnrecoverableException | ChaiUnavailableException | PwmOperationalException e )
+            {
+                throw new CliException( "error generating response statistics: " + e.getMessage(), e );
+            }
         }
         final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
         final long startTime = System.currentTimeMillis();
@@ -74,7 +84,7 @@ public class ResponseStatsCommand extends AbstractCliCommand
         {
             fileOutputStream.write( JsonFactory.get().serialize( responseStats, JsonProvider.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
-        out( "completed writing stats output in " + TimeDuration.fromCurrent( startTime ).asLongString() );
+        out( "completed writing stats output in " + PwmTimeUtil.asLongString( TimeDuration.fromCurrent( startTime ) ) );
     }
 
     static class ResponseStats implements Serializable
@@ -89,7 +99,7 @@ public class ResponseStatsCommand extends AbstractCliCommand
             final PwmDomain pwmDomain,
             final ResponseStats responseStats
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException, IOException
     {
         out( "searching for users in domain " + pwmDomain.getDomainID() );
         final List<UserIdentity> userIdentities = readAllUsersFromLdap( pwmDomain );
@@ -97,8 +107,18 @@ public class ResponseStatsCommand extends AbstractCliCommand
 
 
         final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask(
-                () -> out( "processing...  " + userCounter + " users read" ),
-                TimeDuration.SECONDS_30 );
+                () ->
+                {
+                    try
+                    {
+                        out( "processing...  " + userCounter + " users read" );
+                    }
+                    catch ( final IOException e )
+                    {
+                        throw new IllegalStateException( "unexpected error writing to log output: " + e.getMessage() );
+                    }
+                },
+                TimeDuration.SECONDS_30.asDuration() );
 
         final CrService crService = pwmDomain.getCrService();
         for ( final UserIdentity userIdentity : userIdentities )

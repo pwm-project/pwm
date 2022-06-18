@@ -61,8 +61,8 @@ import password.pwm.http.servlet.peoplesearch.PhotoDataReader;
 import password.pwm.http.servlet.peoplesearch.SearchRequestBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.PhotoDataBean;
-import password.pwm.ldap.UserInfo;
+import password.pwm.bean.PhotoDataBean;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
@@ -83,6 +83,8 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -363,7 +365,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         // execute user delete operation
         final ChaiProvider provider = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY )
                 ? pwmDomain.getProxyChaiProvider( pwmRequest.getLabel(), userIdentity.getLdapProfileID() )
-                : pwmSession.getSessionManager().getChaiProvider();
+                : pwmRequest.getClientConnectionHolder().getActor().getChaiProvider();
 
 
         try
@@ -372,7 +374,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         }
         catch ( final ChaiOperationException e )
         {
-            final String errorMsg = "error while attempting to delete user " + userIdentity.toString() + ", error: " + e.getMessage();
+            final String errorMsg = "error while attempting to delete user " + userIdentity + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             LOGGER.debug( pwmRequest, () -> errorMsg );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
@@ -504,7 +506,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
 
             default:
-                JavaHelper.unhandledSwitchStatement( searchMode );
+                MiscUtil.unhandledSwitchStatement( searchMode );
         }
 
         final UserSearchEngine userSearchEngine = pwmRequest.getPwmDomain().getUserSearchEngine();
@@ -556,7 +558,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( searchMode );
+                    MiscUtil.unhandledSwitchStatement( searchMode );
             }
 
             searchConfiguration = builder.build();
@@ -1115,7 +1117,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
     {
         // add a delay to prevent continuous checks
         final long delayMs = JavaHelper.silentParseLong( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HELPDESK_VERIFICATION_INVALID_DELAY_MS ), 500 );
-        TimeDuration.of( delayMs, TimeDuration.Unit.MILLISECONDS ).jitterPause( pwmRequest.getPwmDomain().getSecureService(), 0.3f );
+        PwmTimeUtil.jitterPause( TimeDuration.of( delayMs, TimeDuration.Unit.MILLISECONDS ), pwmRequest.getPwmDomain().getSecureService(), 0.3f );
 
         final HelpdeskVerificationResponseBean responseBean = new HelpdeskVerificationResponseBean(
                 passed,

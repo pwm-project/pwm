@@ -49,6 +49,7 @@ import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -71,8 +72,9 @@ public class UserMatchViewerFunction implements SettingUIFunction
             final PwmRequest pwmRequest,
             final StoredConfigurationModifier storedConfiguration,
             final StoredConfigKey key,
-            final String extraData )
-            throws Exception
+            final String extraData
+    )
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
@@ -89,7 +91,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
         final String message = LocaleHelper.getLocalizedMessage(
                 Display.Display_SearchResultsInfo, pwmRequest,
                 String.valueOf( users.size() ),
-                searchDuration.asLongString( pwmRequest.getLocale() ) );
+                PwmTimeUtil.asLongString( searchDuration, pwmRequest.getLocale() ) );
 
         final boolean sizeExceeded = users.size() >= maxResultSize;
 
@@ -107,7 +109,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
             final StoredConfiguration storedConfiguration,
             final StoredConfigKey key
     )
-            throws Exception
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         final AppConfig config = new AppConfig( storedConfiguration );
         final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmDomain.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( config ) );

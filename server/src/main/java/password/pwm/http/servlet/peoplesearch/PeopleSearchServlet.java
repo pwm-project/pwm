@@ -41,10 +41,10 @@ import password.pwm.http.servlet.peoplesearch.bean.OrgChartDataBean;
 import password.pwm.http.servlet.peoplesearch.bean.PeopleSearchClientConfigBean;
 import password.pwm.http.servlet.peoplesearch.bean.SearchResultBean;
 import password.pwm.http.servlet.peoplesearch.bean.UserDetailBean;
-import password.pwm.ldap.PhotoDataBean;
+import password.pwm.bean.PhotoDataBean;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -97,7 +97,8 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
     }
 
     @Override
-    protected void nextStep( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+    protected void nextStep( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
     {
         if ( pwmRequest.getURL().isPublicUrl() )
         {
@@ -227,7 +228,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
     @ActionHandler( action = "photo" )
     public ProcessStatus processUserPhotoImageRequest( final PwmRequest pwmRequest )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+            throws PwmUnrecoverableException, IOException, ServletException
     {
         final String userKey = pwmRequest.readParameterAsString( PARAM_USERKEY, PwmHttpRequestWrapper.Flag.BypassValidation );
         if ( userKey.length() < 1 )
@@ -283,7 +284,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         pwmRequest.getPwmResponse().getHttpServletResponse().setBufferSize( 0 );
         pwmRequest.getPwmResponse().markAsDownload( HttpContentType.csv, "userData.csv" );
 
-        try ( CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() ) )
+        try ( CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() ) )
         {
             peopleSearchDataReader.writeUserOrgChartDetailToCsv( csvPrinter, userIdentity, effectiveDepth );
         }

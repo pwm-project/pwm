@@ -42,7 +42,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ChangePasswordBean;
 import password.pwm.http.servlet.forgottenpw.ForgottenPasswordUtil;
 import password.pwm.ldap.PasswordChangeProgressChecker;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditServiceClient;
@@ -164,7 +164,7 @@ public class ChangePasswordServletUtil
                 configuredEmailSetting,
                 pwmRequest.getPwmSession().getUserInfo(),
 
-                pwmRequest.getPwmSession().getSessionManager().getMacroMachine( ) );
+                pwmRequest.getMacroMachine( ) );
     }
 
     static void checkMinimumLifetime(

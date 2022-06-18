@@ -34,9 +34,10 @@ public class PwmReceiverApp
     private static final String ENV_NAME = "DATA_SERVICE_PROPS";
 
     private Storage storage;
-    private ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
     private Settings settings;
-    private Status status = new Status();
+
+    private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+    private final Status status = new Status();
 
     public PwmReceiverApp( )
     {

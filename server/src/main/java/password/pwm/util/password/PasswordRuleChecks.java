@@ -35,7 +35,7 @@ import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
@@ -652,7 +652,7 @@ public class PasswordRuleChecks
                     errorList.add( new ErrorInformation( PwmError.PASSWORD_INVALID_CHAR ) );
                     if ( EXTRA_LOGGING )
                     {
-                        LOGGER.trace( () -> "password rejected, does not match configured regex pattern: " + pattern.toString() );
+                        LOGGER.trace( () -> "password rejected, does not match configured regex pattern: " + pattern );
                     }
                 }
             }
@@ -665,7 +665,7 @@ public class PasswordRuleChecks
                     errorList.add( new ErrorInformation( PwmError.PASSWORD_INVALID_CHAR ) );
                     if ( EXTRA_LOGGING )
                     {
-                        LOGGER.trace( () -> "password rejected, matches configured no-regex pattern: " + pattern.toString() );
+                        LOGGER.trace( () -> "password rejected, matches configured no-regex pattern: " + pattern );
                     }
                 }
             }

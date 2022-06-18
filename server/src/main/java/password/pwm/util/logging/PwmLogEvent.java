@@ -25,6 +25,7 @@ import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 
@@ -66,7 +67,6 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
 
 
     public static PwmLogEvent fromEncodedString( final String encodedString )
-            throws ClassNotFoundException, IOException
     {
         return JsonFactory.get().deserialize( encodedString, PwmLogEvent.class );
     }
@@ -170,38 +170,14 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
 
     private String getDebugLabel( )
     {
-        final StringBuilder sb = new StringBuilder();
-        final String sessionID = getSessionID();
-        final String username = getUsername();
-
-        if ( StringUtil.notEmpty( sessionID ) )
-        {
-            sb.append( sessionID );
-        }
-        if ( StringUtil.notEmpty( domain ) )
-        {
-            if ( sb.length() > 0 )
-            {
-                sb.append( ',' );
-            }
-            sb.append( domain );
-        }
-        if ( StringUtil.notEmpty( username ) )
-        {
-            if ( sb.length() > 0 )
-            {
-                sb.append( ',' );
-            }
-            sb.append( username );
-        }
-
-        if ( sb.length() > 0 )
-        {
-            sb.insert( 0, "{" );
-            sb.append( "} " );
-        }
-
-        return sb.toString();
+        return SessionLabel.builder()
+                .sessionID( getSessionID() )
+                .requestID( getRequestID() )
+                .username( getUsername() )
+                .sourceAddress( getSourceAddress() )
+                .domain( getDomain() )
+                .build()
+                .toDebugLabel();
     }
 
     public String toLogString( )
@@ -212,9 +188,9 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
     public String toCsvLine( ) throws IOException
     {
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( byteArrayOutputStream );
+        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( byteArrayOutputStream );
         final List<String> dataRow = new ArrayList<>();
-        dataRow.add( JavaHelper.toIsoDate( getTimestamp() ) );
+        dataRow.add( StringUtil.toIsoDate( getTimestamp() ) );
         dataRow.add( getLevel().name() );
         dataRow.add( getSourceAddress( ) == null ? "" : getSourceAddress() );
         dataRow.add( getSessionID() == null ? "" : getSessionID() );

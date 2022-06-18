@@ -21,34 +21,31 @@
 package password.pwm.util.debug;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmConstants;
 import password.pwm.config.AppConfig;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 
+import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Properties;
+import java.util.Map;
 
 class AppPropertiesItemGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
     {
-        return "appProperties.properties";
+        return "appProperties.json";
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException
     {
-
         final AppConfig config = debugItemInput.getObfuscatedAppConfig();
-        final Properties outputProps = JavaHelper.newSortedProperties();
-
-        for ( final AppProperty appProperty : AppProperty.values() )
-        {
-            outputProps.put( appProperty.getKey(), config.readAppProperty( appProperty ) );
-        }
-
-        outputStream.write( JsonFactory.get().serializeMap( outputProps ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+        final Map<AppProperty, String> appPropertyMap = config.readAllAppProperties();
+        final Map<String, String> stringMap = CollectionUtil.enumMapToStringMap( appPropertyMap, AppProperty::getKey );
+        final String json = JsonFactory.get().serializeMap( stringMap, JsonProvider.Flag.PrettyPrint );
+        DebugItemGenerator.writeString( outputStream, json );
     }
 }

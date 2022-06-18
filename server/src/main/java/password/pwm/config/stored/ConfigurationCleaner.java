@@ -22,6 +22,7 @@ package password.pwm.config.stored;
 
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingTemplateSet;
@@ -112,7 +113,7 @@ public class ConfigurationCleaner
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( () -> "error converting deprecated AD password policy setting: " + key + ", error: " + e.getMessage() );
+                LOGGER.error( SessionLabel.SYSTEM_LABEL, () -> "error converting deprecated AD password policy setting: " + key + ", error: " + e.getMessage() );
             }
         }
     }
@@ -138,7 +139,7 @@ public class ConfigurationCleaner
                                 : new StringValue( RecoveryMinLifetimeOption.ALLOW.name() );
                         final Optional<ValueMetaData> existingData = oldConfig.readSettingMetadata( key );
                         final UserIdentity newActor = existingData.map( ValueMetaData::getUserIdentity ).orElse( null );
-                        LOGGER.info( () -> "converting deprecated non-default setting "
+                        LOGGER.info( SessionLabel.SYSTEM_LABEL, () -> "converting deprecated non-default setting "
                                 + PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ) + "/" + profileID
                                 + " to replacement setting " + PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE )
                                 + ", value="
@@ -164,7 +165,7 @@ public class ConfigurationCleaner
                 final StoredConfigKey existingPubWebservicesKey = StoredConfigKey.forSetting( PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES, null, domainID );
                 if ( oldConfig.readStoredValue( existingPubWebservicesKey ).isPresent() )
                 {
-                    LOGGER.info( () -> "converting deprecated non-default setting "
+                    LOGGER.info( SessionLabel.SYSTEM_LABEL, () -> "converting deprecated non-default setting "
                             + PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE )
                             + " to replacement setting " + PwmSetting.WEBSERVICES_PUBLIC_ENABLE.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ) );
                     final StoredConfigKey existingPubEnableKey = StoredConfigKey.forSetting( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, null, domainID );
@@ -212,7 +213,7 @@ public class ConfigurationCleaner
 
             for ( final String destProfile : targetProfiles )
             {
-                LOGGER.info( () -> "moving setting " + key.toString() + " without profile attribute to profile \"" + destProfile + "\"." );
+                LOGGER.info( () -> "moving setting " + key + " without profile attribute to profile \"" + destProfile + "\"." );
                 {
                     try
                     {
@@ -221,7 +222,7 @@ public class ConfigurationCleaner
                     }
                     catch ( final PwmUnrecoverableException e )
                     {
-                        LOGGER.warn( () -> "error moving setting " + pwmSetting.getKey() + " without profile attribute to profile \"" + destProfile
+                        LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "error moving setting " + pwmSetting.getKey() + " without profile attribute to profile \"" + destProfile
                                 + "\", error: " + e.getMessage() );
                     }
                 }
@@ -229,12 +230,12 @@ public class ConfigurationCleaner
 
             try
             {
-                LOGGER.info( () -> "removing setting " + key.toString() + " without profile" );
+                LOGGER.info( SessionLabel.SYSTEM_LABEL, () -> "removing setting " + key + " without profile" );
                 modifier.deleteKey( key );
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.warn( () -> "error deleting setting " + pwmSetting.getKey() + " after adding profile settings: " + e.getMessage() );
+                LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "error deleting setting " + pwmSetting.getKey() + " after adding profile settings: " + e.getMessage() );
             }
         }
     }
@@ -265,12 +266,12 @@ public class ConfigurationCleaner
         {
             try
             {
-                LOGGER.info( () -> "removing setting " + key.toString() + " with non-existing profileID" );
+                LOGGER.info( SessionLabel.SYSTEM_LABEL, () -> "removing setting " + key.toString() + " with non-existing profileID" );
                 modifier.deleteKey( key );
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.warn( () -> "error deleting setting " + key.toString() + " with non-existing profileID: " + e.getMessage() );
+                LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "error deleting setting " + key.toString() + " with non-existing profileID: " + e.getMessage() );
             }
         }
     }
@@ -301,12 +302,12 @@ public class ConfigurationCleaner
             try
             {
                 final StoredValue value = inputConfig.readStoredValue( key ).orElseThrow();
-                LOGGER.info( () -> "removing setting " + key.toString() + " with default value: " + value.toDebugString( PwmConstants.DEFAULT_LOCALE ) );
+                LOGGER.info( SessionLabel.SYSTEM_LABEL, () -> "removing setting " + key.toString() + " with default value: " + value.toDebugString( PwmConstants.DEFAULT_LOCALE ) );
                 modifier.deleteKey( key );
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.warn( () -> "error deleting setting " + key.toString() + " with default value: " + e.getMessage() );
+                LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "error deleting setting " + key.toString() + " with default value: " + e.getMessage() );
             }
         }
     }

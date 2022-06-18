@@ -25,6 +25,7 @@ import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.http.PwmRequest;
+import password.pwm.util.secure.X509CertInfo;
 import password.pwm.util.secure.X509Utils;
 
 import java.io.Serializable;
@@ -42,7 +43,6 @@ public class X509CertViewerFunction implements SettingUIFunction
             final StoredConfigKey key,
             final String extraData
     )
-            throws Exception
     {
         final List<Map<String, String>> certificateInfos = makeCertDebugMap( key, modifier );
         return ( Serializable ) certificateInfos;
@@ -62,7 +62,7 @@ public class X509CertViewerFunction implements SettingUIFunction
         final List<X509Certificate> values = ( ( X509CertificateValue ) storedValue ).asX509Certificates();
 
         return values.stream()
-                .map( cert -> X509Utils.makeDebugInfoMap( cert, X509Utils.DebugInfoFlag.IncludeCertificateDetail ) )
+                .map( cert -> X509CertInfo.makeDebugInfoMap( cert, X509Utils.DebugInfoFlag.IncludeCertificateDetail ) )
                 .collect( Collectors.toUnmodifiableList() );
     }
 }

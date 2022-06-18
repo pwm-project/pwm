@@ -289,8 +289,8 @@ public class OAuthMachine
                     .certificates( CollectionUtil.isEmpty( certs ) ? null : certs )
                     .maskBodyDebugOutput( true )
                     .build();
-            final PwmHttpClient pwmHttpClient = pwmRequest.getPwmDomain().getHttpClientService().getPwmHttpClient( config );
-            pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, pwmRequest.getLabel() );
+            final PwmHttpClient pwmHttpClient = pwmRequest.getClientConnectionHolder().getPwmHttpClient( config );
+            pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest );
         }
         catch ( final PwmException e )
         {
@@ -383,7 +383,7 @@ public class OAuthMachine
                 if ( resolveResults.getExpiresSeconds() > 0 )
                 {
                     final Instant accessTokenExpirationDate = Instant.ofEpochMilli( System.currentTimeMillis() + 1000 * resolveResults.getExpiresSeconds() );
-                    LOGGER.trace( sessionLabel, () -> "noted oauth access token expiration at timestamp " + JavaHelper.toIsoDate( accessTokenExpirationDate ) );
+                    LOGGER.trace( sessionLabel, () -> "noted oauth access token expiration at timestamp " + StringUtil.toIsoDate( accessTokenExpirationDate ) );
                     loginInfoBean.setOauthExp( accessTokenExpirationDate );
                     loginInfoBean.setOauthRefToken( resolveResults.getRefreshToken() );
                     return false;
@@ -395,7 +395,7 @@ public class OAuthMachine
             LOGGER.error( sessionLabel, () -> "error while processing oauth token refresh: " + e.getMessage() );
         }
         LOGGER.error( sessionLabel, () -> "unable to refresh oauth token for user, unauthenticated session" );
-        pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
+        pwmRequest.getPwmSession().unAuthenticateUser( pwmRequest );
         return true;
     }
 

@@ -24,6 +24,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.svc.PwmService;
+import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 
@@ -31,11 +32,16 @@ import java.io.Serializable;
 @Builder( toBuilder = true )
 public class SessionLabel implements Serializable
 {
-    public static final String SESSION_LABEL_SESSION_ID = "#";
-    public static final SessionLabel SYSTEM_LABEL = SessionLabel.builder().sessionID( SESSION_LABEL_SESSION_ID ).username( PwmConstants.PWM_APP_NAME ).build();
-    public static final SessionLabel TEST_SESSION_LABEL = SessionLabel.builder().sessionID( SESSION_LABEL_SESSION_ID ).username( "test" ).build();
-    public static final SessionLabel CLI_SESSION_LABEL = SessionLabel.builder().sessionID( SESSION_LABEL_SESSION_ID ).username( "cli" ).build();
-    public static final SessionLabel CONTEXT_SESSION_LABEL = SessionLabel.builder().sessionID( SESSION_LABEL_SESSION_ID ).username( "context" ).build();
+    private static final String SYSTEM_LABEL_SESSION_ID = "#";
+    private static final String RUNTIME_LABEL_SESSION_ID = "#";
+
+    public static final SessionLabel SYSTEM_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( PwmConstants.PWM_APP_NAME ).build();
+    public static final SessionLabel RUNTIME_LABEL = SessionLabel.builder().sessionID( RUNTIME_LABEL_SESSION_ID ).username( "internal" ).build();
+    public static final SessionLabel TEST_SESSION_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "test" ).build();
+    public static final SessionLabel CLI_SESSION_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "cli" ).build();
+    public static final SessionLabel CONTEXT_SESSION_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "context" ).build();
+    public static final SessionLabel ONEJAR_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "onejar" ).build();
+
 
     private final String sessionID;
     private final String requestID;
@@ -49,9 +55,46 @@ public class SessionLabel implements Serializable
     public static SessionLabel forPwmService( final PwmService pwmService, final DomainID domainID )
     {
         return SessionLabel.builder()
-                .sessionID( SESSION_LABEL_SESSION_ID )
+                .sessionID( SYSTEM_LABEL_SESSION_ID )
                 .username( pwmService.getClass().getSimpleName() )
                 .domain( domainID.stringValue() )
                 .build();
     }
+
+    public String toDebugLabel( )
+    {
+        final StringBuilder sb = new StringBuilder();
+        final String sessionID = getSessionID();
+        final String username = getUsername();
+
+        if ( StringUtil.notEmpty( sessionID ) )
+        {
+            sb.append( sessionID );
+        }
+        if ( StringUtil.notEmpty( domain ) )
+        {
+            if ( sb.length() > 0 )
+            {
+                sb.append( ',' );
+            }
+            sb.append( domain );
+        }
+        if ( StringUtil.notEmpty( username ) )
+        {
+            if ( sb.length() > 0 )
+            {
+                sb.append( ',' );
+            }
+            sb.append( username );
+        }
+
+        if ( sb.length() > 0 )
+        {
+            sb.insert( 0, "{" );
+            sb.append( "} " );
+        }
+
+        return sb.toString();
+    }
+
 }

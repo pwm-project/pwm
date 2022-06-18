@@ -39,16 +39,18 @@ import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.intruder.IntruderServiceClient;
+import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
@@ -117,7 +119,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
                     return;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( action.get() );
+                    MiscUtil.unhandledSwitchStatement( action.get() );
             }
         }
 
@@ -325,7 +327,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
 
         final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), sessionLabel, userInfo, null );
 
-        pwmDomain.getPwmApplication().sendSmsUsingQueue( toNumber, smsMessage, sessionLabel, macroRequest );
+        SmsQueueService.sendSmsUsingQueue( pwmDomain.getPwmApplication(), toNumber, smsMessage, sessionLabel, macroRequest );
         return null;
     }
 

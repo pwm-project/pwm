@@ -20,8 +20,6 @@
 
 package password.pwm.util.java;
 
-import password.pwm.PwmConstants;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -30,7 +28,8 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * A thread-safe wrapper for {@link java.text.SimpleDateFormat}.  This class exists to prevent SimpleDateFormat from being used anywhere without proper synchronization.
+ * A thread-safe wrapper for {@link java.text.SimpleDateFormat}.  This class exists to prevent SimpleDateFormat from being used anywhere
+ * without proper synchronization.
  */
 public class PwmDateFormat
 {
@@ -45,11 +44,6 @@ public class PwmDateFormat
         this.timeZone = (TimeZone) timeZone.clone();
     }
 
-    public static PwmDateFormat newPwmDateFormat( final String formatString )
-    {
-        return new PwmDateFormat( formatString, PwmConstants.DEFAULT_LOCALE, PwmConstants.DEFAULT_TIMEZONE );
-    }
-
     public static PwmDateFormat newPwmDateFormat( final String formatString, final Locale locale, final TimeZone timeZone )
     {
         return new PwmDateFormat( formatString, locale, timeZone );
@@ -58,13 +52,13 @@ public class PwmDateFormat
     public static String format( final String formatString, final Instant date )
             throws IllegalArgumentException, NullPointerException
     {
-        return newPwmDateFormat( formatString ).format( date );
+        return MiscUtil.newPwmDateFormat( formatString ).format( date );
     }
 
     public static Instant parse( final String formatString, final String input )
             throws ParseException, IllegalArgumentException, NullPointerException
     {
-        return newPwmDateFormat( formatString ).parse( input );
+        return MiscUtil.newPwmDateFormat( formatString ).parse( input );
     }
 
     private SimpleDateFormat newSimpleDateFormat()

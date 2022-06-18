@@ -69,7 +69,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter
                 {
                     try
                     {
-                        LOGGER.error( () -> e.getMessage() );
+                        LOGGER.error( e::getMessage );
                     }
                     catch ( final Exception ignore )
                     {
@@ -141,6 +141,8 @@ public class ApplicationModeFilter extends AbstractPwmFilter
         if ( !PwmConstants.TRIAL_MODE )
         {
             final Set<PwmServletDefinition> permittedServlets = Set.of(
+                    PwmServletDefinition.ConfigEditor,
+                    PwmServletDefinition.ConfigManager_Login,
                     PwmServletDefinition.ConfigManager,
                     PwmServletDefinition.ConfigGuide,
                     PwmServletDefinition.PublicCommand,

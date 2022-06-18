@@ -28,8 +28,8 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Value;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.PeopleSearchProfile;
@@ -49,11 +49,11 @@ import password.pwm.http.servlet.peoplesearch.bean.SearchResultBean;
 import password.pwm.http.servlet.peoplesearch.bean.UserDetailBean;
 import password.pwm.http.servlet.peoplesearch.bean.UserReferenceBean;
 import password.pwm.i18n.Display;
-import password.pwm.ldap.permission.UserPermissionUtility;
-import password.pwm.ldap.PhotoDataBean;
-import password.pwm.ldap.UserInfo;
+import password.pwm.bean.PhotoDataBean;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.permission.UserPermissionType;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.ldap.search.UserSearchResults;
@@ -64,10 +64,11 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
+import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
@@ -637,7 +638,7 @@ class PeopleSearchDataReader
         }
         finally
         {
-            LOGGER.trace( pwmRequest, () -> "completed checkIfUserViewable for " + userIdentity.toDisplayString() + " in ", () -> TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( pwmRequest, () -> "completed checkIfUserViewable for " + userIdentity.toDisplayString() + " in ", TimeDuration.fromCurrent( startTime ) );
         }
     }
 
@@ -700,7 +701,7 @@ class PeopleSearchDataReader
         final boolean useProxy = useProxy();
         return useProxy
                 ? pwmRequest.getPwmDomain().getProxiedChaiUser( pwmRequest.getLabel(), userIdentity )
-                : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
+                : pwmRequest.getClientConnectionHolder().getActor( userIdentity );
     }
 
     private UserSearchResults doDetailLookup(
@@ -814,7 +815,7 @@ class PeopleSearchDataReader
                 Display.class,
                 new String[]
                         {
-                                String.valueOf( results.getResults().size() ), searchDuration.asLongString( pwmRequest.getLocale() ),
+                                String.valueOf( results.getResults().size() ), PwmTimeUtil.asLongString( searchDuration, pwmRequest.getLocale() ),
                         }
         );
 
@@ -839,7 +840,7 @@ class PeopleSearchDataReader
         if ( !useProxy() )
         {
             builder.ldapProfile( pwmRequest.getPwmSession().getUserInfo().getUserIdentity().getLdapProfileID() );
-            builder.chaiProvider( pwmRequest.getPwmSession().getSessionManager().getChaiProvider() );
+            builder.chaiProvider( pwmRequest.getClientConnectionHolder().getActorChaiProvider() );
         }
 
         final SearchRequestBean.SearchMode searchMode = searchRequest.getMode() == null
@@ -885,7 +886,7 @@ class PeopleSearchDataReader
             break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( searchMode );
+                MiscUtil.unhandledSwitchStatement( searchMode );
         }
 
         return Optional.of( builder.build() );

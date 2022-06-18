@@ -63,6 +63,8 @@ import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.json.JsonProvider;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
@@ -170,7 +172,7 @@ public class AdminServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
+        if ( !pwmRequest.checkPermission( Permission.PWMADMIN ) )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED );
             pwmRequest.respondWithError( errorInformation );
@@ -344,7 +346,7 @@ public class AdminServlet extends ControlledPwmServlet
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
+        if ( !pwmRequest.checkPermission( Permission.PWMADMIN ) )
         {
             LOGGER.info( pwmRequest, () -> "unable to execute clear intruder records" );
             return ProcessStatus.Halt;
@@ -478,7 +480,7 @@ public class AdminServlet extends ControlledPwmServlet
                 iterator.hasNext()
                         && records.size() < max
                         && TimeDuration.fromCurrent( startTime ).isShorterThan( maxSearchTime )
-                )
+        )
         {
             final AuditRecord loopRecord = iterator.next();
             if ( auditDataType == loopRecord.getType() )
@@ -723,7 +725,10 @@ public class AdminServlet extends ControlledPwmServlet
             if ( pwNotifyStoredJobState.getLastStart() != null && pwNotifyStoredJobState.getLastCompletion() != null )
             {
                 statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
-                        "Last Job Duration", TimeDuration.between( pwNotifyStoredJobState.getLastStart(), pwNotifyStoredJobState.getLastCompletion() ).asLongString( locale ) ) );
+                        "Last Job Duration", PwmTimeUtil.asLongString(
+                        TimeDuration.between(
+                                pwNotifyStoredJobState.getLastStart(),
+                                pwNotifyStoredJobState.getLastCompletion() ), locale ) ) );
             }
 
             if ( StringUtil.notEmpty( pwNotifyStoredJobState.getServerInstance() ) )
@@ -886,7 +891,7 @@ public class AdminServlet extends ControlledPwmServlet
             }
             writer = new OutputStreamWriter( compressedStream, PwmConstants.DEFAULT_CHARSET );
         }
-        
+
         switch ( logDownloadType )
         {
             case plain:
@@ -916,7 +921,7 @@ public class AdminServlet extends ControlledPwmServlet
             break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( logDownloadType );
+                MiscUtil.unhandledSwitchStatement( logDownloadType );
 
         }
 

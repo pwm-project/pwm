@@ -27,6 +27,7 @@ import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.LdapPermissionCalculator;
 
 import java.util.List;
 
@@ -38,8 +39,8 @@ public class LDAPPermissionCalculatorTest
     {
         final StoredConfiguration defaultConfig = StoredConfigurationFactory.newConfig();
         final DomainConfig domainConfig = new AppConfig( defaultConfig ).getDomainConfigs().values().stream().findFirst().orElseThrow();
-        final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( domainConfig );
-        final List<LDAPPermissionCalculator.PermissionRecord> records = ldapPermissionCalculator.getPermissionRecords();
+        final LdapPermissionCalculator ldapPermissionCalculator = new LdapPermissionCalculator( domainConfig );
+        final List<LdapPermissionCalculator.PermissionRecord> records = ldapPermissionCalculator.getPermissionRecords();
         Assert.assertFalse( records.isEmpty() );
     }
 }

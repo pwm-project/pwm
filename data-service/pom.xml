@@ -2,7 +2,7 @@
 
     <parent>
         <groupId>org.pwm-project</groupId>
-        <artifactId>pwm-parent</artifactId>
+        <artifactId>pwm</artifactId>
         <version>2.1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -24,9 +24,17 @@
         <skipTests>false</skipTests>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <skipDocker>false</skipDocker>
     </properties>
 
     <profiles>
+        <profile>
+            <id>skip-docker</id>
+            <properties>
+                <skipDocker>true</skipDocker>
+                <dockerImageTag>pwm/pwm-data-service</dockerImageTag>
+            </properties>
+        </profile>
     </profiles>
 
     <build>
@@ -85,7 +93,53 @@
             </plugin>
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.0</version>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <id>make-docker-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>buildTar</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skipDocker}</skip>
+                            <from>
+                                <image>tomcat:9.0-jdk17-temurin</image>
+                            </from>
+                            <to>
+                                <image>pwm/pwm-data-service</image>
+                                <tags>
+                                    <tag>${project.version}</tag>
+                                    <tag>latest</tag>
+                                </tags>
+                            </to>
+                            <outputPaths>
+                                <tar>target/pwm-data-service-docker-image-${project.version}.tar</tar>
+                            </outputPaths>
+                            <container>
+                                <appRoot>/usr/local/tomcat/webapps/ROOT</appRoot>
+                                <jvmFlags>
+                                    <jvmFlag>-server</jvmFlag>
+                                    <jvmFlag>-Xmx512m</jvmFlag>
+                                </jvmFlags>
+                                <environment>
+                                    <DATA_SERVICE_PROPS>/config/data-service.properties</DATA_SERVICE_PROPS>
+                                </environment>
+                                <creationTime>${git.commit.time}</creationTime>
+                                <filesModificationTime>${git.commit.time}</filesModificationTime>
+                                <volumes>
+                                    <volume>/config</volume>
+                                </volumes>
+                            </container>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -96,10 +150,23 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>pwm-lib-data</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>pwm-lib-util</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>pwm-server</artifactId>
             <version>${project.version}</version>
             <type>jar</type>
         </dependency>
+
 
 
         <!-- container dependencies -->
@@ -143,9 +210,9 @@
             <version>4.5.13</version>
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
+            <groupId>ch.qos.reload4j</groupId>
+            <artifactId>reload4j</artifactId>
+            <version>1.2.21</version>
         </dependency>
         <dependency>
             <groupId>org.jdom</groupId>
@@ -155,12 +222,12 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.8.9</version>
+            <version>2.9.0</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.xodus</groupId>
             <artifactId>xodus-environment</artifactId>
-            <version>1.3.232</version>
+            <version>2.0.1</version>
         </dependency>
     </dependencies>
 </project>

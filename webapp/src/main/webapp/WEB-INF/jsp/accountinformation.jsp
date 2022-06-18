@@ -33,6 +33,7 @@
 <%@ page import="password.pwm.http.servlet.accountinfo.AccountInformationBean" %>
 <%@ page import="password.pwm.http.bean.DisplayElement" %>
 <%@ page import="password.pwm.util.java.CollectionUtil" %>
+<%@ page import="password.pwm.util.java.MiscUtil" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -103,7 +104,7 @@
                         <tr>
                             <td class="key" style="width:50%">
                             <span class="timestamp">
-                            <%= JavaHelper.toIsoDate(record.getTimestamp()) %>
+                            <%= StringUtil.toIsoDate(record.getTimestamp()) %>
                             </span>
                             </td>
                             <td>

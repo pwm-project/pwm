@@ -33,6 +33,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
@@ -43,6 +44,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
@@ -63,6 +65,7 @@ class MoshiJsonAdaptors
         moshiBuilder.add( LongAdder.class, applyFlagsToAdapter( new LongAdderTypeAdaptor(), flags ) );
         moshiBuilder.add( BigInteger.class, applyFlagsToAdapter( new BigIntegerTypeAdaptor(), flags ) );
         moshiBuilder.add( Locale.class, applyFlagsToAdapter( new LocaleTypeAdaptor(), flags ) );
+        moshiBuilder.add( TimeDuration.class, applyFlagsToAdapter( new TimeDurationAdaptor(), flags ) );
     }
 
     static <T> JsonAdapter<T> applyFlagsToAdapter( final JsonAdapter<T> adapter, final JsonProvider.Flag... flags )
@@ -114,7 +117,7 @@ class MoshiJsonAdaptors
                 return;
             }
 
-            writer.jsonValue( JavaHelper.toIsoDate( value ) );
+            writer.jsonValue( StringUtil.toIsoDate( value ) );
         }
     }
 
@@ -373,6 +376,33 @@ class MoshiJsonAdaptors
             }
 
             writer.value( value.toString() );
+        }
+    }
+
+    private static class TimeDurationAdaptor extends JsonAdapter<TimeDuration>
+    {
+        @Nullable
+        @Override
+        public TimeDuration fromJson( final JsonReader reader ) throws IOException
+        {
+            final String strValue = reader.nextString();
+            if ( StringUtil.isEmpty( strValue ) )
+            {
+                return null;
+            }
+            return TimeDuration.fromDuration( Duration.parse( strValue ) );
+        }
+
+        @Override
+        public void toJson( final JsonWriter writer, @Nullable final TimeDuration value ) throws IOException
+        {
+            if ( value == null )
+            {
+                writer.nullValue();
+                return;
+            }
+
+            writer.value( value.asDuration().toString() );
         }
     }
 }

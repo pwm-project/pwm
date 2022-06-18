@@ -29,6 +29,7 @@ import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
@@ -174,7 +175,7 @@ public class PasswordValue implements StoredValue
         }
         catch ( final Exception e )
         {
-            throw new RuntimeException( "missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage() );
+            throw new PwmInternalException( "missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage() );
         }
         return Collections.singletonList( valueElement );
     }

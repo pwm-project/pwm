@@ -55,11 +55,8 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.SecureEngine;
 
-import java.io.StringWriter;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -114,7 +111,7 @@ public class DomainConfig implements SettingReader
                 ) ) );
 
         this.ldapProfiles = makeLdapProfileMap( this );
-        this.domainSecurityKey = makeDomainSecurityKey( this );
+        this.domainSecurityKey = makeDomainSecurityKey( appConfig, settingReader.getValueHash() );
     }
 
     public AppConfig getAppConfig()
@@ -412,23 +409,15 @@ public class DomainConfig implements SettingReader
                         Map.Entry::getValue ) ) );
     }
 
-    private static PwmSecurityKey makeDomainSecurityKey( final DomainConfig domainConfig )
-            throws PwmInternalException
+    private static PwmSecurityKey makeDomainSecurityKey(
+            final AppConfig appConfig,
+            final String valueHash
+    )
     {
         try
         {
-            final StringWriter keyData = new StringWriter();
-            keyData.append( domainConfig.getDomainID().stringValue() );
-            CollectionUtil.iteratorToStream( domainConfig.getStoredConfiguration().keys() )
-                    .filter( key -> Objects.equals( key.getDomainID(), domainConfig.getDomainID() ) )
-                    .sorted()
-                    .map( s -> domainConfig.getStoredConfiguration().readStoredValue( s ) )
-                    .flatMap( Optional::stream )
-                    .forEach( value -> keyData.append( value.valueHash() ) );
-
-            final String hashedData = SecureEngine.hash( keyData.toString(), PwmHashAlgorithm.SHA512 );
-            final PwmSecurityKey domainKey = new PwmSecurityKey( hashedData );
-            return domainConfig.getAppConfig().getSecurityKey().add( domainKey );
+            final PwmSecurityKey domainKey = new PwmSecurityKey( valueHash );
+            return appConfig.getSecurityKey().add( domainKey );
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -436,4 +425,9 @@ public class DomainConfig implements SettingReader
         }
     }
 
+    @Override
+    public String getValueHash()
+    {
+        return settingReader.getValueHash();
+    }
 }

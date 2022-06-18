@@ -52,12 +52,14 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -134,8 +136,8 @@ public class LDAPHealthChecker implements HealthSupplier
                 final long cautionDurationMS = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.HEALTH_LDAP_CAUTION_DURATION_MS ) );
                 if ( errorAge.isShorterThan( cautionDurationMS ) )
                 {
-                    final String ageString = errorAge.asLongString();
-                    final String errorDate = JavaHelper.toIsoDate( errorInfo.getDate() );
+                    final String ageString = PwmTimeUtil.asLongString( errorAge );
+                    final String errorDate = StringUtil.toIsoDate( errorInfo.getDate() );
                     final String errorMsg = errorInfo.toDebugStr();
                     returnRecords.add( HealthRecord.forMessage(
                             pwmDomain.getDomainID(),
@@ -553,7 +555,7 @@ public class LDAPHealthChecker implements HealthSupplier
                                 pwmDomain.getDomainID(),
                                 HealthMessage.LDAP_ProxyUserPwExpired,
                                 adminEntry.getEntryDN(),
-                                expirationDuration.asLongString( PwmConstants.DEFAULT_LOCALE )
+                                PwmTimeUtil.asLongString( expirationDuration, PwmConstants.DEFAULT_LOCALE )
                         ) );
                     }
                 }
@@ -754,7 +756,7 @@ public class LDAPHealthChecker implements HealthSupplier
         }
 
         final ArrayList<HealthRecord> healthRecords = new ArrayList<>();
-        final Set<DirectoryVendor> discoveredVendors = CollectionUtil.copiedEnumSet( replicaVendorMap.values(), DirectoryVendor.class );
+        final Set<DirectoryVendor> discoveredVendors = CollectionUtil.copyToEnumSet( replicaVendorMap.values(), DirectoryVendor.class );
 
         if ( discoveredVendors.size() >= 2 )
         {
@@ -773,7 +775,7 @@ public class LDAPHealthChecker implements HealthSupplier
             // cache the error
             healthProperties.put( HealthService.HealthMonitorFlag.LdapVendorSameCheck, healthRecords );
 
-            LOGGER.warn( sessionLabel, () -> "multiple ldap vendors found: " + vendorMsg.toString() );
+            LOGGER.warn( sessionLabel, () -> "multiple ldap vendors found: " + vendorMsg );
         }
         else if ( discoveredVendors.size() == 1 )
         {
@@ -848,7 +850,7 @@ public class LDAPHealthChecker implements HealthSupplier
         {
             errorReachingServer = true;
             LOGGER.error( sessionLabel,
-                    () ->  "error during ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") check: " + e.getMessage() );
+                    () -> "error during ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") check: " + e.getMessage() );
         }
 
         if ( !errorReachingServer && pwmDomain.getPwmApplication().getHealthMonitor() != null )
@@ -901,7 +903,7 @@ public class LDAPHealthChecker implements HealthSupplier
             {
                 if ( !pwmSetting.isHidden()
                         && pwmSetting.getCategory() == PwmSettingCategory.LDAP_PROFILE
-                        && pwmSetting.getFlags().contains( PwmSettingFlag.ldapDNsyntax )
+                        && pwmSetting.getFlags().contains( PwmSettingFlag.ldapDnSyntax )
                 )
                 {
                     for ( final String profile : config.getLdapProfiles().keySet() )
@@ -1061,7 +1063,7 @@ public class LDAPHealthChecker implements HealthSupplier
                     HealthRecord.forMessage(
                             pwmDomain.getDomainID(),
                             HealthMessage.LDAP_SearchFailure,
-                            "user search time of " + timeDuration.asLongString() + " exceeded ideal of " + warnDuration.asLongString(  )
+                            "user search time of " + PwmTimeUtil.asLongString( timeDuration ) + " exceeded ideal of " + PwmTimeUtil.asLongString( warnDuration )
                     ) );
         }
 
@@ -1159,7 +1161,7 @@ public class LDAPHealthChecker implements HealthSupplier
                 break;
 
                 default:
-                    JavaHelper.unhandledSwitchStatement( userPermission.getType() );
+                    MiscUtil.unhandledSwitchStatement( userPermission.getType() );
             }
         }
         return returnList;

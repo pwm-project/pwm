@@ -28,15 +28,16 @@ import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.DebugOutputBuilder;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
@@ -68,7 +69,7 @@ public class DebugItemGenerator
             RootFileSystemDebugItemGenerator.class,
             StatisticsDataDebugItemGenerator.class,
             StatisticsEpsDataDebugItemGenerator.class,
-            BuildInformationDebugItemGenerator.class );
+            BuildManifestDebugItemGenerator.class );
 
     private static final List<Class<? extends DomainItemGenerator>> DOMAIN_ITEM_GENERATORS = List.of(
             LDAPPermissionItemGenerator.class,
@@ -136,7 +137,7 @@ public class DebugItemGenerator
         {
             final String msg = "completed";
             debugGeneratorLogFile.appendLine( msg );
-            LOGGER.trace( sessionLabel, () -> msg, () ->  TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( sessionLabel, () -> msg, TimeDuration.fromCurrent( startTime ) );
         }
 
         try
@@ -177,12 +178,10 @@ public class DebugItemGenerator
         }
         catch ( final Throwable e )
         {
-            final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e.toString();
+            final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e;
             LOGGER.error( sessionLabel, () -> errorMsg, e );
             debugGeneratorLogFile.appendLine( errorMsg );
-            final Writer stackTraceOutput = new StringWriter();
-            e.printStackTrace( new PrintWriter( stackTraceOutput ) );
-            debugGeneratorLogFile.appendLine( stackTraceOutput.toString() );
+            debugGeneratorLogFile.appendLine( JavaHelper.stackTraceToString( e ) );
         }
     }
 
@@ -211,15 +210,23 @@ public class DebugItemGenerator
         }
         catch ( final Throwable e )
         {
-            final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e.toString();
+            final String errorMsg = "unexpected error executing debug item output class '" + serviceClass.getName() + "', error: " + e;
             LOGGER.error( sessionLabel, () -> errorMsg, e );
             debugGeneratorLogFile.appendLine( errorMsg );
-            final Writer stackTraceOutput = new StringWriter();
-            e.printStackTrace( new PrintWriter( stackTraceOutput ) );
-            debugGeneratorLogFile.appendLine( stackTraceOutput.toString() );
+            debugGeneratorLogFile.appendLine( JavaHelper.stackTraceToString( e ) );
         }
 
     }
 
-
+    static void writeString( final OutputStream outputStream, final String value )
+    {
+        try
+        {
+            outputStream.write( value.getBytes( StandardCharsets.UTF_8 ) );
+        }
+        catch ( final IOException e )
+        {
+            throw new PwmInternalException( "i/o error writing to zipOutputStream: " + e.getMessage() );
+        }
+    }
 }

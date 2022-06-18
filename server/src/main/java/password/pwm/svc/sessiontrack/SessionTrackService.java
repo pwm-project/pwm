@@ -35,11 +35,11 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Admin;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
@@ -82,7 +82,7 @@ public class SessionTrackService extends AbstractPwmService implements PwmServic
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         pwmSessions.clear();
     }
@@ -196,7 +196,7 @@ public class SessionTrackService extends AbstractPwmService implements PwmServic
             )
             throws IOException
     {
-        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
         {
             final List<String> headerRow = new ArrayList<>();
             headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_Label, config ) );
@@ -220,8 +220,8 @@ public class SessionTrackService extends AbstractPwmService implements PwmServic
             final SessionStateInfoBean info = debugInfos.next();
             final List<String> dataRow = new ArrayList<>();
             dataRow.add( info.getLabel() );
-            dataRow.add( JavaHelper.toIsoDate( info.getCreateTime() ) );
-            dataRow.add( JavaHelper.toIsoDate( info.getLastTime() ) );
+            dataRow.add( StringUtil.toIsoDate( info.getCreateTime() ) );
+            dataRow.add( StringUtil.toIsoDate( info.getLastTime() ) );
             dataRow.add( info.getIdle() );
             dataRow.add( info.getSrcAddress() );
             dataRow.add( info.getSrcHost() );
@@ -273,7 +273,7 @@ public class SessionTrackService extends AbstractPwmService implements PwmServic
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( () -> "unexpected error reading username: " + e.getMessage(), e );
+                LOGGER.error( loopSession.getLabel(), () -> "unexpected error reading username: " + e.getMessage(), e );
             }
         }
 

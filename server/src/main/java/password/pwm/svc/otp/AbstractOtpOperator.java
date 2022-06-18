@@ -75,7 +75,7 @@ public abstract class AbstractOtpOperator implements OtpOperator
                     value = OTPPamUtil.composePamData( otpUserRecord );
                     break;
                 default:
-                    final String errorStr = String.format( "Unsupported storage format: %s", format.toString() );
+                    final String errorStr = String.format( "Unsupported storage format: %s", format );
                     final ErrorInformation error = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorStr );
                     throw new PwmUnrecoverableException( error );
             }

@@ -87,14 +87,7 @@ public class PasscodeGenerator
      */
     public PasscodeGenerator( final Mac mac, final int passCodeLength, final int interval )
     {
-        this( new Signer()
-        {
-            @Override
-            public byte[] sign( final byte[] data )
-            {
-                return mac.doFinal( data );
-            }
-        }, passCodeLength, interval );
+        this( mac::doFinal, passCodeLength, interval );
     }
 
     public PasscodeGenerator( final Signer signer, final int passCodeLength, final int interval )

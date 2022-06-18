@@ -30,7 +30,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.PwmService;
@@ -42,6 +42,7 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -55,10 +56,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PwNotifyEngine
@@ -77,7 +75,7 @@ public class PwNotifyEngine
 
     private final ConditionalTaskExecutor debugOutputTask = ConditionalTaskExecutor.forPeriodicTask(
             this::periodicDebugOutput,
-            TimeDuration.MINUTE
+            TimeDuration.MINUTE.asDuration()
     );
 
     private final AtomicInteger examinedCount = new AtomicInteger( 0 );
@@ -344,7 +342,7 @@ public class PwNotifyEngine
 
     private void log( final String output )
     {
-        final String msg = JavaHelper.toIsoDate( Instant.now() )
+        final String msg = StringUtil.toIsoDate( Instant.now() )
                 + " "
                 + output
                 + "\n";
@@ -381,16 +379,10 @@ public class PwNotifyEngine
 
     private ThreadPoolExecutor createExecutor( final PwmDomain pwmDomain )
     {
-        final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( pwmDomain.getPwmApplication(), this.getClass() ), true );
-        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-                1,
+        return PwmScheduler.makeMultiThreadExecutor(
                 10,
-                1,
-                TimeUnit.MINUTES,
-                new LinkedBlockingDeque<>(),
-                threadFactory
-        );
-        threadPoolExecutor.allowCoreThreadTimeOut( true );
-        return threadPoolExecutor;
+                pwmDomain.getPwmApplication(),
+                pwNotifyService.getSessionLabel(),
+                PwNotifyEngine.class );
     }
 }

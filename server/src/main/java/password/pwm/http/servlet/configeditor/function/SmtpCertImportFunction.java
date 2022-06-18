@@ -48,7 +48,7 @@ public class SmtpCertImportFunction implements SettingUIFunction
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final String profile = key.getProfileID();
 
-        final List<X509Certificate> certs = EmailServerUtil.readCertificates( pwmRequest.getAppConfig(), profile );
+        final List<X509Certificate> certs = EmailServerUtil.readCertificates( pwmRequest.getAppConfig(), profile, pwmRequest.getLabel() );
         if ( !CollectionUtil.isEmpty( certs ) )
         {
             final UserIdentity userIdentity = pwmSession.isAuthenticated() ? pwmSession.getUserInfo().getUserIdentity() : null;

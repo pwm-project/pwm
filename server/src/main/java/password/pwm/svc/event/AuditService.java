@@ -45,7 +45,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
@@ -93,13 +93,13 @@ public class AuditService extends AbstractPwmService implements PwmService
 
         if ( pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
         {
-            LOGGER.warn( () -> "unable to start - Application is in read-only mode" );
+            LOGGER.warn( getSessionLabel(), () -> "unable to start - Application is in read-only mode" );
             return STATUS.CLOSED;
         }
 
         if ( pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN )
         {
-            LOGGER.warn( () -> "unable to start - LocalDB is not available" );
+            LOGGER.warn( getSessionLabel(), () -> "unable to start - LocalDB is not available" );
             return STATUS.CLOSED;
         }
 
@@ -108,7 +108,7 @@ public class AuditService extends AbstractPwmService implements PwmService
         {
             try
             {
-                syslogManager = new SyslogAuditService( pwmApplication );
+                syslogManager = new SyslogAuditService( pwmApplication, getSessionLabel() );
             }
             catch ( final Exception e )
             {
@@ -118,13 +118,13 @@ public class AuditService extends AbstractPwmService implements PwmService
         }
 
         auditVault = new LocalDbAuditVault();
-        auditVault.init( pwmApplication, pwmApplication.getLocalDB(), settings );
+        auditVault.init( pwmApplication, getSessionLabel(), pwmApplication.getLocalDB(), settings );
 
         return STATUS.OPEN;
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         if ( syslogManager != null )
         {
@@ -182,7 +182,7 @@ public class AuditService extends AbstractPwmService implements PwmService
                 break;
 
             default:
-                JavaHelper.unhandledSwitchStatement( record.getEventCode().getType() );
+                MiscUtil.unhandledSwitchStatement( record.getEventCode().getType() );
 
         }
     }
@@ -327,10 +327,10 @@ public class AuditService extends AbstractPwmService implements PwmService
     {
         final AppConfig config = getPwmApplication().getConfig();
 
-        final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
 
         csvPrinter.printComment( " " + PwmConstants.PWM_APP_NAME + " audit record output " );
-        csvPrinter.printComment( " " + JavaHelper.toIsoDate( Instant.now() ) );
+        csvPrinter.printComment( " " + StringUtil.toIsoDate( Instant.now() ) );
 
         if ( includeHeader )
         {
@@ -360,7 +360,7 @@ public class AuditService extends AbstractPwmService implements PwmService
             final List<String> lineOutput = new ArrayList<>();
             lineOutput.add( loopRecord.getEventCode().getType().toString() );
             lineOutput.add( loopRecord.getEventCode().toString() );
-            lineOutput.add( JavaHelper.toIsoDate( loopRecord.getTimestamp() ) );
+            lineOutput.add( StringUtil.toIsoDate( loopRecord.getTimestamp() ) );
             lineOutput.add( loopRecord.getGuid() );
             lineOutput.add( loopRecord.getMessage() == null ? "" : loopRecord.getMessage() );
             if ( loopRecord instanceof SystemAuditRecord )

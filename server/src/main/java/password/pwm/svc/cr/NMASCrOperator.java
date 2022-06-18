@@ -77,9 +77,10 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.util.PasswordData;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.security.auth.callback.Callback;
@@ -109,29 +110,29 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.TreeMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class NMASCrOperator implements CrOperator
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( NMASCrOperator.class );
 
     private final AtomicLoopIntIncrementer threadCounter = new AtomicLoopIntIncrementer();
-    private final List<NMASSessionThread> sessionMonitorThreads = Collections.synchronizedList( new ArrayList<NMASSessionThread>() );
+    private final List<NMASSessionThread> sessionMonitorThreads = Collections.synchronizedList( new ArrayList<>() );
     private final PwmDomain pwmDomain;
     private final TimeDuration maxThreadIdleTime;
     private final int maxThreadCount;
 
 
-    private volatile Timer timer;
+    private volatile ScheduledExecutorService executorService;
 
     private Provider saslProvider;
 
     private static final Map<String, Object> CR_OPTIONS_MAP = Map.of(
-                "com.novell.security.sasl.client.pkgs", "com.novell.sasl.client",
-                "javax.security.sasl.client.pkgs", "com.novell.sasl.client",
-                "LoginSequence", "Challenge Response" );
+            "com.novell.security.sasl.client.pkgs", "com.novell.sasl.client",
+            "javax.security.sasl.client.pkgs", "com.novell.sasl.client",
+            "LoginSequence", "Challenge Response" );
 
     public NMASCrOperator( final PwmDomain pwmDomain )
     {
@@ -162,18 +163,20 @@ public class NMASCrOperator implements CrOperator
         {
             if ( forceRegistration )
             {
-                LOGGER.warn( () -> "SASL provider '" + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + "' is already defined, however forcing registration due to app property "
+                LOGGER.warn( pwmDomain.getSessionLabel(), () -> "SASL provider '" + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME
+                        + "' is already defined, however forcing registration due to app property "
                         + AppProperty.NMAS_FORCE_SASL_FACTORY_REGISTRATION.getKey() + " value" );
             }
             else
             {
-                LOGGER.warn( () -> "SASL provider '" + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + "' is already defined, skipping SASL factory registration" );
+                LOGGER.warn( pwmDomain.getSessionLabel(), () -> "SASL provider '" + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME
+                        + "' is already defined, skipping SASL factory registration" );
                 return;
             }
         }
         else
         {
-            LOGGER.trace( () -> "pre-existing SASL provider for " + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + " has not been detected" );
+            LOGGER.trace( pwmDomain.getSessionLabel(), () -> "pre-existing SASL provider for " + NMASCrPwmSaslProvider.SASL_PROVIDER_NAME + " has not been detected" );
         }
 
         final boolean useLocalProvider = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.NMAS_USE_LOCAL_SASL_FACTORY ) );
@@ -182,19 +185,19 @@ public class NMASCrOperator implements CrOperator
         {
             if ( useLocalProvider )
             {
-                LOGGER.trace( () -> "registering built-in local SASL provider" );
+                LOGGER.trace( pwmDomain.getSessionLabel(), () -> "registering built-in local SASL provider" );
                 saslProvider = new NMASCrPwmSaslProvider();
             }
             else
             {
-                LOGGER.trace( () -> "registering NMAS library SASL provider" );
+                LOGGER.trace( pwmDomain.getSessionLabel(), () -> "registering NMAS library SASL provider" );
                 saslProvider = new com.novell.sasl.client.NovellSaslProvider();
             }
-            LOGGER.trace( () -> "initialized security provider " + saslProvider.getClass().getName() );
+            LOGGER.trace( pwmDomain.getSessionLabel(), () -> "initialized security provider " + saslProvider.getClass().getName() );
         }
         catch ( final Throwable t )
         {
-            LOGGER.warn( () -> "unable to create SASL provider, error: " + t.getMessage(), t );
+            LOGGER.warn( pwmDomain.getSessionLabel(), () -> "unable to create SASL provider, error: " + t.getMessage(), t );
         }
 
         if ( saslProvider != null )
@@ -205,7 +208,7 @@ public class NMASCrOperator implements CrOperator
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( () -> "error registering security provider" );
+                LOGGER.warn( pwmDomain.getSessionLabel(), () -> "error registering security provider" );
             }
         }
     }
@@ -232,23 +235,26 @@ public class NMASCrOperator implements CrOperator
         {
             if ( sessionMonitorThreads.isEmpty() )
             {
-                final Timer localTimer = timer;
+                final ScheduledExecutorService localTimer = executorService;
                 if ( localTimer != null )
                 {
-                    LOGGER.debug( () -> "discontinuing NMASCrOperator watchdog timer, no active threads" );
-                    localTimer.cancel();
-                    timer = null;
+                    LOGGER.debug( pwmDomain.getSessionLabel(), () -> "discontinuing NMASCrOperator watchdog timer, no active threads" );
+                    localTimer.shutdown();
+                    executorService = null;
                 }
             }
             else
             {
-                if ( timer == null )
+                if ( executorService == null )
                 {
-                    LOGGER.debug( () -> "starting NMASCrOperator watchdog timer, maxIdleThreadTime=" + maxThreadIdleTime.asCompactString() );
-                    timer = new Timer( PwmConstants.PWM_APP_NAME + "-NMASCrOperator watchdog timer", true );
+                    LOGGER.debug( pwmDomain.getSessionLabel(), () -> "starting NMASCrOperator watchdog timer, maxIdleThreadTime=" + maxThreadIdleTime.asCompactString() );
+                    executorService = PwmScheduler.makeBackgroundServiceExecutor(
+                            pwmDomain.getPwmApplication(),
+                            pwmDomain.getSessionLabel(),
+                            NMASCrOperator.class, "watchdog-timer" );
                     final long frequency = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.NMAS_THREADS_WATCHDOG_FREQUENCY ) );
                     final boolean debugOutput = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.NMAS_THREADS_WATCHDOG_DEBUG ) );
-                    timer.schedule( new ThreadWatchdogTask( debugOutput ), frequency, frequency );
+                    executorService.scheduleAtFixedRate( new ThreadWatchdogTask( debugOutput ), frequency, frequency, TimeUnit.MILLISECONDS );
                 }
             }
         }
@@ -285,7 +291,7 @@ public class NMASCrOperator implements CrOperator
                 return Optional.empty();
             }
 
-            final ResponseSet responseSet = new NMASCRResponseSet( pwmDomain, userIdentity );
+            final ResponseSet responseSet = new NMASCRResponseSet( pwmDomain, userIdentity, sessionLabel );
             if ( responseSet.getChallengeSet() == null )
             {
                 return Optional.empty();
@@ -441,17 +447,23 @@ public class NMASCrOperator implements CrOperator
     {
         private final PwmDomain pwmDomain;
         private final UserIdentity userIdentity;
+        private final SessionLabel sessionLabel;
 
         private final ChaiConfiguration chaiConfiguration;
         private ChallengeSet challengeSet;
         private transient NMASResponseSession ldapChallengeSession;
         boolean passed;
 
-        private NMASCRResponseSet( final PwmDomain pwmDomain, final UserIdentity userIdentity )
+        private NMASCRResponseSet(
+                final PwmDomain pwmDomain,
+                final UserIdentity userIdentity,
+                final SessionLabel sessionLabel
+        )
                 throws Exception
         {
             this.pwmDomain = pwmDomain;
             this.userIdentity = userIdentity;
+            this.sessionLabel = sessionLabel;
 
             final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
 
@@ -477,7 +489,7 @@ public class NMASCrOperator implements CrOperator
                 ldapChallengeSession = null;
             }
             final LDAPConnection ldapConnection = makeLdapConnection();
-            ldapChallengeSession = new NMASResponseSession( userIdentity.getUserDN(), ldapConnection );
+            ldapChallengeSession = new NMASResponseSession( userIdentity.getUserDN(), ldapConnection, sessionLabel );
             final List<String> questions = ldapChallengeSession.getQuestions();
             challengeSet = questionsToChallengeSet( questions );
         }
@@ -491,7 +503,7 @@ public class NMASCrOperator implements CrOperator
             {
                 if ( theUser.isPasswordLocked() )
                 {
-                    LOGGER.trace( () -> "user " + theUser.getEntryDN() + " appears to be intruder locked, aborting nmas ResponseSet loading" );
+                    LOGGER.trace( sessionLabel, () -> "user " + theUser.getEntryDN() + " appears to be intruder locked, aborting nmas ResponseSet loading" );
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTRUDER_LDAP, "nmas account is intruder locked-out" ) );
                 }
                 else if ( !theUser.isAccountEnabled() )
@@ -527,7 +539,7 @@ public class NMASCrOperator implements CrOperator
         {
             if ( challengeSet.getRequiredChallenges().size() > this.getChallengeSet().getRequiredChallenges().size() )
             {
-                LOGGER.debug( () -> "failed meetsChallengeSetRequirements, not enough required challenge" );
+                LOGGER.debug( sessionLabel, () -> "failed meetsChallengeSetRequirements, not enough required challenge" );
                 return false;
             }
 
@@ -537,7 +549,7 @@ public class NMASCrOperator implements CrOperator
                 {
                     if ( !this.getChallengeSet().getChallengeTexts().contains( loopChallenge.getChallengeText() ) )
                     {
-                        LOGGER.debug( () -> "failed meetsChallengeSetRequirements, missing required challenge text: '" + loopChallenge.getChallengeText() + "'" );
+                        LOGGER.debug( sessionLabel, () -> "failed meetsChallengeSetRequirements, missing required challenge text: '" + loopChallenge.getChallengeText() + "'" );
                         return false;
                     }
                 }
@@ -548,7 +560,7 @@ public class NMASCrOperator implements CrOperator
                 if ( this.getChallengeSet().getChallenges().size() < challengeSet.getMinRandomRequired() )
                 {
                     final int challengesInSet = challengeSet.getChallenges().size();
-                    LOGGER.debug( () -> "failed meetsChallengeSetRequirements, not enough questions to meet minrandom; minRandomRequired="
+                    LOGGER.debug( sessionLabel, () -> "failed meetsChallengeSetRequirements, not enough questions to meet minrandom; minRandomRequired="
                             + challengeSet.getMinRandomRequired() + ", ChallengesInSet=" + challengesInSet );
                     return false;
                 }
@@ -589,7 +601,7 @@ public class NMASCrOperator implements CrOperator
             }
             catch ( final Exception e )
             {
-                LOGGER.error( () -> "error testing responses: " + e.getMessage() );
+                LOGGER.error( sessionLabel, () -> "error testing responses: " + e.getMessage() );
             }
             if ( !passed )
             {
@@ -606,7 +618,7 @@ public class NMASCrOperator implements CrOperator
                 catch ( final PwmException e )
                 {
                     final String errorMsg = "error reading next challenges after testing responses: " + e.getMessage();
-                    LOGGER.error( () -> "error reading next challenges after testing responses: " + e.getMessage() );
+                    LOGGER.error( sessionLabel, () -> "error reading next challenges after testing responses: " + e.getMessage() );
                     final ChaiUnavailableException chaiUnavailableException = new ChaiUnavailableException( errorMsg, ChaiError.UNKNOWN );
                     chaiUnavailableException.initCause( e );
                     throw chaiUnavailableException;
@@ -614,7 +626,7 @@ public class NMASCrOperator implements CrOperator
                 catch ( final Exception e )
                 {
                     final String errorMsg = "error reading next challenges after testing responses: " + e.getMessage();
-                    LOGGER.error( () -> "error reading next challenges after testing responses: " + e.getMessage() );
+                    LOGGER.error( sessionLabel, () -> "error reading next challenges after testing responses: " + e.getMessage() );
                     throw new ChaiUnavailableException( errorMsg, ChaiError.UNKNOWN );
                 }
             }
@@ -658,20 +670,28 @@ public class NMASCrOperator implements CrOperator
 
     private class NMASResponseSession
     {
+        private static final boolean COMPLETE_ON_UNSUPPORTED_FAILURE = false;
 
         private LDAPConnection ldapConnection;
         private final GenLcmUI lcmEnv;
-        private NMASSessionThread nmasSessionThread;
-        private boolean completeOnUnsupportedFailure = false;
+        private final NMASSessionThread nmasSessionThread;
+        private final SessionLabel sessionLabel;
 
-        NMASResponseSession( final String userDN, final LDAPConnection ldapConnection ) throws LCMRegistryException, PwmUnrecoverableException
+        NMASResponseSession(
+                final String userDN,
+                final LDAPConnection ldapConnection,
+                final SessionLabel sessionLabel
+        )
+                throws LCMRegistryException, PwmUnrecoverableException
         {
             this.ldapConnection = ldapConnection;
+            this.sessionLabel = sessionLabel;
+
             lcmEnv = new GenLcmUI();
             final GenLCMRegistry lcmRegistry = new GenLCMRegistry();
             lcmRegistry.registerLcm( "com.novell.security.nmas.lcm.chalresp.XmlChalRespLCM" );
 
-            nmasSessionThread = new NMASSessionThread( this );
+            nmasSessionThread = new NMASSessionThread( this, sessionLabel );
             final ChalRespCallbackHandler cbh = new ChalRespCallbackHandler( lcmEnv, lcmRegistry );
             nmasSessionThread.startLogin( userDN, ldapConnection, cbh );
         }
@@ -717,7 +737,7 @@ public class NMASCrOperator implements CrOperator
                 }
                 catch ( final LDAPException e )
                 {
-                    LOGGER.error( () -> "error closing ldap connection: " + e.getMessage(), e );
+                    LOGGER.error( sessionLabel, () -> "error closing ldap connection: " + e.getMessage(), e );
                 }
                 this.ldapConnection = null;
             }
@@ -740,41 +760,41 @@ public class NMASCrOperator implements CrOperator
                 for ( final Callback callback : callbacks )
                 {
                     final String callbackClassname = callback.getClass().getName();
-                    LOGGER.trace( () -> "evaluating callback: " + callback.toString() + ", class=" + callbackClassname );
+                    LOGGER.trace( () -> "evaluating callback: " + callback + ", class=" + callbackClassname );
 
                     // note in some cases instanceof check fails due to classloader issues, using getName string comparison instead
                     if ( NMASCompletionCallback.class.getName().equals( callbackClassname ) )
                     {
-                        LOGGER.trace( () -> "received NMASCompletionCallback, ignoring" );
+                        LOGGER.trace( sessionLabel, () -> "received NMASCompletionCallback, ignoring" );
                     }
                     else if ( NMASCallback.class.getName().equals( callbackClassname ) )
                     {
-                        LOGGER.trace( () -> "callback is instance of NMASCompletionCallback, calling handleNMASCallback()" );
+                        LOGGER.trace( sessionLabel, () -> "callback is instance of NMASCompletionCallback, calling handleNMASCallback()" );
                         try
                         {
                             handleNMASCallback( ( NMASCallback ) callback );
                         }
                         catch ( final com.novell.security.nmas.client.InvalidNMASCallbackException e )
                         {
-                            LOGGER.error( () -> "error processing NMASCallback: " + e.getMessage(), e );
+                            LOGGER.error( sessionLabel, () -> "error processing NMASCallback: " + e.getMessage(), e );
                         }
                     }
                     else if ( LCMUserPromptCallback.class.getName().equals( callbackClassname ) )
                     {
-                        LOGGER.trace( () -> "callback is instance of LCMUserPromptCallback, calling handleLCMUserPromptCallback()" );
+                        LOGGER.trace( sessionLabel, () -> "callback is instance of LCMUserPromptCallback, calling handleLCMUserPromptCallback()" );
                         try
                         {
                             handleLCMUserPromptCallback( ( LCMUserPromptCallback ) callback );
                         }
                         catch ( final LCMUserPromptException e )
                         {
-                            LOGGER.error( () -> "error processing LCMUserPromptCallback: " + e.getMessage(), e );
+                            LOGGER.error( sessionLabel, () -> "error processing LCMUserPromptCallback: " + e.getMessage(), e );
                         }
                     }
                     else
                     {
                         unsupportedCallbackHasOccurred = true;
-                        LOGGER.trace( () -> "throwing UnsupportedCallbackException for " + callback.toString() + ", class=" + callback.getClass().getName() );
+                        LOGGER.trace( sessionLabel, () -> "throwing UnsupportedCallbackException for " + callback + ", class=" + callback.getClass().getName() );
                         throw new UnsupportedCallbackException( callback );
                     }
                 }
@@ -787,9 +807,9 @@ public class NMASCrOperator implements CrOperator
                 Instant lastLogTime = Instant.now();
                 while ( !done && TimeDuration.fromCurrent( startTime ).isShorterThan( maxThreadIdleTime ) )
                 {
-                    LOGGER.trace( () -> "attempt to read return code, but isNmasDone=false, will await completion" );
+                    LOGGER.trace( sessionLabel, () -> "attempt to read return code, but isNmasDone=false, will await completion" );
                     TimeDuration.of( 10, TimeDuration.Unit.SECONDS ).pause();
-                    if ( completeOnUnsupportedFailure )
+                    if ( COMPLETE_ON_UNSUPPORTED_FAILURE )
                     {
                         done = unsupportedCallbackHasOccurred || this.isNmasDone();
                     }
@@ -799,12 +819,12 @@ public class NMASCrOperator implements CrOperator
                     }
                     if ( TimeDuration.SECOND.isLongerThan( TimeDuration.fromCurrent( lastLogTime ) ) )
                     {
-                        LOGGER.trace( () -> "waiting for return code: " + TimeDuration.fromCurrent( startTime ).asCompactString()
+                        LOGGER.trace( sessionLabel, () -> "waiting for return code: " + TimeDuration.fromCurrent( startTime ).asCompactString()
                                 + " unsupportedCallbackHasOccurred=" + unsupportedCallbackHasOccurred );
                         lastLogTime = Instant.now();
                     }
                 }
-                LOGGER.debug( () -> "read return code in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
+                LOGGER.debug( sessionLabel, () -> "read return code in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
                 return this.getNmasRetCode();
             }
         }
@@ -825,13 +845,20 @@ public class NMASCrOperator implements CrOperator
         private volatile NMASResponseSession.ChalRespCallbackHandler callbackHandler = null;
         private volatile LDAPConnection ldapConn = null;
         private volatile String loginDN = null;
+
         private final NMASResponseSession nmasResponseSession;
+        private final SessionLabel sessionLabel;
 
         private final int threadID;
 
-        NMASSessionThread( final NMASResponseSession nmasResponseSession )
+        NMASSessionThread(
+                final NMASResponseSession nmasResponseSession,
+                final SessionLabel sessionLabel
+                )
         {
             this.nmasResponseSession = nmasResponseSession;
+            this.sessionLabel = sessionLabel;
+
             this.threadID = threadCounter.next();
             setLoginState( NMASThreadState.NEW );
         }
@@ -905,7 +932,7 @@ public class NMASCrOperator implements CrOperator
         {
             try
             {
-                LOGGER.trace( () -> "starting NMASSessionThread, activeCount=" + sessionMonitorThreads.size() + ", " + this.toDebugString() );
+                LOGGER.trace( sessionLabel, () -> "starting NMASSessionThread, activeCount=" + sessionMonitorThreads.size() + ", " + this.toDebugString() );
                 sessionMonitorThreads.add( this );
                 controlWatchdogThread();
                 doLoginSequence();
@@ -914,7 +941,7 @@ public class NMASCrOperator implements CrOperator
             {
                 sessionMonitorThreads.remove( this );
                 controlWatchdogThread();
-                LOGGER.trace( () -> "exiting NMASSessionThread, activeCount=" + sessionMonitorThreads.size() + ", " + this.toDebugString() );
+                LOGGER.trace( sessionLabel, () -> "exiting NMASSessionThread, activeCount=" + sessionMonitorThreads.size() + ", " + this.toDebugString() );
             }
         }
 
@@ -953,7 +980,7 @@ public class NMASCrOperator implements CrOperator
                 }
                 catch ( final NullPointerException e )
                 {
-                    LOGGER.error( () -> "NullPointer error during CallBackHandler-NMASCR-bind; "
+                    LOGGER.error( sessionLabel, () -> "NullPointer error during CallBackHandler-NMASCR-bind; "
                             + "this is usually the result of an ldap disconnection, thread=" + this.toDebugString() );
                     this.setLoginState( NMASThreadState.ABORTED );
                     return;
@@ -979,11 +1006,11 @@ public class NMASCrOperator implements CrOperator
                 final String ldapErrorMessage = e.getLDAPErrorMessage();
                 if ( ldapErrorMessage != null )
                 {
-                    LOGGER.error( () -> "NMASLoginMonitor: LDAP error (" + ldapErrorMessage + ")" );
+                    LOGGER.error( sessionLabel, () -> "NMASLoginMonitor: LDAP error (" + ldapErrorMessage + ")" );
                 }
                 else
                 {
-                    LOGGER.error( () -> "NMASLoginMonitor: LDAPException " + e.toString() );
+                    LOGGER.error( sessionLabel, () -> "NMASLoginMonitor: LDAPException " + e );
                 }
                 setLoginState( NMASThreadState.COMPLETED );
                 final com.novell.security.nmas.client.NMASLoginResult localNMASLoginResult
@@ -1013,7 +1040,7 @@ public class NMASCrOperator implements CrOperator
             }
             catch ( final Exception e )
             {
-                LOGGER.trace( () -> "error during NMASResponseSession abort: " + e.getMessage() );
+                LOGGER.trace( sessionLabel, () -> "error during NMASResponseSession abort: " + e.getMessage() );
             }
         }
 
@@ -1030,7 +1057,7 @@ public class NMASCrOperator implements CrOperator
         }
     }
 
-    private class ThreadWatchdogTask extends TimerTask
+    private class ThreadWatchdogTask implements Runnable
     {
 
         private final boolean debugOutput;
@@ -1071,7 +1098,7 @@ public class NMASCrOperator implements CrOperator
             {
                 threadDebugInfo.append( "\n " ).append( thread.toDebugString() );
             }
-            LOGGER.trace( () -> threadDebugInfo.toString() );
+            LOGGER.trace( threadDebugInfo::toString );
         }
 
     }
@@ -1156,7 +1183,7 @@ public class NMASCrOperator implements CrOperator
         {
             final String className = "com.novell.sasl.client.ClientFactory";
             final ClassLoader threadLocalClassLoader = Thread.currentThread().getContextClassLoader();
-            final Class threadLocalClass = threadLocalClassLoader.loadClass( className );
+            final Class<?> threadLocalClass = threadLocalClassLoader.loadClass( className );
             return ( SaslClientFactory ) threadLocalClass.getDeclaredConstructor().newInstance();
         }
 

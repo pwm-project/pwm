@@ -378,7 +378,7 @@ public class ClientApiServlet extends ControlledPwmServlet
                 );
                 if ( StringUtil.notEmpty( configuredGuideText ) )
                 {
-                    final MacroRequest macroRequest = pwmSession.getSessionManager().getMacroMachine();
+                    final MacroRequest macroRequest = pwmRequest.getMacroMachine();
                     final String expandedText = macroRequest.expandMacros( configuredGuideText );
                     settingMap.put( "passwordGuideText", expandedText );
                 }
@@ -452,7 +452,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         final ResourceBundle bundle = ResourceBundle.getBundle( displayClass.getName() );
         try
         {
-            final MacroRequest macroRequest = pwmSession.getSessionManager().getMacroMachine( );
+            final MacroRequest macroRequest = pwmRequest.getMacroMachine();
             for ( final String key : new TreeSet<>( Collections.list( bundle.getKeys() ) ) )
             {
                 String displayValue = LocaleHelper.getLocalizedMessage( userLocale, key, config, displayClass );
@@ -507,7 +507,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         }
 
         final String body = pwmRequest.readRequestBodyAsString();
-        LOGGER.trace( () -> body );
+        LOGGER.trace( pwmRequest, () -> body );
         return ProcessStatus.Halt;
     }
 
@@ -534,7 +534,7 @@ public class ClientApiServlet extends ControlledPwmServlet
                 throw new PwmUnrecoverableException( errorInformation );
             }
 
-            if ( !pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
+            if ( !pwmRequest.checkPermission( Permission.PWMADMIN ) )
             {
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED, "admin privileges required" );
                 throw new PwmUnrecoverableException( errorInformation );

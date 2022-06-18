@@ -47,12 +47,10 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsBundle;
 import password.pwm.svc.stats.StatisticsService;
-import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -70,14 +68,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 public class TelemetryService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( TelemetryService.class );
 
-    private ExecutorService executorService;
     private Settings settings;
 
     private Instant lastPublishTime;
@@ -125,9 +121,7 @@ public class TelemetryService extends AbstractPwmService implements PwmService
 
         lastPublishTime = pwmApplication.readAppAttribute( AppAttribute.TELEMETRY_LAST_PUBLISH_TIMESTAMP, Instant.class )
                 .orElseGet( pwmApplication::getInstallTime );
-        LOGGER.trace( getSessionLabel(), () -> "last publish time was " + JavaHelper.toIsoDate( lastPublishTime ) );
-
-        executorService = PwmScheduler.makeBackgroundExecutor( pwmApplication, TelemetryService.class );
+        LOGGER.trace( getSessionLabel(), () -> "last publish time was " + StringUtil.toIsoDate( lastPublishTime ) );
 
         scheduleNextJob();
 
@@ -198,7 +192,7 @@ public class TelemetryService extends AbstractPwmService implements PwmService
     private void scheduleNextJob( )
     {
         final TimeDuration durationUntilNextPublish = durationUntilNextPublish();
-        getPwmApplication().getPwmScheduler().scheduleJob( new PublishJob(), executorService, durationUntilNextPublish );
+        getPwmApplication().getPwmScheduler().scheduleJob( new PublishJob(), getExecutorService(), durationUntilNextPublish );
         LOGGER.trace( getSessionLabel(), () -> "next publish time: " + durationUntilNextPublish().asCompactString() );
     }
 
@@ -223,7 +217,7 @@ public class TelemetryService extends AbstractPwmService implements PwmService
     }
 
     @Override
-    public void close( )
+    public void shutdownImpl( )
     {
 
     }
@@ -238,7 +232,7 @@ public class TelemetryService extends AbstractPwmService implements PwmService
     public ServiceInfoBean serviceInfo( )
     {
         final Map<String, String> debugMap = new LinkedHashMap<>();
-        debugMap.put( "lastPublishTime", JavaHelper.toIsoDate( lastPublishTime ) );
+        debugMap.put( "lastPublishTime", StringUtil.toIsoDate( lastPublishTime ) );
         if ( lastError != null )
         {
             debugMap.put( "lastError", lastError.toDebugStr() );

@@ -26,7 +26,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.i18n.Message;
-import password.pwm.util.ServletUtility;
+import password.pwm.http.ServletUtility;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.ws.server.RestResultBean;
 

@@ -36,6 +36,7 @@ import password.pwm.http.servlet.configeditor.data.NavTreeSettings;
 import password.pwm.ldap.PwmLdapVendor;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.secure.X509Utils;
@@ -43,7 +44,6 @@ import password.pwm.ws.server.RestResultBean;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
@@ -165,23 +165,18 @@ public class JsonProviderTest
     @Test
     public void serializeNestedListMap()
     {
-        {
-            final List<Map<String, Object>> srcObject = new ArrayList<>();
-            srcObject.add( Map.of( "key1", "value1" ) );
-            final String jsonOutput = instance.serializeCollection( srcObject );
-            Assert.assertEquals( "[{\"key1\":\"value1\"}]", jsonOutput );
-        }
+        final List<Map<String, Object>> srcObject = new ArrayList<>();
+        srcObject.add( Map.of( "key1", "value1" ) );
+        final String jsonOutput = instance.serializeCollection( srcObject );
+        Assert.assertEquals( "[{\"key1\":\"value1\"}]", jsonOutput );
     }
 
     @Test
     public void deserializeNestedListMap()
     {
-        {
 
-            final String srcJson = "[{\"key1\":\"value1\"}]";
-            //final List tempObj = instance.deserializeList( srcJson, List.class );
-
-        }
+        final String srcJson = "[{\"key1\":\"value1\"}]";
+        //final List tempObj = instance.deserializeList( srcJson, List.class );
 
     }
 
@@ -268,9 +263,23 @@ public class JsonProviderTest
         Assert.assertEquals( srcList, deserializedList );
     }
 
+    @Test
+    public void typeTimeDurationJsonTest()
+    {
+        {
+            final TimeDuration timeDuration = TimeDuration.MINUTE;
+            final String json = instance.serialize( timeDuration );
+            Assert.assertEquals( "\"PT1M\"", json );
+        }
+        {
+            final String json = "\"PT1M\"";
+            final TimeDuration timeDuration = instance.deserialize( json, TimeDuration.class );
+            Assert.assertEquals( TimeDuration.MINUTE, timeDuration );
+        }
+    }
+
     public static class TestObject1 implements Serializable
     {
-        static final BigDecimal VALUE_BIG_DECIMAL1 = new BigDecimal( "3.0404040400404040404040404040404" );
         static final X509Certificate VALUE_X509_CERT1;
         static final Date VALUE_DATE1 = Date.from( Instant.parse( "2000-01-01T01:01:01Z" ) );
         static final DomainID VALUE_DOMAINID1 = DomainID.create( "acme1" );
@@ -281,6 +290,7 @@ public class JsonProviderTest
         static final String VALUE_STRING1 = "stringValue1";
         static final PwmLogEvent VALUE_LOG_EVENT1;
         static final Locale VALUE_LOCALE1 = new Locale( "jp" );
+        static final TimeDuration VALUE_TIME_DURATION1 = TimeDuration.MINUTE;
 
         private static final String DATA_CERT1 = "MIIC1TCCAb2gAwIBAgIJAMIrQtIBUHNJMA0GCSqGSIb3DQEBBQUAMBoxGDAWBgNV"
                 + "BAMTD3d3dy5leGFtcGxlLmNvbTAeFw0yMTA5MDUyMTQ2NDlaFw0zMTA5MDMyMTQ2"
@@ -352,7 +362,8 @@ public class JsonProviderTest
                     + "\"logEvent1\":" + jsonProvider.serialize( VALUE_LOG_EVENT1, PwmLogEvent.class ) + ","
                     + "\"longAdder1\":9223372036854775807" + ","
                     + "\"passwordData1\":\"super-secret-password\"" + ","
-                    + "\"string1\":\"" + VALUE_STRING1 + "\""
+                    + "\"string1\":\"" + VALUE_STRING1 + "\"" + ","
+                    + "\"timeDuration1\":\"" + VALUE_TIME_DURATION1.asDuration().toString() + "\""
                     + "}";
         }
 
@@ -369,7 +380,8 @@ public class JsonProviderTest
                     VALUE_LONG_ADDER1,
                     VALUE_PASSWORD_DATA1,
                     VALUE_STRING1,
-                    VALUE_LOG_EVENT1 );
+                    VALUE_LOG_EVENT1,
+                    VALUE_TIME_DURATION1 );
         }
 
         private final X509Certificate certificate1;
@@ -382,6 +394,7 @@ public class JsonProviderTest
         private final LongAdder longAdder1;
         private final PasswordData passwordData1;
         private final String string1;
+        private final TimeDuration timeDuration1;
 
         @SuppressWarnings( "checkstyle:ParameterNumber" )
         public TestObject1(
@@ -394,7 +407,8 @@ public class JsonProviderTest
                 final LongAdder longAdder1,
                 final PasswordData passwordData1,
                 final String string1,
-                final PwmLogEvent logEvent1
+                final PwmLogEvent logEvent1,
+                final TimeDuration timeDuration
         )
         {
             this.certificate1 = certificate1;
@@ -407,6 +421,7 @@ public class JsonProviderTest
             this.passwordData1 = passwordData1;
             this.string1 = string1;
             this.logEvent1 = logEvent1;
+            this.timeDuration1 = timeDuration;
         }
 
         public X509Certificate getCertificate1()
@@ -459,6 +474,4 @@ public class JsonProviderTest
             return locale1;
         }
     }
-
 }
-

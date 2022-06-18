@@ -42,7 +42,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
@@ -367,7 +367,7 @@ public class UpdateProfileUtil
         // write values.
         LOGGER.info( sessionLabel, () -> "updating profile for " + userInfo.getUserIdentity() );
 
-        LdapOperationsHelper.writeFormValuesToLdap( theUser, formMap, macroRequest, false );
+        LdapOperationsHelper.writeFormValuesToLdap( sessionLabel, theUser, formMap, macroRequest, false );
 
         postUpdateActionsAndEmail( pwmDomain, sessionLabel, locale, userInfo.getUserIdentity(), updateProfileProfile );
 

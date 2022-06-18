@@ -34,6 +34,7 @@ import password.pwm.http.servlet.ClientApiServlet;
 import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
@@ -109,7 +110,7 @@ public enum PwmValue
             {
                 try
                 {
-                    final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+                    final MacroRequest macroRequest = pwmRequest.getMacroMachine();
                     outputURL = macroRequest.expandMacros( outputURL );
                 }
                 catch ( final PwmUnrecoverableException e )
@@ -152,7 +153,7 @@ public enum PwmValue
             {
                 try
                 {
-                    final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+                    final MacroRequest macroRequest = pwmRequest.getMacroMachine();
                     return macroRequest.expandMacros( customScript );
                 }
                 catch ( final Exception e )
@@ -214,7 +215,7 @@ public enum PwmValue
                 }
                 return output + LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_ConfigModeActive", pwmRequest.getDomainConfig(), Admin.class, fieldNames );
             }
-            else if ( pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
+            else if ( pwmRequest.checkPermission( Permission.PWMADMIN ) )
             {
                 return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_AdminUser", pwmRequest.getDomainConfig(), Admin.class, fieldNames );
             }
@@ -280,7 +281,7 @@ public enum PwmValue
         public String valueOutput( final PwmRequest pwmRequest, final PageContext pageContext )
                 throws PwmUnrecoverableException
         {
-            return IdleTimeoutCalculator.idleTimeoutForRequest( pwmRequest ).asLongString();
+            return PwmTimeUtil.asLongString( IdleTimeoutCalculator.idleTimeoutForRequest( pwmRequest ) );
         }
     }
 

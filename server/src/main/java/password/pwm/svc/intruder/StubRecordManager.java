@@ -64,27 +64,27 @@ class StubRecordManager implements IntruderRecordManager
     @Override
     public ClosableIterator<IntruderRecord> iterator( ) throws PwmOperationalException
     {
-        return new ClosableIterator<IntruderRecord>()
+        return new ClosableIterator<>()
         {
             @Override
-            public boolean hasNext( )
+            public boolean hasNext()
             {
                 return false;
             }
 
             @Override
-            public IntruderRecord next( )
+            public IntruderRecord next()
             {
                 throw new NoSuchElementException();
             }
 
             @Override
-            public void remove( )
+            public void remove()
             {
             }
 
             @Override
-            public void close( )
+            public void close()
             {
             }
         };

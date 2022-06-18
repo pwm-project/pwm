@@ -22,17 +22,19 @@ package password.pwm.util.cli.commands;
 
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.cli.CliParameters;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Collections;
 
 public class ConfigNewCommand extends AbstractCliCommand
 {
     @Override
     public void doCommand( )
-            throws Exception
+            throws IOException, PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newConfig();
 

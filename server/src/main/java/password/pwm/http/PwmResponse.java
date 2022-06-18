@@ -102,10 +102,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
     )
             throws ServletException, IOException, PwmUnrecoverableException
     {
-        if ( !pwmRequest.isFlag( PwmRequestFlag.NO_REQ_COUNTER ) )
-        {
-            pwmRequest.getPwmSession().getSessionManager().incrementRequestCounterKey();
-        }
+        incrementRequestCounterKey( pwmRequest );
 
         preCommitActions();
 
@@ -123,6 +120,19 @@ public class PwmResponse extends PwmHttpResponseWrapper
         servletContext.getRequestDispatcher( url ).forward( httpServletRequest, this.getHttpServletResponse() );
     }
 
+    private static void incrementRequestCounterKey( final PwmRequest pwmRequest )
+    {
+        if ( pwmRequest.isFlag( PwmRequestFlag.NO_REQ_COUNTER ) )
+        {
+            return;
+        }
+
+        final int nextCounter = pwmRequest.getPwmSession().getLoginInfoBean().getReqCounter() + 1;
+        pwmRequest.getPwmSession().getLoginInfoBean().setReqCounter( nextCounter );
+
+        LOGGER.trace( pwmRequest, () -> "incremented request counter to " + nextCounter );
+    }
+
     public void forwardToSuccessPage( final Message message, final String... field )
             throws ServletException, PwmUnrecoverableException, IOException
 
@@ -132,7 +142,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
     }
 
     public void forwardToSuccessPage( final String message, final Flag... flags )
-            throws ServletException, PwmUnrecoverableException, IOException
+            throws ServletException, IOException
 
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
@@ -157,7 +167,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.error( () -> "unexpected error sending user to success page: " + e.toString() );
+            LOGGER.error( () -> "unexpected error sending user to success page: " + e );
         }
     }
 
@@ -174,7 +184,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         if ( JavaHelper.enumArrayContainsValue( flags, Flag.ForceLogout ) )
         {
             LOGGER.debug( pwmRequest, () -> "forcing logout due to error " + errorInformation.toDebugStr() );
-            pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
+            pwmRequest.getPwmSession().unAuthenticateUser( pwmRequest );
         }
 
         if ( getResponseFlags().contains( PwmResponseFlag.ERROR_RESPONSE_SENT ) )
@@ -202,7 +212,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( () -> "unexpected error sending user to error page: " + e.toString() );
+                LOGGER.error( () -> "unexpected error sending user to error page: " + e );
             }
         }
         else

@@ -43,7 +43,7 @@ import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
-import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.data.ImmutableByteArray;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.i18n.Message;
@@ -57,6 +57,7 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -275,7 +276,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
                 return ProcessStatus.Halt;
 
             default:
-                JavaHelper.unhandledSwitchStatement( resetType );
+                MiscUtil.unhandledSwitchStatement( resetType );
 
         }
 
@@ -330,7 +331,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.error( pwmRequest, () -> e.getMessage() );
+            LOGGER.error( pwmRequest, e::getMessage );
             setLastError( pwmRequest, e.getErrorInformation() );
         }
 
@@ -358,7 +359,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             {
                 if ( !updateProfileBean.isAgreementPassed() )
                 {
-                    final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+                    final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
                     final String expandedText = macroRequest.expandMacros( updateProfileAgreementText );
                     pwmRequest.setAttribute( PwmRequestAttribute.AgreementText, expandedText );
                     pwmRequest.forwardToJsp( JspUrl.UPDATE_ATTRIBUTES_AGREEMENT );
@@ -400,7 +401,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( pwmRequest, () -> e.getMessage() );
+            LOGGER.error( pwmRequest, e::getMessage );
             setLastError( pwmRequest, e.getErrorInformation() );
             UpdateProfileUtil.forwardToForm( pwmRequest, updateProfileProfile, updateProfileBean );
             return;
@@ -423,13 +424,13 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         try
         {
             // write the form values
-            final ChaiUser theUser = pwmSession.getSessionManager().getActor( );
+            final ChaiUser theUser = pwmRequest.getClientConnectionHolder().getActor( );
             UpdateProfileUtil.doProfileUpdate(
                     pwmRequest.getPwmDomain(),
                     pwmRequest.getLabel(),
                     pwmRequest.getLocale(),
                     pwmSession.getUserInfo(),
-                    pwmSession.getSessionManager().getMacroMachine( ),
+                    pwmRequest.getMacroMachine( ),
                     updateProfileProfile,
                     updateProfileBean.getFormData(),
                     theUser
@@ -449,13 +450,13 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( pwmRequest, () -> e.getMessage() );
+            LOGGER.error( pwmRequest, e::getMessage );
             setLastError( pwmRequest, e.getErrorInformation() );
         }
         catch ( final ChaiException e )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UPDATE_ATTRS_FAILURE, e.toString() );
-            LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
+            LOGGER.error( pwmRequest, errorInformation::toDebugStr );
             setLastError( pwmRequest, errorInformation );
         }
 

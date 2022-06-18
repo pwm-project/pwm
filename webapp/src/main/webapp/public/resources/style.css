@@ -1023,6 +1023,16 @@ input[type=search] {
     padding-bottom: 10px;
 }
 
+.headerProgressBar {
+    width: 600px;
+    padding: 5px;
+    margin-top: 20px;
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    clear: both;
+}
+
 progress:not([value]) {
     width: 100%;
     height: 20px;

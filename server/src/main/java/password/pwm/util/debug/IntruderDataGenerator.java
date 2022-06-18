@@ -22,11 +22,13 @@ package password.pwm.util.debug;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.intruder.IntruderSystemService;
 import password.pwm.svc.intruder.PublicIntruderRecord;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.json.JsonFactory;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 class IntruderDataGenerator implements AppItemGenerator
@@ -38,7 +40,8 @@ class IntruderDataGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException, PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
         final IntruderSystemService service = pwmApplication.getIntruderSystemService();

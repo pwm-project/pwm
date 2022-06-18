@@ -29,8 +29,8 @@ import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserInfo;
-import password.pwm.ldap.UserInfoBean;
+import password.pwm.user.UserInfo;
+import password.pwm.user.UserInfoBean;
 import password.pwm.svc.otp.OTPUserRecord;
 import password.pwm.util.macro.MacroRequest;
 

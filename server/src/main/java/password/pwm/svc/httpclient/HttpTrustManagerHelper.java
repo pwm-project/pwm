@@ -25,7 +25,7 @@ import password.pwm.AppProperty;
 import password.pwm.config.AppConfig;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MiscUtil;
 import password.pwm.util.secure.CertificateReadingTrustManager;
 import password.pwm.util.secure.PromiscuousTrustManager;
 import password.pwm.util.secure.PwmHashAlgorithm;
@@ -109,7 +109,7 @@ class HttpTrustManagerHelper
             }
 
             default:
-                JavaHelper.unhandledSwitchStatement( trustManagerType );
+                MiscUtil.unhandledSwitchStatement( trustManagerType );
 
         }
 

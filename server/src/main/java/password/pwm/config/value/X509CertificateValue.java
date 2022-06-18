@@ -26,20 +26,15 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.SecureEngine;
+import password.pwm.util.secure.X509CertInfo;
 import password.pwm.util.secure.X509Utils;
 
-import java.io.ByteArrayInputStream;
 import java.io.Serializable;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -147,23 +142,11 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
         final int counter = 0;
         for ( final X509Certificate cert : certs.get() )
         {
-            sb.append( "Certificate " ).append( counter ).append( '\n' );
-            sb.append( " Subject: " ).append( cert.getSubjectDN().toString() ).append( '\n' );
-            sb.append( " Serial: " ).append( X509Utils.hexSerial( cert ) ).append( '\n' );
-            sb.append( " Issuer: " ).append( cert.getIssuerDN().toString() ).append( '\n' );
-            sb.append( " IssueDate: " ).append( JavaHelper.toIsoDate( cert.getNotBefore() ) ).append( '\n' );
-            sb.append( " ExpireDate: " ).append( JavaHelper.toIsoDate( cert.getNotAfter() ) ).append( '\n' );
-            try
+            sb.append( "Certificate " + counter + "\n" );
+            X509CertInfo.makeDebugInfoMap( cert ).forEach( ( key, value ) ->
             {
-                sb.append( " MD5 Hash: " ).append( SecureEngine.hash( new ByteArrayInputStream( cert.getEncoded() ),
-                        PwmHashAlgorithm.MD5 ) ).append( '\n' );
-                sb.append( " SHA1 Hash: " ).append( SecureEngine.hash( new ByteArrayInputStream( cert.getEncoded() ),
-                        PwmHashAlgorithm.SHA1 ) ).append( '\n' );
-            }
-            catch ( final PwmUnrecoverableException | CertificateEncodingException e )
-            {
-                LOGGER.warn( () -> "error generating hash for certificate: " + e.getMessage() );
-            }
+                sb.append( " " ).append( key ).append( ": " ).append( value ).append( "\n" );
+            } );
         }
         return sb.toString();
     }
@@ -181,14 +164,10 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
             return Collections.emptyList();
         }
 
-        final X509Utils.DebugInfoFlag[] flags = includeDetail
-                ? new X509Utils.DebugInfoFlag[]
-                {
-                        X509Utils.DebugInfoFlag.IncludeCertificateDetail,
-                }
-                : null;
+        return certs.get().stream()
+                .map( cert -> X509CertInfo.makeDebugInfoMap( cert, X509Utils.DebugInfoFlag.IncludeCertificateDetail ) )
+                .collect( Collectors.toUnmodifiableList() );
 
-        return certs.get().stream().map( cert -> X509Utils.makeDebugInfoMap( cert, flags ) ).collect( Collectors.toUnmodifiableList() );
     }
 
 }
