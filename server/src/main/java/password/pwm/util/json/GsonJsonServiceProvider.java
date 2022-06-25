@@ -61,6 +61,12 @@ class GsonJsonServiceProvider implements JsonProvider
     }
 
     @Override
+    public <T> T deserialize( final String jsonString, final Type type )
+    {
+        return getGson().fromJson( jsonString, type );
+    }
+
+    @Override
     public <V> List<V> deserializeList( final String jsonString, final Class<V> classOfV )
     {
         final Type type = TypeToken.getParameterized( List.class, classOfV ).getType();

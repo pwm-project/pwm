@@ -70,7 +70,6 @@ import password.pwm.util.logging.PwmLogManager;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -446,7 +445,7 @@ public class PwmApplication
     }
 
 
-    public <T extends Serializable> Optional<T> readAppAttribute( final AppAttribute appAttribute, final Class<T> returnClass )
+    public <T> Optional<T> readAppAttribute( final AppAttribute appAttribute, final Class<T> returnClass )
     {
         final LocalDB localDB = getLocalDB();
 
@@ -561,7 +560,7 @@ public class PwmApplication
     }
 
 
-    public void writeAppAttribute( final AppAttribute appAttribute, final Serializable value )
+    public void writeAppAttribute( final AppAttribute appAttribute, final Object value )
     {
         final LocalDB localDB = getLocalDB();
 

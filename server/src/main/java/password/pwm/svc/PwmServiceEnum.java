@@ -31,6 +31,7 @@ import password.pwm.svc.node.NodeService;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.StatisticsService;
+import password.pwm.svc.version.VersionCheckService;
 import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.SharedHistoryService;
 import password.pwm.svc.wordlist.WordlistService;
@@ -64,6 +65,7 @@ public enum PwmServiceEnum
     SessionTrackService( password.pwm.svc.sessiontrack.SessionTrackService.class, PwmSettingScope.SYSTEM ),
     SessionStateSvc( password.pwm.http.state.SessionStateService.class, PwmSettingScope.SYSTEM ),
     TelemetryService( password.pwm.svc.telemetry.TelemetryService.class, PwmSettingScope.SYSTEM ),
+    VersionCheckService( VersionCheckService.class, PwmSettingScope.SYSTEM ),
     NodeService( NodeService.class, PwmSettingScope.SYSTEM ),
 
     DomainSecureService( password.pwm.svc.secure.DomainSecureService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),

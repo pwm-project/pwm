@@ -99,6 +99,8 @@ public enum PwmSetting
     // telemetry
     PUBLISH_STATS_ENABLE(
             "pwm.publishStats.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.TELEMETRY ),
+    VERSION_CHECK_ENABLE(
+            "pwm.versionCheck.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.TELEMETRY ),
     PUBLISH_STATS_SITE_DESCRIPTION(
             "pwm.publishStats.siteDescription", PwmSettingSyntax.STRING, PwmSettingCategory.TELEMETRY ),
 

@@ -89,6 +89,12 @@ class MoshiJsonServiceProvider implements JsonProvider
     }
 
     @Override
+    public <T> T deserialize( final String jsonString, final Type type )
+    {
+        return deserializeImpl( jsonString, type );
+    }
+
+    @Override
     public <T> String serialize( final T srcObject, final Class<T> classOfT, final Type type, final Flag... flags )
     {
         final Type moshiType = Types.newParameterizedType( classOfT, type );
