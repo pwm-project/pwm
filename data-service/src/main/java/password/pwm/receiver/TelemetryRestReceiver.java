@@ -24,9 +24,8 @@ import password.pwm.bean.TelemetryPublishBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmHttpRequestWrapper;
-import password.pwm.i18n.Message;
 import password.pwm.http.ServletUtility;
+import password.pwm.i18n.Message;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.ws.server.RestResultBean;
 
@@ -38,7 +37,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebServlet(
-        name = "TelemetryRestReceiver",
         urlPatterns = {
                 "/telemetry",
         }
@@ -50,24 +48,25 @@ public class TelemetryRestReceiver extends HttpServlet
     protected void doPost( final HttpServletRequest req, final HttpServletResponse resp )
             throws ServletException, IOException
     {
-        final boolean jsonPrettyPrint = PwmHttpRequestWrapper.isPrettyPrintJsonParameterTrue( req );
         try
         {
-            resp.setHeader( "Content", "application/json" );
             final String input = ServletUtility.readRequestBodyAsString( req, 1024 * 1024 );
             final TelemetryPublishBean telemetryPublishBean = JsonFactory.get().deserialize( input, TelemetryPublishBean.class );
             final Storage storage = ContextManager.getContextManager( this.getServletContext() ).getApp().getStorage();
             storage.store( telemetryPublishBean );
-            resp.getWriter().print( RestResultBean.forSuccessMessage( null, null, null, Message.Success_Unknown ).toJson( jsonPrettyPrint ) );
+
+            final RestResultBean restResultBean = RestResultBean.forSuccessMessage( null, null, null, Message.Success_Unknown );
+            ReceiverUtil.outputJsonResponse( req, resp, restResultBean );
         }
         catch ( final PwmUnrecoverableException e )
         {
-            resp.getWriter().print( RestResultBean.fromError( e.getErrorInformation() ).toJson( jsonPrettyPrint ) );
+            final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation() );
+            ReceiverUtil.outputJsonResponse( req, resp, restResultBean );
         }
         catch ( final Exception e )
         {
             final RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() ) );
-            resp.getWriter().print( restResultBean.toJson( jsonPrettyPrint ) );
+            ReceiverUtil.outputJsonResponse( req, resp, restResultBean );
         }
     }
 }
