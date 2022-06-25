@@ -232,8 +232,11 @@ public class JavaHelper
     public static ImmutableByteArray copyToBytes( final InputStream inputStream, final int maxLength )
             throws IOException
     {
-        final byte[] bytes = IOUtils.toByteArray( inputStream, maxLength );
-        return ImmutableByteArray.of( bytes );
+        try ( InputStream limitedInputStream = new LengthLimitedInputStream( inputStream, maxLength ) )
+        {
+            final byte[] bytes = IOUtils.toByteArray( limitedInputStream );
+            return ImmutableByteArray.of( bytes );
+        }
     }
 
     public static void copy( final String input, final OutputStream output, final Charset charset )
