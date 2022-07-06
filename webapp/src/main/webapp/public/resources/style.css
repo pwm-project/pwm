@@ -317,7 +317,6 @@ input[type=password]::-ms-reveal {
     width: 165px;
     height: 165px;
     overflow: hidden;
-    z-index: 600;
     font-weight: normal;
 }
 
@@ -572,23 +571,22 @@ html[dir="rtl"] #header-center-right {
     position: absolute;
 }
 
-#header-warning-backdrop {
-    bottom: 0;
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: 0;
-    z-index: 1000;
-}
-
 #header-warning {
+    color: black;
+    opacity: 1.0;
     text-align: center;
     position: absolute;
-    width: 200px;
+    z-index: 100;
+    min-width: 200px;
     border: 2px solid #aaaaaa;
     background-color: #DDDDDD;
     padding: 15px;
-    z-index: 1000;
+    right: 0;
+}
+
+#header-warning-content {
+    position: relative;
+    text-align: center;
 }
 
 #header-warning span {
@@ -643,6 +641,7 @@ html[dir="rtl"] #header-center-right {
 }
 
 .header-error {
+    text-align: center;
     color: #fff;
     white-space: normal;
     max-width: 600px;
