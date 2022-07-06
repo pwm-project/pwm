@@ -136,12 +136,17 @@ h3 {
 
 
 .btn-icon {
-    opacity:0.75;
+    color: rgba(255,255,255,0.75)
 }
 
 
-@keyframes slideInRight { 0% { transform: translate3d(100%, 0, 0); visibility: visible; } 100% { transform: translate3d(0, 0, 0); } }
-@keyframes slideInTop { 0% { transform: translate3d(0, -100%, 0); visibility: visible; } 100% { transform: translate3d(0, 0, 0); } }
+@keyframes slideInTop {
+    0% {
+        transform: translate3d(0, -100%, 0);
+       }
+    100% {
+        transform: translate3d(0, 0, 0); }
+}
 
 .push, #footer {
     height: 40px;

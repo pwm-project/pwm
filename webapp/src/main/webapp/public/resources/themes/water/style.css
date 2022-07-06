@@ -40,15 +40,8 @@ p {
 }
 
 #header {
-    width: 100%;
-    height: 70px;
-    margin: 0;
-    background-image: url('header-gradient.gif');
-    filter:alpha(opacity=50);
-    opacity: 0.5;
+    background-image: linear-gradient(rgba(73,96,145,0.5),rgba(39,50,82,0.5));
 }
-
-
 
 #header-company-logo {
     position: relative;
@@ -66,16 +59,15 @@ p {
 .tile {
     width: 165px;
     height: 165px;
+    color: black;
 }
 
 #centerbody {
-    background-color: black;
+    background-color: rgba(0,0,0,0.5);
     color: white;
     padding: 10px 10px 40px 10px;
     border: 0;
     border-radius: 9px;
-    filter:alpha(opacity=70);
-    opacity: 0.7;
 }
 
 a {
@@ -84,6 +76,9 @@ a {
     font-weight: bold
 }
 
+.footnote {
+    color: #0a0a0a;
+}
 
 .message {
     background-color: inherit;
@@ -153,12 +148,7 @@ table td.noborder {
 
 .btn {
     font-family: Trebuchet MS, sans-serif;
-    background: #070618;
-    background: -webkit-gradient(linear, left top, left bottom, from(#717081), to(#070618));
-    background: -webkit-linear-gradient(top, #717081, #070618);
-    background: -moz-linear-gradient(top, #717081, #070618);
-    background: -ms-linear-gradient(top, #717081, #070618);
-    background: -o-linear-gradient(top, #717081, #070618);
+    background-image: linear-gradient(rgba(73,96,145,0.5),rgba(39,50,82,0.5));
     border: 0;
     padding: 3px;
     padding-right: 15px;
@@ -172,12 +162,12 @@ table td.noborder {
     font-size: 13px;
     text-decoration: none;
     vertical-align: middle;
-    opacity: 0.9;
 }
 .btn:hover {
     border-top-color: #070618;
     background: #717081;
     color: #ccc;
+    animation: fadein 1s;
 }
 .btn:active {
     border-top-color: #070618;

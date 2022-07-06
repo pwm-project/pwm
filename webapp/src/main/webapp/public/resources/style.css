@@ -573,7 +573,6 @@ html[dir="rtl"] #header-center-right {
 
 #header-warning {
     color: black;
-    opacity: 1.0;
     text-align: center;
     position: absolute;
     z-index: 100;
@@ -818,18 +817,6 @@ img.qrcodeimage {
 .action-icon {
     margin-left: 3px;
     cursor: pointer;
-}
-
-.pageOverlay {
-    top: 0;
-    left: 0;
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    z-index: 1001;
-    display: none;
-    opacity: 0.6;
-    background-color: black;
 }
 
 .grid.tall {

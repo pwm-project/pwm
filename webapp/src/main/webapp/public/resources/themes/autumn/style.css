@@ -36,7 +36,6 @@ p {
     padding-top: 4px;
     padding-bottom: 4px;
     text-decoration: none;
-    opacity: 0.9;
     animation: fadein 0.5s;
 }
 
@@ -53,10 +52,8 @@ p {
     height: 70px;
     margin: 0;
     background-image: none;
-    background-color: white;
+    background-color: rgba(255,255,255,0.5);
     color: black;
-    filter:alpha(opacity=50);
-    opacity: 0.5;
 }
 
 #header-company-logo {
@@ -100,22 +97,20 @@ p {
 }
 
 .tile {
+    border-radius: 7px;
     width: 165px;
     height: 165px;
     margin: 10px;
-    opacity: 0.7;
-    transition: opacity 1s, box-shadow 2s;
+    transition: box-shadow 2s;
 }
 
 .tile:hover {
-    opacity: 1;
     box-shadow: 0 0 0 0 white, 0 0 0 0 white, 9px 0 12px -4px #B2B1B9, -9px 0 12px -4px #B2B1B9;
 }
 
 #footer {
-    background-color: white;
+    background-color: rgba(255,255,255,0.5);
     color: #0a0a0a;
-    opacity: 0.5;
 }
 
 a {
