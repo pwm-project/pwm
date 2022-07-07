@@ -26,7 +26,7 @@ import password.pwm.bean.VersionNumber;
 import java.util.Map;
 
 @Value
-public class PublishVersionBean
+public class PublishVersionBean implements PublishedBean
 {
     private final Map<VersionKey, VersionNumber> versions;
 

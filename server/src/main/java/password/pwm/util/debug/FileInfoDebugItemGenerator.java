@@ -93,7 +93,7 @@ class FileInfoDebugItemGenerator implements AppItemGenerator
             headerRow.add( "Filename" );
             headerRow.add( "Last Modified" );
             headerRow.add( "Size" );
-            headerRow.add( "Checksum" );
+            headerRow.add( "Sha512Hash" );
             csvPrinter.printComment( StringUtil.join( headerRow, "," ) );
         }
 
@@ -108,7 +108,7 @@ class FileInfoDebugItemGenerator implements AppItemGenerator
                 dataRow.add( fileSummaryInformation.getFilename() );
                 dataRow.add( StringUtil.toIsoDate( fileSummaryInformation.getModified() ) );
                 dataRow.add( String.valueOf( fileSummaryInformation.getSize() ) );
-                dataRow.add( Long.toString( fileSummaryInformation.getChecksum() ) );
+                dataRow.add( fileSummaryInformation.getSha512Hash() );
                 csvPrinter.printRecord( dataRow );
             }
             catch ( final Exception e )

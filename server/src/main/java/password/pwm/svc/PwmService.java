@@ -49,6 +49,8 @@ public interface PwmService
         CLOSED,
     }
 
+    String name();
+
     STATUS status( );
 
     void init( PwmApplication pwmApplication, DomainID domainID ) throws PwmException;

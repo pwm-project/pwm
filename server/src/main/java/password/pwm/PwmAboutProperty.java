@@ -46,7 +46,6 @@ import java.util.function.Function;
 
 public enum PwmAboutProperty
 {
-
     app_version( "App Version", pwmApplication -> PwmConstants.SERVLET_VERSION ),
     app_chaiApiVersion( "App Chai Version", pwmApplication -> PwmConstants.CHAI_API_VERSION ),
     app_currentTime( "App Current Time", pwmApplication -> format( Instant.now() ) ),
@@ -55,8 +54,7 @@ public enum PwmAboutProperty
     app_siteUrl( "App Site URL", pwmApplication -> pwmApplication.getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL ) ),
     app_instanceID( "App InstanceID", PwmApplication::getInstanceID ),
     app_trialMode( null, pwmApplication -> Boolean.toString( PwmConstants.TRIAL_MODE ) ),
-    app_mode_appliance( null, pwmApplication -> Boolean.toString( pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Appliance ) ) ),
-    app_mode_docker( null, pwmApplication -> Boolean.toString( pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.Docker ) ) ),
+    app_deployment_type( null, pwmApplication -> pwmApplication.getPwmEnvironment().getDeploymentPlatform().name() ),
     app_mode_manageHttps( null, pwmApplication -> Boolean.toString( pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.ManageHttps ) ) ),
     app_applicationPath( null, pwmApplication -> pwmApplication.getPwmEnvironment().getApplicationPath().getAbsolutePath() ),
     app_environmentFlags( null, pwmApplication -> StringUtil.collectionToString( pwmApplication.getPwmEnvironment().getFlags() ) ),

@@ -147,7 +147,7 @@
             <plugin>
                 <groupId>com.github.jinnovations</groupId>
                 <artifactId>attribution-maven-plugin</artifactId>
-                <version>0.9.9-SNAPSHOT</version>
+                <version>0.9.8</version>
                 <executions>
                     <execution>
                         <goals>
@@ -157,7 +157,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <threads>20</threads>
                     <outputFile>${project.build.directory}/classes/attribution.xml</outputFile>
                     <dependencyOverrides>
                         <dependencyOverride>

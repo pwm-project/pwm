@@ -93,7 +93,7 @@ public enum PwmIfTest
     forwardUrlDefined( new ForwardUrlDefinedTest() ),
 
     trialMode( new TrialModeTest() ),
-    appliance( new EnvironmentFlagTest( PwmEnvironment.ApplicationFlag.Appliance ) ),
+    appliance( new DeploymentTypeTest( PwmEnvironment.DeploymentPlatform.Appliance ) ),
 
     healthWarningsVisible( new HealthWarningsVisibleTest() ),
 
@@ -564,7 +564,6 @@ public enum PwmIfTest
         }
     }
 
-
     private static class MultiDomainTest implements Test
     {
         @Override
@@ -573,5 +572,20 @@ public enum PwmIfTest
             return pwmRequest.getPwmApplication().isMultiDomain();
         }
     }
-}
 
+    private static class DeploymentTypeTest implements Test
+    {
+        private final PwmEnvironment.DeploymentPlatform deploymentPlatform;
+
+        DeploymentTypeTest( final PwmEnvironment.DeploymentPlatform deploymentPlatform )
+        {
+            this.deploymentPlatform = deploymentPlatform;
+        }
+
+        @Override
+        public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws PwmUnrecoverableException
+        {
+            return pwmRequest.getPwmApplication().getPwmEnvironment().getDeploymentPlatform() == deploymentPlatform;
+        }
+    }
+}

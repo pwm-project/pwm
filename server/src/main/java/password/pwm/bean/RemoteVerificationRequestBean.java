@@ -24,12 +24,11 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.bean.pub.PublicUserInfoBean;
 
-import java.io.Serializable;
 import java.util.Map;
 
 @Value
 @Builder
-public class RemoteVerificationRequestBean implements Serializable
+public class RemoteVerificationRequestBean
 {
     private final String responseSessionID;
     private final PublicUserInfoBean userInfo;

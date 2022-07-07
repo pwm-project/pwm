@@ -20,7 +20,6 @@
 
 package password.pwm.svc;
 
-import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSettingScope;
 import password.pwm.health.HealthService;
 import password.pwm.ldap.LdapDomainService;
@@ -112,12 +111,5 @@ public enum PwmServiceEnum
     public Class<? extends PwmService> getPwmServiceClass( )
     {
         return clazz;
-    }
-
-    public String serviceName( final DomainID domainID )
-    {
-        return "[" + getPwmServiceClass().getSimpleName()
-                + ( domainID.isSystem() ? "" : "/" + domainID.stringValue() )
-                + "]";
     }
 }

@@ -20,6 +20,7 @@
 
 package password.pwm;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
@@ -31,6 +32,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
@@ -70,6 +72,8 @@ public class PwmEnvironment
     @Singular
     private Map<ApplicationParameter, String> parameters;
 
+    private final LazySupplier<DeploymentPlatform> deploymentPlatformLazySupplier = new LazySupplier<>( this::determineDeploymentPlatform );
+
     public enum ApplicationParameter
     {
         AutoExportHttpsKeyStoreFile,
@@ -91,8 +95,6 @@ public class PwmEnvironment
 
     public enum ApplicationFlag
     {
-        Appliance,
-        Docker,
         ManageHttps,
         NoFileLock,
         CommandLineInstance,;
@@ -101,6 +103,14 @@ public class PwmEnvironment
         {
             return JavaHelper.readEnumFromString( ApplicationFlag.class, null, input );
         }
+    }
+
+    public enum DeploymentPlatform
+    {
+        War,
+        Onejar,
+        Docker,
+        Appliance,;
     }
 
     public enum EnvironmentParameter
@@ -371,5 +381,28 @@ public class PwmEnvironment
         }
 
         return mode;
+    }
+
+    public DeploymentPlatform getDeploymentPlatform()
+    {
+        return deploymentPlatformLazySupplier.get();
+    }
+
+    @SuppressFBWarnings( "DMI_HARDCODED_ABSOLUTE_FILENAME" )
+    private DeploymentPlatform determineDeploymentPlatform()
+    {
+        final File dockerEnvFile = new File( "/.dockerenv" );
+
+        if ( dockerEnvFile.exists() )
+        {
+            return DeploymentPlatform.Docker;
+        }
+
+        final String envValue = System.getProperty( "ONEJAR_ENV", "FALSE" );
+        if ( Boolean.getBoolean( envValue ) )
+        {
+            return DeploymentPlatform.Onejar;
+        }
+        return DeploymentPlatform.War;
     }
 }

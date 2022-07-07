@@ -475,7 +475,7 @@
                     <% } %>
                 </div>
                 <% } else { %>
-                <div class="footnote">Node data is not yet available.</div>
+                <div class="footnote">Node data is not yet available, please check again in a few minutes.</div>
                 <% } %>
             </div>
 

@@ -20,6 +20,7 @@
 
 package password.pwm.receiver;
 
+import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.StringUtil;
 
 import javax.servlet.ServletException;
@@ -41,14 +42,17 @@ public class TelemetryViewerServlet extends HttpServlet
 {
     private static final Logger LOGGER = Logger.createLogger( TelemetryViewerServlet.class );
     private static final String PARAM_DAYS = "days";
+    private static final AtomicLoopIntIncrementer REQ_COUNTER = new AtomicLoopIntIncrementer();
 
     public static final String SUMMARY_ATTR = "SummaryBean";
+
 
     @Override
     protected void doGet( final HttpServletRequest req, final HttpServletResponse resp )
             throws ServletException, IOException
     {
-        LOGGER.debug( "http request for viewer" );
+        final int requestId = REQ_COUNTER.next();
+        LOGGER.debug( "http request #" + requestId + " for viewer" );
         final String daysString = req.getParameter( PARAM_DAYS );
         final int days = StringUtil.isEmpty( daysString ) ? 30 : Integer.parseInt( daysString );
         final ContextManager contextManager = ContextManager.getContextManager( req.getServletContext() );

@@ -74,7 +74,7 @@ public abstract class PwmConstants
     public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
     public static final List<String> HIGHLIGHT_LOCALES = StringUtil.splitAndTrim( readPwmConstantsBundle( "locale.highlightList" ), "," );
 
-    public static final CSVFormat DEFAULT_CSV_FORMAT = CSVFormat.DEFAULT;
+    public static final CSVFormat DEFAULT_CSV_FORMAT = CSVFormat.Builder.create( CSVFormat.DEFAULT ).setCommentMarker( '#' ).build();
 
     public static final String DEFAULT_DATETIME_FORMAT_STR = readPwmConstantsBundle( "locale.defaultDateTimeFormat" );
     public static final TimeZone DEFAULT_TIMEZONE = TimeZone.getTimeZone( readPwmConstantsBundle( "locale.defaultTimeZone" ) );

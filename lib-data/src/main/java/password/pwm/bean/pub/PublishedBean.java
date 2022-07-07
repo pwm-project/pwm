@@ -20,6 +20,9 @@
 
 package password.pwm.bean.pub;
 
+/**
+ * Marker interface to indicate a class is being used in public services and must retain backward compatibility.
+ */
 public interface PublishedBean
 {
 }

@@ -21,6 +21,7 @@
 package password.pwm.receiver;
 
 import password.pwm.bean.pub.PublishVersionBean;
+import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.annotation.WebServlet;
@@ -37,10 +38,17 @@ import java.util.Collections;
 )
 public class PublishVersionServlet extends HttpServlet
 {
+    private static final Logger LOGGER = Logger.createLogger( PublishVersionServlet.class );
+    private static final AtomicLoopIntIncrementer REQ_COUNTER = new AtomicLoopIntIncrementer();
+
+
     @Override
     protected void doGet( final HttpServletRequest req, final HttpServletResponse resp )
             throws IOException
     {
+        final int requestId = REQ_COUNTER.next();
+        LOGGER.debug( "http request #" + requestId + " for version" );
+
         final ContextManager contextManager = ContextManager.getContextManager( req.getServletContext() );
         final PwmReceiverApp app = contextManager.getApp();
         final PublishVersionBean publishVersionBean = new PublishVersionBean(

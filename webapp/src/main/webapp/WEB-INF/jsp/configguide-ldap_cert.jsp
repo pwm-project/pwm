@@ -107,7 +107,7 @@
             <div id="outline_ldapcert-options" class="setting_outline">
                 <div class="setting_title">Certificate Settings</div>
                 <div class="setting_body">
-                    <% if (!JspUtility.getPwmRequest(pageContext).getPwmApplication().getPwmEnvironment().getFlags().contains(PwmEnvironment.ApplicationFlag.Appliance)) { %>
+                    <pwm:if test="<%=PwmIfTest.appliance%>" negate="true">
                     <div style="padding-left: 5px; padding-top: 5px">
                         At least one of the following options must be selected to continue.
                     </div>
@@ -121,7 +121,7 @@
                         (Import/remove certificate manually into Java keystore to change)
                     </div>
                     <br/>
-                    <% } %>
+                    </pwm:if>
                     <div id="titlePane_useConfig" style="padding-left: 5px; padding-top: 5px">
                         Use application to manage certificate(s) and import certificates into configuration file
                         <br/>

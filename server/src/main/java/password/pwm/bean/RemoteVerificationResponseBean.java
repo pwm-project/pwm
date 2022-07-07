@@ -23,11 +23,10 @@ package password.pwm.bean;
 import lombok.Value;
 import password.pwm.VerificationMethodSystem;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Value
-public class RemoteVerificationResponseBean implements Serializable
+public class RemoteVerificationResponseBean
 {
     private String displayInstructions;
     private VerificationMethodSystem.VerificationState verificationState;

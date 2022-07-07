@@ -216,12 +216,14 @@ public class JavaHelper
             return Optional.empty();
         }
         final StringWriter stringWriter = new StringWriter();
-        final InputStreamReader reader = new InputStreamReader( input, charset );
-        IOUtils.copyLarge( reader, stringWriter, 0, maximumLength );
-        final String value = stringWriter.toString();
-        return ( value.length() > 0 )
-                ? Optional.of( value )
-                : Optional.empty();
+        try ( InputStreamReader reader = new InputStreamReader( ThresholdInputStream.newThresholdInputStream( input, maximumLength ), charset ) )
+        {
+            IOUtils.copyLarge( reader, stringWriter, 0, maximumLength );
+            final String value = stringWriter.toString();
+            return ( value.length() > 0 )
+                    ? Optional.of( value )
+                    : Optional.empty();
+        }
     }
 
     public static void closeQuietly( final Closeable closable )
@@ -232,7 +234,7 @@ public class JavaHelper
     public static ImmutableByteArray copyToBytes( final InputStream inputStream, final int maxLength )
             throws IOException
     {
-        try ( InputStream limitedInputStream = new LengthLimitedInputStream( inputStream, maxLength ) )
+        try ( InputStream limitedInputStream = ThresholdInputStream.newThresholdInputStream( inputStream, maxLength ) )
         {
             final byte[] bytes = IOUtils.toByteArray( limitedInputStream );
             return ImmutableByteArray.of( bytes );

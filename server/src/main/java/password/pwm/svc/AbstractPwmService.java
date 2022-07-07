@@ -56,6 +56,14 @@ public abstract class AbstractPwmService implements PwmService
         return status;
     }
 
+    @Override
+    public String name()
+    {
+        return "[" + this.getClass().getSimpleName()
+                + ( domainID == null || domainID.isSystem() ? "" : "/" + domainID.stringValue() )
+                + "]";
+    }
+
     public final void init( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
@@ -129,6 +137,7 @@ public abstract class AbstractPwmService implements PwmService
             returnRecords.add( HealthRecord.forMessage(
                     DomainID.systemId(),
                     HealthMessage.ServiceClosed,
+                    name(),
                     startupError.toDebugStr() ) );
         }
 

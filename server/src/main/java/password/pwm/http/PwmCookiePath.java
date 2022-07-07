@@ -28,20 +28,20 @@ import java.util.function.Function;
 public enum PwmCookiePath
 {
     Domain( ( pwmRequest ) -> "/" ),
-    Private( ( pwmRequest ) -> PwmConstants.URL_PREFIX_PRIVATE ),
+    Private( ( pwmRequest ) -> pwmRequest.getBasePath() + PwmConstants.URL_PREFIX_PRIVATE ),
     CurrentURL( ( pwmRequest ) -> pwmRequest.getURL().toString() ),
-    PwmServlet( ( pwmRequest ) -> pwmRequest.getURL().determinePwmServletPath() ),;
+    PwmServlet( ( pwmRequest ) -> pwmRequest.getBasePath() + pwmRequest.getURL().determinePwmServletPath() ),;
 
-    private final transient Function<PwmRequest, String> suffixFunction;
+    private final transient Function<PwmRequest, String> pathFunction;
 
-    PwmCookiePath( final Function<PwmRequest, String> suffixFunction )
+    PwmCookiePath( final Function<PwmRequest, String> pathFunction )
     {
-        this.suffixFunction = suffixFunction;
+        this.pathFunction = pathFunction;
     }
 
     String toStringPath( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        return pwmRequest.getBasePath() + suffixFunction.apply( pwmRequest );
+        return pathFunction.apply( pwmRequest );
     }
 }

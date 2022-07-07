@@ -22,11 +22,12 @@ package password.pwm.util.java;
 
 import lombok.Value;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
+import password.pwm.util.secure.SecureEngine;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -142,14 +143,14 @@ public class FileSystemUtility
         private final String filepath;
         private final Instant modified;
         private final long size;
-        private final long checksum;
+        private final String sha512Hash;
 
         public static FileSummaryInformation fromFile( final File file )
         {
-            final long crc32;
+            final String sha512Hash;
             try
             {
-                crc32 = crc32( file );
+                sha512Hash = SecureEngine.hash( new FileInputStream( file ), PwmHashAlgorithm.SHA512 );
             }
             catch ( final IOException exception )
             {
@@ -161,7 +162,7 @@ public class FileSystemUtility
                     file.getParentFile().getAbsolutePath(),
                     Instant.ofEpochMilli( file.lastModified() ),
                     file.length(),
-                    crc32
+                    sha512Hash
             );
         }
     }
@@ -180,19 +181,6 @@ public class FileSystemUtility
         {
             final Path nextPath = pathIterator.next();
             Files.delete( nextPath );
-        }
-    }
-
-    private static long crc32( final File file )
-            throws IOException
-    {
-        try ( InputStream fileInputStream = Files.newInputStream( file.toPath() ) )
-        {
-            try ( CrcChecksumOutputStream crcChecksumOutputStream = CrcChecksumOutputStream.newChecksumOutputStream( OutputStream.nullOutputStream() ) )
-            {
-                JavaHelper.copy( fileInputStream, crcChecksumOutputStream );
-                return crcChecksumOutputStream.checksum();
-            }
         }
     }
 }

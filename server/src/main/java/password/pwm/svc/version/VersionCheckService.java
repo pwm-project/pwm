@@ -27,7 +27,6 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
-import password.pwm.bean.SessionLabel;
 import password.pwm.bean.VersionNumber;
 import password.pwm.bean.pub.PublishVersionBean;
 import password.pwm.config.AppConfig;
@@ -157,9 +156,17 @@ public class VersionCheckService extends AbstractPwmService
                 ? settings.getCheckIntervalError()
                 : settings.getCheckInterval();
 
-        this.nextScheduledCheck = localCache.getLastCheckTimestamp() == null
-                ? Instant.now().plus( 10, ChronoUnit.SECONDS )
-                : localCache.getLastCheckTimestamp().plus( idealDurationUntilNextCheck.asDuration() );
+        if ( localCache.getLastCheckTimestamp() == null )
+        {
+            this.nextScheduledCheck = Instant.now().plus( 10, ChronoUnit.SECONDS );
+        }
+        else
+        {
+            final Instant nextIdealTimestamp = localCache.getLastCheckTimestamp().plus( idealDurationUntilNextCheck.asDuration() );
+            this.nextScheduledCheck = nextIdealTimestamp.isBefore( Instant.now() )
+                    ? Instant.now().plus( 10, ChronoUnit.SECONDS )
+                    : nextIdealTimestamp;
+        }
 
         final TimeDuration delayUntilNextExecution = TimeDuration.fromCurrent( this.nextScheduledCheck );
 
@@ -176,27 +183,49 @@ public class VersionCheckService extends AbstractPwmService
             return;
         }
 
-        cacheHolder.setVersionCheckInfoCache( executeFetch( pwmApplication, getSessionLabel(), settings ) );
+        try
+        {
+            processReturnedVersionBean( executeFetch() );
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            cacheHolder.setVersionCheckInfoCache( VersionCheckInfoCache.builder()
+                    .lastError( e.getErrorInformation() )
+                    .lastCheckTimestamp( Instant.now() )
+                    .build() );
+        }
 
         scheduleNextCheck();
     }
 
-    private static VersionCheckInfoCache executeFetch(
-            final PwmApplication pwmApplication,
-            final SessionLabel sessionLabel,
-            final VersionCheckSettings settings
-    )
+    private void processReturnedVersionBean( final PublishVersionBean publishVersionBean )
+    {
+        final VersionNumber currentVersion = publishVersionBean.getVersions().get( PublishVersionBean.VersionKey.current );
+
+        LOGGER.trace( getSessionLabel(), () -> "successfully fetched current version information from cloud service: "
+                + currentVersion );
+
+        cacheHolder.setVersionCheckInfoCache( VersionCheckInfoCache.builder()
+                .currentVersion( currentVersion )
+                .lastCheckTimestamp( Instant.now() )
+                .build() );
+    }
+
+    private PublishVersionBean executeFetch()
+            throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
         try
         {
-            final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( sessionLabel );
+            final PwmHttpClient pwmHttpClient = pwmApplication.getHttpClientService().getPwmHttpClient( getSessionLabel() );
             final PwmHttpClientRequest request = PwmHttpClientRequest.builder()
                     .url( settings.getUrl() )
+                    .header( HttpHeader.ContentType.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() )
                     .header( HttpHeader.Accept.getHttpName(), HttpContentType.json.getHeaderValueWithEncoding() )
+                    .body( JsonFactory.get().serialize( makeRequestBody() ) )
                     .build();
 
-            LOGGER.trace( sessionLabel, () -> "sending cloud version request to: " + settings.getUrl() );
+            LOGGER.trace( getSessionLabel(), () -> "sending cloud version request to: " + settings.getUrl() );
             final PwmHttpClientResponse response = pwmHttpClient.makeRequest( request );
 
             if ( response.getStatusCode() == 200 )
@@ -204,21 +233,13 @@ public class VersionCheckService extends AbstractPwmService
                 final Type restResultBeanType = JsonFactory.get().newParameterizedType( RestResultBean.class, PublishVersionBean.class );
                 final String body = response.getBody();
                 final RestResultBean<PublishVersionBean> restResultBean = JsonFactory.get().deserialize( body, restResultBeanType );
-                final PublishVersionBean publishVersionBean = restResultBean.getData();
+                return restResultBean.getData();
 
-                final VersionNumber currentVersion = publishVersionBean.getVersions().get( PublishVersionBean.VersionKey.current );
 
-                LOGGER.trace( sessionLabel, () -> "successfully fetched current version information from cloud service: "
-                        + currentVersion, TimeDuration.fromCurrent( startTime ) );
-
-                return VersionCheckInfoCache.builder()
-                        .currentVersion( currentVersion )
-                        .lastCheckTimestamp( Instant.now() )
-                        .build();
             }
             else
             {
-                LOGGER.debug( sessionLabel, () -> "error reading cloud current version information: " + response );
+                LOGGER.debug( getSessionLabel(), () -> "error reading cloud current version information: " + response );
                 final String msg = "error reading cloud current version information: " + response.getStatusLine();
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_UNREACHABLE_CLOUD_SERVICE, msg );
             }
@@ -237,14 +258,26 @@ public class VersionCheckService extends AbstractPwmService
                 errorInformation = new ErrorInformation( PwmError.ERROR_UNREACHABLE_CLOUD_SERVICE, errorMsg );
             }
 
-            LOGGER.debug( sessionLabel, () -> "error fetching current version from cloud: "
+            LOGGER.debug( getSessionLabel(), () -> "error fetching current version from cloud: "
                     + e.getMessage(), TimeDuration.fromCurrent( startTime ) );
 
-            return VersionCheckInfoCache.builder()
-                    .lastError( errorInformation )
-                    .lastCheckTimestamp( Instant.now() )
-                    .build();
+            throw new PwmUnrecoverableException( errorInformation );
         }
+    }
+
+    private PublishVersionBean makeRequestBody()
+    {
+        VersionNumber versionNumber = VersionNumber.ZERO;
+        try
+        {
+            versionNumber = VersionNumber.parse( PwmConstants.BUILD_VERSION );
+        }
+        catch ( final Exception e )
+        {
+            LOGGER.trace( getSessionLabel(), () -> "error reading local version number " + e.getMessage() );
+        }
+
+        return new PublishVersionBean( Collections.singletonMap( PublishVersionBean.VersionKey.current, versionNumber ) );
     }
 
     @Override
