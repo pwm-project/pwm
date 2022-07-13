@@ -66,7 +66,7 @@ public class PasswordValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public PasswordValue fromJson( final String value )
+            public PasswordValue fromJson( final PwmSetting pwmSetting, final String value )
             {
                 final String strValue = JsonFactory.get().deserialize( value, String.class );
                 if ( strValue != null && !strValue.isEmpty() )

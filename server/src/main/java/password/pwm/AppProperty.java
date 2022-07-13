@@ -20,7 +20,8 @@
 
 package password.pwm;
 
-import java.util.EnumSet;
+import password.pwm.util.java.CollectionUtil;
+
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -438,7 +439,7 @@ public enum AppProperty
 
     public static Optional<AppProperty> forKey( final String key )
     {
-        return EnumSet.allOf( AppProperty.class ).stream()
+        return CollectionUtil.enumStream( AppProperty.class )
                 .filter( loopProperty -> Objects.equals( loopProperty.getKey(), key ) )
                 .findFirst();
     }

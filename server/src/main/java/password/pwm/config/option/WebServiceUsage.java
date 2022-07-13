@@ -20,13 +20,13 @@
 
 package password.pwm.config.option;
 
+import password.pwm.util.java.JavaHelper;
 import password.pwm.ws.server.RestAuthenticationType;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public enum WebServiceUsage
 {
@@ -59,8 +59,6 @@ public enum WebServiceUsage
 
     public static Set<WebServiceUsage> forType( final RestAuthenticationType type )
     {
-        return EnumSet.allOf( WebServiceUsage.class ).stream()
-                .filter( webServiceUsage -> webServiceUsage.getTypes().contains( type ) )
-                .collect( Collectors.toUnmodifiableSet() );
+        return JavaHelper.readEnumsFromPredicate( WebServiceUsage.class, webServiceUsage -> webServiceUsage.getTypes().contains( type ) );
     }
 }

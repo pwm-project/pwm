@@ -59,7 +59,6 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -242,7 +241,7 @@ public class StoredSettingReader implements SettingReader
         )
         {
             final Map<ProfileDefinition, Map<String, Profile>> returnMap = new EnumMap<>( ProfileDefinition.class );
-            returnMap.putAll( EnumSet.allOf( ProfileDefinition.class ).stream()
+            returnMap.putAll( CollectionUtil.enumStream( ProfileDefinition.class )
                     .filter( profileDefinition -> domainID.inScope( profileDefinition.getCategory().getScope() ) )
                     .collect( CollectionUtil.collectorToLinkedMap(
                             profileDefinition -> profileDefinition,

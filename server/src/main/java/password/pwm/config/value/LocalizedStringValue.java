@@ -68,7 +68,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public LocalizedStringValue fromJson( final String input )
+            public LocalizedStringValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 if ( input == null )
                 {

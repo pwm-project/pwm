@@ -104,7 +104,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
                 }
                 else
                 {
-                    storedValue = syntax.getFactory().fromJson( serializedValue.getValueData() );
+                    storedValue = syntax.getFactory().fromJson( key.toPwmSetting(), serializedValue.getValueData() );
                 }
                 storedValueMap.put( key, storedValue );
             }

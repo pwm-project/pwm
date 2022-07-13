@@ -542,6 +542,11 @@ public abstract class StringUtil
         return isEmpty( input ) || input.trim().length() == 0;
     }
 
+    public static boolean notTrimEmpty( final String input )
+    {
+        return input != null && !input.trim().isEmpty();
+    }
+
     public static String defaultString( final String input, final String defaultStr )
     {
         return StringUtils.defaultString( input, defaultStr );

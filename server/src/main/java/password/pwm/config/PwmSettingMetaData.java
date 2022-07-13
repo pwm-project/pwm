@@ -100,8 +100,8 @@ class PwmSettingMetaData
         private static Set<PwmSettingFlag> readFlags( final XmlElement settingElement )
         {
             final Set<PwmSettingFlag> returnObj = EnumSet.noneOf( PwmSettingFlag.class );
-            settingElement.getChild( "flag" ).ifPresent( flagElement ->
-                    flagElement.getChildren( "flags" ).forEach( flagsElement ->
+            settingElement.getChild( PwmSettingXml.XML_ELEMENT_FLAGS ).ifPresent( flagElement ->
+                    flagElement.getChildren( PwmSettingXml.XML_ELEMENT_FLAG ).forEach( flagsElement ->
                     {
                         final String value = flagsElement.getText().orElse( "" ).trim();
                         JavaHelper.readEnumFromString( PwmSettingFlag.class, value ).ifPresent( returnObj::add );

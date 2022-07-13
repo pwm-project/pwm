@@ -67,7 +67,7 @@ public class ActionValue extends AbstractValue implements StoredValue
     private static class ActionStoredValueFactory implements StoredValueFactory
     {
         @Override
-        public ActionValue fromJson( final String input )
+        public ActionValue fromJson( final PwmSetting pwmSetting, final String input )
         {
             return input == null
                     ? new ActionValue( Collections.emptyList() )

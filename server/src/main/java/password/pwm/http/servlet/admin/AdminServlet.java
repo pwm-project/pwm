@@ -33,7 +33,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
@@ -65,10 +64,10 @@ import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.PwmTimeUtil;
-import password.pwm.util.json.JsonProvider;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.LocalDBSearchQuery;
 import password.pwm.util.logging.LocalDBSearchResults;
@@ -558,20 +557,19 @@ public class AdminServlet extends ControlledPwmServlet
             userIdentity = userSearchEngine.resolveUsername( username, null, null, pwmRequest.getLabel() );
             final AdminBean adminBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, AdminBean.class );
             adminBean.setLastUserDebug( userIdentity );
+
+            final UserDebugDataBean userDebugData = UserDebugDataReader.readUserDebugData(
+                    pwmRequest.getPwmDomain(),
+                    pwmRequest.getLocale(),
+                    pwmRequest.getLabel(),
+                    userIdentity
+            );
+            pwmRequest.setAttribute( PwmRequestAttribute.UserDebugData, userDebugData );
         }
-        catch ( final PwmUnrecoverableException | PwmOperationalException e )
+        catch ( final PwmException e )
         {
             setLastError( pwmRequest, e.getErrorInformation() );
-            return;
         }
-
-        final UserDebugDataBean userDebugData = UserDebugDataReader.readUserDebugData(
-                pwmRequest.getPwmDomain(),
-                pwmRequest.getLocale(),
-                pwmRequest.getLabel(),
-                userIdentity
-        );
-        pwmRequest.setAttribute( PwmRequestAttribute.UserDebugData, userDebugData );
     }
 
     private void processThreadPageView( final PwmRequest pwmRequest ) throws IOException

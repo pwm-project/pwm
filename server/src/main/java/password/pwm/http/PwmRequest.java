@@ -391,9 +391,9 @@ public class PwmRequest extends PwmHttpRequestWrapper
         this.getHttpServletRequest().setAttribute( name.toString(), value );
     }
 
-    public Serializable getAttribute( final PwmRequestAttribute name )
+    public Object getAttribute( final PwmRequestAttribute name )
     {
-        return ( Serializable ) this.getHttpServletRequest().getAttribute( name.toString() );
+        return this.getHttpServletRequest().getAttribute( name.toString() );
     }
 
     public PwmURL getURL()

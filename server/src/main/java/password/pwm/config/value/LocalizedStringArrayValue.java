@@ -72,7 +72,7 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
         return new StoredValueFactory()
         {
             @Override
-            public LocalizedStringArrayValue fromJson( final String input )
+            public LocalizedStringArrayValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 if ( input == null )
                 {

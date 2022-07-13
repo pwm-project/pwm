@@ -50,7 +50,7 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public CustomLinkValue fromJson( final String input )
+            public CustomLinkValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 if ( input == null )
                 {

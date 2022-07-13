@@ -63,7 +63,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public UserPermissionValue fromJson( final String input )
+            public UserPermissionValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 if ( input == null )
                 {

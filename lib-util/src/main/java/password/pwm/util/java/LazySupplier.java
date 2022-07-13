@@ -53,6 +53,11 @@ public class LazySupplier<T> implements Supplier<T>
         return value;
     }
 
+    public boolean isSupplied()
+    {
+        return supplied;
+    }
+
     @SuppressFBWarnings( "THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION" )
     public interface CheckedSupplier<T, E extends Exception>
     {

@@ -50,7 +50,7 @@ public class OptionListValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public OptionListValue fromJson( final String input )
+            public OptionListValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 if ( input == null )
                 {

@@ -54,7 +54,7 @@ public class FormValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public FormValue fromJson( final String input )
+            public FormValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 if ( input == null )
                 {

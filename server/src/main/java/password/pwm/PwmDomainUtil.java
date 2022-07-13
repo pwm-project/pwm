@@ -24,6 +24,7 @@ import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -211,13 +212,13 @@ class PwmDomainUtil
         {
             final Set<DomainID> obsoleteDomains = new HashSet<>( oldConfig.getDomainConfigs().keySet() );
             obsoleteDomains.removeAll( newConfig.getDomainConfigs().keySet() );
-            types.put( DomainModifyCategory.obsolete, Collections.unmodifiableSet( obsoleteDomains ) );
+            types.put( DomainModifyCategory.obsolete, CollectionUtil.stripNulls( obsoleteDomains ) );
         }
 
         {
             final Set<DomainID> createdDomains = new HashSet<>( newConfig.getDomainConfigs().keySet() );
             createdDomains.removeAll( oldConfig.getDomainConfigs().keySet() );
-            types.put( DomainModifyCategory.created, Collections.unmodifiableSet( createdDomains ) );
+            types.put( DomainModifyCategory.created, CollectionUtil.stripNulls( createdDomains ) );
         }
 
         final Set<DomainID> unchangedDomains = new HashSet<>();
@@ -225,9 +226,9 @@ class PwmDomainUtil
         for ( final DomainID domainID : newConfig.getDomainConfigs().keySet() )
         {
             final DomainConfig newDomainConfig = newConfig.getDomainConfigs().get( domainID );
-            final String oldValueHash = oldConfig.getDomainConfigs().get( newDomainConfig.getDomainID() ).getValueHash();
+            final DomainConfig oldDomainConfig = oldConfig.getDomainConfigs().get( newDomainConfig.getDomainID() );
 
-            if ( Objects.equals( oldValueHash, newDomainConfig.getValueHash() ) )
+            if ( newDomainConfig != null && oldDomainConfig != null && Objects.equals( oldDomainConfig.getValueHash(), newDomainConfig.getValueHash() ) )
             {
                 unchangedDomains.add( domainID );
             }
@@ -236,8 +237,8 @@ class PwmDomainUtil
                 modifiedDomains.add( domainID );
             }
         }
-        types.put( DomainModifyCategory.unchanged, Collections.unmodifiableSet( unchangedDomains ) );
-        types.put( DomainModifyCategory.modified, Collections.unmodifiableSet( modifiedDomains ) );
+        types.put( DomainModifyCategory.unchanged, CollectionUtil.stripNulls( unchangedDomains ) );
+        types.put( DomainModifyCategory.modified, CollectionUtil.stripNulls( modifiedDomains ) );
         return Collections.unmodifiableMap( types );
     }
 }

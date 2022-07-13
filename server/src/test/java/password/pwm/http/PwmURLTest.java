@@ -59,7 +59,7 @@ public class PwmURLTest
         {
             final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( StoredConfigurationFactory.newConfig() );
             final List<String> domainStrList = List.of( "aaaa", "bbbb", "cccc" );
-            final StoredValue storedValue = new StringArrayValue( domainStrList );
+            final StoredValue storedValue = StringArrayValue.create( domainStrList );
             modifier.writeSetting( StoredConfigKey.forSetting( PwmSetting.DOMAIN_LIST, null, DomainID.systemId() ), storedValue, null );
             appConfig = new AppConfig( modifier.newStoredConfiguration( ) );
         }
@@ -90,7 +90,7 @@ public class PwmURLTest
         {
             final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( StoredConfigurationFactory.newConfig() );
             final List<String> domainStrList = List.of( "aaaa", "bbbb", "cccc" );
-            final StoredValue storedValue = new StringArrayValue( domainStrList );
+            final StoredValue storedValue = StringArrayValue.create( domainStrList );
             modifier.writeSetting( StoredConfigKey.forSetting( PwmSetting.DOMAIN_LIST, null, DomainID.systemId() ), storedValue, null );
             appConfig = new AppConfig( modifier.newStoredConfiguration( ) );
         }

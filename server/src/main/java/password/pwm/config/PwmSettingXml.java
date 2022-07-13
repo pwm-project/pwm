@@ -57,6 +57,9 @@ public class PwmSettingXml
     static final String XML_ELEMENT_LEVEL = "level";
     static final String XML_ELEMENT_PROPERTIES = "properties";
     static final String XML_ELEMENT_PROPERTY = "property";
+    static final String XML_ELEMENT_FLAG = "flag";
+    static final String XML_ELEMENT_FLAGS = "flags";
+
     static final String XML_ATTRIBUTE_KEY = "key";
     static final String XML_ELEMENT_VALUE = "value";
     static final String XML_ELEMENT_OPTION = "option";

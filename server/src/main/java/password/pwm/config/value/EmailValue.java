@@ -56,7 +56,7 @@ public class EmailValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public EmailValue fromJson( final String input )
+            public EmailValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 if ( input == null )
                 {

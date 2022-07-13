@@ -50,7 +50,7 @@ public class NumericArrayValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public NumericArrayValue fromJson( final String value )
+            public NumericArrayValue fromJson( final PwmSetting pwmSetting, final String value )
             {
                 final long[] longArray = JsonFactory.get().deserialize( value, long[].class );
                 final List<Long> list = Arrays.stream( longArray ).boxed().collect( Collectors.toList() );

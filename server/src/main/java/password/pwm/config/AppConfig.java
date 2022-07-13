@@ -53,7 +53,6 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -187,7 +186,7 @@ public class AppConfig implements SettingReader
 
     public Map<AppProperty, String> readAllAppProperties()
     {
-          return Collections.unmodifiableMap( EnumSet.allOf( AppProperty.class ).stream()
+          return Collections.unmodifiableMap( CollectionUtil.enumStream( AppProperty.class )
                   .collect( CollectionUtil.collectorToLinkedMap(
                           Function.identity(),
                           this::readAppProperty

@@ -306,7 +306,7 @@ public class PwmHttpClientTest
             }
             modifier.writeSetting(
                     StoredConfigKey.forSetting( PwmSetting.APP_PROPERTY_OVERRIDES, null, DomainID.systemId() ),
-                    new StringArrayValue( array ), null );
+                    StringArrayValue.create( array ), null );
 
         }
         return new AppConfig( modifier.newStoredConfiguration() );

@@ -43,7 +43,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -100,7 +99,7 @@ public class JavaHelper
             return Optional.empty();
         }
 
-        return EnumSet.allOf( enumClass ).stream().filter( match ).findFirst();
+        return CollectionUtil.enumStream( enumClass ).filter( match ).findFirst();
     }
 
     public static <E extends Enum<E>> Set<E> readEnumsFromPredicate( final Class<E> enumClass, final Predicate<E> match )
@@ -115,7 +114,7 @@ public class JavaHelper
             return Collections.emptySet();
         }
 
-        return EnumSet.allOf( enumClass ).stream().filter( match ).collect( Collectors.toUnmodifiableSet() );
+        return CollectionUtil.enumStream( enumClass ).filter( match ).collect( Collectors.toUnmodifiableSet() );
     }
 
     public static <E extends Enum<E>> Optional<E> readEnumFromString( final Class<E> enumClass, final String input )

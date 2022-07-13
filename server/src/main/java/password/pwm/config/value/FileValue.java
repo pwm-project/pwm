@@ -171,7 +171,7 @@ public class FileValue extends AbstractValue implements StoredValue
             }
 
             @Override
-            public StoredValue fromJson( final String input )
+            public StoredValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 throw new IllegalStateException( "not implemented" );
             }

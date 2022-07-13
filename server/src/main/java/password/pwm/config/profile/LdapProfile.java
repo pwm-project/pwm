@@ -106,7 +106,7 @@ public class LdapProfile extends AbstractProfile implements Profile
     public String getDisplayName( final Locale locale )
     {
         final String displayName = readSettingAsLocalizedString( PwmSetting.LDAP_PROFILE_DISPLAY_NAME, locale );
-        return displayName == null || displayName.length() < 1 ? getIdentifier() : displayName;
+        return StringUtil.isTrimEmpty( displayName ) ? getIdentifier() : displayName;
     }
 
     public String getUsernameAttribute( )

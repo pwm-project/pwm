@@ -76,7 +76,7 @@ public class NamedSecretValue implements StoredValue
         return new StoredValue.StoredValueFactory()
         {
             @Override
-            public NamedSecretValue fromJson( final String value )
+            public NamedSecretValue fromJson( final PwmSetting pwmSetting, final String value )
             {
                 try
                 {

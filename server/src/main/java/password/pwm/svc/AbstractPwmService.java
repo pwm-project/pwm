@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Supplier;
 
 public abstract class AbstractPwmService implements PwmService
 {
@@ -48,7 +47,7 @@ public abstract class AbstractPwmService implements PwmService
     private DomainID domainID;
     private SessionLabel sessionLabel;
 
-    private Supplier<ScheduledExecutorService> executorService;
+    private LazySupplier<ScheduledExecutorService> executorService;
 
 
     public final PwmService.STATUS status()
@@ -98,8 +97,9 @@ public abstract class AbstractPwmService implements PwmService
     public void shutdown()
     {
         this.status = STATUS.CLOSED;
-        if ( executorService != null )
+        if ( executorService != null && executorService.isSupplied() )
         {
+            executorService.get().shutdownNow();
             JavaHelper.closeAndWaitExecutor( executorService.get(), TimeDuration.SECONDS_10 );
         }
         shutdownImpl();

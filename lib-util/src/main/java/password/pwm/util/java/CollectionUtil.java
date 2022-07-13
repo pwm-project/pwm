@@ -61,6 +61,18 @@ public class CollectionUtil
                 .collect( Collectors.toUnmodifiableList() );
     }
 
+    public static <V> Set<V> stripNulls( final Set<V> input )
+    {
+        if ( input == null )
+        {
+            return Collections.emptySet();
+        }
+
+        return input.stream()
+                .filter( Objects::nonNull )
+                .collect( Collectors.toUnmodifiableSet() );
+    }
+
     public static <K, V> Map<K, V> stripNulls( final Map<K, V> input )
     {
         if ( input == null )
@@ -205,5 +217,10 @@ public class CollectionUtil
                 },
                 () -> new EnumMap<>( keyClass )
         );
+    }
+
+    public static <E extends Enum<E>> Stream<E> enumStream( final Class<E> enumClass )
+    {
+        return EnumSet.allOf( enumClass ).stream();
     }
 }

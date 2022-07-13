@@ -42,7 +42,7 @@ public class ValueFactory
         try
         {
             final StoredValue.StoredValueFactory factory = setting.getSyntax().getFactory();
-            return factory.fromJson( input );
+            return factory.fromJson( setting, input );
         }
         catch ( final Exception e )
         {

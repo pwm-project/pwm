@@ -170,45 +170,51 @@ public class VersionCheckService extends AbstractPwmService
 
         final TimeDuration delayUntilNextExecution = TimeDuration.fromCurrent( this.nextScheduledCheck );
 
-        getExecutorService().schedule( this::doPeriodicCheck, delayUntilNextExecution.asMillis(), TimeUnit.MILLISECONDS );
+        getExecutorService().schedule( new PeriodicCheck(), delayUntilNextExecution.asMillis(), TimeUnit.MILLISECONDS );
 
         LOGGER.trace( getSessionLabel(), () -> "scheduled next check execution at " + StringUtil.toIsoDate( nextScheduledCheck )
                 + " in " + delayUntilNextExecution.asCompactString() );
     }
 
-    private void doPeriodicCheck()
+    private class PeriodicCheck implements Runnable
     {
-        if ( status() != PwmService.STATUS.OPEN )
+        @Override
+        public void run()
         {
-            return;
-        }
+            if ( status() != PwmService.STATUS.OPEN )
+            {
+                return;
+            }
 
-        try
-        {
-            processReturnedVersionBean( executeFetch() );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            cacheHolder.setVersionCheckInfoCache( VersionCheckInfoCache.builder()
-                    .lastError( e.getErrorInformation() )
-                    .lastCheckTimestamp( Instant.now() )
-                    .build() );
-        }
+            try
+            {
+                processReturnedVersionBean( executeFetch() );
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                cacheHolder.setVersionCheckInfoCache( VersionCheckInfoCache.builder()
+                        .lastError( e.getErrorInformation() )
+                        .lastCheckTimestamp( Instant.now() )
+                        .build() );
+            }
 
-        scheduleNextCheck();
+            scheduleNextCheck();
+        }
     }
 
     private void processReturnedVersionBean( final PublishVersionBean publishVersionBean )
     {
-        final VersionNumber currentVersion = publishVersionBean.getVersions().get( PublishVersionBean.VersionKey.current );
+        final Instant startTime = Instant.now();
 
-        LOGGER.trace( getSessionLabel(), () -> "successfully fetched current version information from cloud service: "
-                + currentVersion );
+        final VersionNumber currentVersion = publishVersionBean.getVersions().get( PublishVersionBean.VersionKey.current );
 
         cacheHolder.setVersionCheckInfoCache( VersionCheckInfoCache.builder()
                 .currentVersion( currentVersion )
                 .lastCheckTimestamp( Instant.now() )
                 .build() );
+
+        LOGGER.trace( getSessionLabel(), () -> "successfully fetched current version information from cloud service: "
+                + currentVersion, TimeDuration.fromCurrent( startTime ) );
     }
 
     private PublishVersionBean executeFetch()

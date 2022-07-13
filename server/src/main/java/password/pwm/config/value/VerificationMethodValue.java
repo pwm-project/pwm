@@ -124,7 +124,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
         return new StoredValueFactory()
         {
             @Override
-            public VerificationMethodValue fromJson( final String input )
+            public VerificationMethodValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 if ( input == null )
                 {

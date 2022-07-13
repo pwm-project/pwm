@@ -38,7 +38,6 @@ import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -138,8 +137,7 @@ public enum PwmAboutProperty
             final PwmApplication pwmApplication
     )
     {
-        return Collections.unmodifiableMap( EnumSet.allOf( PwmAboutProperty.class )
-                .stream()
+        return Collections.unmodifiableMap( CollectionUtil.enumStream( PwmAboutProperty.class )
                 .map( aboutProp -> new Pair<>( aboutProp, readAboutValue( pwmApplication, aboutProp ) ) )
                 .filter( entry -> entry.getValue().isPresent() )
                 .collect( CollectionUtil.collectorToEnumMap( PwmAboutProperty.class,

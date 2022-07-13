@@ -156,6 +156,15 @@ public class PwmSettingTest
     }
 
     @Test
+    public void testFlagValues() throws PwmUnrecoverableException, PwmOperationalException
+    {
+        final Set<PwmSettingFlag> flags = PwmSetting.DOMAIN_LIST.getFlags();
+        Assert.assertEquals( 2, flags.size() );
+        Assert.assertTrue( flags.contains( PwmSettingFlag.Sorted ) );
+        Assert.assertTrue( flags.contains( PwmSettingFlag.ReloadEditorOnModify ) );
+    }
+
+    @Test
     public void testProperties() throws PwmUnrecoverableException, PwmOperationalException
     {
         for ( final PwmSetting pwmSetting : PwmSetting.values() )

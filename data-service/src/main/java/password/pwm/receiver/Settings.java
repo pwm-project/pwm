@@ -21,6 +21,7 @@
 package password.pwm.receiver;
 
 import password.pwm.bean.VersionNumber;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
@@ -31,7 +32,6 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.EnumSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -87,7 +87,7 @@ public class Settings
         try ( Reader reader = new InputStreamReader( Files.newInputStream( path ), StandardCharsets.UTF_8 ) )
         {
             properties.load( reader );
-            final Map<Setting, String> returnMap = EnumSet.allOf( Setting.class ).stream()
+            final Map<Setting, String> returnMap = CollectionUtil.enumStream( Setting.class )
                     .collect( Collectors.toUnmodifiableMap(
                             setting -> setting,
                             setting -> properties.getProperty( setting.name(), setting.getDefaultValue() )
