@@ -57,7 +57,7 @@
         "karma-spec-reporter": "0.0.32",
         "karma-webpack": "5.0.0",
         "lodash": ">=4.17.21",
-        "moment": "^2.29.3",
+        "moment": "^2.29.4",
         "ngtemplate-loader": "2.0.1",
         "node-sass": "^7.0.0",
         "postcss-loader": "2.1.1",
