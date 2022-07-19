@@ -212,6 +212,7 @@ html {
      background:linear-gradient(to bottom, #B2B1B9 5%, #E8E1F6 100% );
  }
 
+/** prevent an extra space in the dojo nav tree for a "node" icon. **/
 .tree-noicon {
     width:0;
     margin:0;

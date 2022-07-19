@@ -335,7 +335,6 @@ PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
             var element = PWM_MAIN.getObject(elementID);
             if (element !== null) {
                 element.innerHTML = password;
-                PWM_MAIN.setStyle(elementID,'visibility','visible');
             }
             PWM_CHANGEPW.fetchRandoms(randomConfig);
         };

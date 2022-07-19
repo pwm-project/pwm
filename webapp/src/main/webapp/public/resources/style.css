@@ -1765,7 +1765,7 @@ table.ias-table, table.ias-table td {
 }
 
 .hidden {
-   display: none;
+    visibility: hidden;
 }
 
 .logViewer {

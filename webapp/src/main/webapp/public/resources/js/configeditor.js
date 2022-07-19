@@ -137,11 +137,11 @@ PWM_CFGEDIT.readSetting = function(keyName, valueWriter) {
         const showSetting = (PWM_SETTINGS['settings'][keyName] && PWM_SETTINGS['settings'][keyName]['syntax'] === 'PROFILE') ||   (!modifiedOnly || !isDefault) && (maxLevel < 0 || settingLevel  <= maxLevel );
         if (showSetting) {
             valueWriter(resultValue);
-            PWM_MAIN.setStyle('outline_' + keyName,'display','inherit');
+            PWM_MAIN.removeCssClass('outline_' + keyName,'nodisplay');
             PWM_CFGEDIT.updateSettingDisplay(keyName, isDefault);
             PWM_CFGEDIT.updateLastModifiedInfo(keyName, data);
         } else {
-            PWM_MAIN.setStyle('outline_' + keyName,'display','none');
+            PWM_MAIN.addCssClass('outline_' + keyName,'nodisplay');
             PWM_VAR['skippedSettingCount']++;
             if (PWM_VAR['skippedSettingCount'] > 0 && PWM_MAIN.getObject('panel-skippedSettingInfo')) {
                 PWM_MAIN.getObject('panel-skippedSettingInfo').innerHTML = "" + PWM_VAR['skippedSettingCount'] + " items are not shown due to filter settings."
@@ -1041,7 +1041,7 @@ PWM_CFGEDIT.drawHtmlOutlineForSetting = function(settingInfo, options) {
     options = options === undefined ? {} : options;
     const settingKey = settingInfo['key'];
     const settingLabel = settingInfo['label'];
-    let htmlBody = '<div id="outline_' + settingKey + '" class="setting_outline" style="display:none">'
+    let htmlBody = '<div id="outline_' + settingKey + '" class="setting_outline nodisplay">'
         + '<div class="setting_title" id="title_' + settingKey + '">'
         + '<a id="setting-' + settingKey + '" class="text">' + settingLabel + '</a>'
         + '<div class="pwm-icon pwm-icon-pencil-square modifiedNoticeIcon" title="' + PWM_CONFIG.showString('Tooltip_ModifiedNotice') + '" id="modifiedNoticeIcon-' + settingKey + '" style="display: none" ></div>';
@@ -1100,11 +1100,11 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
 PWM_CFGEDIT.drawNavigationMenu = function(nextFunction) {
     console.log('drawNavigationMenu')
     PWM_MAIN.getObject('navigationTree').innerHTML = '';
-    PWM_MAIN.setStyle('navigationTreeWrapper','display','none');
+    //PWM_MAIN.setStyle('navigationTreeWrapper','display','none');
 
     const makeTreeFunction = function(menuTreeData) {
-        require(["dojo/_base/window", "dojo/store/Memory", "dijit/tree/ObjectStoreModel", "dijit/Tree","dijit","dojo/domReady!"],
-            function(win, Memory, ObjectStoreModel, Tree)
+        require(["dojo","dojo/_base/window", "dojo/store/Memory", "dijit/tree/ObjectStoreModel", "dijit/Tree","dijit","dojo/domReady!"],
+            function(dojo, win, Memory, ObjectStoreModel, Tree)
             {
                 PWM_MAIN.clearDijitWidget('navigationTree');
                 // Create test store, adding the getChildren() method required by ObjectStoreModel
@@ -1151,7 +1151,7 @@ PWM_CFGEDIT.drawNavigationMenu = function(nextFunction) {
                 PWM_MAIN.getObject('navigationTree').innerHTML = '';
                 tree.placeAt(PWM_MAIN.getObject('navigationTree'));
                 tree.startup();
-                PWM_MAIN.setStyle('navigationTreeWrapper','display','inherit');
+                //PWM_MAIN.setStyle('navigationTreeWrapper','display','inherit');
                 PWM_VAR['navigationTree'] = tree; // used for expand/collapse button events;
                 console.log('completed menu tree drawing');
             }

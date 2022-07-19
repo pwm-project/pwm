@@ -50,13 +50,13 @@
         <table class="noborder">
             <tr class="buttonrow">
                 <td class="buttoncell">
-                    <button class="menubutton" id="MenuItem_UploadWordlist" style="visibility: hidden;">
+                    <button class="hidden menubutton" id="MenuItem_UploadWordlist">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
                         Upload Word List
                     </button>
                 </td>
                 <td class="buttoncell">
-                    <button class="menubutton" id="MenuItem_ClearWordlist" style="visibility: hidden;">
+                    <button class="hidden menubutton" id="MenuItem_ClearWordlist">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-trash"></span></pwm:if>
                         Clear Word List
                     </button>
@@ -72,13 +72,13 @@
         <table class="noborder">
             <tr class="buttonrow">
                 <td class="buttoncell">
-                    <button class="menubutton" id="MenuItem_UploadSeedlist" style="visibility: hidden;">
+                    <button class="hidden menubutton" id="MenuItem_UploadSeedlist">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
                         Upload Seed List
                     </button>
                 </td>
                 <td class="buttoncell">
-                    <button class="menubutton" id="MenuItem_ClearSeedlist" style="visibility: hidden;">
+                    <button class="hidden menubutton" id="MenuItem_ClearSeedlist">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-trash"></span></pwm:if>
                         Clear Seed List
                     </button>
