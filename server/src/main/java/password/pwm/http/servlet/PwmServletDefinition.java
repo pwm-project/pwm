@@ -50,11 +50,11 @@ import password.pwm.http.servlet.command.PrivateCommandServlet;
 import password.pwm.http.servlet.command.PublicCommandServlet;
 import password.pwm.http.servlet.configeditor.ConfigEditorServlet;
 import password.pwm.http.servlet.configguide.ConfigGuideServlet;
-import password.pwm.http.servlet.configmanager.ConfigManagerCertificatesServlet;
-import password.pwm.http.servlet.configmanager.ConfigManagerLocalDBServlet;
-import password.pwm.http.servlet.configmanager.ConfigManagerLoginServlet;
-import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
-import password.pwm.http.servlet.configmanager.ConfigManagerWordlistServlet;
+import password.pwm.http.servlet.admin.system.SystemAdminCertificatesServlet;
+import password.pwm.http.servlet.admin.system.ConfigManagerLocalDBServlet;
+import password.pwm.http.servlet.admin.system.ConfigManagerLoginServlet;
+import password.pwm.http.servlet.admin.system.ConfigManagerServlet;
+import password.pwm.http.servlet.admin.system.ConfigManagerWordlistServlet;
 import password.pwm.http.servlet.newuser.NewUserServlet;
 import password.pwm.http.servlet.oauth.OAuthConsumerServlet;
 import password.pwm.http.servlet.peoplesearch.PrivatePeopleSearchServlet;
@@ -105,7 +105,7 @@ public enum PwmServletDefinition
     ConfigManager_Login( ConfigManagerLoginServlet.class, ConfigManagerBean.class ),
     ConfigManager_Wordlists( ConfigManagerWordlistServlet.class, ConfigManagerBean.class, Flag.RequiresConfigAuth ),
     ConfigManager_LocalDB( ConfigManagerLocalDBServlet.class, ConfigManagerBean.class, Flag.RequiresConfigAuth ),
-    ConfigManager_Certificates( ConfigManagerCertificatesServlet.class, ConfigManagerBean.class, Flag.RequiresConfigAuth ),
+    SystemAdmin_Certificates( SystemAdminCertificatesServlet.class, ConfigManagerBean.class, Flag.RequiresConfigAuth ),
     FullPageHealth( FullPageHealthServlet.class, null ),
 
     NewUser( NewUserServlet.class, NewUserBean.class ),

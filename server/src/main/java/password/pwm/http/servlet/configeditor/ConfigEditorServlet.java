@@ -69,7 +69,7 @@ import password.pwm.http.servlet.configeditor.data.NavTreeSettings;
 import password.pwm.http.servlet.configeditor.data.SettingData;
 import password.pwm.http.servlet.configeditor.data.SettingDataMaker;
 import password.pwm.http.servlet.configeditor.function.SettingUIFunction;
-import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
+import password.pwm.http.servlet.admin.system.ConfigManagerServlet;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;

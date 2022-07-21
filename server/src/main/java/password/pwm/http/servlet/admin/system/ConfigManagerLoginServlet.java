@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.http.servlet.configmanager;
+package password.pwm.http.servlet.admin.system;
 
 import com.google.gson.annotations.SerializedName;
 import com.novell.ldapchai.exception.ChaiUnavailableException;

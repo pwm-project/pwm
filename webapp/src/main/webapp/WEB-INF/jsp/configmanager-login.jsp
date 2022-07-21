@@ -28,8 +28,8 @@
 <%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
-<%@ page import="password.pwm.http.servlet.configmanager.ConfigManagerServlet" %>
-<%@ page import="password.pwm.http.servlet.configmanager.ConfigManagerLoginServlet" %>
+<%@ page import="password.pwm.http.servlet.admin.system.ConfigManagerServlet" %>
+<%@ page import="password.pwm.http.servlet.admin.system.ConfigManagerLoginServlet" %>
 <%@ page import="password.pwm.util.java.MiscUtil" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 

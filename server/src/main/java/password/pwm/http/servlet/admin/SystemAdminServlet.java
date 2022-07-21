@@ -97,8 +97,7 @@ import java.util.zip.ZipOutputStream;
 @WebServlet(
         name = "SystemAdminServlet",
         urlPatterns = {
-                PwmConstants.URL_PREFIX_PRIVATE + "/admin/system",
-                PwmConstants.URL_PREFIX_PRIVATE + "/admin/system/*",
+                PwmConstants.URL_PREFIX_PRIVATE + "/admin/system/dashboard",
                 PwmConstants.URL_PREFIX_PRIVATE + "/admin/system/Administration",
         }
 )

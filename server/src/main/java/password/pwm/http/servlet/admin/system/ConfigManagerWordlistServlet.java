@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.http.servlet.configmanager;
+package password.pwm.http.servlet.admin.system;
 
 import lombok.Builder;
 import lombok.Value;

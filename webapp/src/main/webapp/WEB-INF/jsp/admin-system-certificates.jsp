@@ -24,7 +24,7 @@
 
 
 <%@ page import="password.pwm.http.JspUtility" %>
-<%@ page import="password.pwm.http.servlet.configmanager.ConfigManagerCertificatesServlet" %>
+<%@ page import="password.pwm.http.servlet.admin.system.SystemAdminCertificatesServlet" %>
 <%@ page import="password.pwm.i18n.Config" %>
 <%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="java.util.List" %>

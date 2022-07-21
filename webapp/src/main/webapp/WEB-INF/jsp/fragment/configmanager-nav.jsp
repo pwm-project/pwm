@@ -34,7 +34,7 @@
             Overview
         </button>
     </form>
-    <form action="<pwm:context/><%=PwmServletDefinition.ConfigManager_Certificates.servletUrl()%>" method="get">
+    <form action="<pwm:context/><%=PwmServletDefinition.SystemAdmin_Certificates.servletUrl()%>" method="get">
         <button type="submit" class="navbutton">
             <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-file-text-o"></span></pwm:if>
             Certificates

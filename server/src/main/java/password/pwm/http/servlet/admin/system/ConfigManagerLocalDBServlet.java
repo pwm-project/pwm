@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.http.servlet.configmanager;
+package password.pwm.http.servlet.admin.system;
 
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.AppProperty;

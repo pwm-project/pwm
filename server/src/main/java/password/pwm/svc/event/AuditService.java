@@ -73,7 +73,7 @@ public class AuditService extends AbstractPwmService implements PwmService
     private SyslogAuditService syslogManager;
     private ErrorInformation lastError;
     private AuditVault auditVault;
-    private final StatisticCounterBundle<DebugKey> statisticCounterBundle = new StatisticCounterBundle( DebugKey.class );
+    private final StatisticCounterBundle<DebugKey> statisticCounterBundle = new StatisticCounterBundle<>( DebugKey.class );
 
     enum DebugKey
     {

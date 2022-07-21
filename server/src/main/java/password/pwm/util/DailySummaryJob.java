@@ -25,8 +25,8 @@ import lombok.Value;
 import org.apache.commons.text.WordUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
@@ -34,7 +34,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.i18n.Display;
 import password.pwm.svc.PwmService;
-import password.pwm.svc.report.ReportSummaryData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
@@ -218,6 +217,7 @@ public class DailySummaryJob implements Runnable
         textBody.append( '\n' );
         htmlBody.append( "<br/>" );
 
+        /*
         if ( settings.isReportingEnableDailyJob() )
         {
             final List<ReportSummaryData.PresentationRow> summaryData = pwmDomain.getPwmApplication().getReportService()
@@ -246,6 +246,8 @@ public class DailySummaryJob implements Runnable
             }
             htmlBody.append( "</table>" );
         }
+
+         */
 
         textBody.append( '\n' );
         htmlBody.append( "<br/>" );

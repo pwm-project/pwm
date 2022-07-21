@@ -77,12 +77,11 @@ public class ReportService extends AbstractPwmService implements PwmService
         this.pwmApplication = pwmApplication;
         this.settings = ReportSettings.readSettingsFromConfig( this.getPwmApplication().getConfig() );
         final int maxThreads = settings.getReportJobThreads();
-        this.threadPool = PwmScheduler.makeMultiThreadExecutorService( pwmApplication, ReportService.class, maxThreads );
+        this.threadPool = PwmScheduler.makeMultiThreadExecutor( maxThreads, pwmApplication, getSessionLabel(), ReportService.class );
         return STATUS.OPEN;
     }
 
-    @Override
-    public void close( )
+    public void shutdownImpl( )
     {
         if ( threadPool != null )
         {

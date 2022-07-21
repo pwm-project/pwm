@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.http.servlet.configmanager;
+package password.pwm.http.servlet.admin.system;
 
 import lombok.Builder;
 import lombok.Value;
@@ -58,14 +58,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @WebServlet(
-        name = "ConfigManagerCertificateServlet",
+        name = "SystemAdminCertificateServlet",
         urlPatterns = {
-                PwmConstants.URL_PREFIX_PRIVATE + "/config/manager/certificates",
+                PwmConstants.URL_PREFIX_PRIVATE + "/admin/system/certificates",
         }
 )
-public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
+public class SystemAdminCertificatesServlet extends AbstractPwmServlet
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigManagerCertificatesServlet.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( SystemAdminCertificatesServlet.class );
 
     public enum ConfigManagerCertificateAction implements AbstractPwmServlet.ProcessAction
     {
@@ -108,7 +108,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
             return;
         }
         pwmRequest.setAttribute( PwmRequestAttribute.ConfigHasCertificates, !certificateDebugDataItems.isEmpty() );
-        pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_CERTIFICATES );
+        pwmRequest.forwardToJsp( JspUrl.ADMIN_SYSTEM_CERTIFICATES );
     }
 
     List<CertificateDebugDataItem> makeCertificateDebugData( final DomainConfig domainConfig ) throws PwmUnrecoverableException

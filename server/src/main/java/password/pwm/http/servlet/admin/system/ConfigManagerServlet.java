@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.http.servlet.configmanager;
+package password.pwm.http.servlet.admin.system;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.csv.CSVPrinter;

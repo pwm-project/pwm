@@ -25,7 +25,7 @@
 
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.Config" %>
-<%@ page import="password.pwm.http.servlet.configmanager.ConfigManagerServlet" %>
+<%@ page import="password.pwm.http.servlet.admin.system.ConfigManagerServlet" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
