@@ -159,7 +159,7 @@ public class PropertyConfigurationImporter
         modifySetting( modifier, PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE,
                 new PasswordValue( PasswordData.forStringValue( inputMap.get( PropertyKey.ID_VAULT_PASSWORD.name( ) ) ) ) );
         modifySetting( modifier, PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE,
-                new StringArrayValue( Collections.singletonList( inputMap.get( PropertyKey.USER_CONTAINER.name( ) ) ) ) );
+                StringArrayValue.create( Collections.singletonList( inputMap.get( PropertyKey.USER_CONTAINER.name( ) ) ) ) );
 
         // oauth
         modifySetting( modifier, PwmSetting.OAUTH_ID_LOGIN_URL, null, new StringValue( makeOAuthBaseUrl( ) + "/grant" ) );
@@ -223,7 +223,7 @@ public class PropertyConfigurationImporter
 
     private StringArrayValue makeWhitelistUrl( )
     {
-        return new StringArrayValue( Collections.singletonList( "https://" + inputMap.get( PropertyKey.SSO_SERVER_HOST.name( ) )
+        return StringArrayValue.create( Collections.singletonList( "https://" + inputMap.get( PropertyKey.SSO_SERVER_HOST.name( ) )
                 + ":" + inputMap.getOrDefault( PropertyKey.SSO_SERVER_SSL_PORT.name( ), PropertyKey.SSO_SERVER_SSL_PORT.getDefaultValue() ) ) );
     }
 
@@ -255,7 +255,7 @@ public class PropertyConfigurationImporter
     {
         final String ldapUrl = "ldaps://" + inputMap.get( PropertyKey.ID_VAULT_HOST.name( ) )
                 + ":" + inputMap.getOrDefault( PropertyKey.ID_VAULT_LDAPS_PORT.name( ), PropertyKey.ID_VAULT_LDAPS_PORT.getDefaultValue() );
-        return new StringArrayValue( Collections.singletonList( ldapUrl ) );
+        return StringArrayValue.create( Collections.singletonList( ldapUrl ) );
     }
 
     private StoredValue makeAdminPermissions( )

@@ -124,13 +124,13 @@ public class ConfigGuideForm
 
         // establish a default ldap profile
 
-        modifySetting( modifier, PwmSetting.LDAP_PROFILE_LIST, null, new StringArrayValue(
+        modifySetting( modifier, PwmSetting.LDAP_PROFILE_LIST, null, StringArrayValue.create(
                 Collections.singletonList( LDAP_PROFILE_NAME )
         ) );
 
         {
             final String newLdapURI = figureLdapUrlFromFormConfig( formData );
-            final StringArrayValue newValue = new StringArrayValue( Collections.singletonList( newLdapURI ) );
+            final StringArrayValue newValue = StringArrayValue.create( Collections.singletonList( newLdapURI ) );
             modifySetting( modifier, PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE_NAME, newValue );
         }
 
@@ -149,13 +149,13 @@ public class ConfigGuideForm
             modifySetting( modifier, PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_NAME, passwordValue );
         }
 
-        modifySetting( modifier, PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_NAME, new StringArrayValue(
+        modifySetting( modifier, PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_NAME, StringArrayValue.create(
                 Collections.singletonList( formData.get( ConfigGuideFormField.PARAM_LDAP_CONTEXT ) )
         ) );
 
         {
             final String ldapContext = formData.get( ConfigGuideFormField.PARAM_LDAP_CONTEXT );
-            modifySetting( modifier, PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_NAME, new StringArrayValue(
+            modifySetting( modifier, PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_NAME, StringArrayValue.create(
                     Collections.singletonList( ldapContext )
             ) );
         }
@@ -219,7 +219,7 @@ public class ConfigGuideForm
         if ( formData.containsKey( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA ) )
         {
             final String stringValue = formData.get( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA );
-            final StoredValue challengeValue = ChallengeValue.factory().fromJson( stringValue );
+            final StoredValue challengeValue = ChallengeValue.factory().fromJson( PwmSetting.CHALLENGE_RANDOM_CHALLENGES, stringValue );
             modifySetting( modifier, PwmSetting.CHALLENGE_RANDOM_CHALLENGES, "default", challengeValue );
         }
 

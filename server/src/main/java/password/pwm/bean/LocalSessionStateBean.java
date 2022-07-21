@@ -21,7 +21,7 @@
 package password.pwm.bean;
 
 import lombok.Data;
-import password.pwm.ldap.UserInfoBean;
+import password.pwm.user.UserInfoBean;
 import password.pwm.util.java.MovingAverage;
 import password.pwm.util.java.TimeDuration;
 

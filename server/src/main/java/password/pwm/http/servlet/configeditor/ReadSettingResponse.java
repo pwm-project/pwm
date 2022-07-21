@@ -18,16 +18,26 @@
  * limitations under the License.
  */
 
-package password.pwm.config;
+package password.pwm.http.servlet.configeditor;
 
-import org.junit.Test;
+import lombok.Builder;
+import lombok.Value;
+import password.pwm.bean.UserIdentity;
 
-public class PwmSettingMetaDataReaderTest
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.Map;
+
+@Value
+@Builder
+public class ReadSettingResponse implements Serializable
 {
-    @Test
-    public void initCache()
-    {
-        // just checking that no exceptions are thrown
-        PwmSettingMetaDataReader.initCache();
-    }
+    private final boolean isDefault;
+    private final String key;
+    private final String category;
+    private final Instant modifyTime;
+    private final UserIdentity modifyUser;
+    private final String syntax;
+    private final Object value;
+    private final Map<String, String> options;
 }

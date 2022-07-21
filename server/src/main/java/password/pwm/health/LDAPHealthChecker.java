@@ -52,7 +52,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.util.PasswordData;
@@ -850,7 +850,7 @@ public class LDAPHealthChecker implements HealthSupplier
         {
             errorReachingServer = true;
             LOGGER.error( sessionLabel,
-                    () ->  "error during ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") check: " + e.getMessage() );
+                    () -> "error during ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") check: " + e.getMessage() );
         }
 
         if ( !errorReachingServer && pwmDomain.getPwmApplication().getHealthMonitor() != null )
@@ -903,7 +903,7 @@ public class LDAPHealthChecker implements HealthSupplier
             {
                 if ( !pwmSetting.isHidden()
                         && pwmSetting.getCategory() == PwmSettingCategory.LDAP_PROFILE
-                        && pwmSetting.getFlags().contains( PwmSettingFlag.ldapDNsyntax )
+                        && pwmSetting.getFlags().contains( PwmSettingFlag.ldapDnSyntax )
                 )
                 {
                     for ( final String profile : config.getLdapProfiles().keySet() )

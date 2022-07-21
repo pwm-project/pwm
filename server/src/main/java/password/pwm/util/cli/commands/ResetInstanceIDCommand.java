@@ -24,10 +24,12 @@ import password.pwm.AppAttribute;
 import password.pwm.PwmApplication;
 import password.pwm.util.cli.CliParameters;
 
+import java.io.IOException;
+
 public class ResetInstanceIDCommand extends AbstractCliCommand
 {
     @Override
-    public void doCommand( ) throws Exception
+    public void doCommand( ) throws IOException
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
         final String currentInstanceID = pwmApplication.getInstanceID();

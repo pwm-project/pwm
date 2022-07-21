@@ -304,9 +304,16 @@ public class MacroTest
     @Test
     public void testUserLdapProfileMacro()
     {
+        final String goal = "UserLdapProfile default ProfileName test";
+        final String expanded = macroRequest.expandMacros( "UserLdapProfile @User:LdapProfile:ID@ @User:LdapProfile:Name@ test" );
+        Assert.assertEquals( goal, expanded );
+    }
 
-        final String goal = "UserLdapProfile profile1 test";
-        final String expanded = macroRequest.expandMacros( "UserLdapProfile @User:LdapProfile@ test" );
+    @Test
+    public void testDomainIdMacro()
+    {
+        final String goal = "UserDomain default test";
+        final String expanded = macroRequest.expandMacros( "UserDomain @User:Domain:ID@ test" );
         Assert.assertEquals( goal, expanded );
     }
 

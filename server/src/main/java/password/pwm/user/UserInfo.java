@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.ldap;
+package password.pwm.user;
 
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.ResponseInfoBean;

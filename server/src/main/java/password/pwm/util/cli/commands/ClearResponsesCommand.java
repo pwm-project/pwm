@@ -20,15 +20,19 @@
 
 package password.pwm.util.cli.commands;
 
+import password.pwm.util.cli.CliException;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBException;
+
+import java.io.IOException;
 
 public class ClearResponsesCommand extends AbstractCliCommand
 {
 
     @Override
     void doCommand( )
-            throws Exception
+            throws IOException, CliException
     {
         final String msg = "Proceeding with this operation will clear all stored responses from the LocalDB." + "\n"
                 + "Please consider exporting the responses before proceeding. " + "\n"
@@ -39,6 +43,20 @@ public class ClearResponsesCommand extends AbstractCliCommand
             return;
         }
 
+        try
+        {
+            clearDb();
+        }
+        catch ( final LocalDBException e )
+        {
+            throw new CliException( e.getMessage(), e );
+        }
+
+    }
+
+    private void clearDb()
+            throws LocalDBException, IOException
+    {
         final LocalDB localDB = cliEnvironment.getLocalDB();
 
         if ( localDB.size( LocalDB.DB.RESPONSE_STORAGE ) == 0 )

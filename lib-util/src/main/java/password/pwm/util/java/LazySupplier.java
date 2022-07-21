@@ -20,6 +20,8 @@
 
 package password.pwm.util.java;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.util.function.Supplier;
 
 /**
@@ -51,6 +53,12 @@ public class LazySupplier<T> implements Supplier<T>
         return value;
     }
 
+    public boolean isSupplied()
+    {
+        return supplied;
+    }
+
+    @SuppressFBWarnings( "THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION" )
     public interface CheckedSupplier<T, E extends Exception>
     {
         T call() throws E;
@@ -61,6 +69,7 @@ public class LazySupplier<T> implements Supplier<T>
         return new LazyCheckedSupplier<>( lazySupplier );
     }
 
+    @SuppressFBWarnings( "THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION" )
     private static class LazyCheckedSupplier<T, E extends Exception> implements CheckedSupplier<T, E>
     {
         private boolean supplied = false;
@@ -73,6 +82,7 @@ public class LazySupplier<T> implements Supplier<T>
         }
 
         @Override
+        @SuppressFBWarnings( "THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION" )
         public T call() throws E
         {
             if ( !supplied )

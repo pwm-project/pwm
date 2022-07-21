@@ -47,7 +47,7 @@ public class NumericValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public NumericValue fromJson( final String value )
+            public NumericValue fromJson( final PwmSetting pwmSetting, final String value )
             {
                 return new NumericValue( JsonFactory.get().deserialize( value, Long.class ) );
             }

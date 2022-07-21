@@ -59,7 +59,7 @@ public class StringValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public StringValue fromJson( final String input )
+            public StringValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 final String newValue = JsonFactory.get().deserialize( input, String.class );
                 return new StringValue( newValue );

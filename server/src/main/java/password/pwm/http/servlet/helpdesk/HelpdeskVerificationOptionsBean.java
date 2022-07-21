@@ -36,7 +36,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.java.CollectionUtil;
@@ -118,7 +118,7 @@ public class HelpdeskVerificationOptionsBean implements Serializable
                 }
                 catch ( final PwmUnrecoverableException e )
                 {
-                    LOGGER.trace( () -> "error while calculating available token methods: " + e.getMessage() );
+                    LOGGER.trace( pwmRequest, () -> "error while calculating available token methods: " + e.getMessage() );
                 }
             }
             tokenDestinations = Collections.unmodifiableList( TokenDestinationItem.stripValues( returnList ) );

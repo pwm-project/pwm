@@ -33,7 +33,7 @@ import password.pwm.config.option.PasswordSyncCheckMode;
 import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
-import password.pwm.util.ProgressInfo;
+import password.pwm.util.ProgressInfoCalculator;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.json.JsonFactory;
@@ -230,8 +230,8 @@ public class PasswordChangeProgressChecker
         {
             final float pctComplete = figureAverageProgress( progressRecords );
             LOGGER.trace( pwmSession, () -> "percent complete: " + pctComplete );
-            final ProgressInfo progressInfo = new ProgressInfo( tracker.beginTime, 100, ( long ) pctComplete );
-            final Instant actualEstimate = progressInfo.estimatedCompletion();
+            final ProgressInfoCalculator progressInfoCalculator = ProgressInfoCalculator.createProgressInfo( tracker.beginTime, 100, ( long ) pctComplete );
+            final Instant actualEstimate = progressInfoCalculator.estimatedCompletion();
 
             if ( actualEstimate.isBefore( minCompletionTime ) )
             {
@@ -319,7 +319,7 @@ public class PasswordChangeProgressChecker
                     pwmSession, userIdentity );
             if ( checkResults.size() <= 1 )
             {
-                LOGGER.trace( () -> "only one replica returned data, marking as complete" );
+                LOGGER.trace( pwmSession, () -> "only one replica returned data, marking as complete" );
                 return Optional.of( completedReplicationRecord );
             }
             else
@@ -339,7 +339,7 @@ public class PasswordChangeProgressChecker
                 }
                 final Percent pctComplete = Percent.of( duplicateValues + 1, checkResults.size() );
                 final ProgressRecord progressRecord = makeReplicaProgressRecord( pctComplete );
-                LOGGER.trace( () -> "read password replication sync status as: " + JsonFactory.get().serialize( progressRecord ) );
+                LOGGER.trace( pwmSession, () -> "read password replication sync status as: " + JsonFactory.get().serialize( progressRecord ) );
                 return Optional.of( progressRecord );
             }
         }

@@ -28,6 +28,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -45,7 +46,8 @@ class FileInfoDebugItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException
     {
         final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
         final File applicationPath = pwmApplication.getPwmEnvironment().getApplicationPath();
@@ -91,7 +93,7 @@ class FileInfoDebugItemGenerator implements AppItemGenerator
             headerRow.add( "Filename" );
             headerRow.add( "Last Modified" );
             headerRow.add( "Size" );
-            headerRow.add( "Checksum" );
+            headerRow.add( "Sha512Hash" );
             csvPrinter.printComment( StringUtil.join( headerRow, "," ) );
         }
 
@@ -106,7 +108,7 @@ class FileInfoDebugItemGenerator implements AppItemGenerator
                 dataRow.add( fileSummaryInformation.getFilename() );
                 dataRow.add( StringUtil.toIsoDate( fileSummaryInformation.getModified() ) );
                 dataRow.add( String.valueOf( fileSummaryInformation.getSize() ) );
-                dataRow.add( Long.toString( fileSummaryInformation.getChecksum() ) );
+                dataRow.add( fileSummaryInformation.getSha512Hash() );
                 csvPrinter.printRecord( dataRow );
             }
             catch ( final Exception e )

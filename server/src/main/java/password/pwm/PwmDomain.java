@@ -32,7 +32,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.peoplesearch.PeopleSearchService;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.http.state.SessionStateService;
-import password.pwm.ldap.LdapConnectionService;
+import password.pwm.ldap.LdapDomainService;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceEnum;
@@ -50,16 +50,18 @@ import password.pwm.svc.stats.StatisticsService;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.userhistory.UserHistoryService;
 import password.pwm.svc.wordlist.SharedHistoryService;
+import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A repository for objects common to the servlet context.  A singleton
- * of this object is stored in the servlet context.
+ * A representation of a domain in the PwmDomain.  Domains contain settings, functionality and behavior that is 'site' specific.
+ * Domains are sometimes referred to as a "tenant" in other systems.
  *
  * @author Jason D. Rivard
  */
@@ -71,6 +73,13 @@ public class PwmDomain
     private final DomainID domainID;
     private final PwmServiceManager pwmServiceManager;
     private final SessionLabel sessionLabel;
+
+    // for debugging
+    private final int instanceId = DOMAIN_INCREMENTER.next();
+
+    private final AtomicInteger activeServletRequests = new AtomicInteger( 0 );
+
+    private static final AtomicLoopIntIncrementer DOMAIN_INCREMENTER = new AtomicLoopIntIncrementer();
 
     public PwmDomain( final PwmApplication pwmApplication, final DomainID domainID )
     {
@@ -89,16 +98,15 @@ public class PwmDomain
 
     {
         final Instant startTime = Instant.now();
-        LOGGER.trace( sessionLabel, () -> "initializing domain " + domainID.stringValue() );
+        LOGGER.trace( sessionLabel, () -> "initializing domain " + domainID.stringValue() + " (instanceId=" + instanceId + ")" );
 
         pwmServiceManager.initAllServices();
 
-        if ( Boolean.parseBoolean( getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) ) )
-        {
-            PwmApplicationUtil.outputConfigurationToLog( pwmApplication, domainID );
-        }
+        PwmApplicationUtil.outputConfigurationToLog( pwmApplication, domainID );
 
-        LOGGER.trace( sessionLabel, () -> "completed initializing domain " + domainID.stringValue(), () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> "completed initializing domain " + domainID.stringValue()
+                        + " (instanceId=" + instanceId + ")",
+                TimeDuration.fromCurrent( startTime ) );
     }
 
     public DomainConfig getConfig( )
@@ -151,9 +159,9 @@ public class PwmDomain
         return pwmApplication.determineIfDetailErrorMsgShown();
     }
 
-    public LdapConnectionService getLdapConnectionService( )
+    public LdapDomainService getLdapConnectionService( )
     {
-        return ( LdapConnectionService ) pwmServiceManager.getService( PwmServiceEnum.LdapConnectionService );
+        return ( LdapDomainService ) pwmServiceManager.getService( PwmServiceEnum.LdapConnectionService );
     }
 
     public AuditService getAuditService()
@@ -180,11 +188,10 @@ public class PwmDomain
         }
     }
 
-    public ChaiProvider getProxyChaiProvider( final SessionLabel sessionLabel, final String identifier )
+    public ChaiProvider getProxyChaiProvider( final SessionLabel sessionLabel, final String profileId )
             throws PwmUnrecoverableException
     {
-        Objects.requireNonNull( identifier );
-        return getLdapConnectionService().getProxyChaiProvider( sessionLabel, identifier );
+        return getLdapConnectionService().getProxyChaiProvider( sessionLabel, profileId );
     }
 
     public List<PwmService> getPwmServices( )
@@ -244,13 +251,20 @@ public class PwmDomain
 
     public void shutdown()
     {
+        final Instant startTime = Instant.now();
         LOGGER.trace( sessionLabel, () -> "beginning shutdown domain " + domainID.stringValue() );
         pwmServiceManager.shutdownAllServices();
+        LOGGER.trace( sessionLabel, () -> "shutdown domain " + domainID.stringValue() + " completed", TimeDuration.fromCurrent( startTime ) );
     }
 
     public DomainID getDomainID()
     {
         return domainID;
+    }
+
+    public AtomicInteger getActiveServletRequests( )
+    {
+        return activeServletRequests;
     }
 }
 

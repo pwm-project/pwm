@@ -37,8 +37,6 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
-import password.pwm.util.json.JsonFactory;
-import password.pwm.util.json.JsonProvider;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -46,8 +44,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
 
 public abstract class CommandServlet extends ControlledPwmServlet
 {
@@ -55,9 +51,9 @@ public abstract class CommandServlet extends ControlledPwmServlet
     private static final PwmLogger LOGGER = PwmLogger.forClass( CommandServlet.class );
 
     @Override
-    public Optional<Class<? extends ProcessAction>> getProcessActionsClass( )
+    public Class<? extends ProcessAction> getProcessActionsClass( )
     {
-        return Optional.of( CommandAction.class );
+        return CommandAction.class;
     }
 
     public enum CommandAction implements ProcessAction
@@ -103,15 +99,13 @@ public abstract class CommandServlet extends ControlledPwmServlet
             throws IOException, PwmUnrecoverableException
     {
         final String body = pwmRequest.readRequestBodyAsString();
-        final JsonProvider jsonProvider = JsonFactory.get();
         try
         {
-            final Map<String, Object> map = jsonProvider.deserializeMap( body, String.class, Object.class );
-            LOGGER.trace( () -> "CSP Report: " + jsonProvider.serializeMap( map, JsonProvider.Flag.PrettyPrint ) );
+            LOGGER.trace( pwmRequest, () -> "CSP Report: " + body );
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error processing csp report: " + e.getMessage() + ", body=" + body );
+            LOGGER.error( pwmRequest, () -> "error processing csp report: " + e.getMessage() + ", body=" + body );
         }
         return ProcessStatus.Halt;
     }
@@ -229,7 +223,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
-    @ControlledPwmServlet.ActionHandler( action = "checkIfResponseConfigNeeded" )
+    @ActionHandler( action = "checkIfResponseConfigNeeded" )
     public ProcessStatus processCheckIfResponseConfigNeeded(
             final PwmRequest pwmRequest
     )
@@ -238,7 +232,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
         return processCheckResponses( pwmRequest );
     }
 
-    @ControlledPwmServlet.ActionHandler( action = "checkResponses" )
+    @ActionHandler( action = "checkResponses" )
     public ProcessStatus processCheckResponses(
             final PwmRequest pwmRequest
     )
@@ -260,7 +254,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
-    @ControlledPwmServlet.ActionHandler( action = "checkExpire" )
+    @ActionHandler( action = "checkExpire" )
     public ProcessStatus processCheckExpire(
             final PwmRequest pwmRequest
     )
@@ -284,7 +278,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
     }
 
     private static void redirectToForwardURL( final PwmRequest pwmRequest )
-            throws IOException, PwmUnrecoverableException
+            throws IOException
     {
         final LocalSessionStateBean sessionStateBean = pwmRequest.getPwmSession().getSessionStateBean();
 
@@ -304,7 +298,7 @@ public abstract class CommandServlet extends ControlledPwmServlet
     private static boolean checkIfUserAuthenticated(
             final PwmRequest pwmRequest
     )
-            throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
+            throws IOException, ServletException, PwmUnrecoverableException
     {
         if ( !pwmRequest.isAuthenticated() )
         {

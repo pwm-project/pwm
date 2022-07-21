@@ -59,7 +59,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public RemoteWebServiceValue fromJson( final String input )
+            public RemoteWebServiceValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 if ( input == null )
                 {

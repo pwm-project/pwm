@@ -33,7 +33,6 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.CrcChecksumOutputStream;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.Percent;
@@ -41,12 +40,15 @@ import password.pwm.util.java.StatisticAverageBundle;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.secure.PwmHashAlgorithm;
 
 import javax.servlet.ServletContext;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.DigestOutputStream;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -164,7 +166,7 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
         {
             final Instant start = Instant.now();
             resourceNonce = makeResourcePathNonce();
-            LOGGER.trace( getSessionLabel(), () -> "calculated nonce", () -> TimeDuration.fromCurrent( start ) );
+            LOGGER.trace( getSessionLabel(), () -> "calculated nonce", TimeDuration.fromCurrent( start ) );
         }
         catch ( final Exception e )
         {
@@ -214,7 +216,7 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
 
         final Instant startTime = Instant.now();
         final String nonce = checksumAllResources( pwmDomain );
-        LOGGER.debug( getSessionLabel(), () -> "completed generation of nonce '" + nonce + "'", () ->  TimeDuration.fromCurrent( startTime ) );
+        LOGGER.debug( getSessionLabel(), () -> "completed generation of nonce '" + nonce + "'", TimeDuration.fromCurrent( startTime ) );
 
         final String noncePrefix = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX );
         return "/" + noncePrefix + nonce;
@@ -269,7 +271,7 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
     private String checksumAllResources( final PwmDomain pwmDomain )
             throws IOException
     {
-        try ( CrcChecksumOutputStream checksumStream = CrcChecksumOutputStream.newChecksumOutputStream( OutputStream.nullOutputStream() ) )
+        try ( DigestOutputStream checksumStream = new DigestOutputStream( OutputStream.nullOutputStream(), PwmHashAlgorithm.SHA512.newMessageDigest() ) )
         {
             checksumResourceFilePath( pwmDomain, checksumStream );
 
@@ -291,11 +293,11 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
                     }
                 }
             }
-            return Long.toString( checksumStream.checksum(), 36 );
+            return JavaHelper.binaryArrayToHex( checksumStream.getMessageDigest().digest() );
         }
     }
 
-    private static void checksumResourceFilePath( final PwmDomain pwmDomain, final CrcChecksumOutputStream checksumStream )
+    private static void checksumResourceFilePath( final PwmDomain pwmDomain, final DigestOutputStream checksumStream )
     {
         if ( pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager() != null )
         {
@@ -316,7 +318,7 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
                                 while ( iter.hasNext()  )
                                 {
                                     final FileSystemUtility.FileSummaryInformation fileSummaryInformation = iter.next();
-                                    checksumStream.write( JavaHelper.longToBytes( fileSummaryInformation.getChecksum() ) );
+                                    checksumStream.write( fileSummaryInformation.getSha512Hash().getBytes( StandardCharsets.UTF_8 ) );
                                 }
 
                             }

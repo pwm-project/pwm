@@ -21,6 +21,7 @@
 package password.pwm.util.java;
 
 import org.apache.commons.io.IOUtils;
+import password.pwm.data.ImmutableByteArray;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -42,7 +43,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -99,7 +99,7 @@ public class JavaHelper
             return Optional.empty();
         }
 
-        return EnumSet.allOf( enumClass ).stream().filter( match ).findFirst();
+        return CollectionUtil.enumStream( enumClass ).filter( match ).findFirst();
     }
 
     public static <E extends Enum<E>> Set<E> readEnumsFromPredicate( final Class<E> enumClass, final Predicate<E> match )
@@ -114,7 +114,7 @@ public class JavaHelper
             return Collections.emptySet();
         }
 
-        return EnumSet.allOf( enumClass ).stream().filter( match ).collect( Collectors.toUnmodifiableSet() );
+        return CollectionUtil.enumStream( enumClass ).filter( match ).collect( Collectors.toUnmodifiableSet() );
     }
 
     public static <E extends Enum<E>> Optional<E> readEnumFromString( final Class<E> enumClass, final String input )
@@ -215,12 +215,14 @@ public class JavaHelper
             return Optional.empty();
         }
         final StringWriter stringWriter = new StringWriter();
-        final InputStreamReader reader = new InputStreamReader( input, charset );
-        IOUtils.copyLarge( reader, stringWriter, 0, maximumLength );
-        final String value = stringWriter.toString();
-        return ( value.length() > 0 )
-                ? Optional.of( value )
-                : Optional.empty();
+        try ( InputStreamReader reader = new InputStreamReader( ThresholdInputStream.newThresholdInputStream( input, maximumLength ), charset ) )
+        {
+            IOUtils.copyLarge( reader, stringWriter, 0, maximumLength );
+            final String value = stringWriter.toString();
+            return ( value.length() > 0 )
+                    ? Optional.of( value )
+                    : Optional.empty();
+        }
     }
 
     public static void closeQuietly( final Closeable closable )
@@ -231,8 +233,11 @@ public class JavaHelper
     public static ImmutableByteArray copyToBytes( final InputStream inputStream, final int maxLength )
             throws IOException
     {
-        final byte[] bytes = IOUtils.toByteArray( inputStream, maxLength );
-        return ImmutableByteArray.of( bytes );
+        try ( InputStream limitedInputStream = ThresholdInputStream.newThresholdInputStream( inputStream, maxLength ) )
+        {
+            final byte[] bytes = IOUtils.toByteArray( limitedInputStream );
+            return ImmutableByteArray.of( bytes );
+        }
     }
 
     public static void copy( final String input, final OutputStream output, final Charset charset )

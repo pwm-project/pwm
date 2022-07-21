@@ -41,8 +41,7 @@ html {
 
 .setting_title {
     color: black;
-    background-color: #d3d3d3;
-    opacity: 0.75;
+    background-color: rgba(211, 211, 211, 0.75);
     padding-left: 10px;
     padding-top: 4px;
     padding-bottom: 3px;
@@ -213,6 +212,7 @@ html {
      background:linear-gradient(to bottom, #B2B1B9 5%, #E8E1F6 100% );
  }
 
+/** prevent an extra space in the dojo nav tree for a "node" icon. **/
 .tree-noicon {
     width:0;
     margin:0;

@@ -29,6 +29,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.error.ErrorInformation;
@@ -365,7 +366,7 @@ public class MainClass
         {
             final String errorMsg = "unable to establish operating environment: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_ENVIRONMENT_ERROR, errorMsg );
-            LOGGER.error( errorInformation::toDebugStr, e );
+            LOGGER.error( SessionLabel.CLI_SESSION_LABEL, errorInformation::toDebugStr, e );
             out( "unable to establish operating environment: " + e.getMessage() );
             System.exit( -1 );
             return;
@@ -443,7 +444,7 @@ public class MainClass
 
     private static ConfigurationFileManager loadConfiguration( final File configurationFile ) throws Exception
     {
-        final ConfigurationFileManager reader = new ConfigurationFileManager( configurationFile );
+        final ConfigurationFileManager reader = new ConfigurationFileManager( configurationFile, SessionLabel.CLI_SESSION_LABEL );
 
         if ( reader.getConfigMode() == PwmApplicationMode.ERROR )
         {

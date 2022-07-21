@@ -114,7 +114,7 @@ public class RestFormDataClient
         final PwmHttpClientResponse httpResponse;
         try
         {
-            httpResponse = getHttpClient( pwmDomain.getConfig() ).makeRequest( pwmHttpClientRequest, sessionLabel );
+            httpResponse = getHttpClient( pwmDomain.getConfig() ).makeRequest( pwmHttpClientRequest );
             final String responseBody = httpResponse.getBody();
             LOGGER.trace( () -> "external rest call returned: " + httpResponse.getStatusPhrase() + ", body: " + responseBody );
             if ( httpResponse.getStatusCode() != 200 )
@@ -134,7 +134,9 @@ public class RestFormDataClient
 
     }
 
-    private PwmHttpClient getHttpClient( final DomainConfig domainConfig )
+    private PwmHttpClient getHttpClient(
+            final DomainConfig domainConfig
+    )
             throws PwmUnrecoverableException
     {
 
@@ -144,7 +146,7 @@ public class RestFormDataClient
                 .trustManagerType( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates )
                 .certificates( certificates )
                 .build();
-        return pwmDomain.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration );
+        return pwmDomain.getHttpClientService().getPwmHttpClient( pwmHttpClientConfiguration, this.sessionLabel );
     }
 
 }

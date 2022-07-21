@@ -131,7 +131,7 @@ public class LogoutServlet extends ControlledPwmServlet
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
-        pwmSession.unauthenticateUser( pwmRequest );
+        pwmSession.unAuthenticateUser( pwmRequest );
 
         {
             //if there is a session url, then use that to do a redirect.

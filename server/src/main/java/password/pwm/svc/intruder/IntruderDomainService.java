@@ -35,7 +35,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
@@ -180,12 +180,12 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
             final IntruderSettings.TypeSettings typeSettings = intruderSettings.getTargetSettings().get( type );
             if ( typeSettings.isConfigured() )
             {
-                LOGGER.debug( getSessionLabel(), () -> "starting record manager for type '" + type + "' with settings: " + typeSettings );
+                LOGGER.trace( getSessionLabel(), () -> "starting record manager for type '" + type + "' with settings: " + typeSettings );
                 recordManagers.put( type, new IntruderRecordManagerImpl( pwmDomain, type, recordStore, intruderSettings ) );
             }
             else
             {
-                LOGGER.debug( getSessionLabel(), () -> "skipping record manager for type '" + type + "' (not configured)" );
+                LOGGER.trace( getSessionLabel(), () -> "skipping record manager for type '" + type + "' (not configured)" );
                 recordManagers.put( type, new StubRecordManager() );
             }
         }

@@ -45,8 +45,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -79,9 +77,9 @@ public class StatisticsService extends AbstractPwmService implements PwmService
     private DailyKey initialDailyKey = DailyKey.forToday();
 
     private final StatisticsBundle statsCurrent = new StatisticsBundle();
+    private final Map<EpsKey, EventRateMeter> epsMeterMap;
     private StatisticsBundle statsDaily = new StatisticsBundle();
     private StatisticsBundle statsCummulative = new StatisticsBundle();
-    private Map<EpsKey, EventRateMeter> epsMeterMap = new HashMap<>();
 
 
     private final Map<String, StatisticsBundle> cachedStoredStats = new LinkedHashMap<>()
@@ -95,7 +93,11 @@ public class StatisticsService extends AbstractPwmService implements PwmService
 
     public StatisticsService( )
     {
-        EpsKey.allKeys().forEach( epsKey -> epsMeterMap.put( epsKey, new EventRateMeter( epsKey.getEpsDuration().getTimeDuration() ) ) );
+        epsMeterMap = EpsKey.allKeys().stream()
+                .map( key -> Map.entry( key, new EventRateMeter( key.getEpsDuration().getTimeDuration() ) ) )
+                .collect( Collectors.toUnmodifiableMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue ) );
     }
 
     public void incrementValue( final Statistic statistic )
@@ -239,7 +241,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.warn( () -> "error loading saved stored cumulative statistics: " + e.getMessage() );
+                    LOGGER.warn( getSessionLabel(), () -> "error loading saved stored cumulative statistics: " + e.getMessage() );
                 }
             }
         }
@@ -298,7 +300,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
 
     public Map<String, String> dailyStatisticsAsLabelValueMap()
     {
-        return Collections.unmodifiableMap( EnumSet.allOf( Statistic.class ).stream()
+        return Collections.unmodifiableMap( CollectionUtil.enumStream( Statistic.class )
                 .collect( CollectionUtil.collectorToLinkedMap(
                         statistic -> statistic.getLabel( PwmConstants.DEFAULT_LOCALE ),
                         statistic -> statsDaily.getStatistic( statistic )
@@ -332,7 +334,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
     {
         return Collections.emptyList();
     }
-    
+
     private class NightlyTask extends TimerTask
     {
         @Override
@@ -403,7 +405,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
             lineOutput.add( String.valueOf( loopKey.getYear() ) );
             lineOutput.add( String.valueOf( loopKey.getDay() ) );
 
-            lineOutput.addAll( EnumSet.allOf( Statistic.class ).stream()
+            lineOutput.addAll( CollectionUtil.enumStream( Statistic.class )
                     .map( bundle::getStatistic )
                     .collect( Collectors.toList() ) );
 

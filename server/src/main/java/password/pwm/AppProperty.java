@@ -20,6 +20,10 @@
 
 package password.pwm;
 
+import password.pwm.util.java.CollectionUtil;
+
+import java.util.Objects;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 /**
@@ -223,7 +227,6 @@ public enum AppProperty
     LDAP_CHAI_SETTINGS                              ( "ldap.chaiSettings" ),
     LDAP_PROXY_CONNECTION_PER_PROFILE               ( "ldap.proxy.connectionsPerProfile" ),
     LDAP_PROXY_MAX_CONNECTIONS                      ( "ldap.proxy.maxConnections" ),
-    LDAP_PROXY_USE_THREAD_LOCAL                     ( "ldap.proxy.useThreadLocal" ),
     LDAP_PROXY_IDLE_THREAD_LOCAL_TIMEOUT_MS         ( "ldap.proxy.idleThreadLocal.timeoutMS" ),
     LDAP_EXTENSIONS_NMAS_ENABLE                     ( "ldap.extensions.nmas.enable" ),
     LDAP_CONNECTION_TIMEOUT                         ( "ldap.connection.timeoutMS" ),
@@ -375,6 +378,9 @@ public enum AppProperty
 
     /** Regular expression to be used for matching URLs to be shortened by the URL Shortening Service Class. */
     URL_SHORTNER_URL_REGEX                          ( "urlshortener.url.regex" ),
+    VERSION_CHECK_URL                               ( "versionCheck.url" ),
+    VERSION_CHECK_CHECK_INTERVAL_SECONDS            ( "versionCheck.checkIntervalSeconds" ),
+    VERSION_CHECK_CHECK_INTERVAL_ERROR_SECONDS      ( "versionCheck.checkIntervalErrorSeconds" ),
     WORDLIST_BUILTIN_PATH                           ( "wordlist.builtin.path" ),
     WORDLIST_CHAR_LENGTH_MAX                        ( "wordlist.maxCharLength" ),
     WORDLIST_CHAR_LENGTH_MIN                        ( "wordlist.minCharLength" ),
@@ -429,5 +435,12 @@ public enum AppProperty
     private static String readAppPropertiesBundle( final String key )
     {
         return ResourceBundle.getBundle( AppProperty.class.getName() ).getString( key );
+    }
+
+    public static Optional<AppProperty> forKey( final String key )
+    {
+        return CollectionUtil.enumStream( AppProperty.class )
+                .filter( loopProperty -> Objects.equals( loopProperty.getKey(), key ) )
+                .findFirst();
     }
 }

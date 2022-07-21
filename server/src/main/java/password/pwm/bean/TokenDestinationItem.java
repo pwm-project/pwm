@@ -31,7 +31,7 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.svc.token.TokenDestinationDisplayMasker;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;

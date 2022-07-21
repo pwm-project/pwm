@@ -509,8 +509,7 @@ public enum PwmSettingCategory
 
         public static Set<PwmSettingCategory> readChildren( final PwmSettingCategory category )
         {
-            final Set<PwmSettingCategory> categories = EnumSet.allOf( PwmSettingCategory.class )
-                    .stream()
+            final Set<PwmSettingCategory> categories = CollectionUtil.enumStream( PwmSettingCategory.class )
                     .filter( ( loopCategory ) -> loopCategory.getParent() == category )
                     .collect( Collectors.toUnmodifiableSet() );
             return Collections.unmodifiableSet( CollectionUtil.copyToEnumSet( categories, PwmSettingCategory.class ) );

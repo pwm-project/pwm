@@ -20,9 +20,11 @@
 
 package password.pwm;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -30,6 +32,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
@@ -69,6 +72,8 @@ public class PwmEnvironment
     @Singular
     private Map<ApplicationParameter, String> parameters;
 
+    private final LazySupplier<DeploymentPlatform> deploymentPlatformLazySupplier = new LazySupplier<>( this::determineDeploymentPlatform );
+
     public enum ApplicationParameter
     {
         AutoExportHttpsKeyStoreFile,
@@ -90,8 +95,6 @@ public class PwmEnvironment
 
     public enum ApplicationFlag
     {
-        Appliance,
-        Docker,
         ManageHttps,
         NoFileLock,
         CommandLineInstance,;
@@ -100,6 +103,14 @@ public class PwmEnvironment
         {
             return JavaHelper.readEnumFromString( ApplicationFlag.class, null, input );
         }
+    }
+
+    public enum DeploymentPlatform
+    {
+        War,
+        Onejar,
+        Docker,
+        Appliance,;
     }
 
     public enum EnvironmentParameter
@@ -168,7 +179,7 @@ public class PwmEnvironment
         }
         if ( applicationPathIsWebInfPath )
         {
-            LOGGER.trace( () -> "applicationPath appears to be servlet /WEB-INF directory" );
+            LOGGER.trace( SessionLabel.SYSTEM_LABEL, () -> "applicationPath appears to be servlet /WEB-INF directory" );
         }
     }
 
@@ -196,7 +207,7 @@ public class PwmEnvironment
             );
         }
 
-        LOGGER.trace( () -> "examining applicationPath of " + applicationPath.getAbsolutePath() + "" );
+        LOGGER.trace( SessionLabel.SYSTEM_LABEL, () -> "examining applicationPath of " + applicationPath.getAbsolutePath() + "" );
 
         if ( !applicationPath.exists() )
         {
@@ -223,7 +234,7 @@ public class PwmEnvironment
         }
 
         final File infoFile = new File( applicationPath.getAbsolutePath() + File.separator + PwmConstants.APPLICATION_PATH_INFO_FILE );
-        LOGGER.trace( () -> "checking " + infoFile.getAbsolutePath() + " status" );
+        LOGGER.trace( SessionLabel.SYSTEM_LABEL, () -> "checking " + infoFile.getAbsolutePath() + " status" );
         if ( infoFile.exists() )
         {
             final String errorMsg = "The file " + infoFile.getAbsolutePath() + " exists, and an applicationPath was not explicitly specified."
@@ -310,7 +321,7 @@ public class PwmEnvironment
                 }
                 else
                 {
-                    LOGGER.warn( () -> "unknown " + EnvironmentParameter.applicationFlags + " value: " + input );
+                    LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "unknown " + EnvironmentParameter.applicationFlags + " value: " + input );
                 }
             }
             return returnFlags;
@@ -330,7 +341,7 @@ public class PwmEnvironment
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( () -> "error reading properties file '" + input + "' specified by environment setting "
+                LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "error reading properties file '" + input + "' specified by environment setting "
                         + EnvironmentParameter.applicationParamFile + ", error: " + e.getMessage() );
             }
 
@@ -347,14 +358,14 @@ public class PwmEnvironment
                     }
                     else
                     {
-                        LOGGER.warn( () -> "unknown " + EnvironmentParameter.applicationParamFile + " value: " + input );
+                        LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "unknown " + EnvironmentParameter.applicationParamFile + " value: " + input );
                     }
                 }
                 return Collections.unmodifiableMap( returnParams );
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( () -> "unable to parse jason value of " + EnvironmentParameter.applicationParamFile + ", error: " + e.getMessage() );
+                LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "unable to parse jason value of " + EnvironmentParameter.applicationParamFile + ", error: " + e.getMessage() );
             }
 
             return Collections.emptyMap();
@@ -365,10 +376,33 @@ public class PwmEnvironment
     {
         if ( PwmConstants.TRIAL_MODE && mode == PwmApplicationMode.RUNNING )
         {
-            LOGGER.info( () -> "application is in trial mode" );
+            LOGGER.info( SessionLabel.SYSTEM_LABEL, () -> "application is in trial mode" );
             return PwmApplicationMode.CONFIGURATION;
         }
 
         return mode;
+    }
+
+    public DeploymentPlatform getDeploymentPlatform()
+    {
+        return deploymentPlatformLazySupplier.get();
+    }
+
+    @SuppressFBWarnings( "DMI_HARDCODED_ABSOLUTE_FILENAME" )
+    private DeploymentPlatform determineDeploymentPlatform()
+    {
+        final File dockerEnvFile = new File( "/.dockerenv" );
+
+        if ( dockerEnvFile.exists() )
+        {
+            return DeploymentPlatform.Docker;
+        }
+
+        final String envValue = System.getProperty( "ONEJAR_ENV", "FALSE" );
+        if ( Boolean.getBoolean( envValue ) )
+        {
+            return DeploymentPlatform.Onejar;
+        }
+        return DeploymentPlatform.War;
     }
 }

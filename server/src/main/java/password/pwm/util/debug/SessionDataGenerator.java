@@ -22,6 +22,7 @@ package password.pwm.util.debug;
 
 import password.pwm.PwmApplication;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 class SessionDataGenerator implements AppItemGenerator
@@ -33,7 +34,8 @@ class SessionDataGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException
     {
         final PwmApplication pwmDomain = debugItemInput.getPwmApplication();
         pwmDomain.getSessionTrackService().outputToCsv( debugItemInput.getLocale(), pwmDomain.getConfig(), outputStream );

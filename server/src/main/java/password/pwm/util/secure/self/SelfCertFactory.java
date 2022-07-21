@@ -23,6 +23,7 @@ package password.pwm.util.secure.self;
 import password.pwm.AppAttribute;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.secure.SystemSecureService;
 import password.pwm.util.PasswordData;
@@ -50,7 +51,7 @@ public class SelfCertFactory
             final PasswordData password,
             final String alias
     )
-        throws Exception
+            throws PwmUnrecoverableException
     {
         final SelfCertSettings settings = SelfCertSettings.fromConfiguration( pwmApplication.getConfig() );
 
@@ -59,7 +60,15 @@ public class SelfCertFactory
         {
             if ( evaluateExistingStoredCert( existingCert.get(), settings ) )
             {
-                return storedCertToKeyStore( existingCert.get(), alias, password );
+                try
+                {
+                    return storedCertToKeyStore( existingCert.get(), alias, password );
+                }
+                catch ( final Exception e )
+                {
+                    final String errorMsg = "error reading existing stored certificate: " + e.getMessage();
+                    throw PwmUnrecoverableException.newException( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg  );
+                }
             }
         }
 
@@ -76,13 +85,21 @@ public class SelfCertFactory
         final PasswordData password,
         final String alias
     )
-        throws Exception
+            throws PwmUnrecoverableException
     {
-        final SelfCertGenerator selfCertGenerator = new SelfCertGenerator(
-                settings,
-                domainSecureService == null ? PwmRandom.getInstance() : domainSecureService.pwmRandom() );
-        final StoredCertData storedCertData = selfCertGenerator.generateNewCertificate( makeSubjectName( settings ) );
-        return storedCertToKeyStore( storedCertData, alias, password );
+        try
+        {
+            final SelfCertGenerator selfCertGenerator = new SelfCertGenerator(
+                    settings,
+                    domainSecureService == null ? PwmRandom.getInstance() : domainSecureService.pwmRandom() );
+            final StoredCertData storedCertData = selfCertGenerator.generateNewCertificate( makeSubjectName( settings ) );
+            return storedCertToKeyStore( storedCertData, alias, password );
+        }
+        catch ( final Exception e )
+        {
+            final String errorMsg = "error generating new certificate: " + e.getMessage();
+            throw PwmUnrecoverableException.newException( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg  );
+        }
     }
 
     private static Optional<StoredCertData> loadExistingStoredCert( final PwmApplication pwmApplication )

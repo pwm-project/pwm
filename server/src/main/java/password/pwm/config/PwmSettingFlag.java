@@ -29,7 +29,7 @@ public enum PwmSettingFlag
     MacroSupport,
 
     /* Setting uses LDAP DN syntax */
-    ldapDNsyntax,
+    ldapDnSyntax,
 
     /* Setting must be a valid email address format */
     emailSyntax,

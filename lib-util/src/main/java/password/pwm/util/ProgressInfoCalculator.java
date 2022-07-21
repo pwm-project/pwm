@@ -29,14 +29,14 @@ import java.math.MathContext;
 import java.text.NumberFormat;
 import java.time.Instant;
 
-public class ProgressInfo implements Serializable
+public class ProgressInfoCalculator implements Serializable
 {
     private final Instant startTime;
     private final Instant nowTime;
     private final long totalItems;
     private final long nowItems;
 
-    public ProgressInfo(
+    private ProgressInfoCalculator(
             final Instant startTime,
             final long totalItems,
             final long nowItems
@@ -46,6 +46,15 @@ public class ProgressInfo implements Serializable
         this.nowTime = Instant.now();
         this.totalItems = totalItems;
         this.nowItems = nowItems;
+    }
+
+    public static ProgressInfoCalculator createProgressInfo(
+            final Instant startTime,
+            final long totalItems,
+            final long nowItems
+    )
+    {
+        return new ProgressInfoCalculator( startTime, totalItems, nowItems );
     }
 
     public Percent percentComplete( )

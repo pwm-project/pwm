@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.util.java;
+package password.pwm.data;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

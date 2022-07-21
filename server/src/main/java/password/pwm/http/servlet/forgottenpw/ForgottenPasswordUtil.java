@@ -59,7 +59,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.auth.HttpAuthRecord;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
@@ -525,7 +525,7 @@ public class ForgottenPasswordUtil
             final PwmSession pwmSession = pwmRequest.getPwmSession();
 
             // the user should not be authenticated, this is a safety method
-            pwmSession.unauthenticateUser( pwmRequest );
+            pwmSession.unAuthenticateUser( pwmRequest );
 
             // the password set flag should not have been set, this is a safety method
             pwmSession.getSessionStateBean().setPasswordModified( false );

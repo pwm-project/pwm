@@ -47,7 +47,7 @@ public class UserReportCommand extends AbstractCliCommand
     @Override
     @SuppressFBWarnings( "DM_EXIT" )
     void doCommand( )
-            throws Exception
+            throws IOException
     {
         final File outputFile = ( File ) cliEnvironment.getOptions().get( OUTPUT_FILE_OPTIONNAME );
 

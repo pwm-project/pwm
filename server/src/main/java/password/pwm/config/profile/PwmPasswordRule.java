@@ -26,6 +26,7 @@ import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Message;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
 
 import java.util.List;
 import java.util.Locale;
@@ -44,259 +45,228 @@ public enum PwmPasswordRule
             null,
             ChaiPasswordRule.PolicyEnabled.getRuleType(),
             ChaiPasswordRule.PolicyEnabled.getDefaultValue(),
-            true ),
+            Flag.positiveBooleanMerge ),
 
     MinimumLength(
             ChaiPasswordRule.MinimumLength,
             PwmSetting.PASSWORD_POLICY_MINIMUM_LENGTH,
             ChaiPasswordRule.MinimumLength.getRuleType(),
-            ChaiPasswordRule.MinimumLength.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MinimumLength.getDefaultValue() ),
 
     MaximumLength(
             ChaiPasswordRule.MaximumLength,
             PwmSetting.PASSWORD_POLICY_MAXIMUM_LENGTH,
             ChaiPasswordRule.MaximumLength.getRuleType(),
-            ChaiPasswordRule.MaximumLength.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MaximumLength.getDefaultValue() ),
 
     MinimumUpperCase(
             ChaiPasswordRule.MinimumUpperCase,
             PwmSetting.PASSWORD_POLICY_MINIMUM_UPPERCASE,
             ChaiPasswordRule.MinimumUpperCase.getRuleType(),
-            ChaiPasswordRule.MinimumUpperCase.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MinimumUpperCase.getDefaultValue() ),
 
     MaximumUpperCase(
             ChaiPasswordRule.MaximumUpperCase,
             PwmSetting.PASSWORD_POLICY_MAXIMUM_UPPERCASE,
             ChaiPasswordRule.MaximumUpperCase.getRuleType(),
-            ChaiPasswordRule.MaximumUpperCase.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MaximumUpperCase.getDefaultValue() ),
 
     MinimumLowerCase(
             ChaiPasswordRule.MinimumLowerCase,
             PwmSetting.PASSWORD_POLICY_MINIMUM_LOWERCASE,
             ChaiPasswordRule.MinimumLowerCase.getRuleType(),
-            ChaiPasswordRule.MinimumLowerCase.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MinimumLowerCase.getDefaultValue() ),
 
     MaximumLowerCase(
             ChaiPasswordRule.MaximumLowerCase,
             PwmSetting.PASSWORD_POLICY_MAXIMUM_LOWERCASE,
             ChaiPasswordRule.MaximumLowerCase.getRuleType(),
-            ChaiPasswordRule.MaximumLowerCase.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MaximumLowerCase.getDefaultValue() ),
 
     AllowNumeric(
             ChaiPasswordRule.AllowNumeric,
             PwmSetting.PASSWORD_POLICY_ALLOW_NUMERIC,
             ChaiPasswordRule.AllowNumeric.getRuleType(),
-            ChaiPasswordRule.AllowNumeric.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.AllowNumeric.getDefaultValue() ),
 
     MinimumNumeric(
             ChaiPasswordRule.MinimumNumeric,
             PwmSetting.PASSWORD_POLICY_MINIMUM_NUMERIC,
             ChaiPasswordRule.MinimumNumeric.getRuleType(),
-            ChaiPasswordRule.MinimumNumeric.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MinimumNumeric.getDefaultValue() ),
 
     MaximumNumeric(
             ChaiPasswordRule.MaximumNumeric,
             PwmSetting.PASSWORD_POLICY_MAXIMUM_NUMERIC,
             ChaiPasswordRule.MaximumNumeric.getRuleType(),
-            ChaiPasswordRule.MaximumNumeric.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MaximumNumeric.getDefaultValue() ),
 
     MinimumUnique(
             ChaiPasswordRule.MinimumUnique,
             PwmSetting.PASSWORD_POLICY_MINIMUM_UNIQUE,
             ChaiPasswordRule.MinimumUnique.getRuleType(),
-            ChaiPasswordRule.MinimumUnique.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MinimumUnique.getDefaultValue() ),
 
     MaximumUnique(
             ChaiPasswordRule.MaximumUnique,
             null,
             ChaiPasswordRule.MaximumUnique.getRuleType(),
-            ChaiPasswordRule.MaximumUnique.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MaximumUnique.getDefaultValue() ),
 
     AllowFirstCharNumeric(
             ChaiPasswordRule.AllowFirstCharNumeric,
             PwmSetting.PASSWORD_POLICY_ALLOW_FIRST_CHAR_NUMERIC,
             ChaiPasswordRule.AllowFirstCharNumeric.getRuleType(),
-            ChaiPasswordRule.AllowFirstCharNumeric.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.AllowFirstCharNumeric.getDefaultValue() ),
 
     AllowLastCharNumeric(
             ChaiPasswordRule.AllowLastCharNumeric,
             PwmSetting.PASSWORD_POLICY_ALLOW_LAST_CHAR_NUMERIC,
             ChaiPasswordRule.AllowLastCharNumeric.getRuleType(),
-            ChaiPasswordRule.AllowLastCharNumeric.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.AllowLastCharNumeric.getDefaultValue() ),
 
     AllowSpecial(
             ChaiPasswordRule.AllowSpecial,
             PwmSetting.PASSWORD_POLICY_ALLOW_SPECIAL,
             ChaiPasswordRule.AllowSpecial.getRuleType(),
-            ChaiPasswordRule.AllowSpecial.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.AllowSpecial.getDefaultValue() ),
 
     MinimumSpecial(
             ChaiPasswordRule.MinimumSpecial,
             PwmSetting.PASSWORD_POLICY_MINIMUM_SPECIAL,
             ChaiPasswordRule.MinimumSpecial.getRuleType(),
-            ChaiPasswordRule.MinimumSpecial.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MinimumSpecial.getDefaultValue() ),
 
     MaximumSpecial(
             ChaiPasswordRule.MaximumSpecial,
             PwmSetting.PASSWORD_POLICY_MAXIMUM_SPECIAL,
             ChaiPasswordRule.MaximumSpecial.getRuleType(),
-            ChaiPasswordRule.MaximumSpecial.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MaximumSpecial.getDefaultValue() ),
 
     AllowFirstCharSpecial(
             ChaiPasswordRule.AllowFirstCharSpecial,
             PwmSetting.PASSWORD_POLICY_ALLOW_FIRST_CHAR_SPECIAL,
             ChaiPasswordRule.AllowFirstCharSpecial.getRuleType(),
-            ChaiPasswordRule.AllowFirstCharSpecial.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.AllowFirstCharSpecial.getDefaultValue() ),
 
     AllowLastCharSpecial(
             ChaiPasswordRule.AllowLastCharSpecial,
             PwmSetting.PASSWORD_POLICY_ALLOW_LAST_CHAR_SPECIAL,
             ChaiPasswordRule.AllowLastCharSpecial.getRuleType(),
-            ChaiPasswordRule.AllowLastCharSpecial.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.AllowLastCharSpecial.getDefaultValue() ),
 
     MaximumRepeat(
             ChaiPasswordRule.MaximumRepeat,
             PwmSetting.PASSWORD_POLICY_MAXIMUM_REPEAT,
             ChaiPasswordRule.MaximumRepeat.getRuleType(),
-            ChaiPasswordRule.MaximumRepeat.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MaximumRepeat.getDefaultValue() ),
 
     MaximumSequentialRepeat(
             ChaiPasswordRule.MaximumSequentialRepeat,
             PwmSetting.PASSWORD_POLICY_MAXIMUM_SEQUENTIAL_REPEAT,
             ChaiPasswordRule.MaximumSequentialRepeat.getRuleType(),
-            ChaiPasswordRule.MaximumSequentialRepeat.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MaximumSequentialRepeat.getDefaultValue() ),
 
     ChangeMessage(
             ChaiPasswordRule.ChangeMessage,
             PwmSetting.PASSWORD_POLICY_CHANGE_MESSAGE,
             ChaiPasswordRule.ChangeMessage.getRuleType(),
-            ChaiPasswordRule.ChangeMessage.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.ChangeMessage.getDefaultValue() ),
 
     ExpirationInterval(
             ChaiPasswordRule.ExpirationInterval,
             null,
             ChaiPasswordRule.ExpirationInterval.getRuleType(),
-            ChaiPasswordRule.ExpirationInterval.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.ExpirationInterval.getDefaultValue() ),
 
     MinimumLifetime(
             ChaiPasswordRule.MinimumLifetime,
             PwmSetting.PASSWORD_POLICY_MINIMUM_LIFETIME,
             ChaiPasswordRule.MinimumLifetime.getRuleType(),
-            ChaiPasswordRule.MinimumLifetime.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.MinimumLifetime.getDefaultValue() ),
 
     CaseSensitive(
             ChaiPasswordRule.CaseSensitive,
             null,
             ChaiPasswordRule.CaseSensitive.getRuleType(),
             ChaiPasswordRule.CaseSensitive.getDefaultValue(),
-            true ),
+            Flag.positiveBooleanMerge ),
 
     EnforceAtLogin(
             ChaiPasswordRule.EnforceAtLogin,
             null,
             ChaiPasswordRule.EnforceAtLogin.getRuleType(),
-            ChaiPasswordRule.EnforceAtLogin.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.EnforceAtLogin.getDefaultValue() ),
 
     ChallengeResponseEnabled(
             ChaiPasswordRule.ChallengeResponseEnabled,
             null,
             ChaiPasswordRule.ChallengeResponseEnabled.getRuleType(),
-            ChaiPasswordRule.ChallengeResponseEnabled.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.ChallengeResponseEnabled.getDefaultValue() ),
 
     UniqueRequired(
             ChaiPasswordRule.UniqueRequired,
             null,
             ChaiPasswordRule.UniqueRequired.getRuleType(),
             ChaiPasswordRule.UniqueRequired.getDefaultValue(),
-            true ),
+            Flag.positiveBooleanMerge ),
 
     DisallowedValues(
             ChaiPasswordRule.DisallowedValues,
             PwmSetting.PASSWORD_POLICY_DISALLOWED_VALUES,
             ChaiPasswordRule.DisallowedValues.getRuleType(),
-            ChaiPasswordRule.DisallowedValues.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.DisallowedValues.getDefaultValue() ),
 
     DisallowedAttributes(
             ChaiPasswordRule.DisallowedAttributes,
             PwmSetting.PASSWORD_POLICY_DISALLOWED_ATTRIBUTES,
             ChaiPasswordRule.DisallowedAttributes.getRuleType(),
-            ChaiPasswordRule.DisallowedAttributes.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.DisallowedAttributes.getDefaultValue() ),
 
     DisallowCurrent(
             null,
             PwmSetting.PASSWORD_POLICY_DISALLOW_CURRENT,
             ChaiPasswordRule.RuleType.BOOLEAN,
             "false",
-            true ),
+            Flag.positiveBooleanMerge ),
 
     AllowUserChange(
             ChaiPasswordRule.AllowUserChange,
             null,
             ChaiPasswordRule.AllowUserChange.getRuleType(),
             ChaiPasswordRule.AllowUserChange.getDefaultValue(),
-            true ),
+            Flag.positiveBooleanMerge ),
 
     AllowAdminChange(
             ChaiPasswordRule.AllowAdminChange,
             null,
             ChaiPasswordRule.AllowAdminChange.getRuleType(),
             ChaiPasswordRule.AllowAdminChange.getDefaultValue(),
-            true ),
+            Flag.positiveBooleanMerge ),
 
     ADComplexityMaxViolations(
             ChaiPasswordRule.ADComplexityMaxViolation,
             PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_MAX_VIOLATIONS,
             ChaiPasswordRule.ADComplexityMaxViolation.getRuleType(),
-            ChaiPasswordRule.ADComplexityMaxViolation.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.ADComplexityMaxViolation.getDefaultValue() ),
 
     AllowNonAlpha(
             null,
             PwmSetting.PASSWORD_POLICY_ALLOW_NON_ALPHA,
             ChaiPasswordRule.AllowNonAlpha.getRuleType(),
-            ChaiPasswordRule.AllowNonAlpha.getDefaultValue(),
-            false ),
+            ChaiPasswordRule.AllowNonAlpha.getDefaultValue() ),
 
     MinimumNonAlpha(
             null,
             PwmSetting.PASSWORD_POLICY_MINIMUM_NON_ALPHA,
             ChaiPasswordRule.RuleType.MIN,
-            "0",
-            false ),
+            "0" ),
 
     MaximumNonAlpha(
             null,
             PwmSetting.PASSWORD_POLICY_MAXIMUM_NON_ALPHA,
             ChaiPasswordRule.RuleType.MAX,
-            "0",
-            false ),
+            "0" ),
 
     // pwm specific rules
     // value will be imported indirectly from chai rule
@@ -304,86 +274,73 @@ public enum PwmPasswordRule
             null,
             PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL,
             ChaiPasswordRule.RuleType.OTHER,
-            "NONE",
-            false ),
+            "NONE" ),
 
     MaximumOldChars(
             null,
             PwmSetting.PASSWORD_POLICY_MAXIMUM_OLD_PASSWORD_CHARS,
             ChaiPasswordRule.RuleType.NUMERIC,
-            "",
-            false ),
+            "" ),
 
     RegExMatch(
             null,
             PwmSetting.PASSWORD_POLICY_REGULAR_EXPRESSION_MATCH,
             ChaiPasswordRule.RuleType.OTHER,
-            "",
-            false ),
+            "" ),
 
     RegExNoMatch(
             null,
             PwmSetting.PASSWORD_POLICY_REGULAR_EXPRESSION_NOMATCH,
             ChaiPasswordRule.RuleType.OTHER,
-            "",
-            false
-    ),
+            "" ),
 
     MinimumAlpha(
             null,
             PwmSetting.PASSWORD_POLICY_MINIMUM_ALPHA,
             ChaiPasswordRule.RuleType.MIN,
-            "0",
-            false ),
+            "0" ),
 
     MaximumAlpha(
             null,
             PwmSetting.PASSWORD_POLICY_MAXIMUM_ALPHA,
             ChaiPasswordRule.RuleType.MAX,
-            "0",
-            false
-    ),
+            "0" ),
 
     EnableWordlist(
             null,
             PwmSetting.PASSWORD_POLICY_ENABLE_WORDLIST,
             ChaiPasswordRule.RuleType.BOOLEAN,
-            "true",
-            true ),
+            "false",
+            Flag.positiveBooleanMerge ),
 
     MinimumStrength(
             null,
             PwmSetting.PASSWORD_POLICY_MINIMUM_STRENGTH,
             ChaiPasswordRule.RuleType.MIN,
-            "0",
-            false ),
+            "0" ),
 
     MaximumConsecutive(
             null,
             PwmSetting.PASSWORD_POLICY_MAXIMUM_CONSECUTIVE,
             ChaiPasswordRule.RuleType.MIN,
-            "0",
-            false ),
+            "0" ),
 
     CharGroupsMinMatch(
             null,
             PwmSetting.PASSWORD_POLICY_CHAR_GROUPS_MIN_MATCH,
             ChaiPasswordRule.RuleType.MIN,
-            "0",
-            false ),
+            "0" ),
 
     CharGroupsValues(
             null,
             PwmSetting.PASSWORD_POLICY_CHAR_GROUPS,
             ChaiPasswordRule.RuleType.OTHER,
-            "",
-            false ),
+            "" ),
 
     AllowMacroInRegExSetting(
             AppProperty.ALLOW_MACRO_IN_REGEX_SETTING,
             ChaiPasswordRule.RuleType.BOOLEAN,
-            "true",
-            false ),;
+            "true" ),;
 
     private final ChaiPasswordRule chaiPasswordRule;
     private final PwmSetting pwmSetting;
@@ -392,12 +349,17 @@ public enum PwmPasswordRule
     private final String defaultValue;
     private final boolean positiveBooleanMerge;
 
+    private enum Flag
+    {
+        positiveBooleanMerge,
+    }
+
     PwmPasswordRule(
             final ChaiPasswordRule chaiPasswordRule,
             final PwmSetting pwmSetting,
             final ChaiPasswordRule.RuleType ruleType,
             final String defaultValue,
-            final boolean positiveBooleanMerge
+            final Flag... flags
     )
     {
         this.pwmSetting = pwmSetting;
@@ -405,14 +367,14 @@ public enum PwmPasswordRule
         this.appProperty = null;
         this.ruleType = ruleType;
         this.defaultValue = defaultValue;
-        this.positiveBooleanMerge = positiveBooleanMerge;
+        this.positiveBooleanMerge = JavaHelper.enumArrayContainsValue( flags, Flag.positiveBooleanMerge );
     }
 
     PwmPasswordRule(
             final AppProperty appProperty,
             final ChaiPasswordRule.RuleType ruleType,
             final String defaultValue,
-            final boolean positiveBooleanMerge
+            final Flag... flags
     )
     {
         this.pwmSetting = null;
@@ -420,7 +382,7 @@ public enum PwmPasswordRule
         this.appProperty = appProperty;
         this.ruleType = ruleType;
         this.defaultValue = defaultValue;
-        this.positiveBooleanMerge = positiveBooleanMerge;
+        this.positiveBooleanMerge = JavaHelper.enumArrayContainsValue( flags, Flag.positiveBooleanMerge );
     }
 
     public String getKey( )

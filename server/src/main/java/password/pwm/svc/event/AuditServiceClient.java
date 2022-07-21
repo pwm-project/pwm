@@ -25,7 +25,7 @@ import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -62,7 +62,7 @@ public class AuditServiceClient
             throws PwmUnrecoverableException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmApplication().domains().get( userInfo.getUserIdentity().getDomainID() );
-        final MacroRequest macroRequest =  pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+        final MacroRequest macroRequest =  pwmRequest.getMacroMachine();
         final AuditRecordFactory auditRecordFactory = AuditRecordFactory.make( pwmRequest.getLabel(), pwmDomain, macroRequest );
         final UserAuditRecord auditRecord = auditRecordFactory.createUserAuditRecord( auditEvent, userInfo, pwmRequest.getPwmSession() );
         submit( pwmRequest, auditRecord );

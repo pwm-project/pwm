@@ -28,11 +28,10 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.PwmRequestFlag" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.Permission" %>
+<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 
-<pwm:if test="<%=PwmIfTest.headerMenuIsVisible%>">
-    <%@ include file="header-menu.jsp" %>
-</pwm:if>
 <div id="header">
     <div id="header-company-logo">
     </div>
@@ -49,7 +48,6 @@
                 <span class="title-short"><pwm:display key="Title_Application_Abbrev"/></span>
             </div>
         </div>
-
         <div id="header-center-right">
             <div id="header-menu-wrapper">
                 <div id="header-menu">
@@ -65,7 +63,9 @@
                         </pwm:if>
                     </div>
                 </div>
-
+                <pwm:if test="<%=PwmIfTest.headerMenuIsVisible%>">
+                    <%@ include file="header-menu.jsp" %>
+                </pwm:if>
                 <% if (!JspUtility.isFlag(request, PwmRequestFlag.HIDE_HEADER_BUTTONS)) { %>
                     <pwm:if test="<%=PwmIfTest.authenticated%>">
                         <pwm:if test="<%=PwmIfTest.showHome%>">

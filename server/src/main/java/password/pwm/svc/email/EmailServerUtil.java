@@ -35,6 +35,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SmtpServerType;
@@ -214,7 +215,10 @@ public class EmailServerUtil
         return properties;
     }
 
-    private static Optional<InternetAddress> makeInternetAddress( final String input )
+    private static Optional<InternetAddress> makeInternetAddress(
+            final String input,
+            final SessionLabel sessionLabel
+    )
             throws AddressException
     {
         if ( input == null )
@@ -239,7 +243,7 @@ public class EmailServerUtil
             }
             catch ( final UnsupportedEncodingException e )
             {
-                LOGGER.error( () -> "unsupported encoding error while parsing internet address '" + input + "', error: " + e.getMessage() );
+                LOGGER.error( sessionLabel, () -> "unsupported encoding error while parsing internet address '" + input + "', error: " + e.getMessage() );
             }
             return Optional.of( address );
         }
@@ -268,7 +272,11 @@ public class EmailServerUtil
         );
     }
 
-    static boolean examineSendFailure( final Exception e, final Set<Integer> retyableStatusCodes )
+    static boolean examineSendFailure(
+            final Exception e,
+            final Set<Integer> retyableStatusCodes,
+            final SessionLabel sessionLabel
+    )
     {
         if ( e != null )
         {
@@ -276,7 +284,7 @@ public class EmailServerUtil
                 final Optional<IOException> optionalIoException = JavaHelper.extractNestedExceptionType( e, IOException.class );
                 if ( optionalIoException.isPresent() )
                 {
-                    LOGGER.trace( () -> "message send failure cause is due to an I/O error: " + optionalIoException.get().getMessage() );
+                    LOGGER.trace( sessionLabel, () -> "message send failure cause is due to an I/O error: " + optionalIoException.get().getMessage() );
                     return true;
                 }
             }
@@ -287,7 +295,7 @@ public class EmailServerUtil
                 {
                     final SMTPSendFailedException smtpSendFailedException = optionalSmtpSendFailedException.get();
                     final int returnCode = smtpSendFailedException.getReturnCode();
-                    LOGGER.trace( () -> "message send failure cause is due to server response code: " + returnCode );
+                    LOGGER.trace( sessionLabel, () -> "message send failure cause is due to server response code: " + returnCode );
                     if ( retyableStatusCodes.contains( returnCode ) )
                     {
                         return true;
@@ -306,7 +314,8 @@ public class EmailServerUtil
     public static List<Message> convertEmailItemToMessages(
             final EmailItemBean emailItemBean,
             final AppConfig config,
-            final EmailServer emailServer
+            final EmailServer emailServer,
+            final SessionLabel sessionLabel
     )
             throws MessagingException
     {
@@ -324,7 +333,7 @@ public class EmailServerUtil
             {
                 final MimeMessage message = new MimeMessage( emailServer.getSession() );
 
-                final Optional<InternetAddress> fromAddress = makeInternetAddress( emailItemBean.getFrom() );
+                final Optional<InternetAddress> fromAddress = makeInternetAddress( emailItemBean.getFrom(), sessionLabel );
                 if ( fromAddress.isPresent() )
                 {
                     message.setFrom( fromAddress.get() );
@@ -370,7 +379,10 @@ public class EmailServerUtil
         return messages;
     }
 
-    static Transport makeSmtpTransport( final EmailServer server )
+    static Transport makeSmtpTransport(
+            final EmailServer server,
+            final SessionLabel sessionLabel
+    )
             throws MessagingException, PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
@@ -394,14 +406,18 @@ public class EmailServerUtil
             transport.connect();
         }
 
-        LOGGER.debug( () -> "connected to " + server.toDebugString() + " " + ( authenticated ? "(authenticated)" : "(unauthenticated)" ),
-                () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.debug( sessionLabel, () -> "connected to " + server.toDebugString() + " " + ( authenticated ? "(authenticated)" : "(unauthenticated)" ),
+                TimeDuration.fromCurrent( startTime ) );
 
         return transport;
     }
 
 
-    public static List<X509Certificate> readCertificates( final AppConfig appConfig, final String profile )
+    public static List<X509Certificate> readCertificates(
+            final AppConfig appConfig,
+            final String profile,
+            final SessionLabel sessionLabel
+    )
             throws PwmUnrecoverableException
     {
         final EmailServerProfile emailServerProfile = appConfig.getEmailServerProfiles().get( profile );
@@ -415,7 +431,7 @@ public class EmailServerUtil
         final Optional<EmailServer> emailServer = makeEmailServer( appConfig, emailServerProfile, trustManagers );
         if ( emailServer.isPresent() )
         {
-            try ( Transport transport = makeSmtpTransport( emailServer.get() ) )
+            try ( Transport transport = makeSmtpTransport( emailServer.get(), sessionLabel ) )
             {
                 return certReaderTm.getCertificates();
             }
@@ -423,7 +439,7 @@ public class EmailServerUtil
             {
                 final String exceptionMessage = JavaHelper.readHostileExceptionMessage( e );
                 final String errorMsg = "error connecting to secure server while reading SMTP certificates: " + exceptionMessage;
-                LOGGER.debug( () -> errorMsg );
+                LOGGER.debug( sessionLabel, () -> errorMsg );
                 throw new PwmUnrecoverableException( PwmError.ERROR_SERVICE_UNREACHABLE, errorMsg );
             }
         }
@@ -431,14 +447,17 @@ public class EmailServerUtil
         return Collections.emptyList();
     }
 
-    static List<HealthRecord> checkAllConfiguredServers( final List<EmailServer> emailServers )
+    static List<HealthRecord> checkAllConfiguredServers(
+            final List<EmailServer> emailServers,
+            final SessionLabel sessionLabel
+    )
     {
         final List<HealthRecord> records = new ArrayList<>();
         for ( final EmailServer emailServer : emailServers )
         {
             try
             {
-                final Transport transport = EmailServerUtil.makeSmtpTransport( emailServer );
+                final Transport transport = EmailServerUtil.makeSmtpTransport( emailServer, sessionLabel );
                 if ( !transport.isConnected() )
                 {
                     records.add( HealthRecord.forMessage(

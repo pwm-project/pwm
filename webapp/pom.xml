@@ -33,34 +33,6 @@
                 <webXmlForJspPreCompiledInjection>${basedir}/src/main/webapp/WEB-INF/web.xml</webXmlForJspPreCompiledInjection>
             </properties>
         </profile>
-        <profile>
-            <!-- Builds a zip file containing the built war file, along with the supplemental directory -->
-            <id>release</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <version>3.3.0</version>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>src/build/assembly/release-bundle.xml</descriptor>
-                            </descriptors>
-                            <finalName>${project.build.finalName}-${timestamp.iso}</finalName>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>make-release-bundle</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
     </profiles>
 
     <build>
@@ -144,6 +116,7 @@
                             <trimSpaces>true</trimSpaces>
                             <compilerVersion>${maven.compiler.source}</compilerVersion>
                             <keepSources>false</keepSources>
+                            <threads>20</threads>
                         </configuration>
                     </execution>
                 </executions>
@@ -170,27 +143,8 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- builds xml file of dependencies and licenses for use in about page -->
             <plugin>
-                <!-- creates the classes directory early in the build so the attribution plugin doesn't fail -->
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>generate-sources</id>
-                        <phase>generate-sources</phase>
-                        <configuration>
-                            <tasks>
-                                <mkdir dir="${project.build.directory}/classes"/>
-                            </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <!-- builds xml file of dependencies and licenses for use in about page -->
                 <groupId>com.github.jinnovations</groupId>
                 <artifactId>attribution-maven-plugin</artifactId>
                 <version>0.9.8</version>

@@ -89,6 +89,12 @@ class MoshiJsonServiceProvider implements JsonProvider
     }
 
     @Override
+    public <T> T deserialize( final String jsonString, final Type type )
+    {
+        return deserializeImpl( jsonString, type );
+    }
+
+    @Override
     public <T> String serialize( final T srcObject, final Class<T> classOfT, final Type type, final Flag... flags )
     {
         final Type moshiType = Types.newParameterizedType( classOfT, type );
@@ -143,7 +149,7 @@ class MoshiJsonServiceProvider implements JsonProvider
         }
         catch ( final IOException e )
         {
-            throw new RuntimeException( e.getMessage(), e );
+            throw new IllegalStateException( e.getMessage(), e );
         }
     }
 
@@ -154,7 +160,7 @@ class MoshiJsonServiceProvider implements JsonProvider
         return jsonAdapter.toJson( object );
     }
 
-    static Class unknownClassResolver( final Object srcObject )
+    static Class<?> unknownClassResolver( final Object srcObject )
     {
         if ( srcObject instanceof List )
         {

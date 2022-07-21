@@ -246,7 +246,7 @@ public class ContextManager implements Serializable
         {
             configurationFile = locateConfigurationFile( applicationPath, PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
 
-            configReader = new ConfigurationFileManager( configurationFile );
+            configReader = new ConfigurationFileManager( configurationFile, SESSION_LABEL );
             appConfig = configReader.getConfiguration();
 
             mode = startupErrorInformation == null ? configReader.getConfigMode() : PwmApplicationMode.ERROR;
@@ -467,7 +467,7 @@ public class ContextManager implements Serializable
                             storedConfiguration = importer.readConfiguration( fileInputStream );
                         }
 
-                        configReader.saveConfiguration( storedConfiguration, pwmApplication, SESSION_LABEL );
+                        configReader.saveConfiguration( storedConfiguration, pwmApplication );
                         LOGGER.info( SESSION_LABEL, () -> "file " + silentPropertiesFile.getAbsolutePath() + " has been successfully imported and saved as configuration file" );
                         requestPwmApplicationRestart();
                         success = true;
@@ -540,11 +540,7 @@ public class ContextManager implements Serializable
                     LOGGER.fatal( () -> "unexpected error during shutdown: " + e.getMessage(), e );
                 }
 
-
-                {
-                    final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-                    LOGGER.info( SESSION_LABEL, () -> "application restart completed", () -> timeDuration );
-                }
+                LOGGER.info( SESSION_LABEL, () -> "application restart completed", TimeDuration.fromCurrent( startTime ) );
             }
             finally
             {
@@ -558,7 +554,7 @@ public class ContextManager implements Serializable
             final TimeDuration maxRequestWaitTime = TimeDuration.of(
                     Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.APPLICATION_RESTART_MAX_REQUEST_WAIT_MS ) ),
                     TimeDuration.Unit.MILLISECONDS );
-            final int startingRequestInProgress = pwmApplication.getActiveServletRequests().get();
+            final int startingRequestInProgress = pwmApplication.getTotalActiveServletRequests();
 
             if ( startingRequestInProgress == 0 )
             {
@@ -567,10 +563,10 @@ public class ContextManager implements Serializable
 
             LOGGER.trace( SESSION_LABEL, () -> "waiting up to " + maxRequestWaitTime.asCompactString()
                     + " for " + startingRequestInProgress  + " requests to complete." );
-            maxRequestWaitTime.pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> pwmApplication.getActiveServletRequests().get() == 0
+            maxRequestWaitTime.pause( TimeDuration.of( 10, TimeDuration.Unit.MILLISECONDS ), () -> pwmApplication.getTotalActiveServletRequests() == 0
             );
 
-            final int requestsInProgress = pwmApplication.getActiveServletRequests().get();
+            final int requestsInProgress = pwmApplication.getTotalActiveServletRequests();
             final TimeDuration waitTime = TimeDuration.fromCurrent( startTime  );
             LOGGER.trace( SESSION_LABEL, () -> "after " + waitTime.asCompactString() + ", " + requestsInProgress
                     + " requests in progress, proceeding with restart" );
@@ -772,7 +768,7 @@ public class ContextManager implements Serializable
                         + ConfigurationProperty.IMPORT_LDAP_CERTIFICATES.getKey() + "'"
                         + ", imported " + totalImportedCerts + " certificates" );
                 modifiedConfig.writeConfigProperty( ConfigurationProperty.IMPORT_LDAP_CERTIFICATES, "false" );
-                configReader.saveConfiguration( modifiedConfig.newStoredConfiguration(), pwmApplication, SESSION_LABEL );
+                configReader.saveConfiguration( modifiedConfig.newStoredConfiguration(), pwmApplication );
                 requestPwmApplicationRestart();
             }
             else

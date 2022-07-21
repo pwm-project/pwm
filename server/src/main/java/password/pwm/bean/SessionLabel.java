@@ -40,6 +40,8 @@ public class SessionLabel implements Serializable
     public static final SessionLabel TEST_SESSION_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "test" ).build();
     public static final SessionLabel CLI_SESSION_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "cli" ).build();
     public static final SessionLabel CONTEXT_SESSION_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "context" ).build();
+    public static final SessionLabel ONEJAR_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "onejar" ).build();
+
 
     private final String sessionID;
     private final String requestID;

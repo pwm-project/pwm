@@ -24,9 +24,6 @@ import lombok.Value;
 import password.pwm.util.java.CollectionUtil;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,10 +41,10 @@ public class PwmSettingTemplateSet implements Serializable
                 .map( PwmSettingTemplate::getType )
                 .collect( Collectors.toSet() );
 
-        workingSet.addAll( EnumSet.allOf( PwmSettingTemplate.Type.class ).stream()
+        workingSet.addAll( CollectionUtil.enumStream( PwmSettingTemplate.Type.class )
                 .filter( type -> !seenTypes.contains( type ) )
                 .map( PwmSettingTemplate.Type::getDefaultValue )
-                .collect( Collectors.toSet( ) ) );
+                .collect( Collectors.toUnmodifiableSet( ) ) );
 
         this.templates = Set.copyOf( workingSet );
     }
@@ -73,15 +70,8 @@ public class PwmSettingTemplateSet implements Serializable
      */
     public static List<PwmSettingTemplateSet> allValues()
     {
-        final List<PwmSettingTemplateSet> templateSets = new ArrayList<>();
-
-        for ( final PwmSettingTemplate template : EnumSet.allOf( PwmSettingTemplate.class ) )
-        {
-            final PwmSettingTemplateSet templateSet = new PwmSettingTemplateSet( Collections.singleton( template ) );
-            templateSets.add( templateSet );
-        }
-
-        templateSets.add( getDefault() );
-        return Collections.unmodifiableList( templateSets );
+        return CollectionUtil.enumStream( PwmSettingTemplate.class )
+                .map( pwmSettingTemplate -> new PwmSettingTemplateSet( Set.of( pwmSettingTemplate ) ) )
+                .collect( Collectors.toUnmodifiableList() );
     }
 }

@@ -27,7 +27,7 @@ import password.pwm.config.value.FileValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.ImmutableByteArray;
+import password.pwm.data.ImmutableByteArray;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.json.JsonProvider;
@@ -104,7 +104,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
                 }
                 else
                 {
-                    storedValue = syntax.getFactory().fromJson( serializedValue.getValueData() );
+                    storedValue = syntax.getFactory().fromJson( key.toPwmSetting(), serializedValue.getValueData() );
                 }
                 storedValueMap.put( key, storedValue );
             }

@@ -26,15 +26,14 @@ import password.pwm.Permission;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.ldap.UserInfo;
 import password.pwm.svc.pwnotify.PwNotifyUserStatus;
+import password.pwm.user.UserInfo;
 
-import java.io.Serializable;
 import java.util.Map;
 
 @Value
 @Builder
-public class UserDebugDataBean implements Serializable
+public class UserDebugDataBean
 {
     private static final long serialVersionUID = 1L;
 

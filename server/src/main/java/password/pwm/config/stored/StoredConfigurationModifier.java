@@ -27,6 +27,7 @@ import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
@@ -219,7 +220,8 @@ public class StoredConfigurationModifier
         this.writeConfigProperty( ConfigurationProperty.PASSWORD_HASH, passwordHash );
     }
 
-    private void update( final FunctionWithException<StoredConfigData> function ) throws PwmUnrecoverableException
+    private void update( final FunctionWithException<StoredConfigData> function )
+            throws PwmUnrecoverableException
     {
         try
         {
@@ -231,7 +233,7 @@ public class StoredConfigurationModifier
                 }
                 catch ( final PwmUnrecoverableException e )
                 {
-                    throw new RuntimeException( e );
+                    throw new PwmInternalException( e );
                 }
             } );
             modifications.incrementAndGet();

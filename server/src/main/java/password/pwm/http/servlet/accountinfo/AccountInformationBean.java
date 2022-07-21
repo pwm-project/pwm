@@ -33,7 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.DisplayElement;
 import password.pwm.http.tag.PasswordRequirementsTag;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.ViewableUserInfoDisplayReader;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.util.form.FormUtility;
@@ -97,7 +97,7 @@ public class AccountInformationBean implements Serializable
         ) );
         builder.passwordRules( makePasswordRules( pwmRequest ) );
 
-        LOGGER.trace( pwmRequest, () -> "generated account information bean in ", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( pwmRequest, () -> "generated account information bean in ", TimeDuration.fromCurrent( startTime ) );
         return builder.build();
     }
 
@@ -106,7 +106,7 @@ public class AccountInformationBean implements Serializable
             throws PwmUnrecoverableException
     {
         final PwmPasswordPolicy pwmPasswordPolicy = pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy();
-        final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+        final MacroRequest macroRequest = pwmRequest.getMacroMachine();
         final List<String> rules = PasswordRequirementsTag.getPasswordRequirementsStrings( pwmPasswordPolicy, pwmRequest.getDomainConfig(), pwmRequest.getLocale(), macroRequest );
         return Collections.unmodifiableList( rules );
     }

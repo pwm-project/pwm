@@ -24,6 +24,7 @@ import password.pwm.ldap.LdapDebugDataGenerator;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.json.JsonProvider;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
@@ -36,7 +37,8 @@ class LdapDebugItemGenerator implements DomainItemGenerator
     }
 
     @Override
-    public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException
     {
         final List<LdapDebugDataGenerator.LdapDebugInfo> ldapDebugInfos = LdapDebugDataGenerator.makeLdapDebugInfos(
                 debugItemInput.getPwmDomain(),

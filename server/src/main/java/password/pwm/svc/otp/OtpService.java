@@ -355,7 +355,7 @@ public class OtpService extends AbstractPwmService implements PwmService
                     : "loaded otp record for user " + userIdentity.toDisplayString()
                     + " [recordType=" + finalOtpConfig.getType() + ", identifier=" + finalOtpConfig.getIdentifier() + ", timestamp="
                     + StringUtil.toIsoDate( finalOtpConfig.getTimestamp() ) + "]";
-            LOGGER.trace( sessionLabel, msg, () -> TimeDuration.fromCurrent(  methodStartTime ) );
+            LOGGER.trace( sessionLabel, msg, TimeDuration.fromCurrent(  methodStartTime ) );
         }
 
         return otpConfig;

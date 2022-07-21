@@ -73,7 +73,7 @@ public class SetupResponsesUtil
     {
         if ( pwmRequest.isForcedPageView() )
         {
-            final boolean admin = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
+            final boolean admin = pwmRequest.checkPermission( Permission.PWMADMIN );
             if ( admin )
             {
                 if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES ) )
@@ -171,7 +171,7 @@ public class SetupResponsesUtil
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
-        final ChaiProvider provider = pwmRequest.getPwmSession().getSessionManager().getChaiProvider();
+        final ChaiProvider provider = pwmRequest.getClientConnectionHolder().getActorChaiProvider();
 
         try
         {

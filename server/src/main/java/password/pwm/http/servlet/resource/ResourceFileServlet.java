@@ -29,7 +29,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
-import password.pwm.util.java.ImmutableByteArray;
+import password.pwm.data.ImmutableByteArray;
 import password.pwm.http.servlet.PwmServlet;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
@@ -155,7 +155,7 @@ public class ResourceFileServlet extends HttpServlet implements PwmServlet
                 debugText = makeDebugText( fromCache, acceptsGzip, true );
             }
 
-            pwmRequest.debugHttpRequestToLog( debugText, () -> TimeDuration.fromCurrent( pwmRequest.getRequestStartTime() ) );
+            pwmRequest.debugHttpRequestToLog( debugText, TimeDuration.fromCurrent( pwmRequest.getRequestStartTime() ) );
 
             StatisticsClient.incrementStat( pwmDomain, Statistic.HTTP_RESOURCE_REQUESTS );
             resourceService.getAverageStats().update( ResourceServletService.AverageStat.cacheHitRatio, fromCache ? 1 : 0 );

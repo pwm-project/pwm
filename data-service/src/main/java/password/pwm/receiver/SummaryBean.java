@@ -90,7 +90,7 @@ public class SummaryBean
                         .osVersion( bean.getAbout().get( PwmAboutProperty.java_osVersion.name() ) )
                         .servletName( bean.getAbout().get( PwmAboutProperty.java_appServerInfo.name() ) )
                         .dbVendor( dbVendor )
-                        .appliance( Boolean.parseBoolean( bean.getAbout().get( PwmAboutProperty.app_mode_appliance.name() ) ) )
+                        .platform( bean.getAbout().get( PwmAboutProperty.app_deployment_type.name() ) )
                         .javaVm( javaVmInfo( bean, "n/a" ) )
                         .build();
 
@@ -200,6 +200,6 @@ public class SummaryBean
         private String servletName;
         private String dbVendor;
         private String javaVm;
-        private boolean appliance;
+        private String platform;
     }
 }

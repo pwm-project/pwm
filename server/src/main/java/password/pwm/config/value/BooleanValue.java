@@ -58,7 +58,7 @@ public class BooleanValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public BooleanValue fromJson( final String value )
+            public BooleanValue fromJson( final PwmSetting pwmSetting, final String value )
             {
                 return BooleanValue.of( JsonFactory.get().deserialize( value, Boolean.class ) );
             }

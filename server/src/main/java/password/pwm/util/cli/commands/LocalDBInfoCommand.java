@@ -23,20 +23,21 @@ package password.pwm.util.cli.commands;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.MiscUtil;
-import password.pwm.util.json.JsonProvider;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBUtility;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
 
 public class LocalDBInfoCommand extends AbstractCliCommand
 {
     @Override
-    public void doCommand( ) throws Exception
+    public void doCommand( ) throws IOException
     {
         final Instant startTime = Instant.now();
         final LocalDB localDB = cliEnvironment.getLocalDB();

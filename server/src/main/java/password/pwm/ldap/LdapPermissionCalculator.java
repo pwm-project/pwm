@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.util;
+package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiConstant;
 import lombok.Value;
@@ -44,7 +44,6 @@ import password.pwm.i18n.Config;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.svc.sms.SmsQueueService;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -59,16 +58,16 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
-public class LDAPPermissionCalculator implements Serializable
+public class LdapPermissionCalculator implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
-    private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPPermissionCalculator.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( LdapPermissionCalculator.class );
 
     private final transient DomainConfig domainConfig;
     private final List<PermissionRecord> permissionRecords;
 
-    public LDAPPermissionCalculator( final DomainConfig domainConfig ) throws PwmUnrecoverableException
+    public LdapPermissionCalculator( final DomainConfig domainConfig ) throws PwmUnrecoverableException
     {
         this.domainConfig = Objects.requireNonNull( domainConfig );
         permissionRecords = figureRecords();
@@ -367,7 +366,7 @@ public class LDAPPermissionCalculator implements Serializable
 
             case SMS_USER_PHONE_ATTRIBUTE:
             {
-                if ( !SmsQueueService.smsIsConfigured( domainConfig.getAppConfig() ) )
+                if ( !domainConfig.getAppConfig().isSmsConfigured() )
                 {
                     return Collections.emptyList();
                 }

@@ -29,6 +29,7 @@ import password.pwm.svc.token.TokenService;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.StringUtil;
 
+import java.io.IOException;
 import java.util.List;
 
 public class TokenInfoCommand extends AbstractCliCommand
@@ -39,7 +40,7 @@ public class TokenInfoCommand extends AbstractCliCommand
 
     @Override
     public void doCommand( )
-            throws Exception
+            throws IOException
     {
         final String tokenKey = ( String ) cliEnvironment.getOptions().get( TOKEN_KEY_OPTION_TOKEN );
         final String domainId = ( String ) cliEnvironment.getOptions().get( TOKEN_KEY_OPTION_DOMAIN );

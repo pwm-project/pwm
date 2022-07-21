@@ -26,6 +26,7 @@ import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
@@ -135,7 +136,7 @@ public class PrivateKeyValue extends AbstractValue
             }
 
             @Override
-            public X509CertificateValue fromJson( final String input )
+            public X509CertificateValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 return new X509CertificateValue( Collections.emptyList() );
             }
@@ -201,7 +202,7 @@ public class PrivateKeyValue extends AbstractValue
             }
             catch ( final Exception e )
             {
-                throw new RuntimeException( "missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage() );
+                throw new PwmInternalException( "missing required AES and SHA1 libraries, or other crypto fault: " + e.getMessage() );
             }
         }
         return Collections.singletonList( valueElement );

@@ -61,8 +61,8 @@ import password.pwm.http.servlet.peoplesearch.PhotoDataReader;
 import password.pwm.http.servlet.peoplesearch.SearchRequestBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.PhotoDataBean;
-import password.pwm.ldap.UserInfo;
+import password.pwm.bean.PhotoDataBean;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
@@ -365,7 +365,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         // execute user delete operation
         final ChaiProvider provider = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_USE_PROXY )
                 ? pwmDomain.getProxyChaiProvider( pwmRequest.getLabel(), userIdentity.getLdapProfileID() )
-                : pwmSession.getSessionManager().getChaiProvider();
+                : pwmRequest.getClientConnectionHolder().getActor().getChaiProvider();
 
 
         try

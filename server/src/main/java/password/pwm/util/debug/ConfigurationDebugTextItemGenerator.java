@@ -26,6 +26,7 @@ import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Locale;
 
@@ -38,7 +39,8 @@ class ConfigurationDebugTextItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException
     {
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
         final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedAppConfig().getStoredConfiguration();

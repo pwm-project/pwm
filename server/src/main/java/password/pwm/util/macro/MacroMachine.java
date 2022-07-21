@@ -248,7 +248,7 @@ public class MacroMachine
                 final String finalReplaceStr = replaceStr;
                 LOGGER.trace( sessionLabel, () -> "replaced macro " + matchedStr + " with value: "
                                 + ( sensitive ? PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT : finalReplaceStr ),
-                        () -> TimeDuration.fromCurrent( startTime ) );
+                        TimeDuration.fromCurrent( startTime ) );
             }
         }
         return new StringBuilder( input ).replace( startPos, endPos, replaceStr ).toString();

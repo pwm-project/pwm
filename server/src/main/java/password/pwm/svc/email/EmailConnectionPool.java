@@ -21,6 +21,7 @@
 package password.pwm.svc.email;
 
 import jakarta.mail.Transport;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -47,6 +48,7 @@ public class EmailConnectionPool
     private final Lock lock = new ReentrantLock();
 
     private final EmailServiceSettings settings;
+    private final SessionLabel sessionLabel;
     private final List<EmailServer> servers;
 
     private final AtomicInteger activeConnectionCounter = new AtomicInteger();
@@ -55,16 +57,19 @@ public class EmailConnectionPool
 
     public static EmailConnectionPool emptyConnectionPool()
     {
-        return new EmailConnectionPool( Collections.emptyList(), EmailServiceSettings.builder().build() );
+        return new EmailConnectionPool( Collections.emptyList(), EmailServiceSettings.builder().build(), null );
     }
 
     public EmailConnectionPool(
             final List<EmailServer> servers,
-            final EmailServiceSettings settings )
+            final EmailServiceSettings settings,
+            final SessionLabel sessionLabel
+    )
     {
         this.servers = List.copyOf( servers );
-        this.serverIncrementer = AtomicLoopIntIncrementer.builder().ceiling( servers.size() ).build();
         this.settings = settings;
+        this.sessionLabel = sessionLabel;
+        this.serverIncrementer = AtomicLoopIntIncrementer.builder().ceiling( servers.size() ).build();
     }
 
     public int idleConnectionCount()
@@ -106,9 +111,9 @@ public class EmailConnectionPool
             }
             final Instant startTime = Instant.now();
             final EmailConnection emailConnection = getSmtpTransport();
-            LOGGER.trace( () -> "created new email connection " + emailConnection.getId()
+            LOGGER.trace( sessionLabel, () -> "created new email connection #" + emailConnection.getId()
                             + " to " + emailConnection.getEmailServer().getId(),
-                    () -> TimeDuration.fromCurrent( startTime ) );
+                    TimeDuration.fromCurrent( startTime ) );
             activeConnectionCounter.incrementAndGet();
             return emailConnection;
         }
@@ -123,14 +128,13 @@ public class EmailConnectionPool
         lock.lock();
         try
         {
-
             if ( connections.add( emailConnection ) )
             {
                 activeConnectionCounter.decrementAndGet();
             }
             else
             {
-                LOGGER.warn( () -> "connection " + emailConnection.getId() + "returned but was already in oool" );
+                LOGGER.warn( sessionLabel, () -> "connection #" + emailConnection.getId() + "returned but was already in oool" );
             }
         }
         finally
@@ -143,20 +147,23 @@ public class EmailConnectionPool
     {
         if ( emailConnection.getSentItems() >= settings.getConnectionSendItemLimit() )
         {
-            LOGGER.trace( () -> "email connection " + emailConnection.getId() + " has sent " + emailConnection.getSentItems() + " and will be retired" );
+            LOGGER.trace( sessionLabel, () -> "email connection #" + emailConnection.getId()
+                    + " has sent " + emailConnection.getSentItems() + " and will be retired" );
             return false;
         }
 
         final TimeDuration connectionAge = TimeDuration.fromCurrent( emailConnection.getStartTime() );
         if ( connectionAge.isLongerThan( settings.getConnectionSendItemDuration() ) )
         {
-            LOGGER.trace( () -> "email connection " + emailConnection.getId() + " has lived " + connectionAge.asCompactString() + " and will be retired" );
+            LOGGER.trace( sessionLabel, () -> "email connection #" + emailConnection.getId()
+                    + " has lived " + connectionAge.asCompactString() + " and will be retired" );
             return false;
         }
 
         if ( !emailConnection.getTransport().isConnected() )
         {
-            LOGGER.trace( () -> "email connection " + emailConnection.getId() + " is no longer connected " + connectionAge.asCompactString() + " and will be retired" );
+            LOGGER.trace( sessionLabel, () -> "email connection #" + emailConnection.getId()
+                    + " is no longer connected " + connectionAge.asCompactString() + " and will be retired" );
             return false;
 
         }
@@ -182,7 +189,7 @@ public class EmailConnectionPool
             final EmailServer server = servers.get( nextSlot );
             try
             {
-                final Transport transport = EmailServerUtil.makeSmtpTransport( server );
+                final Transport transport = EmailServerUtil.makeSmtpTransport( server, sessionLabel );
                 server.getConnectionStats().increment( EmailServer.ServerStat.newConnections );
                 return new EmailConnection( server, transport );
             }

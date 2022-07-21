@@ -24,9 +24,10 @@ import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.health.HealthRecord;
-import password.pwm.util.json.JsonProvider;
 import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +50,8 @@ class HealthDebugItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException
     {
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
         final PwmApplication pwmApplication = debugItemInput.getPwmApplication();

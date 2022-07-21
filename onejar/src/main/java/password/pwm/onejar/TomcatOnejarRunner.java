@@ -255,8 +255,9 @@ public class TomcatOnejarRunner
     {
         final String envVarPrefix = Resource.envVarPrefix.getValue();
         System.setProperty( envVarPrefix + "_APPLICATIONPATH", onejarConfig.getApplicationPath().getAbsolutePath() );
-        System.setProperty( envVarPrefix + "_APPLICATIONFLAGS", "ManageHttps" );
+        System.setProperty( envVarPrefix + "_APPLICATIONFLAGS", "[\"ManageHttps\",\"Onejar\"]" );
         System.setProperty( envVarPrefix + "_APPLICATIONPARAMFILE", onejarConfig.getPwmAppPropertiesFile().getAbsolutePath() );
+        System.setProperty( "ONEJAR_ENV", "TRUE" );
     }
 
     private void outputPwmAppProperties( final OnejarConfig onejarConfig ) throws IOException

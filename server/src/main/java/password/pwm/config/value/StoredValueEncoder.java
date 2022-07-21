@@ -20,13 +20,14 @@
 
 package password.pwm.config.value;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmRandom;
@@ -51,6 +52,8 @@ public abstract class StoredValueEncoder
         ENCODED( new EncodedModeEngine(), "ENC-PW" + DELIMITER, "ENCODED" + DELIMITER ),;
 
         private final List<String> prefixes;
+
+        @SuppressFBWarnings( "SE_BAD_FIELD" )
         private final SecureOutputEngine secureOutputEngine;
 
         Mode( final SecureOutputEngine secureOutputEngine, final String... prefixes )

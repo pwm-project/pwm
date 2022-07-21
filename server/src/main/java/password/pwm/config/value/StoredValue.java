@@ -46,7 +46,7 @@ public interface StoredValue extends Serializable
 
     interface StoredValueFactory
     {
-        StoredValue fromJson( String input );
+        StoredValue fromJson( PwmSetting pwmSetting, String input );
 
         StoredValue fromXmlElement( PwmSetting pwmSetting, XmlElement settingElement, PwmSecurityKey key )
                 throws PwmException;

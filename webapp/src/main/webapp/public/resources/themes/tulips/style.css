@@ -63,10 +63,8 @@ p {
     height: 70px;
     margin: 0;
     background-image: none;
-    background-color: white;
+    background-color: rgba(255,255,255,0.5);
     color: black;
-    filter:alpha(opacity=50);
-    opacity: 0.5;
 }
 
 #header-company-logo {
@@ -95,7 +93,6 @@ p {
     padding: 10px 10px 40px 10px;
     border: 0;
     border-radius: 5px;
-    filter:alpha(opacity=80);
 }
 
 #footer {

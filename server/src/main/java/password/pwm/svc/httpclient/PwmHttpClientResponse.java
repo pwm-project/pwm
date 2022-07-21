@@ -23,9 +23,10 @@ package password.pwm.svc.httpclient;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmApplication;
+import password.pwm.data.ImmutableByteArray;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpEntityDataType;
-import password.pwm.util.java.ImmutableByteArray;
+import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -49,8 +50,13 @@ public class PwmHttpClientResponse implements Serializable, PwmHttpClientMessage
 
     String toDebugString( final PwmApplication pwmApplication, final PwmHttpClientConfiguration pwmHttpClientConfiguration )
     {
-        final String topLine = "HTTP response status " + statusCode + " " + statusPhrase;
+        final String topLine = "HTTP response status " + getStatusLine();
         return PwmHttpClientMessage.entityToDebugString( topLine, pwmApplication, pwmHttpClientConfiguration, this );
+    }
+
+    public String getStatusLine()
+    {
+        return statusCode + ( StringUtil.isEmpty( statusPhrase ) ? "" : " " + statusPhrase );
     }
 
     long size()

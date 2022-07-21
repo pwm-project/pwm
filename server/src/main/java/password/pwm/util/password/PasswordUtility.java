@@ -68,7 +68,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.permission.UserPermissionUtility;
@@ -287,7 +287,7 @@ public class PasswordUtility
         try
         {
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create( pwmRequest.getLabel(), pwmDomain, userInfo.getPasswordPolicy() );
-            pwmPasswordRuleValidator.testPassword( newPassword, null, userInfo, pwmSession.getSessionManager().getActor( ) );
+            pwmPasswordRuleValidator.testPassword( pwmSession.getLabel(), newPassword, null, userInfo, pwmRequest.getClientConnectionHolder().getActor( ) );
         }
         catch ( final PwmDataValidationException e )
         {
@@ -302,7 +302,7 @@ public class PasswordUtility
         boolean setPasswordWithoutOld = false;
         if ( oldPassword == null )
         {
-            if ( pwmSession.getSessionManager().getActor( ).getChaiProvider().getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY )
+            if ( pwmRequest.getClientConnectionHolder().getActor( ).getChaiProvider().getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY )
             {
                 setPasswordWithoutOld = true;
             }
@@ -319,7 +319,7 @@ public class PasswordUtility
             }
         }
 
-        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+        final ChaiProvider provider = pwmRequest.getClientConnectionHolder().getActorChaiProvider();
 
         setPassword( pwmDomain, pwmRequest.getLabel(), provider, userInfo, setPasswordWithoutOld ? null : oldPassword, newPassword );
 
@@ -330,7 +330,7 @@ public class PasswordUtility
         pwmSession.getLoginInfoBean().setUserCurrentPassword( newPassword );
 
         //close any outstanding ldap connections (since they cache the old password)
-        pwmSession.getSessionManager().updateUserPassword( userInfo.getUserIdentity(), newPassword );
+        pwmRequest.getClientConnectionHolder().updateUserLdapPassword( userInfo.getUserIdentity(), newPassword );
 
         // clear the "requires new password flag"
         pwmSession.getLoginInfoBean().getLoginFlags().remove( LoginInfoBean.LoginFlag.forcePwChange );
@@ -342,7 +342,7 @@ public class PasswordUtility
         pwmSession.reloadUserInfoBean( pwmRequest );
 
         // create a proxy user object for pwm to update/read the user.
-        final ChaiUser proxiedUser = pwmSession.getSessionManager().getActor();
+        final ChaiUser proxiedUser = pwmRequest.getClientConnectionHolder().getActor();
 
         // update statistics
         {
@@ -415,7 +415,7 @@ public class PasswordUtility
                     PwmPasswordRuleValidator.Flag.BypassLdapRuleCheck
             );
 
-            pwmPasswordRuleValidator.testPassword( newPassword, null, userInfo, theUser );
+            pwmPasswordRuleValidator.testPassword( sessionLabel, newPassword, null, userInfo, theUser );
         }
         catch ( final ChaiUnavailableException e )
         {
@@ -733,7 +733,7 @@ public class PasswordUtility
 
                 final ActionExecutor actionExecutor = new ActionExecutor.ActionExecutorSettings( pwmDomain, userIdentity )
                         .setExpandPwmMacros( true )
-                        .setMacroMachine( pwmRequest.getPwmSession().getSessionManager().getMacroMachine( ) )
+                        .setMacroMachine( pwmRequest.getMacroMachine() )
                         .createActionExecutor();
                 actionExecutor.executeActions( configValues, pwmRequest.getLabel() );
             }
@@ -963,7 +963,7 @@ public class PasswordUtility
                 throw new IllegalStateException( "unknown policy source defined: " + ppSource.name() );
         }
 
-        LOGGER.trace( pwmSession, () -> "readPasswordPolicyForUser completed", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( pwmSession, () -> "readPasswordPolicyForUser completed", TimeDuration.fromCurrent( startTime ) );
         return returnPolicy;
     }
 
@@ -1114,7 +1114,7 @@ public class PasswordUtility
                 {
                     final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create( sessionLabel, pwmDomain, userInfo.getPasswordPolicy(), locale );
                     final PasswordData oldPassword = loginInfoBean == null ? null : loginInfoBean.getUserCurrentPassword();
-                    pwmPasswordRuleValidator.testPassword( password, oldPassword, userInfo, user );
+                    pwmPasswordRuleValidator.testPassword( pwmRequestContext.getSessionLabel(), password, oldPassword, userInfo, user );
                     pass = true;
                     if ( cacheService != null && cacheKey != null )
                     {

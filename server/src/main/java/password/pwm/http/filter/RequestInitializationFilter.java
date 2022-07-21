@@ -170,15 +170,7 @@ public class RequestInitializationFilter implements Filter
             return;
         }
 
-        try
-        {
-            localPwmApplication.getActiveServletRequests().incrementAndGet();
-            initializeServletRequest( req, resp, filterChain );
-        }
-        finally
-        {
-            localPwmApplication.getActiveServletRequests().decrementAndGet();
-        }
+        initializeServletRequest( req, resp, filterChain );
     }
 
     private void initializeServletRequest(
@@ -240,6 +232,16 @@ public class RequestInitializationFilter implements Filter
                 return;
             }
 
+
+            try
+            {
+                pwmRequest.getPwmDomain().getActiveServletRequests().incrementAndGet();
+                filterChain.doFilter( req, resp );
+            }
+            finally
+            {
+                pwmRequest.getPwmDomain().getActiveServletRequests().decrementAndGet();
+            }
         }
         catch ( final Throwable e )
         {
@@ -266,8 +268,6 @@ public class RequestInitializationFilter implements Filter
             }
             return;
         }
-
-        filterChain.doFilter( req, resp );
     }
 
     private void updateStats( final PwmApplication localPwmApplication )
@@ -579,7 +579,7 @@ public class RequestInitializationFilter implements Filter
         }
 
         // set idle timeout
-        PwmSessionFactory.setHttpSessionIdleTimeout( pwmRequest.getPwmDomain(), pwmRequest.getPwmSession(), pwmRequest.getHttpServletRequest().getSession() );
+        PwmSessionFactory.setHttpSessionIdleTimeout( pwmRequest.getPwmDomain(), pwmRequest, pwmRequest.getHttpServletRequest().getSession() );
     }
 
     private static void initializeLocaleAndTheme(
@@ -818,7 +818,7 @@ public class RequestInitializationFilter implements Filter
         {
             LOGGER.debug( () -> "unauthenticated session due to idle time, max for request is " + maxDurationForRequest.asCompactString()
                     + ", session idle time is " + currentDuration.asCompactString() );
-            pwmRequest.getPwmSession().unauthenticateUser( pwmRequest );
+            pwmRequest.getPwmSession().unAuthenticateUser( pwmRequest );
         }
     }
 

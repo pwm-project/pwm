@@ -83,7 +83,7 @@ public class PwmLogger
         PwmLogger.fileAppender = rollingFileAppender;
     }
 
-    public static PwmLogger forClass( final Class className )
+    public static PwmLogger forClass( final Class<?> className )
     {
         return new PwmLogger( className.getName(), false );
     }
@@ -94,7 +94,7 @@ public class PwmLogger
     }
 
     public static PwmLogger forClass(
-            final Class className,
+            final Class<?> className,
             final boolean localDBDisabled
     )
     {
@@ -123,7 +123,8 @@ public class PwmLogger
             final PwmRequest pwmRequest,
             final Supplier<CharSequence> message,
             final Throwable e,
-            final Supplier<TimeDuration> timeDuration )
+            final TimeDuration timeDuration
+    )
     {
         if ( !isEnabled( level ) )
         {
@@ -166,7 +167,7 @@ public class PwmLogger
             final SessionLabel sessionLabel,
             final Supplier<CharSequence> message,
             final Throwable e,
-            final Supplier<TimeDuration> timeDuration
+            final TimeDuration timeDuration
     )
     {
         if ( !isEnabled( level ) )
@@ -182,7 +183,7 @@ public class PwmLogger
         doLogEvent( logEvent );
     }
 
-    private CharSequence formatEffectiveMessage( final Supplier<CharSequence> message, final Supplier<TimeDuration> timeDuration )
+    private CharSequence formatEffectiveMessage( final Supplier<CharSequence> message, final TimeDuration timeDuration )
     {
         final CharSequence output = message == null
                 ? ""
@@ -190,7 +191,7 @@ public class PwmLogger
 
         if ( timeDuration != null )
         {
-            return output + " (" + timeDuration.get().asCompactString() + ")";
+            return output + " (" + timeDuration.asCompactString() + ")";
         }
 
         return output;
@@ -287,7 +288,7 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.TRACE, null, message, null );
     }
 
-    public void trace( final Supplier<CharSequence> message, final Supplier<TimeDuration> timeDuration )
+    public void trace( final Supplier<CharSequence> message, final TimeDuration timeDuration )
     {
         doLogEvent( PwmLogLevel.TRACE, null, message, null, timeDuration );
     }
@@ -297,7 +298,7 @@ public class PwmLogger
         doPwmRequestLogEvent( PwmLogLevel.TRACE, pwmRequest, message, null, null );
     }
 
-    public void trace( final PwmRequest pwmRequest, final Supplier<CharSequence> message, final Supplier<TimeDuration> timeDuration )
+    public void trace( final PwmRequest pwmRequest, final Supplier<CharSequence> message, final TimeDuration timeDuration )
     {
         doPwmRequestLogEvent( PwmLogLevel.TRACE, pwmRequest, message, null, timeDuration );
     }
@@ -317,7 +318,7 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.TRACE, sessionLabel, message, null );
     }
 
-    public void trace( final SessionLabel sessionLabel, final Supplier<CharSequence> message, final Supplier<TimeDuration> timeDuration )
+    public void trace( final SessionLabel sessionLabel, final Supplier<CharSequence> message, final TimeDuration timeDuration )
     {
         doLogEvent( PwmLogLevel.TRACE, sessionLabel, message, null, timeDuration );
     }
@@ -332,14 +333,14 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.DEBUG, null, message, null );
     }
 
-    public void debug( final Supplier<CharSequence> message, final Supplier<TimeDuration> timeDuration )
-    {
-        doLogEvent( PwmLogLevel.DEBUG, null, message, null, timeDuration );
-    }
-
     public void debug( final PwmRequest pwmRequest, final Supplier<CharSequence> message )
     {
         doPwmRequestLogEvent( PwmLogLevel.DEBUG, pwmRequest, message, null, null );
+    }
+
+    public void debug( final PwmRequest pwmRequest, final Supplier<CharSequence> message, final Throwable exception )
+    {
+        doPwmRequestLogEvent( PwmLogLevel.DEBUG, pwmRequest, message, exception, null );
     }
 
     public void debug( final PwmRequest pwmRequest, final ErrorInformation errorInformation )
@@ -352,7 +353,7 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.DEBUG, sessionLabel, message, null );
     }
 
-    public void debug( final SessionLabel sessionLabel, final Supplier<CharSequence> message, final Supplier<TimeDuration> timeDuration )
+    public void debug( final SessionLabel sessionLabel, final Supplier<CharSequence> message, final TimeDuration timeDuration )
     {
         doLogEvent( PwmLogLevel.DEBUG, sessionLabel, message, null, timeDuration );
     }
@@ -362,17 +363,12 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.DEBUG, sessionLabel, convertErrorInformation( errorInformation ), null );
     }
 
-    public void debug( final Supplier<CharSequence> message, final Throwable exception )
-    {
-        doPwmRequestLogEvent( PwmLogLevel.DEBUG, null, message, exception, null );
-    }
-
     public void info( final Supplier<CharSequence> message )
     {
         doLogEvent( PwmLogLevel.INFO, null, message, null );
     }
 
-    public void info( final Supplier<CharSequence> message, final Supplier<TimeDuration> timeDuration )
+    public void info( final Supplier<CharSequence> message, final TimeDuration timeDuration )
     {
         doLogEvent( PwmLogLevel.INFO, null, message, null, timeDuration );
     }
@@ -392,7 +388,7 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.INFO, sessionLabel, message, null );
     }
 
-    public void info( final SessionLabel sessionLabel, final Supplier<CharSequence> message, final Supplier<TimeDuration> timeDuration )
+    public void info( final SessionLabel sessionLabel, final Supplier<CharSequence> message, final TimeDuration timeDuration )
     {
         doLogEvent( PwmLogLevel.INFO, sessionLabel, message, null, timeDuration );
     }
@@ -432,7 +428,7 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.ERROR, sessionLabel, message, null );
     }
 
-    public void error( final SessionLabel sessionLabel, final Supplier<CharSequence> message, final Supplier<TimeDuration> timeDurationSupplier )
+    public void error( final SessionLabel sessionLabel, final Supplier<CharSequence> message, final TimeDuration timeDurationSupplier )
     {
         doLogEvent( PwmLogLevel.ERROR, sessionLabel, message, null, timeDurationSupplier );
     }
@@ -465,6 +461,11 @@ public class PwmLogger
     public void warn( final PwmRequest pwmRequest, final Supplier<CharSequence> message )
     {
         doPwmRequestLogEvent( PwmLogLevel.WARN, pwmRequest, message, null, null );
+    }
+
+    public void warn( final SessionLabel sessionLabel, final Supplier<CharSequence> message, final Throwable exception )
+    {
+        doLogEvent( PwmLogLevel.WARN, sessionLabel, message, exception );
     }
 
     public void warn( final PwmRequest pwmRequest, final Supplier<CharSequence> message, final Throwable exception )

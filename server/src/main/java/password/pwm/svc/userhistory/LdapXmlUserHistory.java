@@ -39,7 +39,7 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditEventType;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -139,7 +139,7 @@ public class LdapXmlUserHistory implements UserHistoryStore
         {
             final String errorMsg = "error reading LDAP user event history for user " + userIdentity.toDisplayString() + ", error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-            LOGGER.error( errorInformation::toDebugStr, e );
+            LOGGER.error( sessionLabel, errorInformation::toDebugStr, e );
             throw new PwmUnrecoverableException( errorInformation, e );
         }
 

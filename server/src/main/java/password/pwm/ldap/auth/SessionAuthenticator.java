@@ -42,7 +42,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.svc.event.AuditEvent;
@@ -376,7 +376,7 @@ public class SessionAuthenticator
         loginInfoBean.setUserIdentity( userIdentity );
 
         //update the session connection
-        pwmSession.getSessionManager().setChaiProvider( authenticationResult.getUserProvider() );
+        pwmSession.updateLdapAuthentication( pwmRequest.getPwmApplication(), userIdentity, authenticationResult );
 
         // update the actor user info bean
         {

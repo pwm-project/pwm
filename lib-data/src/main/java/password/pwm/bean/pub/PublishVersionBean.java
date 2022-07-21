@@ -18,22 +18,20 @@
  * limitations under the License.
  */
 
-package password.pwm.ldap;
+package password.pwm.bean.pub;
 
 import lombok.Value;
-import password.pwm.util.java.ImmutableByteArray;
+import password.pwm.bean.VersionNumber;
 
-import java.io.Serializable;
+import java.util.Map;
 
 @Value
-public class PhotoDataBean implements Serializable
+public class PublishVersionBean implements PublishedBean
 {
-    private String mimeType;
-    private ImmutableByteArray contents;
+    private final Map<VersionKey, VersionNumber> versions;
 
-    @Override
-    public String toString()
+    public enum VersionKey
     {
-        return "[image " + contents.size() + " bytes, mime=" + mimeType +  "]";
+        current,
     }
 }

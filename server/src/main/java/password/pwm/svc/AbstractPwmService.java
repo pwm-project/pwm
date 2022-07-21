@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Supplier;
 
 public abstract class AbstractPwmService implements PwmService
 {
@@ -48,12 +47,20 @@ public abstract class AbstractPwmService implements PwmService
     private DomainID domainID;
     private SessionLabel sessionLabel;
 
-    private Supplier<ScheduledExecutorService> executorService;
+    private LazySupplier<ScheduledExecutorService> executorService;
 
 
     public final PwmService.STATUS status()
     {
         return status;
+    }
+
+    @Override
+    public String name()
+    {
+        return "[" + this.getClass().getSimpleName()
+                + ( domainID == null || domainID.isSystem() ? "" : "/" + domainID.stringValue() )
+                + "]";
     }
 
     public final void init( final PwmApplication pwmApplication, final DomainID domainID )
@@ -90,8 +97,9 @@ public abstract class AbstractPwmService implements PwmService
     public void shutdown()
     {
         this.status = STATUS.CLOSED;
-        if ( executorService != null )
+        if ( executorService != null && executorService.isSupplied() )
         {
+            executorService.get().shutdownNow();
             JavaHelper.closeAndWaitExecutor( executorService.get(), TimeDuration.SECONDS_10 );
         }
         shutdownImpl();
@@ -129,12 +137,17 @@ public abstract class AbstractPwmService implements PwmService
             returnRecords.add( HealthRecord.forMessage(
                     DomainID.systemId(),
                     HealthMessage.ServiceClosed,
+                    name(),
                     startupError.toDebugStr() ) );
         }
 
         if ( status() == STATUS.OPEN )
         {
-            returnRecords.addAll( serviceHealthCheck() );
+            final List<HealthRecord> records = serviceHealthCheck();
+            if ( records != null )
+            {
+                returnRecords.addAll( records );
+            }
         }
 
         return returnRecords;

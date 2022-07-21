@@ -31,6 +31,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.JspUrl;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
@@ -39,8 +40,8 @@ import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -50,12 +51,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @WebServlet(
@@ -65,7 +65,7 @@ import java.util.stream.Collectors;
                 PwmConstants.URL_PREFIX_PRIVATE + "/Shortcuts",
         }
 )
-public class ShortcutServlet extends AbstractPwmServlet
+public class ShortcutServlet extends ControlledPwmServlet
 {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( ShortcutServlet.class );
@@ -89,21 +89,33 @@ public class ShortcutServlet extends AbstractPwmServlet
     }
 
     @Override
-    protected void processAction( final PwmRequest pwmRequest )
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+    public Class<? extends ProcessAction> getProcessActionsClass()
+    {
+        return ShortcutAction.class;
+    }
+
+    @Override
+    protected void nextStep( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
+    {
+        forwardToJsp( pwmRequest, getBean( pwmRequest ) );
+
+    }
+
+    @Override
+    public ProcessStatus preProcessCheck( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException, ServletException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-
         if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.SHORTCUT_ENABLE ) )
         {
             pwmRequest.respondWithError( PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo() );
-            return;
+            return ProcessStatus.Halt;
         }
 
-        final ShortcutsBean shortcutsBean = pwmDomain.getSessionStateService().getBean( pwmRequest, ShortcutsBean.class );
+        final ShortcutsBean shortcutsBean = getBean( pwmRequest );
         if ( shortcutsBean.getVisibleItems() == null )
         {
-            LOGGER.debug( pwmRequest, () -> "building visible shortcut list for user" );
             final Map<String, ShortcutItem> visibleItems = figureVisibleShortcuts( pwmRequest );
             shortcutsBean.setVisibleItems( visibleItems );
         }
@@ -112,105 +124,24 @@ public class ShortcutServlet extends AbstractPwmServlet
             LOGGER.trace( pwmRequest, () -> "using cashed shortcut values" );
         }
 
-        final Optional<ShortcutAction> action = readProcessAction( pwmRequest );
-        if ( action.isPresent() )
-        {
-            pwmRequest.validatePwmFormID();
-            switch ( action.get() )
-            {
-                case selectShortcut:
-                    handleUserSelection( pwmRequest, shortcutsBean );
-                    return;
-
-                default:
-                    MiscUtil.unhandledSwitchStatement( action.get() );
-            }
-        }
-
-        forwardToJsp( pwmRequest, shortcutsBean );
+        return ProcessStatus.Continue;
     }
 
-    private void forwardToJsp( final PwmRequest pwmRequest, final ShortcutsBean shortcutsBean )
-            throws ServletException, PwmUnrecoverableException, IOException
-    {
-        final ArrayList<ShortcutItem> shortcutItems = new ArrayList<>( shortcutsBean.getVisibleItems().values() );
-        pwmRequest.setAttribute( PwmRequestAttribute.ShortcutItems, shortcutItems );
-        pwmRequest.forwardToJsp( JspUrl.SHORTCUT );
-    }
-
-    /**
-     * Loop through each configured shortcut setting to determine if the shortcut is is able to the user pwmSession.
-     */
-    private static Map<String, ShortcutItem> figureVisibleShortcuts(
-            final PwmRequest pwmRequest
-    )
+    public ShortcutsBean getBean( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final Collection<String> configValues = pwmRequest.getDomainConfig().readSettingAsLocalizedStringArray( PwmSetting.SHORTCUT_ITEMS, pwmRequest.getLocale() );
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
+        return pwmDomain.getSessionStateService().getBean( pwmRequest, ShortcutsBean.class );
 
-        final Set<String> labelsFromHeader = new HashSet<>();
-        {
-            final Map<String, List<String>> headerValueMap = pwmRequest.readHeaderValuesMap();
-            final List<String> interestedHeaderNames = pwmRequest.getDomainConfig().readSettingAsStringArray( PwmSetting.SHORTCUT_HEADER_NAMES );
-
-            for ( final Map.Entry<String, List<String>> entry : headerValueMap.entrySet() )
-            {
-                final String headerName = entry.getKey();
-                if ( interestedHeaderNames.contains( headerName ) )
-                {
-                    for ( final String loopValues : entry.getValue() )
-                    {
-                        labelsFromHeader.addAll( StringUtil.tokenizeString( loopValues, "," ) );
-                    }
-                }
-            }
-        }
-
-        final List<ShortcutItem> configuredItems = configValues.stream()
-                .map( ShortcutItem::parsePwmConfigInput )
-                .collect( Collectors.toUnmodifiableList() );
-
-        final Map<String, ShortcutItem> visibleItems = new LinkedHashMap<>( configuredItems.size() );
-
-        if ( !labelsFromHeader.isEmpty() )
-        {
-            LOGGER.trace( () -> "detected the following labels from headers: " + StringUtil.collectionToString( labelsFromHeader, "," ) );
-            visibleItems.keySet().retainAll( labelsFromHeader );
-        }
-        else
-        {
-            for ( final ShortcutItem item : configuredItems )
-            {
-                final UserIdentity userIdentity = pwmRequest.getPwmSession().getUserInfo().getUserIdentity();
-
-                final UserPermission userPermission = UserPermission.builder()
-                        .type( UserPermissionType.ldapQuery )
-                        .ldapQuery( item.getLdapQuery() )
-                        .ldapBase( userIdentity.getLdapProfileID() )
-                        .build();
-
-                final boolean queryMatch = UserPermissionUtility.testUserPermission(
-                        pwmRequest.getPwmRequestContext(),
-                        pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
-                        userPermission
-                );
-
-                if ( queryMatch )
-                {
-                    visibleItems.put( item.getLabel(), item );
-                }
-            }
-        }
-
-        return visibleItems;
     }
 
-    private void handleUserSelection(
-            final PwmRequest pwmRequest,
-            final ShortcutsBean shortcutsBean
+    @ActionHandler( action = "selectShortcut" )
+    public ProcessStatus processSelectShortcutRequest(
+            final PwmRequest pwmRequest
     )
-            throws PwmUnrecoverableException,  IOException, ServletException
+            throws PwmUnrecoverableException, IOException, ServletException
     {
+        final ShortcutsBean shortcutsBean = getBean( pwmRequest );
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         final String link = pwmRequest.readParameterAsString( "link" );
@@ -225,10 +156,101 @@ public class ShortcutServlet extends AbstractPwmServlet
             pwmSession.getSessionStateBean().setForwardURL( item.getShortcutURI().toString() );
 
             pwmRequest.getPwmResponse().sendRedirectToContinue();
-            return;
+            return ProcessStatus.Halt;
         }
 
         LOGGER.error( pwmRequest, () -> "unknown/unexpected link requested to " + link );
+        return ProcessStatus.Continue;
+    }
+
+    private void forwardToJsp( final PwmRequest pwmRequest, final ShortcutsBean shortcutsBean )
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        final ArrayList<ShortcutItem> shortcutItems = new ArrayList<>( shortcutsBean.getVisibleItems().values() );
+        pwmRequest.setAttribute( PwmRequestAttribute.ShortcutItems, shortcutItems );
         pwmRequest.forwardToJsp( JspUrl.SHORTCUT );
     }
+
+    /**
+     * Loop through each configured shortcut setting to determine if the shortcut is able to the user pwmSession.
+     */
+    private static Map<String, ShortcutItem> figureVisibleShortcuts(
+            final PwmRequest pwmRequest
+    )
+    {
+        LOGGER.debug( pwmRequest, () -> "building visible shortcut list for user" );
+
+        final List<String> interestedHeaderNames = pwmRequest.getDomainConfig().readSettingAsStringArray( PwmSetting.SHORTCUT_HEADER_NAMES );
+        final Set<String> labelsFromHeader = pwmRequest.readHeaderValuesMap().entrySet().stream()
+                .filter( entry -> StringUtil.caseIgnoreContains(  interestedHeaderNames, entry.getKey() ) )
+                .flatMap( stringListEntry -> stringListEntry.getValue().stream() )
+                .flatMap( value -> StringUtil.tokenizeString( value, "," ).stream() )
+                .collect( Collectors.toUnmodifiableSet() );
+
+        if ( !interestedHeaderNames.isEmpty() )
+        {
+            LOGGER.trace( pwmRequest, () -> "examined headers '" + StringUtil.collectionToString( interestedHeaderNames )
+                    + "' and found these values: '" + StringUtil.collectionToString( labelsFromHeader ) + "'" );
+        }
+
+        final Collection<String> configValues = pwmRequest.getDomainConfig().readSettingAsLocalizedStringArray( PwmSetting.SHORTCUT_ITEMS, pwmRequest.getLocale() );
+        final List<ShortcutItem> configuredItems = configValues.stream()
+                .map( ( String input ) -> ShortcutItem.parsePwmConfigInput( input, pwmRequest.getLabel() ) )
+                .collect( Collectors.toUnmodifiableList() );
+
+
+        final Map<String, ShortcutItem> visibleItems = Collections.unmodifiableMap( configuredItems.stream()
+                .filter( item -> checkItemMatch( pwmRequest, labelsFromHeader, item ) )
+                .collect( CollectionUtil.collectorToLinkedMap(
+                        ShortcutItem::getLabel,
+                        Function.identity() ) ) );
+
+        LOGGER.debug( pwmRequest, () -> "built visible shortcut list for user: '" + StringUtil.collectionToString( visibleItems.keySet() ) + "'" );
+
+        return visibleItems;
+    }
+
+    private static boolean checkItemMatch(
+            final PwmRequest pwmRequest,
+            final Set<String> labelsFromHeader,
+            final ShortcutItem item
+    )
+    {
+        if ( StringUtil.caseIgnoreContains( labelsFromHeader, item.getLabel() ) )
+        {
+            LOGGER.trace( pwmRequest, () -> "adding the shortcut item '" + item.getLabel() + "' due to presence of configured headers in request" );
+            return true;
+        }
+
+        final UserIdentity userIdentity = pwmRequest.getPwmSession().getUserInfo().getUserIdentity();
+
+        final UserPermission userPermission = UserPermission.builder()
+                .type( UserPermissionType.ldapQuery )
+                .ldapQuery( item.getLdapQuery() )
+                .ldapBase( userIdentity.getUserDN() )
+                .build();
+
+        try
+        {
+            final boolean match = UserPermissionUtility.testUserPermission(
+                    pwmRequest.getPwmRequestContext(),
+                    pwmRequest.getPwmSession().getUserInfo().getUserIdentity(),
+                    userPermission
+            );
+
+            if ( match )
+            {
+                LOGGER.trace( pwmRequest, () -> "adding the shortcut item '" + item.getLabel() + "' due to ldap query match" );
+            }
+
+            return match;
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            LOGGER.trace( pwmRequest, () -> "error during ldap user permission test of shortcut label '" + item.getLabel() + "', error: " + e.getMessage() );
+        }
+
+        return false;
+    }
+
 }

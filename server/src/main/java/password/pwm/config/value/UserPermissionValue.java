@@ -29,6 +29,7 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.ldap.permission.UserPermissionUtility;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -52,17 +53,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
 
     private List<UserPermission> sanitizeList( final List<UserPermission> permissions )
     {
-        final List<UserPermission> tempList = new ArrayList<>();
-        if ( permissions != null )
-        {
-            tempList.addAll( permissions );
-        }
-
-        while ( tempList.contains( null ) )
-        {
-            tempList.remove( null );
-        }
-
+        final List<UserPermission> tempList = new ArrayList<>( CollectionUtil.stripNulls( permissions ) );
         Collections.sort( tempList );
         return Collections.unmodifiableList( tempList );
     }
@@ -72,7 +63,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public UserPermissionValue fromJson( final String input )
+            public UserPermissionValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 if ( input == null )
                 {

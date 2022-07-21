@@ -20,9 +20,9 @@
 
 package password.pwm.svc;
 
-import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSettingScope;
 import password.pwm.health.HealthService;
+import password.pwm.ldap.LdapDomainService;
 import password.pwm.svc.email.EmailService;
 import password.pwm.svc.intruder.IntruderDomainService;
 import password.pwm.svc.intruder.IntruderSystemService;
@@ -30,6 +30,7 @@ import password.pwm.svc.node.NodeService;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.StatisticsService;
+import password.pwm.svc.version.VersionCheckService;
 import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.SharedHistoryService;
 import password.pwm.svc.wordlist.WordlistService;
@@ -52,7 +53,7 @@ public enum PwmServiceEnum
     WordlistService( WordlistService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     SeedlistService( SeedlistService.class, PwmSettingScope.SYSTEM ),
     IntruderSystemService( IntruderSystemService.class, PwmSettingScope.SYSTEM ),
-    EmailService( EmailService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
+    EmailService( EmailService.class, PwmSettingScope.SYSTEM ),
     SmsQueueManager( SmsQueueService.class, PwmSettingScope.SYSTEM ),
     UrlShortenerService( password.pwm.svc.shorturl.UrlShortenerService.class, PwmSettingScope.SYSTEM ),
     CacheService( password.pwm.svc.cache.CacheService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
@@ -63,10 +64,11 @@ public enum PwmServiceEnum
     SessionTrackService( password.pwm.svc.sessiontrack.SessionTrackService.class, PwmSettingScope.SYSTEM ),
     SessionStateSvc( password.pwm.http.state.SessionStateService.class, PwmSettingScope.SYSTEM ),
     TelemetryService( password.pwm.svc.telemetry.TelemetryService.class, PwmSettingScope.SYSTEM ),
+    VersionCheckService( VersionCheckService.class, PwmSettingScope.SYSTEM ),
     NodeService( NodeService.class, PwmSettingScope.SYSTEM ),
 
     DomainSecureService( password.pwm.svc.secure.DomainSecureService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
-    LdapConnectionService( password.pwm.ldap.LdapConnectionService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
+    LdapConnectionService( LdapDomainService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
     CrService( password.pwm.svc.cr.CrService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
     OtpService( password.pwm.svc.otp.OtpService.class, PwmSettingScope.DOMAIN ),
     IntruderDomainService( IntruderDomainService.class, PwmSettingScope.DOMAIN ),
@@ -109,12 +111,5 @@ public enum PwmServiceEnum
     public Class<? extends PwmService> getPwmServiceClass( )
     {
         return clazz;
-    }
-
-    public String serviceName( final DomainID domainID )
-    {
-        return "[" + getPwmServiceClass().getSimpleName()
-                + ( domainID.isSystem() ? "" : "/" + domainID.stringValue() )
-                + "]";
     }
 }

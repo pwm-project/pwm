@@ -26,8 +26,8 @@ import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.error.PwmException;
-import password.pwm.ldap.UserInfo;
-import password.pwm.ldap.UserInfoBean;
+import password.pwm.user.UserInfo;
+import password.pwm.user.UserInfoBean;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.client.rest.RestClientHelper;
@@ -92,8 +92,11 @@ class ExternalRestMacro extends AbstractMacro
 
             final String requestBody = JsonFactory.get().serializeMap( sendData );
             final String responseBody = RestClientHelper.makeOutboundRestWSCall( pwmDomain,
-                    PwmConstants.DEFAULT_LOCALE, url,
+                    macroRequestInfo.getSessionLabel(),
+                    PwmConstants.DEFAULT_LOCALE,
+                    url,
                     requestBody );
+
             final Map<String, Object> responseMap = JsonFactory.get().deserializeMap( responseBody, String.class, Object.class );
             if ( responseMap.containsKey( "output" ) )
             {

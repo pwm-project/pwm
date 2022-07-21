@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.ldap;
+package password.pwm.user;
 
 import com.novell.ldapchai.impl.edir.entry.EdirEntries;
 import lombok.Builder;

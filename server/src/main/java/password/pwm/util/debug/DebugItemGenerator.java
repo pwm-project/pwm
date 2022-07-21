@@ -28,6 +28,7 @@ import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.DebugOutputBuilder;
 import password.pwm.util.java.JavaHelper;
@@ -136,7 +137,7 @@ public class DebugItemGenerator
         {
             final String msg = "completed";
             debugGeneratorLogFile.appendLine( msg );
-            LOGGER.trace( sessionLabel, () -> msg, () ->  TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( sessionLabel, () -> msg, TimeDuration.fromCurrent( startTime ) );
         }
 
         try
@@ -225,7 +226,7 @@ public class DebugItemGenerator
         }
         catch ( final IOException e )
         {
-            throw new RuntimeException( "I/O error writing to zipOutputStream: " + e.getMessage() );
+            throw new PwmInternalException( "i/o error writing to zipOutputStream: " + e.getMessage() );
         }
     }
 }

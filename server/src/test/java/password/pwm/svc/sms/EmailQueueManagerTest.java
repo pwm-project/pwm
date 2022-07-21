@@ -29,10 +29,10 @@ import org.mockito.Mockito;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.svc.email.EmailServer;
 import password.pwm.svc.email.EmailServerUtil;
-import password.pwm.svc.email.EmailService;
 import password.pwm.util.java.JavaHelper;
 
 import java.io.IOException;
@@ -44,8 +44,6 @@ public class EmailQueueManagerTest
     @Test
     public void testConvertEmailItemToMessage() throws MessagingException, IOException
     {
-        final EmailService emailService = new EmailService();
-
         final AppConfig config = Mockito.mock( AppConfig.class );
         Mockito.when( config.readAppProperty( AppProperty.SMTP_SUBJECT_ENCODING_CHARSET ) ).thenReturn( "UTF8" );
 
@@ -60,7 +58,7 @@ public class EmailQueueManagerTest
                 .javaMailProps( new Properties() )
                 .build();
 
-        final List<Message> messages = EmailServerUtil.convertEmailItemToMessages( emailItemBean, config, emailServer );
+        final List<Message> messages = EmailServerUtil.convertEmailItemToMessages( emailItemBean, config, emailServer, SessionLabel.TEST_SESSION_LABEL );
         Assert.assertEquals( 2, messages.size() );
 
         {

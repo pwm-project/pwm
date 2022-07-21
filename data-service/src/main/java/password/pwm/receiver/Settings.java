@@ -20,6 +20,8 @@
 
 package password.pwm.receiver;
 
+import password.pwm.bean.VersionNumber;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
@@ -30,13 +32,14 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.EnumSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
 public class Settings
 {
+    private static final Logger LOGGER = Logger.createLogger( Setting.class );
+
     enum Setting
     {
         ftpMode( FtpMode.ftp.name() ),
@@ -45,7 +48,8 @@ public class Settings
         ftpPassword( null ),
         ftpReadPath( null ),
         storagePath( null ),
-        maxInstanceSeconds( Long.toString( TimeDuration.of( 14, TimeDuration.Unit.DAYS ).as( TimeDuration.Unit.SECONDS ) ) ),;
+        maxInstanceSeconds( Long.toString( TimeDuration.of( 14, TimeDuration.Unit.DAYS ).as( TimeDuration.Unit.SECONDS ) ) ),
+        currentVersion( null ),;
 
         private final String defaultValue;
 
@@ -68,9 +72,12 @@ public class Settings
 
     private final Map<Setting, String> settings;
 
+    private final VersionNumber versionNumber;
+
     private Settings( final Map<Setting, String> settings )
     {
         this.settings = settings;
+        this.versionNumber = parseCurrentVersionInfo();
     }
 
     static Settings readFromFile( final String filename ) throws IOException
@@ -80,10 +87,10 @@ public class Settings
         try ( Reader reader = new InputStreamReader( Files.newInputStream( path ), StandardCharsets.UTF_8 ) )
         {
             properties.load( reader );
-            final Map<Setting, String> returnMap = EnumSet.allOf( Setting.class ).stream()
+            final Map<Setting, String> returnMap = CollectionUtil.enumStream( Setting.class )
                     .collect( Collectors.toUnmodifiableMap(
-                      setting -> setting,
-                      setting -> properties.getProperty( setting.name(), setting.getDefaultValue() )
+                            setting -> setting,
+                            setting -> properties.getProperty( setting.name(), setting.getDefaultValue() )
                     ) );
 
             return new Settings( returnMap );
@@ -99,5 +106,30 @@ public class Settings
     {
         final String value = settings.get( Setting.ftpSite );
         return StringUtil.notEmpty( value );
+    }
+
+    public VersionNumber getCurrentVersionInfo()
+    {
+        return versionNumber;
+    }
+
+    private VersionNumber parseCurrentVersionInfo()
+    {
+        final String stringVersion = getSetting( Setting.currentVersion );
+
+        if ( stringVersion == null || stringVersion.isEmpty() )
+        {
+            return VersionNumber.ZERO;
+        }
+
+        try
+        {
+            return VersionNumber.parse( stringVersion );
+        }
+        catch ( final Exception e )
+        {
+            LOGGER.info( "error parsing version string from setting properties: " + e.getMessage() );
+            return VersionNumber.ZERO;
+        }
     }
 }

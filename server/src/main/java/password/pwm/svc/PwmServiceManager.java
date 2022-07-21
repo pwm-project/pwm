@@ -101,7 +101,7 @@ public class PwmServiceManager
             {
                 if ( runningServices.containsKey( serviceClassEnum ) )
                 {
-                    shutDownService( serviceClassEnum, runningServices.get( serviceClassEnum ) );
+                    shutDownService( runningServices.get( serviceClassEnum ) );
                     statCounter.increment( InitializationStats.restarts );
                 }
                 else
@@ -116,7 +116,7 @@ public class PwmServiceManager
             {
                 if ( runningServices.containsKey( serviceClassEnum ) )
                 {
-                    shutDownService( serviceClassEnum, runningServices.get( serviceClassEnum ) );
+                    shutDownService( runningServices.get( serviceClassEnum ) );
                     statCounter.increment( InitializationStats.stops );
                 }
             }
@@ -124,7 +124,12 @@ public class PwmServiceManager
 
         initialized = true;
 
-        LOGGER.trace( sessionLabel, () -> logVerb + "ed services, " + statCounter.debugStats(), () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> logVerb + "ed services, " + statCounter.debugStats(), TimeDuration.fromCurrent( startTime ) );
+    }
+
+    private String debugSvcType()
+    {
+        return ( domainID.isSystem() ? "system" : "domain" ) + " service";
     }
 
     private PwmService initService( final PwmServiceEnum pwmServiceEnum )
@@ -133,7 +138,6 @@ public class PwmServiceManager
         final Instant startTime = Instant.now();
         final PwmService newServiceInstance;
 
-        final String serviceName = pwmServiceEnum.serviceName( domainID );
         try
         {
             final Class<? extends PwmService> serviceClass = pwmServiceEnum.getPwmServiceClass();
@@ -141,26 +145,28 @@ public class PwmServiceManager
         }
         catch ( final Exception e )
         {
-            final String errorMsg = "unexpected error instantiating service class '" + serviceName + "', error: " + e;
+            final String errorMsg = "unexpected error instantiating " + debugSvcType() + " class '" + pwmServiceEnum.name() + "', error: " + e;
             LOGGER.fatal( () -> errorMsg, e );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR, errorMsg ) );
         }
 
         try
         {
-            LOGGER.trace( sessionLabel, () -> "initializing service " + serviceName );
+            LOGGER.trace( sessionLabel, () -> "initializing service " + newServiceInstance.name() );
             newServiceInstance.init( pwmApplication, domainID );
             final TimeDuration startupDuration = TimeDuration.fromCurrent( startTime );
-            LOGGER.debug( sessionLabel, () -> "completed initialization of service " + serviceName + " in " + startupDuration.asCompactString()
+            LOGGER.debug( sessionLabel, () -> "completed initialization of " + debugSvcType()
+                    + " " + newServiceInstance.name() + " in " + startupDuration.asCompactString()
                     + ", status=" + newServiceInstance.status() );
         }
         catch ( final PwmException e )
         {
-            LOGGER.warn( () -> "error instantiating service class '" + serviceName + "', service will remain unavailable, error: " + e.getMessage() );
+            LOGGER.warn( sessionLabel, () -> "error instantiating " + debugSvcType() + " class '" + newServiceInstance.name()
+                    + "', service will remain unavailable, error: " + e.getMessage() );
         }
         catch ( final Exception e )
         {
-            String errorMsg = "unexpected error instantiating service class '" + serviceName + "', cannot load, error: " + e.getMessage();
+            String errorMsg = "unexpected error instantiating " + debugSvcType() + " class '" + newServiceInstance.name() + "', cannot load, error: " + e.getMessage();
             if ( e.getCause() != null )
             {
                 errorMsg += ", cause: " + e.getCause();
@@ -179,7 +185,9 @@ public class PwmServiceManager
             return;
         }
 
-        LOGGER.trace( sessionLabel, () -> "beginning to close all services" );
+        final int serviceCount = availableServices.size();
+
+        LOGGER.trace( sessionLabel, () -> "beginning to close " + serviceCount + " " + debugSvcType() + "s" );
         final Instant startTime = Instant.now();
 
 
@@ -189,29 +197,29 @@ public class PwmServiceManager
         {
             if ( runningServices.containsKey( pwmServiceEnum ) )
             {
-                shutDownService( pwmServiceEnum, runningServices.get( pwmServiceEnum ) );
+                shutDownService( runningServices.get( pwmServiceEnum ) );
             }
         }
         initialized = false;
 
-        LOGGER.trace( sessionLabel, () -> "closed all services", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> "closed " + serviceCount + " " + debugSvcType() + "s", TimeDuration.fromCurrent( startTime ) );
     }
 
-    private void shutDownService( final PwmServiceEnum pwmServiceEnum, final PwmService serviceInstance )
+    private void shutDownService( final PwmService serviceInstance )
     {
-
-        LOGGER.trace( sessionLabel, () -> "closing service " + pwmServiceEnum.serviceName( domainID ) );
+        LOGGER.trace( sessionLabel, () -> "closing " + debugSvcType() + " " + serviceInstance.name() );
 
         try
         {
             final Instant startTime = Instant.now();
             serviceInstance.shutdown();
             final TimeDuration timeDuration = TimeDuration.fromCurrent( startTime );
-            LOGGER.trace( () -> "successfully closed service " + pwmServiceEnum.serviceName( domainID ) + " (" + timeDuration.asCompactString() + ")" );
+            LOGGER.trace( sessionLabel, () -> "successfully closed " + debugSvcType() + " " + serviceInstance.name()
+                    + " (" + timeDuration.asCompactString() + ")" );
         }
         catch ( final Exception e )
         {
-            LOGGER.error( sessionLabel, () -> "error closing " + pwmServiceEnum.serviceName( domainID ) + ": " + e.getMessage(), e );
+            LOGGER.error( sessionLabel, () -> "error closing " + debugSvcType() + " " + serviceInstance.name() + ": " + e.getMessage(), e );
         }
     }
 

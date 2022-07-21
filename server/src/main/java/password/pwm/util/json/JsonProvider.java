@@ -20,6 +20,7 @@
 
 package password.pwm.util.json;
 
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
@@ -33,6 +34,8 @@ public interface JsonProvider
     }
 
     <T> T deserialize( String jsonString, Class<T> classOfT );
+
+    <T> T deserialize( String jsonString, Type type );
 
     <V> List<V> deserializeList( String jsonString, Class<V> classOfV );
 
@@ -61,4 +64,29 @@ public interface JsonProvider
         final String json = serialize( srcObject, classOfT );
         return deserialize( json, classOfT );
     }
+
+    default Type newParameterizedType( final Type rawType, final Type... parameterizedTypes )
+    {
+        return new ParameterizedType()
+        {
+            @Override
+            public Type[] getActualTypeArguments()
+            {
+                return parameterizedTypes;
+            }
+
+            @Override
+            public Type getRawType()
+            {
+                return rawType;
+            }
+
+            @Override
+            public Type getOwnerType()
+            {
+                return null;
+            }
+        };
+    }
+
 }

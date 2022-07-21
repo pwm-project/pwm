@@ -18,23 +18,22 @@
  * limitations under the License.
  */
 
-package password.pwm.util.java;
+package password.pwm.bean;
 
-import java.util.function.Consumer;
-import java.util.zip.CRC32;
+import lombok.Value;
+import password.pwm.data.ImmutableByteArray;
 
-class CrcChecksumConsumer implements Consumer<byte[]>
+import java.io.Serializable;
+
+@Value
+public class PhotoDataBean implements Serializable
 {
-    private final CRC32 crc32 = new CRC32();
+    private String mimeType;
+    private ImmutableByteArray contents;
 
     @Override
-    public void accept( final byte[] bytes )
+    public String toString()
     {
-        crc32.update( bytes );
-    }
-
-    public long checksum()
-    {
-        return crc32.getValue();
+        return "[image " + contents.size() + " bytes, mime=" + mimeType +  "]";
     }
 }

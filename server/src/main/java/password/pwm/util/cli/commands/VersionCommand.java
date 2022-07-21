@@ -23,11 +23,13 @@ package password.pwm.util.cli.commands;
 import password.pwm.PwmConstants;
 import password.pwm.util.cli.CliParameters;
 
+import java.io.IOException;
+
 public class VersionCommand extends AbstractCliCommand
 {
     @Override
     void doCommand( )
-            throws Exception
+            throws IOException
     {
         out( PwmConstants.PWM_APP_NAME + " version " + PwmConstants.SERVLET_VERSION );
     }

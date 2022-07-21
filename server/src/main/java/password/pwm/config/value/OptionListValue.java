@@ -24,6 +24,7 @@ import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlElement;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -49,7 +50,7 @@ public class OptionListValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public OptionListValue fromJson( final String input )
+            public OptionListValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 if ( input == null )
                 {
@@ -59,10 +60,7 @@ public class OptionListValue extends AbstractValue implements StoredValue
                 {
                     List<String> srcList = JsonFactory.get().deserializeStringList( input );
                     srcList = srcList == null ? Collections.emptyList() : srcList;
-                    while ( srcList.contains( null ) )
-                    {
-                        srcList.remove( null );
-                    }
+                    srcList = CollectionUtil.stripNulls( srcList );
                     return new OptionListValue( Set.copyOf( srcList ) );
                 }
             }

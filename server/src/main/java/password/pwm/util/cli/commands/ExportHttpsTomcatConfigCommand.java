@@ -39,9 +39,9 @@ import java.util.Set;
 
 public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
 {
-
     @Override
-    void doCommand( ) throws Exception
+    void doCommand( )
+            throws IOException
     {
         final File sourceFile = ( File ) cliEnvironment.getOptions().get( "sourceFile" );
         final File outputFile = ( File ) cliEnvironment.getOptions().get( "outputFile" );

@@ -78,7 +78,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public ChallengeValue fromJson( final String input )
+            public ChallengeValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 if ( input == null )
                 {

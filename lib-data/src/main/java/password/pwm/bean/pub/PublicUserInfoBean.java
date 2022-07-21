@@ -24,14 +24,13 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.bean.PasswordStatus;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 @Value
 @Builder
-public class PublicUserInfoBean implements Serializable
+public class PublicUserInfoBean implements PublishedBean
 {
     private String userDN;
     private String ldapProfile;

@@ -36,7 +36,7 @@ import password.pwm.health.HealthService;
 import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.otp.OTPUserRecord;
 import password.pwm.util.java.StringUtil;
@@ -93,7 +93,7 @@ public enum PwmIfTest
     forwardUrlDefined( new ForwardUrlDefinedTest() ),
 
     trialMode( new TrialModeTest() ),
-    appliance( new EnvironmentFlagTest( PwmEnvironment.ApplicationFlag.Appliance ) ),
+    appliance( new DeploymentTypeTest( PwmEnvironment.DeploymentPlatform.Appliance ) ),
 
     healthWarningsVisible( new HealthWarningsVisibleTest() ),
 
@@ -196,7 +196,7 @@ public enum PwmIfTest
         {
             final PwmApplicationMode applicationMode = pwmRequest.getPwmDomain().getApplicationMode();
             final boolean configMode = applicationMode == PwmApplicationMode.CONFIGURATION;
-            final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
+            final boolean adminUser = pwmRequest.checkPermission( Permission.PWMADMIN );
             if ( Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CLIENT_WARNING_HEADER_SHOW ) ) )
             {
                 if ( configMode || PwmConstants.TRIAL_MODE )
@@ -244,10 +244,7 @@ public enum PwmIfTest
                 return false;
             }
 
-            return pwmRequest != null
-                    && pwmRequest.getPwmSession().getSessionManager().checkPermission(
-                    pwmRequest.getPwmDomain(),
-                    permission );
+            return pwmRequest != null && pwmRequest.checkPermission( permission );
         }
     }
 
@@ -363,7 +360,7 @@ public enum PwmIfTest
                 return true;
             }
 
-            final boolean adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
+            final boolean adminUser = pwmRequest.checkPermission( Permission.PWMADMIN );
             if ( adminUser )
             {
                 final HealthService healthService = pwmRequest.getPwmApplication().getHealthMonitor();
@@ -407,7 +404,7 @@ public enum PwmIfTest
 
             if ( pwmRequest.isAuthenticated() )
             {
-                if ( pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
+                if ( pwmRequest.checkPermission( Permission.PWMADMIN ) )
                 {
                     return true;
                 }
@@ -567,7 +564,6 @@ public enum PwmIfTest
         }
     }
 
-
     private static class MultiDomainTest implements Test
     {
         @Override
@@ -576,5 +572,20 @@ public enum PwmIfTest
             return pwmRequest.getPwmApplication().isMultiDomain();
         }
     }
-}
 
+    private static class DeploymentTypeTest implements Test
+    {
+        private final PwmEnvironment.DeploymentPlatform deploymentPlatform;
+
+        DeploymentTypeTest( final PwmEnvironment.DeploymentPlatform deploymentPlatform )
+        {
+            this.deploymentPlatform = deploymentPlatform;
+        }
+
+        @Override
+        public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws PwmUnrecoverableException
+        {
+            return pwmRequest.getPwmApplication().getPwmEnvironment().getDeploymentPlatform() == deploymentPlatform;
+        }
+    }
+}

@@ -22,10 +22,12 @@ package password.pwm.util.debug;
 
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.config.DomainConfig;
-import password.pwm.util.LDAPPermissionCalculator;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.LdapPermissionCalculator;
 import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,11 +41,12 @@ class LDAPPermissionItemGenerator implements DomainItemGenerator
     }
 
     @Override
-    public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException, PwmUnrecoverableException
     {
 
         final DomainConfig domainConfig = debugItemInput.getObfuscatedDomainConfig();
-        final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator( domainConfig );
+        final LdapPermissionCalculator ldapPermissionCalculator = new LdapPermissionCalculator( domainConfig );
 
         final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
         {
@@ -56,7 +59,7 @@ class LDAPPermissionItemGenerator implements DomainItemGenerator
             csvPrinter.printComment( StringUtil.join( headerRow, "," ) );
         }
 
-        for ( final LDAPPermissionCalculator.PermissionRecord record : ldapPermissionCalculator.getPermissionRecords() )
+        for ( final LdapPermissionCalculator.PermissionRecord record : ldapPermissionCalculator.getPermissionRecords() )
         {
             final List<String> dataRow = new ArrayList<>();
             dataRow.add( record.getAttribute() );

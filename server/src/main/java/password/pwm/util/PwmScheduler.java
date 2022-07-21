@@ -78,7 +78,7 @@ public class PwmScheduler
 
         Objects.requireNonNull( runnable );
 
-        final ExecutorService executor = makeMultiThreadExecutor( 1, pwmApplication, sessionLabel, runnable.getClass() );
+        final ExecutorService executor = makeMultiThreadExecutor( 1, pwmApplication, sessionLabel, runnable.getClass(), threadName );
 
         executor.submit( runnable );
     }
@@ -119,7 +119,7 @@ public class PwmScheduler
     {
         checkIfSchedulerClosed();
 
-        final ExecutorService executor = makeMultiThreadExecutor( maxThreadCount, pwmApplication, sessionLabel, theClass );
+        final ExecutorService executor = makeMultiThreadExecutor( maxThreadCount, pwmApplication, sessionLabel, theClass, null );
 
         final List<Future<T>> futures = callables.stream()
                 .map( executor::submit )
@@ -179,19 +179,31 @@ public class PwmScheduler
             final PwmApplication pwmApplication,
             final Class<?> theClass )
     {
-        String instanceName = "-";
-        if ( pwmApplication != null )
-        {
-            instanceName = pwmApplication.getInstanceID();
-        }
+        return makeThreadName( sessionLabel, pwmApplication, theClass, null );
+    }
 
-        return makeThreadName( sessionLabel, instanceName, theClass );
+    public static String makeThreadName(
+            final SessionLabel sessionLabel,
+            final PwmApplication pwmApplication,
+            final Class<?> theClass,
+            final String threadNameSuffix
+    )
+    {
+        final String instanceName = pwmApplication == null
+                ? "-"
+                : pwmApplication.getInstanceID();
+
+
+        return makeThreadName( sessionLabel, instanceName, theClass, threadNameSuffix );
     }
 
     public static String makeThreadName(
             final SessionLabel sessionLabel,
             final String instanceID,
-            final Class<?> theClass )
+            final Class<?> theClass,
+            final String threadNameSuffix
+
+    )
     {
         final StringBuilder output = new StringBuilder();
 
@@ -213,6 +225,12 @@ public class PwmScheduler
         {
             output.append( "-" );
             output.append( sessionLabel.getDomain() );
+        }
+
+        if ( !StringUtil.isEmpty( threadNameSuffix ) )
+        {
+            output.append( "-" );
+            output.append( threadNameSuffix );
         }
 
         return output.toString();
@@ -246,14 +264,26 @@ public class PwmScheduler
             final Class<?> theClass
     )
     {
-        return makeMultiThreadExecutor( maxThreadCount, pwmApplication.getInstanceID(), sessionLabel, theClass );
+        return makeMultiThreadExecutor( maxThreadCount, pwmApplication, sessionLabel, theClass, null );
+    }
+
+    public static ThreadPoolExecutor makeMultiThreadExecutor(
+            final int maxThreadCount,
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final Class<?> theClass,
+            final String threadNameSuffix
+    )
+    {
+        return makeMultiThreadExecutor( maxThreadCount, pwmApplication.getInstanceID(), sessionLabel, theClass, threadNameSuffix );
     }
 
     public static ThreadPoolExecutor makeMultiThreadExecutor(
             final int maxThreadCount,
             final String instanceID,
             final SessionLabel sessionLabel,
-            final Class<?> theClass
+            final Class<?> theClass,
+            final String threadNameSuffix
     )
     {
         final ThreadPoolExecutor executor = new ThreadPoolExecutor(
@@ -262,7 +292,7 @@ public class PwmScheduler
                 1, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(),
                 makePwmThreadFactory(
-                        makeThreadName( sessionLabel, instanceID, theClass ) + "-",
+                        makeThreadName( sessionLabel, instanceID, theClass, threadNameSuffix ) + "-",
                         true
                 ) );
         executor.allowCoreThreadTimeOut( true );
@@ -275,13 +305,23 @@ public class PwmScheduler
             final Class<?> clazz
     )
     {
+        return makeBackgroundServiceExecutor( pwmApplication, sessionLabel, clazz, null );
+    }
+
+    public static ScheduledExecutorService makeBackgroundServiceExecutor(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final Class<?> clazz,
+            final String threadNameSuffix
+    )
+    {
         final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(
                 1,
                 makePwmThreadFactory(
-                        makeThreadName( sessionLabel, pwmApplication, clazz ) + "-",
+                        makeThreadName( sessionLabel, pwmApplication, clazz, threadNameSuffix ) + "-",
                         true
                 ) );
-        executor.setKeepAliveTime( 1, TimeUnit.MINUTES );
+        executor.setKeepAliveTime( 5, TimeUnit.SECONDS );
         executor.allowCoreThreadTimeOut( true );
         return executor;
     }

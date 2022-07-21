@@ -868,7 +868,7 @@ StringValueHandler.init = function(settingKey) {
             });
         });
 
-        const isLdapDN = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'], 'ldapDNsyntax');
+        const isLdapDN = PWM_MAIN.JSLibrary.arrayContains(PWM_SETTINGS['settings'][settingKey]['flags'], 'ldapDnSyntax');
         const editor = function(){
             const writeBackFunc = function(value){
                 PWM_CFGEDIT.writeSetting(settingKey,value,function(){

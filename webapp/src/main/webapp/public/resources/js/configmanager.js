@@ -26,8 +26,8 @@ var PWM_GLOBAL = PWM_GLOBAL || {};
 PWM_CONFIG.lockConfiguration=function() {
     PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('Confirm_LockConfig'),okAction:function(){
             PWM_MAIN.showWaitDialog({loadFunction:function() {
-                    var url = 'ConfigManager?processAction=lockConfiguration';
-                    var loadFunction = function(data) {
+                    const url = 'ConfigManager?processAction=lockConfiguration';
+                    const loadFunction = function (data) {
                         if (data['error'] === true) {
                             PWM_MAIN.closeWaitDialog();
                             PWM_MAIN.showDialog({
@@ -44,13 +44,13 @@ PWM_CONFIG.lockConfiguration=function() {
 };
 
 PWM_CONFIG.waitForRestart=function(options) {
-    var pingCycleTimeMs = 1000;
-    var maxWaitTimeMs = 120 * 1000;
+    const pingCycleTimeMs = 1000;
+    const maxWaitTimeMs = 120 * 1000;
 
     PWM_VAR['cancelHeartbeatCheck'] = true;
 
-    var restartFunction = function() {
-        var redirectUrl = 'location' in options ? options['location'] : '/';
+    const restartFunction = function () {
+        const redirectUrl = 'location' in options ? options['location'] : '/';
         console.log("application appears to be restarted, redirecting to context url: " + redirectUrl);
         PWM_MAIN.gotoUrl(redirectUrl);
     };
@@ -59,22 +59,22 @@ PWM_CONFIG.waitForRestart=function(options) {
     if (!('failbackStartTime' in options)) {
         options['failbackStartTime'] = Date.now();
     } else {
-        var elapsedMs = Date.now() - options['failbackStartTime'];
+        const elapsedMs = Date.now() - options['failbackStartTime'];
         if (elapsedMs > maxWaitTimeMs) {
             restartFunction();
             return;
         }
     }
 
-    var originalRuntimeNonce = PWM_GLOBAL['runtimeNonce'];
+    const originalRuntimeNonce = PWM_GLOBAL['runtimeNonce'];
 
     console.log("beginning request to determine application status: ");
-    var loadFunction = function(data) {
+    const loadFunction = function (data) {
         try {
             if (data['error']) {
                 console.log('data error reading /ping endpoint: ' + JSON.stringify(data));
             } else {
-                var currentNonce = data['data']['runtimeNonce'];
+                const currentNonce = data['data']['runtimeNonce'];
                 console.log("comparing declared nonce=" + originalRuntimeNonce + " and xhr read nonce=" + currentNonce);
                 if (currentNonce !== originalRuntimeNonce) {
                     console.log("change detected, restarting page");
@@ -87,40 +87,23 @@ PWM_CONFIG.waitForRestart=function(options) {
         } catch (e) {
             console.log("can't read current server nonce, will retry detection (current error: " + e + ")");
         }
-        setTimeout(function() {
+        setTimeout(function () {
             PWM_CONFIG.waitForRestart(options)
         }, pingCycleTimeMs);
     };
-    var errorFunction = function(error) {
-        setTimeout(function() {
+    const errorFunction = function (error) {
+        setTimeout(function () {
             PWM_CONFIG.waitForRestart(options)
         }, pingCycleTimeMs);
         console.log('Waiting for server restart, unable to contact server: ' + error);
     };
-    var url = PWM_GLOBAL['url-context'] + "/public/api?processAction=ping";
+    const url = PWM_GLOBAL['url-context'] + "/public/api?processAction=ping";
     PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET',preventCache:true});
-};
-
-PWM_CONFIG.startNewConfigurationEditor=function(template) {
-    PWM_MAIN.showWaitDialog({title:'Loading...',loadFunction:function(){
-            require(["dojo"],function(dojo){
-                dojo.xhrGet({
-                    url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&getTemplate=" + template,
-                    preventCache: true,
-                    error: function(errorObj) {
-                        PWM_MAIN.showError("error starting configuration editor: " + errorObj);
-                    },
-                    load: function() {
-                        window.location = "ConfigManager?processAction=editMode&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + '&mode=SETTINGS';
-                    }
-                });
-            });
-        }});
 };
 
 PWM_CONFIG.uploadConfigDialog=function() {
     PWM_MAIN.preloadAll(function() {
-        var uploadOptions = {};
+        const uploadOptions = {};
         uploadOptions['url'] = window.location.pathname + '?processAction=uploadConfig';
         uploadOptions['title'] = 'Upload Configuration';
         uploadOptions['nextFunction'] = function () {
@@ -139,7 +122,7 @@ PWM_CONFIG.uploadLocalDB=function() {
         PWM_MAIN.showConfirmDialog({
             text: PWM_CONFIG.showString('Confirm_UploadLocalDB'),
             okAction: function () {
-                var uploadOptions = {};
+                const uploadOptions = {};
                 uploadOptions['url'] = 'localdb?processAction=importLocalDB';
                 uploadOptions['title'] = 'Upload and Import LocalDB Archive';
                 uploadOptions['nextFunction'] = function () {
@@ -158,25 +141,28 @@ PWM_CONFIG.uploadLocalDB=function() {
 
 PWM_CONFIG.closeHeaderWarningPanel = function() {
     console.log('action closeHeader');
-
     PWM_MAIN.addCssClass('header-warning','nodisplay');
-    PWM_MAIN.addCssClass('header-warning-backdrop','nodisplay');
-    //PWM_MAIN.removeCssClass('button-openHeader','nodisplay');
+    PWM_MAIN.removeCssClass('button-openHeader','nodisplay');
 };
 
 PWM_CONFIG.openHeaderWarningPanel = function() {
     console.log('action openHeader');
+    PWM_MAIN.removeCssClass('header-warning','nodisplay');
+    PWM_MAIN.addCssClass('button-openHeader','nodisplay');
+};
 
-    require(['dojo/dom','dijit/place'], function(dom, place) {
-        PWM_MAIN.removeCssClass('header-warning-backdrop','nodisplay');
-        PWM_MAIN.removeCssClass('header-warning','nodisplay');
-        //PWM_MAIN.addCssClass('button-openHeader','nodisplay');
-        place.around(PWM_MAIN.getObject("header-warning"), PWM_MAIN.getObject("header-username-caret"), ["below-alt"], false);
+PWM_CONFIG.handleWindowClickForHeaderWarningPanel = function(event) {
+    const headerMenuElement = document.getElementById('header-menu');
+    if (headerMenuElement) {
+        const match = headerMenuElement.contains(event.target) || headerMenuElement.contains(event.target);
 
-        PWM_MAIN.addEventHandler("header-warning-backdrop", "click", function(event) {
-            PWM_CONFIG.closeHeaderWarningPanel();
-        });
-    });
+        if (!match) {
+            const headerWarningElement = PWM_MAIN.getObject('header-warning');
+            if (!headerWarningElement.classList.contains('nodisplay')) {
+                headerWarningElement.classList.add('nodisplay');
+            }
+        }
+    }
 };
 
 PWM_CONFIG.showString=function (key, options) {
@@ -187,29 +173,29 @@ PWM_CONFIG.showString=function (key, options) {
 };
 
 PWM_CONFIG.showHeaderHealth = function() {
-    var refreshUrl = PWM_GLOBAL['url-context'] + "/public/api?processAction=health";
-    var parentDiv = PWM_MAIN.getObject('panel-header-healthData');
+    const refreshUrl = PWM_GLOBAL['url-context'] + "/public/api?processAction=health";
+    const parentDiv = PWM_MAIN.getObject('panel-header-healthData');
     if (!parentDiv) {
         return;
     }
-    var headerDiv = PWM_MAIN.getObject('header-warning');
+    const headerDiv = PWM_MAIN.getObject('header-warning');
     if (parentDiv && headerDiv) {
-        var loadFunction = function(data) {
+        const loadFunction = function (data) {
             if (data['data'] && data['data']['overall']) {
-                var hasWarnTopics = data['data']['overall'] === 'WARN';
+                const hasWarnTopics = data['data']['overall'] === 'WARN';
                 if (hasWarnTopics) {
-                    PWM_MAIN.removeCssClass('header-menu-alert','display-none');
-                    PWM_MAIN.removeCssClass('panel-header-healthData','display-none');
+                    PWM_MAIN.removeCssClass('header-menu-alert', 'display-none');
+                    PWM_MAIN.removeCssClass('panel-header-healthData', 'display-none');
                 } else {
-                    PWM_MAIN.addCssClass('header-menu-alert','display-none');
-                    PWM_MAIN.addCssClass('panel-header-healthData','display-none');
+                    PWM_MAIN.addCssClass('header-menu-alert', 'display-none');
+                    PWM_MAIN.addCssClass('panel-header-healthData', 'display-none');
                 }
                 setTimeout(function () {
-                    PWM_CONFIG.showHeaderHealth()
+                    PWM_CONFIG.showHeaderHealth();
                 }, 30 * 1000);
             }
         };
-        var errorFunction = function(error) {
+        const errorFunction = function (error) {
             console.log('unable to read header health status: ' + error);
         };
         PWM_MAIN.ajaxRequest(refreshUrl, loadFunction,{errorFunction:errorFunction,method:'GET'});
@@ -247,7 +233,7 @@ PWM_CONFIG.downloadConfig = function () {
 };
 
 PWM_CONFIG.downloadSupportBundle = function() {
-    var dialogText = '';
+    let dialogText = '';
     if (PWM_VAR['config_localDBLogLevel'] !== 'TRACE') {
         dialogText += PWM_CONFIG.showString("Warning_MakeSupportZipNoTrace");
         dialogText += '<br/><br/>';
@@ -275,7 +261,7 @@ PWM_CONFIG.downloadSupportBundle = function() {
 
 
 PWM_CONFIG.heartbeatCheck = function() {
-    var heartbeatFrequency = 10 * 1000;
+    const heartbeatFrequency = 10 * 1000;
     if (PWM_VAR['cancelHeartbeatCheck']) {
         console.log('heartbeat check cancelled');
         return;
@@ -286,34 +272,30 @@ PWM_CONFIG.heartbeatCheck = function() {
         return;
     }
 
-    require(["dojo","dijit/Dialog"],function() {
-        /* make sure dialog js is loaded, server may not be available to load lazy */
-    });
-
     console.log('beginning config-editor heartbeat check');
-    var handleErrorFunction = function(message) {
+    const handleErrorFunction = function (message) {
         console.log('config-editor heartbeat failed');
-        PWM_MAIN.showErrorDialog('There has been a problem communicating with the application server, please refresh your browser to continue.<br/><br/>' + message,{
-            showOk:false
+        PWM_MAIN.showErrorDialog('There has been a problem communicating with the application server, please refresh your browser to continue.<br/><br/>' + message, {
+            showOk: false
         });
     };
-    var loadFunction = function(data) {
+    const loadFunction = function (data) {
         try {
-            var serverStartTime = data['data']['PWM_GLOBAL']['startupTime'];
+            const serverStartTime = data['data']['PWM_GLOBAL']['startupTime'];
             if (serverStartTime !== PWM_GLOBAL['startupTime']) {
-                var message = "Application appears to have be restarted.";
+                const message = "Application appears to have be restarted.";
                 handleErrorFunction(message);
             } else {
-                setTimeout(PWM_CONFIG.heartbeatCheck,heartbeatFrequency);
+                setTimeout(PWM_CONFIG.heartbeatCheck, heartbeatFrequency);
             }
         } catch (e) {
             handleErrorFunction('Error reading server status.');
         }
     };
-    var errorFunction = function(e) {
+    const errorFunction = function (e) {
         handleErrorFunction('I/O error communicating with server.');
     };
-    var url = PWM_GLOBAL['url-context'] + "/public/api?processAction=clientData&heartbeat=true";
+    let url = PWM_GLOBAL['url-context'] + "/public/api?processAction=clientData&heartbeat=true";
     url = PWM_MAIN.addParamToUrl(url,'pageUrl',window.location.href);
     PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET'});
 };
@@ -322,6 +304,7 @@ PWM_CONFIG.initConfigHeader = function() {
     PWM_MAIN.addEventHandler('panel-header-healthData','click',function(){
         PWM_MAIN.gotoUrl('/private/config/manager');
     });
+
     PWM_MAIN.addEventHandler('button-closeHeader','click',function(){
         PWM_CONFIG.closeHeaderWarningPanel();
     });
@@ -332,18 +315,7 @@ PWM_CONFIG.initConfigHeader = function() {
         PWM_CONFIG.openHeaderWarningPanel();
     });
 
-    var newElement = document.createElement('div');
-    newElement.id =  "header-warning-backdrop";
-    newElement.setAttribute('class','nodisplay');
-    document.body.appendChild(newElement);
-
-    /*
-    require(["dojo/dom-construct", "dojo/_base/window", "dojo/dom", "dijit/place"], function(domConstruct, win, dom, place){
-        PWM_MAIN.addEventHandler(window, "resize", function () {
-            place.around(dom.byId("header-warning"), dom.byId("header-username-caret"), ["below-alt"], false);
-        });
-    });
-     */
+    window.addEventListener('click',PWM_CONFIG.handleWindowClickForHeaderWarningPanel);
 
     PWM_CONFIG.showHeaderHealth();
 
@@ -351,8 +323,8 @@ PWM_CONFIG.initConfigHeader = function() {
 };
 
 PWM_CONFIG.initConfigManagerWordlistPage = function() {
-    var uploadWordlist = function (type, label) {
-        var uploadOptions = {};
+    const uploadWordlist = function (type, label) {
+        const uploadOptions = {};
         uploadOptions['url'] = 'wordlists?processAction=uploadWordlist&wordlist=' + type;
         uploadOptions['title'] = 'Upload ' + label;
         uploadOptions['text'] = PWM_CONFIG.showString('Display_UploadWordlist');
@@ -366,18 +338,18 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
         PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
         UILibrary.uploadFileDialog(uploadOptions);
     };
-    var clearWordlist = function (type, label) {
+    const clearWordlist = function (type, label) {
         PWM_MAIN.showConfirmDialog({
             okAction: function () {
                 PWM_MAIN.showWaitDialog({
                     loadFunction: function () {
-                        var url = 'wordlists?processAction=clearWordlist&wordlist=' + type;
-                        var loadFunction = function (data) {
+                        const url = 'wordlists?processAction=clearWordlist&wordlist=' + type;
+                        const loadFunction = function (data) {
                             PWM_MAIN.showDialog({
                                 title: PWM_MAIN.showString('Title_Success'),
                                 text: data['successMessage'], okAction: function () {
                                     PWM_MAIN.showWaitDialog({
-                                        loadFunction: function(){
+                                        loadFunction: function () {
                                             PWM_MAIN.gotoUrl('wordlists');
                                         }
                                     });
@@ -404,34 +376,30 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
     });
 
     function refreshWordlistInfoTables() {
-        var makeTableData = function (tableData, title) {
-            var outputHtml = '';
+        const makeTableData = function (tableData, title) {
+            let outputHtml = '';
             outputHtml += '<tr><td colspan="2" class="title">' + title + '</td></tr>';
             outputHtml += UILibrary.displayElementsToTableContents(tableData);
             return outputHtml;
         };
-        var updateWordlistActionButtons = function (data) {
-            var disabled;
-            disabled = !data['WORDLIST']['allowUpload'];
-            PWM_MAIN.setStyle('MenuItem_UploadWordlist','visibility', disabled ? 'hidden' : 'visible');
+        const updateWordlistActionButtons = function (data) {
+            const buttonState = function(elementId,enabled) {
+                enabled ? PWM_MAIN.removeCssClass(elementId,'hidden') : PWM_MAIN.addCssClass(elementId,'hidden');
+            }
 
-            disabled = !data['WORDLIST']['allowClear'];
-            PWM_MAIN.setStyle('MenuItem_ClearWordlist','visibility', disabled ? 'hidden' : 'visible');
-
-            disabled = !data['SEEDLIST']['allowUpload'];
-            PWM_MAIN.setStyle('MenuItem_UploadSeedlist','visibility', disabled ? 'hidden' : 'visible');
-
-            disabled = !data['SEEDLIST']['allowClear'];
-            PWM_MAIN.setStyle('MenuItem_ClearSeedlist','visibility', disabled ? 'hidden' : 'visible');
+            buttonState('MenuItem_UploadWordlist',data['WORDLIST']['allowUpload']);
+            buttonState('MenuItem_ClearWordlist',data['WORDLIST']['allowClear']);
+            buttonState('MenuItem_UploadSeedlist',data['SEEDLIST']['allowUpload']);
+            buttonState('MenuItem_ClearSeedlist',data['SEEDLIST']['allowClear']);
         };
-        var dataHandler = function (data) {
-            var wordlistData = data['data']['WORDLIST']['presentableData'];
+        const dataHandler = function (data) {
+            const wordlistData = data['data']['WORDLIST']['presentableData'];
             PWM_MAIN.getObject('table-wordlistInfo').innerHTML = makeTableData(
                 wordlistData,
                 PWM_CONFIG.showString('Label_Wordlist')
             );
             UILibrary.initElementsToTableContents(wordlistData);
-            var seedlistData = data['data']['SEEDLIST']['presentableData'];
+            const seedlistData = data['data']['SEEDLIST']['presentableData'];
             PWM_MAIN.getObject('table-seedlistInfo').innerHTML = makeTableData(
                 seedlistData,
                 PWM_CONFIG.showString('Label_Seedlist')
@@ -439,7 +407,7 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
             UILibrary.initElementsToTableContents(seedlistData);
             updateWordlistActionButtons(data['data']);
         };
-        var errorHandler = function(data) {
+        const errorHandler = function (data) {
             console.log('error during info refresh: ' + data);
         };
         PWM_MAIN.ajaxRequest('wordlists?processAction=readWordlistData', dataHandler,{errorFunction:errorHandler});
@@ -451,15 +419,15 @@ PWM_CONFIG.initConfigManagerWordlistPage = function() {
 
 
 PWM_CONFIG.convertListOfIdentitiesToHtml = function(data) {
-    var html = '<div class="panel-large overflow-y">';
-    var users = data['users'];
+    let html = '<div class="panel-large overflow-y">';
+    const users = data['users'];
     if (users && !PWM_MAIN.JSLibrary.isEmpty(users)) {
         html += '<table style="">';
         html += '<thead><tr><td class="title" style="width: 75px">' + PWM_MAIN.showString('Field_LdapProfile') + '</td>';
         html += '<td class="title" style="max-width: 375px">'+ PWM_MAIN.showString('Field_UserDN') + '</td></tr></thead>';
         html += '<tbody>';
-        for (var iter in users) {
-            var userIdentity = users[iter];
+        for (let iter in users) {
+            const userIdentity = users[iter];
             html += '<tr ><td style="width: 75px">' + userIdentity['ldapProfile'] + '</td><td title="' + userIdentity['userDN'] + '">';
             html += '<div style="max-width: 375px; white-space: nowrap; overflow:hidden; text-overflow: ellipsis;">' + userIdentity['userDN'] + '</div></td></tr>';
         }

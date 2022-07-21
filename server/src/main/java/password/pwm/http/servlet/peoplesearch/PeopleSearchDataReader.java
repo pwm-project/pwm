@@ -49,8 +49,8 @@ import password.pwm.http.servlet.peoplesearch.bean.SearchResultBean;
 import password.pwm.http.servlet.peoplesearch.bean.UserDetailBean;
 import password.pwm.http.servlet.peoplesearch.bean.UserReferenceBean;
 import password.pwm.i18n.Display;
-import password.pwm.ldap.PhotoDataBean;
-import password.pwm.ldap.UserInfo;
+import password.pwm.bean.PhotoDataBean;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.ldap.permission.UserPermissionUtility;
@@ -638,7 +638,7 @@ class PeopleSearchDataReader
         }
         finally
         {
-            LOGGER.trace( pwmRequest, () -> "completed checkIfUserViewable for " + userIdentity.toDisplayString() + " in ", () -> TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( pwmRequest, () -> "completed checkIfUserViewable for " + userIdentity.toDisplayString() + " in ", TimeDuration.fromCurrent( startTime ) );
         }
     }
 
@@ -701,7 +701,7 @@ class PeopleSearchDataReader
         final boolean useProxy = useProxy();
         return useProxy
                 ? pwmRequest.getPwmDomain().getProxiedChaiUser( pwmRequest.getLabel(), userIdentity )
-                : pwmRequest.getPwmSession().getSessionManager().getActor( userIdentity );
+                : pwmRequest.getClientConnectionHolder().getActor( userIdentity );
     }
 
     private UserSearchResults doDetailLookup(
@@ -840,7 +840,7 @@ class PeopleSearchDataReader
         if ( !useProxy() )
         {
             builder.ldapProfile( pwmRequest.getPwmSession().getUserInfo().getUserIdentity().getLdapProfileID() );
-            builder.chaiProvider( pwmRequest.getPwmSession().getSessionManager().getChaiProvider() );
+            builder.chaiProvider( pwmRequest.getClientConnectionHolder().getActorChaiProvider() );
         }
 
         final SearchRequestBean.SearchMode searchMode = searchRequest.getMode() == null

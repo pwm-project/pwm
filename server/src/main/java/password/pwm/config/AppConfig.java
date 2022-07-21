@@ -24,6 +24,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.PrivateKeyCertificate;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.option.CertificateMatchingMode;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.EmailServerProfile;
@@ -40,7 +41,6 @@ import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -53,7 +53,6 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -103,7 +102,6 @@ public class AppConfig implements SettingReader
     {
         this.storedConfiguration = storedConfiguration;
         this.settingReader = new StoredSettingReader( storedConfiguration, null, DomainID.systemId() );
-
         this.appPropertyOverrides = makeAppPropertyOverrides( settingReader );
 
         this.applicationSecurityKey = makeAppSecurityKey( this );
@@ -188,8 +186,8 @@ public class AppConfig implements SettingReader
 
     public Map<AppProperty, String> readAllAppProperties()
     {
-          return Collections.unmodifiableMap( EnumSet.allOf( AppProperty.class ).stream()
-                  .collect( Collectors.toMap(
+          return Collections.unmodifiableMap( CollectionUtil.enumStream( AppProperty.class )
+                  .collect( CollectionUtil.collectorToLinkedMap(
                           Function.identity(),
                           this::readAppProperty
                   ) ) );
@@ -343,7 +341,7 @@ public class AppConfig implements SettingReader
         final Map<AppProperty, String> appPropertyMap = new EnumMap<>( AppProperty.class );
         for ( final Map.Entry<String, String> stringEntry : stringMap.entrySet() )
         {
-            JavaHelper.readEnumFromString( AppProperty.class, stringEntry.getKey() )
+            AppProperty.forKey( stringEntry.getKey() )
                     .ifPresent( appProperty ->
                     {
                        final String defaultValue = appProperty.getDefaultValue();
@@ -358,6 +356,25 @@ public class AppConfig implements SettingReader
         return Collections.unmodifiableMap( appPropertyMap );
     }
 
+    public boolean isSmsConfigured()
+    {
+        final String gatewayUrl = readSettingAsString( PwmSetting.SMS_GATEWAY_URL );
+        final String gatewayUser = readSettingAsString( PwmSetting.SMS_GATEWAY_USER );
+        final PasswordData gatewayPass = readSettingAsPassword( PwmSetting.SMS_GATEWAY_PASSWORD );
+        if ( gatewayUrl == null || gatewayUrl.length() < 1 )
+        {
+            return false;
+        }
+
+        if ( gatewayUser != null && gatewayUser.length() > 0 && ( gatewayPass == null ) )
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+
     private static PwmSecurityKey makeAppSecurityKey( final AppConfig appConfig )
     {
         try
@@ -368,7 +385,7 @@ public class AppConfig implements SettingReader
             {
                 final String errorMsg = "Security Key value is not configured, will generate temp value for use by runtime instance";
                 final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-                LOGGER.warn( errorInfo::toDebugStr );
+                LOGGER.warn( SessionLabel.SYSTEM_LABEL, errorInfo::toDebugStr );
                 return new PwmSecurityKey( PwmRandom.getInstance().alphaNumericString( 1024 ) );
             }
             else

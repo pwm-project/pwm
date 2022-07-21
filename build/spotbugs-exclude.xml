@@ -62,9 +62,20 @@
         <Bug pattern="MRC_METHOD_RETURNS_CONSTANT" />
     </Match>
 
+    <Match>
+        <!-- issue with spotbugs 4.7.0 -->
+        <!-- https://github.com/spotbugs/spotbugs/issues/2040 -->
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION" />
+    </Match>
 
 
-
-
+    <!-- jsp exclusions -->
+    <Match>
+        <Or>
+            <Class name="~^jsp\..*_jsp$" />
+        </Or>
+        <!-- pretty much every line in jsp throws throwable :) -->
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_THROWABLE" />
+    </Match>
 
 </FindBugsFilter>

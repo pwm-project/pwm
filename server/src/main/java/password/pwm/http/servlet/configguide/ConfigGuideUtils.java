@@ -20,6 +20,10 @@
 
 package password.pwm.http.servlet.configguide;
 
+import com.novell.ldapchai.ChaiEntry;
+import com.novell.ldapchai.ChaiEntryFactory;
+import com.novell.ldapchai.exception.ChaiOperationException;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiSetting;
@@ -28,12 +32,12 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
-import password.pwm.http.servlet.configeditor.function.UserMatchViewerFunction;
-import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationFileManager;
+import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
@@ -47,13 +51,17 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.ContextManager;
+import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.bean.ConfigGuideBean;
+import password.pwm.http.servlet.configeditor.function.UserMatchViewerFunction;
+import password.pwm.i18n.ConfigGuide;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.LdapPermissionCalculator;
 import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
-import password.pwm.util.LDAPPermissionCalculator;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.Percent;
 import password.pwm.util.logging.PwmLogger;
@@ -70,7 +78,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -115,7 +123,7 @@ public class ConfigGuideUtils
             // add a random security key
             StoredConfigurationUtil.initNewRandomSecurityKey( modifier );
 
-            configReader.saveConfiguration( modifier.newStoredConfiguration(), pwmApplication, null );
+            configReader.saveConfiguration( modifier.newStoredConfiguration(), pwmApplication );
 
             contextManager.requestPwmApplicationRestart();
         }
@@ -146,10 +154,10 @@ public class ConfigGuideUtils
         try
         {
             final ChaiConfiguration chaiConfiguration = ChaiConfiguration.builder(
-                    ldapUrl,
-                    form.get( ConfigGuideFormField.PARAM_LDAP_PROXY_DN ),
-                    form.get( ConfigGuideFormField.PARAM_LDAP_PROXY_PW )
-            )
+                            ldapUrl,
+                            form.get( ConfigGuideFormField.PARAM_LDAP_PROXY_DN ),
+                            form.get( ConfigGuideFormField.PARAM_LDAP_PROXY_PW )
+                    )
                     .setSetting( ChaiSetting.PROMISCUOUS_SSL, "true" )
                     .build();
 
@@ -179,7 +187,7 @@ public class ConfigGuideUtils
 
         if ( configGuideBean.getStep() == GuideStep.LDAP_PERMISSIONS )
         {
-            final LDAPPermissionCalculator ldapPermissionCalculator = new LDAPPermissionCalculator(
+            final LdapPermissionCalculator ldapPermissionCalculator = new LdapPermissionCalculator(
                     new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) ).getDomainConfigs().get( ConfigGuideForm.DOMAIN_ID ) );
             pwmRequest.setAttribute( PwmRequestAttribute.LdapPermissionItems, ldapPermissionCalculator );
         }
@@ -235,7 +243,7 @@ public class ConfigGuideUtils
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_UPLOAD_FAILURE, errorMsg, new String[]
                     {
                             errorMsg,
-                            }
+                    }
             );
             pwmRequest.respondWithError( errorInformation, true );
         }
@@ -286,26 +294,17 @@ public class ConfigGuideUtils
             final Map<ConfigGuideFormField, String> form = configGuideBean.getFormData();
             final PwmApplication tempApplication = PwmApplication.createPwmApplication(
                     pwmRequest.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( new AppConfig( storedConfiguration ) ) );
-            final PwmDomain pwmDomain = tempApplication.domains().get( ConfigGuideForm.DOMAIN_ID );
 
             final String adminDN = form.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_USER );
             final UserIdentity adminIdentity = UserIdentity.create( adminDN, ConfigGuideForm.LDAP_PROFILE_NAME, ConfigGuideForm.DOMAIN_ID );
 
-            final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
-            final Collection<UserIdentity> results = userMatchViewerFunction.discoverMatchingUsers(
-                    pwmRequest.getLabel(),
-                    pwmDomain,
-                    1,
-                    storedConfiguration,
-                    StoredConfigKey.forSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, null, ConfigGuideForm.DOMAIN_ID ) );
+            checkAdminInContext( tempApplication, pwmRequest.getLabel(), configGuideBean, adminIdentity )
+                    .ifPresent( records::add );
 
-            if ( !results.isEmpty() )
+            if ( records.isEmpty() )
             {
-                final UserIdentity foundIdentity = results.iterator().next();
-                if ( foundIdentity.canonicalEquals( pwmRequest.getLabel(), adminIdentity, tempApplication ) )
-                {
-                    records.add( HealthRecord.forMessage( ConfigGuideForm.DOMAIN_ID, HealthMessage.LDAP_AdminUserOk ) );
-                }
+                checkAdminUserExists( tempApplication, pwmRequest.getLabel(), adminIdentity )
+                        .ifPresent( records::add );
             }
         }
         catch ( final Exception e )
@@ -327,5 +326,149 @@ public class ConfigGuideUtils
         }
 
         return records;
+    }
+
+    private static Optional<HealthRecord> checkAdminUserExists(
+            final PwmApplication tempApplication,
+            final SessionLabel sessionLabel,
+            final UserIdentity adminIdentity
+    )
+            throws PwmUnrecoverableException, PwmOperationalException
+    {
+        final PwmDomain pwmDomain = tempApplication.domains().get( ConfigGuideForm.DOMAIN_ID );
+
+        final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
+        final List<UserIdentity> results = userMatchViewerFunction.discoverMatchingUsers(
+                sessionLabel,
+                pwmDomain,
+                1,
+                tempApplication.getConfig().getStoredConfiguration(),
+                StoredConfigKey.forSetting( PwmSetting.QUERY_MATCH_PWM_ADMIN, null, ConfigGuideForm.DOMAIN_ID ) );
+
+        if ( !results.isEmpty() )
+        {
+            final UserIdentity foundIdentity = results.get( 0 );
+            if ( foundIdentity.canonicalEquals( sessionLabel, adminIdentity, tempApplication ) )
+            {
+                return Optional.of( HealthRecord.forMessage( ConfigGuideForm.DOMAIN_ID, HealthMessage.LDAP_AdminUserOk ) );
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private static Optional<HealthRecord> checkAdminInContext(
+            final PwmApplication tempApplication,
+            final SessionLabel sessionLabel,
+            final ConfigGuideBean configGuideBean,
+            final UserIdentity adminIdentity
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, ChaiOperationException
+    {
+        final Map<ConfigGuideFormField, String> form = configGuideBean.getFormData();
+
+        final ChaiProvider chaiProvider = tempApplication.domains().get( ConfigGuideForm.DOMAIN_ID ).getProxyChaiProvider( sessionLabel, ConfigGuideForm.LDAP_PROFILE_NAME );
+        final ChaiEntry contextEntry = ChaiEntryFactory.newChaiFactory( chaiProvider ).newChaiEntry( form.get( ConfigGuideFormField.PARAM_LDAP_CONTEXT ) );
+        final String canonicalContextDN = contextEntry.readCanonicalDN();
+        final UserIdentity canonicalAdmin = adminIdentity.canonicalized( sessionLabel, tempApplication );
+        if ( !canonicalAdmin.getUserDN().endsWith( canonicalContextDN ) )
+        {
+            final String contextTitle = LocaleHelper.getLocalizedMessage(
+                    PwmConstants.DEFAULT_LOCALE,
+                    "ldap_context_title",
+                    tempApplication.getConfig(),
+                    ConfigGuide.class );
+
+            return Optional.of( HealthRecord.forMessage(
+                    ConfigGuideForm.DOMAIN_ID,
+                    HealthMessage.LDAP_AdminNotInContext,
+                    contextTitle,
+                    canonicalContextDN
+            ) );
+        }
+
+        return Optional.empty();
+    }
+
+
+    static GuideStep figureNextEffectiveStep(
+            final ConfigGuideBean configGuideBean,
+            final GuideStep inputStep
+    )
+    {
+        GuideStep step = inputStep;
+        if ( step == GuideStep.START )
+        {
+            configGuideBean.getFormData().clear();
+            configGuideBean.getFormData().putAll( ConfigGuideForm.defaultForm() );
+        }
+        else if ( step == GuideStep.NEXT )
+        {
+            step = configGuideBean.getStep().next();
+            while ( step != GuideStep.FINISH && !step.visible( configGuideBean ) )
+            {
+                step = step.next();
+            }
+        }
+        else if ( step == GuideStep.PREVIOUS )
+        {
+            step = configGuideBean.getStep().previous();
+            while ( step != GuideStep.START && !step.visible( configGuideBean ) )
+            {
+                step = step.previous();
+            }
+        }
+
+        return step;
+    }
+
+    static ProcessStatus executeNextStep(
+            final PwmRequest pwmRequest,
+            final ConfigGuideBean configGuideBean,
+            final GuideStep step
+    )
+            throws IOException, PwmUnrecoverableException
+    {
+        if ( step == GuideStep.FINISH )
+        {
+            final ContextManager contextManager = ContextManager.getContextManager( pwmRequest );
+            try
+            {
+                ConfigGuideUtils.writeConfig( contextManager, configGuideBean );
+                pwmRequest.getPwmSession().getSessionStateBean().setTheme( null );
+            }
+            catch ( final PwmException e )
+            {
+                final RestResultBean restResultBean = RestResultBean.fromError( e.getErrorInformation(), pwmRequest );
+                pwmRequest.outputJsonResult( restResultBean );
+                return ProcessStatus.Halt;
+            }
+            catch ( final Exception e )
+            {
+                LOGGER.error( pwmRequest, () -> "error during save: " + e.getMessage(), e );
+                final RestResultBean restResultBean = RestResultBean.fromError( new ErrorInformation(
+                        PwmError.ERROR_INTERNAL,
+                        "error during save: " + e.getMessage()
+                ), pwmRequest );
+                pwmRequest.outputJsonResult( restResultBean );
+                return ProcessStatus.Halt;
+            }
+            final HashMap<String, String> resultData = new HashMap<>();
+            resultData.put( "serverRestart", "true" );
+            pwmRequest.outputJsonResult( RestResultBean.withData( resultData, Map.class ) );
+            pwmRequest.invalidateSession();
+        }
+        else
+        {
+            configGuideBean.setStep( step );
+            pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
+
+            {
+                final GuideStep finalStep = step;
+                LOGGER.trace( pwmRequest, () -> "setting current step to: " + finalStep );
+            }
+        }
+
+        return ProcessStatus.Continue;
     }
 }

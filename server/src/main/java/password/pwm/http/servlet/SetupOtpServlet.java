@@ -330,7 +330,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
         final UserIdentity theUser = pwmSession.getUserInfo().getUserIdentity();
         try
         {
-            service.clearOTPUserConfiguration( pwmRequest, theUser, pwmSession.getSessionManager().getActor( ) );
+            service.clearOTPUserConfiguration( pwmRequest, theUser, pwmRequest.getClientConnectionHolder().getActor( ) );
         }
         catch ( final PwmOperationalException e )
         {
@@ -442,7 +442,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
                 final DomainConfig config = pwmDomain.getConfig();
                 final SetupOtpProfile setupOtpProfile = getSetupOtpProfile( pwmRequest );
                 final String identifierConfigValue = setupOtpProfile.readSettingAsString( PwmSetting.OTP_SECRET_IDENTIFIER );
-                final String identifier = pwmSession.getSessionManager().getMacroMachine( ).expandMacros( identifierConfigValue );
+                final String identifier = pwmRequest.getMacroMachine( ).expandMacros( identifierConfigValue );
                 final OTPUserRecord otpUserRecord = new OTPUserRecord();
                 final List<String> rawRecoveryCodes = pwmDomain.getOtpService().initializeUserRecord(
                         setupOtpProfile,
@@ -532,7 +532,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
                 return true;
             }
 
-            final boolean admin = pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN );
+            final boolean admin = pwmRequest.checkPermission( Permission.PWMADMIN );
             if ( admin )
             {
                 if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.ADMIN_ALLOW_SKIP_FORCED_ACTIVITIES ) )

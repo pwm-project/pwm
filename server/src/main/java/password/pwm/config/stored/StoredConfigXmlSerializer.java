@@ -918,7 +918,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                 final XmlElement settingElement = StoredConfigXmlSerializer.XmlOutputHandler.makeSettingXmlElement(
                         null,
                         key,
-                        new StringArrayValue( newValues ),
+                        StringArrayValue.create( newValues ),
                         XmlOutputProcessData.builder().storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN ).pwmSecurityKey( pwmSecurityKey ).build() );
                 final Optional<XmlElement> settingsElement = xmlDocument.getRootElement().getChild( StoredConfigXmlConstants.XML_ELEMENT_SETTING );
                 settingsElement.ifPresent( ( s ) -> s.attachElement( settingElement ) );

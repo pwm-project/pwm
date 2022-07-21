@@ -24,6 +24,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import password.pwm.PwmConstants;
 
+import java.util.EnumSet;
+
 public class PwmSettingCategoryTest
 {
     @Test
@@ -91,6 +93,23 @@ public class PwmSettingCategoryTest
         {
                 final PwmSettingScope scope = category.getScope();
                 Assert.assertNotNull( scope );
+        }
+    }
+
+    @Test
+    public void testAllCategoryMethods()
+    {
+        for ( final PwmSettingCategory pwmSettingCategory : EnumSet.allOf( PwmSettingCategory.class ) )
+        {
+            pwmSettingCategory.getLabel( PwmConstants.DEFAULT_LOCALE );
+            pwmSettingCategory.getDescription( PwmConstants.DEFAULT_LOCALE );
+            pwmSettingCategory.isHidden();
+            pwmSettingCategory.getLevel();
+            pwmSettingCategory.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
+            pwmSettingCategory.getScope();
+            pwmSettingCategory.getChildren();
+            pwmSettingCategory.getLevel();
+            pwmSettingCategory.getSettings();
         }
     }
 }

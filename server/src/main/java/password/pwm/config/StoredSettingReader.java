@@ -24,6 +24,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.Profile;
 import password.pwm.config.profile.ProfileDefinition;
@@ -58,7 +59,6 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -241,7 +241,7 @@ public class StoredSettingReader implements SettingReader
         )
         {
             final Map<ProfileDefinition, Map<String, Profile>> returnMap = new EnumMap<>( ProfileDefinition.class );
-            returnMap.putAll( EnumSet.allOf( ProfileDefinition.class ).stream()
+            returnMap.putAll( CollectionUtil.enumStream( ProfileDefinition.class )
                     .filter( profileDefinition -> domainID.inScope( profileDefinition.getCategory().getScope() ) )
                     .collect( CollectionUtil.collectorToLinkedMap(
                             profileDefinition -> profileDefinition,
@@ -321,7 +321,7 @@ public class StoredSettingReader implements SettingReader
 
         if ( setting.getFlags().contains( PwmSettingFlag.Deprecated ) )
         {
-            LOGGER.warn( () -> "attempt to read deprecated config setting: " + setting.toMenuLocationDebug( profileID, null ) );
+            LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "attempt to read deprecated config setting: " + setting.toMenuLocationDebug( profileID, null ) );
         }
 
         if ( StringUtil.isEmpty( profileID ) )

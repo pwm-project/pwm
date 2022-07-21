@@ -26,6 +26,7 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -45,7 +46,9 @@ public class EmailValue extends AbstractValue implements StoredValue
 
     EmailValue( final Map<String, EmailItemBean> values )
     {
-        this.values = values == null ? Collections.emptyMap() : Collections.unmodifiableMap( values );
+        this.values = values == null
+                ? Collections.emptyMap()
+                : Collections.unmodifiableMap( CollectionUtil.stripNulls( values ) );
     }
 
     public static StoredValueFactory factory( )
@@ -53,7 +56,7 @@ public class EmailValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public EmailValue fromJson( final String input )
+            public EmailValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 if ( input == null )
                 {
@@ -61,11 +64,8 @@ public class EmailValue extends AbstractValue implements StoredValue
                 }
                 else
                 {
-                    Map<String, EmailItemBean> srcMap = JsonFactory.get().deserializeMap( input, String.class, EmailItemBean.class );
-
-                    srcMap = srcMap == null ? Collections.emptyMap() : srcMap;
-                    srcMap.remove( null );
-                    return new EmailValue( Collections.unmodifiableMap( srcMap ) );
+                    final Map<String, EmailItemBean> srcMap = JsonFactory.get().deserializeMap( input, String.class, EmailItemBean.class );
+                    return new EmailValue( srcMap );
                 }
             }
 

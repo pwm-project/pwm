@@ -25,7 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import password.pwm.PwmApplication;
-import password.pwm.ldap.UserInfoBean;
+import password.pwm.user.UserInfoBean;
 import password.pwm.util.localdb.TestHelper;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordRuleReaderHelper;

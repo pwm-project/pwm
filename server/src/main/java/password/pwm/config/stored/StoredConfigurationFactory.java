@@ -25,7 +25,6 @@ import lombok.Value;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,8 +32,6 @@ import java.io.OutputStream;
 
 public class StoredConfigurationFactory
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( StoredConfigurationFactory.class );
-
     private static final StoredConfigSerializer SERIALIZER = new StoredConfigXmlSerializer();
 
     public static StoredConfiguration newConfig() throws PwmUnrecoverableException

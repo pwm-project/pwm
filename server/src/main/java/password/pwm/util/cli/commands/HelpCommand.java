@@ -23,6 +23,7 @@ package password.pwm.util.cli.commands;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.cli.MainClass;
 
+import java.io.IOException;
 import java.util.Collections;
 
 public class HelpCommand extends AbstractCliCommand
@@ -30,7 +31,7 @@ public class HelpCommand extends AbstractCliCommand
 
     @Override
     void doCommand( )
-            throws Exception
+            throws IOException
     {
         out( MainClass.helpTextFromCommands( MainClass.COMMANDS.values() ) );
     }

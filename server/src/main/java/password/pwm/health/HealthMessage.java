@@ -35,6 +35,7 @@ public enum HealthMessage
     LDAP_AD_Unsecure( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_AD_StaticIP( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_AdminUserOk( HealthStatus.GOOD, HealthTopic.LDAP ),
+    LDAP_AdminNotInContext( HealthStatus.WARN, HealthTopic.LDAP ),
     LDAP_ProxyTestSameUser( HealthStatus.WARN, HealthTopic.Configuration ),
     LDAP_ProxyUserOk( HealthStatus.GOOD, HealthTopic.LDAP ),
     LDAP_ProxyUserPwExpired( HealthStatus.WARN, HealthTopic.LDAP ),
@@ -109,6 +110,8 @@ public enum HealthMessage
     ServiceClosed_AppReadOnly( HealthStatus.CAUTION, HealthTopic.Application ),
     ServiceError( HealthStatus.WARN, HealthTopic.Application ),
     SMS_SendFailure( HealthStatus.WARN, HealthTopic.SMS ),
+    Version_OutOfDate( HealthStatus.WARN, HealthTopic.Platform ),
+    Version_Unreachable( HealthStatus.CAUTION, HealthTopic.Platform ),
     Wordlist_AutoImportFailure( HealthStatus.WARN, HealthTopic.Configuration ),
     Wordlist_ImportInProgress( HealthStatus.CAUTION, HealthTopic.Application ),;
 

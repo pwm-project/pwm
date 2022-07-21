@@ -31,7 +31,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;

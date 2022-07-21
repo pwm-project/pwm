@@ -35,7 +35,7 @@ import password.pwm.http.ContextManager;
 import password.pwm.http.bean.DisplayElement;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Display;
-import password.pwm.ldap.LdapConnectionService;
+import password.pwm.ldap.LdapDomainService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.node.NodeInfo;
 import password.pwm.svc.node.NodeService;
@@ -207,11 +207,11 @@ public class AppDashboardData implements Serializable
             }
         }
 
-        builder.ldapConnectionCount( LdapConnectionService.totalLdapConnectionCount( pwmDomain.getPwmApplication() ) );
+        builder.ldapConnectionCount( LdapDomainService.totalLdapConnectionCount( pwmDomain.getPwmApplication() ) );
         builder.sessionCount( pwmDomain.getSessionTrackService().sessionCount() );
-        builder.requestsInProgress( pwmDomain.getPwmApplication().getActiveServletRequests().get() );
+        builder.requestsInProgress( pwmDomain.getPwmApplication().getTotalActiveServletRequests() );
 
-        LOGGER.trace( () -> "AppDashboardData bean created", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "AppDashboardData bean created", TimeDuration.fromCurrent( startTime ) );
         return builder.build();
     }
 

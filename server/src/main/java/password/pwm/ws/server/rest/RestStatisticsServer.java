@@ -40,6 +40,7 @@ import password.pwm.svc.stats.StatisticType;
 import password.pwm.svc.stats.StatisticsBundle;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.stats.StatisticsService;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
@@ -58,7 +59,6 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -174,7 +174,7 @@ public class RestStatisticsServer extends RestServlet
 
         private static List<StatValue> makeStatInfos( final StatisticsService statisticsManager, final String key )
         {
-            final Map<String, StatValue> output = EnumSet.allOf( Statistic.class ).stream()
+            final Map<String, StatValue> output = CollectionUtil.enumStream( Statistic.class )
                     .collect( Collectors.toMap(
                             Enum::name,
                             stat -> new StatValue( stat.name(), statisticsManager.getStatBundleForKey( key ).getStatistic( stat ) )

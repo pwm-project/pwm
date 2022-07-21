@@ -113,7 +113,7 @@ public enum PwmValue
             {
                 try
                 {
-                    final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+                    final MacroRequest macroRequest = pwmRequest.getMacroMachine();
                     outputURL = macroRequest.expandMacros( outputURL );
                 }
                 catch ( final PwmUnrecoverableException e )
@@ -156,7 +156,7 @@ public enum PwmValue
             {
                 try
                 {
-                    final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+                    final MacroRequest macroRequest = pwmRequest.getMacroMachine();
                     return macroRequest.expandMacros( customScript );
                 }
                 catch ( final Exception e )
@@ -218,7 +218,7 @@ public enum PwmValue
                 }
                 return output + LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_ConfigModeActive", pwmRequest.getDomainConfig(), Admin.class, fieldNames );
             }
-            else if ( pwmRequest.getPwmSession().getSessionManager().checkPermission( pwmRequest.getPwmDomain(), Permission.PWMADMIN ) )
+            else if ( pwmRequest.checkPermission( Permission.PWMADMIN ) )
             {
                 return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), "Header_AdminUser", pwmRequest.getDomainConfig(), Admin.class, fieldNames );
             }

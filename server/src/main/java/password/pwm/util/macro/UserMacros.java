@@ -21,13 +21,15 @@
 package password.pwm.util.macro;
 
 import password.pwm.AppProperty;
+import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserInfo;
+import password.pwm.user.UserInfo;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -36,6 +38,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -46,12 +49,14 @@ public class UserMacros
 
     static final List<Macro> USER_MACROS = List.of(
             new UserIDMacro(),
+            new DomainIdMacro(),
+            new UserLdapProfileIDMacro(),
+            new UserLdapProfileNameMacro(),
             new UserLdapMacro(),
             new UserPwExpirationTimeMacro(),
             new UserDaysUntilPwExpireMacro(),
             new UserEmailMacro(),
             new UserPasswordMacro(),
-            new UserLdapProfileMacro(),
             new OtpSetupTimeMacro(),
             new ResponseSetupTimeMacro(),
             new DefaultDomainEmailFromAddressMacro(),
@@ -272,7 +277,6 @@ public class UserMacros
 
     abstract static class AbstractUserIDMacro extends AbstractUserMacro
     {
-
         @Override
         public String replaceValue(
                 final String matchValue,
@@ -355,6 +359,107 @@ public class UserMacros
         Optional<UserInfo> loadUserInfo( final MacroRequest macroRequest )
         {
             return Optional.ofNullable( macroRequest.getUserInfo() );
+        }
+    }
+
+    public static class UserLdapProfileIDMacro extends AbstractUserMacro
+    {
+        private static final Pattern PATTERN = Pattern.compile( "@User:LdapProfile:ID@" );
+
+        @Override
+        public Pattern getRegExPattern( )
+        {
+            return PATTERN;
+        }
+
+        @Override
+        public String replaceValue(
+                final String matchValue,
+                final MacroRequest macroRequest
+
+        )
+        {
+            final UserInfo userInfo = macroRequest.getUserInfo();
+
+            if ( userInfo != null )
+            {
+                final UserIdentity userIdentity = userInfo.getUserIdentity();
+                if ( userIdentity != null )
+                {
+                    return userIdentity.getLdapProfileID();
+                }
+            }
+
+            return "";
+        }
+    }
+
+    public static class DomainIdMacro extends AbstractUserMacro
+    {
+        private static final Pattern PATTERN = Pattern.compile( "@User:Domain:ID@" );
+
+        @Override
+        public Pattern getRegExPattern( )
+        {
+            return PATTERN;
+        }
+
+        @Override
+        public String replaceValue(
+                final String matchValue,
+                final MacroRequest macroRequest
+
+        )
+        {
+            final UserInfo userInfo = macroRequest.getUserInfo();
+
+            if ( userInfo != null )
+            {
+                final UserIdentity userIdentity = userInfo.getUserIdentity();
+                if ( userIdentity != null )
+                {
+                    return userIdentity.getDomainID().stringValue();
+                }
+            }
+
+            return "";
+        }
+    }
+
+    public static class UserLdapProfileNameMacro extends AbstractUserMacro
+    {
+        private static final Pattern PATTERN = Pattern.compile( "@User:LdapProfile:Name@" );
+
+        @Override
+        public Pattern getRegExPattern( )
+        {
+            return PATTERN;
+        }
+
+        @Override
+        public String replaceValue(
+                final String matchValue,
+                final MacroRequest macroRequest
+
+        )
+        {
+            final UserInfo userInfo = macroRequest.getUserInfo();
+
+            if ( userInfo != null )
+            {
+                final UserIdentity userIdentity = userInfo.getUserIdentity();
+                if ( userIdentity != null )
+                {
+                    final LdapProfile ldapProfile = userIdentity.getLdapProfile( macroRequest.getPwmApplication().getConfig() );
+                    if ( ldapProfile != null )
+                    {
+                        final Locale userLocale = macroRequest.getUserLocale() == null ? PwmConstants.DEFAULT_LOCALE : macroRequest.getUserLocale();
+                        return ldapProfile.getDisplayName( userLocale );
+                    }
+                }
+            }
+
+            return "";
         }
     }
 
@@ -659,37 +764,6 @@ public class UserMacros
                 }
             }
             throw new MacroParseException( "@DefaultEmailFromAddress@: domain unspecified on macro request" );
-        }
-    }
-
-    public static class UserLdapProfileMacro extends AbstractUserMacro
-    {
-        private static final Pattern PATTERN = Pattern.compile( "@User:LdapProfile@" );
-
-        @Override
-        public Pattern getRegExPattern( )
-        {
-            return PATTERN;
-        }
-
-        @Override
-        public String replaceValue(
-                final String matchValue,
-                final MacroRequest request
-        )
-        {
-            final UserInfo userInfo = request.getUserInfo();
-
-            if ( userInfo != null )
-            {
-                final UserIdentity userIdentity = userInfo.getUserIdentity();
-                if ( userIdentity != null )
-                {
-                    return userIdentity.getLdapProfileID();
-                }
-            }
-
-            return "";
         }
     }
 

@@ -29,6 +29,7 @@ import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -45,7 +46,9 @@ class StatisticsEpsDataDebugItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException
+
     {
         final PwmApplication pwmDomain = debugItemInput.getPwmApplication();
         final StatisticsService statsManager = pwmDomain.getStatisticsManager();

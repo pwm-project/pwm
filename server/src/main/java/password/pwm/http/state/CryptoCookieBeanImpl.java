@@ -33,7 +33,6 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -164,7 +163,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
     }
 
     @Override
-    public <E extends PwmSessionBean> void clearSessionBean( final PwmRequest pwmRequest, final Class<E> userBeanClass ) throws PwmUnrecoverableException
+    public <E extends PwmSessionBean> void clearSessionBean( final PwmRequest pwmRequest, final Class<E> userBeanClass )
     {
         final Map<Class<? extends PwmSessionBean>, PwmSessionBean> sessionBeans = getRequestBeanMap( pwmRequest );
         sessionBeans.put( userBeanClass, null );
@@ -173,7 +172,7 @@ class CryptoCookieBeanImpl implements SessionBeanProvider
 
     private static Map<Class<? extends PwmSessionBean>, PwmSessionBean> getRequestBeanMap( final PwmRequest pwmRequest )
     {
-        Serializable sessionBeans = pwmRequest.getAttribute( PwmRequestAttribute.CookieBeanStorage );
+        Object sessionBeans = pwmRequest.getAttribute( PwmRequestAttribute.CookieBeanStorage );
         if ( sessionBeans == null )
         {
             sessionBeans = new HashMap<>();

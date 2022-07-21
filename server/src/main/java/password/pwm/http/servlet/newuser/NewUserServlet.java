@@ -49,8 +49,8 @@ import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.forgottenpw.RemoteVerificationMethod;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.UserInfo;
-import password.pwm.ldap.UserInfoBean;
+import password.pwm.user.UserInfo;
+import password.pwm.user.UserInfoBean;
 import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
@@ -162,7 +162,8 @@ public class NewUserServlet extends ControlledPwmServlet
         if ( StringUtil.notEmpty( signedFormData ) )
         {
             final Map<String, String> jsonForm = RestFormSigningServer.readSignedFormValue( pwmDomain, signedFormData );
-            LOGGER.trace( () -> "detected signedForm parameter in request, will read and place in bean; keys=" + JsonFactory.get().serializeCollection( jsonForm.keySet() ) );
+            LOGGER.trace( pwmRequest, () -> "detected signedForm parameter in request, will read and place in bean; keys="
+                    + JsonFactory.get().serializeCollection( jsonForm.keySet() ) );
             newUserBean.setRemoteInputData( jsonForm );
         }
 
@@ -240,7 +241,7 @@ public class NewUserServlet extends ControlledPwmServlet
         {
             final Instant startTime = Instant.now();
             newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() );
-            LOGGER.trace( () -> "read new user password policy in ", () -> TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( () -> "read new user password policy in ", TimeDuration.fromCurrent( startTime ) );
         }
 
         if ( !newUserBean.isFormPassed() )
@@ -470,7 +471,7 @@ public class NewUserServlet extends ControlledPwmServlet
             passwordCheckInfo = new PasswordUtility.PasswordCheckInfo( null, true, 0, PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH, 0 );
         }
 
-        LOGGER.trace( () -> "competed form validation in ", () -> TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( () -> "competed form validation in ", TimeDuration.fromCurrent( startTime ) );
         return passwordCheckInfo;
     }
 
@@ -787,7 +788,7 @@ public class NewUserServlet extends ControlledPwmServlet
         final String configuredRedirectUrl = newUserProfile.readSettingAsString( PwmSetting.NEWUSER_REDIRECT_URL );
         if ( StringUtil.notEmpty( configuredRedirectUrl ) && StringUtil.isEmpty( pwmRequest.getPwmSession().getSessionStateBean().getForwardURL() ) )
         {
-            final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine();
+            final MacroRequest macroRequest = pwmRequest.getMacroMachine();
             final String macroedUrl = macroRequest.expandMacros( configuredRedirectUrl );
             pwmRequest.getPwmResponse().sendRedirect( macroedUrl );
             return ProcessStatus.Halt;

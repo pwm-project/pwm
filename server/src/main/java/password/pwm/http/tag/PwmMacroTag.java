@@ -53,7 +53,7 @@ public class PwmMacroTag extends TagSupport
         try
         {
             final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
-            final MacroRequest macroRequest = pwmRequest.getPwmSession().getSessionManager().getMacroMachine( );
+            final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
             final String outputValue = macroRequest.expandMacros( value );
             pageContext.getOut().write( outputValue );
         }

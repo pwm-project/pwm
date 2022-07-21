@@ -20,12 +20,15 @@
 
 package password.pwm.util.cli.commands;
 
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
+import password.pwm.util.cli.CliException;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.security.KeyStore;
 import java.util.Arrays;
 
@@ -36,7 +39,7 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand
 
     @Override
     void doCommand( )
-            throws Exception
+            throws IOException, PwmUnrecoverableException, CliException
     {
         final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
         if ( outputFile.exists() )
@@ -52,7 +55,14 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand
 
         try ( FileOutputStream fos = new FileOutputStream( outputFile ) )
         {
-            keyStore.store( fos, password.toCharArray() );
+            try
+            {
+                keyStore.store( fos, password.toCharArray() );
+            }
+            catch ( final Exception e )
+            {
+                throw new CliException( "error writing keystore to file: " + e.getMessage() );
+            }
         }
 
         out( "successfully exported java keystore to " + outputFile.getAbsolutePath() );
@@ -61,26 +71,7 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand
     @Override
     public CliParameters getCliParameters( )
     {
-        final CliParameters.Option aliasValueOption = new CliParameters.Option()
-        {
-            @Override
-            public boolean isOptional( )
-            {
-                return false;
-            }
-
-            @Override
-            public Type getType( )
-            {
-                return Type.STRING;
-            }
-
-            @Override
-            public String getName( )
-            {
-                return ALIAS_OPTIONNAME;
-            }
-        };
+        final CliParameters.Option aliasValueOption = CliParameters.newRequiredStringOption( ALIAS_OPTIONNAME );
 
         final CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ExportHttpsKeyStore";

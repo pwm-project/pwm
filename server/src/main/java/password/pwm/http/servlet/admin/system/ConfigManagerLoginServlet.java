@@ -196,12 +196,17 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
     private static void updateLoginHistory( final PwmRequest pwmRequest, final UserIdentity userIdentity, final boolean successful )
     {
+        if ( userIdentity == null )
+        {
+            return;
+        }
+
         final ConfigLoginHistory configLoginHistory = readConfigLoginHistory( pwmRequest );
         final ConfigLoginEvent event = new ConfigLoginEvent(
-                userIdentity == null ? "n/a" : userIdentity.toDisplayString(),
+                userIdentity.toDisplayString(),
                 Instant.now(),
-                pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress()
-        );
+                pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress() );
+
         final int maxEvents = Integer.parseInt( pwmRequest.getPwmDomain().getConfig().readAppProperty( AppProperty.CONFIG_HISTORY_MAX_ITEMS ) );
         configLoginHistory.addEvent( event, maxEvents, successful );
         pwmRequest.getPwmApplication().writeAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, configLoginHistory );

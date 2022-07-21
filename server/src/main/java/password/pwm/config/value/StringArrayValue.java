@@ -26,6 +26,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -44,10 +45,15 @@ public class StringArrayValue extends AbstractValue implements StoredValue
 {
     private final List<String> values;
 
-    public StringArrayValue( final List<String> values )
+    private StringArrayValue( final PwmSetting pwmSetting, final List<String> values )
     {
-        final List<String> copiedValues = new ArrayList<>( values == null ? Collections.emptyList() : values );
-        copiedValues.removeAll( Collections.singleton( null ) );
+        final List<String> copiedValues = new ArrayList<>( CollectionUtil.stripNulls( values ) );
+
+        if ( pwmSetting != null && pwmSetting.getFlags().contains( PwmSettingFlag.Sorted ) )
+        {
+            Collections.sort( copiedValues );
+        }
+
         this.values = List.copyOf( copiedValues );
     }
 
@@ -56,15 +62,15 @@ public class StringArrayValue extends AbstractValue implements StoredValue
         return new StoredValueFactory()
         {
             @Override
-            public StringArrayValue fromJson( final String input )
+            public StringArrayValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 if ( StringUtil.isEmpty( input ) )
                 {
-                    return new StringArrayValue( Collections.emptyList() );
+                    return new StringArrayValue( pwmSetting, Collections.emptyList() );
                 }
                 else
                 {
-                    return new StringArrayValue( JsonFactory.get().deserializeStringList( input ) );
+                    return new StringArrayValue( pwmSetting, JsonFactory.get().deserializeStringList( input ) );
                 }
             }
 
@@ -76,14 +82,14 @@ public class StringArrayValue extends AbstractValue implements StoredValue
                         .flatMap( Optional::stream )
                         .collect( Collectors.toList() );
 
-                if ( pwmSetting != null && pwmSetting.getFlags().contains( PwmSettingFlag.Sorted ) )
-                {
-                    Collections.sort( values );
-                }
-
-                return new StringArrayValue( values );
+                return new StringArrayValue( pwmSetting, values );
             }
         };
+    }
+
+    public static StringArrayValue create( final List<String> values )
+    {
+        return new StringArrayValue( null, values );
     }
 
     @Override

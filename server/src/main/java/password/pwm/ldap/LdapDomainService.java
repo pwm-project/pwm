@@ -25,7 +25,6 @@ import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.provider.ProviderStatistics;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -53,26 +52,21 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 
-public class LdapConnectionService extends AbstractPwmService implements PwmService
+public class LdapDomainService extends AbstractPwmService implements PwmService
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( LdapConnectionService.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( LdapDomainService.class );
 
     private final Map<String, ErrorInformation> lastLdapErrors = new ConcurrentHashMap<>();
-    private final ThreadLocal<ThreadLocalContainer> threadLocalProvider = new ThreadLocal<>();
-    private final Set<ThreadLocalContainer> threadLocalContainers = Collections.synchronizedSet( Collections.newSetFromMap( new WeakHashMap<>() ) );
     private final ReentrantLock reentrantLock = new ReentrantLock();
     private final ConditionalTaskExecutor debugLogger = ConditionalTaskExecutor.forPeriodicTask(
             this::conditionallyLogDebugInfo,
@@ -83,15 +77,13 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
     private ChaiProviderFactory chaiProviderFactory;
     private AtomicLoopIntIncrementer slotIncrementer;
 
-    private boolean useThreadLocal;
-
     private final StatisticCounterBundle<StatKey> stats = new StatisticCounterBundle<>( StatKey.class );
 
     public static long totalLdapConnectionCount( final PwmApplication pwmApplication )
     {
         return pwmApplication.domains().values().stream()
                 .map( PwmDomain::getLdapConnectionService )
-                .map( LdapConnectionService::connectionCount )
+                .map( LdapDomainService::connectionCount )
                 .map( Long::valueOf )
                 .reduce( 0L, Long::sum );
     }
@@ -141,14 +133,11 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
         this.pwmDomain = pwmApplication.domains().get( domainID );
         this.chaiProviderFactory = ChaiProviderFactory.newProviderFactory();
 
-        useThreadLocal = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROXY_USE_THREAD_LOCAL ) );
-        LOGGER.trace( () -> "threadLocal enabled: " + useThreadLocal );
-
         // read the lastLoginTime
         this.lastLdapErrors.putAll( pwmApplication.readLastLdapFailure( getDomainID() ) );
 
         final int connectionsPerProfile = maxSlotsPerProfile( pwmDomain );
-        LOGGER.trace( () -> "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
+        LOGGER.trace( getSessionLabel(), () -> "allocating " + connectionsPerProfile + " ldap proxy connections per profile" );
         slotIncrementer = AtomicLoopIntIncrementer.builder().ceiling( connectionsPerProfile ).build();
 
         for ( final LdapProfile ldapProfile : pwmDomain.getConfig().getLdapProfiles().values() )
@@ -164,7 +153,7 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
     {
         setStatus( STATUS.CLOSED );
         logDebugInfo();
-        LOGGER.trace( () -> "closing ldap proxy connections" );
+        LOGGER.trace( getSessionLabel(), () -> "closing ldap proxy connections" );
 
         try
         {
@@ -172,13 +161,11 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error closing ldap proxy connection: " + e.getMessage(), e );
+            LOGGER.error( getSessionLabel(), () -> "error closing ldap proxy connection: " + e.getMessage(), e );
         }
 
         proxyChaiProviders.clear();
         lastLdapErrors.clear();
-        iterateThreadLocals( container -> container.getProviderMap().clear() );
-        threadLocalContainers.clear();
     }
 
     @Override
@@ -198,7 +185,6 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
                 .debugProperties( debugProperties )
                 .build();
     }
-
 
     public ChaiProvider getProxyChaiProvider( final SessionLabel sessionLabel, final String identifier )
             throws PwmUnrecoverableException
@@ -221,11 +207,6 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
                 ? pwmDomain.getConfig().getDefaultLdapProfile()
                 : ldapProfile;
 
-        if ( useThreadLocal )
-        {
-            return getThreadLocalChaiProvider( sessionLabel, effectiveProfile );
-        }
-
         return getSharedLocalChaiProvider( sessionLabel, effectiveProfile );
     }
 
@@ -243,38 +224,6 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
         }
 
         return proxyChaiProvider;
-    }
-
-    private ChaiProvider getThreadLocalChaiProvider( final SessionLabel sessionLabel, final LdapProfile ldapProfile )
-            throws PwmUnrecoverableException
-    {
-        reentrantLock.lock();
-        try
-        {
-            if ( threadLocalProvider.get() == null )
-            {
-                final ThreadLocalContainer threadLocalContainer = new ThreadLocalContainer();
-                threadLocalProvider.set( threadLocalContainer );
-                threadLocalContainers.add( threadLocalContainer );
-            }
-
-            final String profileID = ldapProfile.getIdentifier();
-            final ThreadLocalContainer threadLocalContainer = threadLocalProvider.get();
-
-            if ( !threadLocalContainer.getProviderMap().containsKey( profileID ) )
-            {
-                final ChaiProvider chaiProvider = newProxyChaiProvider( sessionLabel, ldapProfile );
-                threadLocalContainer.getProviderMap().put( profileID, chaiProvider );
-            }
-
-            threadLocalContainer.setTimestamp( Instant.now() );
-            threadLocalContainer.setThreadName( Thread.currentThread().getName() );
-            return threadLocalContainer.getProviderMap().get( profileID );
-        }
-        finally
-        {
-            reentrantLock.unlock();
-        }
     }
 
     private ChaiProvider newProxyChaiProvider( final SessionLabel sessionLabel, final LdapProfile ldapProfile )
@@ -423,7 +372,6 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
         final int activeConnections = connectionCount();
 
         final AtomicInteger threadLocalConnections = new AtomicInteger( 0 );
-        iterateThreadLocals( container -> threadLocalConnections.set( threadLocalConnections.intValue() + container.getProviderMap().size() ) );
 
         final Map<DebugKey, String> debugInfo = new TreeMap<>();
         debugInfo.put( DebugKey.Allocated, String.valueOf( allocatedConnections ) );
@@ -434,53 +382,4 @@ public class LdapConnectionService extends AbstractPwmService implements PwmServ
         return CollectionUtil.enumMapToStringMap( debugInfo );
     }
 
-    @Data
-    private static class ThreadLocalContainer
-    {
-        private final Map<String, ChaiProvider> providerMap = new ConcurrentHashMap<>();
-        private volatile Instant timestamp = Instant.now();
-        private volatile String threadName;
-    }
-
-    void cleanupIssuedThreadLocals()
-    {
-        final TimeDuration maxIdleTime = TimeDuration.MINUTE;
-
-        iterateThreadLocals( container ->
-        {
-            if ( !container.getProviderMap().isEmpty() )
-            {
-                final Instant timestamp = container.getTimestamp();
-                final TimeDuration age = TimeDuration.fromCurrent( timestamp );
-                if ( age.isLongerThan( maxIdleTime ) )
-                {
-                    for ( final ChaiProvider chaiProvider : container.getProviderMap().values() )
-                    {
-                        LOGGER.trace( () -> "discarding idled connection id=" + chaiProvider.toString() + " from orphaned threadLocal, age="
-                                + age.asCompactString() + ", thread=" + container.getThreadName() );
-                        stats.increment( StatKey.clearedThreadLocals );
-                    }
-                    container.getProviderMap().clear();
-                }
-            }
-        } );
-
-        debugLogger.conditionallyExecuteTask();
-    }
-
-    private void iterateThreadLocals( final Consumer<ThreadLocalContainer> consumer )
-    {
-        reentrantLock.lock();
-        try
-        {
-            for ( final ThreadLocalContainer container : new HashSet<>( threadLocalContainers ) )
-            {
-                consumer.accept( container );
-            }
-        }
-        finally
-        {
-            reentrantLock.unlock();
-        }
-    }
 }

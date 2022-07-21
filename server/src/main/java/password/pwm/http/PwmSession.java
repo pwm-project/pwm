@@ -21,8 +21,10 @@
 package password.pwm.http;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
 import password.pwm.AppProperty;
+import password.pwm.Permission;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
@@ -30,22 +32,27 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ChallengeProfile;
+import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.UserSessionDataCacheBean;
-import password.pwm.ldap.UserInfo;
-import password.pwm.ldap.UserInfoBean;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.ldap.auth.AuthenticationResult;
 import password.pwm.ldap.auth.AuthenticationType;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.user.UserInfo;
+import password.pwm.user.UserInfoBean;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.MiscUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 
@@ -63,7 +70,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author Jason D. Rivard
  */
-@Data
+@EqualsAndHashCode
 public class PwmSession implements Serializable
 {
     private static final long serialVersionUID = 1L;
@@ -83,7 +90,7 @@ public class PwmSession implements Serializable
     private static final Lock CREATION_LOCK = new ReentrantLock();
 
     private final Lock securityKeyLock = new ReentrantLock();
-    private final transient SessionManager sessionManager;
+    private transient ClientConnectionHolder clientConnectionHolder;
 
     public static PwmSession createPwmSession( final PwmDomain pwmDomain )
     {
@@ -110,15 +117,27 @@ public class PwmSession implements Serializable
         StatisticsClient.incrementStat( pwmDomain.getPwmApplication(), Statistic.HTTP_SESSIONS );
 
         pwmDomain.getSessionTrackService().addSessionData( this );
-        this.sessionManager = new SessionManager( pwmDomain, this );
 
         LOGGER.trace( () -> "created new session" );
     }
 
 
-    public SessionManager getSessionManager( )
+    public ClientConnectionHolder getClientConnectionHolder( final PwmApplication pwmApplication )
     {
-        return sessionManager;
+        if ( clientConnectionHolder != null )
+        {
+            if ( isAuthenticated() && !Objects.equals( clientConnectionHolder.getUserIdentity().orElse( null ), getUserInfo().getUserIdentity() ) )
+            {
+                clientConnectionHolder = null;
+            }
+        }
+
+        if ( clientConnectionHolder == null )
+        {
+            clientConnectionHolder = ClientConnectionHolder.unauthenticatedClientConnectionContext( pwmApplication, domainID, this::getLabel );
+        }
+
+        return clientConnectionHolder;
     }
 
     public LocalSessionStateBean getSessionStateBean( )
@@ -215,7 +234,7 @@ public class PwmSession implements Serializable
                 final UserInfo userInfo = getUserInfo();
                 userIdentity = userInfo.getUserIdentity();
                 userID = userInfo.getUsername();
-                profile = userIdentity.getLdapProfileID();
+                profile = userIdentity == null ? null : userIdentity.getLdapProfileID();
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -235,11 +254,11 @@ public class PwmSession implements Serializable
     }
 
     /**
-     * Unauthenticate the pwmSession.
+     * UnAuthenticate the pwmSession.
      *
      * @param pwmRequest current request of the user
      */
-    public void unauthenticateUser( final PwmRequest pwmRequest )
+    public void unAuthenticateUser( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
         final LocalSessionStateBean ssBean = getSessionStateBean();
@@ -251,7 +270,7 @@ public class PwmSession implements Serializable
 
             final StringBuilder sb = new StringBuilder();
 
-            sb.append( "unauthenticate session from " ).append( ssBean.getSrcAddress() );
+            sb.append( "un-authenticate session from " ).append( ssBean.getSrcAddress() );
             if ( getUserInfo().getUserIdentity() != null )
             {
                 sb.append( " (" ).append( getUserInfo().getUserIdentity() ).append( ')' );
@@ -261,7 +280,11 @@ public class PwmSession implements Serializable
             this.getLoginInfoBean().setAuthenticated( false );
 
             // close out any outstanding connections
-            getSessionManager().closeConnections();
+            if ( pwmRequest != null && clientConnectionHolder != null )
+            {
+                getClientConnectionHolder( pwmRequest.getPwmApplication() ).closeConnections();
+            }
+            clientConnectionHolder = null;
 
             LOGGER.debug( pwmRequest, sb::toString );
         }
@@ -415,5 +438,78 @@ public class PwmSession implements Serializable
         {
             securityKeyLock.unlock();
         }
+    }
+
+    public void updateLdapAuthentication(
+            final PwmApplication pwmApplication,
+            final UserIdentity userIdentity,
+            final AuthenticationResult authenticationResult
+    )
+    {
+        clientConnectionHolder = ClientConnectionHolder.authenticatedClientConnectionContext(
+                pwmApplication,
+                userIdentity,
+                this::getLabel,
+                authenticationResult.getUserProvider(),
+                authenticationResult.getAuthenticationType() );
+    }
+
+    public boolean checkPermission(
+            final PwmRequestContext pwmRequestContext,
+            final Permission permission
+    )
+            throws PwmUnrecoverableException
+    {
+        final Instant startTime = Instant.now();
+
+        final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
+        final PwmDomain pwmDomain = pwmRequestContext.getPwmDomain();
+
+        if ( !isAuthenticated() )
+        {
+            LOGGER.trace( sessionLabel, () -> "user is not authenticated, returning false for permission check" );
+            return false;
+        }
+
+        Permission.PermissionStatus status = getUserSessionDataCacheBean().getPermission( permission );
+        if ( status == Permission.PermissionStatus.UNCHECKED )
+        {
+            LOGGER.debug( sessionLabel, () -> "checking permission " + permission.toString() + " for user " + getUserInfo().getUserIdentity().toDisplayString() );
+
+            if ( permission == Permission.PWMADMIN && !pwmDomain.getConfig().isAdministrativeDomain() )
+            {
+                status = Permission.PermissionStatus.DENIED;
+            }
+            else
+            {
+                final PwmSetting setting = permission.getPwmSetting();
+                final List<UserPermission> userPermission = pwmDomain.getConfig().readSettingAsUserPermission( setting );
+                final boolean result = UserPermissionUtility.testUserPermission( pwmDomain, sessionLabel, getUserInfo().getUserIdentity(), userPermission );
+                status = result ? Permission.PermissionStatus.GRANTED : Permission.PermissionStatus.DENIED;
+            }
+
+            getUserSessionDataCacheBean().setPermission( permission, status );
+
+            {
+                final String debugName = isAuthenticated()
+                        ? getUserInfo().getUserIdentity().toDelimitedKey()
+                        : "[unauthenticated]";
+                final Permission.PermissionStatus finalStatus = status;
+                LOGGER.debug( sessionLabel, () -> "permission " + permission + " for user " + debugName + " is " + finalStatus, TimeDuration.fromCurrent( startTime ) );
+            }
+        }
+
+        return status == Permission.PermissionStatus.GRANTED;
+    }
+
+    public MacroRequest getMacroMachine(
+            final PwmRequestContext pwmRequestContext
+    )
+            throws PwmUnrecoverableException
+    {
+        final UserInfo userInfoBean = isAuthenticated()
+                ? getUserInfo()
+                : null;
+        return MacroRequest.forUser( pwmRequestContext.getPwmApplication(), pwmRequestContext.getSessionLabel(), userInfoBean, getLoginInfoBean() );
     }
 }

@@ -41,20 +41,23 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.BCrypt;
-import password.pwm.util.secure.HmacAlgorithm;
+import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmRandom;
-import password.pwm.util.secure.SecureEngine;
 
-import java.time.Instant;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.DigestOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -185,15 +188,10 @@ public abstract class StoredConfigurationUtil
             return Stream.empty();
         };
 
-        final Instant startTime = Instant.now();
-        final List<String> errorStrings = CollectionUtil.iteratorToStream( storedConfiguration.keys() )
+        return CollectionUtil.iteratorToStream( storedConfiguration.keys() )
                 .filter( key -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                 .flatMap( validateSettingFunction )
-                .collect( Collectors.toList() );
-
-
-        LOGGER.trace( () -> "StoredConfiguration validator completed", () -> TimeDuration.fromCurrent( startTime ) );
-        return Collections.unmodifiableList( errorStrings );
+                .collect( Collectors.toUnmodifiableList() );
     }
 
     public static boolean verifyPassword( final StoredConfiguration storedConfiguration, final String password )
@@ -252,8 +250,6 @@ public abstract class StoredConfigurationUtil
                 new PasswordValue( new PasswordData( PwmRandom.getInstance().alphaNumericString( 1024 ) ) ),
                 null
         );
-
-        LOGGER.debug( () -> "initialized new random security key" );
     }
 
     public static Map<String, String> makeDebugMap(
@@ -321,8 +317,6 @@ public abstract class StoredConfigurationUtil
             final StoredConfiguration modifiedConfiguration
     )
     {
-        final Instant startTime = Instant.now();
-
         final Predicate<StoredConfigKey> hashTester = key ->
         {
             final Optional<String> hash1 = originalConfiguration.readStoredValue( key ).map( StoredValue::valueHash );
@@ -330,16 +324,12 @@ public abstract class StoredConfigurationUtil
             return !hash1.equals( hash2 );
         };
 
-        final Set<StoredConfigKey> deltaReferences = Stream.concat(
+        return Stream.concat(
                 CollectionUtil.iteratorToStream( originalConfiguration.keys() ),
                 CollectionUtil.iteratorToStream( modifiedConfiguration.keys() ) )
                 .distinct()
                 .filter( hashTester )
                 .collect( Collectors.toUnmodifiableSet() );
-
-        LOGGER.trace( () -> "generated " + deltaReferences.size() + " changeLog items via compare", () -> TimeDuration.fromCurrent( startTime ) );
-
-        return deltaReferences;
     }
 
     public static StoredValue getValueOrDefault(
@@ -437,7 +427,7 @@ public abstract class StoredConfigurationUtil
             final List<String> newProfileIDList = new ArrayList<>( existingProfiles );
             newProfileIDList.add( destinationID );
             final StoredConfigKey key = StoredConfigKey.forSetting( profileSetting, null, domainID );
-            final StoredValue value = new StringArrayValue( newProfileIDList );
+            final StoredValue value = StringArrayValue.create( newProfileIDList );
             modifier.writeSetting( key, value, userIdentity );
         }
 
@@ -452,7 +442,6 @@ public abstract class StoredConfigurationUtil
     )
             throws PwmUnrecoverableException
     {
-        final Instant startTime = Instant.now();
         final DomainID sourceID = DomainID.create( source );
         final DomainID destinationID = DomainID.create( destination );
 
@@ -491,38 +480,33 @@ public abstract class StoredConfigurationUtil
             final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.DOMAIN_LIST, null, DomainID.systemId() );
             final List<String> domainList = new ArrayList<>( ValueTypeConverter.valueToStringArray( StoredConfigurationUtil.getValueOrDefault( oldStoredConfiguration, key ) ) );
             domainList.add( destination );
-            final StoredValue value = new StringArrayValue( domainList );
+            final StoredValue value = StringArrayValue.create( domainList );
             modifier.writeSetting( key, value, userIdentity );
         }
-
-        LOGGER.trace( () -> "copied " + modifier.modificationCount() + " domain settings from '" + source + "' to '" + destination + "' domain",
-                () -> TimeDuration.fromCurrent( startTime ) );
 
         return modifier.newStoredConfiguration();
     }
 
     public static String valueHash( final StoredConfiguration storedConfiguration )
     {
-        final Instant startTime = Instant.now();
-        final StringBuilder sb = new StringBuilder();
-
-        CollectionUtil.iteratorToStream( storedConfiguration.keys() )
-                .map( storedConfiguration::readStoredValue )
-                .flatMap( Optional::stream )
-                .forEach( v -> sb.append( v.valueHash() ) );
-
-        final String output;
-        try
+        try ( DigestOutputStream digestOutputStream = new DigestOutputStream( OutputStream.nullOutputStream(), PwmHashAlgorithm.SHA512.newMessageDigest() ) )
         {
-            output = SecureEngine.hmac( HmacAlgorithm.HMAC_SHA_512, storedConfiguration.getKey(), sb.toString() );
+            final Iterator<StoredConfigKey> keyIterator = storedConfiguration.keys();
+            while ( keyIterator.hasNext() )
+            {
+                final Optional<StoredValue> value = storedConfiguration.readStoredValue( keyIterator.next() );
+                if ( value.isPresent() )
+                {
+                    digestOutputStream.write( value.get().valueHash().getBytes( StandardCharsets.UTF_8 ) );
+                }
+            }
+
+            return JavaHelper.binaryArrayToHex( digestOutputStream.getMessageDigest().digest() );
         }
-        catch ( final PwmUnrecoverableException e )
+        catch ( final IOException e )
         {
             throw new IllegalStateException( e );
         }
-
-        LOGGER.trace( () -> "calculated StoredConfiguration hash: " + output, () -> TimeDuration.fromCurrent( startTime ) );
-        return output;
     }
 
     public static boolean isDefaultValue( final StoredConfiguration storedConfiguration, final StoredConfigKey key )

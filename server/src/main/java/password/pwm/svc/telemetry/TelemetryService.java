@@ -67,6 +67,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -231,6 +232,11 @@ public class TelemetryService extends AbstractPwmService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
+        if ( status() != STATUS.OPEN )
+        {
+            return null;
+        }
+
         final Map<String, String> debugMap = new LinkedHashMap<>();
         debugMap.put( "lastPublishTime", StringUtil.toIsoDate( lastPublishTime ) );
         if ( lastError != null )
@@ -259,31 +265,7 @@ public class TelemetryService extends AbstractPwmService implements PwmService
                 .sorted()
                 .collect( Collectors.toUnmodifiableList() );
 
-        String ldapVendorName = null;
-
-        domainConfigLoop:
-        for ( final PwmDomain pwmDomain : getPwmApplication().domains().values() )
-        {
-            for ( final LdapProfile ldapProfile : pwmDomain.getConfig().getLdapProfiles().values() )
-            {
-                try
-                {
-                    final DirectoryVendor directoryVendor = ldapProfile.getProxyChaiProvider( getSessionLabel(), pwmDomain ).getDirectoryVendor();
-                    final PwmLdapVendor pwmLdapVendor = PwmLdapVendor.fromChaiVendor( directoryVendor );
-                    if ( pwmLdapVendor != null )
-                    {
-                        ldapVendorName = pwmLdapVendor.name();
-                        break domainConfigLoop;
-
-                    }
-                }
-                catch ( final Exception e )
-                {
-                    LOGGER.trace( getSessionLabel(), () -> "unable to read ldap vendor type for stats publication: " + e.getMessage() );
-                }
-            }
-        }
-
+        final Optional<String> ldapVendorName = determineLdapVendorName();
 
         final Map<String, String> aboutStrings = new TreeMap<>();
         {
@@ -306,11 +288,36 @@ public class TelemetryService extends AbstractPwmService implements PwmService
                 .siteDescription( config.readSettingAsString( PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION ) )
                 .versionBuild( PwmConstants.BUILD_NUMBER )
                 .versionVersion( PwmConstants.BUILD_VERSION )
-                .ldapVendorName( ldapVendorName )
+                .ldapVendorName( ldapVendorName.orElse( null ) )
                 .statistics( statData )
                 .configuredSettings( configuredSettings )
                 .about( aboutStrings )
                 .build();
+    }
+
+    private Optional<String> determineLdapVendorName()
+    {
+        for ( final PwmDomain pwmDomain : getPwmApplication().domains().values() )
+        {
+            for ( final LdapProfile ldapProfile : pwmDomain.getConfig().getLdapProfiles().values() )
+            {
+                try
+                {
+                    final DirectoryVendor directoryVendor = ldapProfile.getProxyChaiProvider( getSessionLabel(), pwmDomain ).getDirectoryVendor();
+                    final PwmLdapVendor pwmLdapVendor = PwmLdapVendor.fromChaiVendor( directoryVendor );
+                    if ( pwmLdapVendor != null )
+                    {
+                        return Optional.of( pwmLdapVendor.name() );
+                    }
+                }
+                catch ( final Exception e )
+                {
+                    LOGGER.trace( getSessionLabel(), () -> "unable to read ldap vendor type for stats publication: " + e.getMessage() );
+                }
+            }
+        }
+
+        return Optional.empty();
     }
 
     private static String makeId( final PwmApplication pwmApplication ) throws PwmUnrecoverableException

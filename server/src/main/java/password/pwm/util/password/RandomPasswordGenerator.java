@@ -138,7 +138,7 @@ public class RandomPasswordGenerator
         if ( mutatorResult.isValidPassword() )
         {
             LOGGER.trace( sessionLabel, () -> "finished random password generation after " + mutatorResult.getTryCount()
-                    + " tries.", () -> TimeDuration.fromCurrent( startTime ) );
+                    + " tries.", TimeDuration.fromCurrent( startTime ) );
         }
         else
         {
@@ -149,7 +149,7 @@ public class RandomPasswordGenerator
                 final int judgeLevel = PasswordUtility.judgePasswordStrength( pwmDomain.getConfig(), mutatorResult.getPassword() );
                 LOGGER.error( sessionLabel, () -> "failed random password generation after "
                                 + mutatorResult.getTryCount() + " tries. " + "(errors=" + errors + ", judgeLevel=" + judgeLevel,
-                        () -> TimeDuration.fromCurrent( startTime ) );
+                        TimeDuration.fromCurrent( startTime ) );
             }
         }
 

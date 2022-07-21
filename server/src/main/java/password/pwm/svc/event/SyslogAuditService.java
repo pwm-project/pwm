@@ -255,7 +255,7 @@ public class SyslogAuditService
         }
         catch ( final PwmOperationalException e )
         {
-            LOGGER.warn( () -> "unable to add syslog message to queue: " + e.getMessage() );
+            LOGGER.warn( sessionLabel, () -> "unable to add syslog message to queue: " + e.getMessage() );
         }
     }
 

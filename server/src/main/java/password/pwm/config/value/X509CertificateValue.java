@@ -74,7 +74,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
             }
 
             @Override
-            public X509CertificateValue fromJson( final String input )
+            public X509CertificateValue fromJson( final PwmSetting pwmSetting, final String input )
             {
                 return new X509CertificateValue( Collections.emptyList() );
             }

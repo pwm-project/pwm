@@ -61,6 +61,18 @@ public class CollectionUtil
                 .collect( Collectors.toUnmodifiableList() );
     }
 
+    public static <V> Set<V> stripNulls( final Set<V> input )
+    {
+        if ( input == null )
+        {
+            return Collections.emptySet();
+        }
+
+        return input.stream()
+                .filter( Objects::nonNull )
+                .collect( Collectors.toUnmodifiableSet() );
+    }
+
     public static <K, V> Map<K, V> stripNulls( final Map<K, V> input )
     {
         if ( input == null )
@@ -188,5 +200,27 @@ public class CollectionUtil
                 },
                 LinkedHashMap::new
         );
+    }
+
+    public static <T, K extends Enum<K>, U> Collector<T, ?, Map<K, U>> collectorToEnumMap(
+            final Class<K> keyClass,
+            final Function<? super T, ? extends K> keyMapper,
+            final Function<? super T, ? extends U> valueMapper
+    )
+    {
+        return Collectors.toMap(
+                keyMapper,
+                valueMapper,
+                ( key1, key2 ) ->
+                {
+                    throw new IllegalStateException( "Duplicate key " + key1 );
+                },
+                () -> new EnumMap<>( keyClass )
+        );
+    }
+
+    public static <E extends Enum<E>> Stream<E> enumStream( final Class<E> enumClass )
+    {
+        return EnumSet.allOf( enumClass ).stream();
     }
 }

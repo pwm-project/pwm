@@ -22,6 +22,7 @@ package password.pwm.util.debug;
 
 import password.pwm.util.java.JavaHelper;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -35,7 +36,8 @@ class ThreadDumpDebugItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream ) throws Exception
+    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+            throws IOException
     {
         final ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads( true, true );
         for ( final ThreadInfo threadInfo : threads )

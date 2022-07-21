@@ -66,8 +66,6 @@
     margin-left: 100px;
     margin-top: 0;
     animation: fadein 2s;
-    -moz-animation: fadein 2s;
-    -webkit-animation: fadein 2s;
 }
 
 #centerbody.wide {
@@ -118,12 +116,6 @@ a:hover {
 }
 
 @keyframes fadein { from { opacity:0; } to { opacity:1; } }
-@-moz-keyframes fadein { from { opacity:0 } to { opacity:1 } }
-@-webkit-keyframes fadein { from { opacity:0 } to { opacity:1 } }
-
-
-
-
 
 #header-menu-icon {
   display: inline-block;

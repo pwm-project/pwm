@@ -95,7 +95,7 @@ public class HttpEventManager implements
                 if ( httpSession.getAttribute( PwmConstants.SESSION_ATTR_PWM_SESSION ) != null )
                 {
                     final String debugMsg = "destroyed session" + ": " + makeSessionDestroyedDebugMsg( pwmSession );
-                    pwmSession.unauthenticateUser( null );
+                    pwmSession.unAuthenticateUser( null );
 
                     final PwmApplication pwmApplication = ContextManager.getPwmApplication( httpSession.getServletContext() );
                     if ( pwmApplication != null )
