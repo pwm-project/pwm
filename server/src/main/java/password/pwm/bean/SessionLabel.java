@@ -38,6 +38,7 @@ public class SessionLabel implements Serializable
     public static final SessionLabel REPORTING_SESSION_LABEL = SessionLabel.builder().sessionID( SESSION_LABEL_SESSION_ID ).username( "reporting" ).build();
     public static final SessionLabel AUDITING_SESSION_LABEL = SessionLabel.builder().sessionID( SESSION_LABEL_SESSION_ID ).username( "auditing" ).build();
     public static final SessionLabel TELEMETRY_SESSION_LABEL = SessionLabel.builder().sessionID( SESSION_LABEL_SESSION_ID ).username( "telemetry" ).build();
+    public static final SessionLabel VERSIONCHECK_SESSION_LABEL = SessionLabel.builder().sessionID( SESSION_LABEL_SESSION_ID ).username( "versioncheck" ).build();
     public static final SessionLabel PWNOTIFY_SESSION_LABEL = SessionLabel.builder().sessionID( SESSION_LABEL_SESSION_ID ).username( "pwnotify" ).build();
     public static final SessionLabel CONTEXT_SESSION_LABEL = SessionLabel.builder().sessionID( SESSION_LABEL_SESSION_ID ).username( "context" ).build();
 

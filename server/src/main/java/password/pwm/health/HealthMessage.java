@@ -108,6 +108,8 @@ public enum HealthMessage
     ServiceClosed_AppReadOnly( HealthStatus.CAUTION, HealthTopic.Application ),
     ServiceError( HealthStatus.WARN, HealthTopic.Application ),
     SMS_SendFailure( HealthStatus.WARN, HealthTopic.SMS ),
+    Version_OutOfDate( HealthStatus.WARN, HealthTopic.Platform ),
+    Version_Unreachable( HealthStatus.CAUTION, HealthTopic.Platform ),
     Wordlist_AutoImportFailure( HealthStatus.WARN, HealthTopic.Configuration ),
     Wordlist_ImportInProgress( HealthStatus.CAUTION, HealthTopic.Application ),;
 

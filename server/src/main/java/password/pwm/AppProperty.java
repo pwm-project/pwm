@@ -369,6 +369,9 @@ public enum AppProperty
 
     /** Regular expression to be used for matching URLs to be shortened by the URL Shortening Service Class. */
     URL_SHORTNER_URL_REGEX                          ( "urlshortener.url.regex" ),
+    VERSION_CHECK_URL                               ( "versionCheck.url" ),
+    VERSION_CHECK_CHECK_INTERVAL_SECONDS            ( "versionCheck.checkIntervalSeconds" ),
+    VERSION_CHECK_CHECK_INTERVAL_ERROR_SECONDS      ( "versionCheck.checkIntervalErrorSeconds" ),
     WORDLIST_BUILTIN_PATH                           ( "wordlist.builtin.path" ),
     WORDLIST_CHAR_LENGTH_MAX                        ( "wordlist.maxCharLength" ),
     WORDLIST_CHAR_LENGTH_MIN                        ( "wordlist.minCharLength" ),

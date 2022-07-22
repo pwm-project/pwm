@@ -37,6 +37,7 @@ public enum AppAttribute
     HTTPS_SELF_CERT( "https.selfCert" ),
     CONFIG_LOGIN_HISTORY( "config.loginHistory" ),
     LOCALDB_LOGGER_STORAGE_FORMAT( "localdb.logger.storage.format" ),
+    VERSION_CHECK_CACHE( "versionCheckInfoCache" ),
 
     TELEMETRY_LAST_PUBLISH_TIMESTAMP( "telemetry.lastPublish.timestamp" );
 

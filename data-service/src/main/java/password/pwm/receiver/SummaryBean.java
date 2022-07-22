@@ -89,7 +89,6 @@ public class SummaryBean
                         .osVersion( bean.getAbout().get( PwmAboutProperty.java_osVersion.name() ) )
                         .servletName( bean.getAbout().get( PwmAboutProperty.java_appServerInfo.name() ) )
                         .dbVendor( dbVendor )
-                        .appliance( Boolean.parseBoolean( bean.getAbout().get( PwmAboutProperty.app_mode_appliance.name() ) ) )
                         .javaVm( javaVmInfo( bean, "n/a" ) )
                         .build();
 

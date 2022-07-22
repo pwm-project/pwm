@@ -60,6 +60,7 @@ public enum PwmServiceEnum
     UserSearchEngine( password.pwm.ldap.search.UserSearchEngine.class, Flag.StartDuringRuntimeInstance ),
     PeopleSearchService( password.pwm.http.servlet.peoplesearch.PeopleSearchService.class ),
     TelemetryService( password.pwm.svc.telemetry.TelemetryService.class ),
+    VersionCheckService( password.pwm.svc.version.VersionCheckService.class ),
     ClusterService( NodeService.class ),
     PwExpiryNotifyService( PwNotifyService.class ),;
 

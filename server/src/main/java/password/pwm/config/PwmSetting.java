@@ -62,6 +62,8 @@ public enum PwmSetting
     // application settings
     PWM_SITE_URL(
             "pwm.selfURL", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL ),
+    VERSION_CHECK_ENABLE(
+            "pwm.versionCheck.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.TELEMETRY ),
     PUBLISH_STATS_ENABLE(
             "pwm.publishStats.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.TELEMETRY ),
     PUBLISH_STATS_SITE_DESCRIPTION(
