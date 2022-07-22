@@ -48,7 +48,7 @@ public class HttpClientService extends AbstractPwmService implements PwmService
 
     private Class<PwmHttpClientProvider> httpClientClass;
     private PwmApplication pwmApplication;
-
+    private boolean useThreadLocals = false;
     private final Map<PwmHttpClientConfiguration, ThreadLocal<PwmHttpClientProvider>> clients = new ConcurrentHashMap<>(  );
     private final Map<PwmHttpClientProvider, Object> issuedClients = Collections.synchronizedMap( new WeakHashMap<>(  ) );
 
@@ -72,6 +72,8 @@ public class HttpClientService extends AbstractPwmService implements PwmService
             throws PwmException
     {
         this.pwmApplication = pwmApplication;
+        this.useThreadLocals = pwmApplication.getConfig().readBooleanAppProperty( AppProperty.HTTP_CLIENT_USE_THREAD_LOCAL );
+
         final String implClassName = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_CLIENT_IMPLEMENTATION );
         try
         {
@@ -115,15 +117,18 @@ public class HttpClientService extends AbstractPwmService implements PwmService
     {
         Objects.requireNonNull( pwmHttpClientConfiguration );
 
-        final ThreadLocal<PwmHttpClientProvider> threadLocal = clients.computeIfAbsent(
-                pwmHttpClientConfiguration,
-                clientConfig -> new ThreadLocal<>() );
-
-        final PwmHttpClient existingClient = threadLocal.get();
-        if ( existingClient != null && existingClient.isOpen() )
+        if ( useThreadLocals )
         {
-            stats.increment( StatsKey.reusedClients );
-            return existingClient;
+            final ThreadLocal<PwmHttpClientProvider> threadLocal = clients.computeIfAbsent(
+                    pwmHttpClientConfiguration,
+                    clientConfig -> new ThreadLocal<>() );
+
+            final PwmHttpClient existingClient = threadLocal.get();
+            if ( existingClient != null && existingClient.isOpen() )
+            {
+                stats.increment( StatsKey.reusedClients );
+                return existingClient;
+            }
         }
 
         try
@@ -131,7 +136,12 @@ public class HttpClientService extends AbstractPwmService implements PwmService
             final PwmHttpClientProvider newClient = httpClientClass.getDeclaredConstructor().newInstance();
             newClient.init( pwmApplication, this, pwmHttpClientConfiguration );
             issuedClients.put( newClient, null );
-            threadLocal.set( newClient );
+
+            if ( useThreadLocals )
+            {
+                clients.get( pwmHttpClientConfiguration ).set( newClient );
+            }
+
             stats.increment( StatsKey.createdClients );
             return newClient;
         }
