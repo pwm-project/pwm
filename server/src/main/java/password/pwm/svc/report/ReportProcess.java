@@ -36,9 +36,9 @@ import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.DisplayElement;
-import password.pwm.ldap.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.permission.UserPermissionUtility;
+import password.pwm.user.UserInfo;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
@@ -114,7 +114,7 @@ public class ReportProcess implements AutoCloseable
 
         this.debugOutputLogger = ConditionalTaskExecutor.forPeriodicTask(
                 () -> LOGGER.trace( sessionLabel, () -> "live report #" + reportId + " in progress: " + recordCounter.longValue() + " records exported",
-                        () -> TimeDuration.fromCurrent( startTime ) ),
+                        TimeDuration.fromCurrent( startTime ) ),
                 TimeDuration.MINUTE.asDuration() );
 
     }
@@ -224,7 +224,7 @@ public class ReportProcess implements AutoCloseable
         outputResult( reportProcessRequest, zipOutputStream, recordLimitReached );
 
         LOGGER.trace( sessionLabel, () -> "completed liveReport generation with " + recordCounter.longValue() + " records",
-                () -> TimeDuration.fromCurrent( startTime ) );
+                TimeDuration.fromCurrent( startTime ) );
 
     }
 
@@ -354,6 +354,11 @@ public class ReportProcess implements AutoCloseable
         recordCounter.incrementAndGet();
         processRateMeter.markEvents( 1 );
         debugOutputLogger.conditionallyExecuteTask();
+
+        LOGGER.trace( sessionLabel, () -> "live report #" + reportId + ": completed output of user " + UserIdentity.create(
+                userReportRecord.getUserDN(),
+                userReportRecord.getLdapProfile(),
+                userReportRecord.getDomainID() ).toDisplayString() );
     }
 
     private static void outputJsonSummaryToZip( final ReportSummaryData reportSummaryData, final OutputStream outputStream )
@@ -410,7 +415,7 @@ public class ReportProcess implements AutoCloseable
         LOGGER.trace(
                 sessionLabel,
                 () -> "completed ldap search process with for domain '" + pwmDomain.getDomainID() + "'",
-                () -> TimeDuration.fromCurrent( loopStartTime ) );
+                TimeDuration.fromCurrent( loopStartTime ) );
 
         processRateMeter.reset();
         return new LinkedList<>( searchResults );

@@ -59,7 +59,7 @@ public class AuthorizationFilter extends AbstractPwmFilter
     {
         if ( mode == PwmApplicationMode.CONFIGURATION )
         {
-            final Optional<PwmServletDefinition> pwmServletDefinition = pwmRequest.getURL().forServletDefinition();
+            final Optional<PwmServletDefinition> pwmServletDefinition = pwmRequest.getURL().getServletDefinition();
             if ( pwmServletDefinition.isPresent() )
             {
                 if ( pwmServletDefinition.get().getFlags().contains( PwmServletDefinition.Flag.RequiresConfigAuth )

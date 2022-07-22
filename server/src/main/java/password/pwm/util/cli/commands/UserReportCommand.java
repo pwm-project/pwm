@@ -24,6 +24,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.report.ReportProcess;
@@ -78,7 +79,7 @@ public class UserReportCommand extends AbstractCliCommand
                 reportProcess.startReport( reportProcessRequest, outputFileStream );
             }
         }
-        catch ( final IOException e )
+        catch ( final IOException | PwmUnrecoverableException e )
         {
             out( "unable to open file '" + outputFile.getAbsolutePath() + "' for writing" );
             System.exit( -1 );

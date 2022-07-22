@@ -108,7 +108,7 @@ public class AdminReportServlet extends ControlledPwmServlet
     public ProcessStatus processReportProcessStatus( final PwmRequest pwmRequest )
             throws IOException
     {
-        final ReportProcessStatus reportProcessStatus = pwmRequest.getPwmSession().getSessionManager().getReportProcess()
+        final ReportProcessStatus reportProcessStatus = pwmRequest.getPwmSession().getReportProcess()
                 .map( process -> process.getStatus( pwmRequest.getLocale() ) )
                 .orElse( ReportProcessStatus.builder().build() );
 
@@ -123,7 +123,7 @@ public class AdminReportServlet extends ControlledPwmServlet
     public ProcessStatus processCancelDownload( final PwmRequest pwmRequest )
             throws IOException
     {
-        pwmRequest.getPwmSession().getSessionManager().getReportProcess().ifPresent( ReportProcess::close );
+        pwmRequest.getPwmSession().getReportProcess().ifPresent( ReportProcess::close );
         pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );
         return ProcessStatus.Halt;
     }
@@ -149,7 +149,7 @@ public class AdminReportServlet extends ControlledPwmServlet
             final ReportService reportService = pwmRequest.getPwmApplication().getReportService();
             try ( ReportProcess reportProcess = reportService.createReportProcess( pwmRequest.getLocale(), pwmRequest.getLabel() ) )
             {
-                pwmRequest.getPwmSession().getSessionManager().setReportProcess( reportProcess );
+                pwmRequest.getPwmSession().setReportProcess( reportProcess );
                 reportProcess.startReport( reportProcessRequest, outputStream );
             }
         }

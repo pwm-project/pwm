@@ -43,6 +43,7 @@ import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.auth.AuthenticationResult;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.permission.UserPermissionUtility;
+import password.pwm.svc.report.ReportProcess;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.user.UserInfo;
@@ -57,6 +58,7 @@ import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.Serializable;
+import java.lang.ref.SoftReference;
 import java.time.Instant;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -64,6 +66,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -83,6 +86,9 @@ public class PwmSession implements Serializable
     @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
     private final transient UserSessionDataCacheBean userSessionDataCacheBean = new UserSessionDataCacheBean();
 
+    @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
+    private transient volatile SoftReference<ReportProcess> reportProcess = new SoftReference<>( null );
+
     private final DomainID domainID;
     private LoginInfoBean loginInfoBean;
     private transient UserInfo userInfo;
@@ -90,6 +96,8 @@ public class PwmSession implements Serializable
     private static final Lock CREATION_LOCK = new ReentrantLock();
 
     private final Lock securityKeyLock = new ReentrantLock();
+
+
     private transient ClientConnectionHolder clientConnectionHolder;
 
     public static PwmSession createPwmSession( final PwmDomain pwmDomain )
@@ -512,4 +520,15 @@ public class PwmSession implements Serializable
                 : null;
         return MacroRequest.forUser( pwmRequestContext.getPwmApplication(), pwmRequestContext.getSessionLabel(), userInfoBean, getLoginInfoBean() );
     }
+
+    public void setReportProcess( final ReportProcess reportProcess )
+    {
+        this.reportProcess = new SoftReference<>( reportProcess );
+    }
+
+    public Optional<ReportProcess> getReportProcess()
+    {
+        return Optional.ofNullable( this.reportProcess.get() );
+    }
+
 }
