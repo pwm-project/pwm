@@ -9,8 +9,8 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <url>https://github.com/pwm-project/pwm</url>
     <artifactId>pwm-onejar</artifactId>
-
     <packaging>jar</packaging>
 
     <name>PWM Password Self Service: Executable Server JAR</name>

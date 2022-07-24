@@ -9,8 +9,8 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <url>https://github.com/pwm-project/pwm</url>
     <artifactId>pwm-data-service</artifactId>
-
     <packaging>war</packaging>
 
     <name>PWM Password Self Service: Data Service WAR</name>

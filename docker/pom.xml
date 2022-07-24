@@ -9,9 +9,9 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <packaging>jar</packaging>
-
+    <url>https://github.com/pwm-project/pwm</url>
     <artifactId>pwm-docker</artifactId>
+    <packaging>jar</packaging>
 
     <name>PWM Password Self Service: Docker Image</name>
 
