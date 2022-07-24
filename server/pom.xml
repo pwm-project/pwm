@@ -50,6 +50,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
+                            <propertiesEncoding>ISO-8859-1</propertiesEncoding>
                             <outputDirectory>${project.build.outputDirectory}</outputDirectory>
                             <overwrite>true</overwrite>
                             <resources>
