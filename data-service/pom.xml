@@ -79,7 +79,7 @@
                         <id>copy-resources</id>
                         <phase>validate</phase>
                         <goals>
-                            <goal>copy-reaasources</goal>
+                            <goal>copy-resources</goal>
                         </goals>
                         <configuration>
                             <propertiesEncoding>ISO-8859-1</propertiesEncoding>
