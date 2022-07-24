@@ -71,6 +71,7 @@
                 <exclude>*.iml</exclude>
                 <exclude>target/**</exclude>
                 <exclude>.node/**</exclude>
+                <exclude>angular/.node/**</exclude>
                 <exclude>angular/dist/**</exclude>
                 <exclude>angular/node_modules/**</exclude>
             </excludes>
