@@ -42,6 +42,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
+                            <propertiesEncoding>ISO-8859-1</propertiesEncoding>
                             <outputDirectory>${project.build.outputDirectory}/META-INF/resources/webjars/${project.artifactId}/${project.version}</outputDirectory>
                             <resources>
                                 <resource>
