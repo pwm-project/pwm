@@ -148,7 +148,7 @@
             <plugin>
                 <groupId>com.github.jinnovations</groupId>
                 <artifactId>attribution-maven-plugin</artifactId>
-                <version>0.9.8</version>
+                <version>0.9.9-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <goals>
