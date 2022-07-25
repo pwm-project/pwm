@@ -8,6 +8,7 @@ Official project page is at [https://github.com/pwm-project/pwm/](https://github
 * [PWM-General Google Group](https://groups.google.com/group/pwm-general) - please ask for assistance here first.
 * [PWM Documentation Wiki](https://github.com/pwm-project/pwm/wiki) - Home for PWM documentation
 * [PWM Reference](https://www.pwm-project.org/pwm/public/reference/) - Reference documentation built into PWM.
+* [Downloads](https://github.com/pwm-project/pwm/releases)
 
 # Features
 * Web based configuration manager with over 500 configurable settings
