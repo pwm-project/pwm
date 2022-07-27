@@ -31,7 +31,6 @@ import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.StatisticsService;
 import password.pwm.svc.version.VersionCheckService;
-import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.SharedHistoryService;
 import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.java.CollectionUtil;
@@ -51,7 +50,6 @@ public enum PwmServiceEnum
     AuditService( password.pwm.svc.event.AuditService.class, PwmSettingScope.SYSTEM ),
     StatisticsService( StatisticsService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     WordlistService( WordlistService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
-    SeedlistService( SeedlistService.class, PwmSettingScope.SYSTEM ),
     IntruderSystemService( IntruderSystemService.class, PwmSettingScope.SYSTEM ),
     EmailService( EmailService.class, PwmSettingScope.SYSTEM ),
     SmsQueueManager( SmsQueueService.class, PwmSettingScope.SYSTEM ),

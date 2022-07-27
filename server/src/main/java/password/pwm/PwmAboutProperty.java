@@ -58,7 +58,6 @@ public enum PwmAboutProperty
     app_applicationPath( null, pwmApplication -> pwmApplication.getPwmEnvironment().getApplicationPath().getAbsolutePath() ),
     app_environmentFlags( null, pwmApplication -> StringUtil.collectionToString( pwmApplication.getPwmEnvironment().getFlags() ) ),
     app_wordlistSize( null, pwmApplication -> Long.toString( pwmApplication.getWordlistService().size() ) ),
-    app_seedlistSize( null, pwmApplication -> Long.toString( pwmApplication.getSeedlistManager().size() ) ),
     app_sharedHistorySize( null, pwmApplication -> Long.toString( pwmApplication.getSharedHistoryManager().size() ) ),
     app_sharedHistoryOldestTime( null, pwmApplication -> format( pwmApplication.getSharedHistoryManager().getOldestEntryTime() ) ),
     app_emailQueueSize( null, pwmApplication -> Integer.toString( pwmApplication.getEmailQueue().queueSize() ) ),

@@ -333,13 +333,6 @@ public class AppDashboardData implements Serializable
         ) );
 
         localDbInfo.add( new DisplayElement(
-                "seedlistSize",
-                DisplayElement.Type.number,
-                "Seed List Dictionary Size",
-                numberFormat.format( pwmDomain.getPwmApplication().getSeedlistManager().size() )
-        ) );
-
-        localDbInfo.add( new DisplayElement(
                 "sharedHistorySize",
                 DisplayElement.Type.number,
                 "Shared Password History Size",

@@ -271,7 +271,7 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
     private String checksumAllResources( final PwmDomain pwmDomain )
             throws IOException
     {
-        try ( DigestOutputStream checksumStream = new DigestOutputStream( OutputStream.nullOutputStream(), PwmHashAlgorithm.SHA512.newMessageDigest() ) )
+        try ( DigestOutputStream checksumStream = new DigestOutputStream( OutputStream.nullOutputStream(), PwmHashAlgorithm.SHA1.newMessageDigest() ) )
         {
             checksumResourceFilePath( pwmDomain, checksumStream );
 
@@ -293,7 +293,7 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
                     }
                 }
             }
-            return JavaHelper.binaryArrayToHex( checksumStream.getMessageDigest().digest() );
+            return JavaHelper.binaryArrayToHex( checksumStream.getMessageDigest().digest() ).toLowerCase();
         }
     }
 

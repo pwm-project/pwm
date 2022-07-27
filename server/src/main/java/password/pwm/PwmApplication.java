@@ -55,7 +55,6 @@ import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.stats.StatisticsService;
-import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.SharedHistoryService;
 import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.MBeanUtility;
@@ -681,11 +680,6 @@ public class PwmApplication
     public WordlistService getWordlistService( )
     {
         return ( WordlistService ) pwmServiceManager.getService( PwmServiceEnum.WordlistService );
-    }
-
-    public SeedlistService getSeedlistManager( )
-    {
-        return ( SeedlistService ) pwmServiceManager.getService( PwmServiceEnum.SeedlistService );
     }
 
     public ReportService getReportService( )

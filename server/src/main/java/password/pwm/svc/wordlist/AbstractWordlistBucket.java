@@ -28,7 +28,6 @@ import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -57,21 +56,6 @@ public abstract class AbstractWordlistBucket implements WordlistBucket
     {
         switch ( type )
         {
-            case SEEDLIST:
-            {
-                final Map<String, String> returnData = new TreeMap<>();
-                for ( final String word : words )
-                {
-                    if ( StringUtil.notEmpty( word ) )
-                    {
-                        final long nextLong = valueIncrementer.next();
-                        final String nextKey = seedlistLongToKey( nextLong );
-                        returnData.put( nextKey, word );
-                    }
-                }
-                return Collections.unmodifiableMap( returnData );
-            }
-
             case WORDLIST:
             {
                 final Map<String, String> returnData = new TreeMap<>();
@@ -136,11 +120,6 @@ public abstract class AbstractWordlistBucket implements WordlistBucket
     @Override
     public boolean containsWord( final String word ) throws PwmUnrecoverableException
     {
-        if ( type == WordlistType.SEEDLIST )
-        {
-            throw new IllegalStateException( "unable to containWord check SEEDLIST wordlist" );
-        }
-
         return containsKey( word );
     }
 

@@ -31,6 +31,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.PhotoDataBean;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -61,8 +62,6 @@ import password.pwm.http.servlet.peoplesearch.PhotoDataReader;
 import password.pwm.http.servlet.peoplesearch.SearchRequestBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.bean.PhotoDataBean;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchEngine;
@@ -80,18 +79,20 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenUtil;
+import password.pwm.user.UserInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.PwmTimeUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.password.PasswordUtility;
+import password.pwm.util.password.RandomGeneratorConfig;
 import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
@@ -1346,12 +1347,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                 chaiUser.getChaiProvider()
         );
 
-        final RandomPasswordGenerator.RandomGeneratorConfig.RandomGeneratorConfigBuilder randomConfigBuilder
-                = RandomPasswordGenerator.RandomGeneratorConfig.builder();
-
-        randomConfigBuilder.passwordPolicy( userInfo.getPasswordPolicy() );
-
-        final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = randomConfigBuilder.build();
+        final RandomGeneratorConfig randomConfig = RandomGeneratorConfig.make( pwmRequest.getPwmDomain(), userInfo.getPasswordPolicy() );
         final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), randomConfig, pwmRequest.getPwmDomain() );
         final RestRandomPasswordServer.JsonOutput jsonOutput = new RestRandomPasswordServer.JsonOutput();
         jsonOutput.setPassword( randomPassword.getStringValue() );
@@ -1363,7 +1359,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
     @ActionHandler( action = "photo" )
     public ProcessStatus processUserPhotoImageRequest( final PwmRequest pwmRequest )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+            throws PwmUnrecoverableException
     {
         final UserIdentity userIdentity = readUserKeyRequestParameter( pwmRequest );
         final HelpdeskProfile helpdeskProfile = getHelpdeskProfile( pwmRequest );

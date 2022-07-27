@@ -88,17 +88,6 @@ public class WordlistConfiguration implements Serializable
     {
         switch ( type )
         {
-            case SEEDLIST:
-            {
-                return commonBuilder( appConfig ).toBuilder()
-                        .autoImportUrl( readAutoImportUrl( appConfig, PwmSetting.SEEDLIST_FILENAME ) )
-                        .metaDataAppAttribute( AppAttribute.SEEDLIST_METADATA )
-                        .builtInWordlistLocationProperty( AppProperty.SEEDLIST_BUILTIN_PATH )
-                        .db( LocalDB.DB.SEEDLIST_WORDS )
-                        .wordlistFilenameSetting( PwmSetting.SEEDLIST_FILENAME )
-                        .build();
-            }
-
             case WORDLIST:
             {
                 return commonBuilder( appConfig ).toBuilder()

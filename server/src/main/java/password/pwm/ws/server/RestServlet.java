@@ -116,7 +116,7 @@ public abstract class RestServlet extends HttpServlet
         }
         catch ( final PwmUnrecoverableException e )
         {
-            final RestResultBean restResultBean  = RestResultBean.fromError(
+            final RestResultBean<ErrorInformation> restResultBean  = RestResultBean.fromError(
                     e.getErrorInformation(),
                     pwmDomain,
                     locale,
@@ -448,7 +448,12 @@ public abstract class RestServlet extends HttpServlet
                     resp.setHeader( HttpHeader.ContentType.getHttpName(), HttpContentType.plain.getHeaderValueWithEncoding() );
                     if ( restResultBean.isError() )
                     {
-                        resp.sendError( HttpServletResponse.SC_INTERNAL_SERVER_ERROR, restResultBean.getErrorMessage() );
+                        resp.setStatus( HttpServletResponse.SC_INTERNAL_SERVER_ERROR );
+                        try ( PrintWriter pw = resp.getWriter() )
+                        {
+                            pw.write( restResultBean.getErrorDetail() );
+                            pw.write( "\n" );
+                        }
                     }
                     else
                     {
@@ -484,6 +489,8 @@ public abstract class RestServlet extends HttpServlet
             }
             outputLastHopeError( msg, resp );
         }
+
+        resp.flushBuffer();
     }
 
     private static void outputLastHopeError( final String msg, final HttpServletResponse response ) throws IOException

@@ -27,6 +27,7 @@ import org.junit.rules.TemporaryFolder;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.PwmUnrecoverableException;
@@ -39,7 +40,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class RandomPasswordAppItemGeneratorTest
+public class RandomPasswordGeneratorTest
 {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -61,7 +62,7 @@ public class RandomPasswordAppItemGeneratorTest
         for ( int i = 0; i < loopCount; i++ )
         {
             final PasswordData passwordData = RandomPasswordGenerator.createRandomPassword(
-                    null,
+                    SessionLabel.TEST_SESSION_LABEL,
                     pwmPasswordPolicy,
                     pwmDomain );
 

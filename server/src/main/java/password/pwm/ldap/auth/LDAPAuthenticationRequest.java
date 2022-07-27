@@ -65,6 +65,7 @@ import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
+import password.pwm.util.password.RandomGeneratorConfig;
 import password.pwm.util.password.RandomPasswordGenerator;
 
 import java.time.Instant;
@@ -501,10 +502,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                     chaiUser );
 
             // create random password for user
-            final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = RandomPasswordGenerator.RandomGeneratorConfig.builder()
-                    .seedlistPhrases( RandomPasswordGenerator.DEFAULT_SEED_PHRASES )
-                    .passwordPolicy( passwordPolicy )
-                    .build();
+            final RandomGeneratorConfig randomGeneratorConfig = RandomGeneratorConfig.make( pwmDomain, passwordPolicy );
 
             final PasswordData currentPass = RandomPasswordGenerator.createRandomPassword( sessionLabel, randomGeneratorConfig, pwmDomain );
 

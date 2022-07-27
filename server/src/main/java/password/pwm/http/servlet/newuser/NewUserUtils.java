@@ -79,6 +79,7 @@ import password.pwm.util.macro.MacroReplacer;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.password.PasswordUtility;
+import password.pwm.util.password.RandomGeneratorConfig;
 import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.client.rest.form.FormDataRequestBean;
 import password.pwm.ws.client.rest.form.FormDataResponseBean;
@@ -212,9 +213,9 @@ class NewUserUtils
             NewUserUtils.LOGGER.trace( pwmRequest, () -> "will use temporary password process for new user entry: " + newUserDN );
             final PasswordData temporaryPassword;
             {
-                final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = RandomPasswordGenerator.RandomGeneratorConfig.builder()
-                        .passwordPolicy( newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() ) )
-                        .build();
+                final RandomGeneratorConfig randomGeneratorConfig = RandomGeneratorConfig.make( pwmRequest.getPwmDomain(),
+                         newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() ) );
+
                 temporaryPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), randomGeneratorConfig, pwmDomain );
             }
             final ChaiUser proxiedUser = chaiProvider.getEntryFactory().newChaiUser( newUserDN );

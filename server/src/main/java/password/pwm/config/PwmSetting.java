@@ -480,8 +480,6 @@ public enum PwmSetting
             "wordlistCaseSensitive", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WORDLISTS ),
     PASSWORD_WORDLIST_WORDSIZE(
             "password.wordlist.wordSize", PwmSettingSyntax.NUMERIC, PwmSettingCategory.WORDLISTS ),
-    SEEDLIST_FILENAME(
-            "pwm.seedlist.location", PwmSettingSyntax.STRING, PwmSettingCategory.WORDLISTS ),
 
 
     // password policy profile settings
@@ -1277,6 +1275,11 @@ public enum PwmSetting
 
 
     // deprecated.
+
+    // deprecated 2022-07-25
+    SEEDLIST_FILENAME(
+            "pwm.seedlist.location", PwmSettingSyntax.STRING, PwmSettingCategory.WORDLISTS ),
+
     // deprecated 2022-04-20
     IP_PERMITTED_RANGE(
             "network.ip.permittedRange", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY ),

@@ -4855,10 +4855,10 @@
     <setting hidden="false" key="pwm.wordlist.location" level="1">
         <default/>
     </setting>
-    <setting hidden="false" key="pwm.seedlist.location" level="2">
+    <!-- BEGIN DEPRECATED SETTINGS -->
+    <setting hidden="true" key="pwm.seedlist.location" level="2">
         <default/>
     </setting>
-    <!-- BEGIN DEPRECATED SETTINGS -->
     <setting hidden="true" key="peopleSearch.displayName.user" level="1" required="true">
         <flags>
             <flag>Deprecated</flag>
