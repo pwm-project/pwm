@@ -98,13 +98,11 @@
         }
 
         PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                PWM_MAIN.addEventHandler('button_next','click',function(){ PWM_GUIDE.gotoStep('NEXT')});
-                PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
+            PWM_MAIN.addEventHandler('button_next','click',function(){ PWM_GUIDE.gotoStep('NEXT')});
+            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
 
-                PWM_MAIN.addEventHandler('<%=ConfigGuideFormField.PARAM_TEMPLATE_STORAGE%>','change',function(){
-                    formHandler();
-                });
+            PWM_MAIN.addEventHandler('<%=ConfigGuideFormField.PARAM_TEMPLATE_STORAGE%>','change',function(){
+                formHandler();
             });
             updateNextButton();
         });
