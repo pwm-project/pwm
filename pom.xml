@@ -46,7 +46,7 @@
         <jarsigner.skip>true</jarsigner.skip>
 
         <!-- git.commit.time is populated via git-commit-id-plugin and results in a (hopefully) reproducible maven build -->
-        <project.build.outputTimestamp>2022-07-24T07:51:27Z</project.build.outputTimestamp>
+        <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
     </properties>
 
     <modules>
