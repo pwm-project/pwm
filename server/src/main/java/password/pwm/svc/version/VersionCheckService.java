@@ -21,6 +21,7 @@
 package password.pwm.svc.version;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppAttribute;
@@ -53,7 +54,6 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.ws.server.RestResultBean;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
@@ -161,6 +161,10 @@ public class VersionCheckService extends AbstractPwmService implements PwmServic
             return;
         }
 
+        this.nextScheduledCheck = Instant.now().plus( 1, ChronoUnit.MINUTES );
+        executorService.schedule( new PeriodicCheck(), 1, TimeUnit.MINUTES );
+
+        /*
         final VersionCheckInfoCache localCache = cacheHolder.getVersionCheckInfoCache();
 
         final TimeDuration idealDurationUntilNextCheck = localCache.getLastError() != null && localCache.getCurrentVersion() == null
@@ -185,6 +189,8 @@ public class VersionCheckService extends AbstractPwmService implements PwmServic
 
         LOGGER.trace( SessionLabel.VERSIONCHECK_SESSION_LABEL, () -> "scheduled next check execution at " + JavaHelper.toIsoDate( nextScheduledCheck )
                 + " in " + delayUntilNextExecution.asCompactString() );
+
+         */
     }
 
     private class PeriodicCheck implements Runnable
@@ -247,16 +253,17 @@ public class VersionCheckService extends AbstractPwmService implements PwmServic
 
             if ( response.getStatusCode() == 200 )
             {
-                final Type restResultBeanType = newParameterizedType( RestResultBean.class, PublishVersionBean.class );
+                final Type restResultBeanType = newParameterizedType( RestObjectBean.class, PublishVersionBean.class );
 
                 final String body = response.getBody();
-                final RestResultBean restResultBean = JsonUtil.deserialize( body, restResultBeanType );
-                return ( PublishVersionBean ) restResultBean.getData();
+                final RestObjectBean<PublishVersionBean> restResultBean = JsonUtil.deserialize( body, restResultBeanType );
+                return restResultBean.getData();
             }
             else
             {
                 LOGGER.debug( SessionLabel.VERSIONCHECK_SESSION_LABEL, () -> "error reading cloud current version information: " + response );
-                final String msg = "error reading cloud current version information: " + response.getStatusCode() + " " + response.getStatusPhrase();
+                final String msg = "error reading cloud current version information: " + response.getStatusCode()
+                        + " " + ( response.getStatusPhrase() == null ? "" : response.getStatusPhrase() );
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_UNREACHABLE_CLOUD_SERVICE, msg );
             }
         }
@@ -443,5 +450,30 @@ public class VersionCheckService extends AbstractPwmService implements PwmServic
                 return null;
             }
         };
+    }
+
+    @Value
+    @Builder( toBuilder =  true, access = AccessLevel.PACKAGE )
+    private static class RestObjectBean<T> implements Serializable
+    {
+        private static final long serialVersionUID = 1L;
+
+        private final T data;
+        private final boolean error;
+        private final int errorCode;
+        private final String errorMessage;
+        private final String errorDetail;
+        private final String successMessage;
+
+        @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
+        private final transient Class<T> classOfT;
+
+        public static <T> RestObjectBean<T> withData( final T data, final Class<T> classOfT )
+        {
+            return RestObjectBean.<T>builder()
+                    .data( data )
+                    .classOfT( classOfT )
+                    .build();
+        }
     }
 }
