@@ -6,6 +6,7 @@
     <artifactId>pwm</artifactId>
     <version>2.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <url>https://github.com/pwm-project/pwm</url>
 
     <name>PWM Password Self Service</name>
 
@@ -132,9 +133,7 @@
                     <dateFormat>yyyy-MM-dd'T'HH:mm:ss'Z'</dateFormat>
                     <dateFormatTimeZone>Zulu</dateFormatTimeZone>
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
-                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>${project.build.outputDirectory}/classes/git.json</generateGitPropertiesFilename>
-                    <format>json</format>
+                    <generateGitPropertiesFile>false</generateGitPropertiesFile>
                     <gitDescribe>
                         <tags>true</tags>
                     </gitDescribe>
