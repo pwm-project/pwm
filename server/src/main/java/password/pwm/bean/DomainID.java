@@ -30,7 +30,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-public class DomainID implements Comparable<DomainID>, Serializable
+public final class DomainID implements Comparable<DomainID>, Serializable
 {
     public static final List<String> DOMAIN_RESERVED_WORDS = List.of( "system", "private", "public", "pwm", "sspr", "domain", "profile", "password" );
     public static final DomainID DOMAIN_ID_DEFAULT = create( "default" );

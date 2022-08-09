@@ -49,6 +49,7 @@ import password.pwm.svc.sessiontrack.UserAgentUtils;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsService;
+import password.pwm.user.UserInfo;
 import password.pwm.util.i18n.LocaleComparators;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
@@ -65,7 +66,6 @@ import password.pwm.ws.server.rest.bean.PublicHealthData;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
@@ -153,17 +153,17 @@ public class ClientApiServlet extends ControlledPwmServlet
 
     @ActionHandler( action = "clientData" )
     public ProcessStatus processRestClientData( final PwmRequest pwmRequest )
-            throws PwmUnrecoverableException, IOException, ChaiUnavailableException
+            throws PwmUnrecoverableException, IOException
     {
         final String pageUrl = pwmRequest.readParameterAsString( "pageUrl", PwmHttpRequestWrapper.Flag.BypassValidation );
         final String etagParam = pwmRequest.readParameterAsString( "etag", PwmHttpRequestWrapper.Flag.BypassValidation );
 
         final int maxCacheAgeSeconds = 60 * 5;
 
-        final String eTagValue = makeClientEtag( pwmRequest.getPwmDomain(), pwmRequest.getPwmSession(), pwmRequest.getHttpServletRequest() );
+        final String eTagValue = makeClientEtag( pwmRequest );
 
         // check the incoming header;
-        final String ifNoneMatchValue = pwmRequest.readHeaderValueAsString( "If-None-Match" );
+        final String ifNoneMatchValue = pwmRequest.readHeaderValueAsString( HttpHeader.If_None_Match );
 
         if ( ifNoneMatchValue != null && ifNoneMatchValue.equals( eTagValue ) && eTagValue.equals( etagParam ) )
         {
@@ -193,7 +193,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         final String bundleName = pwmRequest.readParameterAsString( "bundle" );
         final int maxCacheAgeSeconds = 60 * 5;
 
-        final String eTagValue = makeClientEtag( pwmRequest.getPwmDomain(), pwmRequest.getPwmSession(), pwmRequest.getHttpServletRequest() );
+        final String eTagValue = makeClientEtag( pwmRequest );
 
         pwmRequest.getPwmResponse().setHeader( HttpHeader.ETag, eTagValue );
         pwmRequest.getPwmResponse().setHeader( HttpHeader.Expires, String.valueOf( System.currentTimeMillis() + ( maxCacheAgeSeconds * 1000 ) ) );
@@ -254,32 +254,22 @@ public class ClientApiServlet extends ControlledPwmServlet
     public static String makeClientEtag( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        return makeClientEtag( pwmRequest.getPwmDomain(), pwmRequest.getPwmSession(), pwmRequest.getHttpServletRequest() );
-    }
+        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
 
-    public static String makeClientEtag(
-            final PwmDomain pwmDomain,
-            final PwmSession pwmSession,
-            final HttpServletRequest httpServletRequest
-    )
-            throws PwmUnrecoverableException
-    {
         final StringBuilder inputString = new StringBuilder();
         inputString.append( PwmConstants.BUILD_NUMBER );
         inputString.append( pwmDomain.getPwmApplication().getStartupTime().toEpochMilli() );
-        inputString.append( httpServletRequest.getSession().getMaxInactiveInterval() );
+        inputString.append( pwmDomain.getDomainID().toString() );
         inputString.append( pwmDomain.getPwmApplication().getRuntimeNonce() );
+        inputString.append( pwmRequest.getHttpServletRequest().getSession().getMaxInactiveInterval() );
 
-        if ( pwmSession.getSessionStateBean().getLocale() != null )
-        {
-            inputString.append( pwmSession.getSessionStateBean().getLocale() );
-        }
+        inputString.append( pwmRequest.getLocale().toString() );
 
-        inputString.append( pwmSession.getSessionStateBean().getSessionID() );
-        if ( pwmSession.isAuthenticated() )
+        if ( pwmRequest.isAuthenticated() )
         {
-            inputString.append( pwmSession.getUserInfo().getUserGuid() );
-            inputString.append( pwmSession.getLoginInfoBean().getAuthTime() );
+            final UserInfo userInfo = pwmRequest.getPwmSession().getUserInfo();
+            inputString.append( userInfo.getUserGuid() );
+            inputString.append( userInfo.getUserIdentity().toDisplayString() );
         }
 
         return SecureEngine.hash( inputString.toString(), PwmHashAlgorithm.SHA1 ).toLowerCase();
@@ -290,7 +280,7 @@ public class ClientApiServlet extends ControlledPwmServlet
             final PwmRequest pwmRequest,
             final String pageUrl
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final AppData appData = new AppData();
         appData.PWM_GLOBAL = makeClientData( pwmDomain, pwmRequest, pageUrl );
@@ -305,7 +295,7 @@ public class ClientApiServlet extends ControlledPwmServlet
             throws PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+        final Locale userLocale = pwmRequest.getLocale();
 
         final DomainConfig config = pwmDomain.getConfig();
         final TreeMap<String, Object> settingMap = new TreeMap<>();

@@ -50,7 +50,7 @@ import password.pwm.i18n.Message;
 import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -260,7 +260,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
             // read an ldap user object based on the params
             final UserIdentity userIdentity;
             {
-                final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
+                final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
                 final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                         .contexts( Collections.singletonList( contextParam ) )
                         .filter( searchFilter )
@@ -268,7 +268,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
                         .ldapProfile( ldapProfile )
                         .build();
 
-                userIdentity = userSearchEngine.performSingleUserSearch( searchConfiguration, pwmRequest.getLabel() );
+                userIdentity = userSearchService.performSingleUserSearch( searchConfiguration, pwmRequest.getLabel() );
             }
 
             ActivateUserUtils.validateParamsAgainstLDAP( pwmRequest, formValues, userIdentity );
@@ -280,7 +280,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
         catch ( final PwmOperationalException e )
         {
             IntruderServiceClient.markAttributes( pwmRequest, formValues );
-            IntruderServiceClient.markAddressAndSession( pwmDomain, pwmSession );
+            IntruderServiceClient.markAddressAndSession( pwmRequest );
             setLastError( pwmRequest, e.getErrorInformation() );
             LOGGER.debug( pwmRequest, e.getErrorInformation() );
         }
@@ -484,7 +484,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
         {
             LOGGER.debug( pwmRequest, e.getErrorInformation() );
             IntruderServiceClient.markUserIdentity( pwmRequest, activateUserBean.getUserIdentity() );
-            IntruderServiceClient.markAddressAndSession( pwmDomain, pwmSession );
+            IntruderServiceClient.markAddressAndSession( pwmRequest );
             pwmRequest.respondWithError( e.getErrorInformation() );
         }
     }

@@ -48,7 +48,7 @@ import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.event.AuditEventType;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.intruder.IntruderRecordType;
@@ -550,11 +550,11 @@ public class AdminServlet extends ControlledPwmServlet
             return;
         }
 
-        final UserSearchEngine userSearchEngine = pwmRequest.getPwmDomain().getUserSearchEngine();
+        final UserSearchService userSearchService = pwmRequest.getPwmDomain().getUserSearchEngine();
         final UserIdentity userIdentity;
         try
         {
-            userIdentity = userSearchEngine.resolveUsername( username, null, null, pwmRequest.getLabel() );
+            userIdentity = userSearchService.resolveUsername( username, null, null, pwmRequest.getLabel() );
             final AdminBean adminBean = pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, AdminBean.class );
             adminBean.setLastUserDebug( userIdentity );
 

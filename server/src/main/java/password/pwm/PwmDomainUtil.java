@@ -22,7 +22,8 @@ package password.pwm;
 
 import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.stored.StoredConfigKey;
+import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.TimeDuration;
@@ -31,11 +32,9 @@ import password.pwm.util.logging.PwmLogger;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
@@ -136,7 +135,7 @@ class PwmDomainUtil
                         + "' configuration modification detected as: " + modifyCategory ) ) );
 
         final Set<PwmDomain> deletedDomains = pwmApplication.domains().entrySet().stream()
-                .filter( e -> categorizedDomains.get( DomainModifyCategory.obsolete ).contains( e.getKey() ) )
+                .filter( e -> categorizedDomains.get( DomainModifyCategory.removed ).contains( e.getKey() ) )
                 .map( Map.Entry::getValue ).collect( Collectors.toSet() );
 
 
@@ -196,49 +195,90 @@ class PwmDomainUtil
 
     enum DomainModifyCategory
     {
-        obsolete,
+        removed,
         unchanged,
         modified,
         created,
     }
 
-    private static Map<DomainModifyCategory, Set<DomainID>> categorizeDomainModifications(
+    public static Map<DomainModifyCategory, Set<DomainID>> categorizeDomainModifications(
             final AppConfig newConfig,
             final AppConfig oldConfig
     )
     {
-        final Map<DomainModifyCategory, Set<DomainID>> types = new EnumMap<>( DomainModifyCategory.class );
 
         {
-            final Set<DomainID> obsoleteDomains = new HashSet<>( oldConfig.getDomainConfigs().keySet() );
-            obsoleteDomains.removeAll( newConfig.getDomainConfigs().keySet() );
-            types.put( DomainModifyCategory.obsolete, CollectionUtil.stripNulls( obsoleteDomains ) );
+            final Instant newInstant = newConfig.getStoredConfiguration().modifyTime();
+            final Instant oldInstant = oldConfig.getStoredConfiguration().modifyTime();
+            if ( newInstant != null && oldInstant != null && newInstant.isBefore( oldInstant ) )
+            {
+                throw new IllegalStateException( "refusing request to categorize changes due to oldConfig being newer than new config" );
+            }
         }
 
+        final Set<StoredConfigKey> modifiedValues = StoredConfigurationUtil.changedValues( newConfig.getStoredConfiguration(), oldConfig.getStoredConfiguration() );
+
+        return CATEGORIZERS.entrySet().stream()
+                .collect( Collectors.toUnmodifiableMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().categorize( newConfig, oldConfig, modifiedValues )
+                ) );
+    }
+
+    interface DomainModificationCategorizer
+    {
+        Set<DomainID> categorize( AppConfig newConfig, AppConfig oldConfig, Set<StoredConfigKey> modifiedValues );
+    }
+
+    private static final Map<DomainModifyCategory, DomainModificationCategorizer> CATEGORIZERS = Map.of(
+            DomainModifyCategory.removed, new RemovalCategorizer(),
+            DomainModifyCategory.created, new CreationCategorizer(),
+            DomainModifyCategory.unchanged, new UnchangedCategorizer(),
+            DomainModifyCategory.modified, new ModifiedCategorizer() );
+
+    private static class RemovalCategorizer implements DomainModificationCategorizer
+    {
+        @Override
+        public Set<DomainID> categorize( final AppConfig newConfig, final AppConfig oldConfig, final Set<StoredConfigKey> modifiedValues )
+        {
+            final Set<DomainID> removedDomains = new HashSet<>( oldConfig.getDomainConfigs().keySet() );
+            removedDomains.removeAll( newConfig.getDomainConfigs().keySet() );
+            return CollectionUtil.stripNulls( removedDomains );
+        }
+    }
+
+    private static class CreationCategorizer implements DomainModificationCategorizer
+    {
+        @Override
+        public Set<DomainID> categorize( final AppConfig newConfig, final AppConfig oldConfig, final Set<StoredConfigKey> modifiedValues )
         {
             final Set<DomainID> createdDomains = new HashSet<>( newConfig.getDomainConfigs().keySet() );
             createdDomains.removeAll( oldConfig.getDomainConfigs().keySet() );
-            types.put( DomainModifyCategory.created, CollectionUtil.stripNulls( createdDomains ) );
+            return CollectionUtil.stripNulls( createdDomains );
         }
-
-        final Set<DomainID> unchangedDomains = new HashSet<>();
-        final Set<DomainID> modifiedDomains = new HashSet<>();
-        for ( final DomainID domainID : newConfig.getDomainConfigs().keySet() )
-        {
-            final DomainConfig newDomainConfig = newConfig.getDomainConfigs().get( domainID );
-            final DomainConfig oldDomainConfig = oldConfig.getDomainConfigs().get( newDomainConfig.getDomainID() );
-
-            if ( newDomainConfig != null && oldDomainConfig != null && Objects.equals( oldDomainConfig.getValueHash(), newDomainConfig.getValueHash() ) )
-            {
-                unchangedDomains.add( domainID );
-            }
-            else
-            {
-                modifiedDomains.add( domainID );
-            }
-        }
-        types.put( DomainModifyCategory.unchanged, CollectionUtil.stripNulls( unchangedDomains ) );
-        types.put( DomainModifyCategory.modified, CollectionUtil.stripNulls( modifiedDomains ) );
-        return Collections.unmodifiableMap( types );
     }
+
+    private static class UnchangedCategorizer implements DomainModificationCategorizer
+    {
+        @Override
+        public Set<DomainID> categorize( final AppConfig newConfig, final AppConfig oldConfig, final Set<StoredConfigKey> modifiedValues )
+        {
+            final Set<DomainID> persistentDomains = new HashSet<>( CollectionUtil.setUnion( newConfig.getDomainConfigs().keySet(), oldConfig.getDomainConfigs().keySet() ) );
+            persistentDomains.removeAll( StoredConfigKey.uniqueDomains( modifiedValues ) );
+            return Set.copyOf( persistentDomains );
+        }
+    }
+
+    private static class ModifiedCategorizer implements DomainModificationCategorizer
+    {
+        @Override
+        public Set<DomainID> categorize( final AppConfig newConfig, final AppConfig oldConfig, final Set<StoredConfigKey> modifiedValues )
+        {
+            final Set<DomainID> persistentDomains = new HashSet<>( CollectionUtil.setUnion( newConfig.getDomainConfigs().keySet(), oldConfig.getDomainConfigs().keySet() ) );
+            persistentDomains.retainAll( StoredConfigKey.uniqueDomains( modifiedValues ) );
+            return Set.copyOf( persistentDomains );
+        }
+    }
+
+
 }

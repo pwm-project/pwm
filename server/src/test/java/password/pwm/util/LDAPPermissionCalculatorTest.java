@@ -38,7 +38,7 @@ public class LDAPPermissionCalculatorTest
             throws PwmUnrecoverableException
     {
         final StoredConfiguration defaultConfig = StoredConfigurationFactory.newConfig();
-        final DomainConfig domainConfig = new AppConfig( defaultConfig ).getDomainConfigs().values().stream().findFirst().orElseThrow();
+        final DomainConfig domainConfig = AppConfig.forStoredConfig( defaultConfig ).getDomainConfigs().values().stream().findFirst().orElseThrow();
         final LdapPermissionCalculator ldapPermissionCalculator = new LdapPermissionCalculator( domainConfig );
         final List<LdapPermissionCalculator.PermissionRecord> records = ldapPermissionCalculator.getPermissionRecords();
         Assert.assertFalse( records.isEmpty() );

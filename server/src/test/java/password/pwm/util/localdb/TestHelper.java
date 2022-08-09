@@ -67,7 +67,7 @@ public class TestHelper
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
         final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL, null, DomainID.systemId() );
         modifier.writeSetting( key, new StringValue( PwmLogLevel.FATAL.toString() ), null );
-        final AppConfig appConfig = new AppConfig( modifier.newStoredConfiguration() );
+        final AppConfig appConfig = AppConfig.forStoredConfig( modifier.newStoredConfiguration() );
         return makeTestPwmApplication( tempFolder, appConfig );
     }
 

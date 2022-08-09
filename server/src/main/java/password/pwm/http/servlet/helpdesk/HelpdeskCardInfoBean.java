@@ -82,7 +82,7 @@ public class HelpdeskCardInfoBean implements Serializable
                 theUser.getChaiProvider()
         );
 
-        builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
+        builder.userKey( HelpdeskServletUtil.obfuscateUserIdentity( pwmRequest, userIdentity ) );
 
         final PhotoDataReader photoDataReader = HelpdeskServlet.photoDataReader( pwmRequest, helpdeskProfile, userIdentity );
         final Optional<String> optionalPhotoUrl = photoDataReader.figurePhotoURL();

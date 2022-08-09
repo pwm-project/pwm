@@ -130,8 +130,8 @@ public class RandomPasswordGenerator
 
         if ( mutatorResult.isValidPassword() )
         {
-            LOGGER.trace( sessionLabel, () -> "finished random password generation after " + mutatorResult.getTryCount()
-                    + " tries.", TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( sessionLabel, () -> "finished random password generation after " + mutatorResult.getRounds()
+                    + " rounds.", TimeDuration.fromCurrent( startTime ) );
         }
         else
         {
@@ -141,7 +141,7 @@ public class RandomPasswordGenerator
                 final int errors = pwmPasswordRuleValidator.internalPwmPolicyValidator( mutatorResult.getPassword(), null, null ).size();
                 final int judgeLevel = PasswordUtility.judgePasswordStrength( pwmDomain.getConfig(), mutatorResult.getPassword() );
                 LOGGER.error( sessionLabel, () -> "failed random password generation after "
-                                + mutatorResult.getTryCount() + " tries. " + "(errors=" + errors + ", judgeLevel=" + judgeLevel,
+                                + mutatorResult.getRounds() + " rounds. " + "(errors=" + errors + ", judgeLevel=" + judgeLevel,
                         TimeDuration.fromCurrent( startTime ) );
             }
         }
@@ -159,7 +159,7 @@ public class RandomPasswordGenerator
     {
         private final String password;
         private final boolean validPassword;
-        private final int tryCount;
+        private final int rounds;
     }
 
     private static PwmPasswordPolicy makeRandomGenPwdPolicy(

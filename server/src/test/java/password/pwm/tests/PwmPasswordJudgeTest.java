@@ -48,7 +48,7 @@ public class PwmPasswordJudgeTest
         final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.PASSWORD_STRENGTH_METER_TYPE, null, DOMAIN_ID );
         modifier.writeSetting( key, new StringValue( StrengthMeterType.PWM.name() ), null );
         final StoredConfiguration storedConfiguration = modifier.newStoredConfiguration();
-        final AppConfig appConfig = new AppConfig( storedConfiguration );
+        final AppConfig appConfig = AppConfig.forStoredConfig( storedConfiguration );
         return appConfig.getDomainConfigs().get( DomainID.create( "default" ) );
     }
 

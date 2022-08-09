@@ -46,15 +46,15 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
 {
     private final PwmDomain pwmDomain;
     private final UserSearchJobParameters userSearchJobParameters;
-    private final UserSearchEngine userSearchEngine;
+    private final UserSearchService userSearchService;
     private final FutureTask<Map<UserIdentity, Map<String, String>>> futureTask;
     private final Instant createTime = Instant.now();
 
-    UserSearchJob( final PwmDomain pwmDomain, final UserSearchEngine userSearchEngine, final UserSearchJobParameters userSearchJobParameters )
+    UserSearchJob( final PwmDomain pwmDomain, final UserSearchService userSearchService, final UserSearchJobParameters userSearchJobParameters )
     {
         this.pwmDomain = pwmDomain;
         this.userSearchJobParameters = userSearchJobParameters;
-        this.userSearchEngine = userSearchEngine;
+        this.userSearchService = userSearchService;
         this.futureTask = new FutureTask<>( this );
     }
 
@@ -82,7 +82,7 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
             debugInfo = "[" + StringUtil.mapToString( props ) + "]";
         }
 
-        userSearchEngine.log( PwmLogLevel.TRACE, userSearchJobParameters.getSessionLabel(), userSearchJobParameters.getSearchID(), userSearchJobParameters.getJobId(),
+        userSearchService.log( PwmLogLevel.TRACE, userSearchJobParameters.getSessionLabel(), userSearchJobParameters.getSearchID(), userSearchJobParameters.getJobId(),
                 "performing ldap search for user, thread=" + Thread.currentThread().getId()
                         + ", timeout=" + userSearchJobParameters.getTimeoutMs() + "ms, "
                         + debugInfo );
@@ -117,12 +117,12 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
 
         if ( results.isEmpty() )
         {
-            userSearchEngine.log( PwmLogLevel.TRACE, userSearchJobParameters.getSessionLabel(), userSearchJobParameters.getSearchID(), userSearchJobParameters.getJobId(),
+            userSearchService.log( PwmLogLevel.TRACE, userSearchJobParameters.getSessionLabel(), userSearchJobParameters.getSearchID(), userSearchJobParameters.getJobId(),
                     "no matches from search (" + searchDuration.asCompactString() + "); " + debugInfo );
             return Collections.emptyMap();
         }
 
-        userSearchEngine.log( PwmLogLevel.TRACE, userSearchJobParameters.getSessionLabel(), userSearchJobParameters.getSearchID(), userSearchJobParameters.getJobId(),
+        userSearchService.log( PwmLogLevel.TRACE, userSearchJobParameters.getSessionLabel(), userSearchJobParameters.getSearchID(), userSearchJobParameters.getJobId(),
                 "found " + results.size() + " results in " + searchDuration.asCompactString() + "; " + debugInfo );
 
         final Map<UserIdentity, Map<String, String>> returnMap = new LinkedHashMap<>( results.size() );

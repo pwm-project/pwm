@@ -99,7 +99,7 @@ public class ConfigAccessFilter extends AbstractPwmFilter
     )
             throws IOException, PwmUnrecoverableException, ServletException
     {
-        final ConfigurationFileManager runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
+        final ConfigurationFileManager runningConfigReader = ContextManager.getContextManager( pwmRequest ).getConfigReader();
         final StoredConfiguration storedConfig = runningConfigReader.getStoredConfiguration();
 
         checkPreconditions( pwmRequest, storedConfig );

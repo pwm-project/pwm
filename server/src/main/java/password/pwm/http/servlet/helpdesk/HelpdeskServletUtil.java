@@ -37,7 +37,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.ldap.permission.UserPermissionUtility;
@@ -47,6 +46,7 @@ import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.user.UserInfo;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -56,6 +56,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public class HelpdeskServletUtil
 {
@@ -247,16 +248,17 @@ public class HelpdeskServletUtil
         return helpdeskDetailInfoBean;
     }
 
-    static UserIdentity userIdentityFromMap( final PwmRequest pwmRequest, final Map<String, String> bodyMap ) throws PwmUnrecoverableException
+    static UserIdentity userIdentityFromMap( final PwmRequest pwmRequest, final Map<String, String> bodyMap )
+            throws PwmUnrecoverableException
     {
         final String userKey = bodyMap.get( "userKey" );
-        if ( userKey == null || userKey.length() < 1 )
+        if ( StringUtil.isEmpty( userKey ) )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, "userKey parameter is missing" );
             throw new PwmUnrecoverableException( errorInformation );
         }
 
-        return UserIdentity.fromObfuscatedKey( userKey, pwmRequest.getPwmApplication() );
+        return HelpdeskServletUtil.clarifyUserIdentity( pwmRequest, userKey );
     }
 
 
@@ -348,6 +350,27 @@ public class HelpdeskServletUtil
                 getChaiUser( pwmRequest, helpdeskProfile, targetUserIdentity ).getChaiProvider()
         );
     }
+
+    static String obfuscateUserIdentity( final PwmRequest pwmRequest, final UserIdentity userIdentity )
+    {
+        try
+        {
+            return pwmRequest.encryptObjectToString( userIdentity );
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            throw new IllegalStateException( "unexpected error encoding userIdentity: " + e.getMessage() );
+        }
+    }
+
+    static UserIdentity clarifyUserIdentity( final PwmRequest pwmRequest, final String input )
+            throws PwmUnrecoverableException
+    {
+        Objects.requireNonNull( input );
+
+        return pwmRequest.decryptObject( input, UserIdentity.class );
+    }
+
 
     static MacroRequest getTargetUserMacroRequest(
             final PwmRequest pwmRequest,

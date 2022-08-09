@@ -60,7 +60,7 @@ import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.auth.AuthenticationUtility;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.otp.OTPUserRecord;
 import password.pwm.svc.stats.Statistic;
@@ -1001,7 +1001,7 @@ public class ForgottenPasswordStateMachine
 
                 // convert the username field to an identity
                 {
-                    final UserSearchEngine userSearchEngine = pwmRequestContext.getPwmDomain().getUserSearchEngine();
+                    final UserSearchService userSearchService = pwmRequestContext.getPwmDomain().getUserSearchEngine();
                     final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                             .filter( searchFilter )
                             .formValues( formValues )
@@ -1009,7 +1009,7 @@ public class ForgottenPasswordStateMachine
                             .ldapProfile( ldapProfile.getIdentifier() )
                             .build();
 
-                    userIdentity = userSearchEngine.performSingleUserSearch( searchConfiguration, pwmRequestContext.getSessionLabel() );
+                    userIdentity = userSearchService.performSingleUserSearch( searchConfiguration, pwmRequestContext.getSessionLabel() );
                 }
 
                 if ( userIdentity == null )

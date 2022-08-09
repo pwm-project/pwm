@@ -30,13 +30,8 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.svc.cache.CacheKey;
-import password.pwm.svc.cache.CachePolicy;
-import password.pwm.svc.cache.CacheService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.json.JsonFactory;
-import password.pwm.util.java.StringUtil;
-import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -130,41 +125,6 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         return toDisplayString();
     }
 
-    public String toObfuscatedKey( final PwmApplication pwmApplication )
-            throws PwmUnrecoverableException
-    {
-        // use local cache first.
-        if ( StringUtil.notEmpty( obfuscatedValue ) )
-        {
-            return obfuscatedValue;
-        }
-
-        // check app cache.  This is used primarily so that keys are static over some meaningful lifetime, allowing browser caching based on keys.
-        final CacheService cacheService = pwmApplication.getCacheService();
-        final CacheKey cacheKey = CacheKey.newKey( this.getClass(), this, "obfuscatedKey" );
-        final String cachedValue = cacheService.get( cacheKey, String.class );
-
-        if ( StringUtil.notEmpty( cachedValue ) )
-        {
-            obfuscatedValue = cachedValue;
-            return cachedValue;
-        }
-
-        // generate key
-        try
-        {
-            final String jsonValue = JsonFactory.get().serialize( this );
-            final String localValue = CRYPO_HEADER + pwmApplication.getSecureService().encryptToString( jsonValue );
-            this.obfuscatedValue = localValue;
-            cacheService.put( cacheKey, CachePolicy.makePolicyWithExpiration( TimeDuration.DAY ), localValue );
-            return localValue;
-        }
-        catch ( final Exception e )
-        {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error making obfuscated user key: " + e.getMessage() ) );
-        }
-    }
-
     public String toDelimitedKey( )
     {
         return JsonFactory.get().serialize( this );
@@ -175,29 +135,6 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         return "[" + this.getDomainID() + "]"
                 + " " + this.getUserDN()
                 + ( ( this.getLdapProfileID() != null && !this.getLdapProfileID().isEmpty() ) ? " (" + this.getLdapProfileID() + ")" : "" );
-    }
-
-    public static UserIdentity fromObfuscatedKey( final String key, final PwmApplication pwmApplication )
-            throws PwmUnrecoverableException
-    {
-        Objects.requireNonNull( pwmApplication );
-        JavaHelper.requireNonEmpty( key, "key can not be null or empty" );
-
-        if ( !key.startsWith( CRYPO_HEADER ) )
-        {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "cannot reverse obfuscated user key: missing header; value=" + key ) );
-        }
-
-        try
-        {
-            final String input = key.substring( CRYPO_HEADER.length() );
-            final String jsonValue = pwmApplication.getSecureService().decryptStringValue( input );
-            return JsonFactory.get().deserialize( jsonValue, UserIdentity.class );
-        }
-        catch ( final Exception e )
-        {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "unexpected error reversing obfuscated user key: " + e.getMessage() ) );
-        }
     }
 
     public static UserIdentity fromDelimitedKey( final SessionLabel sessionLabel, final String key )
@@ -245,25 +182,6 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         final String profileID = st.nextToken();
         final String userDN = st.nextToken();
         return create( userDN, profileID, domainID );
-    }
-
-    /**
-     * Attempt to de-serialize value using delimited or obfuscated key.
-     *
-     * @deprecated  Should be used by calling {@link #fromDelimitedKey(String)} or {@link #fromObfuscatedKey(String, PwmApplication)}.
-     */
-    @Deprecated
-    public static UserIdentity fromKey( final SessionLabel sessionLabel, final String key, final PwmApplication pwmApplication )
-            throws PwmUnrecoverableException
-    {
-        JavaHelper.requireNonEmpty( key );
-
-        if ( key.startsWith( CRYPO_HEADER ) )
-        {
-            return fromObfuscatedKey( key, pwmApplication );
-        }
-
-        return fromDelimitedKey( sessionLabel, key );
     }
 
     public boolean canonicalEquals( final SessionLabel sessionLabel, final UserIdentity otherIdentity, final PwmApplication pwmApplication )

@@ -35,6 +35,7 @@ import password.pwm.config.stored.ValueMetaData;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.PrivateKeyValue;
 import password.pwm.config.value.X509CertificateValue;
+import password.pwm.data.FileUploadItem;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -42,6 +43,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.ConfigurationChecker;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestUtil;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
@@ -78,10 +80,10 @@ public class ConfigEditorServletUtils
     )
             throws PwmUnrecoverableException, IOException
     {
-        final Map<String, PwmRequest.FileUploadItem> fileUploads;
+        final Map<String, FileUploadItem> fileUploads;
         try
         {
-            fileUploads = pwmRequest.readFileUploads( maxFileSize, 1 );
+            fileUploads = PwmRequestUtil.readFileUploads( pwmRequest, maxFileSize, 1 );
         }
         catch ( final PwmException e )
         {
@@ -98,7 +100,7 @@ public class ConfigEditorServletUtils
         }
 
         {
-            final PwmRequest.FileUploadItem uploadItem = fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD );
+            final FileUploadItem uploadItem = fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD );
             if ( uploadItem != null )
             {
                 return Optional.of( FileValue.newFileValue( uploadItem.getName(), uploadItem.getType(), uploadItem.getContent() ) );
@@ -141,7 +143,7 @@ public class ConfigEditorServletUtils
 
             final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmRequest.getPwmApplication()
                     .getPwmEnvironment()
-                    .makeRuntimeInstance( new AppConfig( configManagerBean.getStoredConfiguration() ) ) );
+                    .makeRuntimeInstance( AppConfig.forStoredConfig( configManagerBean.getStoredConfiguration() ) ) );
 
             final List<HealthRecord> healthRecords = configurationChecker.doHealthCheck( tempApplication, pwmRequest.getLabel() );
             final Map<DomainID, List<String>> returnData = new TreeMap<>();
@@ -292,7 +294,7 @@ public class ConfigEditorServletUtils
             }
 
             final int maxFileSize = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CONFIG_MAX_FILEVALUE_SIZE ) );
-            final Map<String, PwmRequest.FileUploadItem> fileUploads = pwmRequest.readFileUploads( maxFileSize, 1 );
+            final Map<String, FileUploadItem> fileUploads = PwmRequestUtil.readFileUploads( pwmRequest, maxFileSize, 1 );
             final InputStream fileIs = fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD ).getContent().newByteArrayInputStream();
 
             final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( configManagerBean.getStoredConfiguration() );

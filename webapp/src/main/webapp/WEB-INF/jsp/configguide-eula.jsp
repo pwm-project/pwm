@@ -27,6 +27,7 @@
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.util.java.JavaHelper" %>
+<%@ page import="password.pwm.http.servlet.resource.TextFileResource" %>
 
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
@@ -47,7 +48,7 @@
                 End User License Agreement
             </div>
             <div class="setting_body">
-                <div id="agreementText" class="eulaText"><%=ContextManager.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_EULA_TXT)%></div>
+                <div id="agreementText" class="eulaText"><pwm:textFile textFileResource="<%=TextFileResource.eula%>"/></div>
             </div>
 
             <br/><br/>

@@ -18,19 +18,14 @@
  * limitations under the License.
  */
 
-package password.pwm.http.tag.value;
+package password.pwm.data;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmRequest;
+import lombok.Value;
 
-import javax.servlet.jsp.PageContext;
-
-public interface ValueOutput
+@Value
+public class FileUploadItem
 {
-    String valueOutput(
-            PwmRequest pwmRequest,
-            PageContext pageContext
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException;
+    private final String name;
+    private final String type;
+    private final ImmutableByteArray content;
 }

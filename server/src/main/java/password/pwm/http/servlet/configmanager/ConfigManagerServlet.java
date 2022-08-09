@@ -395,7 +395,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = readCurrentConfiguration( pwmRequest );
-        final AppConfig appConfig = new AppConfig( storedConfiguration );
+        final AppConfig appConfig = AppConfig.forStoredConfig( storedConfiguration );
         final LdapPermissionCalculator ldapPermissionCalculator = new LdapPermissionCalculator( appConfig.getDomainConfigs().get( pwmRequest.getDomainID() ) );
         pwmRequest.setAttribute( PwmRequestAttribute.LdapPermissionItems, ldapPermissionCalculator );
         pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_PERMISSIONS );

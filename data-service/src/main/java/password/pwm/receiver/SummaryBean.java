@@ -45,6 +45,7 @@ public class SummaryBean
     private Map<String, Integer> settingCount;
     private Map<String, Integer> statCount;
     private Map<String, Integer> osCount;
+    private Map<String, Integer> deploymentCount;
     private Map<String, Integer> dbCount;
     private Map<String, Integer> javaCount;
     private Map<String, Integer> appVersionCount;
@@ -60,6 +61,7 @@ public class SummaryBean
         final Map<String, Integer> appServerCount = new TreeMap<>();
         final Map<String, Integer> settingCount = new TreeMap<>();
         final Map<String, Integer> statCount = new TreeMap<>();
+        final Map<String, Integer> deploymentCount = new TreeMap<>();
         final Map<String, Integer> osCount = new TreeMap<>();
         final Map<String, Integer> dbCount = new TreeMap<>();
         final Map<String, Integer> javaCount = new TreeMap<>();
@@ -105,6 +107,8 @@ public class SummaryBean
                 incrementCounterMap( osCount, bean.getAbout().get( PwmAboutProperty.java_osName.name() ) );
 
                 incrementCounterMap( javaCount, siteSummary.getJavaVm() );
+
+                incrementCounterMap( deploymentCount, bean.getAbout().get( PwmAboutProperty.app_deployment_type.name() ) );
 
                 incrementCounterMap( appVersionCount, siteSummary.getVersion() );
 

@@ -18,21 +18,18 @@
  * limitations under the License.
  */
 
-package password.pwm.http.tag.conditional;
+package password.pwm.http.tag.value;
 
-import lombok.Value;
-import password.pwm.Permission;
-import password.pwm.config.PwmSetting;
-import password.pwm.http.PwmRequestFlag;
-import password.pwm.http.servlet.resource.TextFileResource;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmRequest;
 
-@Value
-class PwmIfOptions
+import javax.servlet.jsp.PageContext;
+
+public interface PwmValueHandler
 {
-    private final boolean negate;
-    private final Permission permission;
-    private final PwmSetting pwmSetting;
-    private final PwmRequestFlag requestFlag;
-    private final TextFileResource textFileResource;
-
+    String valueOutput(
+            PwmRequest pwmRequest,
+            PageContext pageContext
+    )
+            throws PwmUnrecoverableException;
 }

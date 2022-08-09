@@ -51,7 +51,7 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.FormMap;
@@ -318,11 +318,11 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
                 .username( usernameParam )
                 .build();
 
-        final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
+        final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
 
         try
         {
-            final UserIdentity theGuest = userSearchEngine.performSingleUserSearch( searchConfiguration, pwmRequest.getLabel() );
+            final UserIdentity theGuest = userSearchService.performSingleUserSearch( searchConfiguration, pwmRequest.getLabel() );
             final FormMap formProps = guBean.getFormValues();
             try
             {

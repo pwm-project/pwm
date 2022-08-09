@@ -130,7 +130,7 @@ public class LdapBrowser
 
         result.dn( dn );
         result.profileID( profileID );
-        final DomainConfig domainConfig = new AppConfig( storedConfiguration ).getDomainConfigs().get( domainID );
+        final DomainConfig domainConfig = AppConfig.forStoredConfig( storedConfiguration ).getDomainConfigs().get( domainID );
 
         if ( domainConfig.getLdapProfiles().size() > 1 )
         {
@@ -193,7 +193,7 @@ public class LdapBrowser
     {
         if ( !providerCache.containsKey( profile ) )
         {
-            final DomainConfig domainConfig = new AppConfig( storedConfiguration ).getDomainConfigs().get( domainID );
+            final DomainConfig domainConfig = AppConfig.forStoredConfig( storedConfiguration ).getDomainConfigs().get( domainID );
             final LdapProfile ldapProfile = domainConfig.getLdapProfiles().get( profile );
             final ChaiProvider chaiProvider = LdapOperationsHelper.openProxyChaiProvider( chaiProviderFactory, sessionLabel, ldapProfile, domainConfig, null );
             providerCache.put( profile, chaiProvider );
@@ -203,7 +203,7 @@ public class LdapBrowser
 
     private int getMaxSizeLimit( )
     {
-        final AppConfig appConfig = new AppConfig( storedConfiguration );
+        final AppConfig appConfig = AppConfig.forStoredConfig( storedConfiguration );
         return Integer.parseInt( appConfig.readAppProperty( AppProperty.LDAP_BROWSER_MAX_ENTRIES ) );
     }
 

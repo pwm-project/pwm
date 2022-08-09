@@ -286,8 +286,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
         final OTPUserRecord otpUserRecord = pwmSession.getUserInfo().getOtpUserRecord();
         final OtpService otpService = pwmDomain.getOtpService();
 
-        final String bodyString = pwmRequest.readRequestBodyAsString();
-        final Map<String, String> clientValues = JsonFactory.get().deserializeStringMap( bodyString );
+        final Map<String, String> clientValues = pwmRequest.readBodyAsJsonStringMap(  );
         final String code = Validator.sanitizeInputValue( pwmRequest.getAppConfig(), clientValues.get( "code" ), 1024 );
 
         try

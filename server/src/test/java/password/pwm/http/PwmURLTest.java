@@ -42,7 +42,7 @@ public class PwmURLTest
     @Test
     public void testSingleDomainLoginUrls() throws PwmUnrecoverableException, URISyntaxException
     {
-        final AppConfig appConfig = new AppConfig( StoredConfigurationFactory.newConfig() );
+        final AppConfig appConfig = AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() );
         final PwmURL pwmURL = PwmURL.create( new URI( "https://wwww.example.com/pwm/private/login" ), "/pwm", appConfig );
 
         Assert.assertEquals( PwmServletDefinition.Login, pwmURL.forServletDefinition().get() );
@@ -61,7 +61,7 @@ public class PwmURLTest
             final List<String> domainStrList = List.of( "aaaa", "bbbb", "cccc" );
             final StoredValue storedValue = StringArrayValue.create( domainStrList );
             modifier.writeSetting( StoredConfigKey.forSetting( PwmSetting.DOMAIN_LIST, null, DomainID.systemId() ), storedValue, null );
-            appConfig = new AppConfig( modifier.newStoredConfiguration( ) );
+            appConfig = AppConfig.forStoredConfig( modifier.newStoredConfiguration( ) );
         }
         final PwmURL pwmURL = PwmURL.create( new URI( "https://wwww.example.com/pwm/aaaa/private/login" ), "/pwm", appConfig );
 
@@ -76,7 +76,7 @@ public class PwmURLTest
     @Test
     public void testSingleDomainResourceUrls() throws PwmUnrecoverableException, URISyntaxException
     {
-        final AppConfig appConfig = new AppConfig( StoredConfigurationFactory.newConfig() );
+        final AppConfig appConfig = AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() );
         final PwmURL pwmURL = PwmURL.create( new URI( "http://127.0.0.1:8080/pwm/public/resources/nonce-0/webjars/dojo/dojo.js" ), "/pwm", appConfig );
 
         Assert.assertTrue( pwmURL.isPublicUrl() );
@@ -92,7 +92,7 @@ public class PwmURLTest
             final List<String> domainStrList = List.of( "aaaa", "bbbb", "cccc" );
             final StoredValue storedValue = StringArrayValue.create( domainStrList );
             modifier.writeSetting( StoredConfigKey.forSetting( PwmSetting.DOMAIN_LIST, null, DomainID.systemId() ), storedValue, null );
-            appConfig = new AppConfig( modifier.newStoredConfiguration( ) );
+            appConfig = AppConfig.forStoredConfig( modifier.newStoredConfiguration( ) );
         }
         final PwmURL pwmURL = PwmURL.create( new URI( "http://127.0.0.1:8080/pwm/aaaa/public/resources/nonce-0/webjars/dojo/dojo.js" ), "/pwm", appConfig );
 

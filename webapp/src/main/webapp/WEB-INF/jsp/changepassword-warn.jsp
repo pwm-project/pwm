@@ -32,9 +32,9 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final UserInfo uiBean = JspUtility.getPwmSession(pageContext).getUserInfo(); %>
-<% final LocalSessionStateBean ssBean = JspUtility.getPwmSession(pageContext).getSessionStateBean(); %>
-<% final DateFormat dateFormatter = java.text.DateFormat.getDateInstance(DateFormat.FULL, ssBean.getLocale()); %>
-<% final DateFormat timeFormatter = java.text.DateFormat.getTimeInstance(DateFormat.FULL, ssBean.getLocale()); %>
+<% final PwmRequest pwmRequest = JspUtility.getPwmRequest( pageContext ); %>
+<% final DateFormat dateFormatter = java.text.DateFormat.getDateInstance(DateFormat.FULL, pwmRequest.getLocale()); %>
+<% final DateFormat timeFormatter = java.text.DateFormat.getTimeInstance(DateFormat.FULL, pwmRequest.getLocale()); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body>

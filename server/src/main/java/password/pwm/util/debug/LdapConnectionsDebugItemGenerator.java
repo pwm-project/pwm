@@ -43,7 +43,7 @@ class LdapConnectionsDebugItemGenerator implements DomainItemGenerator
             throws IOException
     {
         final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
-        final List<LdapDomainService.ConnectionInfo> connectionInfos = pwmDomain.getLdapConnectionService().getConnectionInfos();
+        final List<LdapDomainService.ConnectionInfo> connectionInfos = pwmDomain.getLdapService().getConnectionInfos();
         final String jsonString = JsonFactory.get().serializeCollection( connectionInfos, JsonProvider.Flag.PrettyPrint );
         outputStream.write( jsonString.getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }

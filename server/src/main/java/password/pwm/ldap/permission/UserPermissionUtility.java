@@ -32,7 +32,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -147,7 +147,7 @@ public class UserPermissionUtility
         final List<UserPermission> sortedPermissions = new ArrayList<>( userPermissions );
         Collections.sort( sortedPermissions );
 
-        final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
+        final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
         final List<UserIdentity> resultSet = new ArrayList<>();
 
         for ( final UserPermission userPermission : sortedPermissions )
@@ -162,7 +162,7 @@ public class UserPermissionUtility
 
                 try
                 {
-                    final Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(
+                    final Map<UserIdentity, Map<String, String>> results = userSearchService.performMultiUserSearch(
                             searchConfiguration,
                             ( maxResultSize ) - resultSet.size(),
                             Collections.emptyList(),

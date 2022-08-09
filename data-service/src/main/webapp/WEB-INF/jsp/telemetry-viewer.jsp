@@ -116,6 +116,19 @@
         </tr>
         <% } %>
     </table>
+    <h2>Deployment Type</h2>
+    <table class="sortable">
+        <tr>
+            <td><b>Deployment Type</b></td>
+            <td><b>Count</b></td>
+        </tr>
+        <% for (final String osName : summaryBean.getDeploymentCount().keySet()) { %>
+        <tr>
+            <td><%=osName%></td>
+            <td><%=summaryBean.getDeploymentCount().get(osName)%></td>
+        </tr>
+        <% } %>
+    </table>
     <h2>DB Vendors</h2>
     <table class="sortable">
         <tr>

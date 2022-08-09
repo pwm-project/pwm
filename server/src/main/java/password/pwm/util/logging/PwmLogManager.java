@@ -114,7 +114,7 @@ public class PwmLogManager
     {
         try
         {
-            initConsoleLogger( new AppConfig( StoredConfigurationFactory.newConfig() ), pwmLogLevel );
+            initConsoleLogger( AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() ), pwmLogLevel );
         }
         catch ( final Exception e )
         {

@@ -121,14 +121,7 @@ public class ReportRecordLocalDBStorageService extends AbstractPwmService implem
         public UserIdentity next( )
         {
             final String nextKey = innerIterator.next().getKey();
-            try
-            {
-                return UserIdentity.fromDelimitedKey( getSessionLabel(), nextKey );
-            }
-            catch ( final PwmUnrecoverableException e )
-            {
-                throw new IllegalStateException( e );
-            }
+            return JsonFactory.get().deserialize( nextKey, UserIdentity.class );
         }
 
         @Override

@@ -42,7 +42,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.user.UserInfo;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
@@ -327,8 +327,8 @@ public class FormUtility
 
         try
         {
-            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
-            final Map<UserIdentity, Map<String, String>> results = new LinkedHashMap<>( userSearchEngine.performMultiUserSearch(
+            final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
+            final Map<UserIdentity, Map<String, String>> results = new LinkedHashMap<>( userSearchService.performMultiUserSearch(
                     searchConfiguration,
                     resultSearchSizeLimit,
                     Collections.emptyList(),

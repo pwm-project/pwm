@@ -219,7 +219,7 @@ public class RestRandomPasswordServer extends RestServlet
         final JsonOutput outputMap = new JsonOutput();
         outputMap.password = randomPassword.getStringValue();
 
-        StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_SETPASSWORD );
+        StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_RANDOMPASSWORD );
 
         return outputMap;
     }

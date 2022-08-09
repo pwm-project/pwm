@@ -57,7 +57,7 @@ public class NonLocalizedKeyTest
 
         // check non-default locales do NOT have value
         {
-            final AppConfig appConfig = new AppConfig( StoredConfigurationFactory.newConfig() );
+            final AppConfig appConfig = AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() );
             final List<Locale> locales = appConfig.getKnownLocales();
             for ( final Locale locale : locales )
             {

@@ -154,7 +154,7 @@ public class PhotoDataReader
             case ServerHttp:
                 String returnUrl = pwmRequest.getURLwithoutQueryString();
                 returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_ACTION_REQUEST, PeopleSearchServlet.PeopleSearchActions.photo.name() );
-                returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_USERKEY,  userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
+                returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_USERKEY,  PeopleSearchServlet.obfuscateUserIdentity( pwmRequest, userIdentity ) );
                 return Optional.of( returnUrl );
 
             default:

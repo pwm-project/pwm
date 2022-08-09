@@ -60,14 +60,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class LdapDomainService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapDomainService.class );
 
     private final Map<String, ErrorInformation> lastLdapErrors = new ConcurrentHashMap<>();
-    private final ReentrantLock reentrantLock = new ReentrantLock();
     private final ConditionalTaskExecutor debugLogger = ConditionalTaskExecutor.forPeriodicTask(
             this::conditionallyLogDebugInfo,
             TimeDuration.MINUTE.asDuration() );
@@ -82,7 +80,7 @@ public class LdapDomainService extends AbstractPwmService implements PwmService
     public static long totalLdapConnectionCount( final PwmApplication pwmApplication )
     {
         return pwmApplication.domains().values().stream()
-                .map( PwmDomain::getLdapConnectionService )
+                .map( PwmDomain::getLdapService )
                 .map( LdapDomainService::connectionCount )
                 .map( Long::valueOf )
                 .reduce( 0L, Long::sum );

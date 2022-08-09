@@ -39,6 +39,14 @@ public class PwmSessionFactory
     {
     }
 
+    private static PwmSession createSession( final PwmRequest pwmRequest, final PwmDomain pwmDomain )
+    {
+        final PwmSession pwmSession = PwmSession.createPwmSession( pwmDomain );
+
+        pwmSession.getSessionStateBean().setLocale( pwmRequest.getLocale() );
+
+        return pwmSession;
+    }
 
     public static void sessionMerge(
             final PwmRequest pwmRequest,
@@ -53,18 +61,11 @@ public class PwmSessionFactory
         setHttpSessionIdleTimeout( pwmDomain, pwmRequest, httpSession );
     }
 
-    private static PwmSession createSession( final PwmDomain pwmDomain )
+    public static PwmSession readPwmSession( final PwmRequest pwmRequest, final PwmDomain pwmdomain )
     {
-        // handle pwmSession init and assignment.
-
-        return PwmSession.createPwmSession( pwmDomain );
-    }
-
-
-    public static PwmSession readPwmSession( final HttpSession httpSession, final PwmDomain pwmdomain )
-    {
+        final HttpSession httpSession = pwmRequest.getHttpServletRequest().getSession();
         final Map<DomainID, PwmSession> map = getDomainSessionMap( httpSession );
-        return map.computeIfAbsent( pwmdomain.getDomainID(), k -> createSession( pwmdomain ) );
+        return map.computeIfAbsent( pwmdomain.getDomainID(), k -> createSession( pwmRequest, pwmdomain ) );
     }
 
     public static Map<DomainID, PwmSession> getDomainSessionMap( final HttpSession httpSession )

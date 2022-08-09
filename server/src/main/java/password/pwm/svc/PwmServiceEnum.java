@@ -23,6 +23,7 @@ package password.pwm.svc;
 import password.pwm.config.PwmSettingScope;
 import password.pwm.health.HealthService;
 import password.pwm.ldap.LdapDomainService;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.email.EmailService;
 import password.pwm.svc.intruder.IntruderDomainService;
 import password.pwm.svc.intruder.IntruderSystemService;
@@ -70,7 +71,7 @@ public enum PwmServiceEnum
     CrService( password.pwm.svc.cr.CrService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
     OtpService( password.pwm.svc.otp.OtpService.class, PwmSettingScope.DOMAIN ),
     IntruderDomainService( IntruderDomainService.class, PwmSettingScope.DOMAIN ),
-    UserSearchEngine( password.pwm.ldap.search.UserSearchEngine.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
+    UserSearchEngine( UserSearchService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
     TokenService( password.pwm.svc.token.TokenService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
     UserHistoryService( password.pwm.svc.userhistory.UserHistoryService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
     PeopleSearchService( password.pwm.http.servlet.peoplesearch.PeopleSearchService.class, PwmSettingScope.DOMAIN ),

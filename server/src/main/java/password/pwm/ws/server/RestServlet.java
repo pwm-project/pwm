@@ -42,7 +42,10 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
+import password.pwm.http.PwmRequestUtil;
 import password.pwm.http.filter.RequestInitializationFilter;
+import password.pwm.svc.stats.EpsStatistic;
+import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
@@ -102,30 +105,14 @@ public abstract class RestServlet extends HttpServlet
             return;
         }
 
-        final Locale locale = readLocale( pwmApplication, req, resp );
+        final Locale locale = readLocale( pwmDomain.getPwmApplication(), req, resp );
 
-        final SessionLabel sessionLabel;
-        try
-        {
-            sessionLabel =  SessionLabel.builder()
+        final SessionLabel sessionLabel = SessionLabel.builder()
                     .sessionID( "rest-" + REQUEST_COUNTER.next() )
-                    .sourceAddress( RequestInitializationFilter.readUserNetworkAddress( req, pwmApplication.getConfig() ).orElse( "" ) )
-                    .sourceHostname( RequestInitializationFilter.readUserHostname( req, pwmApplication.getConfig() ).orElse( "" ) )
+                    .sourceAddress( PwmRequestUtil.readUserNetworkAddress( req, pwmApplication.getConfig() ).orElse( "" ) )
+                    .sourceHostname( PwmRequestUtil.readUserHostname( req, pwmApplication.getConfig() ).orElse( "" ) )
                     .domain( pwmDomain.getDomainID().stringValue() )
                     .build();
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            final RestResultBean<ErrorInformation> restResultBean  = RestResultBean.fromError(
-                    e.getErrorInformation(),
-                    pwmDomain,
-                    locale,
-                    pwmDomain.getConfig(),
-                    pwmDomain.determineIfDetailErrorMsgShown()
-            );
-            outputRestResultBean( restResultBean, req, resp );
-            return;
-        }
 
         logHttpRequest( pwmApplication, req, sessionLabel );
 
@@ -245,7 +232,9 @@ public abstract class RestServlet extends HttpServlet
         {
             try
             {
-                return ( RestResultBean ) interestedMethod.invoke( this, restRequest );
+                final RestResultBean<?> restResultBean = ( RestResultBean ) interestedMethod.invoke( this, restRequest );
+                StatisticsClient.updateEps( restRequest.getDomain().getPwmApplication(), EpsStatistic.REST_REQUESTS );
+                return restResultBean;
             }
             catch ( final InvocationTargetException e )
             {
@@ -343,11 +332,11 @@ public abstract class RestServlet extends HttpServlet
         }
         else if ( reqAccept.isEmpty() && !anyMatch.isAcceptMatch() )
         {
-            errorMsg = HttpHeader.Accept.getHttpName() + " header is required";
+            errorMsg = HttpHeader.Accept.getHttpName() + " header is missing or has an unexpected value";
         }
         else if ( reqContent.isEmpty() && !anyMatch.isContentMatch() )
         {
-            errorMsg = HttpHeader.ContentType.getHttpName() + " header is required";
+            errorMsg = HttpHeader.ContentType.getHttpName() + " header is missing or has an unexpected value";
         }
         else if ( !anyMatch.isAcceptMatch() )
         {

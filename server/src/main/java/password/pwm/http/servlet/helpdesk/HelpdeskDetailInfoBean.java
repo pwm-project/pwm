@@ -148,7 +148,7 @@ public class HelpdeskDetailInfoBean implements Serializable
             LOGGER.error( pwmRequest, () -> "unexpected error reading userHistory for user '" + userIdentity + "', " + e.getMessage() );
         }
 
-        builder.userKey( userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
+        builder.userKey( HelpdeskServletUtil.obfuscateUserIdentity( pwmRequest, userIdentity ) );
 
         builder.profileData( getProfileData( helpdeskProfile, userInfo, pwmRequest.getLabel(), pwmRequest.getLocale() ) );
 

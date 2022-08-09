@@ -201,7 +201,7 @@ public abstract class StoredConfigurationUtil
             return false;
         }
         final Optional<String> passwordHash = storedConfiguration.readConfigProperty( ConfigurationProperty.PASSWORD_HASH );
-        return passwordHash.isPresent() && BCrypt.testAnswer( password, passwordHash.get(), new AppConfig( storedConfiguration ) );
+        return passwordHash.isPresent() && BCrypt.testAnswer( password, passwordHash.get(), AppConfig.forStoredConfig( storedConfiguration ) );
     }
 
     public static boolean hasPassword( final StoredConfiguration storedConfiguration )

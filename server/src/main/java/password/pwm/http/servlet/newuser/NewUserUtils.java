@@ -60,7 +60,7 @@ import password.pwm.user.UserInfoBean;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.stats.Statistic;
@@ -260,7 +260,7 @@ class NewUserUtils
                         .setSetting( ChaiSetting.BIND_DN, newUserDN )
                         .setSetting( ChaiSetting.BIND_PASSWORD, temporaryPassword.getStringValue() )
                         .build();
-                final ChaiProvider bindAsProvider = pwmDomain.getLdapConnectionService().getChaiProviderFactory().newProvider( chaiConfiguration );
+                final ChaiProvider bindAsProvider = pwmDomain.getLdapService().getChaiProviderFactory().newProvider( chaiConfiguration );
                 final ChaiUser bindAsUser = bindAsProvider.getEntryFactory().newChaiUser( newUserDN );
                 bindAsUser.changePassword( temporaryPassword.getStringValue(), userPassword.getStringValue() );
                 NewUserUtils.LOGGER.debug( pwmRequest, () -> "changed to user requested password for new user entry: " + newUserDN );
@@ -438,14 +438,14 @@ class NewUserUtils
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final UserSearchEngine userSearchEngine = pwmRequest.getPwmDomain().getUserSearchEngine();
+        final UserSearchService userSearchService = pwmRequest.getPwmDomain().getUserSearchEngine();
         final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                 .username( rdnValue )
                 .build();
 
         try
         {
-            final Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(
+            final Map<UserIdentity, Map<String, String>> results = userSearchService.performMultiUserSearch(
                     searchConfiguration, 2, Collections.emptyList(), pwmRequest.getLabel() );
             return results != null && !results.isEmpty();
         }

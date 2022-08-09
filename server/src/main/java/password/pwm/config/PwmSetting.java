@@ -71,7 +71,7 @@ public enum PwmSetting
     DOMAIN_SYSTEM_ADMIN(
             "domain.system.adminDomain", PwmSettingSyntax.STRING, PwmSettingCategory.DOMAINS ),
     DOMAIN_DOMAIN_PATHS(
-            "domain.system.domainPaths", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.DOMAINS ),
+            "domain.system.domainPathsEnabled", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.DOMAINS ),
 
     // application settings
     APP_PROPERTY_OVERRIDES(

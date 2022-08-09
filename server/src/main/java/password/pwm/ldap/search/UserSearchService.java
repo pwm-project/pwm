@@ -20,9 +20,6 @@
 
 package password.pwm.ldap.search;
 
-import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiOperationException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -75,9 +72,9 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 
 
-public class UserSearchEngine extends AbstractPwmService implements PwmService
+public class UserSearchService extends AbstractPwmService implements PwmService
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( UserSearchEngine.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( UserSearchService.class );
 
     private final StatisticCounterBundle<SearchStatistic> counters = new StatisticCounterBundle<>( SearchStatistic.class );
     private final AtomicLoopIntIncrementer searchIdCounter = new AtomicLoopIntIncrementer();
@@ -101,7 +98,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
             TimeDuration.of( 1, TimeDuration.Unit.MINUTES ).asDuration()
     );
 
-    public UserSearchEngine( )
+    public UserSearchService( )
     {
     }
 
@@ -152,41 +149,6 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
-        //check if username is a key
-        {
-            UserIdentity inputIdentity = null;
-            try
-            {
-                inputIdentity = UserIdentity.fromKey( sessionLabel, username, pwmDomain.getPwmApplication() );
-            }
-            catch ( final PwmException e )
-            {
-                /* input is not a userIdentity */
-            }
-
-            if ( inputIdentity != null )
-            {
-                try
-                {
-                    final ChaiUser theUser = pwmDomain.getProxiedChaiUser( sessionLabel, inputIdentity );
-                    if ( theUser.exists() )
-                    {
-                        final String canonicalDN;
-                        canonicalDN = theUser.readCanonicalDN();
-                        return UserIdentity.create( canonicalDN, inputIdentity.getLdapProfileID(), pwmDomain.getDomainID() );
-                    }
-                }
-                catch ( final ChaiOperationException e )
-                {
-                    throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_CANT_MATCH_USER, e.getMessage() ) );
-                }
-                catch ( final ChaiUnavailableException e )
-                {
-                    throw PwmUnrecoverableException.fromChaiException( e );
-                }
-            }
-        }
-
         try
         {
             //see if we need to do a contextless search.
@@ -343,7 +305,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
         for ( final LdapProfile ldapProfile : ldapProfiles )
         {
             boolean skipProfile = false;
-            final Instant lastLdapFailure = pwmDomain.getLdapConnectionService().getLastLdapFailureTime( ldapProfile );
+            final Instant lastLdapFailure = pwmDomain.getLdapService().getLastLdapFailureTime( ldapProfile );
 
             if ( ldapProfiles.size() > 1 && lastLdapFailure != null && TimeDuration.fromCurrent( lastLdapFailure ).isShorterThan( profileRetryDelayMS ) )
             {
@@ -369,7 +331,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
                 {
                     if ( e.getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
                     {
-                        pwmDomain.getLdapConnectionService().setLastLdapFailure( ldapProfile, e.getErrorInformation() );
+                        pwmDomain.getLdapService().setLastLdapFailure( ldapProfile, e.getErrorInformation() );
                         if ( ignoreUnreachableProfiles )
                         {
                             errors.add( e.getErrorInformation().getDetailedErrorMsg() );
@@ -814,7 +776,7 @@ public class UserSearchEngine extends AbstractPwmService implements PwmService
 
             LOGGER.trace( getSessionLabel(), () -> "initialized with threads min=" + minThreads + " max=" + threads );
 
-            return PwmScheduler.makeMultiThreadExecutor( threads, getPwmApplication(), getSessionLabel(), UserSearchEngine.class );
+            return PwmScheduler.makeMultiThreadExecutor( threads, getPwmApplication(), getSessionLabel(), UserSearchService.class );
         }
         return null;
     }

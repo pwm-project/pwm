@@ -40,7 +40,7 @@ import password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.util.java.MiscUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
@@ -248,8 +248,8 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         {
             try
             {
-                final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
-                final UserIdentity resolvedIdentity = userSearchEngine.resolveUsername(
+                final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
+                final UserIdentity resolvedIdentity = userSearchService.resolveUsername(
                         oauthSuppliedUsername,
                         null,
                         null,

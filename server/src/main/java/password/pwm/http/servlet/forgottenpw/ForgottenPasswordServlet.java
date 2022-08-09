@@ -69,7 +69,7 @@ import password.pwm.ldap.auth.AuthenticationUtility;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -449,7 +449,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             // convert the username field to an identity
             final UserIdentity userIdentity;
             {
-                final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
+                final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
                 final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                         .filter( searchFilter )
                         .formValues( formValues )
@@ -457,7 +457,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                         .ldapProfile( ldapProfile )
                         .build();
 
-                userIdentity = userSearchEngine.performSingleUserSearch( searchConfiguration, pwmRequest.getLabel() );
+                userIdentity = userSearchService.performSingleUserSearch( searchConfiguration, pwmRequest.getLabel() );
             }
 
             if ( userIdentity == null )
@@ -486,7 +486,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
                 StatisticsClient.incrementStat( pwmRequest, Statistic.RECOVERY_FAILURES );
 
-                IntruderServiceClient.markAddressAndSession( pwmDomain, pwmRequest.getPwmSession() );
+                IntruderServiceClient.markAddressAndSession( pwmRequest );
                 IntruderServiceClient.markAttributes( pwmRequest, formValues );
 
                 LOGGER.debug( pwmRequest, errorInfo );
@@ -688,10 +688,10 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
         final UserIdentity oauthUserIdentity;
         {
-            final UserSearchEngine userSearchEngine = pwmRequest.getPwmDomain().getUserSearchEngine();
+            final UserSearchService userSearchService = pwmRequest.getPwmDomain().getUserSearchEngine();
             try
             {
-                oauthUserIdentity = userSearchEngine.resolveUsername( userDNfromOAuth, null, null, pwmRequest.getLabel() );
+                oauthUserIdentity = userSearchService.resolveUsername( userDNfromOAuth, null, null, pwmRequest.getLabel() );
             }
             catch ( final PwmOperationalException e )
             {
@@ -1286,7 +1286,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             IntruderServiceClient.markUserIdentity( pwmRequest, userIdentity );
         }
 
-        IntruderServiceClient.markAddressAndSession( pwmRequest.getPwmDomain(), pwmRequest.getPwmSession() );
+        IntruderServiceClient.markAddressAndSession( pwmRequest );
 
         StatisticsClient.incrementStat( pwmRequest, Statistic.RECOVERY_FAILURES );
     }

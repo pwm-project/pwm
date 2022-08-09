@@ -28,6 +28,7 @@ import java.util.Locale;
 public enum EpsStatistic
 {
     REQUESTS(),
+    REST_REQUESTS,
     SESSIONS(),
     PASSWORD_CHANGES(),
     AUTHENTICATION(),

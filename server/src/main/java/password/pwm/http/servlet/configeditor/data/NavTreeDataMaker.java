@@ -176,7 +176,7 @@ public class NavTreeDataMaker
             final StoredConfiguration storedConfiguration
     )
     {
-        final List<Locale> knownLocales = Collections.unmodifiableList( new AppConfig( storedConfiguration ).getKnownLocales() );
+        final List<Locale> knownLocales = Collections.unmodifiableList( AppConfig.forStoredConfig( storedConfiguration ).getKnownLocales() );
         final List<String> modifiedKeys = new ArrayList<>();
         for ( final String key : bundle.getDisplayKeys() )
         {
@@ -395,7 +395,7 @@ public class NavTreeDataMaker
         }
 
         if ( setting.getFlags().contains( PwmSettingFlag.MultiDomain )
-                && ( !( new AppConfig( storedConfiguration ).isMultiDomain() ) ) )
+                && ( !( AppConfig.forStoredConfig( storedConfiguration ).isMultiDomain() ) ) )
         {
             return false;
         }

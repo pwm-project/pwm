@@ -52,7 +52,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.data.ImmutableByteArray;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.EpsStatistic;
@@ -154,7 +154,7 @@ public class LdapOperationsHelper
             throws PwmUnrecoverableException
     {
         return openProxyChaiProvider(
-                pwmDomain.getLdapConnectionService().getChaiProviderFactory(),
+                pwmDomain.getLdapService().getChaiProviderFactory(),
                 sessionLabel,
                 ldapProfile,
                 config,
@@ -473,7 +473,7 @@ public class LdapOperationsHelper
 
             if ( guidMode == AbstractProfile.GuidMode.DN )
             {
-                return userIdentity.toDelimitedKey();
+                return userIdentity.getUserDN();
             }
 
             if ( guidMode == AbstractProfile.GuidMode.VENDORGUID )
@@ -568,8 +568,8 @@ public class LdapOperationsHelper
                                 .filter( "(" + guidAttributeName + "=" + guidValue + ")" )
                                 .build();
 
-                        final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
-                        final UserIdentity result = userSearchEngine.performSingleUserSearch( searchConfiguration, sessionLabel );
+                        final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
+                        final UserIdentity result = userSearchService.performSingleUserSearch( searchConfiguration, sessionLabel );
                         exists = result != null;
                     }
                     catch ( final PwmOperationalException e )
@@ -660,7 +660,7 @@ public class LdapOperationsHelper
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         final ChaiProvider chaiProvider = createChaiProvider(
-                pwmDomain.getLdapConnectionService().getChaiProviderFactory(),
+                pwmDomain.getLdapService().getChaiProviderFactory(),
                 sessionLabel,
                 ldapProfile,
                 config,
@@ -702,7 +702,7 @@ public class LdapOperationsHelper
     {
         final ChaiConfiguration chaiConfig = createChaiConfiguration( config, ldapProfile, ldapURLs, userDN, userPassword );
         LOGGER.trace( sessionLabel, () -> "creating new ldap connection using config: " + chaiConfig.toString() );
-        return pwmDomain.getLdapConnectionService().getChaiProviderFactory().newProvider( chaiConfig );
+        return pwmDomain.getLdapService().getChaiProviderFactory().newProvider( chaiConfig );
     }
 
     public static ChaiConfiguration createChaiConfiguration(

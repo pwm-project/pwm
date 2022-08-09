@@ -496,7 +496,7 @@ public class NMASCrOperator implements CrOperator
 
         private LDAPConnection makeLdapConnection( ) throws Exception
         {
-            final ChaiProviderFactory chaiProviderFactory = pwmDomain.getLdapConnectionService().getChaiProviderFactory();
+            final ChaiProviderFactory chaiProviderFactory = pwmDomain.getLdapService().getChaiProviderFactory();
             final ChaiProvider chaiProvider = chaiProviderFactory.newProvider( chaiConfiguration );
             final ChaiUser theUser = chaiProvider.getEntryFactory().newChaiUser( userIdentity.getUserDN() );
             try

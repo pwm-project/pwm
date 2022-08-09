@@ -237,7 +237,7 @@ public class SessionTrackService extends AbstractPwmService implements PwmServic
     }
 
 
-    private static SessionStateInfoBean infoBeanFromPwmSession( final PwmSession loopSession )
+    private SessionStateInfoBean infoBeanFromPwmSession( final PwmSession loopSession )
     {
         final LocalSessionStateBean loopSsBean = loopSession.getSessionStateBean();
         final LoginInfoBean loginInfoBean = loopSession.getLoginInfoBean();
@@ -273,7 +273,7 @@ public class SessionTrackService extends AbstractPwmService implements PwmServic
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( loopSession.getLabel(), () -> "unexpected error reading username: " + e.getMessage(), e );
+                LOGGER.error( getSessionLabel(), () -> "unexpected error reading username: " + e.getMessage(), e );
             }
         }
 

@@ -36,6 +36,7 @@ import password.pwm.health.HealthService;
 import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
+import password.pwm.http.servlet.resource.TextFileResource;
 import password.pwm.user.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.otp.OTPUserRecord;
@@ -98,6 +99,8 @@ public enum PwmIfTest
     healthWarningsVisible( new HealthWarningsVisibleTest() ),
 
     headerMenuIsVisible( new HeaderMenuIsVisibleTest() ),
+
+    textFileExists( new TextFileExists() ),
 
     requestFlag( new RequestFlagTest() ),;
 
@@ -467,7 +470,20 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.endUserFunctionalityAvailable();
+            final PwmApplicationMode mode = pwmRequest.getPwmApplication().getApplicationMode();
+            if ( mode == PwmApplicationMode.NEW )
+            {
+                return false;
+            }
+            if ( PwmConstants.TRIAL_MODE )
+            {
+                return true;
+            }
+            if ( mode == PwmApplicationMode.RUNNING )
+            {
+                return true;
+            }
+            return false;
         }
 
     }
@@ -588,4 +604,16 @@ public enum PwmIfTest
             return pwmRequest.getPwmApplication().getPwmEnvironment().getDeploymentPlatform() == deploymentPlatform;
         }
     }
+
+    private static class TextFileExists implements Test
+    {
+        @Override
+        public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options )
+                throws PwmUnrecoverableException
+        {
+            final TextFileResource textFileResource = options.getTextFileResource();
+            return TextFileResource.readTextFileResource( pwmRequest, textFileResource ).isPresent();
+        }
+    }
+
 }

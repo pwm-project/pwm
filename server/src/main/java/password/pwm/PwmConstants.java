@@ -111,6 +111,8 @@ public abstract class PwmConstants
     public static final String REQUEST_ATTR_FORGOTTEN_PW_AVAIL_TOKEN_DEST_CACHE = "ForgottenPw-AvailableTokenDestCache";
     public static final String REQUEST_ATTR_DOMAIN = "domain";
     public static final String REQUEST_ATTR_PWM_APPLICATION = "PwmApplication";
+    public static final String REQUEST_ATTR_SRC_ADDRESS = "SourceAddress";
+    public static final String REQUEST_ATTR_SRC_HOSTNAME = "SourceAddress";
 
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle( "log.removedValue" );
 

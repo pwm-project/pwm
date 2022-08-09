@@ -58,11 +58,11 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-public class JavaHelper
+public final class JavaHelper
 {
     private static final char[] HEX_CHAR_ARRAY = "0123456789ABCDEF".toCharArray();
 
-    private JavaHelper( )
+    private JavaHelper()
     {
     }
 
@@ -310,6 +310,7 @@ public class JavaHelper
 
     /**
      * Copy of {@link ThreadInfo#toString()} but with the MAX_FRAMES changed from 8 to 256.
+     *
      * @param threadInfo thread information
      * @return a stacktrace string with newline formatting
      */
@@ -520,7 +521,7 @@ public class JavaHelper
     public static byte[] gunzip( final byte[] bytes )
             throws IOException
     {
-        try (  GZIPInputStream inputGzipStream = new GZIPInputStream( new ByteArrayInputStream( bytes ) ) )
+        try ( GZIPInputStream inputGzipStream = new GZIPInputStream( new ByteArrayInputStream( bytes ) ) )
         {
             return inputGzipStream.readAllBytes();
         }
@@ -547,6 +548,7 @@ public class JavaHelper
 
     /**
      * Append multiple byte array values into a single array.
+     *
      * @param byteArrays two or more byte arrays.
      * @return A new array with the contents of all byteArrays appended
      */

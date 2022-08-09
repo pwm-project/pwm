@@ -120,7 +120,7 @@ public class ConfigurationFileManager
             final StoredConfiguration newStoredConfig = this.storedConfiguration == null
                     ? StoredConfigurationFactory.newConfig()
                     : this.storedConfiguration;
-            domainConfig = new AppConfig( newStoredConfig );
+            domainConfig = AppConfig.forStoredConfig( newStoredConfig );
         }
         return domainConfig;
     }
@@ -210,7 +210,7 @@ public class ConfigurationFileManager
         int backupRotations = 0;
         if ( pwmApplication != null )
         {
-            final AppConfig domainConfig = new AppConfig( storedConfiguration );
+            final AppConfig domainConfig = AppConfig.forStoredConfig( storedConfiguration );
             final String backupDirSetting = domainConfig.readAppProperty( AppProperty.BACKUP_LOCATION );
             if ( backupDirSetting != null && backupDirSetting.length() > 0 )
             {

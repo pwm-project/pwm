@@ -58,6 +58,8 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 /**
  * <p>This session filter (invoked by the container through the web.xml descriptor) wraps all calls to the
@@ -74,7 +76,6 @@ public class SessionFilter extends AbstractPwmFilter
 
     private static final List<CheckingFunction> CHECKING_FUNCTIONS = List.of(
             new SessionVerificationChecker(),
-            new LocaleParamChecker(),
             new ThemeParamChecker(),
             new SsoOverrideParamChecker(),
             new ForwardParamChecker(),
@@ -139,7 +140,21 @@ public class SessionFilter extends AbstractPwmFilter
         pwmRequest.getPwmDomain().getStatisticsManager().updateAverageValue( AvgStatistic.AVG_REQUEST_PROCESS_TIME, requestExecuteTime.asMillis() );
         pwmRequest.getPwmSession().getSessionStateBean().getRequestCount().incrementAndGet();
         pwmRequest.getPwmSession().getSessionStateBean().getAvgRequestDuration().update( requestExecuteTime.asDuration() );
+        updateSessionLocale( pwmRequest );
     }
+
+    private static void updateSessionLocale( final PwmRequest pwmRequest )
+    {
+        final Locale locale = pwmRequest.getLocale();
+        final LocalSessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
+
+        if ( !Objects.equals( ssBean.getLocale(), locale ) )
+        {
+            LOGGER.debug( pwmRequest, () -> "setting session locale to '" + locale + "'" );
+            ssBean.setLocale( locale );
+        }
+    }
+
 
     private ProcessStatus handleStandardRequestOperations(
             final PwmRequest pwmRequest
@@ -363,35 +378,6 @@ public class SessionFilter extends AbstractPwmFilter
             }
 
             return redirectURL;
-        }
-    }
-
-    //override session locale due to parameter
-    private static class LocaleParamChecker implements CheckingFunction
-    {
-        @Override
-        public ProcessStatus processCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
-        {
-            final DomainConfig config = pwmRequest.getDomainConfig();
-            final String localeParamName = config.readAppProperty( AppProperty.HTTP_PARAM_NAME_LOCALE );
-            final String localeCookieName = config.readAppProperty( AppProperty.HTTP_COOKIE_LOCALE_NAME );
-            final String requestedLocale = pwmRequest.readParameterAsString( localeParamName );
-            final int cookieAgeSeconds = ( int ) pwmRequest.getAppConfig().readSettingAsLong( PwmSetting.LOCALE_COOKIE_MAX_AGE );
-            if ( requestedLocale != null && requestedLocale.length() > 0 )
-            {
-                LOGGER.debug( pwmRequest, () -> "detected locale request parameter " + localeParamName + " with value " + requestedLocale );
-                if ( cookieAgeSeconds > 0
-                        && pwmRequest.getPwmSession().setLocale( pwmRequest, requestedLocale ) )
-                {
-                    pwmRequest.getPwmResponse().writeCookie(
-                            localeCookieName,
-                            requestedLocale,
-                            cookieAgeSeconds,
-                            PwmCookiePath.Domain
-                    );
-                }
-            }
-            return ProcessStatus.Continue;
         }
     }
 

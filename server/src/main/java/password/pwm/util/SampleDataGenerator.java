@@ -194,7 +194,7 @@ public class SampleDataGenerator
                         PwmSetting.LDAP_PROFILE_DISPLAY_NAME, SAMPLE_USER_LDAP_PROFILE, SAMPLE_USER_DOMAIN ),
                 new LocalizedStringValue( Map.of( "", "ProfileName" ) ), SAMPLE_CONFIG_MODIFIER_IDENTITY );
 
-        return new AppConfig( modifier.newStoredConfiguration() );
+        return AppConfig.forStoredConfig( modifier.newStoredConfiguration() );
     }
 
     private static PwmApplication makeSamplePwmApp()

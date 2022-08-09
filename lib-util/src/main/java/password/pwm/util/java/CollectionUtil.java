@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -222,5 +223,12 @@ public class CollectionUtil
     public static <E extends Enum<E>> Stream<E> enumStream( final Class<E> enumClass )
     {
         return EnumSet.allOf( enumClass ).stream();
+    }
+
+    public static <T> Set<T> setUnion( final Set<T> set1, final Set<T> set2 )
+    {
+        final Set<T> s = new HashSet<>( set1 == null ? Collections.emptySet() : set1 );
+        s.retainAll( set2 == null ? Collections.<T>emptySet() : set2 );
+        return Set.copyOf( s );
     }
 }

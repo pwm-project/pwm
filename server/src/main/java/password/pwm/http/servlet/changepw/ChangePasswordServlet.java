@@ -322,7 +322,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            IntruderServiceClient.markAddressAndSession( pwmRequest.getPwmDomain(), pwmSession );
+            IntruderServiceClient.markAddressAndSession( pwmRequest );
             IntruderServiceClient.markUserIdentity( pwmRequest, userInfo.getUserIdentity() );
             LOGGER.debug( pwmRequest, e.getErrorInformation() );
             setLastError( pwmRequest, e.getErrorInformation() );
@@ -426,10 +426,8 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     public ProcessStatus processCheckPasswordAction( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final RestCheckPasswordServer.JsonInput jsonInput = JsonFactory.get().deserialize(
-                pwmRequest.readRequestBodyAsString(),
-                RestCheckPasswordServer.JsonInput.class
-        );
+        final RestCheckPasswordServer.JsonInput jsonInput =
+                pwmRequest.readBodyAsJsonObject( RestCheckPasswordServer.JsonInput.class );
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final UserInfo userInfo = pwmSession.getUserInfo();

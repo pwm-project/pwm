@@ -33,7 +33,7 @@ import password.pwm.http.servlet.peoplesearch.PeopleSearchService;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.http.state.SessionStateService;
 import password.pwm.ldap.LdapDomainService;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceEnum;
 import password.pwm.svc.PwmServiceManager;
@@ -159,7 +159,7 @@ public class PwmDomain
         return pwmApplication.determineIfDetailErrorMsgShown();
     }
 
-    public LdapDomainService getLdapConnectionService( )
+    public LdapDomainService getLdapService( )
     {
         return ( LdapDomainService ) pwmServiceManager.getService( PwmServiceEnum.LdapConnectionService );
     }
@@ -191,7 +191,7 @@ public class PwmDomain
     public ChaiProvider getProxyChaiProvider( final SessionLabel sessionLabel, final String profileId )
             throws PwmUnrecoverableException
     {
-        return getLdapConnectionService().getProxyChaiProvider( sessionLabel, profileId );
+        return getLdapService().getProxyChaiProvider( sessionLabel, profileId );
     }
 
     public List<PwmService> getPwmServices( )
@@ -199,9 +199,9 @@ public class PwmDomain
         return pwmServiceManager.getRunningServices();
     }
 
-    public UserSearchEngine getUserSearchEngine()
+    public UserSearchService getUserSearchEngine()
     {
-        return ( UserSearchEngine ) pwmServiceManager.getService( PwmServiceEnum.UserSearchEngine );
+        return ( UserSearchService ) pwmServiceManager.getService( PwmServiceEnum.UserSearchEngine );
     }
 
     public HttpClientService getHttpClientService()

@@ -35,6 +35,8 @@ import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey>
 {
@@ -277,6 +279,13 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
     public String toString()
     {
         return getLabel( PwmConstants.DEFAULT_LOCALE );
+    }
+
+    public static Set<DomainID> uniqueDomains( final Set<StoredConfigKey> storedConfigKeys )
+    {
+        return storedConfigKeys.stream()
+                .map( StoredConfigKey::getDomainID )
+                .collect( Collectors.toUnmodifiableSet() );
     }
 
     public PwmSettingSyntax getSyntax()

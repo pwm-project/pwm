@@ -43,7 +43,7 @@ public class StoredConfigurationTest
         try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ) )
         {
             final StoredConfiguration storedConfiguration = StoredConfigurationFactory.input( xmlFile );
-            appConfig = new AppConfig( storedConfiguration );
+            appConfig = AppConfig.forStoredConfig( storedConfiguration );
         }
     }
 

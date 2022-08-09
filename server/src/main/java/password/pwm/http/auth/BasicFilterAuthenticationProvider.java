@@ -30,7 +30,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.BasicAuthInfo;
@@ -76,8 +76,8 @@ public class BasicFilterAuthenticationProvider implements PwmHttpFilterAuthentic
                     pwmRequest,
                     PwmAuthenticationSource.BASIC_AUTH
             );
-            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
-            final UserIdentity userIdentity = userSearchEngine.resolveUsername( basicAuthInfo.get().getUsername(), null, null, pwmRequest.getLabel() );
+            final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
+            final UserIdentity userIdentity = userSearchService.resolveUsername( basicAuthInfo.get().getUsername(), null, null, pwmRequest.getLabel() );
             sessionAuthenticator.authenticateUser( userIdentity, basicAuthInfo.get().getPassword() );
             pwmSession.getLoginInfoBean().setBasicAuth( basicAuthInfo.get() );
         }

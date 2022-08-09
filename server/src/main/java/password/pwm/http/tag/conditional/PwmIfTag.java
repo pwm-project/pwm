@@ -27,6 +27,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
+import password.pwm.http.servlet.resource.TextFileResource;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,6 +44,7 @@ public class PwmIfTag extends BodyTagSupport
     private boolean negate;
     private PwmRequestFlag requestFlag;
     private PwmSetting setting;
+    private TextFileResource textFileResource;
 
     public void setTest( final PwmIfTest test )
     {
@@ -69,6 +71,11 @@ public class PwmIfTag extends BodyTagSupport
         this.setting = setting;
     }
 
+    public void setTextFileResource( final TextFileResource textFileResource )
+    {
+        this.textFileResource = textFileResource;
+    }
+
     @Override
     public int doStartTag( )
             throws JspException
@@ -90,7 +97,7 @@ public class PwmIfTag extends BodyTagSupport
                     {
                         try
                         {
-                            final PwmIfOptions options = new PwmIfOptions( negate, permission, setting, requestFlag );
+                            final PwmIfOptions options = new PwmIfOptions( negate, permission, setting, requestFlag, textFileResource );
                             showBody = testEnum.passed( pwmRequest, options );
                         }
                         catch ( final ChaiUnavailableException e )

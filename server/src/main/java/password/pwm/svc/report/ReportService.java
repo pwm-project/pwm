@@ -403,7 +403,7 @@ public class ReportService extends AbstractPwmService implements PwmService
                 final int loopCount = transactionCalculator.getTransactionSize();
                 while ( !cancelFlag.get() && identityQueue.hasNext() && bufferList.size() < loopCount )
                 {
-                    bufferList.add( identityQueue.next().toDelimitedKey() );
+                    bufferList.add( JsonFactory.get().serialize( identityQueue.next() ) );
                 }
                 dnQueue.addAll( bufferList );
                 transactionCalculator.recordLastTransactionDuration( TimeDuration.fromCurrent( loopStart ) );
@@ -487,7 +487,7 @@ public class ReportService extends AbstractPwmService implements PwmService
                 final BlockingThreadPool threadService = new BlockingThreadPool( threadCount, threadName );
                 while ( status() == STATUS.OPEN && !dnQueue.isEmpty() && !cancelFlag.get() )
                 {
-                    final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( getSessionLabel(), dnQueue.poll() );
+                    final UserIdentity userIdentity = JsonFactory.get().deserialize( dnQueue.poll(), UserIdentity.class );
                     if ( getPwmApplication().getConfig().isDevDebugMode() )
                     {
                         LOGGER.trace( getSessionLabel(), () -> "submit " + Instant.now().toString()

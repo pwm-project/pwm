@@ -41,7 +41,7 @@ public class IdentityVerificationMethodEnumTest
     @Test
     public void testDescriptions() throws PwmUnrecoverableException
     {
-        final AppConfig appConfig = new AppConfig( StoredConfigurationFactory.newConfig() );
+        final AppConfig appConfig = AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() );
         for ( final IdentityVerificationMethod category : IdentityVerificationMethod.values() )
         {
             category.getDescription( appConfig, PwmConstants.DEFAULT_LOCALE );

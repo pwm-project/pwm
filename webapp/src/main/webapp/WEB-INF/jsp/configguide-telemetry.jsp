@@ -27,6 +27,7 @@
 <%@ page import="password.pwm.util.java.JavaHelper" %>
 <%@ page import="password.pwm.http.servlet.configguide.ConfigGuideFormField" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="password.pwm.http.servlet.resource.TextFileResource" %>
 
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
@@ -56,12 +57,6 @@
                     <br/><br/>
                     <%=PwmSetting.PUBLISH_STATS_ENABLE.getDescription(JspUtility.locale(request))%>
                     <br/><br/>
-                    <%--
-                <label class="checkboxWrapper">
-                    <input type="checkbox" id="widget_<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" name="widget_<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" <%=telemEnabled ? "checked" : ""%>/> Enabled
-                    <input type="hidden" id="<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" name="<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" value="false"/>
-                    </label>
-                    --%>
 
                     <label class="checkboxWrapper"><input type="radio" id="<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>-enabled" name="<%=ConfigGuideFormField.PARAM_TELEMETRY_ENABLE%>" value="true">Enabled</label>
                     <br/>
@@ -79,12 +74,11 @@
                     <br/><br/>
                     <input class="configStringInput" maxlength="100" id="<%=ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION%>" name="<%=ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION%>" value="<%=configGuideBean.getFormData().get(ConfigGuideFormField.PARAM_TELEMETRY_DESCRIPTION)%>" <pwm:autofocus/> />
                     <br/><br/>
-                        <% String privacyText = ContextManager.readEulaText(ContextManager.getContextManager(session),PwmConstants.RESOURCE_FILE_PRIVACY_TXT); %>
                         <div id="agreementWrapper" style="display: none" class="fadein">
-                            <% if (!StringUtil.isEmpty(privacyText)) { %>
+                            <pwm:if test="<%=PwmIfTest.textFileExists%>" textFileResource="<%=TextFileResource.privacy%>">
                             <label><b>Data Privacy Policy</b></label>
-                            <div id="agreementText" class="eulaText"><%=privacyText%></div>
-                            <% } %>
+                            <div id="agreementText" class="eulaText"><pwm:textFile textFileResource="<%=TextFileResource.privacy%>"/></div>
+                            </pwm:if>
                         </div>
                     </div>
                 </div>

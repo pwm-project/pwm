@@ -28,7 +28,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
@@ -115,8 +115,8 @@ public class RestUtility
 
         try
         {
-            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
-            final UserIdentity userIdentity = userSearchEngine.resolveUsername( effectiveUsername, null, ldapProfileID, restRequest.getSessionLabel() );
+            final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
+            final UserIdentity userIdentity = userSearchService.resolveUsername( effectiveUsername, null, ldapProfileID, restRequest.getSessionLabel() );
 
             final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
             if ( ldapProfile != null )

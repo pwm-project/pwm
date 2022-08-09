@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Serializable;
 
 public class MiscUtil
 {
@@ -58,7 +57,7 @@ public class MiscUtil
      * @param object object to be analyzed
      * @return size of object (very rough estimate)
      */
-    public static long sizeof( final Serializable object )
+    public static long sizeof( final Object object )
     {
         try ( ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream() )
         {

@@ -125,7 +125,7 @@ public class LDAPHealthChecker implements HealthSupplier
             returnRecords.addAll( profileRecords );
         }
 
-        for ( final Map.Entry<String, ErrorInformation> entry : pwmDomain.getLdapConnectionService().getLastLdapFailure().entrySet() )
+        for ( final Map.Entry<String, ErrorInformation> entry : pwmDomain.getLdapService().getLastLdapFailure().entrySet() )
         {
             final ErrorInformation errorInfo = entry.getValue();
             final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( entry.getKey() );
@@ -585,7 +585,7 @@ public class LDAPHealthChecker implements HealthSupplier
                         ldapProfile.getIdentifier(),
                         errorString.toString() ) );
 
-                pwmDomain.getLdapConnectionService().setLastLdapFailure( ldapProfile,
+                pwmDomain.getLdapService().setLastLdapFailure( ldapProfile,
                         new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, errorString.toString() ) );
                 return returnRecords;
             }
@@ -596,7 +596,7 @@ public class LDAPHealthChecker implements HealthSupplier
                         HealthMessage.LDAP_No_Connection,
                         e.getMessage() );
                 returnRecords.add( record );
-                pwmDomain.getLdapConnectionService().setLastLdapFailure( ldapProfile,
+                pwmDomain.getLdapService().setLastLdapFailure( ldapProfile,
                         new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, record.getDetail( PwmConstants.DEFAULT_LOCALE, pwmDomain.getConfig() ) ) );
                 return returnRecords;
             }
@@ -744,7 +744,7 @@ public class LDAPHealthChecker implements HealthSupplier
                 final Collection<ChaiConfiguration> replicaConfigs = ChaiUtility.splitConfigurationPerReplica( profileChaiConfiguration, Collections.emptyMap() );
                 for ( final ChaiConfiguration chaiConfiguration : replicaConfigs )
                 {
-                    final ChaiProvider loopProvider = pwmDomain.getLdapConnectionService().getChaiProviderFactory().newProvider( chaiConfiguration );
+                    final ChaiProvider loopProvider = pwmDomain.getLdapService().getChaiProviderFactory().newProvider( chaiConfiguration );
                     replicaVendorMap.put( chaiConfiguration.getSetting( ChaiSetting.BIND_URLS ), loopProvider.getDirectoryVendor() );
                 }
             }
@@ -827,7 +827,7 @@ public class LDAPHealthChecker implements HealthSupplier
 
                 for ( final ChaiConfiguration chaiConfiguration : replicaConfigs )
                 {
-                    final ChaiProvider loopProvider = pwmDomain.getLdapConnectionService().getChaiProviderFactory().newProvider( chaiConfiguration );
+                    final ChaiProvider loopProvider = pwmDomain.getLdapService().getChaiProviderFactory().newProvider( chaiConfiguration );
                     final ChaiEntry rootDSE = ChaiUtility.getRootDSE( loopProvider );
                     final Set<String> controls = rootDSE.readMultiStringAttribute( "supportedControl" );
                     final boolean asnSupported = controls.contains( PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN );

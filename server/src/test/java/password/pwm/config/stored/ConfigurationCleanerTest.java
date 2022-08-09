@@ -55,7 +55,7 @@ public class ConfigurationCleanerTest
         try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ) )
         {
             final StoredConfiguration storedConfiguration = StoredConfigurationFactory.input( xmlFile );
-            domainConfig = new AppConfig( storedConfiguration ).getDomainConfigs().get( DOMAIN_ID );
+            domainConfig = AppConfig.forStoredConfig( storedConfiguration ).getDomainConfigs().get( DOMAIN_ID );
         }
     }
 

@@ -31,6 +31,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.Validator;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
@@ -50,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class PwmHttpRequestWrapper
@@ -66,6 +68,12 @@ public class PwmHttpRequestWrapper
 
     private static final Set<String> HTTP_HEADER_DEBUG_STRIP_VALUES = Set.of(
                     HttpHeader.Authorization.getHttpName() );
+
+    private final Supplier<Optional<String>> srcHostnameSupplier = new LazySupplier<>(
+            () -> PwmRequestUtil.readUserHostname( this.getHttpServletRequest(), this.getAppConfig() ) );
+
+    private final Supplier<Optional<String>> srcAddressSupplier = new LazySupplier<>(
+            () -> PwmRequestUtil.readUserNetworkAddress( this.getHttpServletRequest(), this.getAppConfig() ) );
 
     public enum Flag
     {
@@ -301,6 +309,21 @@ public class PwmHttpRequestWrapper
         }
 
         return Collections.unmodifiableList( result );
+    }
+
+    public boolean hasSession()
+    {
+        return this.getHttpServletRequest().getSession( false ) != null;
+    }
+
+    public Optional<String> getSrcHostname()
+    {
+        return srcHostnameSupplier.get();
+    }
+
+    public Optional<String> getSrcAddress()
+    {
+        return srcAddressSupplier.get();
     }
 
     public String readHeaderValueAsString( final HttpHeader headerName )

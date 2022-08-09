@@ -111,7 +111,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
-        final AppConfig config = new AppConfig( storedConfiguration );
+        final AppConfig config = AppConfig.forStoredConfig( storedConfiguration );
         final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmDomain.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( config ) );
         final StoredValue storedValue = StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
         final List<UserPermission> permissions = ValueTypeConverter.valueToUserPermissions( storedValue );

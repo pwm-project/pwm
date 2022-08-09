@@ -309,7 +309,7 @@ public class PwmHttpClientTest
                     StringArrayValue.create( array ), null );
 
         }
-        return new AppConfig( modifier.newStoredConfiguration() );
+        return AppConfig.forStoredConfig( modifier.newStoredConfiguration() );
     }
 
 }

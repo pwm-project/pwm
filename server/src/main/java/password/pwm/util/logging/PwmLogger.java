@@ -139,7 +139,9 @@ public class PwmLogger
         {
             try
             {
-                final CharSequence cleanedString = PwmLogger.removeUserDataFromString( pwmRequest.getPwmSession().getLoginInfoBean(), message.get() );
+                final CharSequence cleanedString = pwmRequest.hasSession()
+                        ? PwmLogger.removeUserDataFromString( pwmRequest.getPwmSession().getLoginInfoBean(), message.get() )
+                        : message.get();
                 final CharSequence printableString = StringUtil.cleanNonPrintableCharacters( cleanedString );
                 cleanedMessage = () -> printableString;
             }
@@ -157,7 +159,7 @@ public class PwmLogger
             final SessionLabel sessionLabel,
             final Supplier<CharSequence> message,
             final Throwable e
-            )
+    )
     {
         doLogEvent( level, sessionLabel, message, e, null );
     }

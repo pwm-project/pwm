@@ -63,7 +63,7 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
             }
             else
             {
-                final AppConfig appConfig = new AppConfig( modifier.newStoredConfiguration() );
+                final AppConfig appConfig = AppConfig.forStoredConfig( modifier.newStoredConfiguration() );
                 certs = X509Utils.readRemoteCertificates( URI.create( urlString ), appConfig );
             }
         }

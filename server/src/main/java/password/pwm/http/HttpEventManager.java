@@ -68,7 +68,7 @@ public class HttpEventManager implements
         final HttpSession httpSession = httpSessionEvent.getSession();
         try
         {
-            final ContextManager contextManager = ContextManager.getContextManager( httpSession );
+            final ContextManager contextManager = ContextManager.getContextManager( httpSession.getServletContext() );
             final PwmApplication pwmApplication = contextManager.getPwmApplication();
             httpSession.setAttribute( PwmConstants.SESSION_ATTR_PWM_APP_NONCE, pwmApplication.getRuntimeNonce() );
 
@@ -102,7 +102,7 @@ public class HttpEventManager implements
                     {
                         pwmApplication.getSessionTrackService().removeSessionData( pwmSession );
                     }
-                    LOGGER.trace( pwmSession.getLabel(), () -> debugMsg );
+                    LOGGER.trace( () -> debugMsg );
                 }
                 else
                 {

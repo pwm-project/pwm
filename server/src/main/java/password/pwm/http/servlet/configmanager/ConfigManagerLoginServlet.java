@@ -138,7 +138,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             throws PwmUnrecoverableException, IOException, ServletException
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        final ConfigurationFileManager runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
+        final ConfigurationFileManager runningConfigReader = ContextManager.getContextManager( pwmRequest ).getConfigReader();
         final StoredConfiguration storedConfig = runningConfigReader.getStoredConfiguration();
 
         final String password = pwmRequest.readParameterAsString( "password" );
@@ -153,7 +153,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             else
             {
                 LOGGER.trace( pwmRequest, () -> "configuration password is not correct" );
-                IntruderServiceClient.markAddressAndSession( pwmDomain, pwmRequest.getPwmSession() );
+                IntruderServiceClient.markAddressAndSession( pwmRequest );
                 pwmDomain.getIntruderService().mark( IntruderRecordType.USERNAME, PwmConstants.CONFIGMANAGER_INTRUDER_USERNAME, pwmRequest.getLabel() );
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_PASSWORD_ONLY_BAD );
                 updateLoginHistory( pwmRequest, pwmRequest.getUserInfoIfLoggedIn(), false );
@@ -326,7 +326,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             return;
         }
 
-        final ConfigurationFileManager runningConfigReader = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getConfigReader();
+        final ConfigurationFileManager runningConfigReader = ContextManager.getContextManager( pwmRequest ).getConfigReader();
         final StoredConfiguration storedConfig = runningConfigReader.getStoredConfiguration();
 
         try

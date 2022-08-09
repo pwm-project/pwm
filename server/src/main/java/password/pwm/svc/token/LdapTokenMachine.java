@@ -33,7 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 
 import java.util.Optional;
 
@@ -70,11 +70,11 @@ class LdapTokenMachine implements TokenMachine
 
         try
         {
-            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
+            final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
             final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                     .filter( searchFilter )
                     .build();
-            final UserIdentity user = userSearchEngine.performSingleUserSearch( searchConfiguration, sessionLabel );
+            final UserIdentity user = userSearchService.performSingleUserSearch( searchConfiguration, sessionLabel );
             if ( user == null )
             {
                 return Optional.empty();

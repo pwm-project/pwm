@@ -287,7 +287,7 @@ public class PasswordUtility
         try
         {
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create( pwmRequest.getLabel(), pwmDomain, userInfo.getPasswordPolicy() );
-            pwmPasswordRuleValidator.testPassword( pwmSession.getLabel(), newPassword, null, userInfo, pwmRequest.getClientConnectionHolder().getActor( ) );
+            pwmPasswordRuleValidator.testPassword( pwmRequest.getLabel(), newPassword, null, userInfo, pwmRequest.getClientConnectionHolder().getActor( ) );
         }
         catch ( final PwmDataValidationException e )
         {
@@ -663,7 +663,7 @@ public class PasswordUtility
             ChaiProvider loopProvider = null;
             try
             {
-                loopProvider = pwmDomain.getLdapConnectionService().getChaiProviderFactory().newProvider( loopConfiguration );
+                loopProvider = pwmDomain.getLdapService().getChaiProviderFactory().newProvider( loopConfiguration );
                 final Instant lastModifiedDate = determinePwdLastModified( pwmDomain, sessionLabel, userIdentity );
                 returnValue.put( loopReplicaUrl, lastModifiedDate );
             }

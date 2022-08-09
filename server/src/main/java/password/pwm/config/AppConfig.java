@@ -85,7 +85,7 @@ public class AppConfig implements SettingReader
     {
         try
         {
-            return new AppConfig( StoredConfigurationFactory.newConfig() );
+            return forStoredConfig( StoredConfigurationFactory.newConfig() );
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -98,7 +98,7 @@ public class AppConfig implements SettingReader
         return DEFAULT_CONFIG.get();
     }
 
-    public AppConfig( final StoredConfiguration storedConfiguration )
+    private AppConfig( final StoredConfiguration storedConfiguration )
     {
         this.storedConfiguration = storedConfiguration;
         this.settingReader = new StoredSettingReader( storedConfiguration, null, DomainID.systemId() );
@@ -116,6 +116,11 @@ public class AppConfig implements SettingReader
                 .collect( CollectionUtil.collectorToLinkedMap(
                         DomainID::create,
                         ( domainID ) -> new DomainConfig( this, DomainID.create( domainID ) ) ) ) );
+    }
+
+    public static AppConfig forStoredConfig( final StoredConfiguration storedConfiguration )
+    {
+        return new AppConfig( storedConfiguration );
     }
 
     public Set<String> getDomainIDs()

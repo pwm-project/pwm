@@ -190,7 +190,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 final URI ldapServerUri = new URI( ldapServerString );
                 if ( "ldaps".equalsIgnoreCase( ldapServerUri.getScheme() ) )
                 {
-                    final AppConfig tempConfig = new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
+                    final AppConfig tempConfig = AppConfig.forStoredConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
                     configGuideBean.setLdapCertificates( X509Utils.readRemoteCertificates( ldapServerUri, tempConfig ) );
                     configGuideBean.setCertsTrustedbyKeystore( X509Utils.testIfLdapServerCertsInDefaultKeystore( ldapServerUri ) );
                 }
@@ -240,7 +240,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
 
         final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
-        final AppConfig tempAppConfig = new AppConfig( storedConfiguration );
+        final AppConfig tempAppConfig = AppConfig.forStoredConfig( storedConfiguration );
         final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmRequest.getPwmApplication()
                 .getPwmEnvironment()
                 .makeRuntimeInstance( tempAppConfig ) );
@@ -367,7 +367,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
         final LdapBrowser ldapBrowser = new LdapBrowser(
                 pwmRequest.getLabel(),
-                pwmRequest.getPwmDomain().getLdapConnectionService().getChaiProviderFactory(),
+                pwmRequest.getPwmDomain().getLdapService().getChaiProviderFactory(),
                 storedConfiguration
         );
         final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse( domainID, ConfigGuideForm.LDAP_PROFILE_NAME, dn );

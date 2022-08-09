@@ -46,7 +46,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PropertyConfigurationImporter;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -56,7 +55,6 @@ import password.pwm.util.secure.X509Utils;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpSession;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -133,11 +131,6 @@ public class ContextManager implements Serializable
         return getContextManager( theContext ).getPwmApplication();
     }
 
-    public static ContextManager getContextManager( final HttpSession session ) throws PwmUnrecoverableException
-    {
-        return getContextManager( session.getServletContext() );
-    }
-
     public static ContextManager getContextManager( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
         return getContextManager( pwmRequest.getHttpServletRequest().getServletContext() );
@@ -155,16 +148,6 @@ public class ContextManager implements Serializable
         }
 
         return ( ContextManager ) theManager;
-    }
-
-    public static String readEulaText( final ContextManager contextManager, final String filename )
-            throws IOException
-    {
-        final String path = PwmConstants.URL_PREFIX_PUBLIC + "/resources/text/" + filename;
-        final InputStream inputStream = contextManager.getResourceAsStream( path );
-        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        JavaHelper.copyWhilePredicate( inputStream, byteArrayOutputStream, o -> true );
-        return byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET.name() );
     }
 
     public PwmApplication getPwmApplication( )
@@ -733,7 +716,7 @@ public class ContextManager implements Serializable
         {
             LOGGER.trace( SESSION_LABEL, () -> "beginning auto-import ldap cert due to config property '"
                     + ConfigurationProperty.IMPORT_LDAP_CERTIFICATES.getKey() + "'" );
-            final AppConfig appConfig = new AppConfig( configReader.getStoredConfiguration() );
+            final AppConfig appConfig = AppConfig.forStoredConfig( configReader.getStoredConfiguration() );
             final StoredConfigurationModifier modifiedConfig = StoredConfigurationModifier.newModifier( configReader.getStoredConfiguration() );
 
             int importedCerts = 0;
