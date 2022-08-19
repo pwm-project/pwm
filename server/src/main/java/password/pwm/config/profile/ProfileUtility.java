@@ -20,9 +20,9 @@
 
 package password.pwm.config.profile;
 
-import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -38,9 +38,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.logging.PwmLogger;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,9 +48,7 @@ import java.util.stream.Collectors;
 
 public class ProfileUtility
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( ProfileUtility.class );
-
-    public static Optional<String> discoverProfileIDForUser(
+    public static Optional<ProfileID> discoverProfileIDForUser(
             final PwmRequestContext pwmRequestContext,
             final UserIdentity userIdentity,
             final ProfileDefinition profileDefinition
@@ -70,7 +66,7 @@ public class ProfileUtility
     )
             throws PwmUnrecoverableException
     {
-        final Optional<String> profileID = discoverProfileIDForUser( pwmRequestContext, userIdentity, profileDefinition );
+        final Optional<ProfileID> profileID = discoverProfileIDForUser( pwmRequestContext, userIdentity, profileDefinition );
         if ( profileID.isEmpty() )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "profile of type " + profileDefinition + " is required but not assigned" );
@@ -79,7 +75,7 @@ public class ProfileUtility
     }
 
 
-    public static Optional<String> discoverProfileIDForUser(
+    public static Optional<ProfileID> discoverProfileIDForUser(
             final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
@@ -87,36 +83,37 @@ public class ProfileUtility
     )
             throws PwmUnrecoverableException
     {
-        final Map<String, Profile> profileMap = pwmDomain.getConfig().getProfileMap( profileDefinition );
+        final Map<ProfileID, Profile> profileMap = pwmDomain.getConfig().getProfileMap( profileDefinition );
         for ( final Profile profile : profileMap.values() )
         {
             final List<UserPermission> queryMatches = profile.profilePermissions();
             final boolean match = UserPermissionUtility.testUserPermission( pwmDomain, sessionLabel, userIdentity, queryMatches );
             if ( match )
             {
-                return Optional.of( profile.getIdentifier() );
+                return Optional.of( profile.getId() );
             }
         }
         return Optional.empty();
     }
 
-    public static List<String> profileIDsForCategory( final StoredConfiguration storedConfiguration, final DomainID domainID, final PwmSettingCategory pwmSettingCategory )
+    public static List<ProfileID> profileIDsForCategory( final StoredConfiguration storedConfiguration, final DomainID domainID, final PwmSettingCategory pwmSettingCategory )
     {
         final PwmSetting profileSetting = pwmSettingCategory.getProfileSetting().orElseThrow( IllegalStateException::new );
         final StoredConfigKey key = StoredConfigKey.forSetting( profileSetting, null, domainID );
         final StoredValue storedValue = StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
         final Predicate<String> regexPredicate = syntaxFilterPredicateForProfileID( pwmSettingCategory );
 
-        final List<String> returnData = ValueTypeConverter.valueToStringArray( storedValue )
+        final List<ProfileID> returnData = ValueTypeConverter.valueToStringArray( storedValue )
                 .stream()
                 .distinct()
                 .filter( StringUtil::notEmpty )
                 .filter( regexPredicate )
+                .map( ProfileID::create )
                 .collect( Collectors.toUnmodifiableList() );
 
         if ( returnData.isEmpty() )
         {
-            return Collections.singletonList( PwmConstants.PROFILE_ID_DEFAULT );
+            return List.of( ProfileID.PROFILE_ID_DEFAULT );
         }
 
         return returnData;

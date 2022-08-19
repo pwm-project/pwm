@@ -28,9 +28,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class CollectionUtilTest
+public class CollectorUtilTest
 {
-
     @Test
     public void collectorToLinkedMap()
     {
@@ -41,10 +40,10 @@ public class CollectionUtilTest
         map.put( "4", "4" );
         map.put( "5", "5" );
 
-        final Map<String, String> outputMap = map.entrySet().stream().collect( CollectionUtil.collectorToLinkedMap(
-                Map.Entry::getKey,
-                Map.Entry::getValue
-        ) );
+        final Map<String, String> outputMap = map.entrySet().stream()
+                .collect( CollectorUtil.toLinkedMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue ) );
 
         final Iterator<String> iter = outputMap.values().iterator();
         Assert.assertEquals( "1", iter.next() );
@@ -54,5 +53,32 @@ public class CollectionUtilTest
         Assert.assertEquals( "5", iter.next() );
 
         Assert.assertEquals( "java.util.LinkedHashMap", outputMap.getClass().getName() );
+
+        outputMap.put( "testKey", "testValue" );
+    }
+
+    @Test
+    public void collectorToUnmodifiableLinkedMap()
+    {
+        final Map<String, String> map = new LinkedHashMap<>();
+        map.put( "1", "1" );
+        map.put( "2", "2" );
+        map.put( "3", "3" );
+        map.put( "4", "4" );
+        map.put( "5", "5" );
+
+        final Map<String, String> outputMap = map.entrySet().stream()
+                .collect( CollectorUtil.toUnmodifiableLinkedMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue ) );
+
+        final Iterator<String> iter = outputMap.values().iterator();
+        Assert.assertEquals( "1", iter.next() );
+        Assert.assertEquals( "2", iter.next() );
+        Assert.assertEquals( "3", iter.next() );
+        Assert.assertEquals( "4", iter.next() );
+        Assert.assertEquals( "5", iter.next() );
+
+        Assert.assertThrows( UnsupportedOperationException.class, () -> outputMap.put( "testKey", "testValue" ) );
     }
 }

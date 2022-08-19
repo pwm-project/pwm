@@ -25,6 +25,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
@@ -289,7 +290,7 @@ public class AuditRecordFactory
     {
         String userDN = null;
         String userID = null;
-        String ldapProfile = null;
+        ProfileID ldapProfile = null;
 
         if ( userIdentity != null )
         {
@@ -318,7 +319,7 @@ public class AuditRecordFactory
     {
         private final String userID;
         private final String userDN;
-        private final String ldapProfile;
+        private final ProfileID ldapProfile;
     }
 }
 

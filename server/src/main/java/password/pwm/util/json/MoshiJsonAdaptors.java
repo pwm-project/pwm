@@ -27,6 +27,7 @@ import com.squareup.moshi.Moshi;
 import org.jetbrains.annotations.Nullable;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
@@ -62,6 +63,7 @@ class MoshiJsonAdaptors
         moshiBuilder.add( X509Certificate.class, applyFlagsToAdapter( new X509CertificateAdapter(), flags ) );
         moshiBuilder.add( PasswordData.class, applyFlagsToAdapter( new PasswordDataAdapter(), flags ) );
         moshiBuilder.add( DomainID.class, applyFlagsToAdapter( new DomainIdAdaptor(), flags ) );
+        moshiBuilder.add( ProfileID.class, applyFlagsToAdapter( new ProfileIdAdaptor(), flags ) );
         moshiBuilder.add( LongAdder.class, applyFlagsToAdapter( new LongAdderTypeAdaptor(), flags ) );
         moshiBuilder.add( BigInteger.class, applyFlagsToAdapter( new BigIntegerTypeAdaptor(), flags ) );
         moshiBuilder.add( Locale.class, applyFlagsToAdapter( new LocaleTypeAdaptor(), flags ) );
@@ -196,16 +198,40 @@ class MoshiJsonAdaptors
                 return null;
             }
 
-            if ( DomainID.systemId().toString().equals( stringValue ) )
-            {
-                return DomainID.systemId();
-            }
-
             return DomainID.create( stringValue );
         }
 
         @Override
         public void toJson( final JsonWriter writer, @Nullable final DomainID value ) throws IOException
+        {
+            if ( value == null )
+            {
+                writer.nullValue();
+                return;
+            }
+
+            writer.value( value.toString() );
+        }
+    }
+
+    private static class ProfileIdAdaptor extends JsonAdapter<ProfileID>
+    {
+        @Nullable
+        @Override
+        public ProfileID fromJson( final JsonReader reader ) throws IOException
+        {
+            final String stringValue = reader.nextString();
+
+            if ( StringUtil.isEmpty( stringValue ) )
+            {
+                return null;
+            }
+
+            return ProfileID.create( stringValue );
+        }
+
+        @Override
+        public void toJson( final JsonWriter writer, @Nullable final ProfileID value ) throws IOException
         {
             if ( value == null )
             {

@@ -45,7 +45,6 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserIdentity.class );
     private static final long serialVersionUID = 1L;
 
-    private static final String CRYPO_HEADER = "ui_C-";
     private static final String DELIM_SEPARATOR = "|";
 
     private static final Comparator<UserIdentity> COMPARATOR = Comparator.comparing(
@@ -53,16 +52,16 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             Comparator.nullsLast( Comparator.naturalOrder() ) )
             .thenComparing(
                     UserIdentity::getLdapProfileID,
-                    Comparator.nullsLast( Comparator.naturalOrder() ) )
+                    ProfileID.comparator()
+            )
             .thenComparing(
                     UserIdentity::getDomainID,
-                    Comparator.nullsLast( Comparator.naturalOrder() ) );
+                    DomainID.comparator() );
 
-    private transient String obfuscatedValue;
     private transient boolean canonical;
 
     private final String userDN;
-    private final String ldapProfile;
+    private final ProfileID ldapProfile;
     private final DomainID domainID;
 
     public enum Flag
@@ -70,14 +69,14 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         PreCanonicalized,
     }
 
-    private UserIdentity( final String userDN, final String ldapProfile, final DomainID domainID )
+    private UserIdentity( final String userDN, final ProfileID ldapProfile, final DomainID domainID )
     {
         this.userDN = JavaHelper.requireNonEmpty( userDN, "UserIdentity: userDN value cannot be empty" );
-        this.ldapProfile = JavaHelper.requireNonEmpty( ldapProfile, "UserIdentity: ldapProfile value cannot be empty" );
+        this.ldapProfile = Objects.requireNonNull( ldapProfile, "UserIdentity: ldapProfile value cannot be empty" );
         this.domainID = Objects.requireNonNull( domainID );
     }
 
-    public UserIdentity( final String userDN, final String ldapProfile, final DomainID domainID, final boolean canonical )
+    public UserIdentity( final String userDN, final ProfileID ldapProfile, final DomainID domainID, final boolean canonical )
     {
         this( userDN, ldapProfile, domainID );
         this.canonical = canonical;
@@ -85,7 +84,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
 
     public static UserIdentity create(
             final String userDN,
-            final String ldapProfile,
+            final ProfileID ldapProfile,
             final DomainID domainID,
             final Flag... flags
     )
@@ -104,7 +103,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         return domainID;
     }
 
-    public String getLdapProfileID( )
+    public ProfileID getLdapProfileID( )
     {
         return ldapProfile;
     }
@@ -134,7 +133,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
     {
         return "[" + this.getDomainID() + "]"
                 + " " + this.getUserDN()
-                + ( ( this.getLdapProfileID() != null && !this.getLdapProfileID().isEmpty() ) ? " (" + this.getLdapProfileID() + ")" : "" );
+                + " (" + this.getLdapProfileID().stringValue() + ")";
     }
 
     public static UserIdentity fromDelimitedKey( final SessionLabel sessionLabel, final String key )
@@ -179,7 +178,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, "too many string tokens while parsing delimited identity key" ) );
         }
-        final String profileID = st.nextToken();
+        final ProfileID profileID = ProfileID.create( st.nextToken() );
         final String userDN = st.nextToken();
         return create( userDN, profileID, domainID );
     }

@@ -64,7 +64,7 @@ public class SyslogCertImportFunction implements SettingUIFunction
 
         final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
 
-        final var syslogServerSetting = StoredConfigKey.forSetting( PwmSetting.AUDIT_SYSLOG_SERVERS, key.getProfileID(), key.getDomainID() );
+        final var syslogServerSetting = StoredConfigKey.forSetting( PwmSetting.AUDIT_SYSLOG_SERVERS, key.getProfileID().orElse( null ), key.getDomainID() );
         final List<String> syslogConfigStrs = ValueTypeConverter.valueToStringArray( modifier.newStoredConfiguration().readStoredValue( syslogServerSetting ).orElseThrow() );
         if ( !CollectionUtil.isEmpty( syslogConfigStrs ) )
         {

@@ -24,6 +24,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -39,7 +40,6 @@ import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchService;
@@ -47,6 +47,7 @@ import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.user.UserInfo;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
@@ -148,7 +149,8 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
         }
 
         final String contextParam = pwmRequest.readParameterAsString( PwmConstants.PARAM_CONTEXT );
-        final String ldapProfile = pwmRequest.readParameterAsString( PwmConstants.PARAM_LDAP_PROFILE );
+        final Optional<ProfileID> ldapProfile = pwmDomain.getConfig()
+                .ldapProfileForStringId( pwmRequest.readParameterAsString( PwmConstants.PARAM_LDAP_PROFILE ) );
 
         final List<FormConfiguration> forgottenUsernameForm = pwmDomain.getConfig().readSettingAsForm( PwmSetting.FORGOTTEN_USERNAME_FORM );
 
@@ -185,7 +187,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
                 final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                         .filter( searchFilter )
                         .formValues( formValues )
-                        .ldapProfile( ldapProfile )
+                        .ldapProfile( ldapProfile.orElse( null ) )
                         .contexts( Collections.singletonList( contextParam ) )
                         .build();
                 userIdentity = userSearchService.performSingleUserSearch( searchConfiguration, pwmRequest.getLabel() );

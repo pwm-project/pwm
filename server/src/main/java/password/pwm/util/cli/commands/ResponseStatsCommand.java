@@ -195,7 +195,7 @@ public class ResponseStatsCommand extends AbstractCliCommand
                     .username( "*" )
                     .enableValueEscaping( false )
                     .filter( ldapProfile.readSettingAsString( PwmSetting.LDAP_USERNAME_SEARCH_FILTER ) )
-                    .ldapProfile( ldapProfile.getIdentifier() )
+                    .ldapProfile( ldapProfile.getId() )
                     .build();
 
             final Map<UserIdentity, Map<String, String>> searchResults = userSearchService.performMultiUserSearch(

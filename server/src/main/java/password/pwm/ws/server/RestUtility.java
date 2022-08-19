@@ -22,6 +22,7 @@ package password.pwm.ws.server;
 
 import com.google.gson.stream.MalformedJsonException;
 import password.pwm.PwmDomain;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
@@ -99,12 +100,12 @@ public class RestUtility
             }
         }
 
-        final String ldapProfileID;
+        final ProfileID ldapProfileID;
         final String effectiveUsername;
         if ( username.contains( "|" ) )
         {
             final int pipeIndex = username.indexOf( '|' );
-            ldapProfileID = username.substring( 0, pipeIndex );
+            ldapProfileID = ProfileID.create( username.substring( 0, pipeIndex ) );
             effectiveUsername = username.substring( pipeIndex + 1 );
         }
         else

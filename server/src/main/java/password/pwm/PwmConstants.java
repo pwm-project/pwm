@@ -92,8 +92,6 @@ public abstract class PwmConstants
             .getDefinedPackage( "password.pwm" );
 
     public static final String LDAP_AD_PASSWORD_POLICY_CONTROL_ASN = "1.2.840.113556.1.4.2066";
-    public static final String PROFILE_ID_ALL = "all";
-    public static final String PROFILE_ID_DEFAULT = "default";
 
     public static final String TOKEN_KEY_PWD_CHG_DATE = "_lastPwdChange";
 

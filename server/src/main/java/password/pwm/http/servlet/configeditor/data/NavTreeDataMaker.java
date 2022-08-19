@@ -22,6 +22,7 @@ package password.pwm.http.servlet.configeditor.data;
 
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
@@ -232,7 +233,7 @@ public class NavTreeDataMaker
             return List.of( navTreeItemForCategory( loopCategory, locale, null ) );
         }
 
-        final List<String> profiles = StoredConfigurationUtil.profilesForCategory( domainId, loopCategory, storedConfiguration );
+        final List<ProfileID> profiles = StoredConfigurationUtil.profilesForCategory( domainId, loopCategory, storedConfiguration );
         if ( loopCategory.isTopLevelProfile() )
         {
             final List<NavTreeItem> navigationData = new ArrayList<>( profiles.size() );
@@ -254,14 +255,14 @@ public class NavTreeDataMaker
                 navigationData.add( profileEditorInfo );
             }
 
-            for ( final String profileId : profiles )
+            for ( final ProfileID profileId : profiles )
             {
                 final NavTreeItem.NavItemType type = !loopCategory.hasChildren()
                         ? NavTreeItem.NavItemType.category
                         : NavTreeItem.NavItemType.navigation;
 
                 final NavTreeItem profileInfo = navTreeItemForCategory( loopCategory, locale, profileId ).toBuilder()
-                        .name( profileId.isEmpty() ? "Default" : profileId )
+                        .name( profileId == null ? "Default" : profileId.stringValue() )
                         .id( "profile-" + loopCategory.getKey() + "-" + profileId )
                         .parent( loopCategory.getKey() )
                         .type( type )
@@ -274,7 +275,7 @@ public class NavTreeDataMaker
         }
 
         final List<NavTreeItem> navigationData = new ArrayList<>();
-        for ( final String profileId : profiles )
+        for ( final ProfileID profileId : profiles )
         {
             if ( categoryMatcher( domainId, loopCategory, profileId, storedConfiguration, navTreeSettings ) )
             {
@@ -288,7 +289,7 @@ public class NavTreeDataMaker
     private static NavTreeItem navTreeItemForCategory(
             final PwmSettingCategory category,
             final Locale locale,
-            final String profileId
+            final ProfileID profileId
     )
     {
         final String parent = category.getParent() != null
@@ -305,7 +306,7 @@ public class NavTreeDataMaker
                 .category( category.getKey() )
                 .parent( parent )
                 .type( type )
-                .profile( profileId )
+                .profile( profileId == null ? null : profileId.stringValue() )
                 .menuLocation( category.toMenuLocationDebug( profileId, locale ) )
                 .build();
     }
@@ -313,7 +314,7 @@ public class NavTreeDataMaker
     private static boolean categoryMatcher(
             final DomainID domainID,
             final PwmSettingCategory category,
-            final String profile,
+            final ProfileID profile,
             final StoredConfiguration storedConfiguration,
             final NavTreeSettings navTreeSettings
     )
@@ -354,7 +355,7 @@ public class NavTreeDataMaker
             final DomainID domainID,
             final StoredConfiguration storedConfiguration,
             final PwmSetting setting,
-            final String profileID,
+            final ProfileID profileID,
             final NavTreeSettings navTreeSettings
     )
     {

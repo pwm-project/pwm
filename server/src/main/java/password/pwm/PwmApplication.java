@@ -22,6 +22,7 @@ package password.pwm;
 
 import lombok.Value;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -474,7 +475,7 @@ public class PwmApplication
         return Optional.empty();
     }
 
-    public void writeLastLdapFailure( final DomainID domainID, final Map<String, ErrorInformation> errorInformationMap )
+    public void writeLastLdapFailure( final DomainID domainID, final Map<ProfileID, ErrorInformation> errorInformationMap )
     {
         try
         {
@@ -488,7 +489,7 @@ public class PwmApplication
         }
     }
 
-    public Map<String, ErrorInformation> readLastLdapFailure( final DomainID domainID )
+    public Map<ProfileID, ErrorInformation> readLastLdapFailure( final DomainID domainID )
     {
         return readLastLdapFailure().getRecords().getOrDefault( domainID, Collections.emptyMap() );
     }
@@ -518,14 +519,14 @@ public class PwmApplication
     @Value
     private static class StoredErrorRecords
     {
-        private final Map<DomainID, Map<String, ErrorInformation>> records;
+        private final Map<DomainID, Map<ProfileID, ErrorInformation>> records;
 
-        StoredErrorRecords( final Map<DomainID, Map<String, ErrorInformation>> records )
+        StoredErrorRecords( final Map<DomainID, Map<ProfileID, ErrorInformation>> records )
         {
             this.records = records == null ? Collections.emptyMap() : Map.copyOf( records );
         }
 
-        public Map<DomainID, Map<String, ErrorInformation>> getRecords()
+        public Map<DomainID, Map<ProfileID, ErrorInformation>> getRecords()
         {
             // required because json deserialization can still set records == null
             return records == null ? Collections.emptyMap() : records;
@@ -533,9 +534,9 @@ public class PwmApplication
 
         StoredErrorRecords addDomainErrorMap(
                 final DomainID domainID,
-                final Map<String, ErrorInformation> errorInformationMap )
+                final Map<ProfileID, ErrorInformation> errorInformationMap )
         {
-            final Map<DomainID, Map<String, ErrorInformation>> newRecords = new HashMap<>( getRecords() );
+            final Map<DomainID, Map<ProfileID, ErrorInformation>> newRecords = new HashMap<>( getRecords() );
             newRecords.put( domainID, Map.copyOf( errorInformationMap ) );
             return new StoredErrorRecords( newRecords );
         }

@@ -128,6 +128,7 @@
                                 <jvmFlags>
                                     <jvmFlag>-server</jvmFlag>
                                     <jvmFlag>-Xmx256m</jvmFlag>
+                                    <jvmFlag>-XX:+UseStringDeduplication</jvmFlag>
                                 </jvmFlags>
                                 <environment>
                                     <DATA_SERVICE_PROPS>/config/data-service.properties</DATA_SERVICE_PROPS>

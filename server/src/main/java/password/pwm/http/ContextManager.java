@@ -737,7 +737,7 @@ public class ContextManager implements Serializable
                             }
                             final StoredValue storedValue = X509CertificateValue.fromX509( certs );
 
-                            final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.LDAP_SERVER_CERTS, ldapProfile.getIdentifier(), domainConfig.getDomainID() );
+                            final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.LDAP_SERVER_CERTS, ldapProfile.getId(), domainConfig.getDomainID() );
                             modifiedConfig.writeSetting( key, storedValue, null );
                         }
                     }

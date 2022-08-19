@@ -24,6 +24,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import lombok.Value;
 import password.pwm.PwmDomain;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
@@ -60,7 +61,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
         if ( StringUtil.isEmpty( testUser ) )
         {
             final String msg = "ldap node service requires that setting "
-                    + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getIdentifier(), null )
+                    + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getId(), null )
                     + " is configured";
             throw PwmUnrecoverableException.newException( PwmError.ERROR_NODE_SERVICE_ERROR, msg );
         }
@@ -177,7 +178,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
             this.nodeService = nodeService;
             this.pwmDomain = pwmDomain;
 
-            final String ldapProfileID = pwmDomain.getConfig().getDefaultLdapProfile().getIdentifier();
+            final ProfileID ldapProfileID = pwmDomain.getConfig().getDefaultLdapProfile().getId();
 
             userIdentity = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( nodeService.getSessionLabel(), pwmDomain )
                     .orElseThrow( () ->

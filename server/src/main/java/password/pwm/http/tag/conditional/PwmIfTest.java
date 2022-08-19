@@ -27,8 +27,11 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.SelectableContextMode;
 import password.pwm.config.profile.ChangePasswordProfile;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.error.PwmUnrecoverableException;
@@ -37,12 +40,13 @@ import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.resource.TextFileResource;
-import password.pwm.user.UserInfo;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.otp.OTPUserRecord;
+import password.pwm.user.UserInfo;
 import password.pwm.util.java.StringUtil;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -419,7 +423,6 @@ public enum PwmIfTest
 
     private static class ActorHasProfileTest implements Test
     {
-
         private final ProfileDefinition profileDefinition;
 
         ActorHasProfileTest( final ProfileDefinition profileDefinition )
@@ -430,8 +433,7 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final String profileID = pwmRequest.getPwmSession().getUserInfo().getProfileIDs().get( profileDefinition );
-            return StringUtil.notEmpty( profileID );
+            return pwmRequest.getPwmSession().getUserInfo().getProfileIDs().containsKey( profileDefinition );
         }
     }
 
@@ -550,13 +552,8 @@ public enum PwmIfTest
                 }
             }
 
-            final String profileID = pwmRequest.getPwmSession().getUserInfo().getProfileIDs().get( profileDefinition );
-            if ( StringUtil.isEmpty( profileID ) )
-            {
-                return false;
-            }
-
-            return true;
+            final ProfileID profileID = pwmRequest.getPwmSession().getUserInfo().getProfileIDs().get( profileDefinition );
+            return profileID != null;
         }
     }
 
@@ -616,4 +613,24 @@ public enum PwmIfTest
         }
     }
 
+    private static class ShowSelectableContexts implements Test
+    {
+        @Override
+        public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options )
+                throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            final SelectableContextMode selectableContextMode = pwmRequest.getDomainConfig()
+                    .readSettingAsEnum( PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE, SelectableContextMode.class );
+
+            final String selectedProfileStr = pwmRequest.readParameterAsString( PwmConstants.PARAM_LDAP_PROFILE );
+
+            final ProfileID selectedProfileID = pwmRequest.getPwmDomain().getConfig().ldapProfileForStringId( selectedProfileStr )
+                    .orElse( pwmRequest.getDomainConfig().getDefaultLdapProfile( ).getId() );
+
+            final LdapProfile selectedProfile = pwmRequest.getDomainConfig().getLdapProfiles().get( selectedProfileID );
+
+            final Map<String, String> selectableContexts = selectedProfile.getSelectableContexts( pwmRequest.getLabel(), pwmRequest.getPwmDomain() );
+            return selectableContextMode == SelectableContextMode.SHOW_CONTEXTS && selectableContexts.size() > 0;
+        }
+    }
 }

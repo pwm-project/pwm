@@ -22,6 +22,7 @@ package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiConstant;
 import lombok.Value;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.LDAPPermissionInfo;
 import password.pwm.config.PwmSetting;
@@ -107,8 +108,8 @@ public class LdapPermissionCalculator implements Serializable
         {
             if ( pwmSetting.getCategory().hasProfiles() )
             {
-                final List<String> profiles = StoredConfigurationUtil.profilesForSetting( domainConfig.getDomainID(), pwmSetting, domainConfig.getStoredConfiguration() );
-                for ( final String profile : profiles )
+                final List<ProfileID> profiles = StoredConfigurationUtil.profilesForSetting( domainConfig.getDomainID(), pwmSetting, domainConfig.getStoredConfiguration() );
+                for ( final ProfileID profile : profiles )
                 {
                     permissionRecords.addAll( figureRecord( pwmSetting, profile ) );
                 }
@@ -124,13 +125,13 @@ public class LdapPermissionCalculator implements Serializable
         return permissionRecords;
     }
 
-    private StoredValue readValue( final PwmSetting pwmSetting, final String profile )
+    private StoredValue readValue( final PwmSetting pwmSetting, final ProfileID profile )
     {
         final var key = StoredConfigKey.forSetting( pwmSetting, profile, domainConfig.getDomainID() );
         return StoredConfigurationUtil.getValueOrDefault( domainConfig.getStoredConfiguration(), key );
     }
 
-    private Collection<PermissionRecord> figureRecord( final PwmSetting pwmSetting, final String profile ) throws PwmUnrecoverableException
+    private Collection<PermissionRecord> figureRecord( final PwmSetting pwmSetting, final ProfileID profile ) throws PwmUnrecoverableException
     {
         final List<PermissionRecord> permissionRecords = new ArrayList<>();
         final Collection<LDAPPermissionInfo> permissionInfos = figurePermissionInfos( pwmSetting, profile );
@@ -237,7 +238,7 @@ public class LdapPermissionCalculator implements Serializable
     }
 
     @SuppressWarnings( "checkstyle:MethodLength" )
-    private Collection<LDAPPermissionInfo> figurePermissionInfos( final PwmSetting pwmSetting, final String profile )
+    private Collection<LDAPPermissionInfo> figurePermissionInfos( final PwmSetting pwmSetting, final ProfileID profile )
     {
 
         PwmSettingCategory category = pwmSetting.getCategory();
@@ -497,7 +498,7 @@ public class LdapPermissionCalculator implements Serializable
                     permissionRecords.add( new PermissionRecord(
                             ChaiConstant.ATTR_LDAP_OBJECTCLASS,
                             PwmSetting.AUTO_ADD_OBJECT_CLASSES,
-                            ldapProfile.getIdentifier(),
+                            ldapProfile.getId(),
                             LDAPPermissionInfo.Access.write,
                             LDAPPermissionInfo.Actor.proxy
                     ) );
@@ -513,7 +514,7 @@ public class LdapPermissionCalculator implements Serializable
     {
         private final String attribute;
         private final PwmSetting pwmSetting;
-        private final String profile;
+        private final ProfileID profile;
         private final LDAPPermissionInfo.Access access;
         private final LDAPPermissionInfo.Actor actor;
     }

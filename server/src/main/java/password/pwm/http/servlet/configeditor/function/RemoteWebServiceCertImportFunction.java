@@ -21,18 +21,14 @@
 package password.pwm.http.servlet.configeditor.function;
 
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.RemoteWebServiceValue;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 
-import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,31 +40,12 @@ public class RemoteWebServiceCertImportFunction extends AbstractUriCertImportFun
     String getUri( final StoredConfigurationModifier modifier, final StoredConfigKey key, final String extraData )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final PwmSetting pwmSetting = key.toPwmSetting();
-        final String profile = key.getProfileID();
-
         final RemoteWebServiceValue actionValue = ( RemoteWebServiceValue ) StoredConfigurationUtil.getValueOrDefault( modifier.newStoredConfiguration(), key );
         final String serviceName = actionNameFromExtraData( extraData );
         final RemoteWebServiceConfiguration action = actionValue.forName( serviceName );
         final String uriString = action.getUrl();
 
-        if ( uriString == null || uriString.isEmpty() )
-        {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR,
-                    "Setting " + pwmSetting.toMenuLocationDebug( profile, null ) + " action " + serviceName + " must first be configured" );
-            throw new PwmOperationalException( errorInformation );
-        }
-        try
-        {
-            URI.create( uriString );
-        }
-        catch ( final IllegalArgumentException e )
-        {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR,
-                    "Setting " + pwmSetting.toMenuLocationDebug( profile, null ) + " action " + serviceName + " has an invalid URL syntax" );
-            throw new PwmOperationalException( errorInformation );
-        }
-        return uriString;
+        return validateUriStringSetting( uriString, key );
     }
 
     private String actionNameFromExtraData( final String extraData )

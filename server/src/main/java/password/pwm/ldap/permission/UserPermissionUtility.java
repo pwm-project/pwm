@@ -21,8 +21,8 @@
 package password.pwm.ldap.permission;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.LdapProfile;
@@ -97,8 +97,7 @@ public class UserPermissionUtility
     )
     {
         return userPermission.getLdapProfileID() == null
-                || userPermission.getLdapProfileID().isEmpty()
-                || PwmConstants.PROFILE_ID_ALL.equals( userPermission.getLdapProfileID() )
+                || ProfileID.PROFILE_ID_ALL.equals( userPermission.getLdapProfileID() )
                 || userIdentity.getLdapProfileID().equals( userPermission.getLdapProfileID() );
     }
 
@@ -186,11 +185,10 @@ public class UserPermissionUtility
                 .iterator();
     }
 
-    static Optional<String> profileIdForPermission( final UserPermission userPermission )
+    static Optional<ProfileID> profileIdForPermission( final UserPermission userPermission )
     {
         if ( userPermission.getLdapProfileID() != null
-                && !userPermission.getLdapProfileID().isEmpty()
-                && !PwmConstants.PROFILE_ID_ALL.equals( userPermission.getLdapProfileID() ) )
+                && !ProfileID.PROFILE_ID_ALL.equals( userPermission.getLdapProfileID() ) )
         {
             return Optional.of( userPermission.getLdapProfileID() );
         }
@@ -241,7 +239,7 @@ public class UserPermissionUtility
             final UserIdentity userIdentity
     )
     {
-        final String ldapProfileID = userIdentity.getLdapProfileID();
+        final ProfileID ldapProfileID = userIdentity.getLdapProfileID();
         final PwmDomain pwmDomain = pwmApplication.domains().get( userIdentity.getDomainID() );
         final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( ldapProfileID );
 
@@ -286,9 +284,9 @@ public class UserPermissionUtility
         return userDN.endsWith( canonicalBaseDN );
     }
 
-    public static boolean isAllProfiles( final String profile )
+    public static boolean isAllProfiles( final ProfileID profile )
     {
-        return StringUtil.isEmpty( profile ) || PwmConstants.PROFILE_ID_ALL.equalsIgnoreCase( profile );
+        return ProfileID.PROFILE_ID_ALL.equals( profile );
     }
 
 

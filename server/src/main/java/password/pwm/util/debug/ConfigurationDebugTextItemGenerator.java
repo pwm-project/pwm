@@ -65,7 +65,7 @@ class ConfigurationDebugTextItemGenerator implements AppItemGenerator
             final StoredConfiguration storedConfiguration,
             final StoredConfigKey storedConfigKey )
     {
-        final String key = storedConfigKey.toPwmSetting().toMenuLocationDebug( storedConfigKey.getProfileID(), locale );
+        final String key = storedConfigKey.toPwmSetting().toMenuLocationDebug( storedConfigKey.getProfileID().orElse( null ), locale );
         final String value = storedConfiguration.readStoredValue( storedConfigKey ).orElseThrow().toDebugString( locale );
         return  ">> Setting > " + key
                 + '\n'

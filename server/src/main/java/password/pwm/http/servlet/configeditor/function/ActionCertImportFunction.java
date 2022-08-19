@@ -21,7 +21,6 @@
 package password.pwm.http.servlet.configeditor.function;
 
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.stored.StoredConfigurationUtil;
@@ -29,13 +28,10 @@ import password.pwm.config.value.ActionValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.config.value.data.ActionConfiguration;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.json.JsonFactory;
 
-import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +50,6 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final Map<String, Integer> extraDataMap = JsonFactory.get().deserializeMap( extraData, String.class, Integer.class );
-        final PwmSetting pwmSetting = key.toPwmSetting();
 
         final StoredValue actionValue = StoredConfigurationUtil.getValueOrDefault( modifier.newStoredConfiguration(), key );
         final List<ActionConfiguration> actionConfigurations = ValueTypeConverter.valueToAction( key.toPwmSetting(), actionValue );
@@ -63,26 +58,7 @@ public class ActionCertImportFunction extends AbstractUriCertImportFunction
 
         final String uriString = webAction.getUrl();
 
-        if ( uriString == null || uriString.isEmpty() )
-        {
-            final ErrorInformation errorInformation = new ErrorInformation(
-                    PwmError.CONFIG_FORMAT_ERROR,
-                    "Setting " + pwmSetting.toMenuLocationDebug( key.getProfileID(), null )
-                            + " action URL must first be configured" );
-            throw new PwmOperationalException( errorInformation );
-        }
-        try
-        {
-            URI.create( uriString );
-        }
-        catch ( final IllegalArgumentException e )
-        {
-            final ErrorInformation errorInformation = new ErrorInformation(
-                    PwmError.CONFIG_FORMAT_ERROR, "Setting "
-                    + pwmSetting.toMenuLocationDebug( key.getProfileID(), null ) + " action URL has an invalid URL syntax" );
-            throw new PwmOperationalException( errorInformation );
-        }
-        return uriString;
+        return validateUriStringSetting( uriString, key );
     }
 
     @Override

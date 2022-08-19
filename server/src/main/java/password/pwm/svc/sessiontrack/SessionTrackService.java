@@ -258,7 +258,7 @@ public class SessionTrackService extends AbstractPwmService implements PwmServic
         {
             final UserInfo loopUiBean = loopSession.getUserInfo();
             sessionStateInfoBean.setLdapProfile( loginInfoBean.isAuthenticated()
-                    ? loopUiBean.getUserIdentity().getLdapProfileID()
+                    ? loopUiBean.getUserIdentity().getLdapProfileID().stringValue()
                     : "" );
 
             sessionStateInfoBean.setUserDN( loginInfoBean.isAuthenticated()

@@ -31,6 +31,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.CollectorUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -321,7 +322,7 @@ class PwmApplicationUtil
     static void outputNonDefaultPropertiesToLog( final PwmApplication pwmApplication )
     {
         final Map<String, String> data = pwmApplication.getConfig().readAllNonDefaultAppProperties().entrySet().stream()
-                .collect( CollectionUtil.collectorToLinkedMap(
+                .collect( CollectorUtil.toUnmodifiableLinkedMap(
                         entry -> "AppProperty: " + entry.getKey().getKey(),
                         Map.Entry::getValue ) );
 
@@ -331,7 +332,7 @@ class PwmApplicationUtil
     static void outputApplicationInfoToLog( final PwmApplication pwmApplication )
     {
         final Map<String, String> data = PwmAboutProperty.makeInfoBean( pwmApplication ).entrySet().stream()
-                .collect( CollectionUtil.collectorToLinkedMap(
+                .collect( CollectorUtil.toUnmodifiableLinkedMap(
                         entry -> "AboutProperty: " + entry.getKey().getLabel(),
                         Map.Entry::getValue ) );
 

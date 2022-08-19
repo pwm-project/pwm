@@ -20,22 +20,21 @@
 
 package password.pwm.http.bean;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import password.pwm.config.option.SessionBeanMode;
-import password.pwm.util.logging.PwmLogger;
 import password.pwm.svc.otp.OTPUserRecord;
+import password.pwm.util.logging.PwmLogger;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SecureRandom;
 import java.util.Collections;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
+@Data
+@EqualsAndHashCode( callSuper = false )
 public class SetupOtpBean extends PwmSessionBean
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( SetupOtpBean.class );
 
     private OTPUserRecord otpUserRecord;
@@ -48,94 +47,6 @@ public class SetupOtpBean extends PwmSessionBean
     private Long challenge;
     private boolean hasPreExistingOtp;
 
-    public SetupOtpBean( )
-    {
-    }
-
-    public OTPUserRecord getOtpUserRecord( )
-    {
-        return otpUserRecord;
-    }
-
-    public boolean isHasPreExistingOtp( )
-    {
-        return hasPreExistingOtp;
-    }
-
-    public void setHasPreExistingOtp( final boolean hasPreExistingOtp )
-    {
-        this.hasPreExistingOtp = hasPreExistingOtp;
-    }
-
-    public void setOtpUserRecord( final OTPUserRecord otp )
-    {
-        this.otpUserRecord = otp;
-    }
-
-    public boolean isConfirmed( )
-    {
-        return confirmed;
-    }
-
-    public void setConfirmed( final boolean confirmed )
-    {
-        this.confirmed = confirmed;
-    }
-
-    public Long getChallenge( )
-    {
-        if ( challenge == null )
-        {
-            SecureRandom random;
-            try
-            {
-                random = SecureRandom.getInstance( "SHA1PRNG", "SUN" );
-            }
-            catch ( final NoSuchAlgorithmException | NoSuchProviderException ex )
-            {
-                random = new SecureRandom();
-                LOGGER.error( ex::getMessage, ex );
-            }
-            random.setSeed( ( new Date() ).getTime() );
-            challenge = random.nextLong() % ( 1_000_000 );
-        }
-        return challenge;
-    }
-
-    public void setChallenge( final Long challenge )
-    {
-        this.challenge = challenge;
-    }
-
-    public List<String> getRecoveryCodes( )
-    {
-        return recoveryCodes;
-    }
-
-    public void setRecoveryCodes( final List<String> recoveryCodes )
-    {
-        this.recoveryCodes = recoveryCodes;
-    }
-
-    public boolean isCodeSeen( )
-    {
-        return codeSeen;
-    }
-
-    public void setCodeSeen( final boolean codeSeen )
-    {
-        this.codeSeen = codeSeen;
-    }
-
-    public boolean isWritten( )
-    {
-        return written;
-    }
-
-    public void setWritten( final boolean written )
-    {
-        this.written = written;
-    }
 
     @Override
     public BeanType getBeanType( )

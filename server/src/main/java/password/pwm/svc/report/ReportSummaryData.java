@@ -24,6 +24,7 @@ import com.novell.ldapchai.cr.Answer;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.option.DataStorageMethod;
@@ -70,7 +71,7 @@ public class ReportSummaryData
 
     private final Map<DataStorageMethod, LongAdder> responseStorage = new ConcurrentHashMap<>();
     private final Map<Answer.FormatType, LongAdder> responseFormatType = new ConcurrentHashMap<>();
-    private final Map<DomainID, Map<String, LongAdder>> ldapProfile = new ConcurrentHashMap<>();
+    private final Map<DomainID, Map<ProfileID, LongAdder>> ldapProfile = new ConcurrentHashMap<>();
     private final Map<Integer, LongAdder> pwExpireDays = new ConcurrentHashMap<>();
     private final Map<Integer, LongAdder> accountExpireDays = new ConcurrentHashMap<>();
     private final Map<Integer, LongAdder> changePwDays = new ConcurrentHashMap<>();
@@ -297,7 +298,7 @@ public class ReportSummaryData
                 if ( userReportRecord.getLdapProfile() != null )
                 {
                     final DomainID domainID = userReportRecord.getDomainID();
-                    final String userProfile = userReportRecord.getLdapProfile();
+                    final ProfileID userProfile = userReportRecord.getLdapProfile();
                     reportSummaryData.ldapProfile
                             .computeIfAbsent( domainID, type -> new ConcurrentHashMap<>() )
                             .computeIfAbsent( userProfile, type -> new LongAdder() )
@@ -387,13 +388,13 @@ public class ReportSummaryData
         }
 
 
-        for ( final Map.Entry<DomainID, Map<String, LongAdder>> domainIDMapEntry : new TreeMap<>( ldapProfile ).entrySet() )
+        for ( final Map.Entry<DomainID, Map<ProfileID, LongAdder>> domainIDMapEntry : new TreeMap<>( ldapProfile ).entrySet() )
         {
-            for ( final Map.Entry<String, LongAdder> profileMapEntry : new TreeMap<>( domainIDMapEntry.getValue() ).entrySet() )
+            for ( final Map.Entry<ProfileID, LongAdder> profileMapEntry : new TreeMap<>( domainIDMapEntry.getValue() ).entrySet() )
             {
                 final DomainID domainID = domainIDMapEntry.getKey();
                 final DomainConfig domainConfig = config.getDomainConfigs().get( domainID );
-                final String userProfile = profileMapEntry.getKey();
+                final ProfileID userProfile = profileMapEntry.getKey();
                 final LdapProfile ldapProfile = domainConfig.getLdapProfiles().get( userProfile );
                 final long count = profileMapEntry.getValue().sum();
 

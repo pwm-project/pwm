@@ -35,6 +35,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -101,7 +102,7 @@ public class EmailServerUtil
     )
             throws PwmUnrecoverableException
     {
-        final String id = profile.getIdentifier();
+        final ProfileID id = profile.getId();
         final String address = profile.readSettingAsString( PwmSetting.EMAIL_SERVER_ADDRESS );
         final int port = (int) profile.readSettingAsLong( PwmSetting.EMAIL_SERVER_PORT );
         final String username = profile.readSettingAsString( PwmSetting.EMAIL_USERNAME );
@@ -415,7 +416,7 @@ public class EmailServerUtil
 
     public static List<X509Certificate> readCertificates(
             final AppConfig appConfig,
-            final String profile,
+            final ProfileID profile,
             final SessionLabel sessionLabel
     )
             throws PwmUnrecoverableException
@@ -463,7 +464,7 @@ public class EmailServerUtil
                     records.add( HealthRecord.forMessage(
                             DomainID.systemId(),
                             HealthMessage.Email_ConnectFailure,
-                            emailServer.getId(),
+                            emailServer.getId().stringValue(),
                             "unable to connect" ) );
                 }
                 transport.close();
@@ -473,7 +474,7 @@ public class EmailServerUtil
                 records.add( HealthRecord.forMessage(
                         DomainID.systemId(),
                         HealthMessage.Email_ConnectFailure,
-                        emailServer.getId(),
+                        emailServer.getId().stringValue(),
                         e.getMessage() ) );
             }
         }

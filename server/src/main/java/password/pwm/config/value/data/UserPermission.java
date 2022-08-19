@@ -23,6 +23,7 @@ package password.pwm.config.value.data;
 import lombok.Builder;
 import lombok.Value;
 import org.jetbrains.annotations.NotNull;
+import password.pwm.bean.ProfileID;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.java.StringUtil;
 
@@ -39,7 +40,7 @@ public class UserPermission implements Serializable, Comparable<UserPermission>
     @Builder.Default
     private UserPermissionType type = UserPermissionType.ldapQuery;
 
-    private String ldapProfileID;
+    private ProfileID ldapProfileID;
     private String ldapQuery;
     private String ldapBase;
 
@@ -48,13 +49,14 @@ public class UserPermission implements Serializable, Comparable<UserPermission>
             Comparator.nullsLast( Comparator.naturalOrder() ) )
             .thenComparing(
                     UserPermission::getLdapProfileID,
-                    Comparator.nullsLast( Comparator.naturalOrder() ) )
+                    ProfileID.comparator() )
             .thenComparing(
                     UserPermission::getLdapBase,
                     Comparator.nullsLast( Comparator.naturalOrder() ) )
             .thenComparing(
                     UserPermission::getLdapQuery,
                     Comparator.nullsLast( Comparator.naturalOrder() ) );
+
 
     public UserPermissionType getType( )
     {
@@ -65,7 +67,7 @@ public class UserPermission implements Serializable, Comparable<UserPermission>
     {
         return getType().getLabel()
                 +  ": [Profile: "
-                + ( StringUtil.isEmpty( getLdapProfileID() ) ?  "All" : '\'' + this.getLdapProfileID() + '\'' )
+                + ( getLdapProfileID() == null ?  "All" : '\'' + this.getLdapProfileID().stringValue() + '\'' )
                 + ( StringUtil.isEmpty( getLdapBase() ) ?  "" : " " + getType().getBaseLabel() + ": " + this.getLdapBase() )
                 + ( StringUtil.isEmpty( getLdapQuery() ) ?  "" : " Filter: " + this.getLdapQuery() )
                 + "]";

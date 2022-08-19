@@ -28,6 +28,7 @@ import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
@@ -156,11 +157,11 @@ public class UserMatchViewerFunction implements SettingUIFunction
             final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final String baseDN,
-            final String profileID
+            final ProfileID profileID
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final Set<String> profileIDsToTest = new LinkedHashSet<>();
+        final Set<ProfileID> profileIDsToTest = new LinkedHashSet<>();
 
         if ( UserPermissionUtility.isAllProfiles( profileID ) )
         {
@@ -176,7 +177,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_NO_PROFILE_ASSIGNED, "invalid ldap profile" ) );
         }
 
-        for ( final String loopID : profileIDsToTest )
+        for ( final ProfileID loopID : profileIDsToTest )
         {
             ChaiEntry chaiEntry = null;
             try

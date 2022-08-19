@@ -31,6 +31,7 @@ import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
@@ -578,7 +579,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
             throw new IllegalStateException( "can not read authenticated profile while session is unauthenticated" );
         }
 
-        final String profileID = getPwmSession().getUserInfo().getProfileIDs().get( profileDefinition );
+        final ProfileID profileID = getPwmSession().getUserInfo().getProfileIDs().get( profileDefinition );
         if ( profileID != null )
         {
             return pwmDomain.getConfig().getProfileMap( profileDefinition ).get( profileID );

@@ -32,6 +32,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.DailySummaryJob;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.CollectorUtil;
 import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -300,11 +301,10 @@ public class StatisticsService extends AbstractPwmService implements PwmService
 
     public Map<String, String> dailyStatisticsAsLabelValueMap()
     {
-        return Collections.unmodifiableMap( CollectionUtil.enumStream( Statistic.class )
-                .collect( CollectionUtil.collectorToLinkedMap(
+        return CollectionUtil.enumStream( Statistic.class )
+                .collect( CollectorUtil.toUnmodifiableLinkedMap(
                         statistic -> statistic.getLabel( PwmConstants.DEFAULT_LOCALE ),
-                        statistic -> statsDaily.getStatistic( statistic )
-                ) ) );
+                        statistic -> statsDaily.getStatistic( statistic ) ) );
     }
 
     private void resetDailyStats( )

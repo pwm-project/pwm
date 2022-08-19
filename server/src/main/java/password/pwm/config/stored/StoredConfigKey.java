@@ -23,6 +23,7 @@ package password.pwm.config.stored;
 import org.jetbrains.annotations.NotNull;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.i18n.Config;
@@ -35,10 +36,11 @@ import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey>
+public final class StoredConfigKey implements Serializable, Comparable<StoredConfigKey>
 {
     private static final Comparator<StoredConfigKey> COMPARATOR = makeComparator();
 
@@ -97,14 +99,27 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
         return recordID;
     }
 
-    public String getProfileID()
+    public Optional<ProfileID> getProfileID()
     {
+        if ( !isRecordType( RecordType.SETTING ) )
+        {
+            throw new IllegalStateException( "can not read profileID for non-setting record type" );
+        }
+        return ProfileID.createNullable( profileID );
+    }
+
+    public String getLocaleKey()
+    {
+        if ( !isRecordType( RecordType.LOCALE_BUNDLE ) )
+        {
+            throw new IllegalStateException( "can not read profileID for non-locale record type" );
+        }
         return profileID;
     }
 
-    public static StoredConfigKey forSetting( final PwmSetting pwmSetting, final String profileID, final DomainID domainID )
+    public static StoredConfigKey forSetting( final PwmSetting pwmSetting, final ProfileID profileID, final DomainID domainID )
     {
-        return new StoredConfigKey( RecordType.SETTING, domainID, pwmSetting.getKey(), profileID );
+        return new StoredConfigKey( RecordType.SETTING, domainID, pwmSetting.getKey(), profileID == null ? null : profileID.stringValue() );
     }
 
     public static StoredConfigKey forLocaleBundle( final PwmLocaleBundle localeBundle, final String key, final DomainID domainID )
@@ -119,12 +134,12 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
 
     public StoredConfigKey withNewDomain( final DomainID domainID )
     {
-        return new StoredConfigKey( this.getRecordType(), domainID, this.getRecordID(), this.getProfileID() );
+        return new StoredConfigKey( this.recordType, domainID, this.recordID, this.profileID );
     }
 
     public boolean isRecordType( final RecordType recordType )
     {
-        return recordType != null && Objects.equals( getRecordType(), recordType );
+        return Objects.equals( this.recordType, recordType );
     }
 
     public boolean isValid()
@@ -190,7 +205,7 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
             case SETTING:
                 if ( toPwmSetting().getCategory().hasProfiles()  )
                 {
-                    return prefix + toPwmSetting().toMenuLocationDebug( profileID, locale );
+                    return prefix + toPwmSetting().toMenuLocationDebug( getProfileID().orElse( null ), locale );
                 }
                 else if ( StringUtil.notEmpty( profileID ) )
                 {
@@ -319,10 +334,6 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
                 Comparator.nullsLast( Comparator.naturalOrder() ) );
 
 
-        final Comparator<StoredConfigKey> domainComparator = Comparator.comparing( StoredConfigKey::getDomainID,
-                Comparator.nullsLast( Comparator.naturalOrder() ) );
-
-
         final Comparator<StoredConfigKey> recordComparator = ( o1, o2 ) ->
         {
             if ( Objects.equals( o1.getRecordType(), o2.getRecordType() )
@@ -337,14 +348,10 @@ public class StoredConfigKey implements Serializable, Comparable<StoredConfigKey
             }
         };
 
-        final Comparator<StoredConfigKey> profileComparator = Comparator.comparing(
-                StoredConfigKey::getProfileID,
-                Comparator.nullsLast( Comparator.naturalOrder() ) );
-
-        return domainComparator
+        return Comparator.comparing( StoredConfigKey::getDomainID, DomainID.comparator() )
                 .thenComparing( typeComparator )
                 .thenComparing( recordComparator )
-                .thenComparing( profileComparator );
+                .thenComparing( key -> key.profileID, ProfileID.stringComparator() );
     }
 
 }

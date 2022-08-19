@@ -24,6 +24,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
@@ -250,7 +251,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final PwmSetting pwmSetting = PwmSetting.forKey( requestMap.get( "setting" ) )
                 .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
         final String functionName = requestMap.get( "function" );
-        final String profileID = pwmSetting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString( REQ_PARAM_PROFILE ) : null;
+        final ProfileID profileID = pwmSetting.getCategory().hasProfiles() ? ProfileID.create( pwmRequest.readParameterAsString( REQ_PARAM_PROFILE ) ) : null;
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( pwmSetting );
         final String extraData = requestMap.get( "extraData" );
 
@@ -327,7 +328,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final Map<String, String> outputMap = new LinkedHashMap<>( valueMap );
 
             final PwmLocaleBundle pwmLocaleBundle = key.toLocaleBundle();
-            final String keyName = key.getProfileID();
+            final String keyName = key.getLocaleKey();
             modifier.writeLocaleBundleMap( key.getDomainID(), pwmLocaleBundle, keyName, outputMap );
             readSettingResponse = ConfigEditorServletUtils.handleLocaleBundleReadSetting( pwmRequest, modifier.newStoredConfiguration(), key );
         }
@@ -366,7 +367,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         if ( key.getRecordType() == StoredConfigKey.RecordType.LOCALE_BUNDLE )
         {
             final PwmLocaleBundle pwmLocaleBundle = key.toLocaleBundle();
-            final String keyName = key.getProfileID();
+            final String keyName = key.getLocaleKey();
             final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
             modifier.resetLocaleBundleMap( pwmLocaleBundle, keyName, domainID );
         }
@@ -573,10 +574,11 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     )
             throws IOException, PwmUnrecoverableException
     {
+        LOGGER.debug( pwmRequest, () -> "beginning restLdapHealthCheck" );
+
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
-        LOGGER.debug( pwmRequest, () -> "beginning restLdapHealthCheck" );
-        final String profileID = pwmRequest.readParameterAsString( REQ_PARAM_PROFILE );
+        final ProfileID profileID = ProfileID.create( pwmRequest.readParameterAsString( REQ_PARAM_PROFILE ) );
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.LDAP_SERVER_URLS );
         final DomainConfig config = AppConfig.forStoredConfig( configManagerBean.getStoredConfiguration() ).getDomainConfigs().get( domainID );
         final PublicHealthData healthData = LDAPHealthChecker.healthForNewConfiguration(
@@ -587,6 +589,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 profileID,
                 true,
                 true );
+
         final RestResultBean restResultBean = RestResultBean.withData( healthData, PublicHealthData.class );
 
         pwmRequest.outputJsonResult( restResultBean );
@@ -667,7 +670,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     {
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
-        final String profileID = pwmRequest.readParameterAsString( REQ_PARAM_PROFILE );
+        final ProfileID profileID = ProfileID.create( pwmRequest.readParameterAsString( REQ_PARAM_PROFILE ) );
 
         LOGGER.debug( pwmRequest, () -> "beginning restEmailHealthCheck" );
 
@@ -839,14 +842,12 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final StoredConfiguration storedConfiguration = configManagerBean.getStoredConfiguration();
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForDomainSetting(  );
 
-        final String profile;
+        final ProfileID profile;
         {
-            final String selectedProfile = inputMap.get( LdapBrowser.PARAM_PROFILE );
             final AppConfig appConfig = AppConfig.forStoredConfig( storedConfiguration );
             final DomainConfig domainConfig = appConfig.getDomainConfigs().getOrDefault( domainID, AppConfig.defaultConfig().getAdminDomain() );
-            profile = domainConfig.getLdapProfiles().containsKey( selectedProfile )
-                    ? selectedProfile
-                    : domainConfig.getLdapProfiles().keySet().iterator().next();
+            final Optional<ProfileID> selectedProfile = domainConfig.ldapProfileForStringId( inputMap.get( LdapBrowser.PARAM_PROFILE ) );
+            profile = selectedProfile.orElse( domainConfig.getLdapProfiles().keySet().iterator().next() );
         }
         final String dn = inputMap.getOrDefault( LdapBrowser.PARAM_DN, "" );
 
@@ -895,8 +896,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final PwmSettingCategory category = PwmSettingCategory.forProfileSetting( setting )
                 .orElseThrow( () -> new IllegalStateException( "specified key does not associated with a profile-enabled category" ) );
 
-        final String sourceID = inputMap.get( "sourceID" );
-        final String destinationID = inputMap.get( "destinationID" );
+        final ProfileID sourceID = ProfileID.create( inputMap.get( "sourceID" ) );
+        final ProfileID destinationID = ProfileID.create( inputMap.get( "destinationID" ) );
 
         try
         {

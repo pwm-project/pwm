@@ -22,6 +22,7 @@ package password.pwm.svc.email;
 
 import lombok.Builder;
 import lombok.Value;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.option.SmtpServerType;
 import password.pwm.error.ErrorInformation;
 import password.pwm.util.PasswordData;
@@ -39,7 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @Builder
 public class EmailServer
 {
-    private String id;
+    private ProfileID id;
     private String host;
     private int port;
     private String username;
@@ -64,7 +65,7 @@ public class EmailServer
     public String toDebugString()
     {
         final Map<String, String> debugProps = new LinkedHashMap<>(  );
-        debugProps.put( "id", id );
+        debugProps.put( "id", id.stringValue() );
         debugProps.put( "host", host );
         debugProps.put( "type", type.name() );
         debugProps.put( "port", String.valueOf( port ) );

@@ -21,6 +21,7 @@
 package password.pwm.ldap.permission;
 
 import password.pwm.PwmDomain;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.data.UserPermission;
@@ -45,7 +46,7 @@ class AllPermissionTypeHelper implements PermissionTypeHelper
     public SearchConfiguration searchConfigurationFromPermission( final UserPermission userPermission )
             throws PwmUnrecoverableException
     {
-        final String profileID = UserPermissionUtility.isAllProfiles( userPermission.getLdapProfileID() )
+        final ProfileID profileID = UserPermissionUtility.isAllProfiles( userPermission.getLdapProfileID() )
                 ? null
                 : userPermission.getLdapProfileID();
 

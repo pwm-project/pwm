@@ -33,6 +33,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
@@ -41,7 +42,7 @@ import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.CollectorUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -68,7 +69,7 @@ public class LdapBrowser
 
     private final SessionLabel sessionLabel;
     private final ChaiProviderFactory chaiProviderFactory;
-    private final Map<String, ChaiProvider> providerCache = new HashMap<>();
+    private final Map<ProfileID, ChaiProvider> providerCache = new HashMap<>();
 
     private enum DnType
     {
@@ -89,7 +90,7 @@ public class LdapBrowser
 
     public LdapBrowseResult doBrowse(
             final DomainID domainID,
-            final String profile,
+            final ProfileID profile,
             final String dn
     )
             throws PwmUnrecoverableException
@@ -119,7 +120,7 @@ public class LdapBrowser
 
     private LdapBrowseResult doBrowseImpl(
             final DomainID domainID,
-            final String profileID,
+            final ProfileID profileID,
             final String dn
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, ChaiOperationException
@@ -160,7 +161,7 @@ public class LdapBrowser
 
     private void updateBrowseResultChildren(
             final DomainID domainID,
-            final String profileID,
+            final ProfileID profileID,
             final String dn,
             final LdapBrowseResult.LdapBrowseResultBuilder result
     )
@@ -189,7 +190,7 @@ public class LdapBrowser
         result.maxResults( childDNs.size() >= getMaxSizeLimit() );
     }
 
-    private ChaiProvider getChaiProvider( final DomainID domainID, final String profile ) throws PwmUnrecoverableException
+    private ChaiProvider getChaiProvider( final DomainID domainID, final ProfileID profile ) throws PwmUnrecoverableException
     {
         if ( !providerCache.containsKey( profile ) )
         {
@@ -209,7 +210,7 @@ public class LdapBrowser
 
     private Map<String, DnType> getChildEntries(
             final DomainID domainID,
-            final String profile,
+            final ProfileID profile,
             final String dn
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, ChaiOperationException
@@ -219,7 +220,7 @@ public class LdapBrowser
 
         if ( StringUtil.isEmpty( dn ) && chaiProvider.getDirectoryVendor() == DirectoryVendor.ACTIVE_DIRECTORY )
         {
-            return Collections.unmodifiableMap( adRootDNList( domainID, profile ).stream().collect( CollectionUtil.collectorToLinkedMap(
+            return Collections.unmodifiableMap( adRootDNList( domainID, profile ).stream().collect( CollectorUtil.toLinkedMap(
                     Function.identity(),
                     rootDN -> DnType.navigable
             ) ) );
@@ -288,7 +289,7 @@ public class LdapBrowser
         return chaiProvider.searchMultiValues( dn, searchHelper );
     }
 
-    private Set<String> adRootDNList( final DomainID domainID, final String profile )
+    private Set<String> adRootDNList( final DomainID domainID, final ProfileID profile )
             throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
     {
         final ChaiProvider chaiProvider = getChaiProvider( domainID, profile );
@@ -319,9 +320,9 @@ public class LdapBrowser
     public static class LdapBrowseResult implements Serializable
     {
         private String dn;
-        private String profileID;
+        private ProfileID profileID;
         private String parentDN;
-        private List<String> profileList;
+        private List<ProfileID> profileList;
         private boolean maxResults;
 
         private List<DNInformation> navigableDNlist;

@@ -26,7 +26,6 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import password.pwm.Permission;
 import password.pwm.PwmDomain;
-import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
@@ -106,12 +105,17 @@ public class PwmRequestUtil
     {
         final SessionLabel.SessionLabelBuilder builder = SessionLabel.builder();
 
+        builder.sourceAddress( pwmRequest.getSrcAddress().orElse( null ) );
+        builder.sourceHostname( pwmRequest.getSrcHostname().orElse( null ) );
+        builder.requestID( pwmRequest.getPwmRequestID() );
+        builder.domain( pwmRequest.getDomainID().stringValue() );
+
         if ( pwmRequest.hasSession() )
         {
             final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final LocalSessionStateBean ssBean = pwmSession.getSessionStateBean();
+            builder.sessionID( pwmSession.getSessionStateBean().getSessionID() );
 
-            if ( pwmSession.isAuthenticated() )
+            if ( pwmRequest.isAuthenticated() )
             {
                 try
                 {
@@ -119,21 +123,14 @@ public class PwmRequestUtil
                     final UserIdentity userIdentity = userInfo.getUserIdentity();
 
                     builder.username( userInfo.getUsername() );
-                    builder.profile( userIdentity == null ? null : userIdentity.getLdapProfileID() );
+                    builder.profile( userIdentity == null ? null : userIdentity.getLdapProfileID().stringValue() );
                 }
                 catch ( final PwmUnrecoverableException e )
                 {
                     LOGGER.error( () -> "unexpected error reading username: " + e.getMessage(), e );
                 }
             }
-
-            builder.sessionID( ssBean.getSessionID() );
         }
-
-        builder.sourceAddress( pwmRequest.getSrcAddress().orElse( null ) );
-        builder.sourceHostname( pwmRequest.getSrcHostname().orElse( null ) );
-        builder.requestID( pwmRequest.getPwmRequestID() );
-        builder.domain( pwmRequest.getDomainID().stringValue() );
 
         return builder.build();
     }

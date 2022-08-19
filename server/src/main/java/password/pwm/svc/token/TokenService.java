@@ -354,13 +354,13 @@ public class TokenService extends AbstractPwmService implements PwmService
                 {
                     if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_EMAIL_VERIFICATION ) )
                     {
-                        final String label = PwmSetting.NEWUSER_EMAIL_VERIFICATION.toMenuLocationDebug( newUserProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE );
+                        final String label = PwmSetting.NEWUSER_EMAIL_VERIFICATION.toMenuLocationDebug( newUserProfile.getId(), PwmConstants.DEFAULT_LOCALE );
                         final String label2 = PwmSetting.TOKEN_STORAGEMETHOD.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
                         returnRecords.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.CryptoTokenWithNewUserVerification, label, label2 ) );
                     }
                     if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_SMS_VERIFICATION ) )
                     {
-                        final String label = PwmSetting.NEWUSER_SMS_VERIFICATION.toMenuLocationDebug( newUserProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE );
+                        final String label = PwmSetting.NEWUSER_SMS_VERIFICATION.toMenuLocationDebug( newUserProfile.getId(), PwmConstants.DEFAULT_LOCALE );
                         final String label2 = PwmSetting.TOKEN_STORAGEMETHOD.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
                         returnRecords.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.CryptoTokenWithNewUserVerification, label, label2 ) );
                     }

@@ -23,6 +23,8 @@
 --%>
 
 
+<%@ page import="password.pwm.bean.ProfileID" %>
+
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -62,7 +64,7 @@
                 <td class="key">New User Registration</td>
                 <td><a href="<pwm:context/><%=PwmServletDefinition.NewUser.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.NewUser.servletUrl()%></a></td>
             </tr>
-            <% for (final String id : JspUtility.getPwmRequest(pageContext).getDomainConfig().getNewUserProfiles().keySet()) { %>
+            <% for (final ProfileID id : JspUtility.getPwmRequest(pageContext).getDomainConfig().getNewUserProfiles().keySet()) { %>
             <tr>
                 <td class="key">New User Registration "<%=id%>" profile</td>
                 <td><a href="<pwm:context/><%=PwmServletDefinition.NewUser.servletUrl()%>"><pwm:context/><%=PwmServletDefinition.NewUser.servletUrl()%>/profile/<%=id%></a></td>

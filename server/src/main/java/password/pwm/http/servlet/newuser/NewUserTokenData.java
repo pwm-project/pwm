@@ -22,6 +22,7 @@ package password.pwm.http.servlet.newuser;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
+import password.pwm.bean.ProfileID;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -33,7 +34,7 @@ class NewUserTokenData implements Serializable
 {
 
     @SerializedName( "id" )
-    private String profileID;
+    private ProfileID profileID;
 
     @SerializedName( "f" )
     private NewUserForm formData;

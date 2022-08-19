@@ -18,15 +18,35 @@
  * limitations under the License.
  */
 
-package password.pwm.svc.event;
+package password.pwm.bean;
 
-import password.pwm.bean.ProfileID;
+import org.junit.Assert;
+import org.junit.Test;
 
-public interface HelpdeskAuditRecord extends UserAuditRecord
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class ProfileIDTest
 {
-    String getTargetID( );
+    @Test
+    public void testSorting()
+    {
+        final List<ProfileID> list = new ArrayList<>();
 
-    String getTargetDN( );
+        list.add( ProfileID.create( "bbbb" ) );
+        list.add( ProfileID.create( "aaaa" ) );
 
-    ProfileID getTargetLdapProfile( );
+        Collections.sort( list );
+
+        Assert.assertEquals( ProfileID.create( "aaaa" ), list.get( 0 ) );
+        Assert.assertEquals( ProfileID.create( "bbbb" ), list.get( 1 ) );
+    }
+
+    @Test
+    public void testReservedValues()
+    {
+        ProfileID.create( "all" );
+        ProfileID.validateUserValue( "all" );
+    }
 }

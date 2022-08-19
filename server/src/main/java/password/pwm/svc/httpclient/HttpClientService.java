@@ -105,6 +105,7 @@ public class HttpClientService extends AbstractPwmService implements PwmService
                 LOGGER.debug( () -> "error closing pwmHttpClient instance: " + e.getMessage() );
             }
         }
+        issuedClients.clear();
     }
 
     public PwmHttpClient getPwmHttpClient( final SessionLabel sessionLabel )

@@ -23,6 +23,7 @@ package password.pwm.ldap.search;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.CollectorUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
@@ -73,7 +74,7 @@ public class UserSearchResults implements Serializable
 
         return Collections.unmodifiableMap( results.keySet().stream()
                 .sorted( comparator )
-                .collect( CollectionUtil.collectorToLinkedMap(
+                .collect( CollectorUtil.toLinkedMap(
                         Function.identity(),
                         userIdentity -> CollectionUtil.stripNulls( results.get( userIdentity ) )
                 ) ) );
@@ -104,7 +105,7 @@ public class UserSearchResults implements Serializable
         final Function<UserIdentity, Map<String, Object>> makeRowMap = userIdentity ->
         {
             final Map<String, Object> rowMap = headerAttributeMap.keySet().stream()
-                    .collect( CollectionUtil.collectorToLinkedMap(
+                    .collect( CollectorUtil.toLinkedMap(
                             Function.identity(),
                             attribute -> attributeValue( userIdentity, attribute ) ) );
 
@@ -133,10 +134,9 @@ public class UserSearchResults implements Serializable
 
     public static Map<String, String> fromFormConfiguration( final List<FormConfiguration> formItems, final Locale locale )
     {
-        return Collections.unmodifiableMap( formItems.stream().collect( CollectionUtil.collectorToLinkedMap(
+        return formItems.stream().collect( CollectorUtil.toUnmodifiableLinkedMap(
                 FormConfiguration::getName,
-                formItem -> formItem.getLabel( locale )
-        ) ) );
+                formItem -> formItem.getLabel( locale ) ) );
     }
 
     private static class UserIdentitySearchResultComparator implements Comparator<UserIdentity>, Serializable

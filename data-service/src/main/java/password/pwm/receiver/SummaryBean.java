@@ -88,6 +88,7 @@ public class SummaryBean
                         .installAge( TimeDuration.fromCurrent( bean.getInstallTime() ).asDuration() )
                         .updateAge( TimeDuration.fromCurrent( bean.getTimestamp() ).asDuration() )
                         .ldapVendor( ldapVendor )
+
                         .osName( bean.getAbout().get( PwmAboutProperty.java_osName.name() ) )
                         .osVersion( bean.getAbout().get( PwmAboutProperty.java_osVersion.name() ) )
                         .servletName( bean.getAbout().get( PwmAboutProperty.java_appServerInfo.name() ) )

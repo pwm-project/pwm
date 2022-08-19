@@ -29,6 +29,7 @@ import com.novell.ldapchai.provider.SearchScope;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -432,7 +433,7 @@ public class LdapUserInfoReader implements UserInfo
         LOGGER.trace( sessionLabel, () -> "checkOtp: beginning process to check if user OTP setup is required" );
 
         SetupOtpProfile setupOtpProfile = null;
-        final Map<ProfileDefinition, String> profileIDs = selfCachedReference.getProfileIDs();
+        final Map<ProfileDefinition, ProfileID> profileIDs = selfCachedReference.getProfileIDs();
         if ( profileIDs.containsKey( ProfileDefinition.UpdateAttributes ) )
         {
             setupOtpProfile = pwmDomain.getConfig().getSetupOTPProfiles().get( profileIDs.get( ProfileDefinition.SetupOTPProfile ) );
@@ -484,7 +485,7 @@ public class LdapUserInfoReader implements UserInfo
         }
 
         UpdateProfileProfile updateProfileProfile = null;
-        final Map<ProfileDefinition, String> profileIDs = selfCachedReference.getProfileIDs();
+        final Map<ProfileDefinition, ProfileID> profileIDs = selfCachedReference.getProfileIDs();
         if ( profileIDs.containsKey( ProfileDefinition.UpdateAttributes ) )
         {
             updateProfileProfile = domainConfig.getUpdateAttributesProfile().get( profileIDs.get( ProfileDefinition.UpdateAttributes ) );
@@ -649,14 +650,14 @@ public class LdapUserInfoReader implements UserInfo
     }
 
     @Override
-    public Map<ProfileDefinition, String> getProfileIDs( ) throws PwmUnrecoverableException
+    public Map<ProfileDefinition, ProfileID> getProfileIDs( ) throws PwmUnrecoverableException
     {
-        final Map<ProfileDefinition, String> returnMap = new EnumMap<>( ProfileDefinition.class );
+        final Map<ProfileDefinition, ProfileID> returnMap = new EnumMap<>( ProfileDefinition.class );
         for ( final ProfileDefinition profileDefinition : ProfileDefinition.values() )
         {
             if ( profileDefinition.isAuthenticated() )
             {
-                final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser( pwmDomain, sessionLabel, userIdentity, profileDefinition );
+                final Optional<ProfileID> profileID = ProfileUtility.discoverProfileIDForUser( pwmDomain, sessionLabel, userIdentity, profileDefinition );
                 if ( profileID.isPresent() )
                 {
                     returnMap.put( profileDefinition, profileID.get() );
@@ -899,8 +900,8 @@ public class LdapUserInfoReader implements UserInfo
             return Optional.empty();
         }
 
-        final Map<ProfileDefinition, String> profileIDs = selfCachedReference.getProfileIDs();
-        final String profileID = profileIDs.get( ProfileDefinition.ChangePassword );
+        final Map<ProfileDefinition, ProfileID> profileIDs = selfCachedReference.getProfileIDs();
+        final ProfileID profileID = profileIDs.get( ProfileDefinition.ChangePassword );
         return Optional.ofNullable( domainConfig.getChangePasswordProfile().get( profileID ) );
     }
 }

@@ -24,8 +24,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
@@ -75,11 +75,11 @@ public class ConfigurationCleanerTest
     @Test
     public void testProfiledSettings()
     {
-        final List<String> profileList = StoredConfigurationUtil.profilesForSetting(
+        final List<ProfileID> profileList = StoredConfigurationUtil.profilesForSetting(
                 DOMAIN_ID, PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER, domainConfig.getStoredConfiguration() );
         Assert.assertEquals( 1, profileList.size() );
 
-        final PeopleSearchProfile peopleSearchProfile = domainConfig.getPeopleSearchProfiles().get( PwmConstants.PROFILE_ID_DEFAULT );
+        final PeopleSearchProfile peopleSearchProfile = domainConfig.getPeopleSearchProfiles().get( ProfileID.PROFILE_ID_DEFAULT );
         final List<UserPermission> userPermissionList = peopleSearchProfile.readSettingAsUserPermission( PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER );
         final UserPermission userPermission = userPermissionList.iterator().next();
         Assert.assertEquals( "(|(cn=*smith*)(cn=*blake*)(givenName=*Margo*))", userPermission.getLdapQuery() );
@@ -113,7 +113,7 @@ public class ConfigurationCleanerTest
     @Test
     public void testDeprecatedAdComplexitySettings()
     {
-        for ( final String profile : domainConfig.getPasswordProfileIDs() )
+        for ( final ProfileID profile : domainConfig.getPasswordProfileIDs() )
         {
             final PwmPasswordPolicy pwmPasswordPolicy = domainConfig.getPasswordPolicy( profile );
             final ADPolicyComplexity adPolicyComplexity = pwmPasswordPolicy.getRuleHelper().getADComplexityLevel();

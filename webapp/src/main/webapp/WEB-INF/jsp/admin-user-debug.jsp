@@ -297,7 +297,7 @@
                         <% for (final ProfileDefinition profileDefinition : userDebugDataBean.getProfiles().keySet()) { %>
                         <tr>
                             <td><%=profileDefinition%></td>
-                            <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getProfiles().get(profileDefinition))%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getProfiles().get(profileDefinition).stringValue())%></td>
                         </tr>
                         <% } %>
                     </table>
@@ -343,9 +343,9 @@
                         <tr>
                             <td>ID</td>
                             <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
-                            <td><%=JspUtility.friendlyWrite(pageContext, configPolicy.getIdentifier())%></td>
-                            <td><%=JspUtility.friendlyWrite(pageContext, ldapPolicy.getIdentifier())%></td>
-                            <td><%=JspUtility.friendlyWrite(pageContext, userPolicy.getIdentifier())%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, configPolicy.getId().stringValue())%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, ldapPolicy.getId().stringValue())%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, userPolicy.getId().stringValue())%></td>
                         </tr>
                         <tr>
                             <td>Display Name</td>
@@ -476,7 +476,7 @@
             </tr>
             <tr>
                 <td>Identifier</td>
-                <td><%=challengeProfile.getIdentifier()%></td>
+                <td><%=challengeProfile.getId()%></td>
             </tr>
             <tr>
                 <td>Locale</td>

@@ -23,6 +23,7 @@ package password.pwm.config.stored;
 import org.junit.Assert;
 import org.junit.Test;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
@@ -95,7 +96,7 @@ public class StoredConfigKeyTest
             {
                 for ( final String profileID : profiles )
                 {
-                    list.add( StoredConfigKey.forSetting( pwmSetting, profileID, DomainID.systemId() ) );
+                    list.add( StoredConfigKey.forSetting( pwmSetting, ProfileID.create( profileID ), DomainID.systemId() ) );
                 }
             }
             else

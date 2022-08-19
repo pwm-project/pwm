@@ -26,6 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -144,7 +145,7 @@ public class UserSearchService extends AbstractPwmService implements PwmService
     public UserIdentity resolveUsername(
             final String username,
             final String context,
-            final String profile,
+            final ProfileID profile,
             final SessionLabel sessionLabel
     )
             throws PwmUnrecoverableException, PwmOperationalException
@@ -214,8 +215,8 @@ public class UserSearchService extends AbstractPwmService implements PwmService
         }
         if ( dupeMode == DuplicateMode.FIRST_PROFILE )
         {
-            final String profile1 = results.get( 0 ).getLdapProfileID();
-            final String profile2 = results.get( 1 ).getLdapProfileID();
+            final ProfileID profile1 = results.get( 0 ).getLdapProfileID();
+            final ProfileID profile2 = results.get( 1 ).getLdapProfileID();
             final boolean sameProfile = ( profile1 == null && profile2 == null )
                     || ( profile1 != null && profile1.equals( profile2 ) );
 
@@ -273,7 +274,7 @@ public class UserSearchService extends AbstractPwmService implements PwmService
             throws PwmUnrecoverableException, PwmOperationalException
     {
         final Collection<LdapProfile> ldapProfiles;
-        if ( searchConfiguration.getLdapProfile() != null && !searchConfiguration.getLdapProfile().isEmpty() )
+        if ( searchConfiguration.getLdapProfile() != null )
         {
             if ( pwmDomain.getConfig().getLdapProfiles().containsKey( searchConfiguration.getLdapProfile() ) )
             {
@@ -309,7 +310,7 @@ public class UserSearchService extends AbstractPwmService implements PwmService
 
             if ( ldapProfiles.size() > 1 && lastLdapFailure != null && TimeDuration.fromCurrent( lastLdapFailure ).isShorterThan( profileRetryDelayMS ) )
             {
-                LOGGER.info( () -> "skipping user search on ldap profile " + ldapProfile.getIdentifier() + " due to recent unreachable status ("
+                LOGGER.info( () -> "skipping user search on ldap profile " + ldapProfile.getId() + " due to recent unreachable status ("
                         + TimeDuration.fromCurrent( lastLdapFailure ).asCompactString() + ")" );
                 skipProfile = true;
             }
@@ -402,7 +403,7 @@ public class UserSearchService extends AbstractPwmService implements PwmService
                 : ( ldapProfile.readSettingAsLong( PwmSetting.LDAP_SEARCH_TIMEOUT ) * 1000 );
 
         final ChaiProvider chaiProvider = searchConfiguration.getChaiProvider() == null
-                ? pwmDomain.getProxyChaiProvider( sessionLabel, ldapProfile.getIdentifier() )
+                ? pwmDomain.getProxyChaiProvider( sessionLabel, ldapProfile.getId() )
                 : searchConfiguration.getChaiProvider();
 
         final List<UserSearchJob> returnMap = new ArrayList<>( searchContexts.size() );
@@ -492,25 +493,15 @@ public class UserSearchService extends AbstractPwmService implements PwmService
             }
         }
 
+        try
         {
-            final List<String> rootContexts = profile.getRootContexts( sessionLabel, pwmDomain );
-            if ( !CollectionUtil.isEmpty( rootContexts ) )
-            {
-                for ( final String rootContext : rootContexts )
-                {
-                    if ( canonicalContext.endsWith( rootContext ) )
-                    {
-                        return;
-                    }
-                }
-
-                final String msg = "specified search context '" + canonicalContext + "' is not contained by a configured root context";
-                throw new PwmUnrecoverableException( PwmError.CONFIG_FORMAT_ERROR, msg );
-            }
+            profile.testIfDnIsContainedByRootContext( sessionLabel, pwmDomain, canonicalContext );
         }
-
-        final String msg = "specified search context '" + canonicalContext + "', but no selectable contexts or root are configured";
-        throw new PwmOperationalException( PwmError.ERROR_INTERNAL, msg );
+        catch ( final PwmUnrecoverableException e )
+        {
+            final String msg = "specified search context '" + canonicalContext + "', but no selectable contexts or root are configured";
+            throw new PwmUnrecoverableException( PwmError.CONFIG_FORMAT_ERROR, msg );
+        }
     }
 
     private boolean checkIfStringIsDN(
@@ -687,7 +678,7 @@ public class UserSearchService extends AbstractPwmService implements PwmService
                     final ErrorInformation errorInformation;
                     final String errorMsg = "unexpected error during ldap search ("
                             + "domain=" + pwmDomain.getDomainID() + " "
-                            + "profile=" + jobInfo.getUserSearchJobParameters().getLdapProfile().getIdentifier() + ")"
+                            + "profile=" + jobInfo.getUserSearchJobParameters().getLdapProfile().getId() + ")"
                             + ", error: " + ( t instanceof PwmException ? t.getMessage() : JavaHelper.readHostileExceptionMessage( t ) );
                     if ( t instanceof PwmException )
                     {

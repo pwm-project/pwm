@@ -22,6 +22,7 @@ package password.pwm.config.stored;
 
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -75,7 +76,7 @@ public abstract class StoredConfigurationUtil
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( StoredConfigurationUtil.class );
 
-    public static List<String> profilesForSetting(
+    public static List<ProfileID> profilesForSetting(
             final DomainID domainID,
             final PwmSetting pwmSetting,
             final StoredConfiguration storedConfiguration
@@ -99,7 +100,7 @@ public abstract class StoredConfigurationUtil
         return profilesForProfileSetting( domainID, profileSetting, storedConfiguration );
     }
 
-    public static List<String> profilesForCategory(
+    public static List<ProfileID> profilesForCategory(
             final DomainID domainID,
             final PwmSettingCategory category,
             final StoredConfiguration storedConfiguration
@@ -109,7 +110,7 @@ public abstract class StoredConfigurationUtil
         return profilesForProfileSetting( domainID, profileSetting, storedConfiguration );
     }
 
-    private static List<String> profilesForProfileSetting(
+    private static List<ProfileID> profilesForProfileSetting(
             final DomainID domainID,
             final PwmSetting profileSetting,
             final StoredConfiguration storedConfiguration
@@ -120,6 +121,7 @@ public abstract class StoredConfigurationUtil
         final List<String> settingValues = ValueTypeConverter.valueToStringArray( storedValue );
         return settingValues.stream()
                 .filter( StringUtil::notEmpty )
+                .map( ProfileID::create )
                 .collect( Collectors.toUnmodifiableList() );
     }
 
@@ -165,7 +167,7 @@ public abstract class StoredConfigurationUtil
         final Function<StoredConfigKey, Stream<String>> validateSettingFunction = storedConfigItemKey ->
         {
             final PwmSetting pwmSetting = storedConfigItemKey.toPwmSetting();
-            final String profileID = storedConfigItemKey.getProfileID();
+            final Optional<ProfileID> profileID = storedConfigItemKey.getProfileID();
             final Optional<StoredValue> loopValue = storedConfiguration.readStoredValue( storedConfigItemKey );
 
             if ( loopValue.isPresent() )
@@ -175,13 +177,13 @@ public abstract class StoredConfigurationUtil
                     final List<String> errors = loopValue.get().validateValue( pwmSetting );
                     for ( final String loopError : errors )
                     {
-                        return Stream.of( pwmSetting.toMenuLocationDebug( storedConfigItemKey.getProfileID(), PwmConstants.DEFAULT_LOCALE ) + " - " + loopError );
+                        return Stream.of( pwmSetting.toMenuLocationDebug( profileID.orElse( null ), PwmConstants.DEFAULT_LOCALE ) + " - " + loopError );
                     }
                 }
                 catch ( final Exception e )
                 {
                     LOGGER.error( () -> "unexpected error during validate value for "
-                            + pwmSetting.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ) + ", error: "
+                            + pwmSetting.toMenuLocationDebug( profileID.orElse( null ), PwmConstants.DEFAULT_LOCALE ) + ", error: "
                             + e.getMessage(), e );
                 }
             }
@@ -379,8 +381,8 @@ public abstract class StoredConfigurationUtil
             final StoredConfiguration oldStoredConfiguration,
             final DomainID domainID,
             final PwmSettingCategory category,
-            final String sourceID,
-            final String destinationID,
+            final ProfileID sourceID,
+            final ProfileID destinationID,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
@@ -393,7 +395,7 @@ public abstract class StoredConfigurationUtil
         }
 
         final PwmSetting profileSetting = category.getProfileSetting().orElseThrow( IllegalStateException::new );
-        final List<String> existingProfiles = StoredConfigurationUtil.profilesForSetting( domainID, profileSetting, oldStoredConfiguration );
+        final List<ProfileID> existingProfiles = StoredConfigurationUtil.profilesForSetting( domainID, profileSetting, oldStoredConfiguration );
         if ( !existingProfiles.contains( sourceID ) )
         {
             throw PwmUnrecoverableException.newException(
@@ -424,10 +426,10 @@ public abstract class StoredConfigurationUtil
         }
 
         {
-            final List<String> newProfileIDList = new ArrayList<>( existingProfiles );
+            final List<ProfileID> newProfileIDList = new ArrayList<>( existingProfiles );
             newProfileIDList.add( destinationID );
             final StoredConfigKey key = StoredConfigKey.forSetting( profileSetting, null, domainID );
-            final StoredValue value = StringArrayValue.create( newProfileIDList );
+            final StoredValue value = StringArrayValue.create( CollectionUtil.convertListType( newProfileIDList, ProfileID::toString ) );
             modifier.writeSetting( key, value, userIdentity );
         }
 

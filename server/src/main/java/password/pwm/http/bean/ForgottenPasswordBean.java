@@ -27,6 +27,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import password.pwm.VerificationMethodSystem;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.IdentityVerificationMethod;
@@ -52,7 +53,7 @@ public class ForgottenPasswordBean extends PwmSessionBean
     private static final long serialVersionUID = 1L;
 
     @SerializedName( "pr" )
-    private String profile;
+    private ProfileID profile;
 
     @SerializedName( "u" )
     private UserIdentity userIdentity;
@@ -79,7 +80,7 @@ public class ForgottenPasswordBean extends PwmSessionBean
     private boolean agreementPassed;
 
     @SerializedName( "fp" )
-    private String forgottenPasswordProfileID;
+    private ProfileID forgottenPasswordProfileID;
 
     @SerializedName( "lf" )
     private Map<String, String> userSearchValues;

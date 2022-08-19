@@ -526,7 +526,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             if ( policy == ForceSetupPolicy.FORCE_ALLOW_SKIP )
             {
                 LOGGER.trace( pwmRequest, () -> "allowing setup skipping due to setting "
-                        + PwmSetting.OTP_FORCE_SETUP.toMenuLocationDebug( setupOtpProfile.getIdentifier(), pwmRequest.getLocale() ) );
+                        + PwmSetting.OTP_FORCE_SETUP.toMenuLocationDebug( setupOtpProfile.getId(), pwmRequest.getLocale() ) );
                 return true;
             }
 

@@ -30,6 +30,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.PwmLdapVendor;
@@ -65,6 +66,7 @@ class GsonJsonAdaptors
         gsonBuilder.registerTypeAdapter( PasswordData.class, new PasswordDataTypeAdapter() );
         gsonBuilder.registerTypeAdapter( PwmLdapVendorTypeAdaptor.class, new PwmLdapVendorTypeAdaptor() );
         gsonBuilder.registerTypeAdapter( DomainID.class, new DomainIDTypeAdaptor() );
+        gsonBuilder.registerTypeAdapter( ProfileID.class, new ProfileIDTypeAdaptor() );
         gsonBuilder.registerTypeAdapter( LongAdder.class, new LongAdderTypeAdaptor() );
         gsonBuilder.registerTypeAdapter( TimeDuration.class, new TimeDurationAdaptor() );
         return gsonBuilder;
@@ -247,15 +249,27 @@ class GsonJsonAdaptors
         public DomainID deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
         {
             final String sValue = json.getAsString();
-            if ( DomainID.systemId().toString().equals( sValue ) )
-            {
-                return DomainID.systemId();
-            }
-            return DomainID.create( json.getAsString() );
+            return DomainID.create( sValue );
         }
 
         @Override
         public JsonElement serialize( final DomainID src, final Type typeOfSrc, final JsonSerializationContext context )
+        {
+            return new JsonPrimitive( src.toString() );
+        }
+    }
+
+    private static class ProfileIDTypeAdaptor implements JsonSerializer<ProfileID>, JsonDeserializer<ProfileID>
+    {
+        @Override
+        public ProfileID deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
+        {
+            final String sValue = json.getAsString();
+            return ProfileID.create( sValue );
+        }
+
+        @Override
+        public JsonElement serialize( final ProfileID src, final Type typeOfSrc, final JsonSerializationContext context )
         {
             return new JsonPrimitive( src.toString() );
         }

@@ -22,14 +22,15 @@ package password.pwm.config.value;
 
 import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlElement;
-import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.FormConfiguration;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -122,15 +123,19 @@ public class StringValue extends AbstractValue implements StoredValue
 
         if ( StringUtil.notEmpty( value ) && pwmSetting.getSyntax() == PwmSettingSyntax.DOMAIN )
         {
-            final String lCaseValue = value.toLowerCase( PwmConstants.DEFAULT_LOCALE );
-            final List<String> reservedWords = DomainID.DOMAIN_RESERVED_WORDS;
-            final Optional<String> reservedWordMatch = reservedWords.stream()
-                    .map( String::toLowerCase )
-                    .filter( lCaseValue::contains )
-                    .findFirst();
-            if ( reservedWordMatch.isPresent() )
+            final List<String> errorStrings = DomainID.validateUserValue( value );
+            if ( !CollectionUtil.isEmpty( errorStrings ) )
             {
-                return Collections.singletonList( "contains reserved word '" + reservedWordMatch.get() + "'" );
+                return List.copyOf( errorStrings );
+            }
+        }
+
+        if ( StringUtil.notEmpty( value ) && pwmSetting.getSyntax() == PwmSettingSyntax.PROFILE )
+        {
+            final List<String> errorStrings = ProfileID.validateUserValue( value );
+            if ( !CollectionUtil.isEmpty( errorStrings ) )
+            {
+                return List.copyOf( errorStrings );
             }
         }
 

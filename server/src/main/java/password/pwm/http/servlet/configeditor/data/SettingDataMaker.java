@@ -21,6 +21,7 @@
 package password.pwm.http.servlet.configeditor.data;
 
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
@@ -30,6 +31,7 @@ import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -37,6 +39,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -62,7 +65,7 @@ public class SettingDataMaker
         {
             final Set<PwmSetting> interestedSets = StoredConfigurationUtil.allPossibleSettingKeysForConfiguration( storedConfiguration ).stream()
                     .filter( k -> k.isRecordType( StoredConfigKey.RecordType.SETTING ) )
-                    .filter( k -> NavTreeDataMaker.settingMatcher( domainID, storedConfiguration, k.toPwmSetting(), k.getProfileID(), navTreeSettings ) )
+                    .filter( k -> NavTreeDataMaker.settingMatcher( domainID, storedConfiguration, k.toPwmSetting(), k.getProfileID().orElse( null ), navTreeSettings ) )
                     .map( StoredConfigKey::toPwmSetting )
                     .collect( Collectors.toSet() );
 
@@ -92,8 +95,9 @@ public class SettingDataMaker
                         ( u, v ) -> v,
                         LinkedHashMap::new ) ) );
 
+        final List<ProfileID> profileIDList = StoredConfigurationUtil.profilesForSetting( domainID, PwmSetting.LDAP_PROFILE_LIST, storedConfiguration );
         final VarData varMap = VarData.builder()
-                .ldapProfileIds( StoredConfigurationUtil.profilesForSetting( domainID, PwmSetting.LDAP_PROFILE_LIST, storedConfiguration ) )
+                .ldapProfileIds( CollectionUtil.convertListType( profileIDList, ProfileID::toString ) )
                 .domainIds( StoredConfigurationUtil.domainList( storedConfiguration ).stream()
                         .map( DomainID::stringValue ).sorted().collect( Collectors.toList() ) )
                 .currentTemplate( templateSet )

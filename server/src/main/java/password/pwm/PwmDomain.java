@@ -24,6 +24,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -188,7 +189,7 @@ public class PwmDomain
         }
     }
 
-    public ChaiProvider getProxyChaiProvider( final SessionLabel sessionLabel, final String profileId )
+    public ChaiProvider getProxyChaiProvider( final SessionLabel sessionLabel, final ProfileID profileId )
             throws PwmUnrecoverableException
     {
         return getLdapService().getProxyChaiProvider( sessionLabel, profileId );

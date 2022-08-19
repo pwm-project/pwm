@@ -20,6 +20,8 @@
 
 package password.pwm.http.servlet.configeditor.function;
 
+import org.jetbrains.annotations.NotNull;
+import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
 import password.pwm.config.stored.StoredConfigKey;
@@ -110,5 +112,26 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
         modifier.writeSetting( key, X509CertificateValue.fromX509( certs ), userIdentity );
     }
 
+    @NotNull
+    protected static String validateUriStringSetting( final String uriString, final StoredConfigKey storedConfigKey )
+            throws PwmOperationalException
+    {
 
+        final String menuDebugLocation = storedConfigKey.toPwmSetting().toMenuLocationDebug( storedConfigKey.getProfileID().orElse( null ), PwmConstants.DEFAULT_LOCALE );
+        if ( uriString.isEmpty() )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "Setting " + menuDebugLocation + " must first be configured" );
+            throw new PwmOperationalException( errorInformation );
+        }
+        try
+        {
+            URI.create( uriString );
+        }
+        catch ( final IllegalArgumentException e )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "Setting " + menuDebugLocation + " has an invalid URL syntax" );
+            throw new PwmOperationalException( errorInformation );
+        }
+        return uriString;
+    }
 }

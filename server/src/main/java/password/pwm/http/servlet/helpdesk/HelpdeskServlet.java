@@ -1149,9 +1149,9 @@ public class HelpdeskServlet extends ControlledPwmServlet
             if ( !buttonEnabled && ( mode == HelpdeskClearResponseMode.no ) )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, "setting "
-                        + PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON.toMenuLocationDebug( helpdeskProfile.getIdentifier(), pwmRequest.getLocale() )
+                        + PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON.toMenuLocationDebug( helpdeskProfile.getId(), pwmRequest.getLocale() )
                         + " must be enabled or setting "
-                        + PwmSetting.HELPDESK_CLEAR_RESPONSES.toMenuLocationDebug( helpdeskProfile.getIdentifier(), pwmRequest.getLocale() )
+                        + PwmSetting.HELPDESK_CLEAR_RESPONSES.toMenuLocationDebug( helpdeskProfile.getId(), pwmRequest.getLocale() )
                         + "must be set to yes or ask" ) );
             }
         }
@@ -1213,7 +1213,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             if ( mode == HelpdeskUIMode.none )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, "setting "
-                        + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug( helpdeskProfile.getIdentifier(), pwmRequest.getLocale() )
+                        + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug( helpdeskProfile.getId(), pwmRequest.getLocale() )
                         + " must not be set to none" ) );
             }
         }
@@ -1259,7 +1259,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         if ( mode == HelpdeskUIMode.none )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, "setting "
-                    + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug( helpdeskProfile.getIdentifier(), pwmRequest.getLocale() )
+                    + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug( helpdeskProfile.getId(), pwmRequest.getLocale() )
                     + " must not be set to none" ) );
         }
 
@@ -1270,7 +1270,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             if ( mode != HelpdeskUIMode.random )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, "setting "
-                        + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug( helpdeskProfile.getIdentifier(), pwmRequest.getLocale() )
+                        + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug( helpdeskProfile.getId(), pwmRequest.getLocale() )
                         + " is set to " + mode + " and no password is included in request" ) );
             }
             final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
@@ -1289,7 +1289,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             if ( mode == HelpdeskUIMode.random )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, "setting "
-                        + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug( helpdeskProfile.getIdentifier(), pwmRequest.getLocale() )
+                        + PwmSetting.HELPDESK_SET_PASSWORD_MODE.toMenuLocationDebug( helpdeskProfile.getId(), pwmRequest.getLocale() )
                         + " is set to autogen yet a password is included in request" ) );
             }
 

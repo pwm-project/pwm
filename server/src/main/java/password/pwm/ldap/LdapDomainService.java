@@ -30,6 +30,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.LdapProfile;
@@ -65,11 +66,11 @@ public class LdapDomainService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapDomainService.class );
 
-    private final Map<String, ErrorInformation> lastLdapErrors = new ConcurrentHashMap<>();
+    private final Map<ProfileID, ErrorInformation> lastLdapErrors = new ConcurrentHashMap<>();
     private final ConditionalTaskExecutor debugLogger = ConditionalTaskExecutor.forPeriodicTask(
             this::conditionallyLogDebugInfo,
             TimeDuration.MINUTE.asDuration() );
-    private final Map<String, Map<Integer, ChaiProvider>> proxyChaiProviders = new HashMap<>();
+    private final Map<ProfileID, Map<Integer, ChaiProvider>> proxyChaiProviders = new HashMap<>();
 
     private PwmDomain pwmDomain;
     private ChaiProviderFactory chaiProviderFactory;
@@ -140,7 +141,7 @@ public class LdapDomainService extends AbstractPwmService implements PwmService
 
         for ( final LdapProfile ldapProfile : pwmDomain.getConfig().getLdapProfiles().values() )
         {
-            proxyChaiProviders.put( ldapProfile.getIdentifier(), new ConcurrentHashMap<>() );
+            proxyChaiProviders.put( ldapProfile.getId(), new ConcurrentHashMap<>() );
         }
 
         return STATUS.OPEN;
@@ -184,7 +185,7 @@ public class LdapDomainService extends AbstractPwmService implements PwmService
                 .build();
     }
 
-    public ChaiProvider getProxyChaiProvider( final SessionLabel sessionLabel, final String identifier )
+    public ChaiProvider getProxyChaiProvider( final SessionLabel sessionLabel, final ProfileID identifier )
             throws PwmUnrecoverableException
     {
         final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( identifier );
@@ -212,12 +213,12 @@ public class LdapDomainService extends AbstractPwmService implements PwmService
             throws PwmUnrecoverableException
     {
         final int slot = slotIncrementer.next();
-        final ChaiProvider proxyChaiProvider = proxyChaiProviders.get( ldapProfile.getIdentifier() ).get( slot );
+        final ChaiProvider proxyChaiProvider = proxyChaiProviders.get( ldapProfile.getId() ).get( slot );
 
         if ( proxyChaiProvider == null )
         {
             final ChaiProvider newProvider = newProxyChaiProvider( sessionLabel, ldapProfile );
-            proxyChaiProviders.get( ldapProfile.getIdentifier() ).put( slot, newProvider );
+            proxyChaiProviders.get( ldapProfile.getId() ).put( slot, newProvider );
             return newProvider;
         }
 
@@ -239,7 +240,7 @@ public class LdapDomainService extends AbstractPwmService implements PwmService
                     pwmDomain.getStatisticsManager()
             );
             LOGGER.trace( sessionLabel, () -> "created new system proxy chaiProvider id=" + chaiProvider.toString()
-                    + " for ldap profile '" + ldapProfile.getIdentifier() + "'"
+                    + " for ldap profile '" + ldapProfile.getId() + "'"
                     + " thread=" + Thread.currentThread().getName() );
             stats.increment( StatKey.createdProxies );
             return chaiProvider;
@@ -260,18 +261,18 @@ public class LdapDomainService extends AbstractPwmService implements PwmService
 
     public void setLastLdapFailure( final LdapProfile ldapProfile, final ErrorInformation errorInformation )
     {
-        lastLdapErrors.put( ldapProfile.getIdentifier(), errorInformation );
+        lastLdapErrors.put( ldapProfile.getId(), errorInformation );
         getPwmApplication().writeLastLdapFailure( getDomainID(), lastLdapErrors );
     }
 
-    public Map<String, ErrorInformation> getLastLdapFailure( )
+    public Map<ProfileID, ErrorInformation> getLastLdapFailure( )
     {
         return Collections.unmodifiableMap( lastLdapErrors );
     }
 
     public Instant getLastLdapFailureTime( final LdapProfile ldapProfile )
     {
-        final ErrorInformation errorInformation = lastLdapErrors.get( ldapProfile.getIdentifier() );
+        final ErrorInformation errorInformation = lastLdapErrors.get( ldapProfile.getId() );
         if ( errorInformation != null )
         {
             return errorInformation.getDate();
@@ -379,5 +380,4 @@ public class LdapDomainService extends AbstractPwmService implements PwmService
         debugInfo.put( DebugKey.DiscardedThreadLocals, String.valueOf( stats.get( StatKey.clearedThreadLocals ) ) );
         return CollectionUtil.enumMapToStringMap( debugInfo );
     }
-
 }

@@ -45,7 +45,7 @@
                         <configuration>
                             <skip>${skipDocker}</skip>
                             <from>
-                                <image>openjdk:17-alpine</image>
+                                <image>eclipse-temurin:18-jre</image>
                             </from>
                             <to>
                                 <image>${dockerImageTag}</image>

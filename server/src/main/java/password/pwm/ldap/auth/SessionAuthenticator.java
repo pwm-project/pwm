@@ -31,6 +31,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -85,7 +86,7 @@ public class SessionAuthenticator
             final String username,
             final PasswordData password,
             final String context,
-            final String ldapProfile
+            final ProfileID ldapProfile
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {

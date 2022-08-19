@@ -22,6 +22,7 @@ package password.pwm.config.stored;
 
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -36,7 +37,6 @@ import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.LinkedHashSet;
@@ -97,7 +97,7 @@ public class ConfigurationCleaner
                 value = new StringValue( ADPolicyComplexity.NONE.toString() );
             }
 
-            final String profileID = key.getProfileID();
+            final Optional<ProfileID> profileID = key.getProfileID();
 
             LOGGER.info( () -> "converting deprecated non-default setting "
                     + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY.getKey() + "/" + profileID
@@ -108,7 +108,7 @@ public class ConfigurationCleaner
             final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
             try
             {
-                final StoredConfigKey writeKey = StoredConfigKey.forSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL, profileID, key.getDomainID() );
+                final StoredConfigKey writeKey = StoredConfigKey.forSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL, profileID.orElse( null ), key.getDomainID() );
                 modifier.writeSetting( writeKey, value, userIdentity );
             }
             catch ( final PwmUnrecoverableException e )
@@ -127,7 +127,7 @@ public class ConfigurationCleaner
             final StoredConfiguration oldConfig = modifier.newStoredConfiguration();
             for ( final DomainID domainID : StoredConfigurationUtil.domainList( oldConfig ) )
             {
-                for ( final String profileID : StoredConfigurationUtil.profilesForSetting( domainID, PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, oldConfig ) )
+                for ( final ProfileID profileID : StoredConfigurationUtil.profilesForSetting( domainID, PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, oldConfig ) )
                 {
                     final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME, profileID, domainID );
                     final Optional<StoredValue> oldValue = oldConfig.readStoredValue( key );
@@ -196,7 +196,7 @@ public class ConfigurationCleaner
             CollectionUtil.iteratorToStream( inputConfig.keys() )
                     .filter( ( key ) -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                     .filter( ( key ) -> key.toPwmSetting().getCategory().hasProfiles() )
-                    .filter( ( key ) -> StringUtil.isEmpty( key.getProfileID() ) )
+                    .filter( ( key ) -> key.getProfileID().isEmpty() )
                     .forEach( ( key ) -> convertSetting( inputConfig, modifier, key ) );
         }
 
@@ -207,11 +207,11 @@ public class ConfigurationCleaner
         {
             final PwmSetting pwmSetting = key.toPwmSetting();
 
-            final List<String> targetProfiles = StoredConfigurationUtil.profilesForSetting(  key.getDomainID(), pwmSetting, inputConfig );
+            final List<ProfileID> targetProfiles = StoredConfigurationUtil.profilesForSetting(  key.getDomainID(), pwmSetting, inputConfig );
             final StoredValue value = inputConfig.readStoredValue( key ).orElseThrow();
             final Optional<ValueMetaData> valueMetaData = inputConfig.readMetaData( key );
 
-            for ( final String destProfile : targetProfiles )
+            for ( final ProfileID destProfile : targetProfiles )
             {
                 LOGGER.info( () -> "moving setting " + key + " without profile attribute to profile \"" + destProfile + "\"." );
                 {
@@ -257,9 +257,14 @@ public class ConfigurationCleaner
         boolean verifyProfileIsValid( final StoredConfigKey key, final StoredConfiguration inputConfig )
         {
             final PwmSetting pwmSetting = key.toPwmSetting();
-            final String recordID = key.getProfileID();
-            final List<String> profiles = StoredConfigurationUtil.profilesForSetting( key.getDomainID(), pwmSetting, inputConfig );
-            return !profiles.contains( recordID );
+            final Optional<ProfileID> recordID = key.getProfileID();
+            if ( recordID.isPresent() )
+            {
+                final List<ProfileID> profiles = StoredConfigurationUtil.profilesForSetting( key.getDomainID(), pwmSetting, inputConfig );
+                return !profiles.contains( recordID.get() );
+            }
+
+            return false;
         }
 
         void removeSuperfluousProfile( final StoredConfigKey key, final StoredConfigurationModifier modifier )

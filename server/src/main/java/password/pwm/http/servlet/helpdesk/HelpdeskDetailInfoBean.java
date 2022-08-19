@@ -43,14 +43,14 @@ import password.pwm.http.bean.DisplayElement;
 import password.pwm.http.servlet.accountinfo.AccountInformationBean;
 import password.pwm.http.tag.PasswordRequirementsTag;
 import password.pwm.i18n.Display;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.ViewableUserInfoDisplayReader;
-import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.user.UserInfo;
 import password.pwm.util.form.FormUtility;
+import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
@@ -177,9 +177,9 @@ public class HelpdeskDetailInfoBean implements Serializable
         }
 
         if ( ( userInfo.getPasswordPolicy() != null )
-                && userInfo.getPasswordPolicy().getIdentifier() != null )
+                && userInfo.getPasswordPolicy().getId() != null )
         {
-            builder.passwordPolicyID( userInfo.getPasswordPolicy().getIdentifier() );
+            builder.passwordPolicyID( userInfo.getPasswordPolicy().getId().toString() );
         }
         else
         {

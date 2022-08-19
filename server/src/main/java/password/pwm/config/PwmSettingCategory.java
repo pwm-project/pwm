@@ -22,6 +22,7 @@ package password.pwm.config;
 
 import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
+import password.pwm.bean.ProfileID;
 import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
@@ -313,7 +314,7 @@ public enum PwmSettingCategory
     }
 
     public String toMenuLocationDebug(
-            final String profileID,
+            final ProfileID profileID,
             final Locale locale
     )
     {
@@ -322,7 +323,7 @@ public enum PwmSettingCategory
 
     private static String toMenuLocationDebugImpl(
             final PwmSettingCategory category,
-            final String profileID,
+            final ProfileID profileID,
             final Locale locale
     )
     {

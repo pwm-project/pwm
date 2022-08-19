@@ -21,6 +21,8 @@
 package password.pwm.http.bean;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.ldap.PasswordChangeProgressChecker;
 
@@ -32,9 +34,10 @@ import java.util.Set;
 /**
  * @author Jason D. Rivard
  */
+@Data
+@EqualsAndHashCode( callSuper = false )
 public class ChangePasswordBean extends PwmSessionBean
 {
-
     @SerializedName( "ap" )
     private boolean agreementPassed;
 
@@ -61,96 +64,6 @@ public class ChangePasswordBean extends PwmSessionBean
 
     @SerializedName( "mc" )
     private Instant changePasswordMaxCompletion;
-
-    public boolean isAgreementPassed( )
-    {
-        return agreementPassed;
-    }
-
-    public void setAgreementPassed( final boolean agreementPassed )
-    {
-        this.agreementPassed = agreementPassed;
-    }
-
-    public boolean isCurrentPasswordRequired( )
-    {
-        return currentPasswordRequired;
-    }
-
-    public void setCurrentPasswordRequired( final boolean currentPasswordRequired )
-    {
-        this.currentPasswordRequired = currentPasswordRequired;
-    }
-
-    public boolean isCurrentPasswordPassed( )
-    {
-        return currentPasswordPassed;
-    }
-
-    public void setCurrentPasswordPassed( final boolean currentPasswordPassed )
-    {
-        this.currentPasswordPassed = currentPasswordPassed;
-    }
-
-    public boolean isFormPassed( )
-    {
-        return formPassed;
-    }
-
-    public void setFormPassed( final boolean formPassed )
-    {
-        this.formPassed = formPassed;
-    }
-
-    public boolean isAllChecksPassed( )
-    {
-        return allChecksPassed;
-    }
-
-    public void setAllChecksPassed( final boolean allChecksPassed )
-    {
-        this.allChecksPassed = allChecksPassed;
-    }
-
-    public PasswordChangeProgressChecker.ProgressTracker getChangeProgressTracker( )
-    {
-        return changeProgressTracker;
-    }
-
-    public void setChangeProgressTracker( final PasswordChangeProgressChecker.ProgressTracker changeProgressTracker )
-    {
-        this.changeProgressTracker = changeProgressTracker;
-    }
-
-    public Instant getChangePasswordMaxCompletion( )
-    {
-        return changePasswordMaxCompletion;
-    }
-
-    public void setChangePasswordMaxCompletion( final Instant changePasswordMaxCompletion )
-    {
-        this.changePasswordMaxCompletion = changePasswordMaxCompletion;
-    }
-
-    public boolean isNextAllowedTimePassed( )
-    {
-        return nextAllowedTimePassed;
-    }
-
-    public void setNextAllowedTimePassed( final boolean nextAllowedTimePassed )
-    {
-        this.nextAllowedTimePassed = nextAllowedTimePassed;
-    }
-
-    public boolean isWarnPassed( )
-    {
-        return warnPassed;
-    }
-
-    public void setWarnPassed( final boolean warnPassed )
-    {
-        this.warnPassed = warnPassed;
-    }
 
     @Override
     public BeanType getBeanType( )

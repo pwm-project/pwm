@@ -40,7 +40,7 @@ import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.CollectorUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -201,7 +201,7 @@ public class ShortcutServlet extends ControlledPwmServlet
 
         final Map<String, ShortcutItem> visibleItems = Collections.unmodifiableMap( configuredItems.stream()
                 .filter( item -> checkItemMatch( pwmRequest, labelsFromHeader, item ) )
-                .collect( CollectionUtil.collectorToLinkedMap(
+                .collect( CollectorUtil.toLinkedMap(
                         ShortcutItem::getLabel,
                         Function.identity() ) ) );
 

@@ -24,6 +24,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
@@ -176,7 +177,7 @@ public class ConfigEditorServletUtils
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
         final ReadSettingResponse.ReadSettingResponseBuilder builder = ReadSettingResponse.builder();
         final PwmLocaleBundle pwmLocaleBundle = key.toLocaleBundle();
-        final String keyName = key.getProfileID();
+        final String keyName = key.getProfileID().toString();
         final Map<String, String> bundleMap = storedConfig.readLocaleBundleMap( pwmLocaleBundle, keyName, domainID );
         if ( bundleMap == null || bundleMap.isEmpty() )
         {
@@ -346,6 +347,6 @@ public class ConfigEditorServletUtils
                 .orElseThrow( () -> new IllegalStateException( "invalid StoredConfigKey setting key" ) );
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( setting );
         final String profileID = setting.getCategory().hasProfiles() ? pwmRequest.readParameterAsString( ConfigEditorServlet.REQ_PARAM_PROFILE ) : null;
-        return StoredConfigKey.forSetting( setting, profileID, domainID );
+        return StoredConfigKey.forSetting( setting, profileID == null ? null : ProfileID.create( profileID ), domainID );
     }
 }

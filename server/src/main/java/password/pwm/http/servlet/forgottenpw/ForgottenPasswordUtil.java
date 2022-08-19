@@ -35,6 +35,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
@@ -59,7 +60,6 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.auth.HttpAuthRecord;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.i18n.Message;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
@@ -69,9 +69,9 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
+import password.pwm.user.UserInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
@@ -249,7 +249,7 @@ public class ForgottenPasswordUtil
     )
             throws PwmUnrecoverableException
     {
-        final String profileID = forgottenPasswordBean.getForgottenPasswordProfileID();
+        final ProfileID profileID = forgottenPasswordBean.getForgottenPasswordProfileID();
         final ForgottenPasswordProfile forgottenPasswordProfile = pwmRequestContext.getDomainConfig().getForgottenPasswordProfiles().get( profileID );
         final MessageSendMethod tokenSendMethod = forgottenPasswordProfile.readSettingAsEnum( PwmSetting.RECOVERY_TOKEN_SEND_METHOD, MessageSendMethod.class );
         final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequestContext, forgottenPasswordBean ).orElseThrow();
@@ -413,7 +413,7 @@ public class ForgottenPasswordUtil
     {
         final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final ForgottenPasswordBean forgottenPasswordBean = ForgottenPasswordServlet.forgottenPasswordBean( pwmRequest );
-        final ForgottenPasswordProfile forgottenPasswordProfile = forgottenPasswordProfile( pwmRequest.getPwmDomain(), forgottenPasswordBean );
+        final ForgottenPasswordProfile forgottenPasswordProfile = forgottenPasswordProfile( pwmRequest.getPwmDomain(), pwmRequest.getLabel(), forgottenPasswordBean );
         final RecoveryAction recoveryAction = ForgottenPasswordUtil.getRecoveryAction( pwmDomain.getConfig(), forgottenPasswordBean );
 
         LOGGER.trace( pwmRequest, () -> "beginning process to send new password to user" );
@@ -540,7 +540,7 @@ public class ForgottenPasswordUtil
 
         final List<Challenge> challengeList;
         {
-            final String firstProfile = pwmRequestContext.getDomainConfig().getChallengeProfileIDs().get( 0 );
+            final ProfileID firstProfile = pwmRequestContext.getDomainConfig().getChallengeProfileIDs().get( 0 );
             final ChallengeSet challengeSet = pwmRequestContext.getDomainConfig().getChallengeProfile( firstProfile, PwmConstants.DEFAULT_LOCALE ).getChallengeSet()
                     .orElseThrow( () -> new PwmUnrecoverableException( PwmError.ERROR_NO_CHALLENGES.toInfo() ) );
             challengeList = new ArrayList<>( challengeSet.getRequiredChallenges() );
@@ -569,7 +569,7 @@ public class ForgottenPasswordUtil
         forgottenPasswordBean.setAttributeForm( formData );
         forgottenPasswordBean.setBogusUser( true );
         {
-            final String profileID = pwmRequestContext.getDomainConfig().getForgottenPasswordProfiles().keySet().iterator().next();
+            final ProfileID profileID = pwmRequestContext.getDomainConfig().getForgottenPasswordProfiles().keySet().iterator().next();
             forgottenPasswordBean.setForgottenPasswordProfileID( profileID  );
         }
 
@@ -624,7 +624,7 @@ public class ForgottenPasswordUtil
     )
             throws PwmUnrecoverableException
     {
-        final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser(
+        final Optional<ProfileID> profileID = ProfileUtility.discoverProfileIDForUser(
                 pwmDomain,
                 sessionLabel,
                 userIdentity,
@@ -642,15 +642,22 @@ public class ForgottenPasswordUtil
 
     static ForgottenPasswordProfile forgottenPasswordProfile(
             final PwmDomain pwmDomain,
+            final SessionLabel sessionLabel,
             final ForgottenPasswordBean forgottenPasswordBean
     )
     {
-        final String forgottenProfileID = forgottenPasswordBean.getForgottenPasswordProfileID();
-        if ( StringUtil.isEmpty( forgottenProfileID ) )
+        final ProfileID forgottenProfileID = forgottenPasswordBean.getForgottenPasswordProfileID();
+        if ( forgottenProfileID == null )
         {
             throw new IllegalStateException( "cannot load forgotten profile without ID registered in bean" );
         }
-        return pwmDomain.getConfig().getForgottenPasswordProfiles().get( forgottenProfileID );
+        final ForgottenPasswordProfile profile = pwmDomain.getConfig().getForgottenPasswordProfiles().get( forgottenProfileID );
+        if ( profile == null )
+        {
+            LOGGER.trace( sessionLabel, () -> "forgotten password bean references an invalid profile, clearing value in bean" );
+            forgottenPasswordBean.setForgottenPasswordProfileID( null );
+        }
+        return profile;
     }
 
 
@@ -675,7 +682,7 @@ public class ForgottenPasswordUtil
                 pwmRequestContext.getSessionLabel(),
                 userIdentity
         );
-        final String forgottenProfileID = forgottenPasswordProfile.getIdentifier();
+        final ProfileID forgottenProfileID = forgottenPasswordProfile.getId();
         forgottenPasswordBean.setForgottenPasswordProfileID( forgottenProfileID );
 
         final ForgottenPasswordBean.RecoveryFlags recoveryFlags = calculateRecoveryFlags(
@@ -801,7 +808,7 @@ public class ForgottenPasswordUtil
 
     static ForgottenPasswordBean.RecoveryFlags calculateRecoveryFlags(
             final PwmDomain pwmDomain,
-            final String forgottenPasswordProfileID
+            final ProfileID forgottenPasswordProfileID
     )
     {
         final DomainConfig config = pwmDomain.getConfig();

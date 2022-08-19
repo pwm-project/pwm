@@ -20,13 +20,13 @@
 
 package password.pwm;
 
-import lombok.Value;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapDomainService;
 import password.pwm.svc.db.DatabaseService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.CollectorUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -125,23 +125,16 @@ public enum PwmAboutProperty
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmAboutProperty.class );
 
-    @Value
-    private static class Pair<K, V>
-    {
-        private final K key;
-        private final V value;
-    }
-
     public static Map<PwmAboutProperty, String> makeInfoBean(
             final PwmApplication pwmApplication
     )
     {
-        return Collections.unmodifiableMap( CollectionUtil.enumStream( PwmAboutProperty.class )
-                .map( aboutProp -> new Pair<>( aboutProp, readAboutValue( pwmApplication, aboutProp ) ) )
+        return CollectionUtil.enumStream( PwmAboutProperty.class )
+                .map( aboutProp -> Map.entry( aboutProp, readAboutValue( pwmApplication, aboutProp ) ) )
                 .filter( entry -> entry.getValue().isPresent() )
-                .collect( CollectionUtil.collectorToEnumMap( PwmAboutProperty.class,
-                        Pair::getKey,
-                        entry -> entry.getValue().get() ) ) );
+                .collect( CollectorUtil.toUnmodifiableEnumMap( PwmAboutProperty.class,
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().get() ) );
 
     }
 

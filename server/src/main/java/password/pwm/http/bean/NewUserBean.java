@@ -25,6 +25,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import password.pwm.VerificationMethodSystem;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.http.servlet.newuser.NewUserForm;
 
@@ -44,7 +45,7 @@ public class NewUserBean extends PwmSessionBean
     private static final long serialVersionUID = 1L;
 
     @SerializedName( "p" )
-    private String profileID;
+    private ProfileID profileID;
 
     @SerializedName( "f" )
     private NewUserForm newUserForm = new NewUserForm( new HashMap<>(), null, null );

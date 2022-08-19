@@ -25,6 +25,7 @@ import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
 import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.pub.PublicUserInfoBean;
@@ -71,7 +72,7 @@ public class UserInfoBean implements UserInfo
     private final Map<String, String> cachedAttributeValues;
 
     @Singular
-    private final Map<ProfileDefinition, String> profileIDs;
+    private final Map<ProfileDefinition, ProfileID> profileIDs;
 
     @Builder.Default
     private final PasswordStatus passwordStatus = PasswordStatus.builder().build();
@@ -115,7 +116,7 @@ public class UserInfoBean implements UserInfo
     {
         final PublicUserInfoBean.PublicUserInfoBeanBuilder publicUserInfoBean = PublicUserInfoBean.builder();
         publicUserInfoBean.userDN( userInfoBean.getUserIdentity() == null ? "" : userInfoBean.getUserIdentity().getUserDN() );
-        publicUserInfoBean.ldapProfile( userInfoBean.getUserIdentity() == null ? "" : userInfoBean.getUserIdentity().getLdapProfileID() );
+        publicUserInfoBean.ldapProfile( userInfoBean.getUserIdentity() == null ? "" : userInfoBean.getUserIdentity().getLdapProfileID().stringValue() );
         publicUserInfoBean.userID( userInfoBean.getUsername() );
         publicUserInfoBean.userGUID( userInfoBean.getUserGuid() );
         publicUserInfoBean.userEmailAddress( userInfoBean.getUserEmailAddress() );

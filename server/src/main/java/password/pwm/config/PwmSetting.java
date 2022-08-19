@@ -22,6 +22,7 @@ package password.pwm.config;
 
 import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueFactory;
@@ -1476,11 +1477,11 @@ public enum PwmSetting
     }
 
     public String toMenuLocationDebug(
-            final String profileID,
+            final ProfileID profileID,
             final Locale locale
     )
     {
-        if ( PwmConstants.DEFAULT_LOCALE.equals( locale ) && StringUtil.isEmpty( profileID ) )
+        if ( PwmConstants.DEFAULT_LOCALE.equals( locale ) && profileID == null )
         {
             return defaultMenuLocation.get();
         }
@@ -1547,7 +1548,7 @@ public enum PwmSetting
         return macroRequest.expandMacros( storedText );
     }
 
-    private static String readMenuLocationDebug( final PwmSetting pwmSetting, final String profileID, final Locale locale )
+    private static String readMenuLocationDebug( final PwmSetting pwmSetting, final ProfileID profileID, final Locale locale )
     {
         final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
         return pwmSetting.getCategory().toMenuLocationDebug( profileID, locale ) + separator + pwmSetting.getLabel( locale );

@@ -26,6 +26,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredSettingReader;
@@ -36,7 +37,6 @@ import password.pwm.health.HealthRecord;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.LazySupplier;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordRuleReaderHelper;
@@ -129,7 +129,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
 
     public static PwmPasswordPolicy createPwmPasswordPolicy(
             final DomainConfig domainConfig,
-            final String profileID
+            final ProfileID profileID
     )
     {
         final StoredSettingReader settingReader = new StoredSettingReader( domainConfig.getStoredConfiguration(), profileID,  domainConfig.getDomainID() );
@@ -190,7 +190,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
     }
 
     @Override
-    public String getIdentifier( )
+    public ProfileID getId( )
     {
         return policyMetaData.getProfileID();
     }
@@ -198,7 +198,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
     @Override
     public String getDisplayName( final Locale locale )
     {
-        return getIdentifier();
+        return getId() == null ? "[no-profile]" : getId().stringValue();
     }
 
     public DomainID getDomainID()
@@ -369,7 +369,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
                         + maxRule.getLabel( locale, null ) + " (" + maxValue + ")";
                 returnList.add( HealthRecord.forMessage(
                         pwmPasswordPolicy.getDomainID(),
-                        HealthMessage.Config_PasswordPolicyProblem, policyMetaData.getProfileID(), detailMsg ) );
+                        HealthMessage.Config_PasswordPolicyProblem, policyMetaData.getProfileID().stringValue(), detailMsg ) );
             }
         }
 
@@ -385,7 +385,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
                         + PwmPasswordRule.CharGroupsMinMatch.getLabel( locale, null ) + " (" + maxValue + ")";
                 returnList.add( HealthRecord.forMessage(
                         pwmPasswordPolicy.getDomainID(),
-                        HealthMessage.Config_PasswordPolicyProblem, policyMetaData.getProfileID(), detailMsg ) );
+                        HealthMessage.Config_PasswordPolicyProblem, policyMetaData.getProfileID().stringValue(), detailMsg ) );
             }
         }
 
@@ -400,7 +400,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
     {
         private final DomainID domainID;
 
-        private final String profileID;
+        private final ProfileID profileID;
 
         @Builder.Default
         private final List<UserPermission> userPermissions = Collections.emptyList();
@@ -416,7 +416,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
                     .ruleText( CollectionUtil.isEmpty( ruleText ) ? otherPolicy.ruleText : ruleText )
                     .changePasswordText( CollectionUtil.isEmpty( changePasswordText ) ? otherPolicy.changePasswordText : changePasswordText )
                     .userPermissions( CollectionUtil.isEmpty( userPermissions ) ? otherPolicy.userPermissions : userPermissions )
-                    .profileID( StringUtil.isEmpty( profileID ) ? otherPolicy.profileID : profileID )
+                    .profileID( profileID == null ? otherPolicy.profileID : profileID )
                     .domainID( domainID == null ? otherPolicy.domainID : domainID )
                     .build();
         }

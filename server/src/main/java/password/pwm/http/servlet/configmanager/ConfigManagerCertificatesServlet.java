@@ -23,6 +23,7 @@ package password.pwm.http.servlet.configmanager;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
@@ -127,7 +128,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
             {
                 final StoredValue storedValue = storedConfiguration.readStoredValue( key ).orElseThrow();
                 final List<X509Certificate> certificates = ValueTypeConverter.valueToX509Certificates( pwmSetting, storedValue );
-                certificateDebugDataItems.addAll( makeItems( pwmSetting, key.getProfileID(), certificates ) );
+                certificateDebugDataItems.addAll( makeItems( pwmSetting, key.getProfileID().orElseThrow(), certificates ) );
             }
             else if ( pwmSetting.getSyntax() == PwmSettingSyntax.ACTION )
             {
@@ -138,7 +139,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
                     for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
                     {
                         final List<X509Certificate> certificates = webAction.getCertificates();
-                        certificateDebugDataItems.addAll( makeItems( pwmSetting, key.getProfileID(), certificates ) );
+                        certificateDebugDataItems.addAll( makeItems( pwmSetting, key.getProfileID().orElseThrow(), certificates ) );
                     }
                 }
             }
@@ -150,7 +151,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
 
     Collection<CertificateDebugDataItem> makeItems(
             final PwmSetting setting,
-            final String profileId,
+            final ProfileID profileId,
             final List<X509Certificate> certificates
     )
             throws PwmUnrecoverableException
@@ -171,7 +172,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
 
     CertificateDebugDataItem makeItem(
             final PwmSetting setting,
-            final String profileId,
+            final ProfileID profileId,
             final X509Certificate certificate
     )
     {

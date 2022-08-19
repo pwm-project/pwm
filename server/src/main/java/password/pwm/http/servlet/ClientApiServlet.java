@@ -27,6 +27,7 @@ import password.pwm.Permission;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SelectableContextMode;
@@ -353,8 +354,8 @@ public class ClientApiServlet extends ControlledPwmServlet
 
         if ( pwmRequest.isAuthenticated() )
         {
-            final String profileID = pwmSession.getUserInfo().getProfileIDs().get( ProfileDefinition.ChangePassword );
-            if ( StringUtil.notEmpty( profileID ) )
+            final ProfileID profileID = pwmSession.getUserInfo().getProfileIDs().get( ProfileDefinition.ChangePassword );
+            if ( profileID != null )
             {
                 final ChangePasswordProfile changePasswordProfile = pwmRequest.getDomainConfig().getChangePasswordProfile().get( profileID );
                 final String configuredGuideText = changePasswordProfile.readSettingAsLocalizedString(
@@ -402,12 +403,12 @@ public class ClientApiServlet extends ControlledPwmServlet
 
         if ( pwmDomain.getConfig().readSettingAsEnum( PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE, SelectableContextMode.class ) != SelectableContextMode.NONE )
         {
-            final Map<String, LdapProfile> configuredProfiles = pwmDomain.getConfig().getLdapProfiles();
+            final Map<ProfileID, LdapProfile> configuredProfiles = pwmDomain.getConfig().getLdapProfiles();
 
-            final Map<String, Map<String, String>> ldapProfiles = new LinkedHashMap<>( configuredProfiles.size() );
-            for ( final Map.Entry<String, LdapProfile> entry : configuredProfiles.entrySet() )
+            final Map<ProfileID, Map<String, String>> ldapProfiles = new LinkedHashMap<>( configuredProfiles.size() );
+            for ( final Map.Entry<ProfileID, LdapProfile> entry : configuredProfiles.entrySet() )
             {
-                final String ldapProfile = entry.getKey();
+                final ProfileID ldapProfile = entry.getKey();
                 final Map<String, String> contexts = entry.getValue().getSelectableContexts( pwmRequest.getLabel(), pwmDomain );
                 ldapProfiles.put( ldapProfile, contexts );
             }

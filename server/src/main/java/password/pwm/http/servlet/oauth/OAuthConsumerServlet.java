@@ -23,6 +23,7 @@ package password.pwm.http.servlet.oauth;
 import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.profile.ForgottenPasswordProfile;
@@ -318,7 +319,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                 return OAuthSettings.forSSOAuthentication( pwmRequest.getDomainConfig() );
 
             case ForgottenPassword:
-                final String profileId = oAuthState.getForgottenProfileId();
+                final ProfileID profileId = oAuthState.getForgottenProfileId();
                 final ForgottenPasswordProfile profile = pwmRequest.getDomainConfig().getForgottenPasswordProfiles().get( profileId );
                 return OAuthSettings.forForgottenPassword( profile );
 

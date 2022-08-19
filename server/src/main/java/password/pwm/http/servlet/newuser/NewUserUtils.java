@@ -313,7 +313,7 @@ class NewUserUtils
         remoteWriteFormData( pwmRequest, newUserForm );
 
         // authenticate the user to pwm
-        final UserIdentity userIdentity = UserIdentity.create( newUserDN, newUserProfile.getLdapProfile( pwmDomain.getConfig() ).getIdentifier(), pwmRequest.getDomainID() );
+        final UserIdentity userIdentity = UserIdentity.create( newUserDN, newUserProfile.getLdapProfile( pwmDomain.getConfig() ).getId(), pwmRequest.getDomainID() );
         final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmDomain, pwmRequest, PwmAuthenticationSource.NEW_USER_REGISTRATION );
         sessionAuthenticator.authenticateUser( userIdentity, userPassword );
 
@@ -533,7 +533,7 @@ class NewUserUtils
             final boolean visible = newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_PROFILE_DISPLAY_VISIBLE );
             if ( visible )
             {
-                returnMap.put( newUserProfile.getIdentifier(), newUserProfile.getDisplayName( pwmRequest.getLocale() ) );
+                returnMap.put( newUserProfile.getId().stringValue(), newUserProfile.getDisplayName( pwmRequest.getLocale() ) );
             }
         }
         return Collections.unmodifiableMap( returnMap );

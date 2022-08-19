@@ -75,7 +75,7 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
         final String debugInfo;
         {
             final Map<String, String> props = new LinkedHashMap<>();
-            props.put( "profile", userSearchJobParameters.getLdapProfile().getIdentifier() );
+            props.put( "profile", userSearchJobParameters.getLdapProfile().getId().stringValue() );
             props.put( "base", userSearchJobParameters.getContext() );
             props.put( "maxCount", String.valueOf( searchHelper.getMaxResults() ) );
             props.put( "queueLag", queueLagDuration.asCompactString() );
@@ -132,7 +132,7 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
             final Map<String, String> attributeMap = entry.getValue();
             final UserIdentity userIdentity = UserIdentity.create(
                     userDN,
-                    userSearchJobParameters.getLdapProfile().getIdentifier(),
+                    userSearchJobParameters.getLdapProfile().getId(),
                     pwmDomain.getDomainID(),
                     UserIdentity.Flag.PreCanonicalized );
             returnMap.put( userIdentity, attributeMap );

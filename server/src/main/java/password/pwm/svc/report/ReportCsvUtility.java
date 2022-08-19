@@ -141,7 +141,7 @@ public class ReportCsvUtility
         csvRow.add( userReportRecord.getDomainID().stringValue() );
         csvRow.add( userReportRecord.getUsername() );
         csvRow.add( userReportRecord.getUserDN() );
-        csvRow.add( userReportRecord.getLdapProfile() );
+        csvRow.add( userReportRecord.getLdapProfile() == null ? "" : userReportRecord.getLdapProfile().stringValue() );
         csvRow.add( userReportRecord.getEmail() );
         csvRow.add( userReportRecord.getUserGUID() );
         csvRow.add( userReportRecord.getAccountExpirationTime() == null

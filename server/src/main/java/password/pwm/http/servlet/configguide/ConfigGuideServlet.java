@@ -27,6 +27,7 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -105,7 +106,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger( ConfigGuideServlet.class.getName() );
 
-    private static final String LDAP_PROFILE_KEY = PwmConstants.PROFILE_ID_DEFAULT;
+    private static final ProfileID LDAP_PROFILE_KEY = ProfileID.PROFILE_ID_DEFAULT;
     public static final String PARAM_STEP = "step";
     public static final String PARAM_KEY = "key";
 

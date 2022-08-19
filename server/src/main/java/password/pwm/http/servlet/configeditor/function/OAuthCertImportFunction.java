@@ -20,22 +20,15 @@
 
 package password.pwm.http.servlet.configeditor.function;
 
-import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.MiscUtil;
 
-import java.net.URI;
-
 public class OAuthCertImportFunction extends AbstractUriCertImportFunction
 {
-
-
     @Override
     String getUri( final StoredConfigurationModifier modifier, final StoredConfigKey key, final String extraData )
             throws PwmOperationalException, PwmUnrecoverableException
@@ -61,24 +54,9 @@ public class OAuthCertImportFunction extends AbstractUriCertImportFunction
                 return null;
         }
 
-        final StoredConfigKey oauthCertKey = StoredConfigKey.forSetting( urlCertSetting, key.getProfileID(), key.getDomainID() );
+        final StoredConfigKey oauthCertKey = StoredConfigKey.forSetting( urlCertSetting, key.getProfileID().orElse( null ), key.getDomainID() );
         uriString = ( String ) modifier.newStoredConfiguration().readStoredValue( oauthCertKey ).orElseThrow().toNativeObject();
-        menuDebugLocation = urlCertSetting.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
 
-        if ( uriString.isEmpty() )
-        {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "Setting " + menuDebugLocation + " must first be configured" );
-            throw new PwmOperationalException( errorInformation );
-        }
-        try
-        {
-            URI.create( uriString );
-        }
-        catch ( final IllegalArgumentException e )
-        {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "Setting " + menuDebugLocation + " has an invalid URL syntax" );
-            throw new PwmOperationalException( errorInformation );
-        }
-        return uriString;
+        return validateUriStringSetting( uriString, oauthCertKey );
     }
 }
