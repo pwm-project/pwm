@@ -26,6 +26,7 @@ import password.pwm.PwmAboutProperty;
 import password.pwm.bean.TelemetryPublishBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
 import java.time.Duration;
@@ -143,6 +144,7 @@ public class SummaryBean
                 .appServerCount( appServerCount )
                 .osCount( osCount )
                 .dbCount( dbCount )
+                .deploymentCount( deploymentCount )
                 .javaCount( javaCount )
                 .appVersionCount( appVersionCount )
                 .build();
@@ -156,6 +158,11 @@ public class SummaryBean
 
     private static void incrementCounterMap( final Map<String, Integer> map, final String key, final int count )
     {
+        if ( map == null || StringUtil.isEmpty( key ) )
+        {
+            return;
+        }
+
         if ( map.containsKey( key ) )
         {
             map.put( key, map.get( key ) + count );
@@ -203,6 +210,7 @@ public class SummaryBean
         private String osName;
         private String osVersion;
         private String servletName;
+        private String deploymentType;
         private String dbVendor;
         private String javaVm;
         private String platform;

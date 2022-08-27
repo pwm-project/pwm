@@ -57,13 +57,14 @@
     <br/>
     <br/>
 
+    <%--
     <form method="get">
         <label>Servers that have sent data in last number of days
             <input type="number" name="days" id="days" value="30" max="3650" min="1">
         </label>
         <button type="submit">Update</button>
     </form>
-
+    --%>
     <h2>Versions</h2>
     <table class="sortable">
         <tr>
