@@ -69,10 +69,10 @@ public class PwmHttpRequestWrapper
     private static final Set<String> HTTP_HEADER_DEBUG_STRIP_VALUES = Set.of(
                     HttpHeader.Authorization.getHttpName() );
 
-    private final Supplier<Optional<String>> srcHostnameSupplier = new LazySupplier<>(
+    private final Supplier<Optional<String>> srcHostnameSupplier = LazySupplier.create(
             () -> PwmRequestUtil.readUserHostname( this.getHttpServletRequest(), this.getAppConfig() ) );
 
-    private final Supplier<Optional<String>> srcAddressSupplier = new LazySupplier<>(
+    private final Supplier<Optional<String>> srcAddressSupplier = LazySupplier.create(
             () -> PwmRequestUtil.readUserNetworkAddress( this.getHttpServletRequest(), this.getAppConfig() ) );
 
     public enum Flag

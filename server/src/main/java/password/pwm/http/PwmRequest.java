@@ -99,13 +99,13 @@ public class PwmRequest extends PwmHttpRequestWrapper
     private final DomainID domainID;
     private final Lock cspCreationLock = new ReentrantLock();
 
-    private final Supplier<Locale> localeSupplier = new LazySupplier<>(
+    private final Supplier<Locale> localeSupplier = LazySupplier.create(
             () -> PwmRequestLocaleResolver.resolveRequestLocale( this ) );
 
-    private final Supplier<PwmRequestContext> requestContextSupplier = new LazySupplier<>(
+    private final Supplier<PwmRequestContext> requestContextSupplier = LazySupplier.create(
             this::makePwmRequestContext );
 
-    private final Supplier<SessionLabel> sessionLabelSupplier = new LazySupplier<>(
+    private final Supplier<SessionLabel> sessionLabelSupplier = LazySupplier.create(
             () -> PwmRequestUtil.makeSessionLabel( this ) );
 
     public static PwmRequest forRequest(

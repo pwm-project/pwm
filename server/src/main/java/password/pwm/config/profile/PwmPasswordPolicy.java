@@ -68,7 +68,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
 
     private static final PwmPasswordPolicy DEFAULT_POLICY = makeDefaultPolicy();
 
-    private final transient Supplier<List<HealthRecord>> healthChecker = new LazySupplier<>( () -> doHealthChecks( this ) );
+    private final transient Supplier<List<HealthRecord>> healthChecker = LazySupplier.create( () -> doHealthChecks( this ) );
     private final transient ChaiPasswordPolicy chaiPasswordPolicy;
 
     private final Map<String, String> policyMap;

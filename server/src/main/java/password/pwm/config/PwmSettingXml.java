@@ -25,7 +25,7 @@ import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.LazySoftReference;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -36,6 +36,9 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PwmSettingXml
@@ -69,7 +72,9 @@ public class PwmSettingXml
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSettingXml.class );
 
-    private static final LazySoftReference<XmlDocument> XML_DOC_CACHE = new LazySoftReference<>( PwmSettingXml::readXml );
+    private static final LazySupplier<XmlDocument> XML_DOC_CACHE = LazySupplier.synchronizedSupplier(
+            LazySupplier.create( PwmSettingXml::readXml ) );
+
     private static final AtomicInteger LOAD_COUNTER = new AtomicInteger( 0 );
 
     private static XmlDocument readXml( )
@@ -80,6 +85,10 @@ public class PwmSettingXml
             final XmlDocument newDoc = XmlChai.getFactory().parse( inputStream, AccessMode.IMMUTABLE );
             final TimeDuration parseDuration = TimeDuration.fromCurrent( startTime );
             LOGGER.trace( () -> "parsed PwmSettingXml in " + parseDuration.asCompactString() + ", loads=" + LOAD_COUNTER.getAndIncrement() );
+
+            final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+            scheduledExecutorService.schedule( XML_DOC_CACHE::clear, 30, TimeUnit.SECONDS );
+
             return newDoc;
         }
         catch ( final IOException e )

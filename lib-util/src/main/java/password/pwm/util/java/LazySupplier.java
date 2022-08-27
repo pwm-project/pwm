@@ -25,72 +25,47 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.function.Supplier;
 
 /**
- * Supplier implementation that will cache the value.   Note this implementation
- * is NOT thread safe, it is entirely possible that the underlying {@link Supplier}
- * will be invoked multiple times.
+ * Supplier wrapper implementations.
  *
  * @param <T> the type of object being supplied.
  */
-public class LazySupplier<T> implements Supplier<T>
+public interface LazySupplier<T> extends Supplier<T>
 {
-    private boolean supplied = false;
-    private T value;
-    private final Supplier<T> realSupplier;
+    boolean isSupplied();
 
-    public LazySupplier( final Supplier<T> realSupplier )
-    {
-        this.realSupplier = realSupplier;
-    }
-
-    @Override
-    public T get()
-    {
-        if ( !supplied )
-        {
-            value = realSupplier.get();
-            supplied = true;
-        }
-        return value;
-    }
-
-    public boolean isSupplied()
-    {
-        return supplied;
-    }
+    void clear() throws UnsupportedOperationException;
 
     @SuppressFBWarnings( "THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION" )
-    public interface CheckedSupplier<T, E extends Exception>
+    interface CheckedSupplier<T, E extends Exception>
     {
         T call() throws E;
     }
 
-    public static <T, E extends Exception> LazyCheckedSupplier<T, E> checked( final CheckedSupplier<T, E> lazySupplier )
+    /**
+     * Synchronized wrapper for any other {@code LazySupplier} implementation that
+     * guarantee thread safety.  In particular, the backing realSupplier will only ever be called
+     * a single time unless {@code #clear} is invoked.
+     * @param realSupplier another {@code LazySupplier} instance
+     * @param <T> return type.
+     * @return a {@code LazyWrapper} thread safe synchronization.
+     */
+    static <T> LazySupplier<T> synchronizedSupplier( final LazySupplier<T> realSupplier )
     {
-        return new LazyCheckedSupplier<>( lazySupplier );
+        return new LazySupplierImpl.LockingSupplier<>( realSupplier );
     }
 
-    @SuppressFBWarnings( "THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION" )
-    private static class LazyCheckedSupplier<T, E extends Exception> implements CheckedSupplier<T, E>
+    static <T> LazySupplier<T> create( final Supplier<T> realSupplier )
     {
-        private boolean supplied = false;
-        private T value;
-        private final CheckedSupplier<T, E> realCallable;
+        return new LazySupplierImpl.StandardLazySupplier<T>( realSupplier );
+    }
 
-        private LazyCheckedSupplier( final CheckedSupplier<T, E> realSupplier )
-        {
-            this.realCallable = realSupplier;
-        }
+    static <T> LazySupplier<T> soft( final Supplier<T> realSupplier )
+    {
+        return new LazySupplierImpl.SoftLazySupplier<T>( realSupplier );
+    }
 
-        @Override
-        @SuppressFBWarnings( "THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION" )
-        public T call() throws E
-        {
-            if ( !supplied )
-            {
-                value = realCallable.call();
-                supplied = true;
-            }
-            return value;
-        }
+    static <T, E extends Exception> CheckedSupplier<T, E> checked( final CheckedSupplier<T, E> lazySupplier )
+    {
+        return new LazySupplierImpl.LazyCheckedSupplier<>( lazySupplier );
     }
 }

@@ -1337,13 +1337,13 @@ public enum PwmSetting
 
     private static final Map<PwmSetting, List<TemplateSetReference<StoredValue>>> DEFAULT_VALUE_CACHE = initDefaultValueCache();
 
-    private final transient Supplier<String> defaultMenuLocation = new LazySupplier<>(
+    private final transient Supplier<String> defaultMenuLocation = LazySupplier.create(
             () -> readMenuLocationDebug( this, null, PwmConstants.DEFAULT_LOCALE ) );
 
-    private final transient Supplier<String> defaultLocaleLabel = new LazySupplier<>(
+    private final transient Supplier<String> defaultLocaleLabel = LazySupplier.create(
             () -> readLabel( this, PwmConstants.DEFAULT_LOCALE ) );
 
-    private final transient Supplier<String> defaultLocaleDescription = new LazySupplier<>(
+    private final transient Supplier<String> defaultLocaleDescription = LazySupplier.create(
             () -> readDescription( this, PwmConstants.DEFAULT_LOCALE ) );
 
 

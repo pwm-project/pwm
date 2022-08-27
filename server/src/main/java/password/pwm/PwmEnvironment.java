@@ -72,7 +72,7 @@ public class PwmEnvironment
     @Singular
     private Map<ApplicationParameter, String> parameters;
 
-    private final LazySupplier<DeploymentPlatform> deploymentPlatformLazySupplier = new LazySupplier<>( this::determineDeploymentPlatform );
+    private final LazySupplier<DeploymentPlatform> deploymentPlatformLazySupplier = LazySupplier.create( this::determineDeploymentPlatform );
 
     public enum ApplicationParameter
     {

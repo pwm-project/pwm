@@ -95,7 +95,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
         this.b64certificates = b64certificates.stream()
                 .map( StringUtil::stripAllWhitespace )
                 .collect( Collectors.toUnmodifiableList() );
-        this.certs = new LazySupplier<>( () -> X509Utils.certificatesFromBase64s( b64certificates ) );
+        this.certs = LazySupplier.create( () -> X509Utils.certificatesFromBase64s( b64certificates ) );
     }
 
     public static X509CertificateValue fromX509( final Collection<X509Certificate> x509Certificate )

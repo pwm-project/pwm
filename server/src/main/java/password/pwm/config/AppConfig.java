@@ -78,7 +78,7 @@ public class AppConfig implements SettingReader
     private final Map<AppProperty, String> appPropertyOverrides;
     private final Map<Locale, String> localeFlagMap;
 
-    private static final Supplier<AppConfig> DEFAULT_CONFIG = new LazySupplier<>( AppConfig::makeDefaultConfig );
+    private static final Supplier<AppConfig> DEFAULT_CONFIG = LazySupplier.create( AppConfig::makeDefaultConfig );
 
     private static AppConfig makeDefaultConfig()
     {

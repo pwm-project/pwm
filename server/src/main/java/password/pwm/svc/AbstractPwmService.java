@@ -72,7 +72,7 @@ public abstract class AbstractPwmService implements PwmService
                 ? pwmApplication.getSessionLabel()
                 : pwmApplication.domains().get( domainID ).getSessionLabel();
 
-        executorService = new LazySupplier<>( () -> PwmScheduler.makeBackgroundServiceExecutor( pwmApplication, getSessionLabel(), getClass() ) );
+        executorService = LazySupplier.create( () -> PwmScheduler.makeBackgroundServiceExecutor( pwmApplication, getSessionLabel(), getClass() ) );
 
         if ( pwmApplication.checkConditions( openConditions() ) )
         {

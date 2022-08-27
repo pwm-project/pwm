@@ -59,7 +59,7 @@ public abstract class AbstractValue implements StoredValue
         }
     }
 
-    private final transient LazySupplier<String> valueHashSupplier = new LazySupplier<>( () -> valueHashComputer( AbstractValue.this ) );
+    private final transient LazySupplier<String> valueHashSupplier = LazySupplier.create( () -> valueHashComputer( AbstractValue.this ) );
 
     public String toString()
     {

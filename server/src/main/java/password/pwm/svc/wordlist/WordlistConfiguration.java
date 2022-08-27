@@ -152,7 +152,7 @@ public class WordlistConfiguration implements Serializable
     }
 
     @Getter( AccessLevel.PRIVATE )
-    private final transient Supplier<String> configHash = new LazySupplier<>( () ->
+    private final transient Supplier<String> configHash = LazySupplier.create( () ->
             SecureEngine.hash( JsonFactory.get().serialize( WordlistConfiguration.this ), HASH_ALGORITHM ) );
 
     public boolean isAutoImportUrlConfigured()

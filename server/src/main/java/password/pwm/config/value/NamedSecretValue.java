@@ -53,7 +53,7 @@ public class NamedSecretValue implements StoredValue
 {
     private static final long serialVersionUID = 1L;
 
-    private final transient LazySupplier<String> valueHashSupplier = new LazySupplier<>( () -> AbstractValue.valueHashComputer( NamedSecretValue.this ) );
+    private final transient LazySupplier<String> valueHashSupplier = LazySupplier.create( () -> AbstractValue.valueHashComputer( NamedSecretValue.this ) );
 
     private static final String ELEMENT_NAME = "name";
     private static final String ELEMENT_PASSWORD = "password";

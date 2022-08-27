@@ -768,24 +768,28 @@ public abstract class StringUtil
      */
     public static boolean convertStrToBoolean( final String string )
     {
-        return !( string == null || string.length() < 1 ) && ( "true".equalsIgnoreCase( string )
+        if ( StringUtil.isEmpty( string ) )
+        {
+            return false;
+        }
+
+        return "true".equalsIgnoreCase( string )
                 || "1".equalsIgnoreCase( string )
                 || "yes".equalsIgnoreCase( string )
-                || "y".equalsIgnoreCase( string )
-        );
+                || "y".equalsIgnoreCase( string );
     }
 
     public static List<String> tokenizeString(
             final String inputString,
-            final String seperator
+            final String separator
     )
     {
-        if ( inputString == null || inputString.length() < 1 )
+        if ( StringUtil.isEmpty( inputString ) )
         {
             return Collections.emptyList();
         }
 
-        final List<String> values = new ArrayList<>( Arrays.asList( inputString.split( seperator ) ) );
+        final List<String> values = new ArrayList<>( Arrays.asList( inputString.split( separator ) ) );
         return Collections.unmodifiableList( values );
     }
 }

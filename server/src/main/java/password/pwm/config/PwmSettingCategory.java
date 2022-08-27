@@ -212,21 +212,21 @@ public enum PwmSettingCategory
     private static final Comparator<PwmSettingCategory> MENU_LOCATION_COMPARATOR = Comparator.comparing(
             ( pwmSettingCategory ) -> pwmSettingCategory.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ) );
 
-    private static final Supplier<List<PwmSettingCategory>> SORTED_VALUES = new LazySupplier<>( () -> Collections.unmodifiableList( Arrays.stream( values() )
+    private static final Supplier<List<PwmSettingCategory>> SORTED_VALUES = LazySupplier.create( () -> Collections.unmodifiableList( Arrays.stream( values() )
             .sorted( MENU_LOCATION_COMPARATOR )
             .collect( Collectors.toList() ) ) );
 
     private final PwmSettingCategory parent;
 
-    private final transient Supplier<Optional<PwmSetting>> profileSetting = new LazySupplier<>( () -> DataReader.readProfileSettingFromXml( this, true ) );
-    private final transient Supplier<Integer> level = new LazySupplier<>( () -> DataReader.readLevel( this ) );
-    private final transient Supplier<Boolean> hidden = new LazySupplier<>( () -> DataReader.readHidden( this ) );
-    private final transient Supplier<Boolean> isTopLevelProfile = new LazySupplier<>( () -> DataReader.readIsTopLevelProfile( this ) );
-    private final transient Supplier<String> defaultLocaleLabel = new LazySupplier<>( () -> DataReader.readLabel( this, PwmConstants.DEFAULT_LOCALE ) );
-    private final transient Supplier<String> defaultLocaleDescription = new LazySupplier<>( () -> DataReader.readDescription( this, PwmConstants.DEFAULT_LOCALE ) );
-    private final transient Supplier<PwmSettingScope> scope = new LazySupplier<>( () -> DataReader.readScope( this ) );
-    private final transient Supplier<Set<PwmSettingCategory>> children = new LazySupplier<>( () -> DataReader.readChildren( this ) );
-    private final transient Supplier<Set<PwmSetting>> settings = new LazySupplier<>( () -> DataReader.readSettings( this ) );
+    private final transient Supplier<Optional<PwmSetting>> profileSetting = LazySupplier.create( () -> DataReader.readProfileSettingFromXml( this, true ) );
+    private final transient Supplier<Integer> level = LazySupplier.create( () -> DataReader.readLevel( this ) );
+    private final transient Supplier<Boolean> hidden = LazySupplier.create( () -> DataReader.readHidden( this ) );
+    private final transient Supplier<Boolean> isTopLevelProfile = LazySupplier.create( () -> DataReader.readIsTopLevelProfile( this ) );
+    private final transient Supplier<String> defaultLocaleLabel = LazySupplier.create( () -> DataReader.readLabel( this, PwmConstants.DEFAULT_LOCALE ) );
+    private final transient Supplier<String> defaultLocaleDescription = LazySupplier.create( () -> DataReader.readDescription( this, PwmConstants.DEFAULT_LOCALE ) );
+    private final transient Supplier<PwmSettingScope> scope = LazySupplier.create( () -> DataReader.readScope( this ) );
+    private final transient Supplier<Set<PwmSettingCategory>> children = LazySupplier.create( () -> DataReader.readChildren( this ) );
+    private final transient Supplier<Set<PwmSetting>> settings = LazySupplier.create( () -> DataReader.readSettings( this ) );
 
     PwmSettingCategory( final PwmSettingCategory parent )
     {
