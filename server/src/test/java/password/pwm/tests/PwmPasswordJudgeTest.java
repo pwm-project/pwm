@@ -20,8 +20,8 @@
 
 package password.pwm.tests;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
@@ -58,8 +58,8 @@ public class PwmPasswordJudgeTest
     {
         final DomainConfig domainConfig = makeConfig();
 
-        Assert.assertEquals( 0, PasswordUtility.judgePasswordStrength( domainConfig, "" ) );
-        Assert.assertEquals( 100, PasswordUtility.judgePasswordStrength( domainConfig,
+        Assertions.assertEquals( 0, PasswordUtility.judgePasswordStrength( domainConfig, "" ) );
+        Assertions.assertEquals( 100, PasswordUtility.judgePasswordStrength( domainConfig,
                 "V.{a$f.*B697e+%J9pOPn~E0CyqN~9XmR?yjOGFC(k+la?n6&^I3bwZq[miF(`0" ) );
 
         final List<Integer> judgeValues = new ArrayList<>();

@@ -20,8 +20,8 @@
 
 package password.pwm.config;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.PwmConstants;
 
 import java.util.EnumSet;
@@ -66,7 +66,7 @@ public class PwmSettingCategoryTest
             if ( category.hasProfiles() )
             {
                 final PwmSetting pwmSetting = category.getProfileSetting().orElseThrow( IllegalStateException::new );
-                Assert.assertEquals( PwmSettingSyntax.PROFILE, pwmSetting.getSyntax() );
+                Assertions.assertEquals( PwmSettingSyntax.PROFILE, pwmSetting.getSyntax() );
             }
         }
     }
@@ -80,8 +80,8 @@ public class PwmSettingCategoryTest
             {
                 final boolean hasChildren = !category.getChildren().isEmpty();
                 final boolean hasSettings = !category.getSettings().isEmpty();
-                Assert.assertTrue( hasChildren || hasSettings );
-                Assert.assertFalse( category.getKey() + " has both child categories and settings", hasChildren && hasSettings );
+                Assertions.assertTrue( hasChildren || hasSettings );
+                Assertions.assertFalse( hasChildren && hasSettings,  category.getKey() + " has both child categories and settings" );
             }
         }
     }
@@ -92,7 +92,7 @@ public class PwmSettingCategoryTest
         for ( final PwmSettingCategory category : PwmSettingCategory.values() )
         {
                 final PwmSettingScope scope = category.getScope();
-                Assert.assertNotNull( scope );
+                Assertions.assertNotNull( scope );
         }
     }
 

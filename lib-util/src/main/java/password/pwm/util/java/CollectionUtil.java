@@ -55,7 +55,7 @@ public class CollectionUtil
     {
         if ( input == null )
         {
-            return Collections.emptyList();
+            return List.of();
         }
 
         return input.stream()
@@ -67,7 +67,7 @@ public class CollectionUtil
     {
         if ( input == null )
         {
-            return Collections.emptySet();
+            return Set.of();
         }
 
         return input.stream()
@@ -79,7 +79,7 @@ public class CollectionUtil
     {
         if ( input == null )
         {
-            return Collections.emptyMap();
+            return Map.of();
         }
 
         final Stream<Map.Entry<K, V>> stream = input.entrySet().stream()
@@ -170,6 +170,13 @@ public class CollectionUtil
                 : EnumSet.copyOf( source );
     }
 
+    public static <E extends Enum<E>> EnumSet<E> copyToEnumSet( final Set<E> source, final Class<E> classOfT )
+    {
+        return isEmpty( source )
+                ? EnumSet.noneOf( classOfT )
+                : EnumSet.copyOf( source );
+    }
+
     public static <E> List<E> iteratorToList( final Iterator<E> iterator )
     {
         return iteratorToStream( iterator )
@@ -218,4 +225,25 @@ public class CollectionUtil
     {
         return entry != null && entry.getKey() != null && entry.getValue() != null;
     }
+
+    public static <E extends Enum<E>, V> Map<E, V> unmodifiableEnumMap( final Map<E, V> inputSet, final Class<E> classOfT )
+    {
+        if ( CollectionUtil.isEmpty( inputSet ) )
+        {
+            return Map.of();
+        }
+
+        return Collections.unmodifiableMap( copiedEnumMap( inputSet, classOfT ) );
+    }
+
+    public static <E extends Enum<E>> Set<E> unmodifiableEnumSet( final Set<E> inputSet, final Class<E> classOfT )
+    {
+        if ( CollectionUtil.isEmpty( inputSet ) )
+        {
+            return Set.of();
+        }
+
+        return Collections.unmodifiableSet( copyToEnumSet( inputSet, classOfT ) );
+    }
+
 }

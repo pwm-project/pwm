@@ -20,8 +20,8 @@
 
 package password.pwm.svc.event;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class AuditEventTest
 {
@@ -49,7 +49,7 @@ public class AuditEventTest
     {
         for ( final AuditEvent event : AuditEvent.values() )
         {
-            Assert.assertNotNull( event.getMessage() );
+            Assertions.assertNotNull( event.getMessage() );
         }
     }
 
@@ -58,7 +58,7 @@ public class AuditEventTest
     {
         for ( final AuditEvent event : AuditEvent.values() )
         {
-            Assert.assertNotNull( event.getNarrative() );
+            Assertions.assertNotNull( event.getNarrative() );
         }
     }
 }

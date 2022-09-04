@@ -26,6 +26,7 @@ import password.pwm.bean.ProfileID;
 import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.CollectorUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.macro.MacroRequest;
@@ -510,19 +511,17 @@ public enum PwmSettingCategory
 
         public static Set<PwmSettingCategory> readChildren( final PwmSettingCategory category )
         {
-            final Set<PwmSettingCategory> categories = CollectionUtil.enumStream( PwmSettingCategory.class )
+            return CollectionUtil.enumStream( PwmSettingCategory.class )
                     .filter( ( loopCategory ) -> loopCategory.getParent() == category )
-                    .collect( Collectors.toUnmodifiableSet() );
-            return Collections.unmodifiableSet( CollectionUtil.copyToEnumSet( categories, PwmSettingCategory.class ) );
+                    .collect( CollectorUtil.toUnmodifiableEnumSet( PwmSettingCategory.class, s -> s ) );
         }
 
         public static Set<PwmSetting> readSettings( final PwmSettingCategory category )
         {
-            final Set<PwmSetting> settings = EnumSet.allOf( PwmSetting.class )
+            return EnumSet.allOf( PwmSetting.class )
                     .stream()
                     .filter( ( setting ) -> setting.getCategory() == category )
-                    .collect( Collectors.toSet() );
-            return Collections.unmodifiableSet( CollectionUtil.copyToEnumSet( settings, PwmSetting.class ) );
+                    .collect( CollectorUtil.toUnmodifiableEnumSet( PwmSetting.class, s -> s ) );
         }
     }
 }

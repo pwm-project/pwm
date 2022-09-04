@@ -20,8 +20,8 @@
 
 package password.pwm.util.password;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class PwmPasswordRuleValidatorTest
 {
@@ -30,91 +30,91 @@ public class PwmPasswordRuleValidatorTest
     {
         // containsDisallowedValue([new password], [disallowed value], [character match threshold])
 
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "n", "n", 0 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "N", "n", 0 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "n", "N", 0 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "N", 0 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "o", 0 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "V", 0 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "e", 0 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "l", 0 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "n", "n", 10 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "n", "n", 0 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "N", "n", 0 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "n", "N", 0 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "N", 0 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "o", 0 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "V", 0 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "e", 0 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "l", 0 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "n", "n", 10 ) );
 
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "novell", 0 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "novell", 5 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "novell", 6 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "novell", 7 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "foo", 0 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "", 0 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "novell", 0 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "novell", 5 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "novell", 6 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "novell", 7 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "foo", 0 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "novell", "", 0 ) );
 
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "love", "novell", 1 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "love", "novell", 2 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "love", "novell", 3 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "love", "novell", 4 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "love", "novell", 5 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "love", "novell", 6 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "love", "novell", 1 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "love", "novell", 2 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "love", "novell", 3 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "love", "novell", 4 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "love", "novell", 5 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "love", "novell", 6 ) );
 
         // Case shouldn't matter
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "LOVE", "novell", 1 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "LOVE", "novell", 2 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "LOVE", "novell", 3 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "LOVE", "novell", 4 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "LOVE", "novell", 5 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "LOVE", "novell", 6 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "love", "NOVELL", 1 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "love", "NOVELL", 2 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "love", "NOVELL", 3 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "love", "NOVELL", 4 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "love", "NOVELL", 5 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "love", "NOVELL", 6 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "LOVE", "novell", 1 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "LOVE", "novell", 2 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "LOVE", "novell", 3 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "LOVE", "novell", 4 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "LOVE", "novell", 5 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "LOVE", "novell", 6 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "love", "NOVELL", 1 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "love", "NOVELL", 2 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "love", "NOVELL", 3 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "love", "NOVELL", 4 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "love", "NOVELL", 5 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.containsDisallowedValue( "love", "NOVELL", 6 ) );
 
         // Play around the threshold boundaries
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "foo-nove-bar", "novell", 4 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "foo-ovel-bar", "novell", 4 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "foo-vell-bar", "novell", 4 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "foo-nove", "novell", 4 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "foo-ovel", "novell", 4 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "foo-vell", "novell", 4 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "nove-bar", "novell", 4 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "ovel-bar", "novell", 4 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "vell-bar", "novell", 4 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "foo-nove-bar", "novell", 4 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "foo-ovel-bar", "novell", 4 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "foo-vell-bar", "novell", 4 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "foo-nove", "novell", 4 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "foo-ovel", "novell", 4 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "foo-vell", "novell", 4 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "nove-bar", "novell", 4 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "ovel-bar", "novell", 4 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.containsDisallowedValue( "vell-bar", "novell", 4 ) );
     }
 
     @Test
     public void testTooManyConsecutiveChars()
     {
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( null, 4 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "", 4 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( null, 4 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "", 4 ) );
 
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "12345678", 0 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novell", 0 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "12345678", 0 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novell", 0 ) );
 
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novell", 1 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novell", 1 ) );
         // 'n' and 'o' are consecutive
-        Assert.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novell", 2 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novell", 3 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novell", 4 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novell", 5 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novell", 6 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novell", 2 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novell", 3 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novell", 4 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novell", 5 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novell", 6 ) );
 
-        Assert.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "xyznovell", 3 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novellabc", 3 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novfghell", 3 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "xyznovell", 3 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novellabc", 3 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "novfghell", 3 ) );
 
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "Novell1235", 4 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "Novell1234", 4 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "1234Novell", 4 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "Nov1234ell", 4 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "Novell1235", 4 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "Novell1234", 4 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "1234Novell", 4 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "Nov1234ell", 4 ) );
 
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "123novabcellxyz", 4 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "123novabcellxyz", 3 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "123novabcellxyz", 4 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "123novabcellxyz", 3 ) );
 
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "abcdefghijklmnopqrstuvwxyz", -1 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "abcdefghijklmnopqrstuvwxyz", 0 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "abcdefghijklmnopqrstuvwxyz", 1 ) );
-        Assert.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "abcdefghijklmnopqrstuvwxyz", 27 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "abcdefghijklmnopqrstuvwxyz", 26 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "abcdefghijklmnopqrstuvwxyz", 25 ) );
-        Assert.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "abcdefghijklmnopqrstuvwxyz", 2 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "abcdefghijklmnopqrstuvwxyz", -1 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "abcdefghijklmnopqrstuvwxyz", 0 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "abcdefghijklmnopqrstuvwxyz", 1 ) );
+        Assertions.assertFalse( PwmPasswordRuleUtil.tooManyConsecutiveChars( "abcdefghijklmnopqrstuvwxyz", 27 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "abcdefghijklmnopqrstuvwxyz", 26 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "abcdefghijklmnopqrstuvwxyz", 25 ) );
+        Assertions.assertTrue( PwmPasswordRuleUtil.tooManyConsecutiveChars( "abcdefghijklmnopqrstuvwxyz", 2 ) );
     }
 }

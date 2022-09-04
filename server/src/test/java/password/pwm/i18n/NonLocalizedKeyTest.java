@@ -20,8 +20,8 @@
 
 package password.pwm.i18n;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.PwmConstants;
 import password.pwm.config.AppConfig;
 import password.pwm.config.stored.StoredConfigurationFactory;
@@ -51,7 +51,7 @@ public class NonLocalizedKeyTest
             for ( final String key : NON_LOCALIZED_KEYS )
             {
                 final String value = resourceBundle.getString( key );
-                Assert.assertFalse( StringUtil.isEmpty( value ) );
+                Assertions.assertFalse( StringUtil.isEmpty( value ) );
             }
         }
 
@@ -76,7 +76,7 @@ public class NonLocalizedKeyTest
                             final String value = props.getProperty( key );
                             final String msg = "Display bundle for locale '" + locale.toLanguageTag() + "' has key '"
                                     + key + "'.  Only the default locale should have this key";
-                            Assert.assertTrue( msg, StringUtil.isEmpty( value ) );
+                            Assertions.assertTrue( StringUtil.isEmpty( value ), msg );
                         }
                     }
                 }

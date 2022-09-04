@@ -20,8 +20,8 @@
 
 package password.pwm.i18n;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.PwmConstants;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
@@ -61,9 +61,9 @@ public class AdminPropertyKeysTest
 
         for ( final String key : expectedKeys )
         {
-            Assert.assertTrue(
-                    "Admin.properties missing record for " + key,
-                    resourceBundle.containsKey( key ) );
+            Assertions.assertTrue(
+                    resourceBundle.containsKey( key ),
+                    "Admin.properties missing record for " + key );
         }
 
         final Set<String> extraKeys = new HashSet<>( resourceBundle.keySet() );
@@ -75,7 +75,7 @@ public class AdminPropertyKeysTest
                     || key.startsWith( password.pwm.i18n.Admin.STATISTICS_LABEL_PREFIX ) )
             {
 
-                Assert.fail( "unexpected key in Admin.properties file: " + key );
+                Assertions.fail( "unexpected key in Admin.properties file: " + key );
             }
         }
     }
@@ -92,9 +92,8 @@ public class AdminPropertyKeysTest
         {
             final String key = Admin.EPS_STATISTICS_LABEL_PREFIX + statistic.name();
             expectedKeys.add( key );
-            Assert.assertTrue(
-                    "Admin.properties missing record for " + key,
-                    resourceBundle.containsKey( key ) );
+            Assertions.assertTrue(
+                    resourceBundle.containsKey( key ),  "Admin.properties missing record for " + key );
         }
 
         final Set<String> extraKeys = new HashSet<>( resourceBundle.keySet() );
@@ -104,7 +103,7 @@ public class AdminPropertyKeysTest
         {
             if ( key.startsWith( password.pwm.i18n.Admin.EPS_STATISTICS_LABEL_PREFIX ) )
             {
-                Assert.fail( "unexpected key in Admin.properties file: " + key );
+                Assertions.fail( "unexpected key in Admin.properties file: " + key );
             }
         }
     }

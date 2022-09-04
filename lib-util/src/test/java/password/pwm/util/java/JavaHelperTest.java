@@ -20,8 +20,8 @@
 
 package password.pwm.util.java;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class JavaHelperTest
 {
@@ -39,7 +39,7 @@ public class JavaHelperTest
                 };
 
         final byte[] output = JavaHelper.concatByteArrays( byteArray1, byteArray2 );
-        Assert.assertArrayEquals( new byte[]
+        Assertions.assertArrayEquals( new byte[]
                 {
                         0, 122, 5, 6, 121, 19,
                 },
@@ -66,7 +66,7 @@ public class JavaHelperTest
                 };
 
         final byte[] output = JavaHelper.concatByteArrays( byteArray1, byteArray2, byteArray3, byteArray4 );
-        Assert.assertArrayEquals( new byte[]
+        Assertions.assertArrayEquals( new byte[]
                 {
                         0, 122, 5, 37, 21, 14,
                 },

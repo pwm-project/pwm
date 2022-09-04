@@ -80,7 +80,7 @@ public class LocalDBHealthChecker implements HealthSupplier
             healthRecords.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.LocalDB_OK ) );
         }
 
-        return healthRecords;
+        return List.copyOf( healthRecords );
     }
 
     private List<HealthRecord> checkSpaceRemaining( final PwmApplication pwmApplication )

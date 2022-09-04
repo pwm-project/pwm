@@ -20,11 +20,10 @@
 
 package password.pwm.util.otp;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import password.pwm.svc.otp.OTPUrlUtil;
+import password.pwm.svc.otp.OTPUserRecord;
 
 /**
  * @author mpieters
@@ -32,47 +31,22 @@ import org.junit.Test;
 public class OTPUrlUtilTest
 {
 
-    public OTPUrlUtilTest()
-    {
-    }
-
-    @BeforeClass
-    public static void setUpClass()
-    {
-    }
-
-    @AfterClass
-    public static void tearDownClass()
-    {
-    }
-
-    @Before
-    public void setUp()
-    {
-    }
-
-    @After
-    public void tearDown()
-    {
-    }
-
     /**
      * Test of composeOtpUrl method and decomposeOtpUrl, of class OTPUrlUtil.
      */
     @Test
     public void testComposeAndDecomposeOtpUrl()
     {
-        /*
-        System.out.println("composeOtpUrl");
-        OTPUserRecord otp = new OTPUserRecord("TEST");
-        otp.setSecret("2222222222222222");
-        String result = OTPUrlUtil.composeOtpUrl(otp);
-        System.out.println(result);
-        OTPUserRecord xotp = OTPUrlUtil.decomposeOtpUrl(result);
-        assertNotNull(xotp);
-        assertEquals(otp.getIdentifier(), xotp.getIdentifier());
-        assertEquals(otp.getSecret(), xotp.getSecret());
-        */
+
+        final OTPUserRecord otp = new OTPUserRecord();
+        otp.setIdentifier( "TEST" );
+        otp.setSecret( "2222222222222222" );
+
+        final String result = OTPUrlUtil.composeOtpUrl( otp );
+        final OTPUserRecord xotp = OTPUrlUtil.decomposeOtpUrl( result );
+        Assertions.assertNotNull( xotp );
+        Assertions.assertEquals( otp.getIdentifier(), xotp.getIdentifier() );
+        Assertions.assertEquals( otp.getSecret(), xotp.getSecret() );
     }
 
 }

@@ -20,20 +20,23 @@
 
 package password.pwm.util.java;
 
-import junit.framework.TestCase;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public class LazySupplierTest extends TestCase
+public class LazySupplierTest
 {
+    @Test
     public void testCreate()
     {
         final LazySupplier<String> supplier = LazySupplier.create( () -> "test1" );
 
-        Assert.assertFalse( supplier.isSupplied() );
-        Assert.assertEquals( "test1", supplier.get() );
-        Assert.assertTrue( supplier.isSupplied() );
+        Assertions.assertFalse( supplier.isSupplied() );
+        Assertions.assertEquals( "test1", supplier.get() );
+        Assertions.assertTrue( supplier.isSupplied() );
+
         supplier.clear();
-        Assert.assertFalse( supplier.isSupplied() );
-        Assert.assertEquals( "test1", supplier.get() );
+
+        Assertions.assertFalse( supplier.isSupplied() );
+        Assertions.assertEquals( "test1", supplier.get() );
     }
 }

@@ -20,7 +20,7 @@
 
 package password.pwm.config.option;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import password.pwm.PwmConstants;
 import password.pwm.config.AppConfig;
 import password.pwm.config.stored.StoredConfigurationFactory;

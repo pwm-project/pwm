@@ -299,6 +299,12 @@
             <artifactId>commons-compress</artifactId>
             <version>1.21</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <version>9.0.65</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <repositories>

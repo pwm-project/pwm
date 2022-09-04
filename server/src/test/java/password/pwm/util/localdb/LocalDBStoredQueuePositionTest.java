@@ -20,8 +20,8 @@
 
 package password.pwm.util.localdb;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class LocalDBStoredQueuePositionTest
 {
@@ -29,52 +29,52 @@ public class LocalDBStoredQueuePositionTest
     public void positionTest()
     {
         final LocalDBStoredQueue.Position initialPosition = new LocalDBStoredQueue.Position( "0" );
-        Assert.assertEquals( "000000", initialPosition.toString() );
+        Assertions.assertEquals( "000000", initialPosition.toString() );
 
         {
             LocalDBStoredQueue.Position position = initialPosition.next();
-            Assert.assertEquals( "000001", position.toString() );
+            Assertions.assertEquals( "000001", position.toString() );
             position = position.next();
-            Assert.assertEquals( "000002", position.toString() );
+            Assertions.assertEquals( "000002", position.toString() );
             position = position.next();
-            Assert.assertEquals( "000003", position.toString() );
+            Assertions.assertEquals( "000003", position.toString() );
 
             position = position.previous();
-            Assert.assertEquals( "000002", position.toString() );
+            Assertions.assertEquals( "000002", position.toString() );
             position = position.previous();
-            Assert.assertEquals( "000001", position.toString() );
+            Assertions.assertEquals( "000001", position.toString() );
             position = position.previous();
-            Assert.assertEquals( "000000", position.toString() );
+            Assertions.assertEquals( "000000", position.toString() );
             position = position.previous();
-            Assert.assertEquals( "ZZZZZZ", position.toString() );
+            Assertions.assertEquals( "ZZZZZZ", position.toString() );
         }
 
         {
             LocalDBStoredQueue.Position position = initialPosition.previous();
-            Assert.assertEquals( "ZZZZZZ", position.toString() );
+            Assertions.assertEquals( "ZZZZZZ", position.toString() );
             position = position.previous();
-            Assert.assertEquals( "ZZZZZY", position.toString() );
+            Assertions.assertEquals( "ZZZZZY", position.toString() );
             position = position.previous();
-            Assert.assertEquals( "ZZZZZX", position.toString() );
+            Assertions.assertEquals( "ZZZZZX", position.toString() );
 
             position = position.next();
-            Assert.assertEquals( "ZZZZZY", position.toString() );
+            Assertions.assertEquals( "ZZZZZY", position.toString() );
             position = position.next();
-            Assert.assertEquals( "ZZZZZZ", position.toString() );
+            Assertions.assertEquals( "ZZZZZZ", position.toString() );
             position = position.next();
-            Assert.assertEquals( "000000", position.toString() );
+            Assertions.assertEquals( "000000", position.toString() );
             position = position.next();
-            Assert.assertEquals( "000001", position.toString() );
+            Assertions.assertEquals( "000001", position.toString() );
         }
 
         {
             final long distance = initialPosition.distanceToHead( new LocalDBStoredQueue.Position( "000003" ) );
-            Assert.assertEquals( 3, distance );
+            Assertions.assertEquals( 3, distance );
         }
 
         {
             final long distance = initialPosition.distanceToHead( new LocalDBStoredQueue.Position( "ZZZZZX" ) );
-            Assert.assertEquals( 2176782333L, distance );
+            Assertions.assertEquals( 2176782333L, distance );
         }
     }
 }

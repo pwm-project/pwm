@@ -20,8 +20,8 @@
 
 package password.pwm.bean;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,8 +39,8 @@ public class ProfileIDTest
 
         Collections.sort( list );
 
-        Assert.assertEquals( ProfileID.create( "aaaa" ), list.get( 0 ) );
-        Assert.assertEquals( ProfileID.create( "bbbb" ), list.get( 1 ) );
+        Assertions.assertEquals( ProfileID.create( "aaaa" ), list.get( 0 ) );
+        Assertions.assertEquals( ProfileID.create( "bbbb" ), list.get( 1 ) );
     }
 
     @Test

@@ -20,8 +20,8 @@
 
 package password.pwm.svc.email;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
@@ -32,17 +32,20 @@ import jakarta.mail.internet.InternetAddress;
  */
 public class InternetAddressTest
 {
-    @Test( expected = Exception.class )
+    @Test
     public void testParseNull() throws AddressException
     {
-        InternetAddress.parse( null, true );
+        Assertions.assertThrows( Exception.class, () ->
+        {
+            InternetAddress.parse( null, true );
+        } );
     }
 
     @Test
     public void testParseEmpty() throws AddressException
     {
         final InternetAddress[] addresses = InternetAddress.parse( "", true );
-        Assert.assertEquals( 0, addresses.length );
+        Assertions.assertEquals( 0, addresses.length );
     }
 
     @Test
@@ -50,8 +53,8 @@ public class InternetAddressTest
     {
         final InternetAddress[] addresses = InternetAddress.parse( "fred@flintstones.tv" );
 
-        Assert.assertEquals( 1, addresses.length );
-        Assert.assertEquals( "fred@flintstones.tv", addresses[0].getAddress() );
+        Assertions.assertEquals( 1, addresses.length );
+        Assertions.assertEquals( "fred@flintstones.tv", addresses[0].getAddress() );
     }
 
     @Test
@@ -59,11 +62,11 @@ public class InternetAddressTest
     {
         final InternetAddress[] addresses = InternetAddress.parse( "fred@flintstones.tv,wilma@flinstones.tv, barney@flintstones.tv,   betty@flinstones.tv" );
 
-        Assert.assertEquals( 4, addresses.length );
-        Assert.assertEquals( "fred@flintstones.tv", addresses[0].getAddress() );
-        Assert.assertEquals( "wilma@flinstones.tv", addresses[1].getAddress() );
-        Assert.assertEquals( "barney@flintstones.tv", addresses[2].getAddress() );
-        Assert.assertEquals( "betty@flinstones.tv", addresses[3].getAddress() );
+        Assertions.assertEquals( 4, addresses.length );
+        Assertions.assertEquals( "fred@flintstones.tv", addresses[0].getAddress() );
+        Assertions.assertEquals( "wilma@flinstones.tv", addresses[1].getAddress() );
+        Assertions.assertEquals( "barney@flintstones.tv", addresses[2].getAddress() );
+        Assertions.assertEquals( "betty@flinstones.tv", addresses[3].getAddress() );
     }
 
     @Test
@@ -72,10 +75,10 @@ public class InternetAddressTest
         final InternetAddress[] addresses = InternetAddress.parse(
                 "fred@flintstones.tv,wilma@flinstones.tv, \"Rubble, Barney\"@flintstones.tv,   Betty Rubble <betty@flinstones.tv>" );
 
-        Assert.assertEquals( 4, addresses.length );
-        Assert.assertEquals( "fred@flintstones.tv", addresses[0].getAddress() );
-        Assert.assertEquals( "wilma@flinstones.tv", addresses[1].getAddress() );
-        Assert.assertEquals( "\"Rubble, Barney\"@flintstones.tv", addresses[2].getAddress() );
-        Assert.assertEquals( "betty@flinstones.tv", addresses[3].getAddress() );
+        Assertions.assertEquals( 4, addresses.length );
+        Assertions.assertEquals( "fred@flintstones.tv", addresses[0].getAddress() );
+        Assertions.assertEquals( "wilma@flinstones.tv", addresses[1].getAddress() );
+        Assertions.assertEquals( "\"Rubble, Barney\"@flintstones.tv", addresses[2].getAddress() );
+        Assertions.assertEquals( "betty@flinstones.tv", addresses[3].getAddress() );
     }
 }

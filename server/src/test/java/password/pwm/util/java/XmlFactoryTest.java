@@ -24,8 +24,8 @@ import org.jrivard.xmlchai.AccessMode;
 import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.util.List;
@@ -39,11 +39,11 @@ public class XmlFactoryTest
     {
         final InputStream xmlFactoryTestXmlFile = this.getClass().getResourceAsStream( "XmlFactoryTest.xml" );
         final XmlDocument xmlDocument = XmlChai.getFactory().parse( xmlFactoryTestXmlFile, AccessMode.IMMUTABLE );
-        Assert.assertEquals( "PwmConfiguration", xmlDocument.getRootElement().getName() );
+        Assertions.assertEquals( "PwmConfiguration", xmlDocument.getRootElement().getName() );
         final Optional<XmlElement> configIsEditable = xmlDocument.evaluateXpathToElement( "//property[@key='configIsEditable']" );
-        Assert.assertTrue( configIsEditable.isPresent() );
-        Assert.assertEquals( "false", configIsEditable.get().getText().orElseThrow() );
+        Assertions.assertTrue( configIsEditable.isPresent() );
+        Assertions.assertEquals( "false", configIsEditable.get().getText().orElseThrow() );
         final List<XmlElement> allSettings = xmlDocument.evaluateXpathToElements( "//setting" );
-        Assert.assertEquals( 279, allSettings.size() );
+        Assertions.assertEquals( 279, allSettings.size() );
     }
 }

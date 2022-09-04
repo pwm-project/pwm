@@ -20,8 +20,8 @@
 
 package password.pwm.bean;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,8 +39,8 @@ public class DomainIDTest
 
         Collections.sort( list );
 
-        Assert.assertEquals( DomainID.systemId(), list.get( 0 ) );
-        Assert.assertEquals( DomainID.create( "aaaa" ), list.get( 1 ) );
-        Assert.assertEquals( DomainID.create( "bbbb" ), list.get( 2 ) );
+        Assertions.assertEquals( DomainID.systemId(), list.get( 0 ) );
+        Assertions.assertEquals( DomainID.create( "aaaa" ), list.get( 1 ) );
+        Assertions.assertEquals( DomainID.create( "bbbb" ), list.get( 2 ) );
     }
 }

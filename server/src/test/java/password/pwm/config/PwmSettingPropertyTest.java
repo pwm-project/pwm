@@ -20,8 +20,8 @@
 
 package password.pwm.config;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.PwmConstants;
 
 import java.util.EnumSet;
@@ -48,9 +48,9 @@ public class PwmSettingPropertyTest
             for ( final String key : keys )
             {
                 expectedKeys.add( key );
-                Assert.assertTrue(
-                        "PwmSettings.properties missing record for " + key,
-                        resourceBundle.containsKey( key ) );
+                Assertions.assertTrue(
+                        resourceBundle.containsKey( key ),
+                        "PwmSettings.properties missing record for " + key );
             }
         }
 
@@ -63,9 +63,10 @@ public class PwmSettingPropertyTest
             for ( final String key : keys )
             {
                 expectedKeys.add( key );
-                Assert.assertTrue(
-                        "PwmSettings.properties missing record for " + key,
-                        resourceBundle.containsKey( key ) );
+                Assertions.assertTrue(
+
+                        resourceBundle.containsKey( key ),
+                        "PwmSettings.properties missing record for " + key );
             }
         }
 
@@ -74,7 +75,7 @@ public class PwmSettingPropertyTest
 
         if ( !extraKeys.isEmpty() )
         {
-            Assert.fail( "unexpected key in PwmSetting.properties file: " + extraKeys.iterator().next() );
+            Assertions.fail( "unexpected key in PwmSetting.properties file: " + extraKeys.iterator().next() );
         }
     }
 
@@ -87,7 +88,7 @@ public class PwmSettingPropertyTest
             final long maxValue = Long.parseLong( pwmSetting.getProperties().getOrDefault( PwmSettingProperty.Maximum, "0" ) );
             if ( maxValue != 0 )
             {
-                Assert.assertTrue( "setting: " + pwmSetting.getKey(), maxValue > minValue );
+                Assertions.assertTrue( maxValue > minValue, "setting: " + pwmSetting.getKey() );
             }
         }
     }
@@ -118,7 +119,7 @@ public class PwmSettingPropertyTest
                     {
                         throw new NumberFormatException(
                                 "setting " + pwmSetting + " value for property " + pwmSettingProperty
-                                + " parse error: " + e.getMessage()
+                                        + " parse error: " + e.getMessage()
                         );
                     }
                 }

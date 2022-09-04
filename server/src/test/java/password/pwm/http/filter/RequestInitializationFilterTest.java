@@ -20,8 +20,8 @@
 
 package password.pwm.http.filter;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
@@ -48,7 +48,7 @@ public class RequestInitializationFilterTest
         Mockito.when( mockRequest.getRemoteAddr() ).thenReturn( "10.1.1.1" );
 
         final String resultIP = PwmRequestUtil.readUserNetworkAddress( mockRequest, conf ).orElseThrow();
-        Assert.assertEquals( "10.1.1.1", resultIP );
+        Assertions.assertEquals( "10.1.1.1", resultIP );
     }
 
     @Test
@@ -60,7 +60,7 @@ public class RequestInitializationFilterTest
         Mockito.when( mockRequest.getRemoteAddr() ).thenReturn( "10.1.1.1m" );
 
         final Optional<String> resultIP = PwmRequestUtil.readUserNetworkAddress( mockRequest, conf );
-        Assert.assertTrue( resultIP.isEmpty() );
+        Assertions.assertTrue( resultIP.isEmpty() );
     }
 
     @Test
@@ -73,7 +73,7 @@ public class RequestInitializationFilterTest
         Mockito.when( mockRequest.getHeader( HttpHeader.XForwardedFor.getHttpName() ) ).thenReturn( "10.1.1.2" );
 
         final String resultIP = PwmRequestUtil.readUserNetworkAddress( mockRequest, conf ).orElseThrow();
-        Assert.assertEquals( "10.1.1.2", resultIP );
+        Assertions.assertEquals( "10.1.1.2", resultIP );
     }
 
     @Test
@@ -86,7 +86,7 @@ public class RequestInitializationFilterTest
         Mockito.when( mockRequest.getHeader( HttpHeader.XForwardedFor.getHttpName() ) ).thenReturn( "10.1.1.2a" );
 
         final String resultIP = PwmRequestUtil.readUserNetworkAddress( mockRequest, conf ).orElseThrow();
-        Assert.assertEquals( "10.1.1.1", resultIP );
+        Assertions.assertEquals( "10.1.1.1", resultIP );
     }
 
     @Test
@@ -99,7 +99,7 @@ public class RequestInitializationFilterTest
         Mockito.when( mockRequest.getHeader( HttpHeader.XForwardedFor.getHttpName() ) ).thenReturn( "10.1.1.2, 10.1.1.3" );
 
         final String resultIP = PwmRequestUtil.readUserNetworkAddress( mockRequest, conf ).orElseThrow();
-        Assert.assertEquals( "10.1.1.2", resultIP );
+        Assertions.assertEquals( "10.1.1.2", resultIP );
     }
 
     @Test
@@ -112,7 +112,7 @@ public class RequestInitializationFilterTest
         Mockito.when( mockRequest.getHeader( HttpHeader.XForwardedFor.getHttpName() ) ).thenReturn( "10.1.1.2a, 10.1.1.3" );
 
         final String resultIP = PwmRequestUtil.readUserNetworkAddress( mockRequest, conf ).orElseThrow();
-        Assert.assertEquals( "10.1.1.3", resultIP );
+        Assertions.assertEquals( "10.1.1.3", resultIP );
     }
 
     @Test
@@ -125,7 +125,7 @@ public class RequestInitializationFilterTest
         Mockito.when( mockRequest.getHeader( HttpHeader.XForwardedFor.getHttpName() ) ).thenReturn( "10.1.1.2a, 2001:0db8:85a3:0000:0000:8a2e:0370:7334" );
 
         final String resultIP = PwmRequestUtil.readUserNetworkAddress( mockRequest, conf ).orElseThrow();
-        Assert.assertEquals( "2001:0db8:85a3:0000:0000:8a2e:0370:7334", resultIP );
+        Assertions.assertEquals( "2001:0db8:85a3:0000:0000:8a2e:0370:7334", resultIP );
     }
 
     @Test
@@ -141,6 +141,6 @@ public class RequestInitializationFilterTest
         Mockito.when( mockRequest.getHeader( HttpHeader.XForwardedFor.getHttpName() ) ).thenReturn( "10.1.1.2" );
 
         final String resultIP = PwmRequestUtil.readUserNetworkAddress( mockRequest, conf ).orElseThrow();
-        Assert.assertEquals( "10.1.1.1", resultIP );
+        Assertions.assertEquals( "10.1.1.1", resultIP );
     }
 }

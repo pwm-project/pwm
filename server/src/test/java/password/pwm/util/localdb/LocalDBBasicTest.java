@@ -20,28 +20,39 @@
 
 package password.pwm.util.localdb;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import password.pwm.PwmApplication;
+import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.secure.PwmRandom;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+@Execution( ExecutionMode.SAME_THREAD )
 public class LocalDBBasicTest
 {
-    @Rule
-    public TemporaryFolder testFolder = new TemporaryFolder();
+    private static final LocalDB.DB TEST_DB = LocalDB.DB.TEMP;
+
+    private static final int BULK_COUNT = PwmRandom.getInstance().nextInt( 1_000 ) + 10_000;
+
+    @TempDir
+    public Path temporaryFolder;
 
     private LocalDB localDB;
 
-
-    @Before
+    @BeforeEach
     public void setUp() throws Exception
     {
-        final File localDbTestFolder = testFolder.newFolder( "test-stored-queue-test" );
+        final File localDbTestFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-stored-queue-test" );
         final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( localDbTestFolder );
         localDB = LocalDBFactory.getInstance( localDbTestFolder, false, pwmApplication.getPwmEnvironment(), pwmApplication.getConfig() );
     }
@@ -49,29 +60,84 @@ public class LocalDBBasicTest
     @Test
     public void testBasicNarrative() throws LocalDBException
     {
-        Assert.assertEquals( 0, localDB.size( LocalDB.DB.TEMP ) );
+        Assertions.assertEquals( 0, localDB.size( LocalDB.DB.TEMP ) );
 
-        localDB.put( LocalDB.DB.TEMP, "key1", "value1" );
+        localDB.put( TEST_DB, "key1", "value1" );
 
-        Assert.assertEquals( 1, localDB.size( LocalDB.DB.TEMP ) );
-        Assert.assertEquals( "value1", localDB.get( LocalDB.DB.TEMP, "key1" ).orElseThrow() );
-        Assert.assertTrue( localDB.contains( LocalDB.DB.TEMP, "key1" ) );
+        Assertions.assertEquals( 1, localDB.size( TEST_DB ) );
+        Assertions.assertEquals( "value1", localDB.get( TEST_DB, "key1" ).orElseThrow() );
+        Assertions.assertTrue( localDB.contains( TEST_DB, "key1" ) );
 
-        localDB.remove( LocalDB.DB.TEMP, "key1" );
-        Assert.assertEquals( 0, localDB.size( LocalDB.DB.TEMP ) );
-        Assert.assertFalse( localDB.contains( LocalDB.DB.TEMP, "key1" ) );
+        localDB.remove( TEST_DB, "key1" );
+        Assertions.assertEquals( 0, localDB.size( TEST_DB ) );
+        Assertions.assertFalse( localDB.contains( TEST_DB, "key1" ) );
 
-        localDB.put( LocalDB.DB.TEMP, "key1", "value1" );
-        localDB.put( LocalDB.DB.TEMP, "key2", "value2" );
+        localDB.put( TEST_DB, "key1", "value1" );
+        localDB.put( TEST_DB, "key2", "value2" );
 
-        Assert.assertEquals( 2, localDB.size( LocalDB.DB.TEMP ) );
-        Assert.assertEquals( "value1", localDB.get( LocalDB.DB.TEMP, "key1" ).orElseThrow() );
-        Assert.assertEquals( "value2", localDB.get( LocalDB.DB.TEMP, "key2" ).orElseThrow() );
-        Assert.assertTrue(  localDB.get( LocalDB.DB.TEMP, "key3" ).isEmpty() );
-        Assert.assertFalse( localDB.contains( LocalDB.DB.TEMP, "key3" ) );
+        Assertions.assertEquals( 2, localDB.size( TEST_DB ) );
+        Assertions.assertEquals( "value1", localDB.get( TEST_DB, "key1" ).orElseThrow() );
+        Assertions.assertEquals( "value2", localDB.get( TEST_DB, "key2" ).orElseThrow() );
+        Assertions.assertTrue(  localDB.get( TEST_DB, "key3" ).isEmpty() );
+        Assertions.assertFalse( localDB.contains( TEST_DB, "key3" ) );
 
-        localDB.removeAll( LocalDB.DB.TEMP, List.of( "key1", "key2" ) );
-        Assert.assertEquals( 0, localDB.size( LocalDB.DB.TEMP ) );
+        localDB.removeAll( TEST_DB, List.of( "key1", "key2" ) );
+        Assertions.assertEquals( 0, localDB.size( TEST_DB ) );
+    }
 
+    @Test
+    public void testPut() throws LocalDBException
+    {
+        Assertions.assertTrue( localDB.get( TEST_DB, "testKey1" ).isEmpty() );
+        localDB.put( TEST_DB, "testKey1", "testValue1" );
+        Assertions.assertEquals( "testValue1", localDB.get( TEST_DB, "testKey1" ).orElseThrow() );
+    }
+
+    @Test
+    public void testBulk() throws LocalDBException
+    {
+        localDB.truncate( TEST_DB );
+        Assertions.assertEquals( 0, localDB.size( TEST_DB ) );
+
+        final Set<String> keys = new HashSet<>();
+        final Set<String> values = new HashSet<>();
+
+        for ( int i = 0; i < BULK_COUNT; i++ )
+        {
+            final String key = "key" + i;
+            final String value = "value" + i;
+            keys.add( key );
+            values.add( value );
+
+            localDB.put( TEST_DB, key, value );
+        }
+
+        Assertions.assertEquals( BULK_COUNT, keys.size() );
+        Assertions.assertEquals( BULK_COUNT, values.size() );
+        Assertions.assertEquals( BULK_COUNT, localDB.size( TEST_DB ) );
+
+        try ( LocalDB.LocalDBIterator<Map.Entry<String, String>> iter = localDB.iterator( TEST_DB ) )
+        {
+            for ( int i = 0; i < BULK_COUNT; i++ )
+            {
+                final Map.Entry<String, String> nextEntry = iter.next();
+                final String key = nextEntry.getKey();
+                final String value = nextEntry.getValue();
+                Assertions.assertTrue( keys.contains( key ) );
+                Assertions.assertTrue( values.contains( value ) );
+                keys.remove( key );
+                values.remove( value );
+
+                if ( i < BULK_COUNT - 1 )
+                {
+                    Assertions.assertTrue( iter.hasNext() );
+                }
+            }
+
+            Assertions.assertTrue( keys.isEmpty() );
+            Assertions.assertTrue( values.isEmpty() );
+
+            Assertions.assertFalse( iter.hasNext() );
+        }
     }
 }

@@ -20,8 +20,8 @@
 
 package password.pwm.http;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -45,10 +45,10 @@ public class PwmURLTest
         final AppConfig appConfig = AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() );
         final PwmURL pwmURL = PwmURL.create( new URI( "https://wwww.example.com/pwm/private/login" ), "/pwm", appConfig );
 
-        Assert.assertEquals( PwmServletDefinition.Login, pwmURL.forServletDefinition().get() );
-        Assert.assertEquals( "/private/login", pwmURL.determinePwmServletPath() );
-        Assert.assertTrue( pwmURL.isPrivateUrl() );
-        Assert.assertTrue( pwmURL.matches( PwmServletDefinition.Login ) );
+        Assertions.assertEquals( PwmServletDefinition.Login, pwmURL.forServletDefinition().get() );
+        Assertions.assertEquals( "/private/login", pwmURL.determinePwmServletPath() );
+        Assertions.assertTrue( pwmURL.isPrivateUrl() );
+        Assertions.assertTrue( pwmURL.matches( PwmServletDefinition.Login ) );
 
     }
 
@@ -65,10 +65,10 @@ public class PwmURLTest
         }
         final PwmURL pwmURL = PwmURL.create( new URI( "https://wwww.example.com/pwm/aaaa/private/login" ), "/pwm", appConfig );
 
-        Assert.assertEquals( PwmServletDefinition.Login, pwmURL.forServletDefinition().get() );
-        Assert.assertEquals( "/private/login", pwmURL.determinePwmServletPath() );
-        Assert.assertTrue( pwmURL.isPrivateUrl() );
-        Assert.assertTrue( pwmURL.matches( PwmServletDefinition.Login ) );
+        Assertions.assertEquals( PwmServletDefinition.Login, pwmURL.forServletDefinition().get() );
+        Assertions.assertEquals( "/private/login", pwmURL.determinePwmServletPath() );
+        Assertions.assertTrue( pwmURL.isPrivateUrl() );
+        Assertions.assertTrue( pwmURL.matches( PwmServletDefinition.Login ) );
 
     }
 
@@ -79,8 +79,8 @@ public class PwmURLTest
         final AppConfig appConfig = AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() );
         final PwmURL pwmURL = PwmURL.create( new URI( "http://127.0.0.1:8080/pwm/public/resources/nonce-0/webjars/dojo/dojo.js" ), "/pwm", appConfig );
 
-        Assert.assertTrue( pwmURL.isPublicUrl() );
-        Assert.assertTrue( pwmURL.isResourceURL() );
+        Assertions.assertTrue( pwmURL.isPublicUrl() );
+        Assertions.assertTrue( pwmURL.isResourceURL() );
     }
 
     @Test
@@ -96,8 +96,8 @@ public class PwmURLTest
         }
         final PwmURL pwmURL = PwmURL.create( new URI( "http://127.0.0.1:8080/pwm/aaaa/public/resources/nonce-0/webjars/dojo/dojo.js" ), "/pwm", appConfig );
 
-        Assert.assertTrue( pwmURL.isPublicUrl() );
-        Assert.assertTrue( pwmURL.isResourceURL() );
+        Assertions.assertTrue( pwmURL.isPublicUrl() );
+        Assertions.assertTrue( pwmURL.isResourceURL() );
 
     }
 

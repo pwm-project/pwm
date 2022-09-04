@@ -25,8 +25,8 @@ import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
 import org.jrivard.xmlchai.XmlFactory;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
 import password.pwm.config.value.data.ActionConfiguration;
@@ -53,32 +53,32 @@ public class ActionValueTest
         final ActionValue actionValue = ( ActionValue ) ActionValue.factory().fromXmlElement( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES, settingElement, null );
 
         final List<ActionConfiguration> actionConfigurations = actionValue.toNativeObject();
-        Assert.assertEquals( 1, actionConfigurations.size() );
+        Assertions.assertEquals( 1, actionConfigurations.size() );
 
         final ActionConfiguration action1 = actionConfigurations.get( 0 );
-        Assert.assertEquals( "action1", action1.getName() );
-        Assert.assertEquals( "description", action1.getDescription() );
-        Assert.assertEquals( 1, action1.getWebActions().size() );
-        Assert.assertEquals( 1, action1.getLdapActions().size() );
+        Assertions.assertEquals( "action1", action1.getName() );
+        Assertions.assertEquals( "description", action1.getDescription() );
+        Assertions.assertEquals( 1, action1.getWebActions().size() );
+        Assertions.assertEquals( 1, action1.getLdapActions().size() );
 
         final ActionConfiguration.WebAction webAction = action1.getWebActions().get( 0 );
-        Assert.assertEquals( ActionConfiguration.WebMethod.post, webAction.getMethod() );
-        Assert.assertEquals( 2, webAction.getHeaders().size() );
-        Assert.assertEquals( "v1", webAction.getHeaders().get( "h1" ) );
-        Assert.assertEquals( "v2", webAction.getHeaders().get( "h2" ) );
-        Assert.assertEquals( "username", webAction.getUsername() );
-        Assert.assertEquals( "password", webAction.getPassword() );
-        Assert.assertEquals( "https://www.example.com", webAction.getUrl() );
-        Assert.assertEquals( "BODY", webAction.getBody() );
-        Assert.assertEquals( getTestCerts(), webAction.getCertificates() );
-        Assert.assertEquals( 2, webAction.getSuccessStatus().size() );
-        Assert.assertTrue( webAction.getSuccessStatus().contains( 200 ) );
-        Assert.assertTrue( webAction.getSuccessStatus().contains( 201 ) );
+        Assertions.assertEquals( ActionConfiguration.WebMethod.post, webAction.getMethod() );
+        Assertions.assertEquals( 2, webAction.getHeaders().size() );
+        Assertions.assertEquals( "v1", webAction.getHeaders().get( "h1" ) );
+        Assertions.assertEquals( "v2", webAction.getHeaders().get( "h2" ) );
+        Assertions.assertEquals( "username", webAction.getUsername() );
+        Assertions.assertEquals( "password", webAction.getPassword() );
+        Assertions.assertEquals( "https://www.example.com", webAction.getUrl() );
+        Assertions.assertEquals( "BODY", webAction.getBody() );
+        Assertions.assertEquals( getTestCerts(), webAction.getCertificates() );
+        Assertions.assertEquals( 2, webAction.getSuccessStatus().size() );
+        Assertions.assertTrue( webAction.getSuccessStatus().contains( 200 ) );
+        Assertions.assertTrue( webAction.getSuccessStatus().contains( 201 ) );
 
         final ActionConfiguration.LdapAction ldapAction = action1.getLdapActions().get( 0 );
-        Assert.assertEquals( "ldapAttribute1", ldapAction.getAttributeName() );
-        Assert.assertEquals( "value1", ldapAction.getAttributeValue() );
-        Assert.assertEquals( ActionConfiguration.LdapMethod.remove, ldapAction.getLdapMethod() );
+        Assertions.assertEquals( "ldapAttribute1", ldapAction.getAttributeName() );
+        Assertions.assertEquals( "value1", ldapAction.getAttributeValue() );
+        Assertions.assertEquals( ActionConfiguration.LdapMethod.remove, ldapAction.getLdapMethod() );
     }
 
     @Test
@@ -122,7 +122,7 @@ public class ActionValueTest
         xmlDocument.getRootElement().attachElement( settingElement );
         final String xmlStringOutput = XmlChai.getFactory().outputString( xmlDocument, XmlFactory.OutputFlag.Compact );
 
-        Assert.assertEquals( xmlTestValue( "jsonDataFull" ), xmlStringOutput );
+        Assertions.assertEquals( xmlTestValue( "jsonDataFull" ), xmlStringOutput );
     }
 
     @Test
@@ -136,23 +136,23 @@ public class ActionValueTest
         final ActionValue actionValue = ( ActionValue ) ActionValue.factory().fromXmlElement( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES, settingElement, null );
 
         final List<ActionConfiguration> actionConfigurations = actionValue.toNativeObject();
-        Assert.assertEquals( 1, actionConfigurations.size() );
+        Assertions.assertEquals( 1, actionConfigurations.size() );
 
         final ActionConfiguration action1 = actionConfigurations.get( 0 );
-        Assert.assertEquals( "action1", action1.getName() );
-        Assert.assertNull(  action1.getDescription() );
-        Assert.assertEquals( 1, action1.getWebActions().size() );
-        Assert.assertEquals( 0, action1.getLdapActions().size() );
+        Assertions.assertEquals( "action1", action1.getName() );
+        Assertions.assertNull(  action1.getDescription() );
+        Assertions.assertEquals( 1, action1.getWebActions().size() );
+        Assertions.assertEquals( 0, action1.getLdapActions().size() );
 
         final ActionConfiguration.WebAction webAction = action1.getWebActions().get( 0 );
-        Assert.assertEquals( ActionConfiguration.WebMethod.get, webAction.getMethod() );
-        Assert.assertEquals( "", webAction.getUsername() );
-        Assert.assertEquals( "", webAction.getPassword() );
-        Assert.assertEquals( "https://www.example.com", webAction.getUrl() );
-        Assert.assertEquals( "", webAction.getBody() );
-        Assert.assertEquals( 0, webAction.getCertificates().size() );
-        Assert.assertEquals( 1, webAction.getSuccessStatus().size() );
-        Assert.assertTrue( webAction.getSuccessStatus().contains( 200 ) );
+        Assertions.assertEquals( ActionConfiguration.WebMethod.get, webAction.getMethod() );
+        Assertions.assertEquals( "", webAction.getUsername() );
+        Assertions.assertEquals( "", webAction.getPassword() );
+        Assertions.assertEquals( "https://www.example.com", webAction.getUrl() );
+        Assertions.assertEquals( "", webAction.getBody() );
+        Assertions.assertEquals( 0, webAction.getCertificates().size() );
+        Assertions.assertEquals( 1, webAction.getSuccessStatus().size() );
+        Assertions.assertTrue( webAction.getSuccessStatus().contains( 200 ) );
     }
 
     @Test
@@ -183,7 +183,7 @@ public class ActionValueTest
         xmlDocument.getRootElement().attachElement( settingElement );
         final String xmlStringOutput = XmlChai.getFactory().outputString( xmlDocument, XmlFactory.OutputFlag.Compact );
 
-        Assert.assertEquals( xmlTestValue( "jsonDataBasicWeb" ), xmlStringOutput );
+        Assertions.assertEquals( xmlTestValue( "jsonDataBasicWeb" ), xmlStringOutput );
     }
 
     private static Map<String, String> makeHeaderTestMap()

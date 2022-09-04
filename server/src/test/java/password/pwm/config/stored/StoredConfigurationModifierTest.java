@@ -20,8 +20,8 @@
 
 package password.pwm.config.stored;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.ProfileID;
 import password.pwm.config.PwmSetting;
@@ -50,7 +50,7 @@ public class StoredConfigurationModifierTest
         final StoredConfiguration newConfig = modifier.newStoredConfiguration();
 
         final String notesText = ValueTypeConverter.valueToString( newConfig.readStoredValue( key ).orElseThrow() );
-        Assert.assertEquals( "notes test", notesText );
+        Assertions.assertEquals( "notes test", notesText );
     }
 
     @Test
@@ -76,11 +76,11 @@ public class StoredConfigurationModifierTest
                 null );
 
         final List<ProfileID> profileNames = StoredConfigurationUtil.profilesForSetting( domainID, PwmSetting.HELPDESK_RESULT_LIMIT, postCopyConfig );
-        Assert.assertEquals( 2, profileNames.size() );
-        Assert.assertTrue( profileNames.contains( ProfileID.PROFILE_ID_DEFAULT ) );
-        Assert.assertTrue( profileNames.contains( newProfileID ) );
+        Assertions.assertEquals( 2, profileNames.size() );
+        Assertions.assertTrue( profileNames.contains( ProfileID.PROFILE_ID_DEFAULT ) );
+        Assertions.assertTrue( profileNames.contains( newProfileID ) );
 
         final long copiedResultLimit = ValueTypeConverter.valueToLong( postCopyConfig.readStoredValue( key ).orElseThrow() );
-        Assert.assertEquals( 19, copiedResultLimit );
+        Assertions.assertEquals( 19, copiedResultLimit );
     }
 }

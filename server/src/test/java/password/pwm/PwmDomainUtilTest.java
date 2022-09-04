@@ -21,8 +21,8 @@
 package password.pwm;
 
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -47,10 +47,10 @@ public class PwmDomainUtilTest
     {
         final Map<PwmDomainUtil.DomainModifyCategory, Set<DomainID>> categorizations = doSimpleCategorizationWithNewDomainList( INITIAL_DOMAIN_LIST );
 
-        Assert.assertEquals( 3, categorizations.get( PwmDomainUtil.DomainModifyCategory.unchanged ).size() );
-        Assert.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.removed ).size() );
-        Assert.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.created ).size() );
-        Assert.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.modified ).size() );
+        Assertions.assertEquals( 3, categorizations.get( PwmDomainUtil.DomainModifyCategory.unchanged ).size() );
+        Assertions.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.removed ).size() );
+        Assertions.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.created ).size() );
+        Assertions.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.modified ).size() );
     }
 
     @Test
@@ -59,10 +59,10 @@ public class PwmDomainUtilTest
     {
         final Map<PwmDomainUtil.DomainModifyCategory, Set<DomainID>> categorizations = doSimpleCategorizationWithNewDomainList( List.of( "acme1", "acme2"  ) );
 
-        Assert.assertEquals( 2, categorizations.get( PwmDomainUtil.DomainModifyCategory.unchanged ).size() );
-        Assert.assertEquals( 1, categorizations.get( PwmDomainUtil.DomainModifyCategory.removed ).size() );
-        Assert.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.created ).size() );
-        Assert.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.modified ).size() );
+        Assertions.assertEquals( 2, categorizations.get( PwmDomainUtil.DomainModifyCategory.unchanged ).size() );
+        Assertions.assertEquals( 1, categorizations.get( PwmDomainUtil.DomainModifyCategory.removed ).size() );
+        Assertions.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.created ).size() );
+        Assertions.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.modified ).size() );
     }
 
     @Test
@@ -71,10 +71,10 @@ public class PwmDomainUtilTest
     {
         final Map<PwmDomainUtil.DomainModifyCategory, Set<DomainID>> categorizations = doSimpleCategorizationWithNewDomainList( List.of( "acme1", "acme2", "acme3", "acme4" ) );
 
-        Assert.assertEquals( 3, categorizations.get( PwmDomainUtil.DomainModifyCategory.unchanged ).size() );
-        Assert.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.removed ).size() );
-        Assert.assertEquals( 1, categorizations.get( PwmDomainUtil.DomainModifyCategory.created ).size() );
-        Assert.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.modified ).size() );
+        Assertions.assertEquals( 3, categorizations.get( PwmDomainUtil.DomainModifyCategory.unchanged ).size() );
+        Assertions.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.removed ).size() );
+        Assertions.assertEquals( 1, categorizations.get( PwmDomainUtil.DomainModifyCategory.created ).size() );
+        Assertions.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.modified ).size() );
     }
 
     @Test
@@ -88,10 +88,10 @@ public class PwmDomainUtilTest
 
         final Map<PwmDomainUtil.DomainModifyCategory, Set<DomainID>> categorizations = PwmDomainUtil.categorizeDomainModifications( modifiedConfig, initialConfig );
 
-        Assert.assertEquals( 2, categorizations.get( PwmDomainUtil.DomainModifyCategory.unchanged ).size() );
-        Assert.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.removed ).size() );
-        Assert.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.created ).size() );
-        Assert.assertEquals( 1, categorizations.get( PwmDomainUtil.DomainModifyCategory.modified ).size() );
+        Assertions.assertEquals( 2, categorizations.get( PwmDomainUtil.DomainModifyCategory.unchanged ).size() );
+        Assertions.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.removed ).size() );
+        Assertions.assertEquals( 0, categorizations.get( PwmDomainUtil.DomainModifyCategory.created ).size() );
+        Assertions.assertEquals( 1, categorizations.get( PwmDomainUtil.DomainModifyCategory.modified ).size() );
     }
 
     @NotNull

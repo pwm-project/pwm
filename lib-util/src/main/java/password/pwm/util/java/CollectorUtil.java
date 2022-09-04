@@ -25,6 +25,7 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Function;
@@ -83,7 +84,8 @@ public class CollectorUtil
     )
     {
         final Collector<T, ?, Map<K, U>> wrappedCollector = toEnumMap( keyClass, keyMapper, valueMapper );
-        return Collectors.collectingAndThen( wrappedCollector, Collections::unmodifiableMap );
+        return Collectors.collectingAndThen( wrappedCollector,
+                s -> CollectionUtil.unmodifiableEnumMap( s, keyClass ) );
     }
 
     public static <T, K extends Enum<K>, U> Collector<T, ?, Map<K, U>> toEnumMap(
@@ -97,6 +99,31 @@ public class CollectorUtil
                 valueMapper,
                 CollectorUtil::errorOnDuplicateMergeOperator,
                 () -> new EnumMap<>( keyClass ) );
+    }
+
+    public static <T, K extends Enum<K>, U> Collector<T, ?, Set<K>> toUnmodifiableEnumSet(
+            final Class<K> keyClass,
+            final Function<? super T, ? extends K> keyMapper
+    )
+    {
+        final Collector<T, ?, Set<K>> wrappedCollector = toEnumSet( keyClass, keyMapper );
+        return Collectors.collectingAndThen( wrappedCollector, s -> CollectionUtil.unmodifiableEnumSet( s, keyClass ) );
+    }
+
+    public static <T, K extends Enum<K>, U> Collector<T, ?, Set<K>> toEnumSet(
+            final Class<K> keyClass,
+            final Function<? super T, ? extends K> keyMapper
+    )
+    {
+        final Function<? super T, Boolean> valueMapper = ( Function<T, Boolean> ) t -> Boolean.FALSE;
+
+        final Collector<T, ?, Map<K, Boolean>> wrappedCollector = Collectors.toMap(
+                keyMapper,
+                valueMapper,
+                CollectorUtil::errorOnDuplicateMergeOperator,
+                () -> new EnumMap<>( keyClass ) );
+
+        return Collectors.collectingAndThen( wrappedCollector, ( s ) -> CollectionUtil.copyToEnumSet( s.keySet(), keyClass ) );
     }
 
     static <V> V errorOnDuplicateMergeOperator( final V u, final V u2 )

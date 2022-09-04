@@ -20,10 +20,10 @@
 
 package password.pwm.util.json;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.stored.StoredConfigurationFactory;
@@ -48,7 +48,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -56,98 +55,94 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Stream;
 
-@RunWith( value = Parameterized.class )
 public class JsonProviderTest
 {
-    private final JsonProvider instance;
-
-    public JsonProviderTest( final JsonProvider instance )
+    static Stream<Arguments> jsonProviders()
     {
-        this.instance = instance;
+        return Stream.of(
+                Arguments.of( JsonFactory.get( JsonFactory.JsonImpl.moshi ) ),
+                Arguments.of( JsonFactory.get( JsonFactory.JsonImpl.gson ) ) );
     }
 
-    @Parameterized.Parameters
-    public static Collection<JsonProvider> data()
-    {
-        return List.of(
-                JsonFactory.get( JsonFactory.JsonImpl.moshi ),
-                JsonFactory.get( JsonFactory.JsonImpl.gson ) );
-    }
-
-    @Test
-    public void deserializeStringListTest()
+    @ParameterizedTest
+    @MethodSource( "jsonProviders" )
+    public void deserializeStringListTest( final JsonProvider instance )
     {
         final String jsonValue = "[\"value1\",\"value2\",\"value3\"]";
         final List<String> list = instance.deserializeStringList( jsonValue );
 
-        Assert.assertNotNull( list );
-        Assert.assertEquals( 3, list.size() );
-        Assert.assertEquals( "value1", list.get( 0 ) );
-        Assert.assertEquals( "value2", list.get( 1 ) );
-        Assert.assertEquals( "value3", list.get( 2 ) );
+        Assertions.assertNotNull( list );
+        Assertions.assertEquals( 3, list.size() );
+        Assertions.assertEquals( "value1", list.get( 0 ) );
+        Assertions.assertEquals( "value2", list.get( 1 ) );
+        Assertions.assertEquals( "value3", list.get( 2 ) );
 
         // verify returned collection is immutable
-        Assert.assertThrows( UnsupportedOperationException.class, () -> list.add( "new value" ) );
+        Assertions.assertThrows( UnsupportedOperationException.class, () -> list.add( "new value" ) );
     }
 
-    @Test
-    public void deserializeStringMapTest()
+    @ParameterizedTest
+    @MethodSource( "jsonProviders" )
+    public void deserializeStringMapTest( final JsonProvider instance )
     {
         final String jsonValue = "{\"key1\":\"value1\",\"key2\":\"value2\",\"key3\":\"value3\"}";
         final Map<String, String> map = instance.deserializeStringMap( jsonValue );
 
-        Assert.assertNotNull( map );
-        Assert.assertEquals( 3, map.size() );
-        Assert.assertEquals( "value1", map.get( "key1" ) );
-        Assert.assertEquals( "value2", map.get( "key2" ) );
-        Assert.assertEquals( "value3", map.get( "key3" ) );
+        Assertions.assertNotNull( map );
+        Assertions.assertEquals( 3, map.size() );
+        Assertions.assertEquals( "value1", map.get( "key1" ) );
+        Assertions.assertEquals( "value2", map.get( "key2" ) );
+        Assertions.assertEquals( "value3", map.get( "key3" ) );
 
         // verify returned collection is immutable
-        Assert.assertThrows( UnsupportedOperationException.class, () -> map.put( "new key", "new value" ) );
+        Assertions.assertThrows( UnsupportedOperationException.class, () -> map.put( "new key", "new value" ) );
     }
 
-    @Test
-    public void deserializeMapTest()
+    @ParameterizedTest
+    @MethodSource( "jsonProviders" )
+    public void deserializeMapTest( final JsonProvider instance )
     {
         final String jsonValue = "{\"key1\":\"value1\",\"key2\":\"value2\",\"key3\":\"value3\"}";
         final Map<String, Object> map = instance.deserializeMap( jsonValue, String.class, Object.class );
 
-        Assert.assertNotNull( map );
-        Assert.assertEquals( 3, map.size() );
-        Assert.assertEquals( "value1", map.get( "key1" ) );
-        Assert.assertEquals( "value2", map.get( "key2" ) );
-        Assert.assertEquals( "value3", map.get( "key3" ) );
+        Assertions.assertNotNull( map );
+        Assertions.assertEquals( 3, map.size() );
+        Assertions.assertEquals( "value1", map.get( "key1" ) );
+        Assertions.assertEquals( "value2", map.get( "key2" ) );
+        Assertions.assertEquals( "value3", map.get( "key3" ) );
 
         // verify returned collection is immutable
-        Assert.assertThrows( UnsupportedOperationException.class, () -> map.put( "new key", "new value" ) );
+        Assertions.assertThrows( UnsupportedOperationException.class, () -> map.put( "new key", "new value" ) );
     }
 
-    @Test
-    public void deserializeObjectTest()
+    @ParameterizedTest
+    @MethodSource( "jsonProviders" )
+    public void deserializeObjectTest( final JsonProvider instance )
     {
         final String jsonValue = TestObject1.makeExpectedJsonValue( instance );
         final TestObject1 testObject1 = instance.deserialize( jsonValue, TestObject1.class );
 
-        Assert.assertNotNull( testObject1 );
-        Assert.assertEquals( TestObject1.VALUE_STRING1, testObject1.getString1() );
-        Assert.assertEquals( TestObject1.VALUE_INSTANT1.toString(), testObject1.getInstant1().toString() );
-        Assert.assertEquals( TestObject1.VALUE_DATE1.toInstant().toString(), testObject1.getDate1().toInstant().toString() );
-        Assert.assertEquals( TestObject1.VALUE_LONG_ADDER1.longValue(), testObject1.getLongAdder1().longValue() );
-        Assert.assertEquals( TestObject1.VALUE_DOMAINID1, testObject1.getDomainId1() );
-        Assert.assertEquals( TestObject1.VALUE_PASSWORD_DATA1, testObject1.getPasswordData1() );
-        Assert.assertEquals( TestObject1.VALUE_X509_CERT1, testObject1.getCertificate1() );
-
+        Assertions.assertNotNull( testObject1 );
+        Assertions.assertEquals( TestObject1.VALUE_STRING1, testObject1.getString1() );
+        Assertions.assertEquals( TestObject1.VALUE_INSTANT1.toString(), testObject1.getInstant1().toString() );
+        Assertions.assertEquals( TestObject1.VALUE_DATE1.toInstant().toString(), testObject1.getDate1().toInstant().toString() );
+        Assertions.assertEquals( TestObject1.VALUE_LONG_ADDER1.longValue(), testObject1.getLongAdder1().longValue() );
+        Assertions.assertEquals( TestObject1.VALUE_DOMAINID1, testObject1.getDomainId1() );
+        Assertions.assertEquals( TestObject1.VALUE_PASSWORD_DATA1, testObject1.getPasswordData1() );
+        Assertions.assertEquals( TestObject1.VALUE_X509_CERT1, testObject1.getCertificate1() );
     }
 
-    @Test
-    public void miscSerializationTests()
+    @ParameterizedTest
+    @MethodSource( "jsonProviders" )
+    public void miscSerializationTests( final JsonProvider instance )
     {
         {
             final String json = "[{\"type\":\"ldapQuery\",\"ldapProfileID\":\"all\",\"ldapQuery\":\"(cn=asmith)\"}]";
             final List<UserPermission> userPermission = instance.deserializeList( json, UserPermission.class );
 
-            Assert.assertEquals( UserPermissionType.ldapQuery, userPermission.get( 0 ).getType() );
+            Assertions.assertEquals( UserPermissionType.ldapQuery, userPermission.get( 0 ).getType() );
         }
 
         {
@@ -158,20 +153,22 @@ public class JsonProviderTest
             );
 
             final String json = instance.serializeMap( new TreeMap<>( map ), String.class, Integer.class );
-            Assert.assertEquals( "{\"J\":1,\"JJ\":2,\"JJJ\":3}", json );
+            Assertions.assertEquals( "{\"J\":1,\"JJ\":2,\"JJJ\":3}", json );
         }
     }
 
-    @Test
-    public void serializeNestedListMap()
+    @ParameterizedTest
+    @MethodSource( "jsonProviders" )
+    public void serializeNestedListMap( final JsonProvider instance )
     {
         final List<Map<String, Object>> srcObject = new ArrayList<>();
         srcObject.add( Map.of( "key1", "value1" ) );
         final String jsonOutput = instance.serializeCollection( srcObject );
-        Assert.assertEquals( "[{\"key1\":\"value1\"}]", jsonOutput );
+        Assertions.assertEquals( "[{\"key1\":\"value1\"}]", jsonOutput );
     }
 
-    @Test
+    @ParameterizedTest
+    @MethodSource( "jsonProviders" )
     public void deserializeNestedListMap()
     {
 
@@ -180,19 +177,21 @@ public class JsonProviderTest
 
     }
 
-    @Test
-    public void deserializeCollectionTest()
+    @ParameterizedTest
+    @MethodSource( "jsonProviders" )
+    public void deserializeCollectionTest( final JsonProvider instance )
     {
         final String json = "[\"ListItem1\",\"ListItem2\",{\"key1\":\"value1\",\"key2\":\"value2\"}]";
         final List<Object> list = instance.deserializeList( json, Object.class );
 
-        Assert.assertEquals( "ListItem1", list.get( 0 ) );
-        Assert.assertEquals( "ListItem2", list.get( 1 ) );
-        Assert.assertEquals( Map.of( "key1", "value1", "key2", "value2" ), list.get( 2 ) );
+        Assertions.assertEquals( "ListItem1", list.get( 0 ) );
+        Assertions.assertEquals( "ListItem2", list.get( 1 ) );
+        Assertions.assertEquals( Map.of( "key1", "value1", "key2", "value2" ), list.get( 2 ) );
     }
 
-    @Test
-    public void serializeNavTreeTest()
+    @ParameterizedTest
+    @MethodSource( "jsonProviders" )
+    public void serializeNavTreeTest( final JsonProvider instance )
             throws Exception
     {
         final List<NavTreeItem> navTreeItems = NavTreeDataMaker.makeNavTreeItems(
@@ -203,8 +202,9 @@ public class JsonProviderTest
         instance.serializeCollection( navTreeItems );
     }
 
-    @Test
-    public void serializeRestResultBeanTest()
+    @ParameterizedTest
+    @MethodSource( "jsonProviders" )
+    public void serializeRestResultBeanTest( final JsonProvider instance )
     {
         {
             final String expectedJson = "{\"data\":{\"key1\":1,\"key2\":\"value2\"},\"error\":false,\"errorCode\":0}";
@@ -213,33 +213,36 @@ public class JsonProviderTest
             data.put( "key2", "value2" );
             final RestResultBean<Map> restResultBean = RestResultBean.withData( data, Map.class );
             final String json = restResultBean.toJson( false );
-            Assert.assertEquals( expectedJson, json );
+            Assertions.assertEquals( expectedJson, json );
         }
 
     }
 
-    @Test
-    public void deserializeMap()
+    @ParameterizedTest
+    @MethodSource( "jsonProviders" )
+    public void deserializeMap( final JsonProvider instance )
     {
         final String json = "{\"key1\":1,\"key2\":\"String2\",\"key3\":[\"ListValue1\",\"ListValue2\"]}";
         final Map<String, Object> map = instance.deserializeMap( json,
                 String.class,
                 Object.class );
-        Assert.assertEquals( 1.0, map.get( "key1" ) );
-        Assert.assertEquals( "String2", map.get( "key2" ) );
-        Assert.assertEquals( List.of( "ListValue1", "ListValue2" ), map.get( "key3" ) );
+        Assertions.assertEquals( 1.0, map.get( "key1" ) );
+        Assertions.assertEquals( "String2", map.get( "key2" ) );
+        Assertions.assertEquals( List.of( "ListValue1", "ListValue2" ), map.get( "key3" ) );
     }
 
-    @Test
-    public void serializeObjectTest()
+    @ParameterizedTest
+    @MethodSource( "jsonProviders" )
+    public void serializeObjectTest( final JsonProvider instance )
     {
         final TestObject1 testObject1 = TestObject1.newTestObject();
         final String jsonValue = instance.serialize( testObject1 );
-        Assert.assertEquals( TestObject1.makeExpectedJsonValue( instance ), jsonValue );
+        Assertions.assertEquals( TestObject1.makeExpectedJsonValue( instance ), jsonValue );
     }
 
-    @Test
-    public void serializeTypeTest()
+    @ParameterizedTest
+    @MethodSource( "jsonProviders" )
+    public void serializeTypeTest( final JsonProvider instance )
     {
         final List<ActionConfiguration> srcList = new ArrayList<>();
         {
@@ -260,21 +263,22 @@ public class JsonProviderTest
 
         final List<ActionConfiguration> deserializedList = instance.deserializeList( json, ActionConfiguration.class );
 
-        Assert.assertEquals( srcList, deserializedList );
+        Assertions.assertEquals( srcList, deserializedList );
     }
 
-    @Test
-    public void typeTimeDurationJsonTest()
+    @ParameterizedTest
+    @MethodSource( "jsonProviders" )
+    public void typeTimeDurationJsonTest( final JsonProvider instance )
     {
         {
             final TimeDuration timeDuration = TimeDuration.MINUTE;
             final String json = instance.serialize( timeDuration );
-            Assert.assertEquals( "\"PT1M\"", json );
+            Assertions.assertEquals( "\"PT1M\"", json );
         }
         {
             final String json = "\"PT1M\"";
             final TimeDuration timeDuration = instance.deserialize( json, TimeDuration.class );
-            Assert.assertEquals( TimeDuration.MINUTE, timeDuration );
+            Assertions.assertEquals( TimeDuration.MINUTE, timeDuration );
         }
     }
 

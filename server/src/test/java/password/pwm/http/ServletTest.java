@@ -20,8 +20,8 @@
 
 package password.pwm.http;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ClasspathHelper;
@@ -54,7 +54,7 @@ public class ServletTest
                 {
                     if ( StringUtil.caseIgnoreContains( seenServletNames, name ) )
                     {
-                        Assert.fail( httpServletClass.getName() + " servlet class name duplicate (case ignore) detected: " + name );
+                        Assertions.fail( httpServletClass.getName() + " servlet class name duplicate (case ignore) detected: " + name );
                     }
                     seenServletNames.add( name );
                 }
@@ -81,7 +81,7 @@ public class ServletTest
                     {
                         if ( seenPatterns.contains( name ) )
                         {
-                            Assert.fail( httpServletClass.getName() + " servlet pattern duplicate detected: " + name );
+                            Assertions.fail( httpServletClass.getName() + " servlet pattern duplicate detected: " + name );
                         }
                         seenPatterns.add( name );
                     }

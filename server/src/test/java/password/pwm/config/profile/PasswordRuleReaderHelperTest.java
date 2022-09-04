@@ -20,16 +20,18 @@
 
 package password.pwm.config.profile;
 
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import password.pwm.PwmApplication;
 import password.pwm.user.UserInfoBean;
+import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.TestHelper;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordRuleReaderHelper;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +40,8 @@ import java.util.regex.Pattern;
 public class PasswordRuleReaderHelperTest
 {
 
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @TempDir
+    public Path temporaryFolder;
 
     private MacroRequest makeMacroRequest() throws Exception
     {
@@ -52,7 +54,8 @@ public class PasswordRuleReaderHelperTest
                     "sn", "Flintstone" );
         }
 
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder() );
+        final File testFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-makeMacroRequest" );
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( testFolder );
 
         final UserInfoBean userInfo = UserInfoBean.builder()
                 .attributes( userAttributes )
@@ -81,8 +84,8 @@ public class PasswordRuleReaderHelperTest
         final List<Pattern> patterns = ruleHelper.readRegExSetting( PwmPasswordRule.RegExMatch, macroRequest, input );
 
         final String expected = "fflintstone, First Name: Fred, Last Name: Flintstone, Email: fred@flintstones.tv";
-        Assert.assertEquals( 1, patterns.size() );
-        Assert.assertEquals( expected, patterns.get( 0 ).pattern() );
+        Assertions.assertEquals( 1, patterns.size() );
+        Assertions.assertEquals( expected, patterns.get( 0 ).pattern() );
     }
 
     @Test
@@ -95,8 +98,8 @@ public class PasswordRuleReaderHelperTest
 
         final List<Pattern> patterns = ruleHelper.readRegExSetting( PwmPasswordRule.RegExMatch, macroRequest, input );
 
-        Assert.assertEquals( 2, patterns.size() );
-        Assert.assertEquals( "^fflintstone[0-9]+$", patterns.get( 0 ).pattern() );
-        Assert.assertEquals( "^password$", patterns.get( 1 ).pattern() );
+        Assertions.assertEquals( 2, patterns.size() );
+        Assertions.assertEquals( "^fflintstone[0-9]+$", patterns.get( 0 ).pattern() );
+        Assertions.assertEquals( "^password$", patterns.get( 1 ).pattern() );
     }
 }

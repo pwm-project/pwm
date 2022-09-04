@@ -22,20 +22,19 @@ package password.pwm.util.localdb;
 
 import lombok.Builder;
 import lombok.Value;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import password.pwm.AppProperty;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.java.FileSystemUtility;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.Percent;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.LocalDBLoggerSettings;
 import password.pwm.util.logging.PwmLogEvent;
@@ -45,6 +44,7 @@ import password.pwm.util.secure.PwmRandom;
 import java.io.File;
 import java.io.Serializable;
 import java.math.RoundingMode;
+import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -76,15 +76,16 @@ public class LocalDBLoggerExtendedTest
     private static Settings settings;
     private Instant startTime;
 
-    @Rule
-    public TemporaryFolder testFolder = new TemporaryFolder();
+    @TempDir
+    public Path temporaryFolder;
 
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception
     {
         TestHelper.setupLogging();
-        final File localDBPath = testFolder.newFolder( "localdb-logger-test" );
+        final File localDBPath = FileSystemUtility.createDirectory( temporaryFolder, "test-localdb-logger-test" );
+
         config = AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() );
 
         localDB = LocalDBFactory.getInstance(

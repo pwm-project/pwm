@@ -21,12 +21,14 @@
 
 package password.pwm.util.java;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 
 public class CollectorUtilTest
 {
@@ -46,13 +48,13 @@ public class CollectorUtilTest
                         Map.Entry::getValue ) );
 
         final Iterator<String> iter = outputMap.values().iterator();
-        Assert.assertEquals( "1", iter.next() );
-        Assert.assertEquals( "2", iter.next() );
-        Assert.assertEquals( "3", iter.next() );
-        Assert.assertEquals( "4", iter.next() );
-        Assert.assertEquals( "5", iter.next() );
+        Assertions.assertEquals( "1", iter.next() );
+        Assertions.assertEquals( "2", iter.next() );
+        Assertions.assertEquals( "3", iter.next() );
+        Assertions.assertEquals( "4", iter.next() );
+        Assertions.assertEquals( "5", iter.next() );
 
-        Assert.assertEquals( "java.util.LinkedHashMap", outputMap.getClass().getName() );
+        Assertions.assertEquals( "java.util.LinkedHashMap", outputMap.getClass().getName() );
 
         outputMap.put( "testKey", "testValue" );
     }
@@ -73,12 +75,33 @@ public class CollectorUtilTest
                         Map.Entry::getValue ) );
 
         final Iterator<String> iter = outputMap.values().iterator();
-        Assert.assertEquals( "1", iter.next() );
-        Assert.assertEquals( "2", iter.next() );
-        Assert.assertEquals( "3", iter.next() );
-        Assert.assertEquals( "4", iter.next() );
-        Assert.assertEquals( "5", iter.next() );
+        Assertions.assertEquals( "1", iter.next() );
+        Assertions.assertEquals( "2", iter.next() );
+        Assertions.assertEquals( "3", iter.next() );
+        Assertions.assertEquals( "4", iter.next() );
+        Assertions.assertEquals( "5", iter.next() );
 
-        Assert.assertThrows( UnsupportedOperationException.class, () -> outputMap.put( "testKey", "testValue" ) );
+        Assertions.assertThrows( UnsupportedOperationException.class, () -> outputMap.put( "testKey", "testValue" ) );
+    }
+
+    private enum TestEnum
+    {
+        ONE,
+        TWO,
+        THREE,
+        FOUR,
+        FIVE,
+        SIX,
+    }
+
+    @Test
+    public void collectorToUnmodifiableEnumSet()
+    {
+        final Set<TestEnum> testSet = CollectionUtil.enumStream( TestEnum.class )
+                .collect( CollectorUtil.toUnmodifiableEnumSet( TestEnum.class, Function.identity() ) );
+
+        Assertions.assertEquals( 6, testSet.size() );
+        Assertions.assertEquals( TestEnum.ONE, testSet.iterator().next() );
+        Assertions.assertThrows( UnsupportedOperationException.class, () -> testSet.remove( TestEnum.ONE ) );
     }
 }

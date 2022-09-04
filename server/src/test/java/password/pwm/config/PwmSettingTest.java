@@ -24,10 +24,8 @@ import org.jrivard.xmlchai.AccessMode;
 import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.PwmConstants;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
@@ -49,9 +47,6 @@ import java.util.Set;
 
 public class PwmSettingTest
 {
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
     @Test
     public void testDefaultValues() throws Exception
     {
@@ -74,7 +69,7 @@ public class PwmSettingTest
                 storedValue.toDebugJsonObject( PwmConstants.DEFAULT_LOCALE );
                 storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, outputSettings );
                 storedValue.validateValue( pwmSetting );
-                Assert.assertNotNull( storedValue.valueHash() );
+                Assertions.assertNotNull( storedValue.valueHash() );
                 if ( storedValue.toNativeObject() != null )
                 {
                     JsonFactory.get().serialize( ( Serializable ) storedValue.toNativeObject() );
@@ -93,7 +88,7 @@ public class PwmSettingTest
         {
             final String expression = "/settings/setting[@key=\"" + pwmSetting.getKey() + "\"]";
             final Optional<XmlElement> xmlElement = xmlDoc.evaluateXpathToElement( expression );
-            Assert.assertTrue( "missing PwmSetting.xml setting reference for key " + pwmSetting.getKey(), xmlElement.isPresent() );
+            Assertions.assertTrue( xmlElement.isPresent(), "missing PwmSetting.xml setting reference for key " + pwmSetting.getKey() );
         }
     }
 
@@ -107,7 +102,7 @@ public class PwmSettingTest
         {
             final String expression = "/settings/setting[@key=\"" + pwmSetting.getKey() + "\"]";
             final List<XmlElement> results = xmlDoc.evaluateXpathToElements( expression );
-            Assert.assertFalse( "multiple PwmSetting.xml setting reference for key " + pwmSetting.getKey(), results.size() > 1 );
+            Assertions.assertFalse( results.size() > 1, "multiple PwmSetting.xml setting reference for key " + pwmSetting.getKey() );
         }
     }
 
@@ -124,9 +119,9 @@ public class PwmSettingTest
             final String key = result.getAttribute( "key" )
                     .orElseThrow( () -> new IllegalStateException( "setting element " + result.getName() + " missing key attribute" ) );
 
-            Assert.assertFalse( StringUtil.isEmpty( key ) );
+            Assertions.assertFalse( StringUtil.isEmpty( key ) );
             final Optional<PwmSetting> pwmSetting = PwmSetting.forKey( key );
-            Assert.assertTrue( "unknown PwmSetting.xml setting reference for key " + key, pwmSetting.isPresent() );
+            Assertions.assertTrue( pwmSetting.isPresent(), "unknown PwmSetting.xml setting reference for key " + key );
         }
     }
 
@@ -159,9 +154,9 @@ public class PwmSettingTest
     public void testFlagValues() throws PwmUnrecoverableException, PwmOperationalException
     {
         final Set<PwmSettingFlag> flags = PwmSetting.DOMAIN_LIST.getFlags();
-        Assert.assertEquals( 2, flags.size() );
-        Assert.assertTrue( flags.contains( PwmSettingFlag.Sorted ) );
-        Assert.assertTrue( flags.contains( PwmSettingFlag.ReloadEditorOnModify ) );
+        Assertions.assertEquals( 2, flags.size() );
+        Assertions.assertTrue( flags.contains( PwmSettingFlag.Sorted ) );
+        Assertions.assertTrue( flags.contains( PwmSettingFlag.ReloadEditorOnModify ) );
     }
 
     @Test
@@ -213,17 +208,17 @@ public class PwmSettingTest
         for ( final PwmSetting pwmSetting : PwmSetting.values() )
         {
             // duplicate key found
-            Assert.assertFalse( seenKeys.contains( pwmSetting.getKey() ) );
+            Assertions.assertFalse( seenKeys.contains( pwmSetting.getKey() ) );
             seenKeys.add( pwmSetting.getKey() );
         }
-        Assert.assertEquals( seenKeys.size(), PwmSetting.values().length );
+        Assertions.assertEquals( seenKeys.size(), PwmSetting.values().length );
     }
 
     @Test
     public void sortedByMenuLocation()
     {
         final List<PwmSetting> list = PwmSetting.sortedValues();
-        Assert.assertEquals( list.size(), PwmSetting.values().length );
+        Assertions.assertEquals( list.size(), PwmSetting.values().length );
     }
 
 
