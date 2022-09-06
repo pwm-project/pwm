@@ -156,8 +156,8 @@ public class PwmServiceManager
             newServiceInstance.init( pwmApplication, domainID );
             final TimeDuration startupDuration = TimeDuration.fromCurrent( startTime );
             LOGGER.debug( sessionLabel, () -> "completed initialization of " + debugSvcType()
-                    + " " + newServiceInstance.name() + " in " + startupDuration.asCompactString()
-                    + ", status=" + newServiceInstance.status() );
+                    + " " + newServiceInstance.name()
+                    + ", status=" + newServiceInstance.status(), startupDuration );
         }
         catch ( final PwmException e )
         {

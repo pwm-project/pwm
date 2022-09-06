@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -349,7 +350,8 @@ public class JsonProviderTest
                         "message",
                         SessionLabel.TEST_SESSION_LABEL,
                         throwable,
-                        PwmLogLevel.TRACE
+                        PwmLogLevel.TRACE,
+                        Duration.ZERO
                 );
             }
         }

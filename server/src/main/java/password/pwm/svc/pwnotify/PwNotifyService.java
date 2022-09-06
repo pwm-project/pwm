@@ -164,7 +164,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
         try
         {
             nextExecutionTime = figureNextJobExecutionTime();
-            LOGGER.debug( getSessionLabel(), () -> "scheduled next job execution at " + nextExecutionTime.toString() );
+            LOGGER.debug( getSessionLabel(), () -> "scheduled next job execution at " + StringUtil.toIsoDate( nextExecutionTime ) );
         }
         catch ( final Exception e )
         {

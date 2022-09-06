@@ -20,40 +20,75 @@
 
 package password.pwm.util.logging;
 
-import org.apache.log4j.Level;
+import org.slf4j.event.Level;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StringUtil;
+
+import java.util.Collection;
 
 public enum PwmLogLevel
 {
-    TRACE( Level.TRACE ),
-    DEBUG( Level.DEBUG ),
-    INFO( Level.INFO ),
-    WARN( Level.WARN ),
-    ERROR( Level.ERROR ),
-    FATAL( Level.FATAL ),;
+    TRACE( ch.qos.logback.classic.Level.TRACE, org.slf4j.event.Level.TRACE ),
+    DEBUG( ch.qos.logback.classic.Level.DEBUG, org.slf4j.event.Level.DEBUG ),
+    INFO( ch.qos.logback.classic.Level.INFO, org.slf4j.event.Level.INFO ),
+    WARN( ch.qos.logback.classic.Level.WARN, org.slf4j.event.Level.WARN ),
+    ERROR( ch.qos.logback.classic.Level.ERROR, org.slf4j.event.Level.ERROR ),
+    FATAL( ch.qos.logback.classic.Level.ERROR, org.slf4j.event.Level.ERROR ),
+    NONE( ch.qos.logback.classic.Level.OFF, org.slf4j.event.Level.ERROR ),;
 
-    private final int log4jLevel;
+    private final ch.qos.logback.classic.Level logbackLevel;
+    private final org.slf4j.event.Level slf4jLevel;
 
-    PwmLogLevel( final Level log4jLevel )
+    PwmLogLevel( final ch.qos.logback.classic.Level logbackLevel, final org.slf4j.event.Level slf4jLevel )
     {
-        this.log4jLevel = log4jLevel.toInt();
+        this.logbackLevel = logbackLevel;
+        this.slf4jLevel = slf4jLevel;
     }
 
-    public Level getLog4jLevel( )
+    public ch.qos.logback.classic.Level getLogbackLevel( )
     {
-        return Level.toLevel( log4jLevel );
+        return logbackLevel;
     }
 
-    public static PwmLogLevel fromLog4jLevel( final Level level )
+    public Level getSlf4jLevel()
     {
-        final int log4jIntLevel = level == null
-                ? Level.TRACE.toInt()
-                : level.toInt();
+        return slf4jLevel;
+    }
+
+    public boolean isGreaterOrSameAs( final PwmLogLevel logLevel )
+    {
+        return logLevel != null && this.compareTo( logLevel ) >= 0;
+    }
+
+    public static PwmLogLevel fromLogbackLevel( final ch.qos.logback.classic.Level level )
+    {
+        if ( level == null )
+        {
+            return TRACE;
+        }
 
         return JavaHelper.readEnumFromPredicate(
                 PwmLogLevel.class,
-                pwmLogLevel -> pwmLogLevel.log4jLevel == log4jIntLevel
-        )
+                pwmLogLevel -> pwmLogLevel.logbackLevel == level
+        ).orElse( TRACE );
+    }
+
+    public static PwmLogLevel fromString( final String stringLogLevel )
+    {
+        return JavaHelper.readEnumFromPredicate(
+                        PwmLogLevel.class,
+                        pwmLogLevel -> StringUtil.nullSafeEqualsIgnoreCase( stringLogLevel, pwmLogLevel.name() ) )
                 .orElse( TRACE );
+    }
+
+    public static PwmLogLevel lowestLevel( final Collection<PwmLogLevel> logLevels )
+    {
+        if ( CollectionUtil.isEmpty( logLevels ) )
+        {
+            return TRACE;
+        }
+
+        return CollectionUtil.copyToEnumSet( logLevels, PwmLogLevel.class ).iterator().next();
     }
 }

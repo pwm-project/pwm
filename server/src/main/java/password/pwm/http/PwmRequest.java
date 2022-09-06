@@ -323,7 +323,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     public void debugHttpRequestToLog( final String extraText, final TimeDuration timeDuration )
             throws PwmUnrecoverableException
     {
-        if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        if ( LOGGER.isInterestingLevel( PwmLogLevel.TRACE ) )
         {
             final String moreExtraText = ( StringUtil.isEmpty( extraText ) ? "" : extraText + " " )
                     + "request=" + this.getPwmRequestID() + ", domain=" + this.getDomainID().stringValue();

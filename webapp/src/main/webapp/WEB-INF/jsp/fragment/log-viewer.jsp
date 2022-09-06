@@ -107,17 +107,17 @@
         </form>
     </div>
     <br/>
-    <div id="div-noResultsMessage" class="hidden" style="min-height: 200px">
+    <div id="div-noResultsMessage" class="nodisplay" style="min-height: 200px">
         <p style="text-align:center;" >
             No events matched the search settings. Please refine your search query and try again.
         </p>
     </div>
     <div style="margin: 20px; min-height: 200px">
-        <div id="wrapper-logViewerGrid" class="hidden">
+        <div id="wrapper-logViewerGrid" class="nodisplay">
             <div id="logViewerGrid" >
             </div>
         </div>
-        <div id="wrapper-lineViewer" class="hidden">
+        <div id="wrapper-lineViewer" class="nodisplay">
             <div id="lineViewer" class="logViewer">
 
             </div>

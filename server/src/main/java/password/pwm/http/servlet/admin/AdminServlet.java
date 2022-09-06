@@ -832,6 +832,7 @@ public class AdminServlet extends ControlledPwmServlet
     {
         plain,
         csv,
+        json,
     }
 
     public enum LogDownloadCompression
@@ -913,6 +914,20 @@ public class AdminServlet extends ControlledPwmServlet
                 while ( searchResults.hasNext() )
                 {
                     writer.write( searchResults.next().toCsvLine( ) );
+                    writer.write( "\n" );
+                }
+            }
+            break;
+
+            case json:
+            {
+                final JsonProvider jsonProvider = JsonFactory.get();
+                pwmRequest.getPwmResponse().markAsDownload(
+                        compressedContentType != null ? compressedContentType : HttpContentType.json,
+                        "debug.json" + compressFileNameSuffix );
+                while ( searchResults.hasNext() )
+                {
+                    writer.write( jsonProvider.serialize( searchResults.next(), PwmLogEvent.class ) );
                     writer.write( "\n" );
                 }
             }

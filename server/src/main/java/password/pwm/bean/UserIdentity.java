@@ -21,10 +21,10 @@
 package password.pwm.bean;
 
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jetbrains.annotations.NotNull;
 import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.config.AppConfig;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
@@ -234,17 +234,9 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
         }
 
         final ChaiUser chaiUser = pwmApplication.domains().get( this.getDomainID() ).getProxiedChaiUser( sessionLabel, this );
-        final String userDN;
-        try
-        {
-            userDN = chaiUser.readCanonicalDN();
-        }
-        catch ( final ChaiException e )
-        {
-            throw PwmUnrecoverableException.fromChaiException( e );
-        }
-        final UserIdentity canonicalziedIdentity = create( userDN, this.getLdapProfileID(), this.getDomainID() );
-        canonicalziedIdentity.canonical = true;
-        return canonicalziedIdentity;
+        final LdapProfile ldapProfile = getLdapProfile( pwmApplication.getConfig() );
+        final PwmDomain domain = pwmApplication.domains().get( domainID );
+        final String userDN = ldapProfile.readCanonicalDN( sessionLabel, domain, chaiUser.getEntryDN() );
+        return create( userDN, this.getLdapProfileID(), this.getDomainID(), Flag.PreCanonicalized );
     }
 }

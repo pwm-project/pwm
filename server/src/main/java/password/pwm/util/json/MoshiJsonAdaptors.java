@@ -68,6 +68,7 @@ class MoshiJsonAdaptors
         moshiBuilder.add( BigInteger.class, applyFlagsToAdapter( new BigIntegerTypeAdaptor(), flags ) );
         moshiBuilder.add( Locale.class, applyFlagsToAdapter( new LocaleTypeAdaptor(), flags ) );
         moshiBuilder.add( TimeDuration.class, applyFlagsToAdapter( new TimeDurationAdaptor(), flags ) );
+        moshiBuilder.add( Duration.class, applyFlagsToAdapter( new DurationAdaptor(), flags ) );
     }
 
     static <T> JsonAdapter<T> applyFlagsToAdapter( final JsonAdapter<T> adapter, final JsonProvider.Flag... flags )
@@ -429,6 +430,33 @@ class MoshiJsonAdaptors
             }
 
             writer.value( value.asDuration().toString() );
+        }
+    }
+
+    private static class DurationAdaptor extends JsonAdapter<Duration>
+    {
+        @Nullable
+        @Override
+        public Duration fromJson( final JsonReader reader ) throws IOException
+        {
+            final String strValue = reader.nextString();
+            if ( StringUtil.isEmpty( strValue ) )
+            {
+                return null;
+            }
+            return Duration.parse( strValue );
+        }
+
+        @Override
+        public void toJson( final JsonWriter writer, @Nullable final Duration value ) throws IOException
+        {
+            if ( value == null )
+            {
+                writer.nullValue();
+                return;
+            }
+
+            writer.value( value.toString() );
         }
     }
 }

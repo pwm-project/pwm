@@ -350,7 +350,7 @@ public class OtpService extends AbstractPwmService implements PwmService
 
         {
             final OTPUserRecord finalOtpConfig = otpConfig;
-            final Supplier<CharSequence> msg = () -> finalOtpConfig == null
+            final Supplier<String> msg = () -> finalOtpConfig == null
                     ? "no otp record found for user " + userIdentity.toDisplayString()
                     : "loaded otp record for user " + userIdentity.toDisplayString()
                     + " [recordType=" + finalOtpConfig.getType() + ", identifier=" + finalOtpConfig.getIdentifier() + ", timestamp="

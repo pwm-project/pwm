@@ -20,27 +20,34 @@
 
 package password.pwm.util.logging;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.MiscUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 @Value
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+@Builder( access = AccessLevel.PRIVATE, toBuilder = true )
 public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
 {
-    private static final int MAX_MESSAGE_LENGTH = 50_000;
+    private static final int MAX_MESSAGE_LENGTH = 10_000;
+    private static final int MAX_FIELD_LENGTH = 256;
 
     private final Instant timestamp;
     private final String sessionID;
@@ -52,6 +59,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
     private final String username;
     private final String domain;
     private final String sourceAddress;
+    private final Duration duration;
 
     private static final Comparator<PwmLogEvent> COMPARATOR = Comparator.comparing(
             PwmLogEvent::getTimestamp,
@@ -78,7 +86,8 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
             final String message,
             final SessionLabel sessionLabel,
             final LoggedThrowable loggedThrowable,
-            final PwmLogLevel level
+            final PwmLogLevel level,
+            final Duration duration
     )
     {
         if ( timestamp == null )
@@ -91,20 +100,18 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
             throw new IllegalArgumentException( "level may not be null" );
         }
 
-        // safety truncate
-        final int maxFieldLength = 256;
-
         this.timestamp = timestamp;
-        this.topic = StringUtil.truncate( topic, maxFieldLength );
+        this.topic = StringUtil.truncate( topic, MAX_FIELD_LENGTH );
         this.message = StringUtil.truncate( message, MAX_MESSAGE_LENGTH, " [truncated message]" );
         this.loggedThrowable = loggedThrowable;
         this.level = level;
 
-        this.sessionID = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getSessionID(), 256 );
-        this.requestID = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getRequestID(), 256 );
-        this.username = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getUsername(), 256 );
-        this.domain = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getDomain(), 256 );
-        this.sourceAddress = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getSourceAddress(), 256 );
+        this.sessionID = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getSessionID(), MAX_FIELD_LENGTH );
+        this.requestID = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getRequestID(), MAX_FIELD_LENGTH );
+        this.username = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getUsername(), MAX_FIELD_LENGTH );
+        this.domain = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getDomain(), MAX_FIELD_LENGTH );
+        this.sourceAddress = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getSourceAddress(), MAX_FIELD_LENGTH );
+        this.duration = duration == null ? Duration.ZERO : duration;
     }
 
     public static PwmLogEvent createPwmLogEvent(
@@ -113,40 +120,29 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
             final String message,
             final SessionLabel sessionLabel,
             final Throwable throwable,
-            final PwmLogLevel level
+            final PwmLogLevel level,
+            final Duration duration
     )
     {
-        return new PwmLogEvent( timestamp, topic, message, sessionLabel, LoggedThrowable.fromThrowable( throwable ), level );
+        return new PwmLogEvent( timestamp, topic, message, sessionLabel, LoggedThrowable.fromThrowable( throwable ), level, duration );
     }
 
     String getEnhancedMessage( )
     {
-        final StringBuilder output = new StringBuilder();
-        output.append( getDebugLabel() );
-        output.append( message );
 
-        final String srcAddrString = getSourceAddress();
-        if ( StringUtil.notEmpty( srcAddrString ) )
-        {
-            final String srcStr = " [" + srcAddrString + "]";
+        final SessionLabel sessionLabel = SessionLabel.builder()
+                .sessionID( getSessionID() )
+                .requestID( getRequestID() )
+                .username( getUsername() )
+                .sourceAddress( getSourceAddress() )
+                .domain( getDomain() )
+                .build();
 
-            final int firstCR = output.indexOf( "\n" );
-            if ( firstCR == -1 )
-            {
-                output.append( srcStr );
-            }
-            else
-            {
-                output.insert( firstCR, srcStr );
-            }
-        }
-
-        if ( this.getLoggedThrowable() != null && this.getLoggedThrowable().getStackTrace() != null )
-        {
-            output.append( JavaHelper.throwableToString( getLoggedThrowable().toThrowable() ) );
-        }
-
-        return output.toString();
+        return PwmLogUtil.createEnhancedMessage(
+                sessionLabel,
+                message,
+                loggedThrowable == null ? null : loggedThrowable.toThrowable(),
+                duration == null ? null : TimeDuration.fromDuration( duration ) );
     }
 
     @Override
@@ -156,28 +152,8 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
     }
 
     String toEncodedString( )
-            throws IOException
     {
         return JsonFactory.get().serialize( this, PwmLogEvent.class );
-    }
-
-    Throwable getThrowable()
-    {
-        return getLoggedThrowable() == null
-                ? null
-                : getLoggedThrowable().toThrowable();
-    }
-
-    private String getDebugLabel( )
-    {
-        return SessionLabel.builder()
-                .sessionID( getSessionID() )
-                .requestID( getRequestID() )
-                .username( getUsername() )
-                .sourceAddress( getSourceAddress() )
-                .domain( getDomain() )
-                .build()
-                .toDebugLabel();
     }
 
     public String toLogString( )
@@ -189,6 +165,9 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
     {
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( byteArrayOutputStream );
+
+        final String throwableMessage = ( getLoggedThrowable() == null || getLoggedThrowable().getMessage() == null ) ? "" : getLoggedThrowable().getMessage();
+
         final List<String> dataRow = new ArrayList<>();
         dataRow.add( StringUtil.toIsoDate( getTimestamp() ) );
         dataRow.add( getLevel().name() );
@@ -197,11 +176,12 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
         dataRow.add( getUsername( ) );
         dataRow.add( getTopic() );
         dataRow.add( getMessage() );
-        dataRow.add( getLoggedThrowable() == null && getLoggedThrowable().getMessage() != null ? "" : getLoggedThrowable().getMessage() );
+        dataRow.add( throwableMessage );
+
         csvPrinter.printRecord( dataRow );
         csvPrinter.flush();
-        return byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET.name() );
 
+        return byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET.name() );
     }
 
     public String toLogString( final boolean includeTimeStamp )
@@ -251,4 +231,8 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
         return output.toString();
     }
 
+    PwmLogEvent stripThrowable()
+    {
+        return this.toBuilder().loggedThrowable( null ).build();
+    }
 }

@@ -305,7 +305,7 @@ public class AppDashboardData implements Serializable
                 returnData.add( new ServiceData(
                         guid,
                         domainID,
-                        pwmService.getClass().getSimpleName(),
+                        pwmService.name(),
                         pwmService.status(),
                         storageMethods,
                         pwmService.healthCheck(),

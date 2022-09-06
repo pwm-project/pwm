@@ -348,7 +348,7 @@ public class EdirSchemaExtender implements SchemaExtender
         return returnObj;
     }
 
-    private void logActivity( final CharSequence charSequence )
+    private void logActivity( final String charSequence )
     {
         LOGGER.info( () -> charSequence );
         activityLog.append( charSequence ).append( '\n' );

@@ -34,9 +34,13 @@ public class SessionLabel implements Serializable
 {
     private static final String SYSTEM_LABEL_SESSION_ID = "#";
     private static final String RUNTIME_LABEL_SESSION_ID = "#";
+    private static final String HEALTH_LABEL_SESSION_ID = "H";
+    private static final String RUNTIME_USERNAME = "internal";
+    private static final String HEALTH_USERNAME = "health";
 
     public static final SessionLabel SYSTEM_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( PwmConstants.PWM_APP_NAME ).build();
-    public static final SessionLabel RUNTIME_LABEL = SessionLabel.builder().sessionID( RUNTIME_LABEL_SESSION_ID ).username( "internal" ).build();
+    public static final SessionLabel RUNTIME_LABEL = SessionLabel.builder().sessionID( RUNTIME_LABEL_SESSION_ID ).username( RUNTIME_USERNAME ).build();
+    public static final SessionLabel HEALTH_LABEL = SessionLabel.builder().sessionID( HEALTH_LABEL_SESSION_ID ).username( HEALTH_USERNAME ).build();
     public static final SessionLabel TEST_SESSION_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "test" ).build();
     public static final SessionLabel CLI_SESSION_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "cli" ).build();
     public static final SessionLabel CONTEXT_SESSION_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "context" ).build();
@@ -97,4 +101,13 @@ public class SessionLabel implements Serializable
         return sb.toString();
     }
 
+    public boolean isRuntime()
+    {
+        return RUNTIME_LABEL.equals( this );
+    }
+
+    public boolean isHealth()
+    {
+        return HEALTH_LABEL.equals( this );
+    }
 }

@@ -52,8 +52,9 @@
     <!-- graylog2 -->
     <allow pkg="org.graylog2"/>
 
-    <!-- log4j -->
-    <allow pkg="org.apache.log4j"/>
+    <!-- logback -->
+    <allow pkg="org.slf4j"/>
+    <allow pkg="ch.qos.logback"/>
 
     <!-- testing -->
     <allow pkg="org.junit"/>

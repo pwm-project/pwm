@@ -21,7 +21,6 @@
 package password.pwm;
 
 import password.pwm.bean.DomainID;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
@@ -39,6 +38,7 @@ import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogManager;
+import password.pwm.util.logging.PwmLogSettings;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 import password.pwm.util.secure.PwmRandom;
@@ -101,49 +101,30 @@ class PwmApplicationUtil
     {
         final PwmEnvironment pwmEnvironment = pwmApplication.getPwmEnvironment();
 
-        if ( !pwmEnvironment.isInternalRuntimeInstance() && !pwmEnvironment.getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
+        if ( pwmEnvironment.isInternalRuntimeInstance() || pwmEnvironment.getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
         {
-            final String log4jFileName = pwmEnvironment.getConfig().readSettingAsString( PwmSetting.EVENTS_JAVA_LOG4JCONFIG_FILE );
-            final File log4jFile = FileSystemUtility.figureFilepath( log4jFileName, pwmEnvironment.getApplicationPath() );
-            final String consoleLevel;
-            final String fileLevel;
-
-            switch ( pwmApplication.getApplicationMode() )
-            {
-                case ERROR:
-                case NEW:
-                    consoleLevel = PwmLogLevel.TRACE.toString();
-                    fileLevel = PwmLogLevel.TRACE.toString();
-                    break;
-
-                default:
-                    consoleLevel = pwmEnvironment.getConfig().readSettingAsString( PwmSetting.EVENTS_JAVA_STDOUT_LEVEL );
-                    fileLevel = pwmEnvironment.getConfig().readSettingAsString( PwmSetting.EVENTS_FILE_LEVEL );
-                    break;
-            }
-
-            PwmLogManager.initializeLogger(
-                    pwmApplication,
-                    pwmApplication.getConfig(),
-                    log4jFile,
-                    consoleLevel,
-                    pwmEnvironment.getApplicationPath(),
-                    fileLevel );
-
-            switch ( pwmApplication.getApplicationMode() )
-            {
-                case RUNNING:
-                    break;
-
-                case ERROR:
-                    LOGGER.fatal( pwmApplication.getSessionLabel(), () -> "starting up in ERROR mode! Check log or health check information for cause" );
-                    break;
-
-                default:
-                    LOGGER.trace( pwmApplication.getSessionLabel(), () -> "setting log level to TRACE because application mode is " + pwmApplication.getApplicationMode() );
-                    break;
-            }
+            return;
         }
+
+        final PwmLogSettings pwmLogSettings;
+        switch ( pwmApplication.getApplicationMode() )
+        {
+            case ERROR:
+            case NEW:
+                pwmLogSettings = PwmLogSettings.defaultSettings();
+                break;
+
+            default:
+                pwmLogSettings = PwmLogSettings.fromAppConfig( pwmApplication.getConfig() );
+                break;
+        }
+
+        PwmLogManager.initializeLogging(
+                pwmApplication,
+                pwmApplication.getConfig(),
+                pwmEnvironment.getApplicationPath(),
+                pwmLogSettings );
+
     }
 
     static String fetchInstanceID(
@@ -311,7 +292,7 @@ class PwmApplicationUtil
         LOGGER.trace( pwmApplication.getSessionLabel(), () -> "--begin current configuration output for domainID '" + domainID + "'--" );
         debugStrings.entrySet().stream()
                 .map( valueFormatter )
-                .map( s -> ( Supplier<CharSequence> ) () -> s )
+                .map( s -> ( Supplier<String> ) () -> s )
                 .forEach( s -> LOGGER.trace( pwmApplication.getSessionLabel(), s ) );
 
         final long itemCount = debugStrings.size();
@@ -351,7 +332,7 @@ class PwmApplicationUtil
         {
             final String separator = " -> ";
             input.entrySet().stream()
-                    .map( entry -> ( Supplier<CharSequence> ) () -> entry.getKey() + separator + entry.getValue() )
+                    .map( entry -> ( Supplier<String> ) () -> entry.getKey() + separator + entry.getValue() )
                     .forEach( s -> LOGGER.trace( pwmApplication.getSessionLabel(), s ) );
         }
         else
@@ -364,7 +345,7 @@ class PwmApplicationUtil
 
     private static boolean checkIfOutputDumpingEnabled( final PwmApplication pwmApplication )
     {
-        return LOGGER.isEnabled( PwmLogLevel.TRACE )
+        return LOGGER.isInterestingLevel( PwmLogLevel.TRACE )
                 && !pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
                 && Boolean.parseBoolean( pwmApplication.getConfig().readAppProperty( AppProperty.LOGGING_OUTPUT_CONFIGURATION ) );
     }

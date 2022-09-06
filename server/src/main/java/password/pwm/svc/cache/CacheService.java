@@ -29,9 +29,9 @@ import password.pwm.health.HealthRecord;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.ConditionalTaskExecutor;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -177,15 +177,18 @@ public class CacheService extends AbstractPwmService implements PwmService
 
     private void outputTraceInfo( )
     {
-        final StringBuilder traceOutput = new StringBuilder();
-        if ( memoryCacheStore != null )
+        LOGGER.trace( getSessionLabel(), () ->
         {
-            final StatisticCounterBundle<CacheStore.DebugKey> info = memoryCacheStore.getCacheStoreInfo();
-            traceOutput.append( "memCache=" );
-            traceOutput.append( JsonFactory.get().serializeMap( info.debugStats() ) );
-            traceOutput.append( ", histogram=" );
-            traceOutput.append( JsonFactory.get().serializeMap( memoryCacheStore.storedClassHistogram( "" ) ) );
-        }
-        LOGGER.trace( getSessionLabel(), () -> traceOutput );
+            final StringBuilder traceOutput = new StringBuilder();
+            if ( memoryCacheStore != null )
+            {
+                final StatisticCounterBundle<CacheStore.DebugKey> info = memoryCacheStore.getCacheStoreInfo();
+                traceOutput.append( "memCache=" );
+                traceOutput.append( JsonFactory.get().serializeMap( info.debugStats() ) );
+                traceOutput.append( ", histogram=" );
+                traceOutput.append( JsonFactory.get().serializeMap( memoryCacheStore.storedClassHistogram( "" ) ) );
+            }
+            return traceOutput.toString();
+        } );
     }
 }

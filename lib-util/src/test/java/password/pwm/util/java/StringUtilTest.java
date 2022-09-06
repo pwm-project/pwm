@@ -310,4 +310,24 @@ public class StringUtilTest
         final byte[] b64array = StringUtil.base64Decode( B64_TEST_GZIP, StringUtil.Base64Options.GZIP );
         Assertions.assertArrayEquals( makeB64inputByteArray(), b64array );
     }
+
+    @Test
+    public void padRightTest()
+    {
+        Assertions.assertEquals( "TEST   ", StringUtil.padRight( "TEST", 7, ' ' ) );
+        Assertions.assertEquals( "TEST888", StringUtil.padRight( "TEST", 7, '8' ) );
+        Assertions.assertEquals( "TEST", StringUtil.padRight( "TEST", 4, ' ' ) );
+        Assertions.assertEquals( "TEST", StringUtil.padRight( "TEST", 3, ' ' ) );
+        Assertions.assertEquals( "TEST", StringUtil.padRight( "TEST", -3, ' ' ) );
+    }
+
+    @Test
+    public void padLeftTest()
+    {
+        Assertions.assertEquals( "   TEST", StringUtil.padLeft( "TEST", 7, ' ' ) );
+        Assertions.assertEquals( "888TEST", StringUtil.padLeft( "TEST", 7, '8' ) );
+        Assertions.assertEquals( "TEST", StringUtil.padLeft( "TEST", 4, ' ' ) );
+        Assertions.assertEquals( "TEST", StringUtil.padLeft( "TEST", 3, ' ' ) );
+        Assertions.assertEquals( "TEST", StringUtil.padLeft( "TEST", -3, ' ' ) );
+    }
 }

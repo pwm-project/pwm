@@ -198,7 +198,7 @@ public abstract class RestServlet extends HttpServlet
     {
         try
         {
-            if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+            if ( LOGGER.isInterestingLevel( PwmLogLevel.TRACE ) )
             {
                 final PwmHttpRequestWrapper httpRequestWrapper = new PwmHttpRequestWrapper( req, pwmApplication.getConfig() );
                 final String debutTxt = httpRequestWrapper.debugHttpRequestToString( null, true );

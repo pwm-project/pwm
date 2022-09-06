@@ -21,8 +21,6 @@
 package password.pwm.util;
 
 import com.novell.ldapchai.cr.Answer;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
@@ -207,7 +205,6 @@ public class SampleDataGenerator
     private static PwmApplication makeSamplePwmApp( final AppConfig appConfig )
             throws PwmUnrecoverableException
     {
-        Logger.getRootLogger().setLevel( Level.OFF );
         final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
                 .config( appConfig )
                 .applicationPath( null )

@@ -135,7 +135,7 @@ public class RandomPasswordGenerator
         }
         else
         {
-            if ( LOGGER.isEnabled( PwmLogLevel.ERROR ) )
+            if ( LOGGER.isInterestingLevel( PwmLogLevel.ERROR ) )
             {
                 final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create( sessionLabel, pwmDomain, randomGenPolicy );
                 final int errors = pwmPasswordRuleValidator.internalPwmPolicyValidator( mutatorResult.getPassword(), null, null ).size();

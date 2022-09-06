@@ -228,7 +228,7 @@ public class HealthService extends AbstractPwmService implements PwmService
         LOGGER.trace( getSessionLabel(), () -> "beginning health check execution #" + counter  );
         final List<HealthRecord> tempResults = new ArrayList<>();
 
-        for ( final Supplier<List<HealthRecord>> loopSupplier : gatherSuppliers( getPwmApplication(), getSessionLabel() ) )
+        for ( final Supplier<List<HealthRecord>> loopSupplier : gatherSuppliers( getPwmApplication(), SessionLabel.HEALTH_LABEL ) )
         {
             try
             {
@@ -321,9 +321,7 @@ public class HealthService extends AbstractPwmService implements PwmService
         {
             try
             {
-                final Instant startTime = Instant.now();
                 doHealthChecks();
-                LOGGER.trace( getSessionLabel(), () -> "completed health check dredge", TimeDuration.fromCurrent( startTime ) );
             }
             catch ( final Throwable e )
             {
@@ -431,7 +429,7 @@ public class HealthService extends AbstractPwmService implements PwmService
         @Override
         public void run()
         {
-            if ( !LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+            if ( !LOGGER.isInterestingLevel( PwmLogLevel.TRACE ) )
             {
                 return;
             }

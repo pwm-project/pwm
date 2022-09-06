@@ -69,6 +69,7 @@ class GsonJsonAdaptors
         gsonBuilder.registerTypeAdapter( ProfileID.class, new ProfileIDTypeAdaptor() );
         gsonBuilder.registerTypeAdapter( LongAdder.class, new LongAdderTypeAdaptor() );
         gsonBuilder.registerTypeAdapter( TimeDuration.class, new TimeDurationAdaptor() );
+        gsonBuilder.registerTypeAdapter( Duration.class, new DurationAdaptor() );
         return gsonBuilder;
     }
 
@@ -306,6 +307,22 @@ class GsonJsonAdaptors
         public JsonElement serialize( final TimeDuration src, final Type typeOfSrc, final JsonSerializationContext context )
         {
             return new JsonPrimitive( src.asDuration().toString() );
+        }
+    }
+
+    private static class DurationAdaptor implements JsonSerializer<Duration>, JsonDeserializer<Duration>
+    {
+        @Override
+        public Duration deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
+        {
+            final String stringValue = json.getAsString();
+            return Duration.parse( stringValue );
+        }
+
+        @Override
+        public JsonElement serialize( final Duration src, final Type typeOfSrc, final JsonSerializationContext context )
+        {
+            return new JsonPrimitive( src.toString() );
         }
     }
 }

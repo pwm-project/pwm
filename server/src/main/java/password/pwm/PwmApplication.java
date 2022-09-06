@@ -437,6 +437,11 @@ public class PwmApplication
 
         LOGGER.info( sessionLabel, () -> PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION
                 + " closed for bidness, cya!", TimeDuration.fromCurrent( startTime ) );
+
+        if ( !pwmEnvironment.isInternalRuntimeInstance() )
+        {
+            PwmLogManager.disableLogging();
+        }
     }
 
     public String getInstanceID( )

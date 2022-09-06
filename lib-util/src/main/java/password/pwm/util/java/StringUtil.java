@@ -389,20 +389,13 @@ public abstract class StringUtil
             return input;
         }
 
-        final StringBuilder sb = new StringBuilder( input );
-        while ( sb.length() < length )
-        {
-            if ( right )
-            {
-                sb.append( appendChar );
-            }
-            else
-            {
-                sb.insert( 0, appendChar );
-            }
-        }
+        final char[] charArray = new char[ length - input.length() ];
+        Arrays.fill( charArray, appendChar );
+        final String paddingString = new String( charArray );
 
-        return sb.toString();
+        return right
+                ? input + paddingString
+                : paddingString + input;
     }
 
     public static List<String> splitAndTrim( final String input, final String separator )

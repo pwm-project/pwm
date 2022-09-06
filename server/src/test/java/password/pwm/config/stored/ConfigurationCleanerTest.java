@@ -36,7 +36,6 @@ import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.PeopleSearchProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.value.data.UserPermission;
-import password.pwm.util.logging.PwmLogger;
 
 import java.io.InputStream;
 import java.util.List;
@@ -87,8 +86,7 @@ public class ConfigurationCleanerTest
 
     @Test
     public void testDeprecatedPublicHealthStatsWebService()
-    {        PwmLogger.disableAllLogging();
-
+    {
         {
             final Set<WebServiceUsage> usages = domainConfig.readSettingAsOptionList( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, WebServiceUsage.class );
             Assertions.assertEquals( 2, usages.size() );

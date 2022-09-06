@@ -26,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import password.pwm.AppProperty;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationFactory;
@@ -37,8 +38,8 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.LocalDBLoggerSettings;
-import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
+import password.pwm.util.logging.PwmLogMessage;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.File;
@@ -59,6 +60,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 public class LocalDBLoggerExtendedTest
 {
@@ -83,7 +85,6 @@ public class LocalDBLoggerExtendedTest
     @BeforeEach
     public void setUp() throws Exception
     {
-        TestHelper.setupLogging();
         final File localDBPath = FileSystemUtility.createDirectory( temporaryFolder, "test-localdb-logger-test" );
 
         config = AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() );
@@ -106,7 +107,7 @@ public class LocalDBLoggerExtendedTest
                     .maxAge( TimeDuration.of( 1, TimeDuration.Unit.MINUTES ) )
                     .flags( Collections.emptySet() )
                     .build();
-            localDBLogger = new LocalDBLogger( null, localDB, settings );
+            localDBLogger = new LocalDBLogger( null, localDB, PwmLogLevel.TRACE, settings );
         }
 
         settings = Settings.builder()
@@ -163,8 +164,8 @@ public class LocalDBLoggerExtendedTest
             final RandomValueMaker randomValueMaker = new RandomValueMaker( settings.valueLength );
             while ( TimeDuration.fromCurrent( startTime ).isShorterThan( settings.testDuration ) )
             {
-                final Collection<PwmLogEvent> events = makeEvents( randomValueMaker );
-                for ( final PwmLogEvent logEvent : events )
+                final Collection<PwmLogMessage> events = makeEvents( randomValueMaker );
+                for ( final PwmLogMessage logEvent : events )
                 {
                     localDBLogger.writeEvent( logEvent );
                     eventRateMeter.markEvents( 1 );
@@ -174,20 +175,21 @@ public class LocalDBLoggerExtendedTest
         }
     }
 
-    private Collection<PwmLogEvent> makeEvents( final RandomValueMaker randomValueMaker )
+    private Collection<PwmLogMessage> makeEvents( final RandomValueMaker randomValueMaker )
     {
         final int count = settings.batchSize;
-        final Collection<PwmLogEvent> events = new ArrayList<>();
+        final Collection<PwmLogMessage> events = new ArrayList<>();
         for ( int i = 0; i < count; i++ )
         {
-            final String description = randomValueMaker.next();
-            final PwmLogEvent event = PwmLogEvent.createPwmLogEvent(
+            final Supplier<? extends CharSequence> description = ( Supplier<CharSequence> ) randomValueMaker::next;
+            final PwmLogMessage event = PwmLogMessage.create(
                     Instant.now(),
                     LocalDBLogger.class.getName(),
+                    PwmLogLevel.TRACE,
+                    SessionLabel.TEST_SESSION_LABEL,
                     description,
-                    null,
-                    null,
-                    PwmLogLevel.TRACE );
+                    TimeDuration.ZERO,
+                    null );
             events.add( event );
         }
 

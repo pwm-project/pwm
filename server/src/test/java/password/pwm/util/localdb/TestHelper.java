@@ -20,15 +20,8 @@
 
 package password.pwm.util.localdb;
 
-import com.novell.ldapchai.ChaiUser;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Layout;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
-import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
@@ -45,21 +38,6 @@ import java.io.File;
 
 public class TestHelper
 {
-    public static void setupLogging()
-    {
-        final String pwmPackageName = PwmDomain.class.getPackage().getName();
-        final Logger pwmPackageLogger = Logger.getLogger( pwmPackageName );
-        final String chaiPackageName = ChaiUser.class.getPackage().getName();
-        final Logger chaiPackageLogger = Logger.getLogger( chaiPackageName );
-        final Layout patternLayout = new PatternLayout( "%d{yyyy-MM-dd HH:mm:ss}, %-5p, %c{2}, %m%n" );
-        final ConsoleAppender consoleAppender = new ConsoleAppender( patternLayout );
-        final Level level = Level.TRACE;
-        pwmPackageLogger.addAppender( consoleAppender );
-        pwmPackageLogger.setLevel( level );
-        chaiPackageLogger.addAppender( consoleAppender );
-        chaiPackageLogger.setLevel( level );
-    }
-
     public static PwmApplication makeTestPwmApplication( final File tempFolder )
             throws PwmUnrecoverableException
     {
@@ -74,7 +52,6 @@ public class TestHelper
     public static PwmApplication makeTestPwmApplication( final File tempFolder, final AppConfig appConfig )
             throws PwmUnrecoverableException
     {
-        Logger.getRootLogger().setLevel( Level.OFF );
         final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
                 .config( appConfig )
                 .applicationPath( tempFolder )

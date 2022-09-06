@@ -59,6 +59,10 @@ public class LdapProfile extends AbstractProfile implements Profile
     private List<String> rootContextSupplier;
     private Map<String, String> selectableContexts;
 
+    private Optional<UserIdentity> cachedTestUser;
+    private UserIdentity cachedProxyUser;
+
+
     protected LdapProfile( final DomainID domainID, final ProfileID identifier, final StoredConfiguration storedValueMap )
     {
         super( domainID, identifier, storedValueMap );
@@ -211,17 +215,27 @@ public class LdapProfile extends AbstractProfile implements Profile
     public Optional<UserIdentity> getTestUser( final SessionLabel sessionLabel, final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
     {
-        return readUserIdentity( sessionLabel, pwmDomain, PwmSetting.LDAP_TEST_USER_DN );
+        if ( cachedTestUser == null )
+        {
+            cachedTestUser = readUserIdentity( sessionLabel, pwmDomain, PwmSetting.LDAP_TEST_USER_DN );
+        }
+
+        return cachedTestUser;
     }
 
     public UserIdentity getProxyUser( final SessionLabel sessionLabel, final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
     {
-        return readUserIdentity( sessionLabel, pwmDomain, PwmSetting.LDAP_PROXY_USER_DN )
-                .orElseThrow( () ->
-                        new PwmUnrecoverableException( new ErrorInformation(
-                                PwmError.CONFIG_FORMAT_ERROR,
-                                "ldap proxy user is not defined" ) ) );
+        if ( cachedProxyUser == null )
+        {
+            cachedProxyUser = readUserIdentity( sessionLabel, pwmDomain, PwmSetting.LDAP_PROXY_USER_DN )
+                    .orElseThrow( () ->
+                            new PwmUnrecoverableException( new ErrorInformation(
+                                    PwmError.CONFIG_FORMAT_ERROR,
+                                    "ldap proxy user is not defined" ) ) );
+        }
+
+        return cachedProxyUser;
     }
 
     private Optional<UserIdentity> readUserIdentity(

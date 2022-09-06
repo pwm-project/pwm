@@ -703,8 +703,6 @@ public enum PwmSetting
             "events.pwmDB.maxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.LOGGING ),
     EVENTS_ALERT_DAILY_SUMMARY(
             "events.alert.dailySummary.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LOGGING ),
-    EVENTS_JAVA_LOG4JCONFIG_FILE(
-            "events.java.log4jconfigFile", PwmSettingSyntax.STRING, PwmSettingCategory.LOGGING ),
 
     PASSWORD_STRENGTH_METER_TYPE(
             "password.strengthMeter.type", PwmSettingSyntax.SELECT, PwmSettingCategory.LOGGING ),
@@ -1276,6 +1274,11 @@ public enum PwmSetting
 
 
     // deprecated.
+
+
+    // deprecated 2022-09-04
+    EVENTS_JAVA_LOG4JCONFIG_FILE(
+            "events.java.log4jconfigFile", PwmSettingSyntax.STRING, PwmSettingCategory.LOGGING ),
 
     // deprecated 2022-07-25
     SEEDLIST_FILENAME(

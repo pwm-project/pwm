@@ -48,8 +48,6 @@ public class LocalDBStoredQueueExtendedTest
     @BeforeAll
     public static void setUp() throws Exception
     {
-
-        TestHelper.setupLogging();
         final File fileLocation = FileSystemUtility.createDirectory( temporaryFolder, "localdb-storedqueue-test" );
         localDB = LocalDBFactory.getInstance( fileLocation, false, null, null );
         storedQueue = LocalDBStoredQueue.createLocalDBStoredQueue( localDB, LocalDB.DB.TEMP, ENABLE_DEBUG_OUTPUT );

@@ -78,7 +78,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
                     COOKIE_PATH
             );
 
-            if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+            if ( LOGGER.isInterestingLevel( PwmLogLevel.TRACE ) )
             {
                 final String debugTxt = loginInfoBean.toDebugString();
                 LOGGER.trace( pwmRequest, () -> "wrote LoginInfoBean=" + debugTxt );
@@ -213,7 +213,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
             }
         }
 
-        if ( pwmRequest.getAppConfig().isDevDebugMode() && LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        if ( pwmRequest.getAppConfig().isDevDebugMode() && LOGGER.isInterestingLevel( PwmLogLevel.TRACE ) )
         {
             final String debugTxt = remoteLoginCookie.toDebugString();
             LOGGER.trace( pwmRequest, () -> "imported LoginInfoBean=" + debugTxt );

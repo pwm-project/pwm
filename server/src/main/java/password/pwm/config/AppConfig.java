@@ -46,7 +46,6 @@ import password.pwm.util.java.CollectorUtil;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
-import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -221,11 +220,6 @@ public class AppConfig implements SettingReader
     public List<String> readSettingAsStringArray( final PwmSetting pwmSetting )
     {
         return settingReader.readSettingAsStringArray( pwmSetting );
-    }
-
-    public PwmLogLevel getEventLogLocalDBLevel()
-    {
-        return readSettingAsEnum( PwmSetting.EVENTS_LOCALDB_LOG_LEVEL, PwmLogLevel.class );
     }
 
     public boolean isDevDebugMode()
