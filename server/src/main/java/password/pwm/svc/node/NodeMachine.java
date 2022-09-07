@@ -163,12 +163,22 @@ class NodeMachine
         @Override
         public void run( )
         {
-            writeNodeStatus();
-            readNodeStatuses();
-            purgeOutdatedNodes();
+            try
+            {
+                writeNodeStatus();
+                readNodeStatuses();
+                purgeOutdatedNodes();
+                lastError = null;
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                lastError = e.getErrorInformation();
+                LOGGER.error( e.getErrorInformation() );
+            }
         }
 
         void writeNodeStatus( )
+                throws PwmUnrecoverableException
         {
             try
             {
@@ -180,12 +190,12 @@ class NodeMachine
             {
                 final String errorMsg = "error writing node service heartbeat: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, errorMsg );
-                lastError = errorInformation;
-                LOGGER.error( lastError );
+                throw new PwmUnrecoverableException( errorInformation );
             }
         }
 
         void readNodeStatuses( )
+                throws PwmUnrecoverableException
         {
             try
             {
@@ -197,12 +207,12 @@ class NodeMachine
             {
                 final String errorMsg = "error reading node statuses: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, errorMsg );
-                lastError = errorInformation;
-                LOGGER.error( lastError );
+                throw new PwmUnrecoverableException( errorInformation );
             }
         }
 
         void purgeOutdatedNodes( )
+                throws PwmUnrecoverableException
         {
             try
             {
@@ -213,8 +223,7 @@ class NodeMachine
             {
                 final String errorMsg = "error purging outdated node reference: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, errorMsg );
-                lastError = errorInformation;
-                LOGGER.error( lastError );
+                throw new PwmUnrecoverableException( errorInformation );
             }
         }
     }
