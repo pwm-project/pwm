@@ -254,7 +254,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>10.3.2</version>
+                        <version>10.3.3</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -338,7 +338,7 @@
                     <dependency>
                         <groupId>com.github.spotbugs</groupId>
                         <artifactId>spotbugs</artifactId>
-                        <version>4.7.1</version>
+                        <version>4.7.2</version>
                     </dependency>
                 </dependencies>
                 <configuration>
@@ -500,7 +500,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.7.1</version>
+            <version>4.7.2</version>
             <scope>provided</scope>
         </dependency>
 
@@ -520,7 +520,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>4.7.0</version>
+            <version>4.8.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
