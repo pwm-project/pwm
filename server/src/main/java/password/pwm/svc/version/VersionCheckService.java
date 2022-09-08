@@ -152,21 +152,7 @@ public class VersionCheckService extends AbstractPwmService
 
         final VersionCheckInfoCache localCache = cacheHolder.getVersionCheckInfoCache();
 
-        final TimeDuration idealDurationUntilNextCheck = localCache.getLastError() != null && localCache.getCurrentVersion() == null
-                ? settings.getCheckIntervalError()
-                : settings.getCheckInterval();
-
-        if ( localCache.getLastCheckTimestamp() == null )
-        {
-            this.nextScheduledCheck = Instant.now().plus( 10, ChronoUnit.SECONDS );
-        }
-        else
-        {
-            final Instant nextIdealTimestamp = localCache.getLastCheckTimestamp().plus( idealDurationUntilNextCheck.asDuration() );
-            this.nextScheduledCheck = nextIdealTimestamp.isBefore( Instant.now() )
-                    ? Instant.now().plus( 10, ChronoUnit.SECONDS )
-                    : nextIdealTimestamp;
-        }
+        this.nextScheduledCheck = calculateNextScheduledCheck( localCache, settings );
 
         final TimeDuration delayUntilNextExecution = TimeDuration.fromCurrent( this.nextScheduledCheck );
 
@@ -174,6 +160,25 @@ public class VersionCheckService extends AbstractPwmService
 
         LOGGER.trace( getSessionLabel(), () -> "scheduled next check execution at " + StringUtil.toIsoDate( nextScheduledCheck )
                 + " in " + delayUntilNextExecution.asCompactString() );
+    }
+    
+    private static Instant calculateNextScheduledCheck( final VersionCheckInfoCache localCache, final VersionCheckSettings settings )
+    {
+        final TimeDuration idealDurationUntilNextCheck = localCache.getLastError() != null && localCache.getCurrentVersion() == null
+                ? settings.getCheckIntervalError()
+                : settings.getCheckInterval();
+
+        if ( localCache.getLastCheckTimestamp() == null )
+        {
+            return Instant.now().plus( 10, ChronoUnit.SECONDS );
+        }
+        else
+        {
+            final Instant nextIdealTimestamp = localCache.getLastCheckTimestamp().plus( idealDurationUntilNextCheck.asDuration() );
+            return nextIdealTimestamp.isBefore( Instant.now() )
+                    ? Instant.now().plus( 10, ChronoUnit.SECONDS )
+                    : nextIdealTimestamp;
+        }
     }
 
     private class PeriodicCheck implements Runnable
