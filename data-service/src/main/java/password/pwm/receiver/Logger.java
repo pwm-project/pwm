@@ -20,6 +20,8 @@
 
 package password.pwm.receiver;
 
+import java.util.function.Supplier;
+
 public class Logger
 {
     private final org.slf4j.Logger logger;
@@ -34,13 +36,13 @@ public class Logger
         return new Logger( classname );
     }
 
-    public void info( final String input )
+    public void info( final Supplier<String> input )
     {
-        logger.info( input );
+        logger.makeLoggingEventBuilder( org.slf4j.event.Level.INFO ).log( input );
     }
 
-    public void debug( final String input )
+    public void debug( final Supplier<String> input )
     {
-        logger.debug( input );
+        logger.makeLoggingEventBuilder( org.slf4j.event.Level.DEBUG ).log( input );
     }
 }

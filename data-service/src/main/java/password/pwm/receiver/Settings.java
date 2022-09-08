@@ -128,7 +128,7 @@ public class Settings
         }
         catch ( final Exception e )
         {
-            LOGGER.info( "error parsing version string from setting properties: " + e.getMessage() );
+            LOGGER.info( () -> "error parsing version string from setting properties: " + e.getMessage() );
             return VersionNumber.ZERO;
         }
     }

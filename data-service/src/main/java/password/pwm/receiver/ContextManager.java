@@ -37,7 +37,7 @@ public class ContextManager implements ServletContextListener
     {
         app = new PwmReceiverApp();
         sce.getServletContext().setAttribute( CONTEXT_ATTR, this );
-        LOGGER.info( "open for bidness" );
+        LOGGER.info( () -> "open for bidness" );
     }
 
     @Override
@@ -45,7 +45,7 @@ public class ContextManager implements ServletContextListener
     {
         app.close();
         app = null;
-        LOGGER.info( "cya!" );
+        LOGGER.info( () -> "cya!" );
     }
 
     public PwmReceiverApp getApp( )

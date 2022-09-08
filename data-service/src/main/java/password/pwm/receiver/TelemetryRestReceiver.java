@@ -55,9 +55,6 @@ public class TelemetryRestReceiver extends HttpServlet
     {
         try
         {
-            final int requestId = REQ_COUNTER.next();
-            LOGGER.debug( "http rest request #" + requestId + " for telemetry update" );
-
             final String input = ServletUtility.readRequestBodyAsString( req, 1024 * 1024 );
             final TelemetryPublishBean telemetryPublishBean = JsonFactory.get().deserialize( input, TelemetryPublishBean.class );
             final Storage storage = ContextManager.getContextManager( this.getServletContext() ).getApp().getStorage();
@@ -65,7 +62,7 @@ public class TelemetryRestReceiver extends HttpServlet
 
             final RestResultBean restResultBean = RestResultBean.forSuccessMessage( null, null, null, Message.Success_Unknown );
             ReceiverUtil.outputJsonResponse( req, resp, restResultBean );
-            LOGGER.debug( "http rest request #" + requestId + " received from " + telemetryPublishBean.getSiteDescription() );
+            LOGGER.debug( () -> "http telemetry rest data received from " + telemetryPublishBean.getSiteDescription() );
         }
         catch ( final PwmUnrecoverableException e )
         {
