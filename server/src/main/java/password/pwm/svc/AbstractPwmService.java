@@ -24,7 +24,9 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.PwmScheduler;
@@ -125,6 +127,15 @@ public abstract class AbstractPwmService implements PwmService
     protected ErrorInformation getStartupError()
     {
         return startupError;
+    }
+
+    protected void checkOpenStatus()
+            throws PwmUnrecoverableException
+    {
+        if ( this.status() != STATUS.OPEN )
+        {
+            throw new PwmUnrecoverableException( PwmError.ERROR_SERVICE_NOT_AVAILABLE, name() + " service is not open" );
+        }
     }
 
     public final List<HealthRecord> healthCheck( )

@@ -454,7 +454,6 @@ public class PwmApplication
 
         if ( localDB == null || localDB.status() != LocalDB.Status.OPEN )
         {
-            LOGGER.debug( () -> "error retrieving key '" + appAttribute.getKey() + "', localDB unavailable: " );
             return Optional.empty();
         }
 
@@ -569,7 +568,6 @@ public class PwmApplication
 
         if ( localDB == null || localDB.status() != LocalDB.Status.OPEN )
         {
-            LOGGER.error( () -> "error writing key '" + appAttribute.getKey() + "', localDB unavailable: " );
             return;
         }
 
@@ -592,7 +590,7 @@ public class PwmApplication
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error retrieving key '" + appAttribute.getKey() + "' installation date from localDB: " + e.getMessage() );
+            LOGGER.error( () -> "error retrieving key '" + appAttribute.getKey() + "' from localDB: " + e.getMessage() );
             try
             {
                 localDB.remove( LocalDB.DB.PWM_META, appAttribute.getKey() );
