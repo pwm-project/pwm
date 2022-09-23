@@ -97,7 +97,7 @@ public class ExportResponsesCommand extends AbstractCliCommand
                 searchConfiguration,
                 Integer.MAX_VALUE,
                 Collections.emptyList(),
-                SessionLabel.SYSTEM_LABEL
+                SessionLabel.CLI_SESSION_LABEL
         );
         out( "searching " + results.size() + " users for stored responses...." );
         int counter = 0;

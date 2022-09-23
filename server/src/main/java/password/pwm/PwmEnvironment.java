@@ -57,6 +57,8 @@ public class PwmEnvironment
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmEnvironment.class );
 
+    private static final SessionLabel SESSION_LABEL = SessionLabel.SYSTEM_LABEL;
+
     @lombok.Builder.Default
     private PwmApplicationMode applicationMode = PwmApplicationMode.ERROR;
 
@@ -179,7 +181,7 @@ public class PwmEnvironment
         }
         if ( applicationPathIsWebInfPath )
         {
-            LOGGER.trace( SessionLabel.SYSTEM_LABEL, () -> "applicationPath appears to be servlet /WEB-INF directory" );
+            LOGGER.trace( SESSION_LABEL, () -> "applicationPath appears to be servlet /WEB-INF directory" );
         }
     }
 
@@ -207,7 +209,7 @@ public class PwmEnvironment
             );
         }
 
-        LOGGER.trace( SessionLabel.SYSTEM_LABEL, () -> "examining applicationPath of " + applicationPath.getAbsolutePath() + "" );
+        LOGGER.trace( SESSION_LABEL, () -> "examining applicationPath of " + applicationPath.getAbsolutePath() + "" );
 
         if ( !applicationPath.exists() )
         {
@@ -234,7 +236,7 @@ public class PwmEnvironment
         }
 
         final File infoFile = new File( applicationPath.getAbsolutePath() + File.separator + PwmConstants.APPLICATION_PATH_INFO_FILE );
-        LOGGER.trace( SessionLabel.SYSTEM_LABEL, () -> "checking " + infoFile.getAbsolutePath() + " status" );
+        LOGGER.trace( SESSION_LABEL, () -> "checking " + infoFile.getAbsolutePath() + " status" );
         if ( infoFile.exists() )
         {
             final String errorMsg = "The file " + infoFile.getAbsolutePath() + " exists, and an applicationPath was not explicitly specified."
@@ -321,7 +323,7 @@ public class PwmEnvironment
                 }
                 else
                 {
-                    LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "unknown " + EnvironmentParameter.applicationFlags + " value: " + input );
+                    LOGGER.warn( SESSION_LABEL, () -> "unknown " + EnvironmentParameter.applicationFlags + " value: " + input );
                 }
             }
             return returnFlags;
@@ -341,7 +343,7 @@ public class PwmEnvironment
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "error reading properties file '" + input + "' specified by environment setting "
+                LOGGER.warn( SESSION_LABEL, () -> "error reading properties file '" + input + "' specified by environment setting "
                         + EnvironmentParameter.applicationParamFile + ", error: " + e.getMessage() );
             }
 
@@ -358,14 +360,14 @@ public class PwmEnvironment
                     }
                     else
                     {
-                        LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "unknown " + EnvironmentParameter.applicationParamFile + " value: " + input );
+                        LOGGER.warn( SESSION_LABEL, () -> "unknown " + EnvironmentParameter.applicationParamFile + " value: " + input );
                     }
                 }
                 return Collections.unmodifiableMap( returnParams );
             }
             catch ( final Exception e )
             {
-                LOGGER.warn( SessionLabel.SYSTEM_LABEL, () -> "unable to parse jason value of " + EnvironmentParameter.applicationParamFile + ", error: " + e.getMessage() );
+                LOGGER.warn( SESSION_LABEL, () -> "unable to parse jason value of " + EnvironmentParameter.applicationParamFile + ", error: " + e.getMessage() );
             }
 
             return Collections.emptyMap();
@@ -376,7 +378,7 @@ public class PwmEnvironment
     {
         if ( PwmConstants.TRIAL_MODE && mode == PwmApplicationMode.RUNNING )
         {
-            LOGGER.info( SessionLabel.SYSTEM_LABEL, () -> "application is in trial mode" );
+            LOGGER.info( SESSION_LABEL, () -> "application is in trial mode" );
             return PwmApplicationMode.CONFIGURATION;
         }
 

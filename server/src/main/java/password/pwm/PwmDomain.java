@@ -87,9 +87,7 @@ public class PwmDomain
         this.pwmApplication = Objects.requireNonNull( pwmApplication );
         this.domainID = Objects.requireNonNull( domainID );
 
-        this.sessionLabel = pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
-                ? SessionLabel.RUNTIME_LABEL.toBuilder().domain( domainID.stringValue() ).build()
-                : SessionLabel.SYSTEM_LABEL.toBuilder().domain( domainID.stringValue() ).build();
+        this.sessionLabel = SessionLabel.forSystem( pwmApplication.getPwmEnvironment(), domainID );
 
         this.pwmServiceManager = new PwmServiceManager( sessionLabel, pwmApplication, domainID, PwmServiceEnum.forScope( PwmSettingScope.DOMAIN ) );
     }

@@ -202,7 +202,7 @@ public class ResponseStatsCommand extends AbstractCliCommand
                     searchConfiguration,
                     Integer.MAX_VALUE,
                     Collections.emptyList(),
-                    SessionLabel.SYSTEM_LABEL
+                    SessionLabel.CLI_SESSION_LABEL
             );
             returnList.addAll( searchResults.keySet() );
 

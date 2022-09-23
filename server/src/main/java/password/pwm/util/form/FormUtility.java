@@ -332,7 +332,7 @@ public class FormUtility
                     searchConfiguration,
                     resultSearchSizeLimit,
                     Collections.emptyList(),
-                    SessionLabel.SYSTEM_LABEL
+                    sessionLabel
             ) );
 
             if ( excludeDN != null && !excludeDN.isEmpty() )

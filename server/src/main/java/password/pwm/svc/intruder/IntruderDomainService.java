@@ -418,7 +418,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
         {
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
                     pwmDomain.getPwmApplication(),
-                    SessionLabel.SYSTEM_LABEL,
+                    sessionLabel,
                     userIdentity, locale
             );
 

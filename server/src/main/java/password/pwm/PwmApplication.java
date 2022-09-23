@@ -113,9 +113,7 @@ public class PwmApplication
             throws PwmUnrecoverableException
     {
         this.pwmEnvironment = Objects.requireNonNull( pwmEnvironment );
-        this.sessionLabel = pwmEnvironment.isInternalRuntimeInstance()
-                ? SessionLabel.RUNTIME_LABEL
-                : SessionLabel.SYSTEM_LABEL;
+        this.sessionLabel = SessionLabel.forSystem( pwmEnvironment, DomainID.systemId() );
 
         this.pwmServiceManager = new PwmServiceManager(
                 sessionLabel, this, DomainID.systemId(), PwmServiceEnum.forScope( PwmSettingScope.SYSTEM ) );

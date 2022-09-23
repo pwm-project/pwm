@@ -130,13 +130,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
     String getEnhancedMessage( )
     {
 
-        final SessionLabel sessionLabel = SessionLabel.builder()
-                .sessionID( getSessionID() )
-                .requestID( getRequestID() )
-                .username( getUsername() )
-                .sourceAddress( getSourceAddress() )
-                .domain( getDomain() )
-                .build();
+        final SessionLabel sessionLabel = SessionLabel.fromPwmLogEvent( this );
 
         return PwmLogUtil.createEnhancedMessage(
                 sessionLabel,

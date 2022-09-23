@@ -117,7 +117,7 @@ public class HealthService extends AbstractPwmService implements PwmService
 
         if ( !settings.isHealthCheckEnabled() )
         {
-            LOGGER.debug( () -> "health monitor will remain inactive due to AppProperty " + AppProperty.HEALTHCHECK_ENABLED.getKey() );
+            LOGGER.debug( getSessionLabel(), () -> "health monitor will remain inactive due to AppProperty " + AppProperty.HEALTHCHECK_ENABLED.getKey() );
             return STATUS.CLOSED;
         }
 

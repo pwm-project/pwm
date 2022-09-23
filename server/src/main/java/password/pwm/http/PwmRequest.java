@@ -105,8 +105,8 @@ public class PwmRequest extends PwmHttpRequestWrapper
     private final Supplier<PwmRequestContext> requestContextSupplier = LazySupplier.create(
             this::makePwmRequestContext );
 
-    private final Supplier<SessionLabel> sessionLabelSupplier = LazySupplier.create(
-            () -> PwmRequestUtil.makeSessionLabel( this ) );
+    private final LazySupplier<SessionLabel> sessionLabelSupplier = LazySupplier.create(
+            () -> SessionLabel.forPwmRequest( this ) );
 
     public static PwmRequest forRequest(
             final HttpServletRequest request,

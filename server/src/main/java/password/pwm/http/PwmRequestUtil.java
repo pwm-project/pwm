@@ -26,8 +26,6 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import password.pwm.Permission;
 import password.pwm.PwmDomain;
-import password.pwm.bean.SessionLabel;
-import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.UserPermission;
@@ -37,7 +35,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.permission.UserPermissionUtility;
-import password.pwm.user.UserInfo;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -99,40 +96,6 @@ public class PwmRequestUtil
             LOGGER.error( () -> "error reading file upload: " + e.getMessage() );
         }
         return Collections.unmodifiableMap( returnObj );
-    }
-
-    static SessionLabel makeSessionLabel( final PwmRequest pwmRequest )
-    {
-        final SessionLabel.SessionLabelBuilder builder = SessionLabel.builder();
-
-        builder.sourceAddress( pwmRequest.getSrcAddress().orElse( null ) );
-        builder.sourceHostname( pwmRequest.getSrcHostname().orElse( null ) );
-        builder.requestID( pwmRequest.getPwmRequestID() );
-        builder.domain( pwmRequest.getDomainID().stringValue() );
-
-        if ( pwmRequest.hasSession() )
-        {
-            final PwmSession pwmSession = pwmRequest.getPwmSession();
-            builder.sessionID( pwmSession.getSessionStateBean().getSessionID() );
-
-            if ( pwmRequest.isAuthenticated() )
-            {
-                try
-                {
-                    final UserInfo userInfo = pwmSession.getUserInfo();
-                    final UserIdentity userIdentity = userInfo.getUserIdentity();
-
-                    builder.username( userInfo.getUsername() );
-                    builder.profile( userIdentity == null ? null : userIdentity.getLdapProfileID().stringValue() );
-                }
-                catch ( final PwmUnrecoverableException e )
-                {
-                    LOGGER.error( () -> "unexpected error reading username: " + e.getMessage(), e );
-                }
-            }
-        }
-
-        return builder.build();
     }
 
     public static Optional<String> readUserHostname(

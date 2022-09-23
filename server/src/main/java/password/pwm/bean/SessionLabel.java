@@ -20,48 +20,157 @@
 
 package password.pwm.bean;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.PwmConstants;
+import password.pwm.PwmApplication;
+import password.pwm.PwmEnvironment;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestUtil;
+import password.pwm.http.PwmSession;
 import password.pwm.svc.PwmService;
+import password.pwm.user.UserInfo;
+import password.pwm.util.java.AtomicLoopLongIncrementer;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.logging.PwmLogEvent;
+import password.pwm.util.logging.PwmLogger;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
+import java.util.Objects;
 
 @Value
-@Builder( toBuilder = true )
+@Builder( toBuilder = true, access = AccessLevel.PRIVATE )
+/**
+ * Increasingly miss-named data class that represents request/operation actor and origin data.
+ */
 public class SessionLabel implements Serializable
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( SessionLabel.class );
+
     private static final String SYSTEM_LABEL_SESSION_ID = "#";
-    private static final String RUNTIME_LABEL_SESSION_ID = "#";
-    private static final String HEALTH_LABEL_SESSION_ID = "H";
-    private static final String RUNTIME_USERNAME = "internal";
-    private static final String HEALTH_USERNAME = "health";
+    private static final String RUNTIME_LABEL_SESSION_ID = "!";
 
-    public static final SessionLabel SYSTEM_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( PwmConstants.PWM_APP_NAME ).build();
-    public static final SessionLabel RUNTIME_LABEL = SessionLabel.builder().sessionID( RUNTIME_LABEL_SESSION_ID ).username( RUNTIME_USERNAME ).build();
-    public static final SessionLabel HEALTH_LABEL = SessionLabel.builder().sessionID( HEALTH_LABEL_SESSION_ID ).username( HEALTH_USERNAME ).build();
-    public static final SessionLabel TEST_SESSION_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "test" ).build();
-    public static final SessionLabel CLI_SESSION_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "cli" ).build();
-    public static final SessionLabel CONTEXT_SESSION_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "context" ).build();
-    public static final SessionLabel ONEJAR_LABEL = SessionLabel.builder().sessionID( SYSTEM_LABEL_SESSION_ID ).username( "onejar" ).build();
-
+    public static final SessionLabel SYSTEM_LABEL = SessionLabel.forNonUserType( ActorType.system, DomainID.systemId() );
+    public static final SessionLabel HEALTH_LABEL = SessionLabel.forNonUserType( ActorType.health, DomainID.systemId() );
+    public static final SessionLabel TEST_SESSION_LABEL = SessionLabel.forNonUserType( ActorType.test, DomainID.systemId() );
+    public static final SessionLabel CLI_SESSION_LABEL = SessionLabel.forNonUserType( ActorType.cli, DomainID.systemId() );
+    public static final SessionLabel CONTEXT_SESSION_LABEL = SessionLabel.forNonUserType( ActorType.context, DomainID.systemId() );
+    public static final SessionLabel ONEJAR_LABEL = SessionLabel.forNonUserType( ActorType.onejar, DomainID.systemId() );
 
     private final String sessionID;
     private final String requestID;
-    private final String userID;
     private final String username;
     private final String sourceAddress;
     private final String sourceHostname;
     private final String profile;
     private final String domain;
+    private final ActorType actorType;
+
+    public enum ActorType
+    {
+        user,
+        system,
+        runtime,
+        health,
+        test,
+        cli,
+        onejar,
+        context,
+        rest,
+    }
+
+    private static SessionLabel forNonUserType( final ActorType actorType, final DomainID domainID )
+    {
+        Objects.requireNonNull( actorType );
+
+        final String sessionID = domainID == null || domainID.isSystem() ? SYSTEM_LABEL_SESSION_ID : RUNTIME_LABEL_SESSION_ID;
+        final String domainSting = domainID == null ? DomainID.systemId().stringValue() : domainID.stringValue();
+
+        return SessionLabel.builder()
+                .actorType( actorType )
+                .domain( domainSting )
+                .sessionID( sessionID )
+                .username( actorType.name() ).build();
+    }
+
+    public static SessionLabel forRestRequest(
+            final PwmApplication pwmApplication,
+            final HttpServletRequest req,
+            final AtomicLoopLongIncrementer requestCounter,
+            final DomainID domainID
+    )
+    {
+        final String id = "rest-" + requestCounter.next();
+
+        return SessionLabel.forNonUserType( ActorType.rest, domainID ).toBuilder()
+                .sessionID( id )
+                .requestID( id )
+                .sourceAddress( PwmRequestUtil.readUserNetworkAddress( req, pwmApplication.getConfig() ).orElse( "" ) )
+                .sourceHostname( PwmRequestUtil.readUserHostname( req, pwmApplication.getConfig() ).orElse( "" ) )
+                .build();
+    }
+
+
+    public static SessionLabel forSystem( final PwmEnvironment pwmEnvironment, final DomainID domainID )
+    {
+        return forNonUserType( pwmEnvironment != null && pwmEnvironment.isInternalRuntimeInstance()
+                ? SessionLabel.ActorType.runtime
+                : SessionLabel.ActorType.system, domainID );
+    }
 
     public static SessionLabel forPwmService( final PwmService pwmService, final DomainID domainID )
     {
-        return SessionLabel.builder()
-                .sessionID( SYSTEM_LABEL_SESSION_ID )
+        return forNonUserType( ActorType.system, domainID ).toBuilder()
                 .username( pwmService.getClass().getSimpleName() )
                 .domain( domainID.stringValue() )
+                .build();
+    }
+
+    public static SessionLabel forPwmRequest( final PwmRequest pwmRequest )
+    {
+        final SessionLabel.SessionLabelBuilder builder = SessionLabel.builder();
+
+        builder.actorType( ActorType.user );
+        builder.sourceAddress( pwmRequest.getSrcAddress().orElse( null ) );
+        builder.sourceHostname( pwmRequest.getSrcHostname().orElse( null ) );
+        builder.requestID( pwmRequest.getPwmRequestID() );
+        builder.domain( pwmRequest.getDomainID().stringValue() );
+
+        if ( pwmRequest.hasSession() )
+        {
+            final PwmSession pwmSession = pwmRequest.getPwmSession();
+            builder.sessionID( pwmSession.getSessionStateBean().getSessionID() );
+
+            if ( pwmRequest.isAuthenticated() )
+            {
+                try
+                {
+                    final UserInfo userInfo = pwmSession.getUserInfo();
+                    final UserIdentity userIdentity = userInfo.getUserIdentity();
+
+                    builder.username( userInfo.getUsername() );
+                    builder.profile( userIdentity == null ? null : userIdentity.getLdapProfileID().stringValue() );
+                }
+                catch ( final PwmUnrecoverableException e )
+                {
+                    LOGGER.error( () -> "unexpected error reading username: " + e.getMessage(), e );
+                }
+            }
+        }
+
+        return builder.build();
+    }
+
+    public static SessionLabel fromPwmLogEvent( final PwmLogEvent pwmLogEvent )
+    {
+        return SessionLabel.builder()
+                .sessionID( pwmLogEvent.getSessionID() )
+                .requestID( pwmLogEvent.getRequestID() )
+                .username( pwmLogEvent.getUsername() )
+                .sourceAddress( pwmLogEvent.getSourceAddress() )
+                .domain( pwmLogEvent.getDomain() )
                 .build();
     }
 
@@ -83,7 +192,8 @@ public class SessionLabel implements Serializable
             }
             sb.append( domain );
         }
-        if ( StringUtil.notEmpty( username ) )
+
+        if ( actorType == ActorType.user && StringUtil.notEmpty( username ) )
         {
             if ( sb.length() > 0 )
             {
@@ -103,11 +213,11 @@ public class SessionLabel implements Serializable
 
     public boolean isRuntime()
     {
-        return RUNTIME_LABEL.equals( this );
+        return this.actorType == ActorType.runtime;
     }
 
     public boolean isHealth()
     {
-        return HEALTH_LABEL.equals( this );
+        return this.actorType == ActorType.health;
     }
 }

@@ -42,12 +42,11 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
-import password.pwm.http.PwmRequestUtil;
 import password.pwm.http.filter.RequestInitializationFilter;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.AtomicLoopIntIncrementer;
+import password.pwm.util.java.AtomicLoopLongIncrementer;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -72,7 +71,7 @@ import java.util.Optional;
 
 public abstract class RestServlet extends HttpServlet
 {
-    private static final AtomicLoopIntIncrementer REQUEST_COUNTER = new AtomicLoopIntIncrementer();
+    private static final AtomicLoopLongIncrementer REQUEST_COUNTER = new AtomicLoopLongIncrementer();
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestServlet.class );
 
@@ -107,12 +106,7 @@ public abstract class RestServlet extends HttpServlet
 
         final Locale locale = readLocale( pwmDomain.getPwmApplication(), req, resp );
 
-        final SessionLabel sessionLabel = SessionLabel.builder()
-                    .sessionID( "rest-" + REQUEST_COUNTER.next() )
-                    .sourceAddress( PwmRequestUtil.readUserNetworkAddress( req, pwmApplication.getConfig() ).orElse( "" ) )
-                    .sourceHostname( PwmRequestUtil.readUserHostname( req, pwmApplication.getConfig() ).orElse( "" ) )
-                    .domain( pwmDomain.getDomainID().stringValue() )
-                    .build();
+        final SessionLabel sessionLabel = SessionLabel.forRestRequest( pwmApplication, req, REQUEST_COUNTER, pwmDomain.getDomainID() );
 
         logHttpRequest( pwmApplication, req, sessionLabel );
 

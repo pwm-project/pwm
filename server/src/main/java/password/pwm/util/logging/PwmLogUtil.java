@@ -87,14 +87,13 @@ class PwmLogUtil
             final SessionLabel sessionLabel = logEvent.getSessionLabel();
             if ( sessionLabel != null )
             {
-
                 messageInfoBuilder.actor( sessionLabel.getUsername() );
                 messageInfoBuilder.source( sessionLabel.getSourceAddress() );
             }
 
             final LogToAuditMessageInfo messageInfo = messageInfoBuilder.build();
             final String messageInfoStr = JsonFactory.get().serialize( messageInfo );
-            AuditServiceClient.submitSystemEvent( pwmApplication, SessionLabel.SYSTEM_LABEL, AuditEvent.FATAL_EVENT, messageInfoStr );
+            AuditServiceClient.submitSystemEvent( pwmApplication, logEvent.getSessionLabel(), AuditEvent.FATAL_EVENT, messageInfoStr );
         }
     }
 

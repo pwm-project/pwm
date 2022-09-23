@@ -122,7 +122,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
 
         final long maxSearchSeconds = pwmDomain.getConfig().getDefaultLdapProfile().readSettingAsLong( PwmSetting.LDAP_SEARCH_TIMEOUT );
         final TimeDuration maxSearchTime = TimeDuration.of( maxSearchSeconds, TimeDuration.Unit.SECONDS );
-        final Iterator<UserIdentity> matches =  UserPermissionUtility.discoverMatchingUsers( tempDomain, permissions, SessionLabel.SYSTEM_LABEL, maxResultSize, maxSearchTime );
+        final Iterator<UserIdentity> matches =  UserPermissionUtility.discoverMatchingUsers( tempDomain, permissions, sessionLabel, maxResultSize, maxSearchTime );
         final List<UserIdentity> sortedResults = new ArrayList<>( CollectionUtil.iteratorToList( matches ) );
         Collections.sort( sortedResults );
         return Collections.unmodifiableList ( sortedResults );

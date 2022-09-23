@@ -91,8 +91,8 @@ public class RestTokenDataClient implements RestClient
 
             final MacroRequest macroRequest = MacroRequest.forUser(
                     pwmDomain.getPwmApplication(),
-                    PwmConstants.DEFAULT_LOCALE,
-                    SessionLabel.SYSTEM_LABEL,
+                    locale,
+                    sessionLabel,
                     userInfo.getUserIdentity() );
 
             final PublicUserInfoBean publicUserInfoBean = UserInfoBean.toPublicUserInfoBean( userInfo, pwmDomain.getConfig(), PwmConstants.DEFAULT_LOCALE, macroRequest );

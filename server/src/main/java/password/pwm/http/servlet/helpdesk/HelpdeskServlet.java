@@ -998,7 +998,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
     @ActionHandler( action = "showVerifications" )
     public ProcessStatus restShowVerifications( final PwmRequest pwmRequest )
-            throws IOException, PwmUnrecoverableException, ServletException, ChaiUnavailableException
+            throws IOException, PwmUnrecoverableException
     {
         final Map<String, String> bodyMap = pwmRequest.readBodyAsJsonStringMap( PwmHttpRequestWrapper.Flag.BypassValidation );
         final String rawVerificationStr = bodyMap.get( HelpdeskVerificationStateBean.PARAMETER_VERIFICATION_STATE_KEY );
@@ -1006,7 +1006,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         final HashMap<String, Object> results = new HashMap<>();
         try
         {
-            results.put( "records", state.asViewableValidationRecords( pwmRequest.getPwmDomain(), pwmRequest.getLocale() ) );
+            results.put( "records", state.asViewableValidationRecords( pwmRequest.getPwmRequestContext() ) );
         }
         catch ( final ChaiOperationException e )
         {

@@ -25,7 +25,6 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.bean.ProfileID;
-import password.pwm.bean.SessionLabel;
 import password.pwm.config.option.CertificateMatchingMode;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.profile.EmailServerProfile;
@@ -380,7 +379,7 @@ public class AppConfig implements SettingReader
             {
                 final String errorMsg = "Security Key value is not configured, will generate temp value for use by runtime instance";
                 final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg );
-                LOGGER.warn( SessionLabel.SYSTEM_LABEL, errorInfo::toDebugStr );
+                LOGGER.warn( errorInfo::toDebugStr );
                 return new PwmSecurityKey( PwmRandom.getInstance().alphaNumericString( 1024 ) );
             }
             else
