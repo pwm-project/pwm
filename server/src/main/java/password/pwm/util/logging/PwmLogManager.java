@@ -37,6 +37,7 @@ import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
 import ch.qos.logback.core.util.FileSize;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.LoggerFactory;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -95,6 +96,7 @@ public class PwmLogManager
         lowestLogLevelConfigured = PwmLogLevel.TRACE;
     }
 
+    @SuppressFBWarnings( "EI_EXPOSE_STATIC_REP2" )
     public static void initializeLogging(
             final PwmApplication pwmApplication,
             final AppConfig config,
