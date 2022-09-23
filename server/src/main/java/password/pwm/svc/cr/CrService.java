@@ -61,13 +61,14 @@ import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -130,6 +131,8 @@ public class CrService extends AbstractPwmService implements PwmService
     )
             throws PwmUnrecoverableException
     {
+        checkOpenStatus();
+
         final DomainConfig config = pwmDomain.getConfig();
         final long methodStartTime = System.currentTimeMillis();
 
@@ -298,6 +301,8 @@ public class CrService extends AbstractPwmService implements PwmService
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
+        checkOpenStatus();
+
         //strip null keys from responseMap;
         responseMap.keySet().removeIf( Objects::isNull );
 
@@ -427,6 +432,8 @@ public class CrService extends AbstractPwmService implements PwmService
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
+        checkOpenStatus();
+
         final DomainConfig config = pwmDomain.getConfig();
 
         LOGGER.trace( sessionLabel, () -> "beginning read of user response sequence" );
@@ -722,5 +729,10 @@ public class CrService extends AbstractPwmService implements PwmService
                 .collect( Collectors.toSet() );
 
         return ServiceInfoBean.builder().storageMethods( usedStorageMethods ).build();
+    }
+
+    protected Set<PwmApplication.Condition> openConditions()
+    {
+        return EnumSet.noneOf( PwmApplication.Condition.class );
     }
 }

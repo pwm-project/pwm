@@ -868,50 +868,44 @@ PWM_CFGEDIT.httpsCertificateView = function() {
 };
 
 PWM_CFGEDIT.smsHealthCheck = function() {
-    let dialogBody = '<p>' + PWM_CONFIG.showString('Warning_SmsTestData') + '</p><form id="smsCheckParametersForm"><table>';
-    dialogBody += '<tr><td>To</td><td><input name="to" type="text" value="555-1212"/></td></tr>';
-    dialogBody += '<tr><td>Message</td><td><input name="message" type="text" value="Test Message"/></td></tr>';
-    dialogBody += '</table></form>';
-    PWM_MAIN.showDialog({text:dialogBody,showCancel:true,title:'Test SMS connection',closeOnOk:false,okAction:function(){
-            const formElement = PWM_MAIN.getObject("smsCheckParametersForm");
-            const formData = PWM_MAIN.JSLibrary.formToValueMap(formElement);
-            const url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'smsHealthCheck');
-            PWM_MAIN.showWaitDialog({loadFunction:function(){
-                    const loadFunction = function(data) {
-                        if (data['error']) {
-                            PWM_MAIN.showErrorDialog(data);
-                        } else {
-                            const bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
-                            const titleText = 'SMS Send Message Status';
-                            PWM_MAIN.showDialog({text:bodyText,title:titleText,showCancel:true});
-                        }
+    const title = 'Test SMS Settings'
 
-                    };
-                    PWM_MAIN.ajaxRequest(url,loadFunction,{content:formData});
-                }});
-        }});
+    const dialogFormRows = '<p>' + PWM_CONFIG.showString('Warning_SmsTestData') +'</p>'
+    + '<tr><td>To</td><td><input name="to" type="text" value="555-1212"/></td></tr>'
+     + '<tr><td>Message</td><td><input name="message" type="text" value="Test Message"/></td></tr>';
+
+    const actionParam = 'smsHealthCheck';
+
+    PWM_CFGEDIT.healthCheckImpl(dialogFormRows,title,actionParam);
 };
 
 PWM_CFGEDIT.emailHealthCheck = function() {
-    let dialogBody = '<p>' + PWM_CONFIG.showString('Warning_EmailTestData') + '</p><form id="emailCheckParametersForm"><table>';
-    dialogBody += '<tr><td>To</td><td><input name="to" type="text" value="test@example.com"/></td></tr>';
-    dialogBody += '<tr><td>From</td><td><input name="from" type="text" value="@DefaultEmailFromAddress@"/></td></tr>';
-    dialogBody += '<tr><td>Subject</td><td><input name="subject" type="text" value="Test Email"/></td></tr>';
-    dialogBody += '<tr><td>Body</td><td><input name="body" type="text" value="Test Email""/></td></tr>';
-    dialogBody += '</table></form>';
-    PWM_MAIN.showDialog({text:dialogBody,showCancel:true,title:'Test Email Connection',closeOnOk:false,okAction:function(){
-            const formElement = PWM_MAIN.getObject("emailCheckParametersForm");
+    const title =  PWM_CONFIG.showString('Warning_EmailTestData');
+
+    const dialogFormRows = '<tr><td>To</td><td><input name="to" type="text" value="test@example.com"/></td></tr>'
+     + '<tr><td>From</td><td><input name="from" type="text" value="@DefaultEmailFromAddress@"/></td></tr>'
+     + '<tr><td>Subject</td><td><input name="subject" type="text" value="Test Email"/></td></tr>'
+     + '<tr><td>Body</td><td><input name="body" type="text" value="Test Email""/></td></tr>';
+
+    const actionParam = 'emailHealthCheck';
+
+    PWM_CFGEDIT.healthCheckImpl(dialogFormRows,title,actionParam);
+};
+
+PWM_CFGEDIT.healthCheckImpl = function(dialogFormRows, title, actionParam) {
+    const formBody = '<form id="parametersForm"><table>' + dialogFormRows + '</table></form>';
+    PWM_MAIN.showDialog({text:formBody,showCancel:true,title:title,closeOnOk:false,okAction:function(){
+            const formElement = PWM_MAIN.getObject("parametersForm");
             const formData = PWM_MAIN.JSLibrary.formToValueMap(formElement);
-            let url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'emailHealthCheck');
+            let url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', actionParam);
             url = PWM_MAIN.addParamToUrl(url,'profile',PWM_CFGEDIT.readCurrentProfile());
             PWM_MAIN.showWaitDialog({loadFunction:function(){
                     const loadFunction = function(data) {
                         if (data['error']) {
                             PWM_MAIN.showErrorDialog(data);
                         } else {
-                            const bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
-                            const titleText = 'Email Send Message Status';
-                            PWM_MAIN.showDialog({text:bodyText,title:titleText,showCancel:true});
+                            const bodyText = '<div class="logViewer">' + data['data'] + '</div>';
+                            PWM_MAIN.showDialog({text:bodyText,title:title,showCancel:true,dialogClass:'wide'});
                         }
                     };
                     PWM_MAIN.ajaxRequest(url,loadFunction,{content:formData});

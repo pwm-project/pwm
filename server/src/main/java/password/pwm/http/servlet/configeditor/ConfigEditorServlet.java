@@ -67,7 +67,6 @@ import password.pwm.http.servlet.configeditor.data.NavTreeItem;
 import password.pwm.http.servlet.configeditor.data.NavTreeSettings;
 import password.pwm.http.servlet.configeditor.data.SettingData;
 import password.pwm.http.servlet.configeditor.data.SettingDataMaker;
-import password.pwm.http.servlet.configeditor.function.SettingUIFunction;
 import password.pwm.http.servlet.configmanager.ConfigManagerServlet;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Message;
@@ -76,6 +75,7 @@ import password.pwm.ldap.LdapBrowser;
 import password.pwm.svc.email.EmailServer;
 import password.pwm.svc.email.EmailServerUtil;
 import password.pwm.svc.email.EmailService;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.util.PasswordData;
 import password.pwm.util.SampleDataGenerator;
@@ -94,8 +94,8 @@ import password.pwm.ws.server.rest.bean.PublicHealthData;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.Serializable;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -250,36 +250,15 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final Map<String, String> requestMap = pwmRequest.readBodyAsJsonStringMap();
         final PwmSetting pwmSetting = PwmSetting.forKey( requestMap.get( "setting" ) )
                 .orElseThrow( () -> new IllegalStateException( "invalid setting parameter value" ) );
+
         final String functionName = requestMap.get( "function" );
         final ProfileID profileID = pwmSetting.getCategory().hasProfiles() ? ProfileID.create( pwmRequest.readParameterAsString( REQ_PARAM_PROFILE ) ) : null;
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( pwmSetting );
         final String extraData = requestMap.get( "extraData" );
 
-        try
-        {
-            final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, profileID, domainID );
-            final Class implementingClass = Class.forName( functionName );
-            final SettingUIFunction function = ( SettingUIFunction ) implementingClass.getDeclaredConstructor().newInstance();
-            final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( configManagerBean.getStoredConfiguration() );
-            final Serializable result = function.provideFunction( pwmRequest, modifier, key, extraData );
-            configManagerBean.setStoredConfiguration( modifier.newStoredConfiguration() );
-            final RestResultBean restResultBean = RestResultBean.forSuccessMessage( result, pwmRequest, Message.Success_Unknown );
-            pwmRequest.outputJsonResult( restResultBean );
-        }
-        catch ( final Exception e )
-        {
-            final RestResultBean restResultBean;
-            if ( e instanceof PwmException )
-            {
-                restResultBean = RestResultBean.fromError( ( ( PwmException ) e ).getErrorInformation(), pwmRequest, true );
-            }
-            else
-            {
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error performing user search: " + e.getMessage() );
-                restResultBean = RestResultBean.fromError( errorInformation, pwmRequest );
-            }
-            pwmRequest.outputJsonResult( restResultBean );
-        }
+        final RestResultBean<?> restResultBean = ConfigEditorServletUtils.executeSettingFunction(
+                pwmRequest, configManagerBean, pwmSetting, functionName, profileID, domainID, extraData );
+        pwmRequest.outputJsonResult( restResultBean );
 
         return ProcessStatus.Halt;
     }
@@ -581,16 +560,18 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final ProfileID profileID = ProfileID.create( pwmRequest.readParameterAsString( REQ_PARAM_PROFILE ) );
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.LDAP_SERVER_URLS );
         final DomainConfig config = AppConfig.forStoredConfig( configManagerBean.getStoredConfiguration() ).getDomainConfigs().get( domainID );
-        final PublicHealthData healthData = LDAPHealthChecker.healthForNewConfiguration(
-                pwmRequest.getLabel(),
-                pwmRequest.getPwmDomain(),
-                config,
-                pwmRequest.getLocale(),
-                profileID,
-                true,
-                true );
 
-        final RestResultBean restResultBean = RestResultBean.withData( healthData, PublicHealthData.class );
+        final PublicHealthData healthData = ConfigEditorServletUtils.timeoutExecutor( pwmRequest, () ->
+                LDAPHealthChecker.healthForNewConfiguration(
+                        pwmRequest.getLabel(),
+                        pwmRequest.getPwmDomain(),
+                        config,
+                        pwmRequest.getLocale(),
+                        profileID,
+                        true,
+                        true ) );
+
+        final RestResultBean<PublicHealthData> restResultBean = RestResultBean.withData( healthData, PublicHealthData.class );
 
         pwmRequest.outputJsonResult( restResultBean );
         LOGGER.debug( pwmRequest, () -> "completed restLdapHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
@@ -629,7 +610,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.LDAP_SERVER_URLS );
         final DomainConfig config = AppConfig.forStoredConfig( configManagerBean.getStoredConfiguration() ).getDomainConfigs().get( domainID );
         final StringBuilder output = new StringBuilder();
-        output.append( "beginning SMS send process:\n" );
+        output.append( "beginning SMS send process.\n" );
 
         if ( !config.getAppConfig().isSmsConfigured() )
         {
@@ -641,14 +622,20 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final SmsItemBean testSmsItem = new SmsItemBean( testParams.get( "to" ), testParams.get( "message" ), pwmRequest.getLabel() );
             try
             {
-                final String responseBody = SmsQueueService.sendDirectMessage(
+                final PwmHttpClientResponse responseBody = SmsQueueService.sendDirectMessage(
                         pwmRequest.getPwmDomain(),
                         config,
                         pwmRequest.getLabel(),
                         testSmsItem
                 );
-                output.append( "message sent:\n" );
-                output.append( "response body: \n" ).append( StringUtil.escapeHtml( responseBody ) );
+                output.append( "message sent.\n" );
+                output.append( "response status: " ).append( responseBody.getStatusLine() ).append( "\n" );
+                if ( responseBody.getHeaders() != null )
+                {
+                    responseBody.getHeaders().forEach( ( key, value ) ->
+                            output.append( "response header: " ).append( key ).append( ": " ).append( value ).append( "\n" ) );
+                }
+                output.append( "response body: \n" ).append( StringUtil.escapeHtml( responseBody.getBody() ) );
             }
             catch ( final PwmException e )
             {
@@ -656,7 +643,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             }
         }
 
-        final RestResultBean restResultBean = RestResultBean.withData( output.toString(), String.class );
+        final RestResultBean<String> restResultBean = RestResultBean.withData( output.toString(), String.class );
         pwmRequest.outputJsonResult( restResultBean );
         LOGGER.debug( pwmRequest, () -> "completed restSmsHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return ProcessStatus.Halt;
@@ -682,8 +669,10 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 params.get( "body" ),
                 null );
 
+        final List<HealthRecord> returnRecords = new ArrayList<>();
+
         final StringBuilder output = new StringBuilder();
-        output.append( "beginning EMail send process:\n" );
+        output.append( "Beginning EMail send process.\n" );
 
         final AppConfig testDomainConfig = AppConfig.forStoredConfig( configManagerBean.getStoredConfiguration() );
 
@@ -697,21 +686,27 @@ public class ConfigEditorServlet extends ControlledPwmServlet
 
                 try
                 {
-                    EmailService.sendEmailSynchronous( emailServer.get(), testDomainConfig, testEmailItem, macroRequest, pwmRequest.getLabel() );
-                    output.append( "message delivered" );
+                    ConfigEditorServletUtils.timeoutExecutor( pwmRequest,
+                            () ->
+                            {
+                                EmailService.sendEmailSynchronous( emailServer.get(), testDomainConfig, testEmailItem, macroRequest, pwmRequest.getLabel() );
+                                return Boolean.FALSE;
+                            } );
+
+                    output.append( "Test message delivered to server.\n" );
                 }
-                catch ( final PwmException e )
+                catch ( final Throwable e )
                 {
-                    output.append( "error: " ).append( StringUtil.escapeHtml( JavaHelper.readHostileExceptionMessage( e ) ) );
+                    output.append( "error: " ).append( StringUtil.escapeHtml( JavaHelper.readHostileExceptionMessage( e ) ) ).append( "\n" );
                 }
             }
         }
         else
         {
-            output.append( "smtp service is not configured." );
+            output.append( "EMail service is not configured.\n" );
         }
 
-        final RestResultBean restResultBean = RestResultBean.withData( output.toString(), String.class );
+        final RestResultBean<String> restResultBean = RestResultBean.withData( output.toString(), String.class );
         pwmRequest.outputJsonResult( restResultBean );
         LOGGER.debug( pwmRequest, () -> "completed restEmailHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return ProcessStatus.Halt;

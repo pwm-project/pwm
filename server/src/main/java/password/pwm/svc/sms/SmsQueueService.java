@@ -487,7 +487,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
         private final PwmApplication pwmApplication;
         private final AppConfig config;
 
-        private String lastResponseBody;
+        private PwmHttpClientResponse lastResponse;
 
         private SmsSendEngine(
                 final PwmApplication pwmApplication,
@@ -501,7 +501,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
         protected void sendSms( final String to, final String message, final SessionLabel sessionLabel )
                 throws PwmUnrecoverableException, PwmOperationalException
         {
-            lastResponseBody = null;
+            lastResponse = null;
 
             final String requestData = makeRequestData( to, message, sessionLabel );
 
@@ -514,9 +514,9 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
                 final PwmHttpClient pwmHttpClient = makePwmHttpClient( sessionLabel );
                 final PwmHttpClientResponse pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest );
                 final int resultCode = pwmHttpClientResponse.getStatusCode();
+                lastResponse = pwmHttpClientResponse;
 
                 final String responseBody = pwmHttpClientResponse.getBody();
-                lastResponseBody = responseBody;
 
                 determineIfResultSuccessful( config, resultCode, responseBody );
                 LOGGER.debug( sessionLabel, () -> "SMS send successful, HTTP status: " + resultCode );
@@ -675,13 +675,13 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
                     .build();
         }
 
-        public String getLastResponseBody( )
+        private PwmHttpClientResponse getLastResponse( )
         {
-            return lastResponseBody;
+            return lastResponse;
         }
     }
 
-    public static String sendDirectMessage(
+    public static PwmHttpClientResponse sendDirectMessage(
             final PwmDomain pwmDomain,
             final DomainConfig domainConfig,
             final SessionLabel sessionLabel,
@@ -692,7 +692,7 @@ public class SmsQueueService extends AbstractPwmService implements PwmService
     {
         final SmsSendEngine smsSendEngine = new SmsSendEngine( pwmDomain.getPwmApplication(), domainConfig.getAppConfig() );
         smsSendEngine.sendSms( smsItemBean.getTo(), smsItemBean.getMessage(), sessionLabel );
-        return smsSendEngine.getLastResponseBody();
+        return smsSendEngine.getLastResponse();
     }
 
     public int queueSize( )

@@ -186,7 +186,7 @@ public class LDAPHealthChecker implements HealthSupplier
 
         final List<HealthRecord> returnRecords = new ArrayList<>();
 
-        if ( testUserDN == null || testUserDN.length() < 1 )
+        if ( StringUtil.isEmpty( testUserDN ) )
         {
             return returnRecords;
         }

@@ -81,7 +81,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
 
         final Instant startSearchTime = Instant.now();
         final int maxResultSize = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.CONFIG_EDITOR_USER_PERMISSION_MATCH_LIMIT ) );
-        final Collection<UserIdentity> users = discoverMatchingUsers(
+        final List<UserIdentity> users = discoverMatchingUsers(
                 pwmRequest.getLabel(),
                 pwmDomain,
                 maxResultSize,
@@ -126,7 +126,6 @@ public class UserMatchViewerFunction implements SettingUIFunction
         final List<UserIdentity> sortedResults = new ArrayList<>( CollectionUtil.iteratorToList( matches ) );
         Collections.sort( sortedResults );
         return Collections.unmodifiableList ( sortedResults );
-
     }
 
     private static void validateUserPermissionLdapValues(
