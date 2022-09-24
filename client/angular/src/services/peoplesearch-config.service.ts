@@ -94,7 +94,7 @@ export default class PeopleSearchConfigService
                 maxExportDepth: results[3],
                 emailTeamEnabled: results[4],
                 maxEmailDepth: results[5]
-            }
+            };
         });
     }
 

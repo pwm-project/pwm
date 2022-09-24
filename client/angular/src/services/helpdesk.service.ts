@@ -78,16 +78,16 @@ export interface IVerificationOptions {
     verificationMethods: {
         optional: string[];
         required: string[];
-    },
+    };
     verificationForm: [{
         name: string;
         label: string;
-    }],
+    }];
     tokenDestinations: [{
         id: string;
         display: string;
         type: string;
-    }]
+    }];
 }
 
 export interface IVerificationStatus {

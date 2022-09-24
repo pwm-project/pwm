@@ -183,7 +183,7 @@ export default class VerificationsDialogController {
             })
             .catch((reason) => {
                 this.verificationStatus = STATUS_FAILED;
-            })
+            });
     }
 
     onTokenDestinationChanged() {
