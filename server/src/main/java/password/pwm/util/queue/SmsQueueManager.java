@@ -479,7 +479,7 @@ public class SmsQueueManager implements PwmService
         private static final PwmLogger LOGGER = PwmLogger.forClass( SmsSendEngine.class );
         private final PwmApplication pwmApplication;
         private final Configuration config;
-        private String lastResponseBody;
+        private PwmHttpClientResponse lastResponse;
 
         private SmsSendEngine( final PwmApplication pwmApplication, final Configuration configuration )
         {
@@ -490,7 +490,7 @@ public class SmsQueueManager implements PwmService
         protected void sendSms( final String to, final String message, final SessionLabel sessionLabel )
                 throws PwmUnrecoverableException, PwmOperationalException
         {
-            lastResponseBody = null;
+            lastResponse = null;
 
             final String requestData = makeRequestData( to, message );
 
@@ -519,9 +519,9 @@ public class SmsQueueManager implements PwmService
             {
                 final PwmHttpClientResponse pwmHttpClientResponse = pwmHttpClient.makeRequest( pwmHttpClientRequest, sessionLabel );
                 final int resultCode = pwmHttpClientResponse.getStatusCode();
+                lastResponse = pwmHttpClientResponse;
 
                 final String responseBody = pwmHttpClientResponse.getBody();
-                lastResponseBody = responseBody;
 
                 determineIfResultSuccessful( config, resultCode, responseBody );
                 LOGGER.debug( () -> "SMS send successful, HTTP status: " + resultCode );
@@ -660,13 +660,13 @@ public class SmsQueueManager implements PwmService
                     .build();
         }
 
-        public String getLastResponseBody( )
+        public PwmHttpClientResponse getLastResponse( )
         {
-            return lastResponseBody;
+            return lastResponse;
         }
     }
 
-    public static String sendDirectMessage(
+    public static PwmHttpClientResponse sendDirectMessage(
             final PwmApplication pwmApplication,
             final Configuration configuration,
             final SessionLabel sessionLabel,
@@ -677,7 +677,7 @@ public class SmsQueueManager implements PwmService
     {
         final SmsSendEngine smsSendEngine = new SmsSendEngine( pwmApplication, configuration );
         smsSendEngine.sendSms( smsItemBean.getTo(), smsItemBean.getMessage(), sessionLabel );
-        return smsSendEngine.getLastResponseBody();
+        return smsSendEngine.getLastResponse();
     }
 
     public int queueSize( )

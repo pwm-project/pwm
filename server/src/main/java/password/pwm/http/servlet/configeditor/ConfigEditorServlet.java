@@ -71,6 +71,7 @@ import password.pwm.ldap.LdapBrowser;
 import password.pwm.svc.email.EmailServer;
 import password.pwm.svc.email.EmailServerUtil;
 import password.pwm.svc.email.EmailService;
+import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.PasswordData;
 import password.pwm.util.SampleDataGenerator;
 import password.pwm.util.java.JavaHelper;
@@ -606,7 +607,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
 
         final Configuration config = new Configuration( configManagerBean.getStoredConfiguration() );
         final StringBuilder output = new StringBuilder();
-        output.append( "beginning SMS send process:\n" );
+        output.append( "beginning SMS send process.\n" );
 
         if ( !SmsQueueManager.smsIsConfigured( config ) )
         {
@@ -618,14 +619,20 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final SmsItemBean testSmsItem = new SmsItemBean( testParams.get( "to" ), testParams.get( "message" ), pwmRequest.getLabel() );
             try
             {
-                final String responseBody = SmsQueueManager.sendDirectMessage(
+                final PwmHttpClientResponse responseBody = SmsQueueManager.sendDirectMessage(
                         pwmRequest.getPwmApplication(),
                         config,
                         pwmRequest.getLabel(),
                         testSmsItem
                 );
-                output.append( "message sent:\n" );
-                output.append( "response body: \n" ).append( StringUtil.escapeHtml( responseBody ) );
+                output.append( "message sent.\n" );
+                output.append( "response status: " ).append( responseBody.getStatusCode() ).append( "\n" );
+                if ( responseBody.getHeaders() != null )
+                {
+                    responseBody.getHeaders().forEach( ( key, value ) ->
+                            output.append( "response header: " ).append( key ).append( ": " ).append( value ).append( "\n" ) );
+                }
+                output.append( "response body: \n" ).append( StringUtil.escapeHtml( responseBody.getBody() ) );
             }
             catch ( final PwmException e )
             {
@@ -655,7 +662,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final EmailItemBean testEmailItem = new EmailItemBean( params.get( "to" ), params.get( "from" ), params.get( "subject" ), params.get( "body" ), null );
 
         final StringBuilder output = new StringBuilder();
-        output.append( "beginning EMail send process:\n" );
+        output.append( "Beginning EMail send process.\n" );
 
         final Configuration testConfiguration = new Configuration( configManagerBean.getStoredConfiguration() );
 
@@ -670,17 +677,17 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 try
                 {
                     EmailService.sendEmailSynchronous( emailServer.get(), testConfiguration, testEmailItem, macroRequest );
-                   output.append( "message delivered" );
+                    output.append( "Test message delivered to server.\n" );
                 }
                 catch ( final PwmException e )
                 {
-                    output.append( "error: " + StringUtil.escapeHtml( JavaHelper.readHostileExceptionMessage( e ) ) );
+                    output.append( "error: " ).append( StringUtil.escapeHtml( JavaHelper.readHostileExceptionMessage( e ) ) ).append( "\n" );
                 }
             }
         }
         else
         {
-            output.append( "smtp service is not configured." );
+            output.append( "EMail service is not configured.\n" );
         }
 
         final RestResultBean restResultBean = RestResultBean.withData( output.toString() );

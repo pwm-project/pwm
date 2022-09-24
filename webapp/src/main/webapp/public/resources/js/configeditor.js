@@ -829,50 +829,44 @@ PWM_CFGEDIT.httpsCertificateView = function() {
 };
 
 PWM_CFGEDIT.smsHealthCheck = function() {
-    var dialogBody = '<p>' + PWM_CONFIG.showString('Warning_SmsTestData') + '</p><form id="smsCheckParametersForm"><table>';
-    dialogBody += '<tr><td>To</td><td><input name="to" type="text" value="555-1212"/></td></tr>';
-    dialogBody += '<tr><td>Message</td><td><input name="message" type="text" value="Test Message"/></td></tr>';
-    dialogBody += '</table></form>';
-    PWM_MAIN.showDialog({text:dialogBody,showCancel:true,title:'Test SMS connection',closeOnOk:false,okAction:function(){
-            var formElement = PWM_MAIN.getObject("smsCheckParametersForm");
-            var formData = PWM_MAIN.JSLibrary.formToValueMap(formElement);
-            var url =  "editor?processAction=smsHealthCheck";
-            PWM_MAIN.showWaitDialog({loadFunction:function(){
-                    var loadFunction = function(data) {
-                        if (data['error']) {
-                            PWM_MAIN.showErrorDialog(data);
-                        } else {
-                            var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
-                            var titleText = 'SMS Send Message Status';
-                            PWM_MAIN.showDialog({text:bodyText,title:titleText,showCancel:true});
-                        }
+    var title = 'Test SMS Settings'
 
-                    };
-                    PWM_MAIN.ajaxRequest(url,loadFunction,{content:formData});
-                }});
-        }});
+    var dialogFormRows = '<p>' + PWM_CONFIG.showString('Warning_SmsTestData') +'</p>'
+    + '<tr><td>To</td><td><input name="to" type="text" value="555-1212"/></td></tr>'
+     + '<tr><td>Message</td><td><input name="message" type="text" value="Test Message"/></td></tr>';
+
+    var actionParam = 'smsHealthCheck';
+
+    PWM_CFGEDIT.healthCheckImpl(dialogFormRows,title,actionParam);
 };
 
 PWM_CFGEDIT.emailHealthCheck = function() {
-    var dialogBody = '<p>' + PWM_CONFIG.showString('Warning_EmailTestData') + '</p><form id="emailCheckParametersForm"><table>';
-    dialogBody += '<tr><td>To</td><td><input name="to" type="text" value="test@example.com"/></td></tr>';
-    dialogBody += '<tr><td>From</td><td><input name="from" type="text" value="@DefaultEmailFromAddress@"/></td></tr>';
-    dialogBody += '<tr><td>Subject</td><td><input name="subject" type="text" value="Test Email"/></td></tr>';
-    dialogBody += '<tr><td>Body</td><td><input name="body" type="text" value="Test Email""/></td></tr>';
-    dialogBody += '</table></form>';
-    PWM_MAIN.showDialog({text:dialogBody,showCancel:true,title:'Test Email Connection',closeOnOk:false,okAction:function(){
-            var formElement = PWM_MAIN.getObject("emailCheckParametersForm");
+    var title =  PWM_CONFIG.showString('Warning_EmailTestData');
+
+    var dialogFormRows = '<tr><td>To</td><td><input name="to" type="text" value="test@example.com"/></td></tr>'
+     + '<tr><td>From</td><td><input name="from" type="text" value="@DefaultEmailFromAddress@"/></td></tr>'
+     + '<tr><td>Subject</td><td><input name="subject" type="text" value="Test Email"/></td></tr>'
+     + '<tr><td>Body</td><td><input name="body" type="text" value="Test Email""/></td></tr>';
+
+    var actionParam = 'emailHealthCheck';
+
+    PWM_CFGEDIT.healthCheckImpl(dialogFormRows,title,actionParam);
+};
+
+PWM_CFGEDIT.healthCheckImpl = function(dialogFormRows, title, actionParam) {
+    var formBody = '<form id="parametersForm"><table>' + dialogFormRows + '</table></form>';
+    PWM_MAIN.showDialog({text:formBody,showCancel:true,title:title,closeOnOk:false,okAction:function(){
+            var formElement = PWM_MAIN.getObject("parametersForm");
             var formData = PWM_MAIN.JSLibrary.formToValueMap(formElement);
-            var url = "editor?processAction=emailHealthCheck";
+            var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', actionParam);
             url = PWM_MAIN.addParamToUrl(url,'profile',PWM_CFGEDIT.readCurrentProfile());
             PWM_MAIN.showWaitDialog({loadFunction:function(){
                     var loadFunction = function(data) {
                         if (data['error']) {
                             PWM_MAIN.showErrorDialog(data);
                         } else {
-                            var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
-                            var titleText = 'Email Send Message Status';
-                            PWM_MAIN.showDialog({text:bodyText,title:titleText,showCancel:true});
+                            var bodyText = '<div class="logViewer">' + data['data'] + '</div>';
+                            PWM_MAIN.showDialog({text:bodyText,title:title,showCancel:true,dialogClass:'wide'});
                         }
                     };
                     PWM_MAIN.ajaxRequest(url,loadFunction,{content:formData});

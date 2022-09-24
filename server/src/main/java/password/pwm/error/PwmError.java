@@ -306,7 +306,9 @@ public enum PwmError
     ERROR_WORDLIST_IMPORT_ERROR(
             5094, "Error_WordlistImportError", null ),
     ERROR_PWNOTIFY_SERVICE_ERROR(
-            5095, "Error_PwNotifyServiceError", null ),
+            5095, "Error_PwNotifyServiceError", Collections.emptySet() ),
+    ERROR_TIMEOUT(
+            5096, "Error_Timeout", Collections.emptySet() ),
 
     ERROR_REMOTE_ERROR_VALUE(
             6000, "Error_RemoteErrorValue", null, ErrorFlag.Permanent ),
