@@ -14,8 +14,8 @@
     <packaging>jar</packaging>
 
     <properties>
-        <node.version>v16.15.1</node.version>
-        <npm.version>8.12.1</npm.version>
+        <node.version>v16.17.1</node.version>
+        <npm.version>8.19.2</npm.version>
     </properties>
 
     <name>PWM Password Self Service: Angular Client JAR</name>
@@ -33,7 +33,7 @@
         <plugins>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <id>copy-client-files</id>
@@ -127,7 +127,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.2</version>
+                <version>3.3.0</version>
                 <configuration>
                     <archive>
                         <manifestEntries>
