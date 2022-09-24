@@ -42,7 +42,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-assembly-plugin</artifactId>
-                        <version>3.4.1</version>
+                        <version>3.4.2</version>
                         <configuration>
                             <descriptors>
                                 <descriptor>src/build/assembly/release-bundle.xml</descriptor>
@@ -69,7 +69,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.4.1</version>
+                <version>3.4.2</version>
                 <executions>
                     <execution>
                         <id>make-ldif-schema-zip</id>
@@ -194,7 +194,7 @@
                 <!-- builds xml file of dependencies and licenses for use in about page -->
                 <groupId>com.github.jinnovations</groupId>
                 <artifactId>attribution-maven-plugin</artifactId>
-                <version>0.9.8</version>
+                <version>0.9.9</version>
                 <executions>
                     <execution>
                         <goals>
@@ -298,17 +298,17 @@
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>dojo</artifactId>
-            <version>1.17.2</version>
+            <version>1.17.3</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>dijit</artifactId>
-            <version>1.17.2</version>
+            <version>1.17.3</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>dojox</artifactId>
-            <version>1.17.2</version>
+            <version>1.17.3</version>
         </dependency>
         <dependency>
             <groupId>org.webjars.npm</groupId>
