@@ -74,7 +74,12 @@ public class CollectorUtil
         return Collectors.collectingAndThen( Collectors.toUnmodifiableMap(
                         keyMapper,
                         valueMapper ),
-                s -> new TreeMap<>( comparator ) );
+                s -> {
+                    final SortedMap<K, U> sortedMap = new TreeMap<>( comparator );
+                    sortedMap.putAll( s );
+                    return sortedMap;
+                } );
+
     }
 
     public static <T, K extends Enum<K>, U> Collector<T, ?, Map<K, U>> toUnmodifiableEnumMap(

@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.function.Function;
 
 public class CollectorUtilTest
@@ -103,5 +104,24 @@ public class CollectorUtilTest
         Assertions.assertEquals( 6, testSet.size() );
         Assertions.assertEquals( TestEnum.ONE, testSet.iterator().next() );
         Assertions.assertThrows( UnsupportedOperationException.class, () -> testSet.remove( TestEnum.ONE ) );
+    }
+
+    @Test
+    public void collectorToSortedMap()
+    {
+        final Map<String, String> input = Map.ofEntries(
+                Map.entry( "2", "two" ),
+                Map.entry( "1", "one" ),
+                Map.entry( "3", "three" ) );
+
+        final SortedMap<String, String> sortedMap = input.entrySet().stream()
+                .collect( CollectorUtil.toSortedMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        String.CASE_INSENSITIVE_ORDER
+                ) );
+
+        Assertions.assertEquals( 3, sortedMap.size() );
+        Assertions.assertEquals( "1", sortedMap.firstKey() );
     }
 }
