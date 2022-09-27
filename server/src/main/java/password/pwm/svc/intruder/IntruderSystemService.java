@@ -169,7 +169,7 @@ public class IntruderSystemService extends AbstractPwmService implements PwmServ
             }
         };
 
-        getPwmApplication().getPwmScheduler().scheduleFixedRateJob( cleanerJob, getExecutorService(), TimeDuration.SECONDS_10, cleanerRunFrequency );
+        scheduleFixedRateJob( cleanerJob, TimeDuration.SECONDS_10, cleanerRunFrequency );
     }
 
     IntruderRecordStore getRecordStore()

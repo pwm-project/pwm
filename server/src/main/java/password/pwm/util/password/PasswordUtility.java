@@ -970,7 +970,7 @@ public class PasswordUtility
 
     public static PwmPasswordPolicy determineConfiguredPolicyProfileForUser(
             final PwmDomain pwmDomain,
-            final SessionLabel pwmSession,
+            final SessionLabel sessionLabel,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
@@ -985,10 +985,10 @@ public class PasswordUtility
         {
             final PwmPasswordPolicy loopPolicy = pwmDomain.getConfig().getPasswordPolicy( profile );
             final List<UserPermission> userPermissions = loopPolicy.getUserPermissions();
-            LOGGER.debug( pwmSession, () -> "testing password policy profile '" + profile + "'" );
+            LOGGER.debug( sessionLabel, () -> "testing password policy profile '" + profile + "'" );
             try
             {
-                final boolean match = UserPermissionUtility.testUserPermission( pwmDomain, pwmSession, userIdentity, userPermissions );
+                final boolean match = UserPermissionUtility.testUserPermission( pwmDomain, sessionLabel, userIdentity, userPermissions );
                 if ( match )
                 {
                     return loopPolicy;
@@ -996,7 +996,7 @@ public class PasswordUtility
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( pwmSession, () -> "unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage() );
+                LOGGER.error( sessionLabel, () -> "unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage() );
             }
         }
 

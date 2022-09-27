@@ -37,7 +37,6 @@ class HealthMonitorSettings implements Serializable
     private TimeDuration minimumCheckInterval;
     private TimeDuration maximumRecordAge;
     private TimeDuration maximumForceCheckWait;
-    private TimeDuration threadDumpInterval;
 
     static HealthMonitorSettings fromConfiguration( final AppConfig config )
     {
@@ -47,8 +46,6 @@ class HealthMonitorSettings implements Serializable
                 .minimumCheckInterval( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MIN_CHECK_INTERVAL ) ), TimeDuration.Unit.SECONDS ) )
                 .maximumRecordAge( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MAX_RECORD_AGE ) ), TimeDuration.Unit.SECONDS ) )
                 .maximumForceCheckWait( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MAX_FORCE_WAIT ) ), TimeDuration.Unit.SECONDS ) )
-                .threadDumpInterval( TimeDuration.of(
-                        Long.parseLong( config.readAppProperty( AppProperty.LOGGING_EXTRA_PERIODIC_THREAD_DUMP_INTERVAL ) ), TimeDuration.Unit.SECONDS ) )
                 .build();
     }
 }

@@ -92,8 +92,13 @@ import java.util.stream.Collectors;
 )
 public class ClientApiServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( ClientApiServlet.class );
+
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
     @Data
     public static class AppData implements Serializable

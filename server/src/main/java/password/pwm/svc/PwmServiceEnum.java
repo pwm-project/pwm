@@ -59,6 +59,7 @@ public enum PwmServiceEnum
     LdapSystemService( password.pwm.ldap.LdapSystemService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     TokenSystemService( password.pwm.svc.token.TokenSystemService.class, PwmSettingScope.SYSTEM ),
     HealthMonitor( HealthService.class, PwmSettingScope.SYSTEM ),
+    DebugOutputService( password.pwm.health.DebugOutputService.class, PwmSettingScope.SYSTEM ),
     ReportService( password.pwm.svc.report.ReportService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     SessionTrackService( password.pwm.svc.sessiontrack.SessionTrackService.class, PwmSettingScope.SYSTEM ),
     SessionStateSvc( password.pwm.http.state.SessionStateService.class, PwmSettingScope.SYSTEM ),

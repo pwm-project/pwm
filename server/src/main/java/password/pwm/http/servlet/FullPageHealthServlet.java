@@ -51,6 +51,12 @@ public class FullPageHealthServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( FullPageHealthServlet.class );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
     public enum FullPageHealthAction implements AbstractPwmServlet.ProcessAction
     {
         value( HttpMethod.GET ),;

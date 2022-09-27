@@ -94,7 +94,8 @@ public class NodeService extends AbstractPwmService implements PwmService
 
                 }
 
-                nodeMachine = new NodeMachine( pwmApplication, getExecutorService(), clusterDataServiceProvider, nodeServiceSettings );
+                nodeMachine = new NodeMachine( pwmApplication, clusterDataServiceProvider, nodeServiceSettings );
+                scheduleFixedRateJob( nodeMachine.getHeartbeatProcess(), nodeServiceSettings.getHeartbeatInterval(), nodeServiceSettings.getHeartbeatInterval() );
             }
         }
         catch ( final PwmUnrecoverableException e )

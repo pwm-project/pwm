@@ -96,6 +96,12 @@ public class ActivateUserServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ActivateUserServlet.class );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
     public enum ActivateUserAction implements ProcessAction
     {
         search( HttpMethod.POST ),

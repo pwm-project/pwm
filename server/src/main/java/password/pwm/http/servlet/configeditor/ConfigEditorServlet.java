@@ -128,6 +128,12 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     public static final String REQ_PARAM_PROFILE = "profile";
     public static final String REQ_PARAM_TEMPLATE = "template";
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
     public enum ConfigEditorAction implements AbstractPwmServlet.ProcessAction
     {
         readSetting( HttpMethod.POST ),
@@ -552,8 +558,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     )
             throws IOException, PwmUnrecoverableException
     {
-        LOGGER.debug( pwmRequest, () -> "beginning restLdapHealthCheck" );
-
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final ProfileID profileID = ProfileID.create( pwmRequest.readParameterAsString( REQ_PARAM_PROFILE ) );
@@ -573,7 +577,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final RestResultBean<PublicHealthData> restResultBean = RestResultBean.withData( healthData, PublicHealthData.class );
 
         pwmRequest.outputJsonResult( restResultBean );
-        LOGGER.debug( pwmRequest, () -> "completed restLdapHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return ProcessStatus.Halt;
     }
 
@@ -585,14 +588,12 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     {
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
-        LOGGER.debug( pwmRequest, () -> "beginning restDatabaseHealthCheck" );
         final AppConfig config = AppConfig.forStoredConfig( configManagerBean.getStoredConfiguration() );
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.LDAP_SERVER_URLS );
         final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus( pwmRequest.getPwmApplication(), config );
         final PublicHealthData healthData = HealthRecord.asHealthDataBean( config.getDomainConfigs().get( domainID ), pwmRequest.getLocale(), healthRecords );
         final RestResultBean restResultBean = RestResultBean.withData( healthData, PublicHealthData.class );
         pwmRequest.outputJsonResult( restResultBean );
-        LOGGER.debug( pwmRequest, () -> "completed restDatabaseHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return ProcessStatus.Halt;
     }
 
@@ -604,7 +605,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     {
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
-        LOGGER.debug( pwmRequest, () -> "beginning restSmsHealthCheck" );
 
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.LDAP_SERVER_URLS );
         final DomainConfig config = AppConfig.forStoredConfig( configManagerBean.getStoredConfiguration() ).getDomainConfigs().get( domainID );
@@ -644,7 +644,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
 
         final RestResultBean<String> restResultBean = RestResultBean.withData( output.toString(), String.class );
         pwmRequest.outputJsonResult( restResultBean );
-        LOGGER.debug( pwmRequest, () -> "completed restSmsHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return ProcessStatus.Halt;
     }
 
@@ -657,8 +656,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final ProfileID profileID = ProfileID.create( pwmRequest.readParameterAsString( REQ_PARAM_PROFILE ) );
-
-        LOGGER.debug( pwmRequest, () -> "beginning restEmailHealthCheck" );
 
         final Map<String, String> params = pwmRequest.readBodyAsJsonStringMap();
         final EmailItemBean testEmailItem = new EmailItemBean(
@@ -705,7 +702,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
 
         final RestResultBean<String> restResultBean = RestResultBean.withData( output.toString(), String.class );
         pwmRequest.outputJsonResult( restResultBean );
-        LOGGER.debug( pwmRequest, () -> "completed restEmailHealthCheck in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         return ProcessStatus.Halt;
     }
 
@@ -771,7 +767,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 storedConfiguration,
                 navTreeSettings );
 
-        LOGGER.trace( pwmRequest, () -> "completed navigation tree data request in " + TimeDuration.fromCurrent( startTime ).asCompactString() );
         pwmRequest.outputJsonResult( RestResultBean.withData( navigationData, List.class ) );
         return ProcessStatus.Halt;
     }

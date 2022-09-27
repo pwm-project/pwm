@@ -44,7 +44,7 @@ public class TokenSystemService extends AbstractPwmService implements PwmService
         {
             final int cleanerFrequencySeconds = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.TOKEN_CLEANER_INTERVAL_SECONDS ) );
             final TimeDuration cleanerFrequency = TimeDuration.of( cleanerFrequencySeconds, TimeDuration.Unit.SECONDS );
-            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), getExecutorService(), TimeDuration.MINUTE, cleanerFrequency );
+            scheduleFixedRateJob( new CleanerTask(), TimeDuration.MINUTE, cleanerFrequency );
             LOGGER.trace( getSessionLabel(), () -> "token cleanup will occur every " + cleanerFrequency.asCompactString() );
         }
 

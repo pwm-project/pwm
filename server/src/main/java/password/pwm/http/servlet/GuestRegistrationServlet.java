@@ -98,6 +98,12 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( GuestRegistrationServlet.class );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
     public static final String HTTP_PARAM_EXPIRATION_DATE = "_expirationDateFormInput";
 
     public enum Page

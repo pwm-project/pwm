@@ -48,10 +48,12 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.AtomicLoopLongIncrementer;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.MutableReference;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogLevel;
+import password.pwm.util.logging.PwmLogManager;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -129,60 +131,67 @@ public abstract class RestServlet extends HttpServlet
             return;
         }
 
-        final RestResultBean restResultBean = executeRequest( req, resp, locale, pwmApplication, pwmDomain, sessionLabel );
+        final MutableReference<RestResultBean> mutableReference = new MutableReference<>();
 
+        PwmLogManager.executeWithThreadSessionData( sessionLabel, () ->
+        {
+            mutableReference.set( executeRequest( req, resp, locale, pwmApplication, pwmDomain, sessionLabel ) );
+        } );
+
+
+        final RestResultBean restResultBean = mutableReference.get();
         outputRestResultBean( restResultBean, req, resp );
         final boolean success = restResultBean != null && !restResultBean.isError();
         LOGGER.trace( sessionLabel, () -> "completed rest invocation, success=" + success, TimeDuration.fromCurrent( startTime ) );
     }
 
-   private RestResultBean executeRequest(
-           final HttpServletRequest req,
-           final HttpServletResponse resp,
-           final Locale locale,
-           final PwmApplication pwmApplication,
-           final PwmDomain pwmDomain,
-           final SessionLabel sessionLabel
-   )
-   {
-       try
-       {
-           final RestAuthentication restAuthentication = new RestAuthenticationProcessor( pwmDomain, sessionLabel, req ).readRestAuthentication();
-           LOGGER.debug( sessionLabel, () -> "rest request authentication status: " + JsonFactory.get().serialize( restAuthentication ) );
+    private RestResultBean executeRequest(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final Locale locale,
+            final PwmApplication pwmApplication,
+            final PwmDomain pwmDomain,
+            final SessionLabel sessionLabel
+    )
+    {
+        try
+        {
+            final RestAuthentication restAuthentication = new RestAuthenticationProcessor( pwmDomain, sessionLabel, req ).readRestAuthentication();
+            LOGGER.debug( sessionLabel, () -> "rest request authentication status: " + JsonFactory.get().serialize( restAuthentication ) );
 
-           final RestRequest restRequest = RestRequest.forRequest( pwmDomain, restAuthentication, sessionLabel, req );
+            final RestRequest restRequest = RestRequest.forRequest( pwmDomain, restAuthentication, sessionLabel, req );
 
-           RequestInitializationFilter.addStaticResponseHeaders( pwmApplication, req, resp );
+            RequestInitializationFilter.addStaticResponseHeaders( pwmApplication, req, resp );
 
-           preCheck( restRequest );
+            preCheck( restRequest );
 
-           preCheckRequest( restRequest );
+            preCheckRequest( restRequest );
 
-           return invokeWebService( restRequest );
-       }
-       catch ( final PwmUnrecoverableException e )
-       {
-           return RestResultBean.fromError(
-                   e.getErrorInformation(),
-                   pwmDomain,
-                   locale,
-                   pwmDomain.getConfig(),
-                   pwmDomain.determineIfDetailErrorMsgShown()
-           );
-       }
-       catch ( final Throwable e )
-       {
-           final String errorMsg = "internal error during rest service invocation: " + e.getMessage();
-           final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-           LOGGER.error( sessionLabel, errorInformation, e );
-           return RestResultBean.fromError(
-                   errorInformation,
-                   pwmDomain,
-                   locale,
-                   pwmDomain.getConfig(),
-                   pwmDomain.determineIfDetailErrorMsgShown() );
-       }
-   }
+            return invokeWebService( restRequest );
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            return RestResultBean.fromError(
+                    e.getErrorInformation(),
+                    pwmDomain,
+                    locale,
+                    pwmDomain.getConfig(),
+                    pwmDomain.determineIfDetailErrorMsgShown()
+            );
+        }
+        catch ( final Throwable e )
+        {
+            final String errorMsg = "internal error during rest service invocation: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
+            LOGGER.error( sessionLabel, errorInformation, e );
+            return RestResultBean.fromError(
+                    errorInformation,
+                    pwmDomain,
+                    locale,
+                    pwmDomain.getConfig(),
+                    pwmDomain.determineIfDetailErrorMsgShown() );
+        }
+    }
 
     private static void logHttpRequest(
             final PwmApplication pwmApplication,

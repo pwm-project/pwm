@@ -37,10 +37,8 @@ import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.function.Function;
 
 public enum PwmAboutProperty
@@ -174,18 +172,6 @@ public enum PwmAboutProperty
     public String getLabel( )
     {
         return label == null ? this.name() : label;
-    }
-
-    public static Map<String, String> toStringMap( final Map<PwmAboutProperty, String> infoBeanMap )
-    {
-        final Map<String, String> outputProps = new TreeMap<>( );
-        for ( final Map.Entry<PwmAboutProperty, String> entry : infoBeanMap.entrySet() )
-        {
-            final PwmAboutProperty aboutProperty = entry.getKey();
-            final String value = entry.getValue();
-            outputProps.put( aboutProperty.toString().replace( '_', '.' ), value );
-        }
-        return Collections.unmodifiableMap( outputProps );
     }
 
     private static String readSslVersions()

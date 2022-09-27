@@ -83,6 +83,12 @@ public class SetupOtpServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SetupOtpServlet.class );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
     public enum SetupOtpAction implements AbstractPwmServlet.ProcessAction
     {
         clearOtp( HttpMethod.POST ),

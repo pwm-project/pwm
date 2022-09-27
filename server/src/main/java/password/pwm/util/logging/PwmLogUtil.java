@@ -22,12 +22,14 @@ package password.pwm.util.logging;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import lombok.Builder;
 import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
@@ -43,6 +45,7 @@ import password.pwm.util.json.JsonFactory;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -212,7 +215,7 @@ class PwmLogUtil
             output.append( JavaHelper.throwableToString( throwable ) );
         }
 
-        if ( duration != null )
+        if ( duration != null && duration.isLongerThan( TimeDuration.ZERO ) )
         {
             output.append( " (" ).append( duration.asCompactString() ).append( ")" );
         }
@@ -248,6 +251,12 @@ class PwmLogUtil
         {
             return pwmLogMessage.toLogEvent().toEncodedString();
         }
+    }
+
+    static boolean eventIsPwmGenerated( final ILoggingEvent event )
+    {
+        final List<Marker> markerList = event.getMarkerList();
+        return markerList != null && markerList.contains( PwmLogbackMarker.singleton() );
     }
 
 }

@@ -30,6 +30,7 @@ import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -38,6 +39,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,7 +56,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
     {
         for ( final PwmServletDefinition pwmServletDefinition : PwmServletDefinition.values() )
         {
-            final Class pwmServletClass = pwmServletDefinition.getPwmServletClass();
+            final Class<? extends PwmServlet> pwmServletClass = pwmServletDefinition.getPwmServletClass();
             if ( pwmServletClass.isInstance( this ) )
             {
                 return pwmServletDefinition;
@@ -89,7 +91,11 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             final Method interestedMethod = actionMethodCache.get( action.get() );
             if ( interestedMethod != null )
             {
-                return ( ProcessStatus ) interestedMethod.invoke( this, pwmRequest );
+                final Instant startTime = Instant.now();
+                getLogger().trace( pwmRequest, () -> "entering process action for '" + interestedMethod.getName() + '\'' );
+                final ProcessStatus result =  ( ProcessStatus ) interestedMethod.invoke( this, pwmRequest );
+                getLogger().trace( pwmRequest, () -> "completed process action for '" +  interestedMethod.getName() + '\'', TimeDuration.fromCurrent( startTime ) );
+                return result;
             }
         }
         catch ( final InvocationTargetException e )
@@ -120,6 +126,8 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         LOGGER.error( () -> msg );
         throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
     }
+
+    protected abstract PwmLogger getLogger();
 
     @Override
     protected void processAction( final PwmRequest pwmRequest )
@@ -183,7 +191,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
     public @interface ActionHandler
     {
         String action( );
-            }
+    }
 
     private Map<? extends ProcessAction, Method> createMethodCache()
     {

@@ -62,7 +62,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 public class VersionCheckService extends AbstractPwmService
 {
@@ -156,7 +155,7 @@ public class VersionCheckService extends AbstractPwmService
 
         final TimeDuration delayUntilNextExecution = TimeDuration.fromCurrent( this.nextScheduledCheck );
 
-        getExecutorService().schedule( new PeriodicCheck(), delayUntilNextExecution.asMillis(), TimeUnit.MILLISECONDS );
+        scheduleJob( new PeriodicCheck(), delayUntilNextExecution );
 
         LOGGER.trace( getSessionLabel(), () -> "scheduled next check execution at " + StringUtil.toIsoDate( nextScheduledCheck )
                 + " in " + delayUntilNextExecution.asCompactString() );

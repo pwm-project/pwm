@@ -33,6 +33,7 @@ import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogManager;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 
 public abstract class AbstractPwmService implements PwmService
 {
@@ -171,8 +173,46 @@ public abstract class AbstractPwmService implements PwmService
         return EnumSet.of( PwmApplication.Condition.RunningMode, PwmApplication.Condition.LocalDBOpen, PwmApplication.Condition.NotInternalInstance );
     }
 
-    protected ScheduledExecutorService getExecutorService()
+    protected void scheduleFixedRateJob( final Runnable runnable, final TimeDuration initialDelay, final TimeDuration repeatInterval )
     {
-        return executorService.get();
+        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new WrappedRunnable( runnable ),
+                executorService.get(),
+                initialDelay,
+                repeatInterval );
+    }
+
+    protected ScheduledFuture<?> scheduleJob( final Runnable runnable )
+    {
+        return scheduleJob( runnable, TimeDuration.ZERO );
+    }
+
+    protected ScheduledFuture<?> scheduleJob( final Runnable runnable, final TimeDuration initialDelay )
+    {
+        return pwmApplication.getPwmScheduler().scheduleJob( new WrappedRunnable( runnable ),
+                executorService.get(),
+                initialDelay );
+    }
+
+    protected void scheduleDailyZuluZeroStartJob( final Runnable runnable, final TimeDuration zuluOffset )
+    {
+        pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new WrappedRunnable( runnable ),
+                executorService.get(),
+                zuluOffset );
+    }
+
+    private class WrappedRunnable implements Runnable
+    {
+        private final Runnable runnable;
+
+        WrappedRunnable( final Runnable runnable )
+        {
+            this.runnable = runnable;
+        }
+
+        @Override
+        public void run()
+        {
+            PwmLogManager.executeWithThreadSessionData( getSessionLabel(), runnable );
+        }
     }
 }

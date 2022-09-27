@@ -171,13 +171,7 @@
         <dependency>
             <groupId>com.github.ldapchai</groupId>
             <artifactId>ldapchai</artifactId>
-            <version>0.8.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>0.8.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.jrivard.xmlchai</groupId>

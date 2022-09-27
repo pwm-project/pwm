@@ -94,8 +94,13 @@ import java.util.Optional;
 )
 public class UpdateProfileServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( UpdateProfileServlet.class );
+
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
     @Data
     public static class ValidateResponse implements Serializable

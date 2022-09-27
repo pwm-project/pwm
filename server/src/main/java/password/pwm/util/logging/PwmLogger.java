@@ -358,6 +358,8 @@ public class PwmLogger
             final TimeDuration timeDuration
     )
     {
+        final String threadName = Thread.currentThread().getName();
+
         final PwmLogMessage pwmLogMessage = PwmLogMessage.create(
                 Instant.now(),
                 logbackLogger.getName(),
@@ -365,7 +367,8 @@ public class PwmLogger
                 sessionLabel,
                 message,
                 timeDuration,
-                e );
+                e,
+                threadName );
 
         doLogEvent( pwmLogMessage );
     }

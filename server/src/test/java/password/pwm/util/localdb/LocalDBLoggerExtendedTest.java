@@ -189,7 +189,8 @@ public class LocalDBLoggerExtendedTest
                     SessionLabel.TEST_SESSION_LABEL,
                     description,
                     TimeDuration.ZERO,
-                    null );
+                    null,
+                    "threadName" );
             events.add( event );
         }
 

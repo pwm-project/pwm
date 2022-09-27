@@ -71,6 +71,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Supplier;
 
 
 public class UserSearchService extends AbstractPwmService implements PwmService
@@ -589,7 +590,7 @@ public class UserSearchService extends AbstractPwmService implements PwmService
             final String filterText = ", filter: " + firstParam.getSearchFilter();
             final SessionLabel sessionLabel = firstParam.getSessionLabel();
             final int searchID = firstParam.getSearchID();
-            log( PwmLogLevel.DEBUG, sessionLabel, searchID, -1, "beginning user search process with " + userSearchJobs.size() + " search jobs" + filterText );
+            log( PwmLogLevel.DEBUG, sessionLabel, searchID, -1, () -> "beginning user search process with " + userSearchJobs.size() + " search jobs" + filterText );
         }
 
         // execute jobs
@@ -626,14 +627,15 @@ public class UserSearchService extends AbstractPwmService implements PwmService
                 catch ( final Throwable t )
                 {
                     log( PwmLogLevel.ERROR, firstParam.getSessionLabel(), firstParam.getSearchID(), firstParam.getJobId(),
-                            "unexpected error running job in local thread: " + t.getMessage() );
+                            () -> "unexpected error running job in local thread: " + t.getMessage() );
                 }
             }
         }
 
         final Map<UserIdentity, Map<String, String>> results = aggregateJobResults( userSearchJobs );
 
-        log( PwmLogLevel.DEBUG, firstParam.getSessionLabel(), firstParam.getSearchID(), -1, "completed user search process in "
+        log( PwmLogLevel.DEBUG, firstParam.getSessionLabel(), firstParam.getSearchID(), -1,
+                () -> "completed user search process in "
                 + TimeDuration.fromCurrent( startTime ).asCompactString()
                 + ", intermediate result size=" + results.size() );
 
@@ -667,10 +669,10 @@ public class UserSearchService extends AbstractPwmService implements PwmService
                 }
                 catch ( final InterruptedException e )
                 {
-                    final String errorMsg = "unexpected interruption during search job execution: " + e.getMessage();
+                    final Supplier<String> errorMsg = () -> "unexpected interruption during search job execution: " + e.getMessage();
                     log( PwmLogLevel.WARN, params.getSessionLabel(), params.getSearchID(), params.getJobId(), errorMsg );
-                    LOGGER.error( params.getSessionLabel(), () -> errorMsg, e );
-                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
+                    LOGGER.error( params.getSessionLabel(), errorMsg, e );
+                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg.get() ) );
                 }
                 catch ( final ExecutionException e )
                 {
@@ -688,7 +690,8 @@ public class UserSearchService extends AbstractPwmService implements PwmService
                     {
                         errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
                     }
-                    log( PwmLogLevel.WARN, params.getSessionLabel(), params.getSearchID(), params.getJobId(), "error during user search: " + errorInformation.toDebugStr() );
+                    log( PwmLogLevel.WARN, params.getSessionLabel(), params.getSearchID(), params.getJobId(),
+                            () -> "error during user search: " + errorInformation.toDebugStr() );
                     throw new PwmUnrecoverableException( errorInformation );
                 }
             }
@@ -721,10 +724,10 @@ public class UserSearchService extends AbstractPwmService implements PwmService
         LOGGER.trace( getSessionLabel(), () -> "periodic debug status: " + StringUtil.mapToString( debugProperties() ) );
     }
 
-    void log( final PwmLogLevel level, final SessionLabel sessionLabel, final int searchID, final int jobID, final String message )
+    void log( final PwmLogLevel level, final SessionLabel sessionLabel, final int searchID, final int jobID, final Supplier<String> message )
     {
         final String idMsg = "domain=" + pwmDomain.getDomainID() + " " + logIdString( searchID, jobID );
-        LOGGER.log( level, sessionLabel, () -> idMsg + " " + message );
+        LOGGER.log( level, sessionLabel, () -> idMsg + " " + message.get() );
     }
 
     private static String logIdString( final int searchID, final int jobID )

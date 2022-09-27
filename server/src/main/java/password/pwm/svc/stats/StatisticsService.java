@@ -273,9 +273,9 @@ public class StatisticsService extends AbstractPwmService implements PwmService
 
         {
             // setup a timer to roll over at 0 Zulu and one to write current stats regularly
-            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailySummaryJob( pwmApplication ), getExecutorService(), TimeDuration.ZERO );
-            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new FlushTask(), getExecutorService(), DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
-            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new NightlyTask(), getExecutorService(), TimeDuration.ZERO );
+            scheduleDailyZuluZeroStartJob( new DailySummaryJob( pwmApplication ), TimeDuration.ZERO );
+            scheduleFixedRateJob( new FlushTask(), DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
+            scheduleDailyZuluZeroStartJob( new NightlyTask(), TimeDuration.ZERO );
         }
 
         return STATUS.OPEN;

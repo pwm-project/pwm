@@ -240,7 +240,7 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
             final TimeDuration frequency = TimeDuration.of( frequencyMs, TimeDuration.Unit.MILLISECONDS );
 
             LOGGER.debug( () -> "scheduling cleaner task to run once every " + frequency.asCompactString() );
-            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new CleanerTask(), getExecutorService(), TimeDuration.ZERO, frequency );
+            scheduleFixedRateJob( new CleanerTask(), TimeDuration.ZERO, frequency );
         }
     }
 

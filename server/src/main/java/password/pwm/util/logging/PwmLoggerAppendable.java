@@ -76,6 +76,8 @@ class PwmLoggerAppendable implements Appendable
     {
         buffer.append( charSequence );
 
+        final String threadName = Thread.currentThread().getName();
+
         final PwmLogMessage pwmLogMessage = PwmLogMessage.create(
                 Instant.now(),
                 pwmLogger.getName(),
@@ -83,7 +85,8 @@ class PwmLoggerAppendable implements Appendable
                 sessionLabel,
                 () -> charSequence,
                 null,
-                null );
+                null,
+                threadName );
 
         int length = buffer.indexOf( "\n" );
         while ( length > 0 )

@@ -20,7 +20,7 @@
 
 package password.pwm;
 
-import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.JavaHelper;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -433,6 +433,11 @@ public enum AppProperty
         return defaultValue;
     }
 
+    public boolean isDefaultValue( final String value )
+    {
+        return Objects.equals( defaultValue, value );
+    }
+
     public String getDescription( )
     {
         return readAppPropertiesBundle( this.getKey() + DESCRIPTION_SUFFIX );
@@ -445,8 +450,6 @@ public enum AppProperty
 
     public static Optional<AppProperty> forKey( final String key )
     {
-        return CollectionUtil.enumStream( AppProperty.class )
-                .filter( loopProperty -> Objects.equals( loopProperty.getKey(), key ) )
-                .findFirst();
+        return JavaHelper.readEnumFromPredicate( AppProperty.class, appProperty -> Objects.equals( appProperty.getKey(), key ) );
     }
 }

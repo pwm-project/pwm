@@ -44,6 +44,7 @@ import java.util.List;
 @Value
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 @Builder( access = AccessLevel.PRIVATE, toBuilder = true )
+@SuppressWarnings( "checkstyle:ParameterNumber" )
 public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
 {
     private static final int MAX_MESSAGE_LENGTH = 10_000;
@@ -60,6 +61,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
     private final String domain;
     private final String sourceAddress;
     private final Duration duration;
+    private final String threadName;
 
     private static final Comparator<PwmLogEvent> COMPARATOR = Comparator.comparing(
             PwmLogEvent::getTimestamp,
@@ -87,7 +89,8 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
             final SessionLabel sessionLabel,
             final LoggedThrowable loggedThrowable,
             final PwmLogLevel level,
-            final Duration duration
+            final Duration duration,
+            final String threadName
     )
     {
         if ( timestamp == null )
@@ -105,6 +108,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
         this.message = StringUtil.truncate( message, MAX_MESSAGE_LENGTH, " [truncated message]" );
         this.loggedThrowable = loggedThrowable;
         this.level = level;
+        this.threadName = threadName == null ? "" : StringUtil.truncate( threadName, MAX_FIELD_LENGTH );
 
         this.sessionID = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getSessionID(), MAX_FIELD_LENGTH );
         this.requestID = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getRequestID(), MAX_FIELD_LENGTH );
@@ -112,6 +116,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
         this.domain = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getDomain(), MAX_FIELD_LENGTH );
         this.sourceAddress = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getSourceAddress(), MAX_FIELD_LENGTH );
         this.duration = duration == null ? Duration.ZERO : duration;
+
     }
 
     public static PwmLogEvent createPwmLogEvent(
@@ -121,10 +126,11 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
             final SessionLabel sessionLabel,
             final Throwable throwable,
             final PwmLogLevel level,
-            final Duration duration
+            final Duration duration,
+            final String threadName
     )
     {
-        return new PwmLogEvent( timestamp, topic, message, sessionLabel, LoggedThrowable.fromThrowable( throwable ), level, duration );
+        return new PwmLogEvent( timestamp, topic, message, sessionLabel, LoggedThrowable.fromThrowable( throwable ), level, duration, threadName );
     }
 
     String getEnhancedMessage( )

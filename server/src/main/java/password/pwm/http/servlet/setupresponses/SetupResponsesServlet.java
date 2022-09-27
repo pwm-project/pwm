@@ -85,6 +85,12 @@ public class SetupResponsesServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SetupResponsesServlet.class );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
     public static final String PARAM_RESPONSE_MODE = "responseMode";
 
     public enum SetupResponsesAction implements ProcessAction

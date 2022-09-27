@@ -103,8 +103,13 @@ import java.util.Optional;
 )
 public class ConfigGuideServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.getLogger( ConfigGuideServlet.class.getName() );
+
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
     private static final ProfileID LDAP_PROFILE_KEY = ProfileID.PROFILE_ID_DEFAULT;
     public static final String PARAM_STEP = "step";

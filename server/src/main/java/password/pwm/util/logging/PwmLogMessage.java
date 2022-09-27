@@ -37,6 +37,7 @@ import java.util.function.Supplier;
  */
 @Value
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
+@SuppressWarnings( "checkstyle:ParameterNumber" )
 public class PwmLogMessage
 {
     private Instant timestamp;
@@ -46,6 +47,7 @@ public class PwmLogMessage
     private Supplier<? extends CharSequence> message;
     private TimeDuration duration;
     private Throwable throwable;
+    private String threadName;
 
     private final Supplier<String> enhancedMessage = LazySupplier.create( () -> PwmLogMessage.createEnhancedMessage( this ) );
 
@@ -56,10 +58,11 @@ public class PwmLogMessage
             final SessionLabel sessionLabel,
             final Supplier<? extends CharSequence> message,
             final TimeDuration duration,
-            final Throwable throwable
+            final Throwable throwable,
+            final String threadName
     )
     {
-        return new PwmLogMessage( timestamp, topic, level, sessionLabel, message, duration, throwable );
+        return new PwmLogMessage( timestamp, topic, level, sessionLabel, message, duration, throwable, threadName );
     }
 
     String messageToString()
@@ -76,7 +79,8 @@ public class PwmLogMessage
                 sessionLabel,
                 throwable,
                 level,
-                duration == null ? null : duration.asDuration() );
+                duration == null ? null : duration.asDuration(),
+                threadName );
     }
 
     String getEnhancedMessage()
@@ -93,24 +97,32 @@ public class PwmLogMessage
                 pwmLogMessage.getDuration() );
     }
 
+    static Throwable throwableFromILoggingEvent( final ILoggingEvent event )
+    {
+        return event.getThrowableProxy() instanceof ThrowableProxy
+                ? ( ( ThrowableProxy ) event.getThrowableProxy() ).getThrowable()
+                : null;
+    }
+
     static PwmLogMessage fromLogbackEvent( final ILoggingEvent event  )
     {
         final Supplier<? extends CharSequence> message = ( Supplier<CharSequence> ) event::getMessage;
-        final Throwable throwableInformation = event.getThrowableProxy() instanceof ThrowableProxy
-                ? ( ( ThrowableProxy ) event.getThrowableProxy() ).getThrowable()
-                : null;
+        final Throwable throwableInformation = throwableFromILoggingEvent( event );
         final PwmLogLevel level = PwmLogLevel.fromLogbackLevel( event.getLevel() );
         final Instant timeStamp = Instant.ofEpochMilli( event.getTimeStamp() );
         final String sourceLogger = event.getLoggerName();
+        final String threadName = event.getThreadName();
+
+        final SessionLabel sessionLabel = PwmLogManager.getThreadSessionData();
 
         return PwmLogMessage.create(
                 timeStamp,
                 sourceLogger,
                 level,
-                null,
+                sessionLabel,
                 message,
-                TimeDuration.ZERO,
-                throwableInformation
-        );
+                null,
+                throwableInformation,
+                threadName );
     }
 }

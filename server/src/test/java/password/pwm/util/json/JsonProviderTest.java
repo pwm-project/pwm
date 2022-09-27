@@ -351,7 +351,8 @@ public class JsonProviderTest
                         SessionLabel.TEST_SESSION_LABEL,
                         throwable,
                         PwmLogLevel.TRACE,
-                        Duration.ZERO
+                        Duration.ZERO,
+                        "threadName"
                 );
             }
         }

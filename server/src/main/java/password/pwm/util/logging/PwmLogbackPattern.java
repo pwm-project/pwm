@@ -40,14 +40,22 @@ public class PwmLogbackPattern extends LayoutBase<ILoggingEvent>
             return "[null logback event]";
         }
 
+        final String logMsg = PwmLogUtil.eventIsPwmGenerated( event )
+                ? event.getMessage()
+                : PwmLogUtil.createEnhancedMessage(
+                        PwmLogManager.getThreadSessionData(),
+                        event.getMessage(),
+                        PwmLogMessage.throwableFromILoggingEvent( event ),
+                        null );
+
         return StringUtil.toIsoDate( Instant.ofEpochMilli( event.getTimeStamp() ) )
                 + ", "
                 + printLevel( event.getLevel() )
                 + ", "
                 + printLoggerName( event.getLoggerName() )
                 + ", "
-                + event.getFormattedMessage()
-                + "\n";
+                + logMsg
+                + '\n';
     }
 
     private static String printLevel( final Level pwmLogLevel )

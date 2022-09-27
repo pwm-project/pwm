@@ -128,8 +128,13 @@ import java.util.concurrent.Callable;
 )
 public class HelpdeskServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskServlet.class );
+
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
     public enum HelpdeskAction implements AbstractPwmServlet.ProcessAction
     {

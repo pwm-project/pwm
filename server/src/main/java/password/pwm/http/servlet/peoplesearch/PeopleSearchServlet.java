@@ -63,6 +63,13 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PeopleSearchServlet.class );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
+
     private static final String PARAM_USERKEY = "userKey";
     private static final String PARAM_DEPTH = "depth";
 

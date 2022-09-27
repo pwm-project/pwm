@@ -57,6 +57,12 @@ public class LogoutServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LogoutServlet.class );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
     private static final String PARAM_URL = "url";
     private static final String PARAM_IDLE = "idle";
     private static final String PARAM_PASSWORD_MODIFIED = "passwordModified";

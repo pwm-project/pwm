@@ -140,7 +140,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
 
             engine = new PwNotifyEngine( this, pwmDomain, storageService, null );
 
-            pwmDomain.getPwmApplication().getPwmScheduler().scheduleFixedRateJob( new PwNotifyJob(), getExecutorService(), TimeDuration.MINUTE, TimeDuration.MINUTE );
+            scheduleFixedRateJob( new PwNotifyJob(), TimeDuration.MINUTE, TimeDuration.MINUTE );
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -256,7 +256,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
         if ( !isRunning() )
         {
             nextExecutionTime = Instant.now();
-            pwmDomain.getPwmApplication().getPwmScheduler().scheduleJob( new PwNotifyJob(), getExecutorService(), TimeDuration.ZERO );
+           scheduleJob( new PwNotifyJob() );
         }
     }
 

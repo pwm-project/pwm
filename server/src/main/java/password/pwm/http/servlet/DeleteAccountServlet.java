@@ -67,8 +67,13 @@ import java.util.Locale;
 )
 public class DeleteAccountServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( DeleteAccountServlet.class );
+
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
     public enum DeleteAccountAction implements AbstractPwmServlet.ProcessAction
     {

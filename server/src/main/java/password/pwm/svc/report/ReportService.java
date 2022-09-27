@@ -119,7 +119,7 @@ public class ReportService extends AbstractPwmService implements PwmService
 
         if ( !pwmApplication.getPwmEnvironment().isInternalRuntimeInstance() )
         {
-            getExecutorService().submit( new InitializationTask() );
+            scheduleJob( new InitializationTask() );
         }
 
         return STATUS.OPEN;
@@ -178,8 +178,8 @@ public class ReportService extends AbstractPwmService implements PwmService
                         && localReportStatus.getCurrentProcess() != ReportStatusInfo.ReportEngineProcess.SearchLDAP
                 )
                 {
-                    getExecutorService().execute( new ClearTask() );
-                    getExecutorService().execute( new ReadLDAPTask() );
+                    scheduleJob( new ClearTask() );
+                    scheduleJob( new ReadLDAPTask() );
                 }
             }
             break;
@@ -194,7 +194,7 @@ public class ReportService extends AbstractPwmService implements PwmService
             case Clear:
             {
                 cancelFlag.set( true );
-                getExecutorService().execute( new ClearTask() );
+                scheduleJob( new ClearTask() );
             }
             break;
 
@@ -316,7 +316,7 @@ public class ReportService extends AbstractPwmService implements PwmService
             try
             {
                 readUserListFromLdap();
-                getExecutorService().execute( new ProcessWorkQueueTask() );
+                scheduleJob( new ProcessWorkQueueTask() );
             }
             catch ( final Exception e )
             {
@@ -325,13 +325,10 @@ public class ReportService extends AbstractPwmService implements PwmService
                 {
                     if ( ( ( PwmException ) e ).getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
                     {
-                        if ( getExecutorService() != null )
-                        {
                             LOGGER.error( getSessionLabel(),
                                     () -> "directory unavailable error during background SearchLDAP, will retry; error: " + e.getMessage() );
-                            getPwmApplication().getPwmScheduler().scheduleJob( new ReadLDAPTask(), getExecutorService(), TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
+                            scheduleJob( new ReadLDAPTask(), TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                             errorProcessed = true;
-                        }
                     }
                 }
 
@@ -439,12 +436,8 @@ public class ReportService extends AbstractPwmService implements PwmService
             {
                 if ( e.getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
                 {
-                    if ( getExecutorService() != null )
-                    {
                         LOGGER.error( getSessionLabel(), () -> "directory unavailable error during background ReadData, will retry; error: " + e.getMessage() );
-                        getPwmApplication().getPwmScheduler().scheduleJob(
-                                new ProcessWorkQueueTask(), getExecutorService(), TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
-                    }
+                        scheduleJob( new ProcessWorkQueueTask(), TimeDuration.of( 10, TimeDuration.Unit.MINUTES ) );
                 }
                 else
                 {
@@ -635,8 +628,8 @@ public class ReportService extends AbstractPwmService implements PwmService
 
             if ( settings.isDailyJobEnabled() )
             {
-                getExecutorService().execute( new ClearTask() );
-                getExecutorService().execute( new ReadLDAPTask() );
+                scheduleJob( new ClearTask() );
+                scheduleJob( new ReadLDAPTask() );
             }
         }
     }
@@ -666,7 +659,7 @@ public class ReportService extends AbstractPwmService implements PwmService
             if ( reportingEnabled )
             {
                 final TimeDuration jobOffset = TimeDuration.of( settings.getJobOffsetSeconds(), TimeDuration.Unit.SECONDS );
-                getPwmApplication().getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailyJobExecuteTask(), getExecutorService(), jobOffset );
+                scheduleJob( new DailyJobExecuteTask(), jobOffset );
             }
         }
 
@@ -721,7 +714,7 @@ public class ReportService extends AbstractPwmService implements PwmService
             if ( !reportStatus.get().isReportComplete() && !dnQueue.isEmpty() )
             {
                 LOGGER.trace( getSessionLabel(), () -> "resuming report data processing" );
-                getExecutorService().execute( new ProcessWorkQueueTask() );
+                scheduleJob( new ProcessWorkQueueTask() );
             }
         }
     }
@@ -784,7 +777,7 @@ public class ReportService extends AbstractPwmService implements PwmService
         final Instant lastFinishDate = reportStatus.get().getFinishDate();
         if ( lastFinishDate != null && TimeDuration.fromCurrent( lastFinishDate ).isLongerThan( settings.getMaxCacheAge() ) )
         {
-            getExecutorService().execute( new ClearTask() );
+            scheduleJob( new ClearTask() );
         }
     }
 }

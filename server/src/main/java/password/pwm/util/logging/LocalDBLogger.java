@@ -23,6 +23,7 @@ package password.pwm.util.logging;
 import password.pwm.AppAttribute;
 import password.pwm.PwmApplication;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthMessage;
@@ -69,6 +70,8 @@ import java.util.regex.PatternSyntaxException;
 public class LocalDBLogger extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LocalDBLogger.class );
+
+    private static final SessionLabel SESSION_LABEL = SessionLabel.SYSTEM_LABEL;
 
     private final LocalDBLoggerSettings settings;
     private final LocalDBStoredQueue localDBListQueue;
@@ -130,7 +133,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
 
         if ( this.settings.getMaxEvents() == 0 )
         {
-            LOGGER.info( () -> "maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed" );
+            LOGGER.info( SESSION_LABEL, () -> "maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed" );
             localDBListQueue.clear();
             throw new IllegalArgumentException( "maxEvents=0, will remain closed" );
         }
@@ -144,7 +147,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
                     {
                         if ( !STORAGE_FORMAT_VERSION.equals( currentFormat ) )
                         {
-                            LOGGER.warn( () -> "localdb logger is using outdated format, clearing existing records (existing='"
+                            LOGGER.warn( SESSION_LABEL, () -> "localdb logger is using outdated format, clearing existing records (existing='"
                                     + currentFormat + "', current='" + STORAGE_FORMAT_VERSION + "')" );
 
                             localDBListQueue.clear();
@@ -190,7 +193,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "unexpected error attempting to determine tail event timestamp: " + e.getMessage() );
+            LOGGER.error( SESSION_LABEL, () -> "unexpected error attempting to determine tail event timestamp: " + e.getMessage() );
         }
 
         return Optional.empty();
@@ -239,7 +242,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
     {
         if ( lastLogOutput.get() + stats.get( CounterStat.EventsWritten ) > LOG_OUTPUT_INCREMENTS )
         {
-            LOGGER.trace( () -> "periodic debug output: " + StringUtil.mapToString( debugStats() ) );
+            LOGGER.trace( SESSION_LABEL, () -> "periodic debug output: " + StringUtil.mapToString( debugStats() ) );
             lastLogOutput.set( stats.get( CounterStat.EventsWritten ) );
         }
     }
@@ -252,7 +255,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
         final int flushedEvents;
         if ( status() != STATUS.CLOSED )
         {
-            LOGGER.trace( () -> "LocalDBLogger closing" );
+            LOGGER.trace( SESSION_LABEL, () -> "LocalDBLogger closing" );
             flushedEvents = tempMemoryEventQueue.size();
             if ( cleanerService != null )
             {
@@ -270,11 +273,11 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
 
         if ( flushedEvents > 0 )
         {
-            LOGGER.trace( () -> "LocalDBLogger close completed (flushed during close: " + flushedEvents + ")", TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( SESSION_LABEL, () -> "LocalDBLogger close completed (flushed during close: " + flushedEvents + ")", TimeDuration.fromCurrent( startTime ) );
         }
         else
         {
-            LOGGER.trace( () -> "LocalDBLogger close completed", TimeDuration.fromCurrent( startTime ) );
+            LOGGER.trace( SESSION_LABEL, () -> "LocalDBLogger close completed", TimeDuration.fromCurrent( startTime ) );
         }
     }
 
@@ -349,7 +352,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
             if ( !hasShownReadError )
             {
                 hasShownReadError = true;
-                LOGGER.error( () -> "error reading localDBLogger event: " + e.getMessage() );
+                LOGGER.error( SESSION_LABEL, () -> "error reading localDBLogger event: " + e.getMessage() );
             }
         }
         return null;
@@ -385,7 +388,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
         }
         catch ( final PatternSyntaxException e )
         {
-            LOGGER.trace( () -> "invalid regex syntax for " + searchParameters.getUsername() + ", reverting to plaintext search" );
+            LOGGER.trace( SESSION_LABEL, () -> "invalid regex syntax for " + searchParameters.getUsername() + ", reverting to plaintext search" );
         }
 
         if ( pattern != null )
@@ -473,7 +476,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
         {
             if ( TimeDuration.fromCurrent( startTime ).isLongerThan( settings.getMaxBufferWaitTime() ) )
             {
-                LOGGER.warn( () -> "discarded event after waiting max buffer wait time of " + settings.getMaxBufferWaitTime().asCompactString() );
+                LOGGER.warn( SESSION_LABEL, () -> "discarded event after waiting max buffer wait time of " + settings.getMaxBufferWaitTime().asCompactString() );
                 return;
             }
             TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS ).pause();
@@ -519,7 +522,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error writing to localDBLogger: " + e.getMessage(), e );
+            LOGGER.error( SESSION_LABEL, () -> "error writing to localDBLogger: " + e.getMessage(), e );
         }
 
         debugOutputter.conditionallyExecuteTask();

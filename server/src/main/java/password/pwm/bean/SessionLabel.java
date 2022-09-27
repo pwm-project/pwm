@@ -51,6 +51,7 @@ public class SessionLabel implements Serializable
 
     private static final String SYSTEM_LABEL_SESSION_ID = "#";
     private static final String RUNTIME_LABEL_SESSION_ID = "!";
+    private static final String HEALTH_LABEL_SESSION_ID = "H";
 
     public static final SessionLabel SYSTEM_LABEL = SessionLabel.forNonUserType( ActorType.system, DomainID.systemId() );
     public static final SessionLabel HEALTH_LABEL = SessionLabel.forNonUserType( ActorType.health, DomainID.systemId() );
@@ -70,22 +71,34 @@ public class SessionLabel implements Serializable
 
     public enum ActorType
     {
-        user,
-        system,
-        runtime,
-        health,
-        test,
-        cli,
-        onejar,
-        context,
-        rest,
+        user( null ),
+        system( "#" ),
+        runtime( "!" ),
+        health( "-HEALTH" ),
+        test( "-TEST" ),
+        cli( "-CLI" ),
+        onejar( "-ONEJAR" ),
+        context( "-CONTEXT" ),
+        rest( null ),;
+
+        private final String defaultSessionId;
+
+        ActorType( final String defaultSessionId )
+        {
+            this.defaultSessionId = defaultSessionId;
+        }
+
+        public String defaultSessionId()
+        {
+            return defaultSessionId;
+        }
     }
 
     private static SessionLabel forNonUserType( final ActorType actorType, final DomainID domainID )
     {
         Objects.requireNonNull( actorType );
 
-        final String sessionID = domainID == null || domainID.isSystem() ? SYSTEM_LABEL_SESSION_ID : RUNTIME_LABEL_SESSION_ID;
+        final String sessionID = actorType.defaultSessionId();
         final String domainSting = domainID == null ? DomainID.systemId().stringValue() : domainID.stringValue();
 
         return SessionLabel.builder()
@@ -158,6 +171,10 @@ public class SessionLabel implements Serializable
                     LOGGER.error( () -> "unexpected error reading username: " + e.getMessage(), e );
                 }
             }
+        }
+        else
+        {
+            builder.sessionID( "-" );
         }
 
         return builder.build();

@@ -103,6 +103,12 @@ public class NewUserServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( NewUserServlet.class );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
     static final String FIELD_PASSWORD1 = "password1";
     static final String FIELD_PASSWORD2 = "password2";
     static final String TOKEN_PAYLOAD_ATTR = "p";

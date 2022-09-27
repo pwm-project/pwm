@@ -48,8 +48,10 @@ import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsService;
+import password.pwm.util.java.MutableReference;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.logging.PwmLogManager;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmRandom;
@@ -197,10 +199,48 @@ public class RequestInitializationFilter implements Filter
             return;
         }
 
+        final PwmRequest pwmRequest;
         try
         {
-            final PwmRequest pwmRequest = PwmRequest.forRequest( req, resp );
+            pwmRequest = PwmRequest.forRequest( req, resp );
+            doTheThing( pwmRequest );
+        }
+        catch ( final Throwable t )
+        {
+            processInitThrowable( t, req, resp );
+            return;
+        }
 
+        final MutableReference<Throwable> throwableReference = new MutableReference<>();
+
+        PwmLogManager.executeWithThreadSessionData( pwmRequest.getLabel(), () ->
+        {
+            try
+            {
+                pwmRequest.getPwmDomain().getActiveServletRequests().incrementAndGet();
+                filterChain.doFilter( req, resp );
+            }
+            catch ( final Throwable e )
+            {
+                throwableReference.set( e );
+            }
+            finally
+            {
+                pwmRequest.getPwmDomain().getActiveServletRequests().decrementAndGet();
+            }
+        } );
+
+        if ( throwableReference.get() != null )
+        {
+            processInitThrowable( throwableReference.get(), req, resp );
+        }
+    }
+
+    private void doTheThing( final PwmRequest pwmRequest )
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        try
+        {
             checkIfSessionRecycleNeeded( pwmRequest );
 
             handleRequestInitialization( pwmRequest );
@@ -211,56 +251,41 @@ public class RequestInitializationFilter implements Filter
 
             updateStats( pwmRequest.getPwmApplication() );
 
-            try
+            handleRequestSecurityChecks( pwmRequest );
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            LOGGER.error( pwmRequest, e.getErrorInformation() );
+            pwmRequest.respondWithError( e.getErrorInformation() );
+            if ( PwmError.ERROR_INTRUDER_SESSION != e.getError() )
             {
-                handleRequestSecurityChecks( pwmRequest );
-            }
-            catch ( final PwmUnrecoverableException e )
-            {
-                LOGGER.error( pwmRequest, e.getErrorInformation() );
-                pwmRequest.respondWithError( e.getErrorInformation() );
-                if ( PwmError.ERROR_INTRUDER_SESSION != e.getError() )
-                {
-                    pwmRequest.invalidateSession();
-                }
-                return;
-            }
-
-
-            try
-            {
-                pwmRequest.getPwmDomain().getActiveServletRequests().incrementAndGet();
-                filterChain.doFilter( req, resp );
-            }
-            finally
-            {
-                pwmRequest.getPwmDomain().getActiveServletRequests().decrementAndGet();
+                pwmRequest.invalidateSession();
             }
         }
-        catch ( final Throwable e )
+    }
+
+    private void processInitThrowable( final Throwable e, final HttpServletRequest req, final HttpServletResponse resp )
+            throws ServletException, IOException
+    {
+        final String logMsg = "can't init request: " + e.getMessage();
+        if ( e instanceof PwmException && ( ( PwmException ) e ).getError() != PwmError.ERROR_INTERNAL )
         {
-            final String logMsg = "can't init request: " + e.getMessage();
-            if ( e instanceof PwmException && ( ( PwmException ) e ).getError() != PwmError.ERROR_INTERNAL )
+            LOGGER.error( () -> logMsg );
+        }
+        else
+        {
+            LOGGER.error( () -> logMsg, e );
+        }
+        try
+        {
+            if ( !( PwmURL.create( req ).isResourceURL() ) )
             {
-                LOGGER.error( () -> logMsg );
+                respondWithUnavailableError( req, resp );
             }
-            else
-            {
-                LOGGER.error( () -> logMsg, e );
-            }
-            try
-            {
-                if ( !( PwmURL.create( req ).isResourceURL() ) )
-                {
-                    respondWithUnavailableError( req, resp );
-                    return;
-                }
-            }
-            catch ( final PwmUnrecoverableException pwmUnrecoverableException )
-            {
-                LOGGER.debug( () -> "error initializing http request for " + PwmConstants.PWM_APP_NAME + ": " + e.getMessage() );
-            }
-            return;
+        }
+        catch ( final PwmUnrecoverableException pwmUnrecoverableException )
+        {
+            LOGGER.debug( () -> "error initializing http request for " + PwmConstants.PWM_APP_NAME + ": " + e.getMessage() );
         }
     }
 

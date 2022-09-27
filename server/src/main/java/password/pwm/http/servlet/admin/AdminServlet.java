@@ -112,6 +112,12 @@ public class AdminServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( AdminServlet.class );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
     public enum AdminAction implements AbstractPwmServlet.ProcessAction
     {
         viewLogWindow( HttpMethod.GET ),

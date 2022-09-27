@@ -50,12 +50,10 @@ import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.security.cert.X509Certificate;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
@@ -329,8 +327,9 @@ public class AppConfig implements SettingReader
 
     private static Map<AppProperty, String> makeAppPropertyOverrides( final SettingReader settingReader )
     {
-        final Map<String, String> stringMap =  StringUtil.convertStringListToNameValuePair(
-                settingReader.readSettingAsStringArray( PwmSetting.APP_PROPERTY_OVERRIDES ), "=" );
+        final List<String> settingValues = settingReader.readSettingAsStringArray( PwmSetting.APP_PROPERTY_OVERRIDES );
+
+        final Map<String, String> stringMap =  StringUtil.convertStringListToNameValuePair( settingValues, "=" );
 
         final Map<AppProperty, String> appPropertyMap = new EnumMap<>( AppProperty.class );
         for ( final Map.Entry<String, String> stringEntry : stringMap.entrySet() )
@@ -338,16 +337,14 @@ public class AppConfig implements SettingReader
             AppProperty.forKey( stringEntry.getKey() )
                     .ifPresent( appProperty ->
                     {
-                        final String defaultValue = appProperty.getDefaultValue();
-                        final String value = stringEntry.getValue();
-                        if ( !Objects.equals( defaultValue, value ) )
+                        if ( !appProperty.isDefaultValue( stringEntry.getValue() ) )
                         {
-                            appPropertyMap.put( appProperty, value );
+                            appPropertyMap.put( appProperty, stringEntry.getValue() );
                         }
                     } );
         }
 
-        return Collections.unmodifiableMap( appPropertyMap );
+        return CollectionUtil.unmodifiableEnumMap( appPropertyMap, AppProperty.class );
     }
 
     public boolean isSmsConfigured()
@@ -355,12 +352,13 @@ public class AppConfig implements SettingReader
         final String gatewayUrl = readSettingAsString( PwmSetting.SMS_GATEWAY_URL );
         final String gatewayUser = readSettingAsString( PwmSetting.SMS_GATEWAY_USER );
         final PasswordData gatewayPass = readSettingAsPassword( PwmSetting.SMS_GATEWAY_PASSWORD );
-        if ( gatewayUrl == null || gatewayUrl.length() < 1 )
+
+        if ( StringUtil.isEmpty( gatewayUrl ) )
         {
             return false;
         }
 
-        if ( gatewayUser != null && gatewayUser.length() > 0 && ( gatewayPass == null ) )
+        if ( !StringUtil.isEmpty( gatewayUser ) && gatewayPass == null )
         {
             return false;
         }

@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
 
 class NodeMachine
 {
@@ -53,7 +52,6 @@ class NodeMachine
 
     NodeMachine(
             final PwmApplication pwmApplication,
-            final ScheduledExecutorService executorService,
             final NodeDataServiceProvider clusterDataServiceProvider,
             final NodeServiceSettings nodeServiceSettings
     )
@@ -61,8 +59,6 @@ class NodeMachine
         this.pwmApplication = pwmApplication;
         this.clusterDataServiceProvider = clusterDataServiceProvider;
         this.settings = nodeServiceSettings;
-
-        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new HeartbeatProcess(), executorService, settings.getHeartbeatInterval(), settings.getHeartbeatInterval() );
     }
 
     public void close( )
@@ -151,6 +147,11 @@ class NodeMachine
     public ErrorInformation getLastError( )
     {
         return lastError;
+    }
+
+    protected HeartbeatProcess getHeartbeatProcess()
+    {
+        return new HeartbeatProcess();
     }
 
     private class HeartbeatProcess implements Runnable

@@ -24,10 +24,12 @@ import password.pwm.config.SettingReader;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmDisplayBundle;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.json.JsonFactory;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -107,20 +109,11 @@ public enum AuditEvent
 
     public static Optional<AuditEvent> forKey( final String key )
     {
-        for ( final AuditEvent loopEvent : AuditEvent.values() )
+        return JavaHelper.readEnumFromPredicate( AuditEvent.class, auditEvent ->
         {
-            final Message message = loopEvent.getMessage();
-            if ( message != null )
-            {
-                final String resourceKey = message.getKey();
-                if ( resourceKey.equals( key ) )
-                {
-                    return Optional.of( loopEvent );
-                }
-            }
-        }
-
-        return Optional.empty();
+            final Message message = auditEvent.getMessage();
+            return message != null && Objects.equals( message.getKey(), key );
+        } );
     }
 
     public String getLocalizedString( final SettingReader config, final Locale locale )

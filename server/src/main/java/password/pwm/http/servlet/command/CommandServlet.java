@@ -47,8 +47,13 @@ import java.util.Collection;
 
 public abstract class CommandServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( CommandServlet.class );
+
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
     @Override
     public Class<? extends ProcessAction> getProcessActionsClass( )

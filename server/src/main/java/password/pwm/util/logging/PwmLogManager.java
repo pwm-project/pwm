@@ -43,6 +43,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.LocalDB;
@@ -53,6 +54,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 
 public class PwmLogManager
 {
@@ -61,6 +63,8 @@ public class PwmLogManager
     private static final String LOGGER_NAME_LOCALDB = "pwmLocalDBLogger";
     private static final String LOGGER_NAME_FILE = "pwmFileLogger";
     private static final String LOGGER_NAME_CONSOLE = "pwmConsoleLogger";
+
+    private static final ThreadLocal<SessionLabel> THREAD_SESSION_DATA = new ThreadLocal<>();
 
     private static PwmApplication pwmApplication;
     private static LocalDBLogger localDBLogger;
@@ -130,13 +134,10 @@ public class PwmLogManager
         // all initialize lines start here (above line disables everything !!)
 
         PwmLogManager.pwmLogSettings = pwmLogSettings;
-
         PwmLogManager.pwmApplication = pwmApplication;
-
-        lowestLogLevelConfigured = pwmLogSettings.calculateLowestLevel();
+        PwmLogManager.lowestLogLevelConfigured = pwmLogSettings.calculateLowestLevel();
 
         initConsoleLogger( config, pwmLogSettings.getStdoutLevel() );
-
         initFileLogger( config, pwmLogSettings.getFileLevel(), pwmApplicationPath );
     }
 
@@ -384,5 +385,53 @@ public class PwmLogManager
             //nothing to do;
         }
         return null;
+    }
+
+    static SessionLabel getThreadSessionData()
+    {
+        return THREAD_SESSION_DATA.get();
+    }
+
+    public static void executeWithThreadSessionData( final SessionLabel sessionLabel, final Runnable runnable )
+    {
+        final SessionLabel previous = THREAD_SESSION_DATA.get();
+        THREAD_SESSION_DATA.set( sessionLabel );
+        try
+        {
+            runnable.run();
+        }
+        finally
+        {
+            if ( previous == null )
+            {
+                THREAD_SESSION_DATA.remove();
+            }
+            else
+            {
+                THREAD_SESSION_DATA.set( previous );
+            }
+        }
+    }
+
+    public static <V> V executeWithThreadSessionData( final SessionLabel sessionLabel, final Callable<V> callable )
+            throws Exception
+    {
+        final SessionLabel previous = THREAD_SESSION_DATA.get();
+        THREAD_SESSION_DATA.set( sessionLabel );
+        try
+        {
+            return callable.call();
+        }
+        finally
+        {
+            if ( previous == null )
+            {
+                THREAD_SESSION_DATA.remove();
+            }
+            else
+            {
+                THREAD_SESSION_DATA.set( previous );
+            }
+        }
     }
 }

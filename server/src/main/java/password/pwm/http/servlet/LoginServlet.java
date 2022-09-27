@@ -75,6 +75,13 @@ public class LoginServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.getLogger( LoginServlet.class.getName() );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
+
     public enum LoginServletAction implements ProcessAction
     {
         login( HttpMethod.POST ),

@@ -106,7 +106,7 @@ public class DatabaseService extends AbstractPwmService implements PwmService
                 Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) ),
                 TimeDuration.Unit.SECONDS );
 
-        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new ConnectionMonitor(), getExecutorService(), watchdogFrequency, watchdogFrequency );
+        scheduleFixedRateJob( new ConnectionMonitor(), watchdogFrequency, watchdogFrequency );
 
         return dbInit();
     }

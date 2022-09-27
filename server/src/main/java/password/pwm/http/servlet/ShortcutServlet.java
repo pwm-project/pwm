@@ -67,8 +67,13 @@ import java.util.stream.Collectors;
 )
 public class ShortcutServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( ShortcutServlet.class );
+
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
     public enum ShortcutAction implements AbstractPwmServlet.ProcessAction
     {

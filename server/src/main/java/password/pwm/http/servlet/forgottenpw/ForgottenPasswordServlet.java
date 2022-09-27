@@ -128,6 +128,13 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ForgottenPasswordServlet.class );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
+
     public enum ForgottenPasswordAction implements AbstractPwmServlet.ProcessAction
     {
         search( HttpMethod.POST ),

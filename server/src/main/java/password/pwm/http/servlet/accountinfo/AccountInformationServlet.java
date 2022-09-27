@@ -56,6 +56,12 @@ public class AccountInformationServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( AccountInformationServlet.class );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
     public enum AccountInformationAction implements AbstractPwmServlet.ProcessAction
     {
         read( HttpMethod.GET ),;
