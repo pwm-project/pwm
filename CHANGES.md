@@ -6,6 +6,12 @@
 ### Changed
 - Removed setting 'Security ⇨ Web Security ⇨ Permitted IP Network Addresses', this functionality is better provided by the web server itself.
 
+## [2.0.4] - Released Oct 1, 2022
+- version check service request frequency fix
+- update java and javascript dependencies
+- update tomcat to 9.0.67 for onejar/docker images
+- update java to 11.0.16.1 in docker image
+
 ## [2.0.3] - Released July 30, 2022
 - version check service de-serialization error fix
 - fix issue with config guide buttons not working on storage selection page
