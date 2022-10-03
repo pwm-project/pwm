@@ -28,7 +28,7 @@ import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.config.value.ChallengeValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.data.ChallengeItemConfiguration;
-import password.pwm.util.java.Percent;
+import password.pwm.util.Percent;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;

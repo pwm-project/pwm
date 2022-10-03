@@ -31,6 +31,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -51,8 +52,12 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public abstract class StringUtil
+public final class StringUtil
 {
+    private StringUtil()
+    {   
+    }
+
     private static final Charset STRING_UTIL_CHARSET = StandardCharsets.UTF_8;
 
     private static final Base64.Decoder B64_MIME_DECODER = Base64.getMimeDecoder();
@@ -247,6 +252,11 @@ public abstract class StringUtil
         return instant == null ? "" : instant.truncatedTo( ChronoUnit.SECONDS ).toString();
     }
 
+    public static String toIsoDuration( final Duration duration )
+    {
+        return duration == null ? "" : duration.truncatedTo( ChronoUnit.SECONDS ).toString();
+    }
+
     public enum Base64Options
     {
         GZIP,
@@ -319,7 +329,7 @@ public abstract class StringUtil
         }
 
         final byte[] decodedBytes;
-        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
+        if ( EnumUtil.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
         {
             decodedBytes = B64_URL_DECODER.decode( input.toString() );
         }
@@ -328,7 +338,7 @@ public abstract class StringUtil
             decodedBytes = B64_MIME_DECODER.decode( input.toString() );
         }
 
-        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.GZIP ) )
+        if ( EnumUtil.enumArrayContainsValue( options, Base64Options.GZIP ) )
         {
             return JavaHelper.gunzip( decodedBytes );
         }
@@ -341,7 +351,7 @@ public abstract class StringUtil
     public static String base64Encode( final byte[] input, final StringUtil.Base64Options... options )
     {
         final byte[] compressedBytes;
-        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.GZIP ) )
+        if ( EnumUtil.enumArrayContainsValue( options, Base64Options.GZIP ) )
         {
             try
             {
@@ -357,7 +367,7 @@ public abstract class StringUtil
             compressedBytes = input;
         }
 
-        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
+        if ( EnumUtil.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
         {
             return B64_URL_ENCODER.encodeToString( compressedBytes );
         }

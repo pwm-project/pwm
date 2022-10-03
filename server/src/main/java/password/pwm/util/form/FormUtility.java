@@ -47,7 +47,7 @@ import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.cache.CacheService;
 import password.pwm.util.Validator;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -235,7 +235,7 @@ public class FormUtility
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
-        final boolean allowResultCaching = JavaHelper.enumArrayContainsValue( validationFlags, ValidationFlag.allowResultCaching );
+        final boolean allowResultCaching = EnumUtil.enumArrayContainsValue( validationFlags, ValidationFlag.allowResultCaching );
 
         final Map<String, String> filterClauses = new HashMap<>();
         final Map<String, String> labelMap = new HashMap<>();
@@ -244,7 +244,7 @@ public class FormUtility
             final FormConfiguration formItem = entry.getKey();
             if ( formItem.isUnique() )
             {
-                final boolean checkReadOnlyAndHidden = JavaHelper.enumArrayContainsValue( validationFlags, ValidationFlag.checkReadOnlyAndHidden );
+                final boolean checkReadOnlyAndHidden = EnumUtil.enumArrayContainsValue( validationFlags, ValidationFlag.checkReadOnlyAndHidden );
                 final boolean itemIsReadOnly = formItem.isReadonly();
                 final boolean itemIsHidden = formItem.getType() == FormConfiguration.Type.hidden;
 
@@ -520,7 +520,7 @@ public class FormUtility
     )
             throws PwmUnrecoverableException
     {
-        final boolean includeNulls = JavaHelper.enumArrayContainsValue( flags, Flag.ReturnEmptyValues );
+        final boolean includeNulls = EnumUtil.enumArrayContainsValue( flags, Flag.ReturnEmptyValues );
         final List<String> formFieldNames = FormConfiguration.convertToListOfNames( formFields );
         LOGGER.trace( sessionLabel, () -> "preparing to load form data from ldap for fields " + JsonFactory.get().serializeCollection( formFieldNames ) );
         final Map<String, List<String>> dataFromLdap = new LinkedHashMap<>();

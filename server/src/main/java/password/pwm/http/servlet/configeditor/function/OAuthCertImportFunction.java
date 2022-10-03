@@ -25,7 +25,7 @@ import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 
 public class OAuthCertImportFunction extends AbstractUriCertImportFunction
 {
@@ -50,7 +50,7 @@ public class OAuthCertImportFunction extends AbstractUriCertImportFunction
                 break;
 
             default:
-                MiscUtil.unhandledSwitchStatement( pwmSetting );
+                PwmUtil.unhandledSwitchStatement( pwmSetting );
                 return null;
         }
 

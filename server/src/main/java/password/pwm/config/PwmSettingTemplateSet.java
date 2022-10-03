@@ -22,6 +22,7 @@ package password.pwm.config;
 
 import lombok.Value;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.EnumUtil;
 
 import java.io.Serializable;
 import java.util.List;
@@ -41,7 +42,7 @@ public class PwmSettingTemplateSet implements Serializable
                 .map( PwmSettingTemplate::getType )
                 .collect( Collectors.toSet() );
 
-        workingSet.addAll( CollectionUtil.enumStream( PwmSettingTemplate.Type.class )
+        workingSet.addAll( EnumUtil.enumStream( PwmSettingTemplate.Type.class )
                 .filter( type -> !seenTypes.contains( type ) )
                 .map( PwmSettingTemplate.Type::getDefaultValue )
                 .collect( Collectors.toUnmodifiableSet( ) ) );
@@ -70,7 +71,7 @@ public class PwmSettingTemplateSet implements Serializable
      */
     public static List<PwmSettingTemplateSet> allValues()
     {
-        return CollectionUtil.enumStream( PwmSettingTemplate.class )
+        return EnumUtil.enumStream( PwmSettingTemplate.class )
                 .map( pwmSettingTemplate -> new PwmSettingTemplateSet( Set.of( pwmSettingTemplate ) ) )
                 .collect( Collectors.toUnmodifiableList() );
     }

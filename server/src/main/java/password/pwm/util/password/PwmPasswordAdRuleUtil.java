@@ -25,7 +25,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.user.UserInfo;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.ArrayList;
@@ -122,7 +122,7 @@ class PwmPasswordAdRuleUtil
                     break;
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( complexityLevel );
+                    PwmUtil.unhandledSwitchStatement( complexityLevel );
             }
 
             final List<ErrorInformation> errorList = new ArrayList<>();
@@ -227,7 +227,7 @@ class PwmPasswordAdRuleUtil
                     break;
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( complexityLevel );
+                    PwmUtil.unhandledSwitchStatement( complexityLevel );
             }
 
             return complexityPoints;

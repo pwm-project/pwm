@@ -35,7 +35,7 @@ import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.Percent;
+import password.pwm.util.Percent;
 import password.pwm.util.java.StatisticAverageBundle;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.TimeDuration;
@@ -194,7 +194,7 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
     {
         final Map<String, String> debugInfo = new HashMap<>();
         debugInfo.putAll( averageStats.debugStats() );
-        debugInfo.putAll( countingStats.debugStats() );
+        debugInfo.putAll( countingStats.debugStats( PwmConstants.DEFAULT_LOCALE ) );
         return ServiceInfoBean.builder()
                 .debugProperties( debugInfo )
                 .build();

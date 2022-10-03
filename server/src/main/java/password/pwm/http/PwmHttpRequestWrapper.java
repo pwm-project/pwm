@@ -30,7 +30,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.Validator;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
@@ -261,7 +261,7 @@ public class PwmHttpRequestWrapper
             throws PwmUnrecoverableException
     {
         final String value = readParameterAsString( name, Flag.BypassValidation );
-        return JavaHelper.readEnumFromString( enumClass, value );
+        return EnumUtil.readEnumFromString( enumClass, value );
     }
 
     public int readParameterAsInt( final String name, final int defaultValue )

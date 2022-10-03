@@ -23,7 +23,7 @@ package password.pwm.util.debug;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmApplication;
 import password.pwm.util.java.FileSystemUtility;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -86,7 +86,7 @@ class FileInfoDebugItemGenerator implements AppItemGenerator
             }
         }
 
-        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
         {
             final List<String> headerRow = new ArrayList<>();
             headerRow.add( "Filepath" );

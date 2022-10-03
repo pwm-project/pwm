@@ -21,9 +21,12 @@
 package password.pwm.receiver;
 
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.StatisticCounterBundle;
+import password.pwm.util.java.StatisticRateBundle;
 import password.pwm.util.java.StringUtil;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +41,24 @@ public class PwmReceiverApp
 
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
     private final Status status = new Status();
+    private final StatisticCounterBundle statisticCounterBundle = new StatisticCounterBundle( CounterStatsKey.class );
+    private final StatisticRateBundle statisticRateBundle = new StatisticRateBundle( EpsStatKey.class );
+    private final Instant startupTime = Instant.now();
+
+    public enum EpsStatKey
+    {
+        VersionCheckRequests,
+        TelemetryPublishRequests,
+        TelemetryViewRequests,
+    }
+
+    public enum CounterStatsKey
+    {
+        VersionCheckRequests,
+        TelemetryPublishRequests,
+        TelemetryViewRequests,
+    }
+
 
     public PwmReceiverApp( )
     {
@@ -106,4 +127,18 @@ public class PwmReceiverApp
         return status;
     }
 
+    public StatisticCounterBundle getStatisticCounterBundle()
+    {
+        return statisticCounterBundle;
+    }
+
+    public StatisticRateBundle getStatisticEpsBundle()
+    {
+        return statisticRateBundle;
+    }
+
+    public Instant getStartupTime()
+    {
+        return startupTime;
+    }
 }

@@ -38,7 +38,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PwmScheduler;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -135,7 +135,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
                 break;
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( storageMethod );
+                    PwmUtil.unhandledSwitchStatement( storageMethod );
             }
 
             engine = new PwNotifyEngine( this, pwmDomain, storageService, null );

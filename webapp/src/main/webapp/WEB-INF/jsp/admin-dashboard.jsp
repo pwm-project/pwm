@@ -41,7 +41,7 @@
 <%@ page import="password.pwm.http.bean.DisplayElement" %>
 <%@ page import="password.pwm.PwmDomain" %>
 <%@ page import="password.pwm.util.java.CollectionUtil" %>
-<%@ page import="password.pwm.util.java.MiscUtil" %>
+<%@ page import="password.pwm.util.java.PwmUtil" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>

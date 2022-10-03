@@ -26,7 +26,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ServletUtility;
 import password.pwm.i18n.Message;
-import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.ws.server.RestResultBean;
 
@@ -46,8 +45,6 @@ import java.io.IOException;
 public class TelemetryRestReceiver extends HttpServlet
 {
     private static final Logger LOGGER = Logger.createLogger( TelemetryViewerServlet.class );
-    private static final AtomicLoopIntIncrementer REQ_COUNTER = new AtomicLoopIntIncrementer();
-
 
     @Override
     protected void doPost( final HttpServletRequest req, final HttpServletResponse resp )
@@ -55,9 +52,14 @@ public class TelemetryRestReceiver extends HttpServlet
     {
         try
         {
+            final ContextManager contextManager = ContextManager.getContextManager( req.getServletContext() );
+            final PwmReceiverApp app = contextManager.getApp();
+            app.getStatisticCounterBundle().increment( PwmReceiverApp.CounterStatsKey.TelemetryPublishRequests );
+            app.getStatisticEpsBundle().markEvent( PwmReceiverApp.EpsStatKey.TelemetryPublishRequests );
+
             final String input = ServletUtility.readRequestBodyAsString( req, 1024 * 1024 );
             final TelemetryPublishBean telemetryPublishBean = JsonFactory.get().deserialize( input, TelemetryPublishBean.class );
-            final Storage storage = ContextManager.getContextManager( this.getServletContext() ).getApp().getStorage();
+            final Storage storage = app.getStorage();
             storage.store( telemetryPublishBean );
 
             final RestResultBean restResultBean = RestResultBean.forSuccessMessage( null, null, null, Message.Success_Unknown );

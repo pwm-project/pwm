@@ -55,7 +55,7 @@ import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.CollectorUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.security.cert.X509Certificate;
@@ -270,7 +270,7 @@ public class DomainConfig implements SettingReader
 
     public Optional<TokenStorageMethod> getTokenStorageMethod( )
     {
-        return JavaHelper.readEnumFromString( TokenStorageMethod.class, readSettingAsString( PwmSetting.TOKEN_STORAGEMETHOD ) );
+        return EnumUtil.readEnumFromString( TokenStorageMethod.class, readSettingAsString( PwmSetting.TOKEN_STORAGEMETHOD ) );
     }
 
     public PwmSettingTemplateSet getTemplate( )

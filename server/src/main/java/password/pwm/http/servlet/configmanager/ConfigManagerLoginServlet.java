@@ -49,8 +49,9 @@ import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.intruder.IntruderServiceClient;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -117,7 +118,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
                     break;
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( processAction.get() );
+                    PwmUtil.unhandledSwitchStatement( processAction.get() );
 
             }
             return;
@@ -168,7 +169,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
     protected Optional<ConfigManagerLoginAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        return JavaHelper.readEnumFromString( ConfigManagerLoginAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
+        return EnumUtil.readEnumFromString( ConfigManagerLoginAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
 

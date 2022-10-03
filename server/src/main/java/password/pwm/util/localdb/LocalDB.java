@@ -21,7 +21,7 @@
 package password.pwm.util.localdb;
 
 import password.pwm.util.java.ClosableIterator;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 
 import java.io.File;
 import java.io.Serializable;
@@ -150,7 +150,7 @@ public interface LocalDB
 
         DB( final Flag... flag )
         {
-            this.backup = JavaHelper.enumArrayContainsValue( flag, Flag.Backup );
+            this.backup = EnumUtil.enumArrayContainsValue( flag, Flag.Backup );
         }
 
         public boolean isBackup( )

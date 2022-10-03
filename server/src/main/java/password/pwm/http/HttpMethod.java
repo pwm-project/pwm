@@ -20,7 +20,7 @@
 
 package password.pwm.http;
 
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 
 import java.util.Optional;
 
@@ -44,7 +44,7 @@ public enum HttpMethod
 
     public static Optional<HttpMethod> fromString( final String input )
     {
-        return JavaHelper.readEnumFromPredicate( HttpMethod.class,
+        return EnumUtil.readEnumFromPredicate( HttpMethod.class,
                 httpMethod -> httpMethod.toString().equalsIgnoreCase( input ) );
     }
 

@@ -39,7 +39,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
 import password.pwm.ws.server.RestResultBean;
@@ -90,7 +90,7 @@ public class ConfigManagerCertificatesServlet extends AbstractPwmServlet
     protected Optional<ConfigManagerCertificateAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        return JavaHelper.readEnumFromString( ConfigManagerCertificateAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
+        return EnumUtil.readEnumFromString( ConfigManagerCertificateAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
     @Override

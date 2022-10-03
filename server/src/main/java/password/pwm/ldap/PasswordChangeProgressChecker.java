@@ -37,7 +37,7 @@ import password.pwm.util.ProgressInfoCalculator;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.json.JsonFactory;
-import password.pwm.util.java.Percent;
+import password.pwm.util.Percent;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordUtility;

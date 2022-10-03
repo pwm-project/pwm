@@ -57,7 +57,7 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -281,7 +281,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
                 return ProcessStatus.Halt;
 
             default:
-                MiscUtil.unhandledSwitchStatement( resetType );
+                PwmUtil.unhandledSwitchStatement( resetType );
 
         }
 

@@ -42,8 +42,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class CollectionUtil
+public final class CollectionUtil
 {
+    private CollectionUtil()
+    {
+    }
+
     public static <T> Stream<T> iteratorToStream( final Iterator<T> iterator )
     {
         return Optional.ofNullable( iterator )
@@ -117,7 +121,7 @@ public class CollectionUtil
 
         final Set<E> set = inputs.stream()
                 .filter( Objects::nonNull )
-                .map( input -> JavaHelper.readEnumFromString( enumClass, input ) )
+                .map( input -> EnumUtil.readEnumFromString( enumClass, input ) )
                 .flatMap( Optional::stream )
                 .collect( Collectors.toSet() );
 
@@ -201,11 +205,6 @@ public class CollectionUtil
                 .flatMap( kvMap -> kvMap.entrySet().stream() )
                 .filter( CollectionUtil::testMapEntryForNotNull )
                 .collect( CollectorUtil.toUnmodifiableLinkedMap( Map.Entry::getKey, Map.Entry::getValue ) );
-    }
-
-    public static <E extends Enum<E>> Stream<E> enumStream( final Class<E> enumClass )
-    {
-        return EnumSet.allOf( enumClass ).stream();
     }
 
     public static <T> Set<T> setUnion( final Set<T> set1, final Set<T> set2 )

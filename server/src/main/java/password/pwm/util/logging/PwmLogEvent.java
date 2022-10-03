@@ -27,7 +27,7 @@ import lombok.Value;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -164,7 +164,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
     public String toCsvLine( ) throws IOException
     {
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( byteArrayOutputStream );
+        final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( byteArrayOutputStream );
 
         final String throwableMessage = ( getLoggedThrowable() == null || getLoggedThrowable().getMessage() == null ) ? "" : getLoggedThrowable().getMessage();
 

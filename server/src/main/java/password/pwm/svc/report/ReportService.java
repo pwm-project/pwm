@@ -46,7 +46,7 @@ import password.pwm.util.java.AverageTracker;
 import password.pwm.util.java.BlockingThreadPool;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
@@ -84,7 +84,7 @@ public class ReportService extends AbstractPwmService implements PwmService
     private Queue<String> dnQueue;
 
     private final AtomicReference<ReportStatusInfo> reportStatus = new AtomicReference<>( ReportStatusInfo.builder().build() );
-    private final EventRateMeter processRateMeter = new EventRateMeter( TimeDuration.of( 5, TimeDuration.Unit.MINUTES ) );
+    private final EventRateMeter processRateMeter = new EventRateMeter( TimeDuration.of( 5, TimeDuration.Unit.MINUTES ).asDuration() );
 
 
     public ReportService( )
@@ -199,13 +199,13 @@ public class ReportService extends AbstractPwmService implements PwmService
             break;
 
             default:
-                MiscUtil.unhandledSwitchStatement( reportCommand );
+                PwmUtil.unhandledSwitchStatement( reportCommand );
         }
     }
 
     public BigDecimal getEventRate( )
     {
-        return processRateMeter.readEventRate();
+        return processRateMeter.rawEps();
     }
 
     public long getTotalRecords( )
@@ -387,7 +387,7 @@ public class ReportService extends AbstractPwmService implements PwmService
 
             final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
                     TransactionSizeCalculator.Settings.builder()
-                            .durationGoal( TimeDuration.SECOND )
+                            .durationGoal( TimeDuration.SECOND.asMillis() )
                             .minTransactions( 10 )
                             .maxTransactions( 100 * 1000 )
                             .build()
@@ -403,7 +403,7 @@ public class ReportService extends AbstractPwmService implements PwmService
                     bufferList.add( JsonFactory.get().serialize( identityQueue.next() ) );
                 }
                 dnQueue.addAll( bufferList );
-                transactionCalculator.recordLastTransactionDuration( TimeDuration.fromCurrent( loopStart ) );
+                transactionCalculator.recordLastTransactionDuration( TimeDuration.fromCurrent( loopStart ).asDuration() );
             }
             LOGGER.trace( getSessionLabel(),
                     () -> "completed transfer of ldap search results to work queue", TimeDuration.fromCurrent( startTime ) );
@@ -547,7 +547,7 @@ public class ReportService extends AbstractPwmService implements PwmService
             {
                 userCacheService.store( newUserReportRecord.get() );
                 summaryData.update( newUserReportRecord.get() );
-                processRateMeter.markEvents( 1 );
+                processRateMeter.markEvent();
 
                 LOGGER.trace( getSessionLabel(), () -> "stored cache for " + userIdentity, TimeDuration.fromCurrent( startTime ) );
             }

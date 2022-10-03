@@ -32,7 +32,7 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.Percent;
+import password.pwm.util.Percent;
 import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.TimeDuration;
 

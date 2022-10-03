@@ -22,6 +22,7 @@ package password.pwm.svc.secure;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -139,7 +140,7 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
     {
         return ServiceInfoBean.builder()
                 .debugProperties( CollectionUtil.combineOrderedMaps( List.of(
-                        stats.debugStats(),
+                        stats.debugStats( PwmConstants.DEFAULT_LOCALE ),
                         CollectionUtil.enumMapToStringMap( debugData() ) ) ) )
                 .build();
     }

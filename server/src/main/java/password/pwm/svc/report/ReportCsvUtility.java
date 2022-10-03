@@ -28,7 +28,7 @@ import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.ClosableIterator;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.IOException;
@@ -53,7 +53,7 @@ public class ReportCsvUtility
             throws IOException
     {
         final List<ReportSummaryData.PresentationRow> outputList = reportService.getSummaryData().asPresentableCollection( pwmApplication.getConfig(), locale );
-        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
 
         for ( final ReportSummaryData.PresentationRow presentationRow : outputList )
         {
@@ -79,7 +79,7 @@ public class ReportCsvUtility
     public void outputToCsv( final OutputStream outputStream, final boolean includeHeader, final Locale locale, final SettingReader config )
             throws IOException
     {
-        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
         final Class<? extends PwmDisplayBundle> localeClass = password.pwm.i18n.Admin.class;
         if ( includeHeader )
         {

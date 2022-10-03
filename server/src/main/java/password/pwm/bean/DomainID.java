@@ -22,7 +22,7 @@ package password.pwm.bean;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSettingScope;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -72,7 +72,7 @@ public final class DomainID implements Comparable<DomainID>, Serializable
                 return !this.isSystem();
 
             default:
-                MiscUtil.unhandledSwitchStatement( scope );
+                PwmUtil.unhandledSwitchStatement( scope );
         }
 
         return false;

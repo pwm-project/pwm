@@ -20,9 +20,9 @@
 
 package password.pwm.util.java;
 
+import password.pwm.util.MovingAverage;
+
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,9 +37,8 @@ public class StatisticAverageBundle<K extends Enum<K>>
     public StatisticAverageBundle( final Class<K> keyType, final Duration avgPeriodLength )
     {
         this.keyType = keyType;
-        statMap = new EnumMap<>( keyType );
-        Arrays.stream( keyType.getEnumConstants() )
-                .forEach( k -> statMap.put( k, new MovingAverage( avgPeriodLength ) ) );
+        this.statMap = new EnumMap<>( keyType );
+        EnumUtil.forEach( keyType, k -> statMap.put( k, new MovingAverage( avgPeriodLength ) ) );
     }
 
     public StatisticAverageBundle( final Class<K> keyType )
@@ -70,11 +69,10 @@ public class StatisticAverageBundle<K extends Enum<K>>
 
     public Map<String, String> debugStats()
     {
-        return Collections.unmodifiableMap( Arrays.stream( keyType.getEnumConstants() )
-                .collect( Collectors.toMap(
-                        Enum::name,
-                        this::getFormattedAverage
-                ) ) );
+        return statMap.entrySet().stream()
+                .collect( Collectors.toUnmodifiableMap(
+                        entry -> entry.getKey().name(),
+                        entry -> entry.getValue().getFormattedAverage() ) );
     }
 
     public String debugString()

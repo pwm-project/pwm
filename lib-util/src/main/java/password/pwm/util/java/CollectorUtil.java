@@ -32,8 +32,12 @@ import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-public class CollectorUtil
+public final class CollectorUtil
 {
+    private CollectorUtil()
+    {
+    }
+
     public static <T, K, U> Collector<T, ?, Map<K, U>> toUnmodifiableLinkedMap(
             final Function<? super T, ? extends K> keyMapper,
             final Function<? super T, ? extends U> valueMapper
@@ -71,15 +75,15 @@ public class CollectorUtil
             final Comparator<K> comparator
     )
     {
-        return Collectors.collectingAndThen( Collectors.toUnmodifiableMap(
+        return Collectors.collectingAndThen( Collectors.toMap(
                         keyMapper,
                         valueMapper ),
-                s -> {
+                map ->
+                {
                     final SortedMap<K, U> sortedMap = new TreeMap<>( comparator );
-                    sortedMap.putAll( s );
+                    sortedMap.putAll( map );
                     return sortedMap;
                 } );
-
     }
 
     public static <T, K extends Enum<K>, U> Collector<T, ?, Map<K, U>> toUnmodifiableEnumMap(

@@ -45,7 +45,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
@@ -182,7 +182,7 @@ public class AuditService extends AbstractPwmService implements PwmService
                 break;
 
             default:
-                MiscUtil.unhandledSwitchStatement( record.getEventCode().getType() );
+                PwmUtil.unhandledSwitchStatement( record.getEventCode().getType() );
 
         }
     }
@@ -327,7 +327,7 @@ public class AuditService extends AbstractPwmService implements PwmService
     {
         final AppConfig config = getPwmApplication().getConfig();
 
-        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
 
         csvPrinter.printComment( " " + PwmConstants.PWM_APP_NAME + " audit record output " );
         csvPrinter.printComment( " " + StringUtil.toIsoDate( Instant.now() ) );
@@ -401,7 +401,7 @@ public class AuditService extends AbstractPwmService implements PwmService
     {
         return ServiceInfoBean.builder()
                 .storageMethod( DataStorageMethod.LOCALDB )
-                .debugProperties( statisticCounterBundle.debugStats() )
+                .debugProperties( statisticCounterBundle.debugStats( PwmConstants.DEFAULT_LOCALE ) )
                 .build();
     }
 

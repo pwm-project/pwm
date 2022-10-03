@@ -62,7 +62,7 @@ import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -940,7 +940,7 @@ public class AdminServlet extends ControlledPwmServlet
             break;
 
             default:
-                MiscUtil.unhandledSwitchStatement( logDownloadType );
+                PwmUtil.unhandledSwitchStatement( logDownloadType );
 
         }
 

@@ -33,7 +33,7 @@
 <%@ page import="password.pwm.util.json.JsonFactory" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.bean.TokenDestinationItem" %>
-<%@ page import="password.pwm.util.java.MiscUtil" %>
+<%@ page import="password.pwm.util.java.PwmUtil" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"

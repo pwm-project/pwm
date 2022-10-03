@@ -701,7 +701,7 @@ public class UserSearchService extends AbstractPwmService implements PwmService
 
     private Map<String, String> debugProperties( )
     {
-        final Map<String, String> properties = new TreeMap<>( counters.debugStats() );
+        final Map<String, String> properties = new TreeMap<>( counters.debugStats( PwmConstants.DEFAULT_LOCALE ) );
         properties.put( "jvmThreadCount", Integer.toString( Thread.activeCount() ) );
         if ( executor == null )
         {

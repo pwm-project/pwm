@@ -63,7 +63,7 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.user.UserInfo;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -216,7 +216,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
                 break;
 
             default:
-                MiscUtil.unhandledSwitchStatement( resetType );
+                PwmUtil.unhandledSwitchStatement( resetType );
         }
 
         return ProcessStatus.Continue;

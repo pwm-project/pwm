@@ -31,6 +31,7 @@ import password.pwm.bean.ProfileID;
 import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.java.StringUtil;
@@ -75,7 +76,7 @@ class MoshiJsonAdaptors
     {
         JsonAdapter<T> adapterInProgress = adapter;
 
-        if ( JavaHelper.enumArrayContainsValue( flags, JsonProvider.Flag.PrettyPrint ) )
+        if ( EnumUtil.enumArrayContainsValue( flags, JsonProvider.Flag.PrettyPrint ) )
         {
             adapterInProgress = adapter.indent( "  " );
         }

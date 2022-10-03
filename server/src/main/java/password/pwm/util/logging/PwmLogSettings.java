@@ -26,7 +26,7 @@ import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.util.List;
@@ -83,7 +83,7 @@ public class PwmLogSettings
     public static PwmLogSettings fromAppConfig( final AppConfig appConfig )
     {
         final LogOutputMode logOutputMode =
-                JavaHelper.readEnumFromString( LogOutputMode.class, appConfig.readAppProperty( AppProperty.LOGGING_OUTPUT_MODE ) )
+                EnumUtil.readEnumFromString( LogOutputMode.class, appConfig.readAppProperty( AppProperty.LOGGING_OUTPUT_MODE ) )
                         .orElse( LogOutputMode.traditional );
 
         final boolean healthLoggingEnabled = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.LOGGING_OUTPUT_HEALTHCHECK ) );

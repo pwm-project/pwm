@@ -32,7 +32,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.java.FileSystemUtility;
-import password.pwm.util.java.Percent;
+import password.pwm.util.Percent;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -73,7 +73,7 @@ public class LocalDBLoggerExtendedTest
 
     private final AtomicInteger eventsAdded = new AtomicInteger( 0 );
 
-    private final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.of( 60, TimeDuration.Unit.SECONDS ) );
+    private final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.of( 60, TimeDuration.Unit.SECONDS ).asDuration() );
 
     private static Settings settings;
     private Instant startTime;
@@ -168,7 +168,7 @@ public class LocalDBLoggerExtendedTest
                 for ( final PwmLogMessage logEvent : events )
                 {
                     localDBLogger.writeEvent( logEvent );
-                    eventRateMeter.markEvents( 1 );
+                    eventRateMeter.markEvent();
                     eventsAdded.incrementAndGet();
                 }
             }
@@ -203,7 +203,7 @@ public class LocalDBLoggerExtendedTest
                 "size", StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( localDB.getFileLocation() ) ),
                 "eventsInDb", figureEventsInDbStat(),
                 "free", StringUtil.formatDiskSize( FileSystemUtility.diskSpaceRemaining( localDB.getFileLocation() ) ),
-                "eps", eventRateMeter.readEventRate().setScale( 0, RoundingMode.UP ).toString(),
+                "eps", eventRateMeter.rawEps().setScale( 0, RoundingMode.UP ).toString(),
                 "remain", settings.testDuration.subtract( TimeDuration.fromCurrent( startTime ) ).asCompactString() ) );
         localDBLogger.getTailDate().ifPresent( tailDate -> debugParams.put( "tail", TimeDuration.compactFromCurrent( tailDate ) ) );
         out( "added " + StringUtil.mapToString( debugParams ) );

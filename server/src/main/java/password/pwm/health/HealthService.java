@@ -23,6 +23,7 @@ package password.pwm.health;
 import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmException;
@@ -252,7 +253,7 @@ public class HealthService extends AbstractPwmService implements PwmService
     {
         final Map<String, String> debugData = new HashMap<>();
         debugData.putAll( averageStats.debugStats() );
-        debugData.putAll( counterStats.debugStats() );
+        debugData.putAll( counterStats.debugStats( PwmConstants.DEFAULT_LOCALE ) );
         return ServiceInfoBean.builder()
                 .debugProperties( Collections.unmodifiableMap( debugData ) )
                 .build();

@@ -29,7 +29,7 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
@@ -190,7 +190,7 @@ public final class StoredConfigKey implements Serializable, Comparable<StoredCon
                 break;
 
             default:
-                MiscUtil.unhandledSwitchStatement( recordType );
+                PwmUtil.unhandledSwitchStatement( recordType );
         }
     }
 
@@ -222,7 +222,7 @@ public final class StoredConfigKey implements Serializable, Comparable<StoredCon
                         + this.getProfileID();
 
             default:
-                MiscUtil.unhandledSwitchStatement( recordType );
+                PwmUtil.unhandledSwitchStatement( recordType );
         }
 
         throw new IllegalStateException(  );
@@ -317,7 +317,7 @@ public final class StoredConfigKey implements Serializable, Comparable<StoredCon
                 return PwmSettingSyntax.LOCALIZED_STRING_ARRAY;
 
             default:
-                MiscUtil.unhandledSwitchStatement( getRecordType() );
+                PwmUtil.unhandledSwitchStatement( getRecordType() );
                 throw new IllegalStateException();
         }
     }

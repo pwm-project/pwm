@@ -64,7 +64,7 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.user.UserInfo;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -891,7 +891,7 @@ class PeopleSearchDataReader
             break;
 
             default:
-                MiscUtil.unhandledSwitchStatement( searchMode );
+                PwmUtil.unhandledSwitchStatement( searchMode );
         }
 
         return Optional.of( builder.build() );

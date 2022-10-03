@@ -43,7 +43,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.user.UserInfo;
 import password.pwm.user.UserInfoBean;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
@@ -308,7 +308,7 @@ public class PwmSession implements Serializable
 
     public int size( )
     {
-        return ( int ) MiscUtil.sizeof( this );
+        return ( int ) PwmUtil.sizeof( this );
     }
 
     PwmSecurityKey getSecurityKey( final PwmRequest pwmRequest )

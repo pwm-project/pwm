@@ -50,8 +50,8 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.user.UserInfo;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.EnumUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
@@ -93,7 +93,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
     protected Optional<ForgottenUsernameAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        return JavaHelper.readEnumFromString( ForgottenUsernameAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
+        return EnumUtil.readEnumFromString( ForgottenUsernameAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
     @Override
@@ -120,7 +120,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
                     return;
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( action.get() );
+                    PwmUtil.unhandledSwitchStatement( action.get() );
             }
         }
 

@@ -40,8 +40,8 @@ import password.pwm.svc.wordlist.WordlistSourceType;
 import password.pwm.svc.wordlist.WordlistStatus;
 import password.pwm.svc.wordlist.WordlistType;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.EnumUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -94,7 +94,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
     protected Optional<ConfigManagerAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        return JavaHelper.readEnumFromString( ConfigManagerAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
+        return EnumUtil.readEnumFromString( ConfigManagerAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
     @Override
@@ -121,7 +121,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                     return;
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( processAction.get() );
+                    PwmUtil.unhandledSwitchStatement( processAction.get() );
             }
             return;
         }
@@ -134,7 +134,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
 
     {
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-        final Optional<WordlistType> wordlistType = JavaHelper.readEnumFromString( WordlistType.class, pwmRequest.readParameterAsString( "wordlist" ) );
+        final Optional<WordlistType> wordlistType = EnumUtil.readEnumFromString( WordlistType.class, pwmRequest.readParameterAsString( "wordlist" ) );
 
         if ( wordlistType.isEmpty() )
         {
@@ -176,7 +176,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
     void restClearWordlist( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final Optional<WordlistType> wordlistType = JavaHelper.readEnumFromString( WordlistType.class, pwmRequest.readParameterAsString( "wordlist" ) );
+        final Optional<WordlistType> wordlistType = EnumUtil.readEnumFromString( WordlistType.class, pwmRequest.readParameterAsString( "wordlist" ) );
 
         if ( wordlistType.isEmpty() )
         {

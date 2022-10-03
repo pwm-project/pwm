@@ -25,8 +25,8 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.ProfileID;
 import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.CollectorUtil;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.macro.MacroRequest;
@@ -457,7 +457,7 @@ public enum PwmSettingCategory
         private static PwmSettingScope readScope( final PwmSettingCategory category )
         {
             final String attributeValue = readAttributeFromCategoryOrParent( category, PwmSettingXml.XML_ELEMENT_SCOPE );
-            return JavaHelper.readEnumFromString( PwmSettingScope.class, attributeValue ).orElseThrow( () -> new IllegalStateException(
+            return EnumUtil.readEnumFromString( PwmSettingScope.class, attributeValue ).orElseThrow( () -> new IllegalStateException(
                     "unable to parse value for PwmSettingCategory '" + category + "' scope attribute" ) );
         }
 
@@ -511,7 +511,7 @@ public enum PwmSettingCategory
 
         public static Set<PwmSettingCategory> readChildren( final PwmSettingCategory category )
         {
-            return CollectionUtil.enumStream( PwmSettingCategory.class )
+            return EnumUtil.enumStream( PwmSettingCategory.class )
                     .filter( ( loopCategory ) -> loopCategory.getParent() == category )
                     .collect( CollectorUtil.toUnmodifiableEnumSet( PwmSettingCategory.class, s -> s ) );
         }

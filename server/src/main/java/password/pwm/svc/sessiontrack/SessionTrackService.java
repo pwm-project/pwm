@@ -39,7 +39,7 @@ import password.pwm.user.UserInfo;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
@@ -196,7 +196,7 @@ public class SessionTrackService extends AbstractPwmService implements PwmServic
             )
             throws IOException
     {
-        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
         {
             final List<String> headerRow = new ArrayList<>();
             headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_Label, config ) );

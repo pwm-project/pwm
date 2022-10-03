@@ -25,7 +25,7 @@ import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.java.CollectorUtil;
-import password.pwm.util.java.Percent;
+import password.pwm.util.Percent;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;

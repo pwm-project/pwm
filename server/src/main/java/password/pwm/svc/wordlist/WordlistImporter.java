@@ -27,8 +27,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
-import password.pwm.util.java.Percent;
+import password.pwm.util.java.PwmUtil;
+import password.pwm.util.Percent;
 import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.StatisticAverageBundle;
 import password.pwm.util.java.StringUtil;
@@ -135,7 +135,7 @@ class WordlistImporter implements Runnable
 
         this.transactionCalculator = new TransactionSizeCalculator(
                 TransactionSizeCalculator.Settings.builder()
-                        .durationGoal( wordlistConfiguration.getImportDurationGoal() )
+                        .durationGoal( wordlistConfiguration.getImportDurationGoal().asMillis() )
                         .minTransactions( wordlistConfiguration.getImportMinTransactions() )
                         .maxTransactions( wordlistConfiguration.getImportMaxTransactions() )
                         .build()
@@ -351,7 +351,7 @@ class WordlistImporter implements Runnable
 
         //mark how long the buffer close took
         final TimeDuration commitTime = TimeDuration.fromCurrent( startTime );
-        transactionCalculator.recordLastTransactionDuration( commitTime );
+        transactionCalculator.recordLastTransactionDuration( commitTime.asDuration() );
 
         importStatistics.update( StatKey.wordsPerTransaction, bufferedWords.size() );
         importStatistics.update( StatKey.charsPerTransaction, charsInBuffer );
@@ -461,8 +461,8 @@ class WordlistImporter implements Runnable
             stats.put( DebugKey.BytesRemaining, StringUtil.formatDiskSizeforDebug( remainingBytes ) );
         }
 
-        stats.put( DebugKey.LinesRead, MiscUtil.forDefaultLocale().format( zipFileReader.getLineCount() ) );
-        stats.put( DebugKey.ChunksSaved, MiscUtil.forDefaultLocale().format( rootWordlist.size() ) );
+        stats.put( DebugKey.LinesRead, PwmUtil.forDefaultLocale().format( zipFileReader.getLineCount() ) );
+        stats.put( DebugKey.ChunksSaved, PwmUtil.forDefaultLocale().format( rootWordlist.size() ) );
         stats.put( DebugKey.BytesRead, StringUtil.formatDiskSizeforDebug( zipFileReader.getByteCount() ) );
         stats.put( DebugKey.DiskFreeSpace, StringUtil.formatDiskSize( wordlistBucket.spaceRemaining() ) );
         stats.put( DebugKey.ImportDuration, getImportDuration().asCompactString() );
@@ -476,7 +476,7 @@ class WordlistImporter implements Runnable
 
         try
         {
-            stats.put( DebugKey.WordsImported, MiscUtil.forDefaultLocale().format( wordlistBucket.size() ) );
+            stats.put( DebugKey.WordsImported, PwmUtil.forDefaultLocale().format( wordlistBucket.size() ) );
         }
         catch ( final PwmUnrecoverableException e )
         {

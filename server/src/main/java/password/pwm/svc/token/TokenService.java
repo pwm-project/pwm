@@ -65,7 +65,7 @@ import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.DataStore;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -198,7 +198,7 @@ public class TokenService extends AbstractPwmService implements PwmService
                     break;
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( storageMethod );
+                    PwmUtil.unhandledSwitchStatement( storageMethod );
             }
             dataStorageMethod = usedStorageMethod;
         }
@@ -541,7 +541,7 @@ public class TokenService extends AbstractPwmService implements PwmService
     public ServiceInfoBean serviceInfo( )
     {
         return ServiceInfoBean.builder()
-                .debugProperties( stats.debugStats() )
+                .debugProperties( stats.debugStats( PwmConstants.DEFAULT_LOCALE ) )
                 .storageMethod( dataStorageMethod )
                 .build();
     }

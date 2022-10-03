@@ -49,6 +49,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.CollectorUtil;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
@@ -191,7 +192,7 @@ public class StoredSettingReader implements SettingReader
         final String input = readSettingAsString( setting );
 
         return Arrays.stream( input.split( "-" ) )
-                .map( s ->  JavaHelper.readEnumFromString( DataStorageMethod.class, s ) )
+                .map( s ->  EnumUtil.readEnumFromString( DataStorageMethod.class, s ) )
                 .flatMap( Optional::stream )
                 .collect( Collectors.toUnmodifiableList() );
     }
@@ -239,7 +240,7 @@ public class StoredSettingReader implements SettingReader
                 final DomainID domainID
         )
         {
-            return CollectionUtil.enumStream( ProfileDefinition.class )
+            return EnumUtil.enumStream( ProfileDefinition.class )
                     .filter( profileDefinition -> domainID.inScope( profileDefinition.getCategory().getScope() ) )
                     .collect( CollectorUtil.toUnmodifiableLinkedMap(
                             profileDefinition -> profileDefinition,

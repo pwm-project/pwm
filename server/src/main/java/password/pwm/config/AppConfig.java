@@ -42,6 +42,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.CollectorUtil;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -184,7 +185,7 @@ public class AppConfig implements SettingReader
 
     public Map<AppProperty, String> readAllAppProperties()
     {
-        return CollectionUtil.enumStream( AppProperty.class )
+        return EnumUtil.enumStream( AppProperty.class )
                 .collect( CollectorUtil.toLinkedMap(
                         Function.identity(),
                         this::readAppProperty

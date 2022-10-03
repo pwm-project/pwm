@@ -29,6 +29,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmResponse;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -72,7 +73,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             throws PwmUnrecoverableException
     {
         final Class processStatusClass = getProcessActionsClass();
-        return JavaHelper.readEnumFromString( processStatusClass,  request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
+        return EnumUtil.readEnumFromString( processStatusClass,  request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
     private ProcessStatus dispatchMethod(
@@ -203,7 +204,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             {
                 final String actionName = method.getAnnotation( ActionHandler.class ).action();
                 final Class processActionClass = getProcessActionsClass();
-                final Optional<? extends ProcessAction> processAction = JavaHelper.readEnumFromString( processActionClass, actionName );
+                final Optional<? extends ProcessAction> processAction = EnumUtil.readEnumFromString( processActionClass, actionName );
                 processAction.ifPresent( action -> map.put( action, method ) );
 
             }

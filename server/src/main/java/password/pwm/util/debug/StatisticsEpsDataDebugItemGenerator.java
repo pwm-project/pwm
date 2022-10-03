@@ -25,7 +25,7 @@ import password.pwm.PwmApplication;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsService;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -52,7 +52,7 @@ class StatisticsEpsDataDebugItemGenerator implements AppItemGenerator
     {
         final PwmApplication pwmDomain = debugItemInput.getPwmApplication();
         final StatisticsService statsManager = pwmDomain.getStatisticsManager();
-        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
         {
             final List<String> headerRow = new ArrayList<>();
             headerRow.add( "Counter" );

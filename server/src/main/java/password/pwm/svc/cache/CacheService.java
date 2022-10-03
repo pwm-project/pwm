@@ -22,6 +22,7 @@ package password.pwm.svc.cache;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -103,15 +104,17 @@ public class CacheService extends AbstractPwmService implements PwmService
         final Map<String, String> debugInfo = new TreeMap<>( );
         debugInfo.put( "itemCount", String.valueOf( memoryCacheStore.itemCount() ) );
         debugInfo.put( "byteCount", String.valueOf( memoryCacheStore.byteCount() ) );
-        debugInfo.putAll( JsonFactory.get().deserializeStringMap( JsonFactory.get().serializeMap( memoryCacheStore.getCacheStoreInfo().debugStats() ) ) );
-        debugInfo.putAll( JsonFactory.get().deserializeStringMap( JsonFactory.get().serializeMap( memoryCacheStore.storedClassHistogram( "histogram." ) ) ) );
+        debugInfo.putAll( JsonFactory.get().deserializeStringMap(
+                JsonFactory.get().serializeMap( memoryCacheStore.getCacheStoreInfo().debugStats( PwmConstants.DEFAULT_LOCALE ) ) ) );
+        debugInfo.putAll( JsonFactory.get().deserializeStringMap(
+                JsonFactory.get().serializeMap( memoryCacheStore.storedClassHistogram( "histogram." ) ) ) );
         return ServiceInfoBean.builder().debugProperties( debugInfo ).build();
     }
 
     public Map<String, Serializable> debugInfo( )
     {
         final Map<String, Serializable> debugInfo = new LinkedHashMap<>( );
-        debugInfo.put( "memory-statistics", JsonFactory.get().serializeMap( memoryCacheStore.getCacheStoreInfo().debugStats() ) );
+        debugInfo.put( "memory-statistics", JsonFactory.get().serializeMap( memoryCacheStore.getCacheStoreInfo().debugStats( PwmConstants.DEFAULT_LOCALE ) ) );
         debugInfo.put( "memory-items", new ArrayList<Serializable>( memoryCacheStore.getCacheDebugItems() ) );
         debugInfo.put( "memory-histogram", new HashMap<>( memoryCacheStore.storedClassHistogram( "" ) ) );
         return Collections.unmodifiableMap( debugInfo );
@@ -184,7 +187,7 @@ public class CacheService extends AbstractPwmService implements PwmService
             {
                 final StatisticCounterBundle<CacheStore.DebugKey> info = memoryCacheStore.getCacheStoreInfo();
                 traceOutput.append( "memCache=" );
-                traceOutput.append( JsonFactory.get().serializeMap( info.debugStats() ) );
+                traceOutput.append( JsonFactory.get().serializeMap( info.debugStats( PwmConstants.DEFAULT_LOCALE ) ) );
                 traceOutput.append( ", histogram=" );
                 traceOutput.append( JsonFactory.get().serializeMap( memoryCacheStore.storedClassHistogram( "" ) ) );
             }

@@ -30,7 +30,7 @@
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page import="password.pwm.http.servlet.configmanager.ConfigManagerServlet" %>
 <%@ page import="password.pwm.http.servlet.configmanager.ConfigManagerLoginServlet" %>
-<%@ page import="password.pwm.util.java.MiscUtil" %>
+<%@ page import="password.pwm.util.java.PwmUtil" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 
 <!DOCTYPE html>

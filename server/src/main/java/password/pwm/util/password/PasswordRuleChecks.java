@@ -37,7 +37,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.user.UserInfo;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -113,7 +113,7 @@ public class PasswordRuleChecks
     )
             throws PwmUnrecoverableException
     {
-        final boolean failFast = JavaHelper.enumArrayContainsValue( flags, PwmPasswordRuleValidator.Flag.FailFast );
+        final boolean failFast = EnumUtil.enumArrayContainsValue( flags, PwmPasswordRuleValidator.Flag.FailFast );
 
         // null check
         if ( password == null )

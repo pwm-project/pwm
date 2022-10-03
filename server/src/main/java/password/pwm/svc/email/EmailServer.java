@@ -26,7 +26,7 @@ import password.pwm.bean.ProfileID;
 import password.pwm.config.option.SmtpServerType;
 import password.pwm.error.ErrorInformation;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.MovingAverage;
+import password.pwm.util.MovingAverage;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;

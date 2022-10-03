@@ -57,7 +57,7 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.FormMap;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -682,7 +682,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
 
     private void calculateFutureDateFlags( final PwmRequest pwmRequest, final GuestRegistrationBean guestRegistrationBean )
     {
-        final PwmDateFormat dateFormat = MiscUtil.newPwmDateFormat( "yyyy-MM-dd" );
+        final PwmDateFormat dateFormat = PwmUtil.newPwmDateFormat( "yyyy-MM-dd" );
 
         final long maxValidDays = pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.GUEST_MAX_VALID_DAYS );
         pwmRequest.setAttribute( PwmRequestAttribute.GuestMaximumValidDays, String.valueOf( maxValidDays ) );

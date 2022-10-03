@@ -26,7 +26,7 @@ import password.pwm.config.AppConfig;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.net.ssl.X509TrustManager;
@@ -85,7 +85,7 @@ public class PwmTrustManager implements X509TrustManager
                 break;
 
             default:
-                MiscUtil.unhandledSwitchStatement( settings.getCertificateMatchingMode() );
+                PwmUtil.unhandledSwitchStatement( settings.getCertificateMatchingMode() );
         }
     }
 

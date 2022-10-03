@@ -44,6 +44,10 @@ public class PublishVersionServlet extends HttpServlet
 
         final ContextManager contextManager = ContextManager.getContextManager( req.getServletContext() );
         final PwmReceiverApp app = contextManager.getApp();
+
+        app.getStatisticCounterBundle().increment( PwmReceiverApp.CounterStatsKey.VersionCheckRequests );
+        app.getStatisticEpsBundle().markEvent( PwmReceiverApp.EpsStatKey.VersionCheckRequests );
+
         final PublishVersionBean publishVersionBean = new PublishVersionBean(
                 Collections.singletonMap( PublishVersionBean.VersionKey.current, app.getSettings().getCurrentVersionInfo() ) );
 

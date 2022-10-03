@@ -49,12 +49,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAccumulator;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -79,66 +77,7 @@ public final class JavaHelper
 
     public static <E extends Enum<E>> E readEnumFromString( final Class<E> enumClass, final E defaultValue, final String input )
     {
-        return readEnumFromString( enumClass, input ).orElse( defaultValue );
-    }
-
-    public static <E extends Enum<E>> Optional<E> readEnumFromCaseIgnoreString( final Class<E> enumClass, final String input )
-    {
-        return JavaHelper.readEnumFromPredicate( enumClass, loopValue -> loopValue.name().equalsIgnoreCase( input ) );
-    }
-
-    public static <E extends Enum<E>> Optional<E> readEnumFromPredicate( final Class<E> enumClass, final Predicate<E> match )
-    {
-        if ( match == null )
-        {
-            return Optional.empty();
-        }
-
-        if ( enumClass == null || !enumClass.isEnum() )
-        {
-            return Optional.empty();
-        }
-
-        return CollectionUtil.enumStream( enumClass ).filter( match ).findFirst();
-    }
-
-    public static <E extends Enum<E>> Set<E> readEnumsFromPredicate( final Class<E> enumClass, final Predicate<E> match )
-    {
-        if ( match == null )
-        {
-            return Collections.emptySet();
-        }
-
-        if ( enumClass == null || !enumClass.isEnum() )
-        {
-            return Collections.emptySet();
-        }
-
-        return CollectionUtil.enumStream( enumClass ).filter( match ).collect( Collectors.toUnmodifiableSet() );
-    }
-
-    public static <E extends Enum<E>> Optional<E> readEnumFromString( final Class<E> enumClass, final String input )
-    {
-        if ( StringUtil.isEmpty( input ) )
-        {
-            return Optional.empty();
-        }
-
-        if ( enumClass == null || !enumClass.isEnum() )
-        {
-            return Optional.empty();
-        }
-
-        try
-        {
-            return Optional.of( Enum.valueOf( enumClass, input ) );
-        }
-        catch ( final IllegalArgumentException e )
-        {
-            /* noop */
-        }
-
-        return Optional.empty();
+        return EnumUtil.readEnumFromString( enumClass, input ).orElse( defaultValue );
     }
 
     public static String throwableToString( final Throwable throwable )
@@ -180,24 +119,6 @@ public final class JavaHelper
         }
 
         return errorMsg.toString();
-    }
-
-    public static <E extends Enum<E>> boolean enumArrayContainsValue( final E[] enumArray, final E enumValue )
-    {
-        if ( enumArray == null || enumArray.length == 0 )
-        {
-            return false;
-        }
-
-        for ( final E loopValue : enumArray )
-        {
-            if ( loopValue == enumValue )
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     public static long copy( final InputStream input, final OutputStream output )

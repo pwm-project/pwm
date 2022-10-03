@@ -53,7 +53,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthTopic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
@@ -135,7 +135,7 @@ public class SyslogAuditService
                 return new CEFAuditFormatter();
 
             default:
-                MiscUtil.unhandledSwitchStatement( syslogOutputFormat );
+                PwmUtil.unhandledSwitchStatement( syslogOutputFormat );
                 throw new IllegalStateException();
         }
     }

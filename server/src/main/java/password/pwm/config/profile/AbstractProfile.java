@@ -31,7 +31,7 @@ import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 
 import java.security.cert.X509Certificate;
 import java.util.Collections;
@@ -176,6 +176,6 @@ public abstract class AbstractProfile implements Profile
     public GuidMode readGuidMode()
     {
         final String guidAttributeName = readSettingAsString( PwmSetting.LDAP_GUID_ATTRIBUTE );
-        return JavaHelper.readEnumFromString( GuidMode.class, guidAttributeName ).orElse( GuidMode.VENDORGUID );
+        return EnumUtil.readEnumFromString( GuidMode.class, guidAttributeName ).orElse( GuidMode.VENDORGUID );
     }
 }

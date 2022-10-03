@@ -36,6 +36,7 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
@@ -211,7 +212,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
         PwmPasswordPolicy newDefaultPolicy = null;
         try
         {
-            final Map<String, String> defaultPolicyMap = CollectionUtil.enumStream( PwmPasswordRule.class )
+            final Map<String, String> defaultPolicyMap = EnumUtil.enumStream( PwmPasswordRule.class )
                     .collect( Collectors.toUnmodifiableMap(
                             PwmPasswordRule::getKey,
                             PwmPasswordRule::getDefaultValue ) );
@@ -285,7 +286,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
             return this;
         }
 
-        final Map<String, String> newPasswordPolicies = CollectionUtil.enumStream( PwmPasswordRule.class )
+        final Map<String, String> newPasswordPolicies = EnumUtil.enumStream( PwmPasswordRule.class )
                 .map( rule -> Map.entry( rule, mergeValue( otherPolicy, rule ) ) )
                 .filter( entry -> entry.getValue().isPresent() )
                 .collect( Collectors.toUnmodifiableMap( entry -> entry.getKey().getKey(), entry -> entry.getValue().get() ) );

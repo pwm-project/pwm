@@ -25,8 +25,8 @@ import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapDomainService;
 import password.pwm.svc.db.DatabaseService;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.CollectorUtil;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -127,7 +127,7 @@ public enum PwmAboutProperty
             final PwmApplication pwmApplication
     )
     {
-        return CollectionUtil.enumStream( PwmAboutProperty.class )
+        return EnumUtil.enumStream( PwmAboutProperty.class )
                 .map( aboutProp -> Map.entry( aboutProp, readAboutValue( pwmApplication, aboutProp ) ) )
                 .filter( entry -> entry.getValue().isPresent() )
                 .collect( CollectorUtil.toUnmodifiableEnumMap( PwmAboutProperty.class,

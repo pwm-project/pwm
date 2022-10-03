@@ -33,7 +33,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmNumberFormat;
 import password.pwm.util.java.StatisticAverageBundle;
 import password.pwm.util.java.StatisticCounterBundle;
@@ -227,7 +227,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
 
         final TimeDuration latency = TimeDuration.of( (long) averages.getAverage( AverageStat.avgFlushLatency ), TimeDuration.Unit.MILLISECONDS );
         debugData.put( "EventsStored", String.valueOf( localDBListQueue.size() ) );
-        debugData.put( "ConfiguredMaxEvents", MiscUtil.forDefaultLocale().format( settings.getMaxEvents() ) );
+        debugData.put( "ConfiguredMaxEvents", PwmUtil.forDefaultLocale().format( settings.getMaxEvents() ) );
         debugData.put( "ConfiguredMaxAge", settings.getMaxAge().asCompactString() );
         debugData.put( "BufferAverageLatency", latency.asCompactString() );
         debugData.put( "BufferAverageSize", averages.getFormattedAverage( AverageStat.avgFlushCount ) );
@@ -598,7 +598,7 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
         final int eventCount = getStoredEventCount();
         if ( eventCount > settings.getMaxEvents() + 5000 )
         {
-            final PwmNumberFormat numberFormat = MiscUtil.forDefaultLocale();
+            final PwmNumberFormat numberFormat = PwmUtil.forDefaultLocale();
             healthRecords.add( HealthRecord.forMessage(
                     DomainID.systemId(),
                     HealthMessage.LocalDBLogger_HighRecordCount,

@@ -24,7 +24,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.util.java.TimeDuration;
 
-import java.util.Objects;
+import java.time.Duration;
 
 public class TransactionSizeCalculator
 {
@@ -42,32 +42,29 @@ public class TransactionSizeCalculator
     public void reset( )
     {
         transactionSize = settings.getMinTransactions();
-        lastDuration = settings.getDurationGoal().asMillis();
+        lastDuration = settings.getDurationGoal();
     }
 
-    public void recordLastTransactionDuration( final long duration )
+    public void recordLastTransactionDuration( final Duration duration )
     {
-        recordLastTransactionDuration( TimeDuration.of( duration, TimeDuration.Unit.MILLISECONDS ) );
+        recordLastTransactionDuration( duration.toMillis() );
     }
 
-    @SuppressWarnings( "ResultOfMethodCallIgnored" )
     public void pause( )
     {
-        final long pauseTimeMs = Math.min( lastDuration, settings.getDurationGoal().asMillis() * 2 );
+        final long pauseTimeMs = Math.min( lastDuration, settings.getDurationGoal() * 2 );
         TimeDuration.of( pauseTimeMs, TimeDuration.Unit.MILLISECONDS ).pause();
     }
 
-    public void recordLastTransactionDuration( final TimeDuration duration )
+    public void recordLastTransactionDuration(  final long duration  )
     {
-        Objects.requireNonNull( duration );
-
-        lastDuration = duration.asMillis();
-        final long durationGoalMs = settings.getDurationGoal().asMillis();
-        final long difference = Math.abs( duration.asMillis() - durationGoalMs );
+        lastDuration = duration;
+        final long durationGoalMs = settings.getDurationGoal();
+        final long difference = Math.abs( duration - durationGoalMs );
         final int closeThreshold = ( int ) ( durationGoalMs * .15f );
 
         int newTransactionSize;
-        if ( duration.isShorterThan( settings.getDurationGoal() ) )
+        if ( duration < ( settings.getDurationGoal() ) )
         {
             if ( difference > closeThreshold )
             {
@@ -78,7 +75,7 @@ public class TransactionSizeCalculator
                 newTransactionSize = transactionSize + 1;
             }
         }
-        else if ( duration.isLongerThan( settings.getDurationGoal() ) )
+        else if ( duration > ( settings.getDurationGoal() ) )
         {
             if ( difference > ( 10 * durationGoalMs ) )
             {
@@ -117,7 +114,7 @@ public class TransactionSizeCalculator
     public static class Settings
     {
         @Builder.Default
-        private TimeDuration durationGoal = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
+        private long durationGoal = 100;
 
         @Builder.Default
         private int maxTransactions = 5003;
@@ -142,12 +139,7 @@ public class TransactionSizeCalculator
                 throw new IllegalArgumentException( "minTransactions must be less than maxTransactions" );
             }
 
-            if ( durationGoal == null )
-            {
-                throw new IllegalArgumentException( "durationGoal must not be null" );
-            }
-
-            if ( durationGoal.asMillis() < 1 )
+            if ( durationGoal < 1 )
             {
                 throw new IllegalArgumentException( "durationGoal must be greater than 0ms" );
             }

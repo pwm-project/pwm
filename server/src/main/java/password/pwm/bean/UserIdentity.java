@@ -30,6 +30,7 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
@@ -89,7 +90,7 @@ public class UserIdentity implements Serializable, Comparable<UserIdentity>
             final Flag... flags
     )
     {
-        final boolean canonical = JavaHelper.enumArrayContainsValue( flags, Flag.PreCanonicalized );
+        final boolean canonical = EnumUtil.enumArrayContainsValue( flags, Flag.PreCanonicalized );
         return new UserIdentity( userDN, ldapProfile, domainID, canonical );
     }
 

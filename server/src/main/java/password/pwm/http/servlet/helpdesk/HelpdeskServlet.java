@@ -83,7 +83,7 @@ import password.pwm.user.UserInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -513,7 +513,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
 
             default:
-                MiscUtil.unhandledSwitchStatement( searchMode );
+                PwmUtil.unhandledSwitchStatement( searchMode );
         }
 
         final UserSearchService userSearchService = pwmRequest.getPwmDomain().getUserSearchEngine();
@@ -565,7 +565,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
 
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( searchMode );
+                    PwmUtil.unhandledSwitchStatement( searchMode );
             }
 
             searchConfiguration = builder.build();

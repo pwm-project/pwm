@@ -20,7 +20,7 @@
 
 package password.pwm;
 
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -450,6 +450,6 @@ public enum AppProperty
 
     public static Optional<AppProperty> forKey( final String key )
     {
-        return JavaHelper.readEnumFromPredicate( AppProperty.class, appProperty -> Objects.equals( appProperty.getKey(), key ) );
+        return EnumUtil.readEnumFromPredicate( AppProperty.class, appProperty -> Objects.equals( appProperty.getKey(), key ) );
     }
 }

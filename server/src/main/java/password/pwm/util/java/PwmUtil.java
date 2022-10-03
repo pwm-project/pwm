@@ -30,9 +30,13 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
-public class MiscUtil
+public final class PwmUtil
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( MiscUtil.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmUtil.class );
+
+    private PwmUtil()
+    {
+    }
 
     public static void unhandledSwitchStatement( final Object switchParameter )
     {

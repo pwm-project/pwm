@@ -63,7 +63,7 @@ import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.Percent;
+import password.pwm.util.Percent;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
 import password.pwm.ws.server.RestResultBean;

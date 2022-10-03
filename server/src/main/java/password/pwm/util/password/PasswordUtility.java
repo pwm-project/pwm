@@ -87,7 +87,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -829,7 +829,7 @@ public class PasswordUtility
                 return judgePasswordStrengthUsingTraditionalAlgorithm( password );
 
             default:
-                MiscUtil.unhandledSwitchStatement( strengthMeterType );
+                PwmUtil.unhandledSwitchStatement( strengthMeterType );
         }
 
         return -1;

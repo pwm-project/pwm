@@ -33,7 +33,7 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.CollectorUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 
 import java.security.cert.X509Certificate;
 import java.util.Collections;
@@ -266,7 +266,7 @@ public final class ValueTypeConverter
         }
 
         final String strValue = ( String ) value.toNativeObject();
-        return JavaHelper.readEnumFromString( enumClass, strValue ).orElse( null );
+        return EnumUtil.readEnumFromString( enumClass, strValue ).orElse( null );
     }
 
     public static Map<Locale, EmailItemBean> valueToLocalizedEmail( final PwmSetting setting, final StoredValue storedValue )

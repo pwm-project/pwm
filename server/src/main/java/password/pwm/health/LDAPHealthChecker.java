@@ -59,7 +59,7 @@ import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -1161,7 +1161,7 @@ public class LDAPHealthChecker implements HealthSupplier
                 break;
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( userPermission.getType() );
+                    PwmUtil.unhandledSwitchStatement( userPermission.getType() );
             }
         }
         return returnList;

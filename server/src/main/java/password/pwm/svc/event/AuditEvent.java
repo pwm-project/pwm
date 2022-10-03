@@ -24,7 +24,7 @@ import password.pwm.config.SettingReader;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmDisplayBundle;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.json.JsonFactory;
 
 import java.util.Locale;
@@ -109,7 +109,7 @@ public enum AuditEvent
 
     public static Optional<AuditEvent> forKey( final String key )
     {
-        return JavaHelper.readEnumFromPredicate( AuditEvent.class, auditEvent ->
+        return EnumUtil.readEnumFromPredicate( AuditEvent.class, auditEvent ->
         {
             final Message message = auditEvent.getMessage();
             return message != null && Objects.equals( message.getKey(), key );

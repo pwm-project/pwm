@@ -558,7 +558,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     )
             throws IOException, PwmUnrecoverableException
     {
-        final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final ProfileID profileID = ProfileID.create( pwmRequest.readParameterAsString( REQ_PARAM_PROFILE ) );
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.LDAP_SERVER_URLS );
@@ -586,7 +585,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     )
             throws IOException, PwmUnrecoverableException
     {
-        final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final AppConfig config = AppConfig.forStoredConfig( configManagerBean.getStoredConfiguration() );
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.LDAP_SERVER_URLS );
@@ -603,7 +601,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     )
             throws IOException, PwmUnrecoverableException
     {
-        final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
 
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.LDAP_SERVER_URLS );
@@ -653,7 +650,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     )
             throws IOException, PwmUnrecoverableException
     {
-        final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
         final ProfileID profileID = ProfileID.create( pwmRequest.readParameterAsString( REQ_PARAM_PROFILE ) );
 
@@ -754,7 +750,6 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     )
             throws IOException, PwmUnrecoverableException
     {
-        final Instant startTime = Instant.now();
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
 
         final NavTreeSettings navTreeSettings = NavTreeSettings.readFromRequest( pwmRequest );

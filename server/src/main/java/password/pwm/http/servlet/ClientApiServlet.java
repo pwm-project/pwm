@@ -53,7 +53,7 @@ import password.pwm.svc.stats.StatisticsService;
 import password.pwm.user.UserInfo;
 import password.pwm.util.i18n.LocaleComparators;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -376,11 +376,11 @@ public class ClientApiServlet extends ControlledPwmServlet
             }
         }
 
-        settingMap.put( "epsTypes", CollectionUtil.enumStream( EpsStatistic.class )
+        settingMap.put( "epsTypes", EnumUtil.enumStream( EpsStatistic.class )
                 .map( EpsStatistic::toString )
                 .collect( Collectors.toList() ) );
 
-        settingMap.put( "epsDurations", CollectionUtil.enumStream( Statistic.EpsDuration.class )
+        settingMap.put( "epsDurations", EnumUtil.enumStream( Statistic.EpsDuration.class )
                 .map( Statistic.EpsDuration::toString )
                 .collect( Collectors.toList() ) );
 

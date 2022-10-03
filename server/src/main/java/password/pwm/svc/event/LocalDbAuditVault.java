@@ -27,7 +27,7 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.json.JsonFactory;
-import password.pwm.util.java.Percent;
+import password.pwm.util.Percent;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -200,7 +200,7 @@ public class LocalDbAuditVault implements AuditVault
         // keep transaction duration around 100ms if possible.
         final TransactionSizeCalculator transactionSizeCalculator = new TransactionSizeCalculator(
                 TransactionSizeCalculator.Settings.builder()
-                        .durationGoal( TimeDuration.of( 101, TimeDuration.Unit.MILLISECONDS ) )
+                        .durationGoal( TimeDuration.of( 101, TimeDuration.Unit.MILLISECONDS ).asMillis() )
                         .maxTransactions( 5003 )
                         .minTransactions( 3 )
                         .build()

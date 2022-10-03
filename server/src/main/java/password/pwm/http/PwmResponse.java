@@ -33,6 +33,7 @@ import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.command.CommandServlet;
 import password.pwm.i18n.Message;
 import password.pwm.util.Validator;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -179,7 +180,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
 
         pwmRequest.setAttribute( PwmRequestAttribute.PwmErrorInfo, errorInformation );
 
-        if ( JavaHelper.enumArrayContainsValue( flags, Flag.ForceLogout ) )
+        if ( EnumUtil.enumArrayContainsValue( flags, Flag.ForceLogout ) )
         {
             LOGGER.debug( pwmRequest, () -> "forcing logout due to error " + errorInformation.toDebugStr() );
             pwmRequest.getPwmSession().unAuthenticateUser( pwmRequest );
@@ -359,7 +360,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
         }
 
         final boolean httpOnlyEnabled = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.HTTP_COOKIE_HTTPONLY_ENABLE ) );
-        final boolean httpOnly = httpOnlyEnabled && !JavaHelper.enumArrayContainsValue( flags, PwmHttpResponseWrapper.Flag.NonHttpOnly );
+        final boolean httpOnly = httpOnlyEnabled && !EnumUtil.enumArrayContainsValue( flags, PwmHttpResponseWrapper.Flag.NonHttpOnly );
 
         final String value;
         {
@@ -369,7 +370,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
             }
             else
             {
-                if ( JavaHelper.enumArrayContainsValue( flags, PwmHttpResponseWrapper.Flag.BypassSanitation ) )
+                if ( EnumUtil.enumArrayContainsValue( flags, PwmHttpResponseWrapper.Flag.BypassSanitation ) )
                 {
                     value = StringUtil.urlEncode( cookieValue );
                 }

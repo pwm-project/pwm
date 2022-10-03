@@ -27,11 +27,15 @@
 <%@ page import="password.pwm.receiver.PwmReceiverApp" %>
 <%@ page import="password.pwm.receiver.ContextManager" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.time.Duration" %>
+<%@ page import="password.pwm.util.java.PwmNumberFormat" %>
 
 <!DOCTYPE html>
 <%@ page contentType="text/html" %>
 <% SummaryBean summaryBean = (SummaryBean)request.getAttribute(TelemetryViewerServlet.SUMMARY_ATTR); %>
 <% PwmReceiverApp app = ContextManager.getContextManager(request.getServletContext()).getApp(); %>
+<% PwmNumberFormat format = PwmNumberFormat.forLocale( request.getLocale() ); %>
 <html>
 <head>
     <title>Telemetry Data</title>
@@ -40,7 +44,10 @@
 </head>
 <body>
 <div>
+    <h2>Server Info</h2>
     Current Time: <%=StringUtil.toIsoDate( Instant.now() )%>
+    <br/>
+    Up Time: <%=StringUtil.toIsoDuration(Duration.between(app.getStartupTime(), Instant.now()))%>
     <br/>
     <% if (app.getSettings().isFtpEnabled()) {%>
     <% Instant lastIngest = app.getStatus().getLastFtpIngest(); %>
@@ -55,7 +62,19 @@
     <br/>
     Servers Shown: <%= summaryBean.getServerCount() %>
     <br/>
+    <h3>Counters</h3>
+    <% final Map<String, String> counterStatMap = app.getStatisticCounterBundle().debugStats( request.getLocale() ); %>
+    <% for ( final Map.Entry<String, String> entry : counterStatMap.entrySet() ) { %>
+    <%= entry.getKey() %>: <%= entry.getValue()%><br/>
+    <% } %>
     <br/>
+    <h3>Events/Second</h3>
+    <% final Map<String, String> epsStatMap = app.getStatisticEpsBundle().debugStats( request.getLocale() ); %>
+    <% for ( final Map.Entry<String, String> entry : epsStatMap.entrySet() ) { %>
+    <%= entry.getKey() %>: <%= entry.getValue()%><br/>
+    <% } %>
+    <br/>
+    <h1>PWM Telemetry Data</h1>
 
     <%--
     <form method="get">
@@ -165,7 +184,7 @@
         <% for (final String setting: summaryBean.getSettingCount().keySet()) { %>
         <tr>
             <td><%=setting%></td>
-            <td><%=summaryBean.getSettingCount().get(setting)%></td>
+            <td><%=format.format(summaryBean.getSettingCount().get(setting).longValue())%></td>
         </tr>
         <% } %>
     </table>
@@ -178,7 +197,7 @@
         <% for (final String statistic: summaryBean.getStatCount().keySet()) { %>
         <tr>
             <td><%=statistic%></td>
-            <td><%=summaryBean.getStatCount().get(statistic)%></td>
+            <td><%=format.format(summaryBean.getStatCount().get(statistic).longValue())%></td>
         </tr>
         <% } %>
     </table>

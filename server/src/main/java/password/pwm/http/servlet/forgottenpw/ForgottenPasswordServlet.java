@@ -87,7 +87,7 @@ import password.pwm.user.UserInfo;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -292,7 +292,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                         break;
 
                     default:
-                        MiscUtil.unhandledSwitchStatement( actionChoice );
+                        PwmUtil.unhandledSwitchStatement( actionChoice );
                 }
             }
         }
@@ -329,7 +329,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                 break;
 
             default:
-                MiscUtil.unhandledSwitchStatement( resetType );
+                PwmUtil.unhandledSwitchStatement( resetType );
 
         }
 

@@ -36,7 +36,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
-<%@ page import="password.pwm.util.java.MiscUtil" %>
+<%@ page import="password.pwm.util.java.PwmUtil" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>

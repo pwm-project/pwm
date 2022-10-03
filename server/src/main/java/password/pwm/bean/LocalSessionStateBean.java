@@ -22,7 +22,7 @@ package password.pwm.bean;
 
 import lombok.Data;
 import password.pwm.user.UserInfoBean;
-import password.pwm.util.java.MovingAverage;
+import password.pwm.util.MovingAverage;
 import password.pwm.util.java.TimeDuration;
 
 import java.io.Serializable;

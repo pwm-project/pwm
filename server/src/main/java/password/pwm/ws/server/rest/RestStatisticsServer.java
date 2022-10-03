@@ -40,9 +40,9 @@ import password.pwm.svc.stats.StatisticType;
 import password.pwm.svc.stats.StatisticsBundle;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.stats.StatisticsService;
-import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestMethodHandler;
@@ -141,7 +141,7 @@ public class RestStatisticsServer extends RestServlet
                 return OutputVersion2.makeData( restRequest );
 
             default:
-                MiscUtil.unhandledSwitchStatement( version );
+                PwmUtil.unhandledSwitchStatement( version );
         }
 
         // unreachable
@@ -174,7 +174,7 @@ public class RestStatisticsServer extends RestServlet
 
         private static List<StatValue> makeStatInfos( final StatisticsService statisticsManager, final String key )
         {
-            final Map<String, StatValue> output = CollectionUtil.enumStream( Statistic.class )
+            final Map<String, StatValue> output = EnumUtil.enumStream( Statistic.class )
                     .collect( Collectors.toMap(
                             Enum::name,
                             stat -> new StatValue( stat.name(), statisticsManager.getStatBundleForKey( key ).getStatistic( stat ) )

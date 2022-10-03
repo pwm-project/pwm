@@ -69,8 +69,8 @@ import password.pwm.http.servlet.configeditor.data.SettingDataMaker;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaOperationResult;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.EnumUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -336,7 +336,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             break;
 
             default:
-                MiscUtil.unhandledSwitchStatement( configGuideBean.getStep() );
+                PwmUtil.unhandledSwitchStatement( configGuideBean.getStep() );
         }
 
         final PublicHealthData jsonOutput = PublicHealthData.builder()
@@ -419,7 +419,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
         final GuideStep inputStep = StringUtil.isEmpty( requestedStep )
                 ? GuideStep.START
-                : JavaHelper.readEnumFromString( GuideStep.class, requestedStep )
+                : EnumUtil.readEnumFromString( GuideStep.class, requestedStep )
                                 .orElseThrow( () -> PwmUnrecoverableException.newException(
                                         PwmError.ERROR_INTERNAL, "unknown step value" ) );
 

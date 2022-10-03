@@ -24,6 +24,7 @@ import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -32,7 +33,7 @@ import password.pwm.util.EventRateMeter;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MovingAverage;
+import password.pwm.util.MovingAverage;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -78,7 +79,7 @@ public final class WorkQueueProcessor<W extends Serializable>
     private ThreadPoolExecutor executorService;
 
     private final MovingAverage avgLagTime = new MovingAverage( TimeDuration.MINUTE.asDuration() );
-    private final EventRateMeter sendRate = new EventRateMeter( TimeDuration.MINUTE );
+    private final EventRateMeter sendRate = new EventRateMeter( TimeDuration.MINUTE.asDuration() );
 
     private final StatisticCounterBundle<WorkQueueStat> workQueueStats = new StatisticCounterBundle<>( WorkQueueStat.class );
 
@@ -607,7 +608,7 @@ public final class WorkQueueProcessor<W extends Serializable>
     {
         final TimeDuration lagTime = TimeDuration.fromCurrent( itemWrapper.getDate() );
         avgLagTime.update( lagTime.asMillis() );
-        sendRate.markEvents( 1 );
+        sendRate.markEvent();
         logger.trace( sessionLabel, () -> "processed item=" + makeDebugText( itemWrapper ) + "; lagTime=" + lagTime.asCompactString()
                 + "; " + StringUtil.mapToString( debugInfo() ), processDuration );
     }
@@ -616,7 +617,7 @@ public final class WorkQueueProcessor<W extends Serializable>
     {
         final Map<String, String> output = new HashMap<>();
         output.put( "avgLagTime", TimeDuration.fromDuration( avgLagTime.getAverageAsDuration() ).asCompactString() );
-        output.put( "sendRate", sendRate.readEventRate().setScale( 2, RoundingMode.DOWN ) + "/s" );
+        output.put( "sendRate", sendRate.rawEps().setScale( 2, RoundingMode.DOWN ) + "/s" );
         if ( executorService != null )
         {
             output.put( "preQueueThreads", String.valueOf( executorService.getActiveCount() ) );
@@ -625,7 +626,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         {
             output.put( "postQueueThreads", workerThread.isRunning() ? "1" : "0" );
         }
-        output.putAll( workQueueStats.debugStats() );
+        output.putAll( workQueueStats.debugStats( PwmConstants.DEFAULT_LOCALE  ) );
         return Collections.unmodifiableMap( output );
     }
 }

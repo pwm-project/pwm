@@ -33,8 +33,8 @@ import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.AverageTracker;
 import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
-import password.pwm.util.java.Percent;
+import password.pwm.util.java.PwmUtil;
+import password.pwm.util.Percent;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -107,12 +107,12 @@ public class LocalDBUtility
         writeStringToOut( debugOutput, "LocalDB export beginning of " + totalLines + " records" );
         final Instant startTime = Instant.now();
 
-        final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.MINUTE );
+        final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.MINUTE.asDuration() );
         final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask( () ->
                         outputExportDebugStats( totalLines, exportLineCounter.sum(), eventRateMeter, startTime, debugOutput ),
                 TimeDuration.MINUTE.asDuration() );
 
-        try ( CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( new GZIPOutputStream( outputStream, GZIP_BUFFER_SIZE ) ) )
+        try ( CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( new GZIPOutputStream( outputStream, GZIP_BUFFER_SIZE ) ) )
         {
             csvPrinter.printComment( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " LocalDB export on " + StringUtil.toIsoDate( Instant.now() ) );
             for ( final LocalDB.DB loopDB : LocalDB.DB.values() )
@@ -129,7 +129,7 @@ public class LocalDBUtility
                             final String value = entry.getValue();
                             csvPrinter.printRecord( loopDB.toString(), key, value );
                             exportLineCounter.increment();
-                            eventRateMeter.markEvents( 1 );
+                            eventRateMeter.markEvent();
                             debugOutputter.conditionallyExecuteTask();
                         }
                     }
@@ -159,7 +159,7 @@ public class LocalDBUtility
                 + StringUtil.formatDiskSize( totalLines ) + " records" );
         final Instant startTime = Instant.now();
 
-        final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.MINUTE );
+        final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.MINUTE.asDuration() );
         final ConditionalTaskExecutor debugOutputter = ConditionalTaskExecutor.forPeriodicTask( () ->
                         outputExportDebugStats( totalLines, exportLineCounter.sum(), eventRateMeter, startTime, debugOutput ),
                 TimeDuration.MINUTE.asDuration() );
@@ -176,7 +176,7 @@ public class LocalDBUtility
                     zipOutputStream.write( key.getBytes( PwmConstants.DEFAULT_CHARSET ) );
                     zipOutputStream.write( '\n' );
                     exportLineCounter.increment();
-                    eventRateMeter.markEvents( 1 );
+                    eventRateMeter.markEvent();
                     debugOutputter.conditionallyExecuteTask();
                 }
             }
@@ -199,12 +199,12 @@ public class LocalDBUtility
     {
         final Percent percentComplete = Percent.of( exportLineCounter, totalLines );
         final String percentStr = percentComplete.pretty( 2 );
-        final long secondsRemaining = totalLines / eventRateMeter.readEventRate().longValue();
+        final long secondsRemaining = totalLines / eventRateMeter.rawEps().longValue();
 
-        final String msg = "export stats: recordsOut=" + MiscUtil.forDefaultLocale().format( exportLineCounter )
+        final String msg = "export stats: recordsOut=" + PwmUtil.forDefaultLocale().format( exportLineCounter )
                 + ", duration=" + TimeDuration.fromCurrent( startTime ).asCompactString()
                 + ", percentComplete=" + percentStr
-                + ", recordsPerSecond=" + MiscUtil.forDefaultLocale().format( eventRateMeter.readEventRate().longValue() )
+                + ", recordsPerSecond=" + PwmUtil.forDefaultLocale().format( eventRateMeter.rawEps().longValue() )
                 + ", remainingTime=" + TimeDuration.of( secondsRemaining, TimeDuration.Unit.SECONDS ).asCompactString();
         writeStringToOut( debugOutput, msg );
     }
@@ -279,11 +279,11 @@ public class LocalDBUtility
 
         private final Instant startTime = Instant.now();
         final Map<LocalDB.DB, Map<String, String>> transactionMap = new EnumMap<>( LocalDB.DB.class );
-        private final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.MINUTE );
+        private final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.MINUTE.asDuration() );
         private final AverageTracker charsPerTransactionAverageTracker = new AverageTracker( 50 );
         private final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(
                 TransactionSizeCalculator.Settings.builder()
-                        .durationGoal( TimeDuration.of( 1000, TimeDuration.Unit.MILLISECONDS ) )
+                        .durationGoal( 1000 )
                         .minTransactions( 5 )
                         .maxTransactions( 5_000_000 )
                         .build()
@@ -331,7 +331,7 @@ public class LocalDBUtility
                     for ( final CSVRecord record : PwmConstants.DEFAULT_CSV_FORMAT.parse( csvReader ) )
                     {
                         lineReaderCounter++;
-                        eventRateMeter.markEvents( 1 );
+                        eventRateMeter.markEvent();
                         byteReaderCounter = countingInputStream.getByteCount();
                         final String dbNameRecordStr = record.get( 0 );
                         final LocalDB.DB db = JavaHelper.readEnumFromString( LocalDB.DB.class, null, dbNameRecordStr );
@@ -375,7 +375,7 @@ public class LocalDBUtility
                 recordImportCounter += transactionMap.get( loopDB ).size();
                 transactionMap.get( loopDB ).clear();
             }
-            transactionCalculator.recordLastTransactionDuration( TimeDuration.fromCurrent( startTxnTime ) );
+            transactionCalculator.recordLastTransactionDuration( TimeDuration.fromCurrent( startTxnTime ).asDuration() );
             charsPerTransactionAverageTracker.addSample( transactionCharCounter );
             transactionCharCounter = 0;
         }
@@ -419,7 +419,7 @@ public class LocalDBUtility
             stats.put( "recordsImported", Integer.toString( recordImportCounter ) );
             stats.put( "rowsPerTransaction", Integer.toString( transactionCalculator.getTransactionSize() ) );
             stats.put( "charsPerTransaction", charsPerTransactionAverageTracker.avg().toPlainString() );
-            stats.put( "rowsPerMinute", eventRateMeter.readEventRate().setScale( 2, RoundingMode.DOWN ).toString() );
+            stats.put( "rowsPerMinute", eventRateMeter.rawEps().setScale( 2, RoundingMode.DOWN ).toString() );
             stats.put( "duration", TimeDuration.compactFromCurrent( startTime ) );
             return StringUtil.mapToString( stats );
         }

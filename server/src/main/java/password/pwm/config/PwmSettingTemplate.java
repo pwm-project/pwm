@@ -21,6 +21,7 @@
 package password.pwm.config;
 
 import org.jrivard.xmlchai.XmlElement;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
 
 import java.util.EnumMap;
@@ -82,7 +83,7 @@ public enum PwmSettingTemplate
 
     public static Set<PwmSettingTemplate> valuesForType( final Type type )
     {
-        return JavaHelper.readEnumsFromPredicate( PwmSettingTemplate.class, t -> t.getType() == type );
+        return EnumUtil.readEnumsFromPredicate( PwmSettingTemplate.class, t -> t.getType() == type );
     }
 
     public enum Type

@@ -20,6 +20,10 @@
 
 package password.pwm.util.java;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
 
@@ -41,5 +45,13 @@ public class PwmNumberFormat
     {
         final NumberFormat numberFormat = NumberFormat.getInstance( locale );
         return numberFormat.format( number );
+    }
+
+    public static String prettyBigDecimal( final BigDecimal bigDecimal, final int significantBits, final Locale locale )
+    {
+        final MathContext mathContext = new MathContext( significantBits, RoundingMode.HALF_EVEN );
+        final BigDecimal rounded = bigDecimal.round( mathContext );
+        final NumberFormat decimalFormat = DecimalFormat.getInstance( locale );
+        return decimalFormat.format( rounded );
     }
 }

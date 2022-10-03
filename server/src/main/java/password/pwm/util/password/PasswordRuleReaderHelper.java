@@ -25,7 +25,7 @@ import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -63,7 +63,7 @@ public class PasswordRuleReaderHelper
     {
         final List<String> disallowedAttributes = chaiRuleHelper.getDisallowedAttributes();
 
-        if ( JavaHelper.enumArrayContainsValue( flags, Flag.KeepThresholds ) )
+        if ( EnumUtil.enumArrayContainsValue( flags, Flag.KeepThresholds ) )
         {
             return disallowedAttributes;
         }

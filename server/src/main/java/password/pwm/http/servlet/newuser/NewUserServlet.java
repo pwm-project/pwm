@@ -59,7 +59,7 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.json.JsonFactory;
-import password.pwm.util.java.Percent;
+import password.pwm.util.Percent;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;

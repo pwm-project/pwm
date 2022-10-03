@@ -23,6 +23,7 @@ package password.pwm.config;
 import lombok.Builder;
 import lombok.Value;
 import org.jrivard.xmlchai.XmlElement;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.macro.MacroRequest;
 
@@ -104,7 +105,7 @@ class PwmSettingMetaData
                     flagElement.getChildren( PwmSettingXml.XML_ELEMENT_FLAG ).forEach( flagsElement ->
                     {
                         final String value = flagsElement.getText().orElse( "" ).trim();
-                        JavaHelper.readEnumFromString( PwmSettingFlag.class, value ).ifPresent( returnObj::add );
+                        EnumUtil.readEnumFromString( PwmSettingFlag.class, value ).ifPresent( returnObj::add );
                     } )
             );
             return Collections.unmodifiableSet( returnObj );
@@ -139,10 +140,10 @@ class PwmSettingMetaData
             {
                 permissionElement.getChildren( PwmSettingXml.XML_ELEMENT_LDAP ).forEach( ldapElement ->
                 {
-                    final Optional<LDAPPermissionInfo.Actor> actor = JavaHelper.readEnumFromString(
+                    final Optional<LDAPPermissionInfo.Actor> actor = EnumUtil.readEnumFromString(
                             LDAPPermissionInfo.Actor.class,
                             permissionElement.getAttribute( PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACTOR ).orElse( "" ) );
-                    final Optional<LDAPPermissionInfo.Access> type = JavaHelper.readEnumFromString(
+                    final Optional<LDAPPermissionInfo.Access> type = EnumUtil.readEnumFromString(
                             LDAPPermissionInfo.Access.class,
                             permissionElement.getAttribute( PwmSettingXml.XML_ATTRIBUTE_PERMISSION_ACCESS ).orElse( "" ) );
 
@@ -191,7 +192,7 @@ class PwmSettingMetaData
                         final String keyAttribute = propertyElement.getAttribute( PwmSettingXml.XML_ATTRIBUTE_KEY )
                                 .orElseThrow( () -> new IllegalStateException( "property element is missing 'key' attribute for value " + pwmSetting.getKey() ) );
 
-                        final PwmSettingProperty property = JavaHelper.readEnumFromString( PwmSettingProperty.class, keyAttribute )
+                        final PwmSettingProperty property = EnumUtil.readEnumFromString( PwmSettingProperty.class, keyAttribute )
                                 .orElseThrow( () -> new IllegalStateException( "property element has unknown 'key' attribute for value " + pwmSetting.getKey() ) );
 
                         propertyElement.getText().ifPresent( value -> newProps.put( property, value ) );

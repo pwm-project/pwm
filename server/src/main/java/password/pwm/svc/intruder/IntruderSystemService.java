@@ -22,6 +22,7 @@ package password.pwm.svc.intruder;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
@@ -93,7 +94,7 @@ public class IntruderSystemService extends AbstractPwmService implements PwmServ
     public ServiceInfoBean serviceInfo()
     {
         return ServiceInfoBean.builder()
-                .debugProperties( recordStore.getStats().debugStats() )
+                .debugProperties( recordStore.getStats().debugStats( PwmConstants.DEFAULT_LOCALE ) )
                 .storageMethod( dataStorageMethod )
                 .build();
     }

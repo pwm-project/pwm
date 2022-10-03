@@ -22,7 +22,7 @@ package password.pwm.util.logging;
 
 import org.slf4j.event.Level;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.util.Collection;
@@ -68,7 +68,7 @@ public enum PwmLogLevel
             return TRACE;
         }
 
-        return JavaHelper.readEnumFromPredicate(
+        return EnumUtil.readEnumFromPredicate(
                 PwmLogLevel.class,
                 pwmLogLevel -> pwmLogLevel.logbackLevel == level
         ).orElse( TRACE );
@@ -76,7 +76,7 @@ public enum PwmLogLevel
 
     public static PwmLogLevel fromString( final String stringLogLevel )
     {
-        return JavaHelper.readEnumFromPredicate(
+        return EnumUtil.readEnumFromPredicate(
                         PwmLogLevel.class,
                         pwmLogLevel -> StringUtil.nullSafeEqualsIgnoreCase( stringLogLevel, pwmLogLevel.name() ) )
                 .orElse( TRACE );

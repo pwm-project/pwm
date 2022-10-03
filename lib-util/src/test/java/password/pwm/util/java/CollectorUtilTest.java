@@ -98,7 +98,7 @@ public class CollectorUtilTest
     @Test
     public void collectorToUnmodifiableEnumSet()
     {
-        final Set<TestEnum> testSet = CollectionUtil.enumStream( TestEnum.class )
+        final Set<TestEnum> testSet = EnumUtil.enumStream( TestEnum.class )
                 .collect( CollectorUtil.toUnmodifiableEnumSet( TestEnum.class, Function.identity() ) );
 
         Assertions.assertEquals( 6, testSet.size() );

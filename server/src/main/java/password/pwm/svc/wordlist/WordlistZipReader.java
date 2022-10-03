@@ -70,7 +70,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
             throw new IllegalStateException();
         }
 
-        eventRateMeter = new EventRateMeter( TimeDuration.MINUTE );
+        eventRateMeter = new EventRateMeter( TimeDuration.MINUTE.asDuration() );
         final CopyingInputStream copyingInputStream = new CopyingInputStream( inputStream, this::updateReadBytes );
         zipStream = new ZipInputStream( copyingInputStream );
         nextZipEntry();
@@ -177,7 +177,7 @@ class WordlistZipReader implements AutoCloseable, Closeable
 
     BigDecimal getEventRate()
     {
-        return eventRateMeter.readEventRate();
+        return eventRateMeter.rawEps();
     }
 
     long getLineCount()

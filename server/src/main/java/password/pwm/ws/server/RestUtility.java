@@ -30,7 +30,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.search.UserSearchService;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 
@@ -49,7 +49,7 @@ public class RestUtility
         try
         {
             final T jsonData = JsonFactory.get().deserialize( restRequest.readRequestBodyAsString(), classOfT );
-            if ( jsonData == null && !JavaHelper.enumArrayContainsValue( flags, Flag.AllowNullReturn ) )
+            if ( jsonData == null && !EnumUtil.enumArrayContainsValue( flags, Flag.AllowNullReturn ) )
             {
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_REST_INVOCATION_ERROR, "missing json body" );
             }
@@ -166,7 +166,7 @@ public class RestUtility
     {
         if ( StringUtil.isEmpty( jsonValue ) && StringUtil.isEmpty( paramValue ) )
         {
-            if ( JavaHelper.enumArrayContainsValue( flags, ReadValueFlag.optional ) )
+            if ( EnumUtil.enumArrayContainsValue( flags, ReadValueFlag.optional ) )
             {
                 return Optional.empty();
             }

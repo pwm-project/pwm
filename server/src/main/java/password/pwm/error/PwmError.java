@@ -23,7 +23,7 @@ package password.pwm.error;
 import com.novell.ldapchai.exception.ChaiError;
 import password.pwm.config.SettingReader;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -393,9 +393,9 @@ public enum PwmError
     {
         this.resourceKey = resourceKey;
         this.errorCode = errorCode;
-        this.errorIsPermanent = JavaHelper.enumArrayContainsValue( errorFlags, ErrorFlag.Permanent );
-        this.trivial = JavaHelper.enumArrayContainsValue( errorFlags, ErrorFlag.Trivial );
-        this.auditIgnored = JavaHelper.enumArrayContainsValue( errorFlags, ErrorFlag.AuditIgnored );
+        this.errorIsPermanent = EnumUtil.enumArrayContainsValue( errorFlags, ErrorFlag.Permanent );
+        this.trivial = EnumUtil.enumArrayContainsValue( errorFlags, ErrorFlag.Trivial );
+        this.auditIgnored = EnumUtil.enumArrayContainsValue( errorFlags, ErrorFlag.AuditIgnored );
         this.chaiErrorCode = chaiErrorCode == null ? Collections.emptySet() : Set.copyOf( chaiErrorCode );
     }
 
@@ -406,13 +406,13 @@ public enum PwmError
 
     public static Optional<PwmError> forChaiError( final ChaiError errorCode )
     {
-        return JavaHelper.readEnumFromPredicate( PwmError.class,
+        return EnumUtil.readEnumFromPredicate( PwmError.class,
                 pwmError -> pwmError.chaiErrorCode.contains( errorCode ) );
     }
 
     public static Optional<PwmError> forErrorNumber( final int code )
     {
-        return JavaHelper.readEnumFromPredicate( PwmError.class, pwmError -> pwmError.getErrorCode() == code );
+        return EnumUtil.readEnumFromPredicate( PwmError.class, pwmError -> pwmError.getErrorCode() == code );
     }
 
     public boolean isTrivial()
