@@ -187,7 +187,10 @@ public class OnejarMain
         while ( zipEntry != null )
         {
             final String fileName = zipEntry.getName();
-            final File newFile = new File( outputFolder + File.separator + fileName );
+            final File newFile = new File(outputFolder, fileName);
+            if (!newFile.toPath().normalize().startsWith(outputFolder.toPath().normalize())) {
+                throw new IOException("Bad zip entry");
+            }
 
             if ( !zipEntry.isDirectory() )
             {
