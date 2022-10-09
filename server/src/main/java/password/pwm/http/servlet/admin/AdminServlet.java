@@ -23,14 +23,18 @@ package password.pwm.http.servlet.admin;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.HttpMethod;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
-import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -49,10 +53,49 @@ import java.util.Optional;
 )
 public class AdminServlet extends ControlledPwmServlet
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( AdminServlet.class );
+
     @Override
-    protected PwmServletDefinition getServletDefinition()
+    protected PwmLogger getLogger()
     {
-        return PwmServletDefinition.Admin;
+        return LOGGER;
+    }
+
+    public enum AdminAction implements AbstractPwmServlet.ProcessAction
+    {
+        viewLogWindow( HttpMethod.GET ),
+        downloadAuditLogCsv( HttpMethod.POST ),
+        downloadUserReportCsv( HttpMethod.POST ),
+        downloadUserSummaryCsv( HttpMethod.POST ),
+        downloadStatisticsLogCsv( HttpMethod.POST ),
+        downloadSessionsCsv( HttpMethod.POST ),
+        clearIntruderTable( HttpMethod.POST ),
+        reportCommand( HttpMethod.POST ),
+        reportStatus( HttpMethod.GET ),
+        reportSummary( HttpMethod.GET ),
+        reportData( HttpMethod.GET ),
+        downloadUserDebug( HttpMethod.GET ),
+        auditData( HttpMethod.GET ),
+        sessionData( HttpMethod.GET ),
+        intruderData( HttpMethod.GET ),
+        startPwNotifyJob( HttpMethod.POST ),
+        readPwNotifyStatus( HttpMethod.POST ),
+        readPwNotifyLog( HttpMethod.POST ),
+        readLogData( HttpMethod.POST ),
+        downloadLogData( HttpMethod.POST ),;
+
+        private final Collection<HttpMethod> method;
+
+        AdminAction( final HttpMethod... method )
+        {
+            this.method = List.of( method );
+        }
+
+        @Override
+        public Collection<HttpMethod> permittedMethods( )
+        {
+            return method;
+        }
     }
 
     @Override

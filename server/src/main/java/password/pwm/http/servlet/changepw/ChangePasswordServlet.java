@@ -56,7 +56,7 @@ import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -90,6 +90,12 @@ import java.util.Optional;
 public abstract class ChangePasswordServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ChangePasswordServlet.class );
+
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
     public enum ChangePasswordAction implements ProcessAction
     {
@@ -180,7 +186,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                         break;
 
                     default:
-                        MiscUtil.unhandledSwitchStatement( warnResponse );
+                        PwmUtil.unhandledSwitchStatement( warnResponse );
                 }
             }
         }
@@ -322,7 +328,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         }
         catch ( final PwmOperationalException e )
         {
-            IntruderServiceClient.markAddressAndSession( pwmRequest.getPwmDomain(), pwmSession );
+            IntruderServiceClient.markAddressAndSession( pwmRequest );
             IntruderServiceClient.markUserIdentity( pwmRequest, userInfo.getUserIdentity() );
             LOGGER.debug( pwmRequest, e.getErrorInformation() );
             setLastError( pwmRequest, e.getErrorInformation() );
@@ -426,10 +432,8 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     public ProcessStatus processCheckPasswordAction( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final RestCheckPasswordServer.JsonInput jsonInput = JsonFactory.get().deserialize(
-                pwmRequest.readRequestBodyAsString(),
-                RestCheckPasswordServer.JsonInput.class
-        );
+        final RestCheckPasswordServer.JsonInput jsonInput =
+                pwmRequest.readBodyAsJsonObject( RestCheckPasswordServer.JsonInput.class );
 
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final UserInfo userInfo = pwmSession.getUserInfo();

@@ -20,8 +20,8 @@
 
 package password.pwm.util.java;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class AverageTrackerTest
 {
@@ -34,7 +34,7 @@ public class AverageTrackerTest
         averageTracker.addSample( 7 );
         averageTracker.addSample( 8 );
         averageTracker.addSample( 9 );
-        Assert.assertEquals( 7, averageTracker.avgAsLong() );
+        Assertions.assertEquals( 7, averageTracker.avgAsLong() );
     }
 
     @Test
@@ -48,7 +48,7 @@ public class AverageTrackerTest
         averageTracker.addSample( 9 );
         averageTracker.addSample( 10 );
         averageTracker.addSample( 15 );
-        Assert.assertEquals( 9, averageTracker.avgAsLong() );
+        Assertions.assertEquals( 9, averageTracker.avgAsLong() );
     }
 
     @Test
@@ -60,6 +60,6 @@ public class AverageTrackerTest
         averageTracker.addSample( 9_223_372_036_854_775_805L  );
         averageTracker.addSample( 9_223_372_036_854_775_804L  );
         averageTracker.addSample( 9_223_372_036_854_775_803L  );
-        Assert.assertEquals( 9_223_372_036_854_775_805L, averageTracker.avgAsLong() );
+        Assertions.assertEquals( 9_223_372_036_854_775_805L, averageTracker.avgAsLong() );
     }
 }

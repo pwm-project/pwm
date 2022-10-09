@@ -22,6 +22,7 @@ package password.pwm.ws.client.rest.form;
 
 import lombok.Builder;
 import lombok.Value;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.value.data.FormConfiguration;
 
 import java.io.Serializable;
@@ -37,14 +38,14 @@ public class FormDataRequestBean implements Serializable
     public static class FormInfo implements Serializable
     {
         private FormType module;
-        private String moduleProfileID;
+        private ProfileID moduleProfileID;
         private Mode mode;
         private String sessionID;
     }
 
     private FormInfo formInfo;
     private String userDN;
-    private String ldapProfileID;
+    private ProfileID ldapProfileID;
 
     public enum FormType
     {

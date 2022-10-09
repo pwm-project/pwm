@@ -183,4 +183,12 @@ public class FileSystemUtility
             Files.delete( nextPath );
         }
     }
+
+    public static File createDirectory( final Path basePath, final String newDirectoryName )
+            throws IOException
+    {
+        final Path path = Path.of( basePath.toString() + File.separator + newDirectoryName );
+        final Path newPath = Files.createDirectories( path );
+        return newPath.toFile();
+    }
 }

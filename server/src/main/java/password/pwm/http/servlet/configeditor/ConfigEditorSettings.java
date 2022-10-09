@@ -18,19 +18,25 @@
  * limitations under the License.
  */
 
-package password.pwm.http.tag.value;
+package password.pwm.http.servlet.configeditor;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmRequest;
+import lombok.Value;
+import password.pwm.AppProperty;
+import password.pwm.config.AppConfig;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 
-import javax.servlet.jsp.PageContext;
-
-public interface ValueOutput
+@Value
+public class ConfigEditorSettings
 {
-    String valueOutput(
-            PwmRequest pwmRequest,
-            PageContext pageContext
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException;
+    private TimeDuration maxWaitSettingsFunction;
+
+    static ConfigEditorSettings fromAppConfig( final AppConfig appConfig )
+    {
+        final TimeDuration waitTime = TimeDuration.of( JavaHelper.silentParseLong(
+                        appConfig.readAppProperty( AppProperty.CONFIG_EDITOR_SETTING_FUNCTION_TIMEOUT_MS ), 30_000 ),
+                TimeDuration.Unit.MILLISECONDS );
+
+        return new ConfigEditorSettings( waitTime );
+    }
 }

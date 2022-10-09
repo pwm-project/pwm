@@ -27,6 +27,7 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -68,8 +69,8 @@ import password.pwm.http.servlet.configeditor.data.SettingDataMaker;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapBrowser;
 import password.pwm.ldap.schema.SchemaOperationResult;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.EnumUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -102,10 +103,15 @@ import java.util.Optional;
 )
 public class ConfigGuideServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.getLogger( ConfigGuideServlet.class.getName() );
 
-    private static final String LDAP_PROFILE_KEY = PwmConstants.PROFILE_ID_DEFAULT;
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
+    private static final ProfileID LDAP_PROFILE_KEY = ProfileID.PROFILE_ID_DEFAULT;
     public static final String PARAM_STEP = "step";
     public static final String PARAM_KEY = "key";
 
@@ -190,7 +196,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 final URI ldapServerUri = new URI( ldapServerString );
                 if ( "ldaps".equalsIgnoreCase( ldapServerUri.getScheme() ) )
                 {
-                    final AppConfig tempConfig = new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
+                    final AppConfig tempConfig = AppConfig.forStoredConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
                     configGuideBean.setLdapCertificates( X509Utils.readRemoteCertificates( ldapServerUri, tempConfig ) );
                     configGuideBean.setCertsTrustedbyKeystore( X509Utils.testIfLdapServerCertsInDefaultKeystore( ldapServerUri ) );
                 }
@@ -240,7 +246,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final ConfigGuideBean configGuideBean = getBean( pwmRequest );
 
         final StoredConfiguration storedConfiguration = ConfigGuideForm.generateStoredConfig( configGuideBean );
-        final AppConfig tempAppConfig = new AppConfig( storedConfiguration );
+        final AppConfig tempAppConfig = AppConfig.forStoredConfig( storedConfiguration );
         final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmRequest.getPwmApplication()
                 .getPwmEnvironment()
                 .makeRuntimeInstance( tempAppConfig ) );
@@ -330,7 +336,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             break;
 
             default:
-                MiscUtil.unhandledSwitchStatement( configGuideBean.getStep() );
+                PwmUtil.unhandledSwitchStatement( configGuideBean.getStep() );
         }
 
         final PublicHealthData jsonOutput = PublicHealthData.builder()
@@ -367,7 +373,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
         final LdapBrowser ldapBrowser = new LdapBrowser(
                 pwmRequest.getLabel(),
-                pwmRequest.getPwmDomain().getLdapConnectionService().getChaiProviderFactory(),
+                pwmRequest.getPwmDomain().getLdapService().getChaiProviderFactory(),
                 storedConfiguration
         );
         final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse( domainID, ConfigGuideForm.LDAP_PROFILE_NAME, dn );
@@ -413,7 +419,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
         final GuideStep inputStep = StringUtil.isEmpty( requestedStep )
                 ? GuideStep.START
-                : JavaHelper.readEnumFromString( GuideStep.class, requestedStep )
+                : EnumUtil.readEnumFromString( GuideStep.class, requestedStep )
                                 .orElseThrow( () -> PwmUnrecoverableException.newException(
                                         PwmError.ERROR_INTERNAL, "unknown step value" ) );
 

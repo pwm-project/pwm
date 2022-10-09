@@ -20,7 +20,7 @@
 
 package password.pwm.config;
 
-import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.EnumUtil;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -42,7 +42,7 @@ public class PwmSettingStats
 
         returnObj.put( SettingStat.Total, PwmSetting.values().length );
 
-        returnObj.put( SettingStat.hasProfile, CollectionUtil.enumStream( PwmSetting.class )
+        returnObj.put( SettingStat.hasProfile, EnumUtil.enumStream( PwmSetting.class )
                 .filter( pwmSetting -> pwmSetting.getCategory().hasProfiles() )
                 .count() );
 

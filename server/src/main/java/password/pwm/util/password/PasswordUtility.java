@@ -40,6 +40,7 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -86,7 +87,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -287,7 +288,7 @@ public class PasswordUtility
         try
         {
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = PwmPasswordRuleValidator.create( pwmRequest.getLabel(), pwmDomain, userInfo.getPasswordPolicy() );
-            pwmPasswordRuleValidator.testPassword( pwmSession.getLabel(), newPassword, null, userInfo, pwmRequest.getClientConnectionHolder().getActor( ) );
+            pwmPasswordRuleValidator.testPassword( pwmRequest.getLabel(), newPassword, null, userInfo, pwmRequest.getClientConnectionHolder().getActor( ) );
         }
         catch ( final PwmDataValidationException e )
         {
@@ -509,7 +510,7 @@ public class PasswordUtility
         final SessionLabel sessionLabel = pwmRequest.getLabel();
         final UserIdentity userIdentity = userInfo.getUserIdentity();
 
-        final String changePasswordProfileID = userInfo.getProfileIDs().get( ProfileDefinition.ChangePassword );
+        final ProfileID changePasswordProfileID = userInfo.getProfileIDs().get( ProfileDefinition.ChangePassword );
         final ChangePasswordProfile changePasswordProfile = pwmRequest.getDomainConfig().getChangePasswordProfile().get( changePasswordProfileID );
 
         if ( changePasswordProfile == null )
@@ -627,7 +628,7 @@ public class PasswordUtility
         final boolean sendPassword = helpdeskProfile.readSettingAsBoolean( PwmSetting.HELPDESK_SEND_PASSWORD );
         if ( sendPassword )
         {
-            final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser( pwmDomain, sessionLabel, userIdentity, ProfileDefinition.ForgottenPassword );
+            final Optional<ProfileID> profileID = ProfileUtility.discoverProfileIDForUser( pwmDomain, sessionLabel, userIdentity, ProfileDefinition.ForgottenPassword );
             if ( profileID.isPresent() )
             {
                 final ForgottenPasswordProfile forgottenPasswordProfile = pwmDomain.getConfig().getForgottenPasswordProfiles().get( profileID.get() );
@@ -663,7 +664,7 @@ public class PasswordUtility
             ChaiProvider loopProvider = null;
             try
             {
-                loopProvider = pwmDomain.getLdapConnectionService().getChaiProviderFactory().newProvider( loopConfiguration );
+                loopProvider = pwmDomain.getLdapService().getChaiProviderFactory().newProvider( loopConfiguration );
                 final Instant lastModifiedDate = determinePwdLastModified( pwmDomain, sessionLabel, userIdentity );
                 returnValue.put( loopReplicaUrl, lastModifiedDate );
             }
@@ -828,7 +829,7 @@ public class PasswordUtility
                 return judgePasswordStrengthUsingTraditionalAlgorithm( password );
 
             default:
-                MiscUtil.unhandledSwitchStatement( strengthMeterType );
+                PwmUtil.unhandledSwitchStatement( strengthMeterType );
         }
 
         return -1;
@@ -969,25 +970,25 @@ public class PasswordUtility
 
     public static PwmPasswordPolicy determineConfiguredPolicyProfileForUser(
             final PwmDomain pwmDomain,
-            final SessionLabel pwmSession,
+            final SessionLabel sessionLabel,
             final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
-        final List<String> profiles = pwmDomain.getConfig().getPasswordProfileIDs();
+        final List<ProfileID> profiles = pwmDomain.getConfig().getPasswordProfileIDs();
         if ( profiles.isEmpty() )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_NO_PROFILE_ASSIGNED, "no password profiles are configured" ) );
         }
 
-        for ( final String profile : profiles )
+        for ( final ProfileID profile : profiles )
         {
             final PwmPasswordPolicy loopPolicy = pwmDomain.getConfig().getPasswordPolicy( profile );
             final List<UserPermission> userPermissions = loopPolicy.getUserPermissions();
-            LOGGER.debug( pwmSession, () -> "testing password policy profile '" + profile + "'" );
+            LOGGER.debug( sessionLabel, () -> "testing password policy profile '" + profile + "'" );
             try
             {
-                final boolean match = UserPermissionUtility.testUserPermission( pwmDomain, pwmSession, userIdentity, userPermissions );
+                final boolean match = UserPermissionUtility.testUserPermission( pwmDomain, sessionLabel, userIdentity, userPermissions );
                 if ( match )
                 {
                     return loopPolicy;
@@ -995,7 +996,7 @@ public class PasswordUtility
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( pwmSession, () -> "unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage() );
+                LOGGER.error( sessionLabel, () -> "unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage() );
             }
         }
 

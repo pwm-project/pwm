@@ -34,7 +34,7 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.cr.CrService;
 import password.pwm.util.cli.CliException;
 import password.pwm.util.cli.CliParameters;
@@ -184,7 +184,7 @@ public class ResponseStatsCommand extends AbstractCliCommand
 
         for ( final LdapProfile ldapProfile : pwmDomain.getConfig().getLdapProfiles().values() )
         {
-            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
+            final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
             final TimeDuration searchTimeout = TimeDuration.of(
                     Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT_MS ) ),
                     TimeDuration.Unit.MILLISECONDS );
@@ -195,14 +195,14 @@ public class ResponseStatsCommand extends AbstractCliCommand
                     .username( "*" )
                     .enableValueEscaping( false )
                     .filter( ldapProfile.readSettingAsString( PwmSetting.LDAP_USERNAME_SEARCH_FILTER ) )
-                    .ldapProfile( ldapProfile.getIdentifier() )
+                    .ldapProfile( ldapProfile.getId() )
                     .build();
 
-            final Map<UserIdentity, Map<String, String>> searchResults = userSearchEngine.performMultiUserSearch(
+            final Map<UserIdentity, Map<String, String>> searchResults = userSearchService.performMultiUserSearch(
                     searchConfiguration,
                     Integer.MAX_VALUE,
                     Collections.emptyList(),
-                    SessionLabel.SYSTEM_LABEL
+                    SessionLabel.CLI_SESSION_LABEL
             );
             returnList.addAll( searchResults.keySet() );
 

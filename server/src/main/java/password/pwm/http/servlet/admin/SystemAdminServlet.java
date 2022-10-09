@@ -55,7 +55,7 @@ import password.pwm.svc.pwnotify.PwNotifyStoredJobState;
 import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -104,6 +104,12 @@ import java.util.zip.ZipOutputStream;
 public class SystemAdminServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SystemAdminServlet.class );
+
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
     public enum SystemAdminAction implements AbstractPwmServlet.ProcessAction
     {
@@ -163,7 +169,7 @@ public class SystemAdminServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
-        if ( !pwmRequest.getPwmSession().checkPermission( pwmRequest.getPwmRequestContext(), Permission.PWMADMIN ) )
+        if ( !pwmRequest.checkPermission( Permission.PWMADMIN ) )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNAUTHORIZED );
             pwmRequest.respondWithError( errorInformation );
@@ -275,7 +281,7 @@ public class SystemAdminServlet extends ControlledPwmServlet
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        if ( !pwmRequest.getPwmSession().checkPermission( pwmRequest.getPwmRequestContext(), Permission.PWMADMIN ) )
+        if ( !pwmRequest.checkPermission( Permission.PWMADMIN ) )
         {
             LOGGER.info( pwmRequest, () -> "unable to execute clear intruder records" );
             return ProcessStatus.Halt;
@@ -704,7 +710,7 @@ public class SystemAdminServlet extends ControlledPwmServlet
             break;
 
             default:
-                MiscUtil.unhandledSwitchStatement( logDownloadType );
+                PwmUtil.unhandledSwitchStatement( logDownloadType );
 
         }
 

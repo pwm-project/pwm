@@ -20,8 +20,8 @@
 
 package password.pwm.health;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
 import java.util.NoSuchElementException;
@@ -38,9 +38,9 @@ public class HealthStatusTest
         set.add( HealthStatus.CAUTION );
         set.add( HealthStatus.WARN );
         set.add( HealthStatus.CONFIG );
-        Assert.assertEquals( HealthStatus.WARN, HealthStatus.mostSevere( set ).orElseThrow( NoSuchElementException::new ) );
+        Assertions.assertEquals( HealthStatus.WARN, HealthStatus.mostSevere( set ).orElseThrow( NoSuchElementException::new ) );
 
         set.remove( HealthStatus.WARN );
-        Assert.assertEquals( HealthStatus.CAUTION, HealthStatus.mostSevere( set ).orElseThrow( NoSuchElementException::new ) );
+        Assertions.assertEquals( HealthStatus.CAUTION, HealthStatus.mostSevere( set ).orElseThrow( NoSuchElementException::new ) );
     }
 }

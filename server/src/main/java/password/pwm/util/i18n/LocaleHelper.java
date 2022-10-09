@@ -41,6 +41,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -59,6 +60,17 @@ import java.util.stream.Collectors;
 public class LocaleHelper
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LocaleHelper.class );
+
+    // sort placing 'default' first then alphabetically.
+    private static final Comparator<String> LOCALE_STRING_COMPARATOR = Comparator
+            .comparing( ( String s ) -> s.equals( PwmConstants.DEFAULT_LOCALE.toString() ) )
+            .reversed()
+            .thenComparing( str -> LocaleHelper.parseLocaleString( str ).getDisplayName() );
+
+    private static final Comparator<Locale> LOCALE_COMPARATOR = Comparator
+            .comparing( ( Locale s ) -> s.equals( PwmConstants.DEFAULT_LOCALE ) )
+            .reversed()
+            .thenComparing( ( Function<Locale, String> ) Locale::getDisplayName );
 
 
     public enum TextDirection
@@ -82,6 +94,16 @@ public class LocaleHelper
         {
             return Optional.empty();
         }
+    }
+
+    public static Comparator<String> localeDisplayStringComparator()
+    {
+        return LOCALE_STRING_COMPARATOR;
+    }
+
+    public static Comparator<Locale> localeDisplayComparator()
+    {
+        return LOCALE_COMPARATOR;
     }
 
     public static String getLocalizedMessage( final Locale locale, final PwmDisplayBundle key, final SettingReader config )

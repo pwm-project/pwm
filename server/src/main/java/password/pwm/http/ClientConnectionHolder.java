@@ -26,6 +26,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
@@ -59,7 +60,7 @@ public class ClientConnectionHolder
     private final AuthenticationType authenticationType;
 
     private ChaiProvider actorChaiProvider;
-    private final Map<DomainID, Map<String, ChaiProvider>> proxyChaiProviders = new HashMap<>();
+    private final Map<DomainID, Map<ProfileID, ChaiProvider>> proxyChaiProviders = new HashMap<>();
     private final Map<PwmHttpClientConfiguration, PwmHttpClient> httpClients = new HashMap<>();
 
     private ClientConnectionHolder(
@@ -121,10 +122,10 @@ public class ClientConnectionHolder
     public ChaiProvider getProxyChaiProvider( final LdapProfile ldapProfile )
             throws PwmUnrecoverableException
     {
-        return getProxyChaiProvider( ldapProfile.getIdentifier() );
+        return getProxyChaiProvider( ldapProfile.getId() );
     }
 
-    public ChaiProvider getProxyChaiProvider( final String ldapProfileID )
+    public ChaiProvider getProxyChaiProvider( final ProfileID ldapProfileID )
             throws PwmUnrecoverableException
     {
         final PwmDomain pwmDomain = pwmApplication.domains().get( domainID );

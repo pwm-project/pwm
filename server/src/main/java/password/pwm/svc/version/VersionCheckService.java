@@ -62,7 +62,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 public class VersionCheckService extends AbstractPwmService
 {
@@ -152,28 +151,33 @@ public class VersionCheckService extends AbstractPwmService
 
         final VersionCheckInfoCache localCache = cacheHolder.getVersionCheckInfoCache();
 
+        this.nextScheduledCheck = calculateNextScheduledCheck( localCache, settings );
+
+        final TimeDuration delayUntilNextExecution = TimeDuration.fromCurrent( this.nextScheduledCheck );
+
+        scheduleJob( new PeriodicCheck(), delayUntilNextExecution );
+
+        LOGGER.trace( getSessionLabel(), () -> "scheduled next check execution at " + StringUtil.toIsoDate( nextScheduledCheck )
+                + " in " + delayUntilNextExecution.asCompactString() );
+    }
+    
+    private static Instant calculateNextScheduledCheck( final VersionCheckInfoCache localCache, final VersionCheckSettings settings )
+    {
         final TimeDuration idealDurationUntilNextCheck = localCache.getLastError() != null && localCache.getCurrentVersion() == null
                 ? settings.getCheckIntervalError()
                 : settings.getCheckInterval();
 
         if ( localCache.getLastCheckTimestamp() == null )
         {
-            this.nextScheduledCheck = Instant.now().plus( 10, ChronoUnit.SECONDS );
+            return Instant.now().plus( 10, ChronoUnit.SECONDS );
         }
         else
         {
             final Instant nextIdealTimestamp = localCache.getLastCheckTimestamp().plus( idealDurationUntilNextCheck.asDuration() );
-            this.nextScheduledCheck = nextIdealTimestamp.isBefore( Instant.now() )
+            return nextIdealTimestamp.isBefore( Instant.now() )
                     ? Instant.now().plus( 10, ChronoUnit.SECONDS )
                     : nextIdealTimestamp;
         }
-
-        final TimeDuration delayUntilNextExecution = TimeDuration.fromCurrent( this.nextScheduledCheck );
-
-        getExecutorService().schedule( new PeriodicCheck(), delayUntilNextExecution.asMillis(), TimeUnit.MILLISECONDS );
-
-        LOGGER.trace( getSessionLabel(), () -> "scheduled next check execution at " + StringUtil.toIsoDate( nextScheduledCheck )
-                + " in " + delayUntilNextExecution.asCompactString() );
     }
 
     private class PeriodicCheck implements Runnable

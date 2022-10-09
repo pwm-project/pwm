@@ -24,6 +24,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -33,7 +34,7 @@ import password.pwm.http.servlet.peoplesearch.PeopleSearchService;
 import password.pwm.http.servlet.resource.ResourceServletService;
 import password.pwm.http.state.SessionStateService;
 import password.pwm.ldap.LdapDomainService;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceEnum;
 import password.pwm.svc.PwmServiceManager;
@@ -86,9 +87,7 @@ public class PwmDomain
         this.pwmApplication = Objects.requireNonNull( pwmApplication );
         this.domainID = Objects.requireNonNull( domainID );
 
-        this.sessionLabel = pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
-                ? SessionLabel.RUNTIME_LABEL.toBuilder().domain( domainID.stringValue() ).build()
-                : SessionLabel.SYSTEM_LABEL.toBuilder().domain( domainID.stringValue() ).build();
+        this.sessionLabel = SessionLabel.forSystem( pwmApplication.getPwmEnvironment(), domainID );
 
         this.pwmServiceManager = new PwmServiceManager( sessionLabel, pwmApplication, domainID, PwmServiceEnum.forScope( PwmSettingScope.DOMAIN ) );
     }
@@ -159,7 +158,7 @@ public class PwmDomain
         return pwmApplication.determineIfDetailErrorMsgShown();
     }
 
-    public LdapDomainService getLdapConnectionService( )
+    public LdapDomainService getLdapService( )
     {
         return ( LdapDomainService ) pwmServiceManager.getService( PwmServiceEnum.LdapConnectionService );
     }
@@ -188,10 +187,10 @@ public class PwmDomain
         }
     }
 
-    public ChaiProvider getProxyChaiProvider( final SessionLabel sessionLabel, final String profileId )
+    public ChaiProvider getProxyChaiProvider( final SessionLabel sessionLabel, final ProfileID profileId )
             throws PwmUnrecoverableException
     {
-        return getLdapConnectionService().getProxyChaiProvider( sessionLabel, profileId );
+        return getLdapService().getProxyChaiProvider( sessionLabel, profileId );
     }
 
     public List<PwmService> getPwmServices( )
@@ -199,9 +198,9 @@ public class PwmDomain
         return pwmServiceManager.getRunningServices();
     }
 
-    public UserSearchEngine getUserSearchEngine()
+    public UserSearchService getUserSearchEngine()
     {
-        return ( UserSearchEngine ) pwmServiceManager.getService( PwmServiceEnum.UserSearchEngine );
+        return ( UserSearchService ) pwmServiceManager.getService( PwmServiceEnum.UserSearchEngine );
     }
 
     public HttpClientService getHttpClientService()

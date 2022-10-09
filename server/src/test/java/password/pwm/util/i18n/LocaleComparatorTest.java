@@ -20,8 +20,8 @@
 
 package password.pwm.util.i18n;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,17 +39,17 @@ public class LocaleComparatorTest
 
         list.sort( LocaleComparators.stringLocaleComparator() );
 
-        Assert.assertEquals( "br", list.get( 0 ) );
-        Assert.assertEquals( "en", list.get( 1 ) );
-        Assert.assertEquals( "fr", list.get( 2 ) );
-        Assert.assertEquals( "ja", list.get( 3 ) );
+        Assertions.assertEquals( "br", list.get( 0 ) );
+        Assertions.assertEquals( "en", list.get( 1 ) );
+        Assertions.assertEquals( "fr", list.get( 2 ) );
+        Assertions.assertEquals( "ja", list.get( 3 ) );
 
         list.sort( LocaleComparators.stringLocaleComparator( LocaleComparators.Flag.DefaultFirst ) );
 
         // default (english) first
-        Assert.assertEquals( "en", list.get( 0 ) );
-        Assert.assertEquals( "br", list.get( 1 ) );
-        Assert.assertEquals( "fr", list.get( 2 ) );
-        Assert.assertEquals( "ja", list.get( 3 ) );
+        Assertions.assertEquals( "en", list.get( 0 ) );
+        Assertions.assertEquals( "br", list.get( 1 ) );
+        Assertions.assertEquals( "fr", list.get( 2 ) );
+        Assertions.assertEquals( "ja", list.get( 3 ) );
     }
 }

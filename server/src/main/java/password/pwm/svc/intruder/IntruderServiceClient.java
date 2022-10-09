@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 public class IntruderServiceClient
 {
@@ -58,16 +60,18 @@ public class IntruderServiceClient
         }
     }
 
-    public static void markAddressAndSession( final PwmDomain pwmDomain, final PwmSession pwmSession )
+    public static void markAddressAndSession( final PwmRequest pwmRequest )
             throws PwmUnrecoverableException
     {
-        final IntruderDomainService intruderService = pwmDomain.getIntruderService();
+        Objects.requireNonNull( pwmRequest );
 
-        if ( pwmSession != null )
+        pwmRequest.getPwmSession().getSessionStateBean().incrementIntruderAttempts();
+
+        final Optional<String> srcAddress = pwmRequest.getSrcAddress();
+        if ( srcAddress.isPresent() )
         {
-            final String subject = pwmSession.getSessionStateBean().getSrcAddress();
-            pwmSession.getSessionStateBean().incrementIntruderAttempts();
-            intruderService.mark( IntruderRecordType.ADDRESS, subject, pwmSession.getLabel() );
+            final IntruderDomainService intruderService = pwmRequest.getPwmDomain().getIntruderService();
+            intruderService.mark( IntruderRecordType.ADDRESS, srcAddress.get(), pwmRequest.getLabel() );
         }
     }
 
@@ -110,8 +114,7 @@ public class IntruderServiceClient
 
         if ( userIdentity != null )
         {
-            final String subject = userIdentity.toDelimitedKey();
-            intruderService.mark( IntruderRecordType.USER_ID, subject, sessionLabel );
+            intruderService.mark( IntruderRecordType.USER_ID, IntruderDomainService.identityToSubject( userIdentity ), sessionLabel );
         }
     }
 
@@ -122,7 +125,7 @@ public class IntruderServiceClient
 
         if ( userIdentity != null )
         {
-            final String subject = userIdentity.toDelimitedKey();
+            final String subject = IntruderDomainService.identityToSubject( userIdentity );
             intruderService.clear( IntruderRecordType.USER_ID, subject );
         }
     }

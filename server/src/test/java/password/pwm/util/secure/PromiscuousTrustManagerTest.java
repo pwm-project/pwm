@@ -20,7 +20,7 @@
 
 package password.pwm.util.secure;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;

@@ -30,6 +30,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.PwmLdapVendor;
@@ -51,6 +52,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.LongAccumulator;
 import java.util.concurrent.atomic.LongAdder;
 
 class GsonJsonAdaptors
@@ -65,8 +67,11 @@ class GsonJsonAdaptors
         gsonBuilder.registerTypeAdapter( PasswordData.class, new PasswordDataTypeAdapter() );
         gsonBuilder.registerTypeAdapter( PwmLdapVendorTypeAdaptor.class, new PwmLdapVendorTypeAdaptor() );
         gsonBuilder.registerTypeAdapter( DomainID.class, new DomainIDTypeAdaptor() );
+        gsonBuilder.registerTypeAdapter( ProfileID.class, new ProfileIDTypeAdaptor() );
         gsonBuilder.registerTypeAdapter( LongAdder.class, new LongAdderTypeAdaptor() );
+        gsonBuilder.registerTypeAdapter( LongAccumulator.class, new LongAccumulatorTypeAdaptor() );
         gsonBuilder.registerTypeAdapter( TimeDuration.class, new TimeDurationAdaptor() );
+        gsonBuilder.registerTypeAdapter( Duration.class, new DurationAdaptor() );
         return gsonBuilder;
     }
 
@@ -247,15 +252,27 @@ class GsonJsonAdaptors
         public DomainID deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
         {
             final String sValue = json.getAsString();
-            if ( DomainID.systemId().toString().equals( sValue ) )
-            {
-                return DomainID.systemId();
-            }
-            return DomainID.create( json.getAsString() );
+            return DomainID.create( sValue );
         }
 
         @Override
         public JsonElement serialize( final DomainID src, final Type typeOfSrc, final JsonSerializationContext context )
+        {
+            return new JsonPrimitive( src.toString() );
+        }
+    }
+
+    private static class ProfileIDTypeAdaptor implements JsonSerializer<ProfileID>, JsonDeserializer<ProfileID>
+    {
+        @Override
+        public ProfileID deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
+        {
+            final String sValue = json.getAsString();
+            return ProfileID.create( sValue );
+        }
+
+        @Override
+        public JsonElement serialize( final ProfileID src, final Type typeOfSrc, final JsonSerializationContext context )
         {
             return new JsonPrimitive( src.toString() );
         }
@@ -267,13 +284,31 @@ class GsonJsonAdaptors
         public LongAdder deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
         {
             final long longValue = json.getAsLong();
-            final LongAdder longAddr = new LongAdder();
-            longAddr.add( longValue );
-            return longAddr;
+            final LongAdder longAdder = new LongAdder();
+            longAdder.add( longValue );
+            return longAdder;
         }
 
         @Override
         public JsonElement serialize( final LongAdder src, final Type typeOfSrc, final JsonSerializationContext context )
+        {
+            return new JsonPrimitive( src.longValue() );
+        }
+    }
+
+    private static class LongAccumulatorTypeAdaptor implements JsonSerializer<LongAccumulator>, JsonDeserializer<LongAccumulator>
+    {
+        @Override
+        public LongAccumulator deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
+        {
+            final long longValue = json.getAsLong();
+            final LongAccumulator longAccumulator = JavaHelper.newAbsLongAccumulator();
+            longAccumulator.accumulate( longValue );
+            return longAccumulator;
+        }
+
+        @Override
+        public JsonElement serialize( final LongAccumulator src, final Type typeOfSrc, final JsonSerializationContext context )
         {
             return new JsonPrimitive( src.longValue() );
         }
@@ -292,6 +327,22 @@ class GsonJsonAdaptors
         public JsonElement serialize( final TimeDuration src, final Type typeOfSrc, final JsonSerializationContext context )
         {
             return new JsonPrimitive( src.asDuration().toString() );
+        }
+    }
+
+    private static class DurationAdaptor implements JsonSerializer<Duration>, JsonDeserializer<Duration>
+    {
+        @Override
+        public Duration deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
+        {
+            final String stringValue = json.getAsString();
+            return Duration.parse( stringValue );
+        }
+
+        @Override
+        public JsonElement serialize( final Duration src, final Type typeOfSrc, final JsonSerializationContext context )
+        {
+            return new JsonPrimitive( src.toString() );
         }
     }
 }

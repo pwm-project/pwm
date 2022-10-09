@@ -20,8 +20,8 @@
 
 package password.pwm.http;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.bean.DomainID;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -42,13 +42,13 @@ public class PwmURLTest
     @Test
     public void testSingleDomainLoginUrls() throws PwmUnrecoverableException, URISyntaxException
     {
-        final AppConfig appConfig = new AppConfig( StoredConfigurationFactory.newConfig() );
+        final AppConfig appConfig = AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() );
         final PwmURL pwmURL = PwmURL.create( new URI( "https://wwww.example.com/pwm/private/login" ), "/pwm", appConfig );
 
-        Assert.assertEquals( PwmServletDefinition.Login, pwmURL.getServletDefinition().get() );
-        Assert.assertEquals( "/private/login", pwmURL.determinePwmServletPath() );
-        Assert.assertTrue( pwmURL.isPrivateUrl() );
-        Assert.assertTrue( pwmURL.matches( PwmServletDefinition.Login ) );
+        Assertions.assertEquals( PwmServletDefinition.Login, pwmURL.getServletDefinition().get() );
+        Assertions.assertEquals( "/private/login", pwmURL.determinePwmServletPath() );
+        Assertions.assertTrue( pwmURL.isPrivateUrl() );
+        Assertions.assertTrue( pwmURL.matches( PwmServletDefinition.Login ) );
 
     }
 
@@ -61,14 +61,14 @@ public class PwmURLTest
             final List<String> domainStrList = List.of( "aaaa", "bbbb", "cccc" );
             final StoredValue storedValue = StringArrayValue.create( domainStrList );
             modifier.writeSetting( StoredConfigKey.forSetting( PwmSetting.DOMAIN_LIST, null, DomainID.systemId() ), storedValue, null );
-            appConfig = new AppConfig( modifier.newStoredConfiguration( ) );
+            appConfig = AppConfig.forStoredConfig( modifier.newStoredConfiguration( ) );
         }
         final PwmURL pwmURL = PwmURL.create( new URI( "https://wwww.example.com/pwm/aaaa/private/login" ), "/pwm", appConfig );
 
-        Assert.assertEquals( PwmServletDefinition.Login, pwmURL.getServletDefinition().get() );
-        Assert.assertEquals( "/private/login", pwmURL.determinePwmServletPath() );
-        Assert.assertTrue( pwmURL.isPrivateUrl() );
-        Assert.assertTrue( pwmURL.matches( PwmServletDefinition.Login ) );
+        Assertions.assertEquals( PwmServletDefinition.Login, pwmURL.getServletDefinition().get() );
+        Assertions.assertEquals( "/private/login", pwmURL.determinePwmServletPath() );
+        Assertions.assertTrue( pwmURL.isPrivateUrl() );
+        Assertions.assertTrue( pwmURL.matches( PwmServletDefinition.Login ) );
 
     }
 
@@ -76,11 +76,11 @@ public class PwmURLTest
     @Test
     public void testSingleDomainResourceUrls() throws PwmUnrecoverableException, URISyntaxException
     {
-        final AppConfig appConfig = new AppConfig( StoredConfigurationFactory.newConfig() );
+        final AppConfig appConfig = AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() );
         final PwmURL pwmURL = PwmURL.create( new URI( "http://127.0.0.1:8080/pwm/public/resources/nonce-0/webjars/dojo/dojo.js" ), "/pwm", appConfig );
 
-        Assert.assertTrue( pwmURL.isPublicUrl() );
-        Assert.assertTrue( pwmURL.isResourceURL() );
+        Assertions.assertTrue( pwmURL.isPublicUrl() );
+        Assertions.assertTrue( pwmURL.isResourceURL() );
     }
 
     @Test
@@ -92,22 +92,22 @@ public class PwmURLTest
             final List<String> domainStrList = List.of( "aaaa", "bbbb", "cccc" );
             final StoredValue storedValue = StringArrayValue.create( domainStrList );
             modifier.writeSetting( StoredConfigKey.forSetting( PwmSetting.DOMAIN_LIST, null, DomainID.systemId() ), storedValue, null );
-            appConfig = new AppConfig( modifier.newStoredConfiguration( ) );
+            appConfig = AppConfig.forStoredConfig( modifier.newStoredConfiguration( ) );
         }
         final PwmURL pwmURL = PwmURL.create( new URI( "http://127.0.0.1:8080/pwm/aaaa/public/resources/nonce-0/webjars/dojo/dojo.js" ), "/pwm", appConfig );
 
-        Assert.assertTrue( pwmURL.isPublicUrl() );
-        Assert.assertTrue( pwmURL.isResourceURL() );
+        Assertions.assertTrue( pwmURL.isPublicUrl() );
+        Assertions.assertTrue( pwmURL.isResourceURL() );
 
     }
 
     @Test
     public void testForServletDefinition() throws URISyntaxException, PwmUnrecoverableException
     {
-        final AppConfig appConfig = new AppConfig( StoredConfigurationFactory.newConfig() );
+        final AppConfig appConfig = AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() );
         final PwmURL pwmURL = PwmURL.create( new URI( "http://127.0.0.1:8080/pwm/public/ChangePassword" ), "/pwm", appConfig );
 
-        Assert.assertEquals( PwmServletDefinition.PublicChangePassword, pwmURL.getServletDefinition().get() );
+        Assertions.assertEquals( PwmServletDefinition.PublicChangePassword, pwmURL.getServletDefinition().get() );
     }
 
 }

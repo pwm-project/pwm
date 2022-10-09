@@ -24,7 +24,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
@@ -165,7 +165,7 @@ public abstract class StaticMacros
 
             private static Optional<EncodeType> forString( final String input )
             {
-                return JavaHelper.readEnumFromPredicate( EncodeType.class, type -> type.toString().equalsIgnoreCase( input ) );
+                return EnumUtil.readEnumFromPredicate( EncodeType.class, type -> type.toString().equalsIgnoreCase( input ) );
             }
         }
 
@@ -277,7 +277,7 @@ public abstract class StaticMacros
 
             private static Optional<HashType> forString( final String input )
             {
-                return JavaHelper.readEnumFromPredicate( HashType.class, type -> type.toString().equalsIgnoreCase( input ) );
+                return EnumUtil.readEnumFromPredicate( HashType.class, type -> type.toString().equalsIgnoreCase( input ) );
             }
         }
 
@@ -357,7 +357,7 @@ public abstract class StaticMacros
 
             private static Optional<CaseType> forString( final String input )
             {
-                return JavaHelper.readEnumFromPredicate( CaseType.class, type -> type.toString().equalsIgnoreCase( input ) );
+                return EnumUtil.readEnumFromPredicate( CaseType.class, type -> type.toString().equalsIgnoreCase( input ) );
             }
         }
 

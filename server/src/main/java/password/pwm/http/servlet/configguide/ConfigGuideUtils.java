@@ -63,7 +63,7 @@ import password.pwm.ldap.schema.SchemaManager;
 import password.pwm.ldap.schema.SchemaOperationResult;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.Percent;
+import password.pwm.util.Percent;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
 import password.pwm.ws.server.RestResultBean;
@@ -161,7 +161,7 @@ public class ConfigGuideUtils
                     .setSetting( ChaiSetting.PROMISCUOUS_SSL, "true" )
                     .build();
 
-            final ChaiProvider chaiProvider = pwmDomain.getLdapConnectionService().getChaiProviderFactory().newProvider( chaiConfiguration );
+            final ChaiProvider chaiProvider = pwmDomain.getLdapService().getChaiProviderFactory().newProvider( chaiConfiguration );
             if ( doSchemaExtension )
             {
                 return SchemaManager.extendSchema( chaiProvider );
@@ -188,7 +188,7 @@ public class ConfigGuideUtils
         if ( configGuideBean.getStep() == GuideStep.LDAP_PERMISSIONS )
         {
             final LdapPermissionCalculator ldapPermissionCalculator = new LdapPermissionCalculator(
-                    new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) ).getDomainConfigs().get( ConfigGuideForm.DOMAIN_ID ) );
+                    AppConfig.forStoredConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) ).getDomainConfigs().get( ConfigGuideForm.DOMAIN_ID ) );
             pwmRequest.setAttribute( PwmRequestAttribute.LdapPermissionItems, ldapPermissionCalculator );
         }
 
@@ -225,7 +225,7 @@ public class ConfigGuideUtils
 
         if ( Boolean.parseBoolean( formData.get( ConfigGuideFormField.PARAM_LDAP_SECURE ) ) )
         {
-            final AppConfig tempConfig = new AppConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
+            final AppConfig tempConfig = AppConfig.forStoredConfig( ConfigGuideForm.generateStoredConfig( configGuideBean ) );
             X509Utils.readRemoteCertificates( host, port, tempConfig );
         }
     }
@@ -261,7 +261,7 @@ public class ConfigGuideUtils
                     {
                         throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, configErrors.get( 0 ) ) );
                     }
-                    ConfigGuideUtils.writeConfig( ContextManager.getContextManager( req.getSession() ), storedConfig );
+                    ConfigGuideUtils.writeConfig( ContextManager.getContextManager( pwmRequest ), storedConfig );
                     LOGGER.trace( pwmRequest, () -> "read config from file: " + storedConfig );
                     final RestResultBean restResultBean = RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown );
                     pwmRequest.getPwmResponse().outputJsonResult( restResultBean );
@@ -293,7 +293,7 @@ public class ConfigGuideUtils
             final ConfigGuideBean configGuideBean = ConfigGuideServlet.getBean( pwmRequest );
             final Map<ConfigGuideFormField, String> form = configGuideBean.getFormData();
             final PwmApplication tempApplication = PwmApplication.createPwmApplication(
-                    pwmRequest.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( new AppConfig( storedConfiguration ) ) );
+                    pwmRequest.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( AppConfig.forStoredConfig( storedConfiguration ) ) );
 
             final String adminDN = form.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_USER );
             final UserIdentity adminIdentity = UserIdentity.create( adminDN, ConfigGuideForm.LDAP_PROFILE_NAME, ConfigGuideForm.DOMAIN_ID );

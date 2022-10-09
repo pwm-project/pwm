@@ -21,9 +21,9 @@
 package password.pwm.util.java;
 
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -64,7 +64,7 @@ public class CopyingInputStreamTest
 
 
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception
     {
         final InputStream input = new ByteArrayInputStream( "abc".getBytes( ASCII ) );
@@ -75,70 +75,70 @@ public class CopyingInputStreamTest
     @Test
     public void testReadNothing() throws Exception
     {
-        Assert.assertEquals( "", new String( output.bytes(), ASCII ) );
+        Assertions.assertEquals( "", new String( output.bytes(), ASCII ) );
     }
 
     @Test
     public void testReadOneByte() throws Exception
     {
-        Assert.assertEquals( 'a', copyingStream.read() );
-        Assert.assertEquals( "a", new String( output.bytes(), ASCII ) );
+        Assertions.assertEquals( 'a', copyingStream.read() );
+        Assertions.assertEquals( "a", new String( output.bytes(), ASCII ) );
     }
 
     @Test
     public void testReadEverything() throws Exception
     {
-        Assert.assertEquals( 'a', copyingStream.read() );
-        Assert.assertEquals( 'b', copyingStream.read() );
-        Assert.assertEquals( 'c', copyingStream.read() );
-        Assert.assertEquals( -1, copyingStream.read() );
-        Assert.assertEquals( "abc", new String( output.bytes(), ASCII ) );
+        Assertions.assertEquals( 'a', copyingStream.read() );
+        Assertions.assertEquals( 'b', copyingStream.read() );
+        Assertions.assertEquals( 'c', copyingStream.read() );
+        Assertions.assertEquals( -1, copyingStream.read() );
+        Assertions.assertEquals( "abc", new String( output.bytes(), ASCII ) );
     }
 
     @Test
     public void testReadToArray() throws Exception
     {
         final byte[] buffer = new byte[8];
-        Assert.assertEquals( 3, copyingStream.read( buffer ) );
-        Assert.assertEquals( 'a', buffer[0] );
-        Assert.assertEquals( 'b', buffer[1] );
-        Assert.assertEquals( 'c', buffer[2] );
-        Assert.assertEquals( -1, copyingStream.read( buffer ) );
-        Assert.assertEquals( "abc", new String( output.bytes(), ASCII ) );
+        Assertions.assertEquals( 3, copyingStream.read( buffer ) );
+        Assertions.assertEquals( 'a', buffer[0] );
+        Assertions.assertEquals( 'b', buffer[1] );
+        Assertions.assertEquals( 'c', buffer[2] );
+        Assertions.assertEquals( -1, copyingStream.read( buffer ) );
+        Assertions.assertEquals( "abc", new String( output.bytes(), ASCII ) );
     }
 
     @Test
     public void testReadToArrayWithOffset() throws Exception
     {
         final byte[] buffer = new byte[8];
-        Assert.assertEquals( 3, copyingStream.read( buffer, 4, 4 ) );
-        Assert.assertEquals( 'a', buffer[4] );
-        Assert.assertEquals( 'b', buffer[5] );
-        Assert.assertEquals( 'c', buffer[6] );
-        Assert.assertEquals( -1, copyingStream.read( buffer, 4, 4 ) );
-        Assert.assertEquals( "abc", new String( output.bytes(), ASCII ) );
+        Assertions.assertEquals( 3, copyingStream.read( buffer, 4, 4 ) );
+        Assertions.assertEquals( 'a', buffer[4] );
+        Assertions.assertEquals( 'b', buffer[5] );
+        Assertions.assertEquals( 'c', buffer[6] );
+        Assertions.assertEquals( -1, copyingStream.read( buffer, 4, 4 ) );
+        Assertions.assertEquals( "abc", new String( output.bytes(), ASCII ) );
     }
 
     @Test
     public void testSkip() throws Exception
     {
-        Assert.assertEquals( 'a', copyingStream.read() );
-        Assert.assertEquals( 1, copyingStream.skip( 1 ) );
-        Assert.assertEquals( 'c', copyingStream.read() );
-        Assert.assertEquals( -1, copyingStream.read() );
-        Assert.assertEquals( "ac", new String( output.bytes(), ASCII ) );
+        Assertions.assertEquals( 'a', copyingStream.read() );
+        Assertions.assertEquals( 1, copyingStream.skip( 1 ) );
+        Assertions.assertEquals( 'c', copyingStream.read() );
+        Assertions.assertEquals( -1, copyingStream.read() );
+        Assertions.assertEquals( "ac", new String( output.bytes(), ASCII ) );
     }
 
     @Test
     public void testMarkReset() throws Exception
     {
-        Assert.assertEquals( 'a', copyingStream.read() );
+        Assertions.assertEquals( 'a', copyingStream.read() );
         copyingStream.mark( 1 );
-        Assert.assertEquals( 'b', copyingStream.read() );
+        Assertions.assertEquals( 'b', copyingStream.read() );
         copyingStream.reset();
-        Assert.assertEquals( 'b', copyingStream.read() );
-        Assert.assertEquals( 'c', copyingStream.read() );
-        Assert.assertEquals( -1, copyingStream.read() );
-        Assert.assertEquals( "abbc", new String( output.bytes(), ASCII ) );
+        Assertions.assertEquals( 'b', copyingStream.read() );
+        Assertions.assertEquals( 'c', copyingStream.read() );
+        Assertions.assertEquals( -1, copyingStream.read() );
+        Assertions.assertEquals( "abbc", new String( output.bytes(), ASCII ) );
     }
 }

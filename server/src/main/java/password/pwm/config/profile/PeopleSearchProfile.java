@@ -21,6 +21,7 @@
 package password.pwm.config.profile;
 
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.stored.StoredConfiguration;
 
 public class PeopleSearchProfile extends AbstractProfile
@@ -28,7 +29,7 @@ public class PeopleSearchProfile extends AbstractProfile
 
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.PeopleSearch;
 
-    protected PeopleSearchProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedConfiguration )
+    protected PeopleSearchProfile( final DomainID domainID, final ProfileID identifier, final StoredConfiguration storedConfiguration )
     {
         super( domainID, identifier, storedConfiguration );
     }
@@ -42,7 +43,7 @@ public class PeopleSearchProfile extends AbstractProfile
     public static class PeopleSearchProfileFactory implements ProfileFactory
     {
         @Override
-        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final String identifier )
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final ProfileID identifier )
         {
             return new PeopleSearchProfile( domainID, identifier, storedConfiguration );
         }

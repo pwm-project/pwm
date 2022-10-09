@@ -20,8 +20,8 @@
 
 package password.pwm.health;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.PwmConstants;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
@@ -42,7 +42,7 @@ public class HealthMessageTest
         for ( final HealthMessage healthMessage : HealthMessage.values() )
         {
             // duplicate key found
-            Assert.assertFalse( seenKeys.contains( healthMessage.getKey() ) );
+            Assertions.assertFalse( seenKeys.contains( healthMessage.getKey() ) );
             seenKeys.add( healthMessage.getKey() );
         }
     }
@@ -50,7 +50,7 @@ public class HealthMessageTest
     @Test
     public void testHealthMessageDescription() throws PwmUnrecoverableException
     {
-        final AppConfig appConfig = new AppConfig( StoredConfigurationFactory.newConfig() );
+        final AppConfig appConfig = AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() );
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
         for ( final DomainConfig domainConfig : appConfig.getDomainConfigs().values() )
         {

@@ -31,6 +31,7 @@
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="password.pwm.util.logging.PwmLogSettings" %>
 
 <!DOCTYPE html>
 
@@ -245,16 +246,8 @@
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/parser","dijit/TitlePane","dojo/domReady!","dojox/form/Uploader"],function(dojoParser){
-                dojoParser.parse();
-            });
-            PWM_VAR['config_localDBLogLevel'] = '<%=pwmRequest.getAppConfig().getEventLogLocalDBLevel()%>'
-
-            require(["dojo/domReady!"],function(){
-                PWM_ADMIN.showAppHealth('healthBody', {showRefresh: true, showTimestamp: true});
-            });
+            PWM_VAR['config_localDBLogLevel'] = '<%=PwmLogSettings.fromAppConfig( pwmRequest.getAppConfig() ).getLocalDbLevel()%>'
         });
-
     </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>

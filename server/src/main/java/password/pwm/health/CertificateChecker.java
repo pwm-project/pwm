@@ -155,7 +155,7 @@ public class CertificateChecker implements HealthSupplier
                     final HealthRecord record = HealthRecord.forMessage(
                             storedConfigKey.getDomainID(),
                             HealthMessage.Config_Certificate,
-                            storedConfigKey.toPwmSetting().toMenuLocationDebug( storedConfigKey.getProfileID(), PwmConstants.DEFAULT_LOCALE ),
+                            storedConfigKey.toPwmSetting().toMenuLocationDebug( storedConfigKey.getProfileID().orElse( null ), PwmConstants.DEFAULT_LOCALE ),
                             errorDetail
                     );
                     returnList.add( record );

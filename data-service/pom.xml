@@ -9,8 +9,8 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <url>https://github.com/pwm-project/pwm</url>
     <artifactId>pwm-data-service</artifactId>
-
     <packaging>war</packaging>
 
     <name>PWM Password Self Service: Data Service WAR</name>
@@ -73,7 +73,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <id>copy-resources</id>
@@ -82,6 +82,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
+                            <propertiesEncoding>ISO-8859-1</propertiesEncoding>
                             <outputDirectory>${project.build.outputDirectory}/src</outputDirectory>
                             <resources>
                                 <resource><directory>src/main/java</directory></resource>
@@ -99,7 +100,7 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <id>make-docker-image</id>
@@ -127,6 +128,7 @@
                                 <jvmFlags>
                                     <jvmFlag>-server</jvmFlag>
                                     <jvmFlag>-Xmx256m</jvmFlag>
+                                    <jvmFlag>-XX:+UseStringDeduplication</jvmFlag>
                                 </jvmFlags>
                                 <environment>
                                     <DATA_SERVICE_PROPS>/config/data-service.properties</DATA_SERVICE_PROPS>
@@ -185,11 +187,6 @@
         <!-- / container dependencies -->
 
         <dependency>
-            <groupId>commons-net</groupId>
-            <artifactId>commons-net</artifactId>
-            <version>3.8.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
             <version>1.9.0</version>
@@ -202,12 +199,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>2.0.0-alpha7</version>
+            <version>2.0.2</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.3.0-alpha16</version>
+            <version>1.4.1</version>
         </dependency>
     </dependencies>
 </project>

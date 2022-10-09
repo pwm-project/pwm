@@ -20,6 +20,8 @@
 
 package password.pwm.svc.event;
 
+import password.pwm.bean.ProfileID;
+
 /**
  * UserAuditRecord data.
  */
@@ -33,5 +35,5 @@ public interface UserAuditRecord extends SystemAuditRecord
 
     String getSourceHost();
 
-    String getPerpetratorLdapProfile();
+    ProfileID getPerpetratorLdapProfile();
 }

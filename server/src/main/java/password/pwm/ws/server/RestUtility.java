@@ -22,14 +22,15 @@ package password.pwm.ws.server;
 
 import com.google.gson.stream.MalformedJsonException;
 import password.pwm.PwmDomain;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.search.UserSearchEngine;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.ldap.search.UserSearchService;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 
@@ -48,7 +49,7 @@ public class RestUtility
         try
         {
             final T jsonData = JsonFactory.get().deserialize( restRequest.readRequestBodyAsString(), classOfT );
-            if ( jsonData == null && !JavaHelper.enumArrayContainsValue( flags, Flag.AllowNullReturn ) )
+            if ( jsonData == null && !EnumUtil.enumArrayContainsValue( flags, Flag.AllowNullReturn ) )
             {
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_REST_INVOCATION_ERROR, "missing json body" );
             }
@@ -99,12 +100,12 @@ public class RestUtility
             }
         }
 
-        final String ldapProfileID;
+        final ProfileID ldapProfileID;
         final String effectiveUsername;
         if ( username.contains( "|" ) )
         {
             final int pipeIndex = username.indexOf( '|' );
-            ldapProfileID = username.substring( 0, pipeIndex );
+            ldapProfileID = ProfileID.create( username.substring( 0, pipeIndex ) );
             effectiveUsername = username.substring( pipeIndex + 1 );
         }
         else
@@ -115,8 +116,8 @@ public class RestUtility
 
         try
         {
-            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
-            final UserIdentity userIdentity = userSearchEngine.resolveUsername( effectiveUsername, null, ldapProfileID, restRequest.getSessionLabel() );
+            final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
+            final UserIdentity userIdentity = userSearchService.resolveUsername( effectiveUsername, null, ldapProfileID, restRequest.getSessionLabel() );
 
             final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
             if ( ldapProfile != null )
@@ -165,7 +166,7 @@ public class RestUtility
     {
         if ( StringUtil.isEmpty( jsonValue ) && StringUtil.isEmpty( paramValue ) )
         {
-            if ( JavaHelper.enumArrayContainsValue( flags, ReadValueFlag.optional ) )
+            if ( EnumUtil.enumArrayContainsValue( flags, ReadValueFlag.optional ) )
             {
                 return Optional.empty();
             }

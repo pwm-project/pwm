@@ -47,7 +47,7 @@ import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -154,11 +154,11 @@ public class PhotoDataReader
             case ServerHttp:
                 String returnUrl = pwmRequest.getUrlWithoutQueryString();
                 returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_ACTION_REQUEST, PeopleSearchServlet.PeopleSearchActions.photo.name() );
-                returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_USERKEY,  userIdentity.toObfuscatedKey( pwmRequest.getPwmApplication() ) );
+                returnUrl = PwmURL.appendAndEncodeUrlParameters( returnUrl, PwmConstants.PARAM_USERKEY,  PeopleSearchServlet.obfuscateUserIdentity( pwmRequest, userIdentity ) );
                 return Optional.of( returnUrl );
 
             default:
-                MiscUtil.unhandledSwitchStatement( method );
+                PwmUtil.unhandledSwitchStatement( method );
 
         }
 
@@ -191,7 +191,7 @@ public class PhotoDataReader
                     break;
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( method );
+                    PwmUtil.unhandledSwitchStatement( method );
             }
         }
         finally

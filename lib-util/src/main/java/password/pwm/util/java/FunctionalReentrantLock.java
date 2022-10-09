@@ -18,34 +18,43 @@
  * limitations under the License.
  */
 
-package password.pwm.svc.wordlist;
+package password.pwm.util.java;
 
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.logging.PwmLogger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
-public class SeedlistService extends AbstractWordlist implements Wordlist
+public class FunctionalReentrantLock
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( SeedlistService.class );
+    private final Lock readLock = new ReentrantLock();
 
-    public SeedlistService()
+    public FunctionalReentrantLock()
     {
     }
 
-    @Override
-    protected WordlistType getWordlistType()
+    public <T> T exec( final Supplier<T> block )
     {
-        return WordlistType.SEEDLIST;
+        readLock.lock();
+        try
+        {
+            return block.get();
+        }
+        finally
+        {
+            readLock.unlock();
+        }
     }
 
-    @Override
-    protected PwmLogger getLogger()
+    public void exec( final Runnable block )
     {
-        return LOGGER;
-    }
-
-    @Override
-    public String randomSeed() throws PwmUnrecoverableException
-    {
-        return super.randomSeed();
+        readLock.lock();
+        try
+        {
+            block.run();
+        }
+        finally
+        {
+            readLock.unlock();
+        }
     }
 }

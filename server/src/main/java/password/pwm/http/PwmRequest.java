@@ -20,19 +20,18 @@
 
 package password.pwm.http;
 
-import lombok.Value;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
-import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
@@ -49,16 +48,16 @@ import password.pwm.config.profile.SetupOtpProfile;
 import password.pwm.config.profile.SetupResponsesProfile;
 import password.pwm.config.profile.UpdateProfileProfile;
 import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.data.ImmutableByteArray;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmRequestID;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.svc.secure.SecureService;
 import password.pwm.user.UserInfo;
 import password.pwm.util.Validator;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
@@ -75,7 +74,6 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -85,25 +83,30 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 public class PwmRequest extends PwmHttpRequestWrapper
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmRequest.class );
 
+    private final PwmApplication pwmApplication;
     private final PwmResponse pwmResponse;
     private final PwmURL pwmURL;
     private final PwmRequestID pwmRequestID;
-
-    private final transient PwmApplication pwmApplication;
-    private final SessionLabel sessionLabel;
-    private final PwmRequestContext pwmRequestContext;
 
     private final Set<PwmRequestFlag> flags = EnumSet.noneOf( PwmRequestFlag.class );
     private final Instant requestStartTime = Instant.now();
     private final DomainID domainID;
     private final Lock cspCreationLock = new ReentrantLock();
 
-    private static final Lock CREATE_LOCK = new ReentrantLock();
+    private final Supplier<Locale> localeSupplier = LazySupplier.create(
+            () -> PwmRequestLocaleResolver.resolveRequestLocale( this ) );
+
+    private final Supplier<PwmRequestContext> requestContextSupplier = LazySupplier.create(
+            this::makePwmRequestContext );
+
+    private final LazySupplier<SessionLabel> sessionLabelSupplier = LazySupplier.create(
+            () -> SessionLabel.forPwmRequest( this ) );
 
     public static PwmRequest forRequest(
             final HttpServletRequest request,
@@ -111,22 +114,14 @@ public class PwmRequest extends PwmHttpRequestWrapper
     )
             throws PwmUnrecoverableException
     {
-        CREATE_LOCK.lock();
-        try
+        PwmRequest pwmRequest = ( PwmRequest ) request.getAttribute( PwmRequestAttribute.PwmRequest.toString() );
+        if ( pwmRequest == null )
         {
-            PwmRequest pwmRequest = ( PwmRequest ) request.getAttribute( PwmRequestAttribute.PwmRequest.toString() );
-            if ( pwmRequest == null )
-            {
-                final PwmApplication pwmApplication = ContextManager.getPwmApplication( request );
-                pwmRequest = new PwmRequest( request, response, pwmApplication );
-                request.setAttribute( PwmRequestAttribute.PwmRequest.toString(), pwmRequest );
-            }
-            return pwmRequest;
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication( request );
+            pwmRequest = new PwmRequest( request, response, pwmApplication );
+            request.setAttribute( PwmRequestAttribute.PwmRequest.toString(), pwmRequest );
         }
-        finally
-        {
-            CREATE_LOCK.unlock();
-        }
+        return pwmRequest;
     }
 
     private PwmRequest(
@@ -142,9 +137,8 @@ public class PwmRequest extends PwmHttpRequestWrapper
         this.pwmApplication = pwmApplication;
         this.pwmURL = PwmURL.create( this.getHttpServletRequest() );
         this.domainID = PwmHttpRequestWrapper.readDomainIdFromRequest( httpServletRequest );
-        this.sessionLabel = makeSessionLabel();
-        this.pwmRequestContext = makePwmRequestContext();
     }
+
 
     public PwmDomain getPwmDomain()
     {
@@ -153,29 +147,14 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public PwmSession getPwmSession()
     {
-        return PwmSessionFactory.readPwmSession( this.getHttpServletRequest().getSession(), getPwmDomain() );
+        return PwmSessionFactory.readPwmSession( this, getPwmDomain() );
     }
 
     public SessionLabel getLabel()
     {
-        return sessionLabel;
+        return sessionLabelSupplier.get();
     }
 
-    private SessionLabel makeSessionLabel()
-    {
-        if ( getHttpServletRequest().getSession( false ) == null )
-        {
-            // in case session does not exist, invoked for some non-servlet requests such as logging
-            return SessionLabel.builder()
-                    .domain( domainID.stringValue() )
-                    .build();
-        }
-
-        // nominal case
-        return getPwmSession().getLabel().toBuilder()
-                .requestID( pwmRequestID.toString() )
-                .build();
-    }
 
     public PwmResponse getPwmResponse()
     {
@@ -184,17 +163,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public Locale getLocale()
     {
-        if ( isFlag( PwmRequestFlag.INCLUDE_CONFIG_CSS ) )
-        {
-            return PwmConstants.DEFAULT_LOCALE;
-        }
-        if ( !getURL().isLocalizable() )
-        {
-            return PwmConstants.DEFAULT_LOCALE;
-        }
-
-        final Locale userLocale = getPwmSession().getSessionStateBean().getLocale();
-        return userLocale != null ? userLocale : PwmConstants.DEFAULT_LOCALE;
+        return localeSupplier.get();
     }
 
     public void forwardToJsp( final JspUrl jspURL )
@@ -225,7 +194,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         }
     }
 
-    public void outputJsonResult( final RestResultBean restResultBean )
+    public void outputJsonResult( final RestResultBean<?> restResultBean )
             throws IOException
     {
         this.getPwmResponse().outputJsonResult( restResultBean );
@@ -238,7 +207,6 @@ public class PwmRequest extends PwmHttpRequestWrapper
     }
 
     public Optional<InputStream> readFileUploadStream( final String filePartName )
-            throws IOException, ServletException, PwmUnrecoverableException
     {
         try
         {
@@ -267,55 +235,6 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return Optional.empty();
     }
 
-    public Map<String, FileUploadItem> readFileUploads(
-            final int maxFileSize,
-            final int maxItems
-    )
-            throws PwmUnrecoverableException
-    {
-        final Map<String, FileUploadItem> returnObj = new LinkedHashMap<>();
-        try
-        {
-            if ( ServletFileUpload.isMultipartContent( this.getHttpServletRequest() ) )
-            {
-                final ServletFileUpload upload = new ServletFileUpload();
-                final FileItemIterator iter = upload.getItemIterator( this.getHttpServletRequest() );
-                while ( iter.hasNext() && returnObj.size() < maxItems )
-                {
-                    final FileItemStream item = iter.next();
-                    final InputStream inputStream = item.openStream();
-                    final ImmutableByteArray fileContents = JavaHelper.copyToBytes( inputStream, maxFileSize + 1 );
-                    if ( fileContents.size() > maxFileSize )
-                    {
-                        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "upload file size limit exceeded" );
-                        LOGGER.error( this, errorInformation );
-                        respondWithError( errorInformation );
-                        return Collections.emptyMap();
-                    }
-                    final FileUploadItem fileUploadItem = new FileUploadItem(
-                            item.getName(),
-                            item.getContentType(),
-                            fileContents
-                    );
-                    returnObj.put( item.getFieldName(), fileUploadItem );
-                }
-            }
-        }
-        catch ( final Exception e )
-        {
-            LOGGER.error( () -> "error reading file upload: " + e.getMessage() );
-        }
-        return Collections.unmodifiableMap( returnObj );
-    }
-
-    @Value
-    public static class FileUploadItem
-    {
-        private final String name;
-        private final String type;
-        private final ImmutableByteArray content;
-    }
-
     public UserIdentity getUserInfoIfLoggedIn()
     {
         final PwmSession pwmSession = getPwmSession();
@@ -335,7 +254,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
             final PwmServletDefinition pwmServletDefinition,
             final AbstractPwmServlet.ProcessAction processAction
     )
-            throws IOException, PwmUnrecoverableException
+            throws IOException
     {
         final String uri = getUrlWithoutQueryString();
         if ( uri == null || uri.length() < 1 )
@@ -404,7 +323,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
     public void debugHttpRequestToLog( final String extraText, final TimeDuration timeDuration )
             throws PwmUnrecoverableException
     {
-        if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        if ( LOGGER.isInterestingLevel( PwmLogLevel.TRACE ) )
         {
             final String moreExtraText = ( StringUtil.isEmpty( extraText ) ? "" : extraText + " " )
                     + "request=" + this.getPwmRequestID() + ", domain=" + this.getDomainID().stringValue();
@@ -415,6 +334,11 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public boolean isAuthenticated()
     {
+        if ( !hasSession() )
+        {
+            return false;
+        }
+
         return getPwmSession().isAuthenticated();
     }
 
@@ -531,7 +455,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         }
     }
 
-    public <T extends Serializable> Optional<T> readEncryptedCookie( final String cookieName, final Class<T> returnClass )
+    public <T extends Object> Optional<T> readEncryptedCookie( final String cookieName, final Class<T> returnClass )
             throws PwmUnrecoverableException
     {
         final Optional<String> strValue = this.readCookie( cookieName );
@@ -541,9 +465,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
             return Optional.empty();
         }
 
-        final PwmSecurityKey pwmSecurityKey = getPwmSession().getSecurityKey( this );
-        final T t = getPwmDomain().getSecureService().decryptObject( strValue.get(), pwmSecurityKey, returnClass );
-        return Optional.of( t );
+        return Optional.of( decryptObject( strValue.get(), returnClass ) );
     }
 
     @Override
@@ -596,24 +518,6 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return PwmURL.appendAndEncodeUrlParameters( getUrlWithoutQueryString(), readParametersAsMap() );
     }
 
-    public boolean endUserFunctionalityAvailable()
-    {
-        final PwmApplicationMode mode = pwmApplication.getApplicationMode();
-        if ( mode == PwmApplicationMode.NEW )
-        {
-            return false;
-        }
-        if ( PwmConstants.TRIAL_MODE )
-        {
-            return true;
-        }
-        if ( mode == PwmApplicationMode.RUNNING )
-        {
-            return true;
-        }
-        return false;
-    }
-
     public String getContextPath()
     {
         return this.getHttpServletRequest().getContextPath();
@@ -634,7 +538,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public PwmRequestContext getPwmRequestContext()
     {
-        return pwmRequestContext;
+        return requestContextSupplier.get();
     }
 
     private PwmRequestContext makePwmRequestContext()
@@ -675,7 +579,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
             throw new IllegalStateException( "can not read authenticated profile while session is unauthenticated" );
         }
 
-        final String profileID = getPwmSession().getUserInfo().getProfileIDs().get( profileDefinition );
+        final ProfileID profileID = getPwmSession().getUserInfo().getProfileIDs().get( profileDefinition );
         if ( profileID != null )
         {
             return pwmDomain.getConfig().getProfileMap( profileDefinition ).get( profileID );
@@ -742,12 +646,27 @@ public class PwmRequest extends PwmHttpRequestWrapper
     )
             throws PwmUnrecoverableException
     {
-        return getPwmSession().checkPermission( getPwmRequestContext(), permission );
+        return PwmRequestUtil.checkPermission( this, permission );
     }
 
     public ClientConnectionHolder getClientConnectionHolder()
     {
-        return getPwmSession().getClientConnectionHolder( getPwmApplication() );
+        return getPwmSession().getClientConnectionHolder( getLabel(), getPwmApplication() );
+    }
+
+    public String encryptObjectToString( final Object serializableObject )
+            throws PwmUnrecoverableException
+    {
+        final SecureService secureService = pwmApplication.domains().get( domainID ).getSecureService();
+        final PwmSecurityKey pwmSecurityKey = getPwmSession().getSecurityKey( this );
+        return secureService.encryptObjectToString( serializableObject, pwmSecurityKey );
+    }
+
+    public <T> T decryptObject( final String value, final Class<T> returnClass )
+            throws PwmUnrecoverableException
+    {
+        final SecureService secureService = pwmApplication.domains().get( domainID ).getSecureService();
+        final PwmSecurityKey pwmSecurityKey = getPwmSession().getSecurityKey( this );
+        return secureService.decryptObject( value, pwmSecurityKey, returnClass );
     }
 }
-

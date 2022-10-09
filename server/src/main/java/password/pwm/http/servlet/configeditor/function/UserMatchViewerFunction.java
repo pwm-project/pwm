@@ -28,6 +28,7 @@ import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
@@ -78,7 +79,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
 
         final Instant startSearchTime = Instant.now();
         final int maxResultSize = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.CONFIG_EDITOR_USER_PERMISSION_MATCH_LIMIT ) );
-        final Collection<UserIdentity> users = discoverMatchingUsers(
+        final List<UserIdentity> users = discoverMatchingUsers(
                 pwmRequest.getLabel(),
                 pwmDomain,
                 maxResultSize,
@@ -109,7 +110,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
     )
             throws PwmUnrecoverableException, PwmOperationalException
     {
-        final AppConfig config = new AppConfig( storedConfiguration );
+        final AppConfig config = AppConfig.forStoredConfig( storedConfiguration );
         final PwmApplication tempApplication = PwmApplication.createPwmApplication( pwmDomain.getPwmApplication().getPwmEnvironment().makeRuntimeInstance( config ) );
         final StoredValue storedValue = StoredConfigurationUtil.getValueOrDefault( storedConfiguration, key );
         final List<UserPermission> permissions = ValueTypeConverter.valueToUserPermissions( storedValue );
@@ -119,11 +120,10 @@ public class UserMatchViewerFunction implements SettingUIFunction
 
         final long maxSearchSeconds = pwmDomain.getConfig().getDefaultLdapProfile().readSettingAsLong( PwmSetting.LDAP_SEARCH_TIMEOUT );
         final TimeDuration maxSearchTime = TimeDuration.of( maxSearchSeconds, TimeDuration.Unit.SECONDS );
-        final List<UserIdentity> matches =  UserPermissionUtility.discoverMatchingUsers( tempDomain, permissions, SessionLabel.SYSTEM_LABEL, maxResultSize, maxSearchTime );
-        final List<UserIdentity> sortedResults = new ArrayList<>(  matches );
+        final List<UserIdentity> matches =  UserPermissionUtility.discoverMatchingUsers( tempDomain, permissions, sessionLabel, maxResultSize, maxSearchTime );
+        final List<UserIdentity> sortedResults = new ArrayList<>( matches );
         Collections.sort( sortedResults );
         return Collections.unmodifiableList ( sortedResults );
-
     }
 
     private static void validateUserPermissionLdapValues(
@@ -154,11 +154,11 @@ public class UserMatchViewerFunction implements SettingUIFunction
             final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final String baseDN,
-            final String profileID
+            final ProfileID profileID
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        final Set<String> profileIDsToTest = new LinkedHashSet<>();
+        final Set<ProfileID> profileIDsToTest = new LinkedHashSet<>();
 
         if ( UserPermissionUtility.isAllProfiles( profileID ) )
         {
@@ -174,7 +174,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_NO_PROFILE_ASSIGNED, "invalid ldap profile" ) );
         }
 
-        for ( final String loopID : profileIDsToTest )
+        for ( final ProfileID loopID : profileIDsToTest )
         {
             ChaiEntry chaiEntry = null;
             try

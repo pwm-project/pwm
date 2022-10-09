@@ -9,6 +9,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <url>https://github.com/pwm-project/pwm</url>
     <artifactId>rest-test-service</artifactId>
     <packaging>war</packaging>
 
@@ -76,16 +77,6 @@
         <!-- / container dependencies -->
 
         <!-- library dependencies -->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.9.0</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.11.0</version>
-        </dependency>
         <dependency>
             <groupId>org.pwm-project</groupId>
             <artifactId>pwm-lib-util</artifactId>

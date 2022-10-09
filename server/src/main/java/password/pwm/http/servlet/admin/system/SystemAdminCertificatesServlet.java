@@ -23,6 +23,7 @@ package password.pwm.http.servlet.admin.system;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
@@ -38,7 +39,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.X509Utils;
 import password.pwm.ws.server.RestResultBean;
@@ -89,7 +90,7 @@ public class SystemAdminCertificatesServlet extends AbstractPwmServlet
     protected Optional<ConfigManagerCertificateAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        return JavaHelper.readEnumFromString( ConfigManagerCertificateAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
+        return EnumUtil.readEnumFromString( ConfigManagerCertificateAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
     @Override
@@ -127,7 +128,7 @@ public class SystemAdminCertificatesServlet extends AbstractPwmServlet
             {
                 final StoredValue storedValue = storedConfiguration.readStoredValue( key ).orElseThrow();
                 final List<X509Certificate> certificates = ValueTypeConverter.valueToX509Certificates( pwmSetting, storedValue );
-                certificateDebugDataItems.addAll( makeItems( pwmSetting, key.getProfileID(), certificates ) );
+                certificateDebugDataItems.addAll( makeItems( pwmSetting, key.getProfileID().orElseThrow(), certificates ) );
             }
             else if ( pwmSetting.getSyntax() == PwmSettingSyntax.ACTION )
             {
@@ -138,7 +139,7 @@ public class SystemAdminCertificatesServlet extends AbstractPwmServlet
                     for ( final ActionConfiguration.WebAction webAction : actionConfiguration.getWebActions() )
                     {
                         final List<X509Certificate> certificates = webAction.getCertificates();
-                        certificateDebugDataItems.addAll( makeItems( pwmSetting, key.getProfileID(), certificates ) );
+                        certificateDebugDataItems.addAll( makeItems( pwmSetting, key.getProfileID().orElseThrow(), certificates ) );
                     }
                 }
             }
@@ -150,7 +151,7 @@ public class SystemAdminCertificatesServlet extends AbstractPwmServlet
 
     Collection<CertificateDebugDataItem> makeItems(
             final PwmSetting setting,
-            final String profileId,
+            final ProfileID profileId,
             final List<X509Certificate> certificates
     )
             throws PwmUnrecoverableException
@@ -171,7 +172,7 @@ public class SystemAdminCertificatesServlet extends AbstractPwmServlet
 
     CertificateDebugDataItem makeItem(
             final PwmSetting setting,
-            final String profileId,
+            final ProfileID profileId,
             final X509Certificate certificate
     )
     {

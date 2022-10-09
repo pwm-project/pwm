@@ -20,8 +20,8 @@
 
 package password.pwm.config.stored;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.bean.DomainID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingScope;
@@ -50,16 +50,16 @@ public class StoredConfigurationUtilTest
         final StoredConfiguration newConfig = modifier.newStoredConfiguration();
 
         final Set<StoredConfigKey> modifiedKeys = StoredConfigurationUtil.changedValues( storedConfiguration, newConfig );
-        Assert.assertEquals( 1, modifiedKeys.size() );
-        Assert.assertEquals( modifiedKeys.iterator().next(), key );
+        Assertions.assertEquals( 1, modifiedKeys.size() );
+        Assertions.assertEquals( modifiedKeys.iterator().next(), key );
 
 
         final StoredConfigurationModifier modifier2 = StoredConfigurationModifier.newModifier( newConfig );
         modifier2.resetSetting( key, null );
         final StoredConfiguration resetConfig = modifier2.newStoredConfiguration();
         final Set<StoredConfigKey> resetKeys = StoredConfigurationUtil.changedValues( newConfig, resetConfig );
-        Assert.assertEquals( 1, resetKeys.size() );
-        Assert.assertEquals( resetKeys.iterator().next(), key );
+        Assertions.assertEquals( 1, resetKeys.size() );
+        Assertions.assertEquals( resetKeys.iterator().next(), key );
 
     }
 
@@ -91,6 +91,6 @@ public class StoredConfigurationUtilTest
                 .filter( key -> key.getDomainID().equals( DomainID.create( "target" ) ) )
                 .collect( Collectors.toList() );
 
-        Assert.assertEquals( stringSettingKeys.size(), destKeys.size() );
+        Assertions.assertEquals( stringSettingKeys.size(), destKeys.size() );
     }
 }

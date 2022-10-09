@@ -28,6 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
@@ -41,6 +42,7 @@ import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.NewUserProfile;
+import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
@@ -202,7 +204,7 @@ public class ConfigurationChecker implements HealthSupplier
                         records.add( HealthRecord.forMessage(
                                 config.getDomainID(),
                                 HealthMessage.NewUser_PwTemplateBad,
-                                PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( newUserProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE ),
+                                PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( newUserProfile.getId(), PwmConstants.DEFAULT_LOCALE ),
                                 e.getMessage() ) );
                     }
                 }
@@ -286,7 +288,7 @@ public class ConfigurationChecker implements HealthSupplier
                     records.add( HealthRecord.forMessage(
                             config.getDomainID(),
                             HealthMessage.Config_AddTestUser,
-                            PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getIdentifier(), locale )
+                            PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getId(), locale )
                     ) );
                 }
             }
@@ -307,7 +309,7 @@ public class ConfigurationChecker implements HealthSupplier
                                 records.add( HealthRecord.forMessage(
                                         config.getDomainID(),
                                         HealthMessage.Config_LDAPUnsecure,
-                                        PwmSetting.LDAP_SERVER_URLS.toMenuLocationDebug( ldapProfile.getIdentifier(), locale )
+                                        PwmSetting.LDAP_SERVER_URLS.toMenuLocationDebug( ldapProfile.getId(), locale )
                                 ) );
                             }
                         }
@@ -317,7 +319,7 @@ public class ConfigurationChecker implements HealthSupplier
                                     config.getDomainID(),
                                     HealthMessage.Config_ParseError,
                                     e.getMessage(),
-                                    PwmSetting.LDAP_SERVER_URLS.toMenuLocationDebug( ldapProfile.getIdentifier(), locale ),
+                                    PwmSetting.LDAP_SERVER_URLS.toMenuLocationDebug( ldapProfile.getId(), locale ),
                                     urlStringValue
                             ) );
                         }
@@ -377,7 +379,7 @@ public class ConfigurationChecker implements HealthSupplier
                         return Optional.of( HealthRecord.forMessage(
                                 domainHealthCheckRequest.getDomainConfig().getDomainID(),
                                 HealthMessage.Config_WeakPassword,
-                                pwmSetting.toMenuLocationDebug( key.getProfileID(), domainHealthCheckRequest.getLocale() ), String.valueOf( strength ) ) );
+                                pwmSetting.toMenuLocationDebug( key.getProfileID().orElse( null ), domainHealthCheckRequest.getLocale() ), String.valueOf( strength ) ) );
                     }
                 }
             }
@@ -413,7 +415,7 @@ public class ConfigurationChecker implements HealthSupplier
                                     config.getDomainID(),
                                     HealthMessage.Config_MissingLDAPResponseAttr,
                                     loopSetting.toMenuLocationDebug( null, locale ),
-                                    PwmSetting.CHALLENGE_USER_ATTRIBUTE.toMenuLocationDebug( ldapProfile.getIdentifier(), locale )
+                                    PwmSetting.CHALLENGE_USER_ATTRIBUTE.toMenuLocationDebug( ldapProfile.getId(), locale )
                             ) );
                         }
                     }
@@ -531,7 +533,7 @@ public class ConfigurationChecker implements HealthSupplier
             final Locale locale = domainHealthCheckRequest.getLocale();
 
             final List<HealthRecord> records = new ArrayList<>();
-            for ( final String profileID : config.getPasswordProfileIDs() )
+            for ( final ProfileID profileID : config.getPasswordProfileIDs() )
             {
                 try
                 {
@@ -558,17 +560,18 @@ public class ConfigurationChecker implements HealthSupplier
             final List<HealthRecord> records = new ArrayList<>();
             for ( final NewUserProfile newUserProfile : config.getNewUserProfiles().values() )
             {
-                final String configuredProfile = newUserProfile.readSettingAsString( PwmSetting.NEWUSER_LDAP_PROFILE );
-                if ( StringUtil.notEmpty( configuredProfile ) )
+                final Optional<ProfileID> configuredProfile = config.profileForStringId( ProfileDefinition.NewUser,
+                        newUserProfile.readSettingAsString( PwmSetting.NEWUSER_LDAP_PROFILE ) );
+                if ( configuredProfile.isPresent() )
                 {
-                    final LdapProfile ldapProfile = config.getLdapProfiles().get( configuredProfile );
+                    final LdapProfile ldapProfile = config.getLdapProfiles().get( configuredProfile.get() );
 
                     if ( ldapProfile == null )
                     {
                         records.add( HealthRecord.forMessage(
                                 config.getDomainID(),
                                 HealthMessage.Config_InvalidLdapProfile,
-                                PwmSetting.NEWUSER_LDAP_PROFILE.toMenuLocationDebug( newUserProfile.getIdentifier(), locale ) ) );
+                                PwmSetting.NEWUSER_LDAP_PROFILE.toMenuLocationDebug( newUserProfile.getId(), locale ) ) );
                     }
                 }
             }
@@ -603,7 +606,7 @@ public class ConfigurationChecker implements HealthSupplier
                         records.add( HealthRecord.forMessage(
                                 config.getDomainID(),
                                 HealthMessage.Config_DeprecatedJSForm,
-                                loopSetting.toMenuLocationDebug( key.getProfileID(), locale ),
+                                loopSetting.toMenuLocationDebug( key.getProfileID().orElse( null ), locale ),
                                 PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT.toMenuLocationDebug( null, locale )
                         ) );
                     }
@@ -638,7 +641,7 @@ public class ConfigurationChecker implements HealthSupplier
                             config.getDomainID(),
                             HealthMessage.Config_InvalidSendMethod,
                             method.toString(),
-                            PwmSetting.ACTIVATE_TOKEN_SEND_METHOD.toMenuLocationDebug( activationProfile.getIdentifier(), locale )
+                            PwmSetting.ACTIVATE_TOKEN_SEND_METHOD.toMenuLocationDebug( activationProfile.getId(), locale )
                     ) );
                 }
             }
@@ -666,7 +669,7 @@ public class ConfigurationChecker implements HealthSupplier
                             config.getDomainID(),
                             HealthMessage.Config_InvalidSendMethod,
                             method.toString(),
-                            PwmSetting.HELPDESK_TOKEN_SEND_METHOD.toMenuLocationDebug( helpdeskProfile.getIdentifier(), locale )
+                            PwmSetting.HELPDESK_TOKEN_SEND_METHOD.toMenuLocationDebug( helpdeskProfile.getId(), locale )
                     ) );
                 }
             }
@@ -682,7 +685,7 @@ public class ConfigurationChecker implements HealthSupplier
                                 config.getDomainID(),
                                 HealthMessage.Config_InvalidSendMethod,
                                 method.toString(),
-                                PwmSetting.RECOVERY_SENDNEWPW_METHOD.toMenuLocationDebug( forgottenPasswordProfile.getIdentifier(), locale )
+                                PwmSetting.RECOVERY_SENDNEWPW_METHOD.toMenuLocationDebug( forgottenPasswordProfile.getId(), locale )
                         ) );
                     }
                 }
@@ -695,7 +698,7 @@ public class ConfigurationChecker implements HealthSupplier
                                 config.getDomainID(),
                                 HealthMessage.Config_InvalidSendMethod,
                                 method.toString(),
-                                PwmSetting.RECOVERY_TOKEN_SEND_METHOD.toMenuLocationDebug( forgottenPasswordProfile.getIdentifier(), locale )
+                                PwmSetting.RECOVERY_TOKEN_SEND_METHOD.toMenuLocationDebug( forgottenPasswordProfile.getId(), locale )
                         ) );
                     }
                 }
@@ -721,7 +724,7 @@ public class ConfigurationChecker implements HealthSupplier
                 final long maxValue = changePasswordProfile.readSettingAsLong( PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME );
                 if ( maxValue > 0 && minValue > maxValue )
                 {
-                    final String profileID = changePasswordProfile.getIdentifier();
+                    final ProfileID profileID = changePasswordProfile.getId();
                     final String detailMsg = " (" + minValue + ")"
                             + " > "
                             + " (" + maxValue + ")";
@@ -771,7 +774,7 @@ public class ConfigurationChecker implements HealthSupplier
                         records.add( HealthRecord.forMessage(
                                 config.getDomainID(),
                                 HealthMessage.Config_SettingIssue,
-                                pwmSetting.toMenuLocationDebug( configItemKey.getProfileID(), locale ),
+                                pwmSetting.toMenuLocationDebug( configItemKey.getProfileID().orElse( null ), locale ),
                                 e.getMessage() ) );
                     }
 
@@ -789,21 +792,24 @@ public class ConfigurationChecker implements HealthSupplier
                 final UserPermission permission
         )
         {
-            final List<LdapProfile> ldapProfiles = ldapProfilesForLdapProfileSetting( domainConfig, permission.getLdapProfileID() );
-            if ( ldapProfiles.isEmpty()  )
+            if ( permission.getLdapProfileID() != null )
             {
-                final PwmSetting pwmSetting = storedConfigKey.toPwmSetting();
-                return Collections.singletonList( HealthRecord.forMessage(
-                        domainConfig.getDomainID(),
-                        HealthMessage.Config_ProfileValueValidity,
-                        pwmSetting.toMenuLocationDebug( storedConfigKey.getProfileID(), locale ),
-                        permission.getLdapProfileID() ) );
+                final List<LdapProfile> ldapProfiles = ldapProfilesForLdapProfileSetting( domainConfig, permission.getLdapProfileID() );
+                if ( ldapProfiles.isEmpty() )
+                {
+                    final PwmSetting pwmSetting = storedConfigKey.toPwmSetting();
+                    return Collections.singletonList( HealthRecord.forMessage(
+                            domainConfig.getDomainID(),
+                            HealthMessage.Config_ProfileValueValidity,
+                            pwmSetting.toMenuLocationDebug( storedConfigKey.getProfileID().orElse( null ), locale ),
+                            permission.getLdapProfileID().stringValue() ) );
+                }
             }
 
             return Collections.emptyList();
         }
 
-        public static List<LdapProfile> ldapProfilesForLdapProfileSetting( final DomainConfig domainConfig, final String profileID )
+        public static List<LdapProfile> ldapProfilesForLdapProfileSetting( final DomainConfig domainConfig, final ProfileID profileID )
         {
             if ( UserPermissionUtility.isAllProfiles( profileID ) )
             {

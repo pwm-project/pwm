@@ -65,7 +65,7 @@ public class DomainStateReader
     {
         final ConfigManagerBean configManagerBean = ConfigEditorServlet.getBean( pwmRequest );
         final StoredConfiguration storedConfiguration = configManagerBean.getStoredConfiguration();
-        return new AppConfig( storedConfiguration );
+        return AppConfig.forStoredConfig( storedConfiguration );
     }
 
     public DomainManageMode getMode()

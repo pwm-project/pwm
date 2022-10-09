@@ -20,9 +20,10 @@
 
 package password.pwm.config.stored;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
@@ -45,25 +46,25 @@ public class StoredConfigKeyTest
         {
             final StoredConfigKey key1 = StoredConfigKey.forSetting( PwmSetting.PWM_SITE_URL, null, domainID );
             final StoredConfigKey key2 = StoredConfigKey.forSetting( PwmSetting.PWM_SITE_URL, null, domainID );
-            Assert.assertEquals( key1, key2 );
+            Assertions.assertEquals( key1, key2 );
         }
         {
             final StoredConfigKey key1 = StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey(), domainID );
             final StoredConfigKey key2 = StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey(), domainID );
-            Assert.assertEquals( key1, key2 );
+            Assertions.assertEquals( key1, key2 );
         }
         {
             final StoredConfigKey key1 = StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey(), domainID );
             final StoredConfigKey key2 = StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Admin.getKey(), domainID );
-            Assert.assertNotEquals( key1, key2 );
+            Assertions.assertNotEquals( key1, key2 );
         }
         {
             final Set<StoredConfigKey> set = new HashSet<>();
             set.add( StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey(), domainID ) );
             set.add( StoredConfigKey.forLocaleBundle( PwmLocaleBundle.DISPLAY, Display.Title_Application.getKey(), domainID ) );
-            Assert.assertEquals( 1, set.size() );
+            Assertions.assertEquals( 1, set.size() );
             set.add( StoredConfigKey.forLocaleBundle( PwmLocaleBundle.CONFIG, Config.Display_AboutTemplates.getKey(), domainID ) );
-            Assert.assertEquals( 2, set.size() );
+            Assertions.assertEquals( 2, set.size() );
         }
     }
 
@@ -75,7 +76,7 @@ public class StoredConfigKeyTest
         set.add( StoredConfigKey.forSetting( PwmSetting.SECURITY_ENABLE_FORM_NONCE, null, DomainID.systemId() ) );
         set.add( StoredConfigKey.forSetting( PwmSetting.SECURITY_ENABLE_FORM_NONCE, null, DomainID.systemId() ) );
         set.add( StoredConfigKey.forSetting( PwmSetting.SETUP_RESPONSE_ENABLE, null, DomainID.systemId() ) );
-        Assert.assertEquals( 3, set.size() );
+        Assertions.assertEquals( 3, set.size() );
     }
 
 
@@ -95,7 +96,7 @@ public class StoredConfigKeyTest
             {
                 for ( final String profileID : profiles )
                 {
-                    list.add( StoredConfigKey.forSetting( pwmSetting, profileID, DomainID.systemId() ) );
+                    list.add( StoredConfigKey.forSetting( pwmSetting, ProfileID.create( profileID ), DomainID.systemId() ) );
                 }
             }
             else
@@ -107,7 +108,7 @@ public class StoredConfigKeyTest
         Collections.shuffle( list );
         list.sort( StoredConfigKey.comparator() );
         Collections.sort( profiles );
-        Assert.assertEquals(
+        Assertions.assertEquals(
                 StoredConfigKey.forSetting( PwmSetting.NOTES, null, DomainID.systemId() ),
                 list.stream().findFirst().orElseThrow() );
     }

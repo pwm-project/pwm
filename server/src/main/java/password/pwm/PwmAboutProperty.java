@@ -20,13 +20,13 @@
 
 package password.pwm;
 
-import lombok.Value;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapDomainService;
 import password.pwm.svc.db.DatabaseService;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.CollectorUtil;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -37,10 +37,8 @@ import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.function.Function;
 
 public enum PwmAboutProperty
@@ -58,7 +56,6 @@ public enum PwmAboutProperty
     app_applicationPath( null, pwmApplication -> pwmApplication.getPwmEnvironment().getApplicationPath().getAbsolutePath() ),
     app_environmentFlags( null, pwmApplication -> StringUtil.collectionToString( pwmApplication.getPwmEnvironment().getFlags() ) ),
     app_wordlistSize( null, pwmApplication -> Long.toString( pwmApplication.getWordlistService().size() ) ),
-    app_seedlistSize( null, pwmApplication -> Long.toString( pwmApplication.getSeedlistManager().size() ) ),
     app_sharedHistorySize( null, pwmApplication -> Long.toString( pwmApplication.getSharedHistoryManager().size() ) ),
     app_sharedHistoryOldestTime( null, pwmApplication -> format( pwmApplication.getSharedHistoryManager().getOldestEntryTime() ) ),
     app_emailQueueSize( null, pwmApplication -> Integer.toString( pwmApplication.getEmailQueue().queueSize() ) ),
@@ -126,23 +123,16 @@ public enum PwmAboutProperty
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmAboutProperty.class );
 
-    @Value
-    private static class Pair<K, V>
-    {
-        private final K key;
-        private final V value;
-    }
-
     public static Map<PwmAboutProperty, String> makeInfoBean(
             final PwmApplication pwmApplication
     )
     {
-        return Collections.unmodifiableMap( CollectionUtil.enumStream( PwmAboutProperty.class )
-                .map( aboutProp -> new Pair<>( aboutProp, readAboutValue( pwmApplication, aboutProp ) ) )
+        return EnumUtil.enumStream( PwmAboutProperty.class )
+                .map( aboutProp -> Map.entry( aboutProp, readAboutValue( pwmApplication, aboutProp ) ) )
                 .filter( entry -> entry.getValue().isPresent() )
-                .collect( CollectionUtil.collectorToEnumMap( PwmAboutProperty.class,
-                        Pair::getKey,
-                        entry -> entry.getValue().get() ) ) );
+                .collect( CollectorUtil.toUnmodifiableEnumMap( PwmAboutProperty.class,
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().get() ) );
 
     }
 
@@ -182,18 +172,6 @@ public enum PwmAboutProperty
     public String getLabel( )
     {
         return label == null ? this.name() : label;
-    }
-
-    public static Map<String, String> toStringMap( final Map<PwmAboutProperty, String> infoBeanMap )
-    {
-        final Map<String, String> outputProps = new TreeMap<>( );
-        for ( final Map.Entry<PwmAboutProperty, String> entry : infoBeanMap.entrySet() )
-        {
-            final PwmAboutProperty aboutProperty = entry.getKey();
-            final String value = entry.getValue();
-            outputProps.put( aboutProperty.toString().replace( '_', '.' ), value );
-        }
-        return Collections.unmodifiableMap( outputProps );
     }
 
     private static String readSslVersions()

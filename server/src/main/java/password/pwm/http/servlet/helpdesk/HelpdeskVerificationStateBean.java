@@ -21,20 +21,19 @@
 package password.pwm.http.servlet.helpdesk;
 
 import com.novell.ldapchai.exception.ChaiOperationException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
-import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.user.UserInfo;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.ldap.UserInfoFactory;
-import password.pwm.util.json.JsonFactory;
+import password.pwm.user.UserInfo;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -42,7 +41,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -118,23 +116,21 @@ class HelpdeskVerificationStateBean implements Serializable
         }
     }
 
-    List<ViewableValidationRecord> asViewableValidationRecords(
-            final PwmDomain pwmDomain,
-            final Locale locale
-    )
-            throws ChaiOperationException, ChaiUnavailableException, PwmUnrecoverableException
+    List<ViewableValidationRecord> asViewableValidationRecords( final PwmRequestContext pwmRequestContext )
+            throws ChaiOperationException, PwmUnrecoverableException
     {
         final Map<Instant, ViewableValidationRecord> returnRecords = new TreeMap<>();
         for ( final HelpdeskValidationRecord record : records )
         {
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
-                    pwmDomain.getPwmApplication(),
-                    SessionLabel.SYSTEM_LABEL,
+                    pwmRequestContext.getPwmApplication(),
+                    pwmRequestContext.getSessionLabel(),
                     record.getIdentity(),
                     PwmConstants.DEFAULT_LOCALE );
             final String username = userInfo.getUsername();
-            final String profile = pwmDomain.getConfig().getLdapProfiles().get( record.getIdentity().getLdapProfileID() ).getDisplayName( locale );
-            final String method = record.getMethod().getLabel( pwmDomain.getConfig(), locale );
+            final String profile = pwmRequestContext.getPwmDomain().getConfig().getLdapProfiles().get( record.getIdentity().getLdapProfileID() )
+                    .getDisplayName( pwmRequestContext.getLocale() );
+            final String method = record.getMethod().getLabel( pwmRequestContext.getPwmDomain().getConfig(), pwmRequestContext.getLocale() );
             returnRecords.put( record.getTimestamp(), new ViewableValidationRecord( record.getTimestamp(), profile, username, method ) );
         }
         return List.copyOf( returnRecords.values() );

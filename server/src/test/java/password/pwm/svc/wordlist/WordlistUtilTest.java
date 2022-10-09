@@ -20,8 +20,8 @@
 
 package password.pwm.svc.wordlist;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,7 +36,7 @@ public class WordlistUtilTest
         final String input = "zoogam";
         final Set<String> expectedOutput = new HashSet<>( Arrays.asList( "zoo", "oog", "gam", "oga", "gam" ) );
         final Set<String> output = WordlistUtil.chunkWord( input, 3 );
-        Assert.assertEquals( expectedOutput, output );
+        Assertions.assertEquals( expectedOutput, output );
     }
 
     @Test
@@ -45,6 +45,6 @@ public class WordlistUtilTest
         final String input = "zoogam";
         final Set<String> expectedOutput = new HashSet<>( Collections.singletonList( "zoogam" ) );
         final Set<String> output = WordlistUtil.chunkWord( input, 0 );
-        Assert.assertEquals( expectedOutput, output );
+        Assertions.assertEquals( expectedOutput, output );
     }
 }

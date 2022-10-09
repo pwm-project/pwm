@@ -23,6 +23,7 @@ package password.pwm.http.servlet.admin.domain;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.Permission;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
@@ -46,7 +47,7 @@ public class UserDebugDataBean
 
     private final PwmPasswordPolicy ldapPasswordPolicy;
     private final PwmPasswordPolicy configuredPasswordPolicy;
-    private final Map<ProfileDefinition, String> profiles;
+    private final Map<ProfileDefinition, ProfileID> profiles;
 
     private final PwNotifyUserStatus pwNotifyUserStatus;
 }

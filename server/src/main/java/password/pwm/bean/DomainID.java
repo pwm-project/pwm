@@ -20,23 +20,27 @@
 
 package password.pwm.bean;
 
-import password.pwm.config.PwmSetting;
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSettingScope;
-import password.pwm.config.value.StringValue;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.regex.Pattern;
 
-public class DomainID implements Comparable<DomainID>, Serializable
+public final class DomainID implements Comparable<DomainID>, Serializable
 {
-    public static final List<String> DOMAIN_RESERVED_WORDS = List.of( "system", "private", "public", "pwm", "sspr", "domain", "profile", "password" );
-    public static final DomainID DOMAIN_ID_DEFAULT = create( "default" );
+    private static final Pattern REGEX_TEST = Pattern.compile( "^([a-z][a-z0-9]{2,10})$" );
+    private static final List<String> DOMAIN_RESERVED_WORDS = List.of( "system", "private", "public", "pwm", "sspr", "domain", "profile", "password" );
 
-    private static final String SYSTEM_ID = "system";
-    private static final DomainID SYSTEM_DOMAIN_ID = new DomainID( SYSTEM_ID );
+    public static final DomainID DOMAIN_ID_DEFAULT = new DomainID( "default" );
+    private static final DomainID SYSTEM_DOMAIN_ID = new DomainID( "system" );
+
+    private static final List<DomainID> BUILT_IN = List.of( SYSTEM_DOMAIN_ID, DOMAIN_ID_DEFAULT );
 
     // sort placing 'system' first then alphabetically.
     private static final Comparator<DomainID> COMPARATOR = Comparator.comparing( DomainID::isSystem )
@@ -52,14 +56,9 @@ public class DomainID implements Comparable<DomainID>, Serializable
 
     public static DomainID create( final String domainID )
     {
-        Objects.requireNonNull( domainID );
-        
-        final List<String> errorMessages = StringValue.validateValue( PwmSetting.DOMAIN_LIST, domainID );
-        if ( !errorMessages.isEmpty() )
-        {
-            throw new IllegalArgumentException( "domainID value '" + domainID + "' does not match required syntax pattern for user defined domains: " + errorMessages.get( 0 ) );
-        }
-        return new DomainID( domainID );
+        return BUILT_IN.stream()
+                .filter( d -> d.domainID.equals( domainID ) )
+                .findFirst().orElse( new DomainID( domainID ) );
     }
 
     public boolean inScope( final PwmSettingScope scope )
@@ -73,7 +72,7 @@ public class DomainID implements Comparable<DomainID>, Serializable
                 return !this.isSystem();
 
             default:
-                MiscUtil.unhandledSwitchStatement( scope );
+                PwmUtil.unhandledSwitchStatement( scope );
         }
 
         return false;
@@ -97,7 +96,7 @@ public class DomainID implements Comparable<DomainID>, Serializable
     @Override
     public int hashCode()
     {
-        return Objects.hash( domainID );
+        return Objects.hashCode( domainID );
     }
 
     @Override
@@ -124,6 +123,32 @@ public class DomainID implements Comparable<DomainID>, Serializable
 
     public boolean isSystem()
     {
-        return SYSTEM_ID.equals( domainID );
+        return SYSTEM_DOMAIN_ID.domainID.equals( domainID );
+    }
+
+    public static Comparator<DomainID> comparator()
+    {
+        return COMPARATOR;
+    }
+
+    public static List<String> validateUserValue( final String value )
+    {
+        Objects.requireNonNull( value );
+        final String lCaseValue = value.toLowerCase( PwmConstants.DEFAULT_LOCALE );
+        final Optional<String> reservedWordMatch = DomainID.DOMAIN_RESERVED_WORDS.stream()
+                .map( String::toLowerCase )
+                .filter( lCaseValue::contains )
+                .findFirst();
+        if ( reservedWordMatch.isPresent() )
+        {
+            return Collections.singletonList( "contains reserved word '" + reservedWordMatch.get() + "'" );
+        }
+
+        if ( !REGEX_TEST.matcher( value ).matches() )
+        {
+            return Collections.singletonList( "pattern is invalid" );
+        }
+
+        return Collections.emptyList();
     }
 }

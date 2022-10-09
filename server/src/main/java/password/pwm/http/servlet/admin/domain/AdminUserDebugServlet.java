@@ -40,7 +40,7 @@ import password.pwm.http.bean.AdminBean;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.admin.SystemAdminServlet;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.json.JsonProvider;
@@ -62,6 +62,12 @@ import java.util.Optional;
 public class AdminUserDebugServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( AdminUserDebugServlet.class );
+
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
     public enum AdminUserDebugAction implements ProcessAction
     {
@@ -114,7 +120,7 @@ public class AdminUserDebugServlet extends ControlledPwmServlet
         if ( !StringUtil.isEmpty( username ) )
         {
 
-            final UserSearchEngine userSearchEngine = pwmRequest.getPwmDomain().getUserSearchEngine();
+            final UserSearchService userSearchEngine = pwmRequest.getPwmDomain().getUserSearchEngine();
             final UserIdentity userIdentity;
             try
             {

@@ -23,6 +23,7 @@ package password.pwm.http.bean;
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.SessionBeanMode;
@@ -53,7 +54,7 @@ public class ActivateUserBean extends PwmSessionBean
     private TokenDestinationItem tokenDestination;
 
     @SerializedName( "p" )
-    private String profileID;
+    private ProfileID profileID;
 
 
     @Override

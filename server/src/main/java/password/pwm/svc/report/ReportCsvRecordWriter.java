@@ -26,7 +26,7 @@ import password.pwm.config.SettingReader;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.IOException;
@@ -44,7 +44,7 @@ class ReportCsvRecordWriter implements ReportRecordWriter
     ReportCsvRecordWriter( final OutputStream outputStream, final PwmApplication pwmApplication, final Locale locale )
             throws IOException
     {
-        this.csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
+        this.csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
         this.locale = locale;
         this.pwmApplication = pwmApplication;
     }
@@ -97,7 +97,7 @@ class ReportCsvRecordWriter implements ReportRecordWriter
         csvRow.add( userReportRecord.getDomainID().stringValue() );
         csvRow.add( userReportRecord.getUsername() );
         csvRow.add( userReportRecord.getUserDN() );
-        csvRow.add( userReportRecord.getLdapProfile() );
+        csvRow.add( userReportRecord.getLdapProfile().stringValue() );
         csvRow.add( userReportRecord.getEmail() );
         csvRow.add( userReportRecord.getUserGUID() );
         csvRow.add( userReportRecord.getAccountExpirationTime() == null

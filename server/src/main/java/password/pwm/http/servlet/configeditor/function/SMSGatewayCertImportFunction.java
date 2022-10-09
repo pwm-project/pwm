@@ -20,16 +20,11 @@
 
 package password.pwm.http.servlet.configeditor.function;
 
-import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationModifier;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-
-import java.net.URI;
 
 public class SMSGatewayCertImportFunction extends AbstractUriCertImportFunction
 {
@@ -38,26 +33,11 @@ public class SMSGatewayCertImportFunction extends AbstractUriCertImportFunction
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String uriString;
-        final String menuDebugLocation;
 
-        final var urlSettingKey = StoredConfigKey.forSetting( PwmSetting.SMS_GATEWAY_URL, key.getProfileID(), key.getDomainID() );
+
+        final var urlSettingKey = StoredConfigKey.forSetting( PwmSetting.SMS_GATEWAY_URL, key.getProfileID().orElse( null ), key.getDomainID() );
         uriString = ( String ) modifier.newStoredConfiguration().readStoredValue( urlSettingKey ).orElseThrow().toNativeObject();
-        menuDebugLocation = PwmSetting.SMS_GATEWAY_URL.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
 
-        if ( uriString.isEmpty() )
-        {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "Setting " + menuDebugLocation + " must first be configured" );
-            throw new PwmOperationalException( errorInformation );
-        }
-        try
-        {
-            URI.create( uriString );
-        }
-        catch ( final IllegalArgumentException e )
-        {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "Setting " + menuDebugLocation + " has an invalid URL syntax" );
-            throw new PwmOperationalException( errorInformation );
-        }
-        return uriString;
+        return validateUriStringSetting( uriString, urlSettingKey );
     }
 }

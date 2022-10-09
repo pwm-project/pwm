@@ -42,6 +42,7 @@ import password.pwm.svc.node.NodeService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmNumberFormat;
@@ -177,7 +178,7 @@ public class AppDashboardData implements Serializable
         builder.localDbInfo( makeLocalDbInfo( pwmDomain, locale ) );
         builder.javaAbout( makeAboutJavaData( pwmDomain, locale ) );
 
-        if ( JavaHelper.enumArrayContainsValue( flags, Flag.IncludeLocalDbTableSizes ) )
+        if ( EnumUtil.enumArrayContainsValue( flags, Flag.IncludeLocalDbTableSizes ) )
         {
             builder.localDbSizes( makeLocalDbTableSizes( pwmDomain, locale ) );
         }
@@ -186,7 +187,7 @@ public class AppDashboardData implements Serializable
             builder.localDbSizes( Collections.emptyMap() );
         }
 
-        if ( JavaHelper.enumArrayContainsValue( flags, Flag.ShowThreadData ) )
+        if ( EnumUtil.enumArrayContainsValue( flags, Flag.ShowThreadData ) )
         {
             builder.threads( makeThreadInfo() );
         }
@@ -305,7 +306,7 @@ public class AppDashboardData implements Serializable
                 returnData.add( new ServiceData(
                         guid,
                         domainID,
-                        pwmService.getClass().getSimpleName(),
+                        pwmService.name(),
                         pwmService.status(),
                         storageMethods,
                         pwmService.healthCheck(),
@@ -330,13 +331,6 @@ public class AppDashboardData implements Serializable
                 DisplayElement.Type.number,
                 "Word List Dictionary Size",
                 numberFormat.format( pwmDomain.getPwmApplication().getWordlistService().size() )
-        ) );
-
-        localDbInfo.add( new DisplayElement(
-                "seedlistSize",
-                DisplayElement.Type.number,
-                "Seed List Dictionary Size",
-                numberFormat.format( pwmDomain.getPwmApplication().getSeedlistManager().size() )
         ) );
 
         localDbInfo.add( new DisplayElement(

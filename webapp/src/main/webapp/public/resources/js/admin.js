@@ -393,23 +393,23 @@ PWM_ADMIN.refreshLogData = function() {
 
         var records = data['data']['records'];
         if (PWM_MAIN.JSLibrary.isEmpty(records)) {
-            PWM_MAIN.removeCssClass('div-noResultsMessage', 'hidden');
-            PWM_MAIN.addCssClass('wrapper-logViewerGrid', 'hidden');
-            PWM_MAIN.addCssClass('wrapper-lineViewer', 'hidden');
+            PWM_MAIN.removeCssClass('div-noResultsMessage', 'nodisplay');
+            PWM_MAIN.addCssClass('wrapper-logViewerGrid', 'nodisplay');
+            PWM_MAIN.addCssClass('wrapper-lineViewer', 'nodisplay');
 
         } else {
             if (data['data']['display'] === 'grid') {
-                PWM_MAIN.addCssClass('div-noResultsMessage', 'hidden');
-                PWM_MAIN.removeCssClass('wrapper-logViewerGrid', 'hidden');
-                PWM_MAIN.addCssClass('wrapper-lineViewer', 'hidden');
+                PWM_MAIN.addCssClass('div-noResultsMessage', 'nodisplay');
+                PWM_MAIN.removeCssClass('wrapper-logViewerGrid', 'nodisplay');
+                PWM_MAIN.addCssClass('wrapper-lineViewer', 'nodisplay');
                 var grid = PWM_VAR['logViewerGrid'];
                 grid.refresh();
                 grid.renderArray(records);
                 grid.set("timestamp", { attribute : 'createTime', ascending: false, descending: true });
             } else {
-                PWM_MAIN.addCssClass('div-noResultsMessage', 'hidden');
-                PWM_MAIN.addCssClass('wrapper-logViewerGrid', 'hidden');
-                PWM_MAIN.removeCssClass('wrapper-lineViewer', 'hidden');
+                PWM_MAIN.addCssClass('div-noResultsMessage', 'nodisplay');
+                PWM_MAIN.addCssClass('wrapper-logViewerGrid', 'nodisplay');
+                PWM_MAIN.removeCssClass('wrapper-lineViewer', 'nodisplay');
                 var textOutput = '';
 
                 for (var iterator in records) {

@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
 
 class NodeMachine
 {
@@ -53,7 +52,6 @@ class NodeMachine
 
     NodeMachine(
             final PwmApplication pwmApplication,
-            final ScheduledExecutorService executorService,
             final NodeDataServiceProvider clusterDataServiceProvider,
             final NodeServiceSettings nodeServiceSettings
     )
@@ -61,8 +59,6 @@ class NodeMachine
         this.pwmApplication = pwmApplication;
         this.clusterDataServiceProvider = clusterDataServiceProvider;
         this.settings = nodeServiceSettings;
-
-        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new HeartbeatProcess(), executorService, settings.getHeartbeatInterval(), settings.getHeartbeatInterval() );
     }
 
     public void close( )
@@ -153,17 +149,32 @@ class NodeMachine
         return lastError;
     }
 
+    protected HeartbeatProcess getHeartbeatProcess()
+    {
+        return new HeartbeatProcess();
+    }
+
     private class HeartbeatProcess implements Runnable
     {
         @Override
         public void run( )
         {
-            writeNodeStatus();
-            readNodeStatuses();
-            purgeOutdatedNodes();
+            try
+            {
+                writeNodeStatus();
+                readNodeStatuses();
+                purgeOutdatedNodes();
+                lastError = null;
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                lastError = e.getErrorInformation();
+                LOGGER.error( e.getErrorInformation() );
+            }
         }
 
         void writeNodeStatus( )
+                throws PwmUnrecoverableException
         {
             try
             {
@@ -175,12 +186,12 @@ class NodeMachine
             {
                 final String errorMsg = "error writing node service heartbeat: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, errorMsg );
-                lastError = errorInformation;
-                LOGGER.error( lastError );
+                throw new PwmUnrecoverableException( errorInformation );
             }
         }
 
         void readNodeStatuses( )
+                throws PwmUnrecoverableException
         {
             try
             {
@@ -192,12 +203,12 @@ class NodeMachine
             {
                 final String errorMsg = "error reading node statuses: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, errorMsg );
-                lastError = errorInformation;
-                LOGGER.error( lastError );
+                throw new PwmUnrecoverableException( errorInformation );
             }
         }
 
         void purgeOutdatedNodes( )
+                throws PwmUnrecoverableException
         {
             try
             {
@@ -208,8 +219,7 @@ class NodeMachine
             {
                 final String errorMsg = "error purging outdated node reference: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, errorMsg );
-                lastError = errorInformation;
-                LOGGER.error( lastError );
+                throw new PwmUnrecoverableException( errorInformation );
             }
         }
     }

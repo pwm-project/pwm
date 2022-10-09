@@ -24,12 +24,14 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import lombok.Value;
 import password.pwm.PwmDomain;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -47,6 +49,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
     private final PwmDomain pwmDomain;
     private static final String VALUE_PREFIX = "0006#.#.#";
     private final NodeService nodeService;
+    private final LazySupplier.CheckedSupplier<LDAPHelper, PwmUnrecoverableException> ldapHelperSupplier;
 
     LDAPNodeDataService( final NodeService nodeService, final PwmDomain pwmDomain )
             throws PwmUnrecoverableException
@@ -60,10 +63,12 @@ class LDAPNodeDataService implements NodeDataServiceProvider
         if ( StringUtil.isEmpty( testUser ) )
         {
             final String msg = "ldap node service requires that setting "
-                    + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getIdentifier(), null )
+                    + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getId(), null )
                     + " is configured";
             throw PwmUnrecoverableException.newException( PwmError.ERROR_NODE_SERVICE_ERROR, msg );
         }
+
+        ldapHelperSupplier = LazySupplier.checked( () -> LDAPHelper.createLDAPHelper( nodeService, pwmDomain ) );
     }
 
     @Override
@@ -71,8 +76,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
     {
         final Map<String, StoredNodeData> returnData = new LinkedHashMap<>(  );
 
-        final LDAPHelper ldapHelper = LDAPHelper.createLDAPHelper( nodeService, pwmDomain );
-
+        final LDAPHelper ldapHelper = ldapHelperSupplier.call();
         try
         {
             final Set<String> values = ldapHelper.getChaiUser().readMultiStringAttribute( ldapHelper.getAttr() );
@@ -101,7 +105,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
         final Map<String, StoredNodeData> currentServerData = readStoredData();
         final StoredNodeData removeNode = currentServerData.get( storedNodeData.getInstanceID() );
 
-        final LDAPHelper ldapHelper = LDAPHelper.createLDAPHelper( nodeService, pwmDomain );
+        final LDAPHelper ldapHelper = ldapHelperSupplier.call();
 
         final String newRawValue = VALUE_PREFIX + JsonFactory.get().serialize( storedNodeData );
 
@@ -128,7 +132,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
     @Override
     public int purgeOutdatedNodes( final TimeDuration maxNodeAge ) throws PwmUnrecoverableException
     {
-        final LDAPHelper ldapHelper = LDAPHelper.createLDAPHelper( nodeService, pwmDomain );
+        final LDAPHelper ldapHelper = ldapHelperSupplier.call();
 
         int nodesPurged = 0;
 
@@ -153,7 +157,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
                 catch ( final ChaiException e )
                 {
                     throw new PwmUnrecoverableException( PwmError.ERROR_LDAP_DATA_ERROR, "error purging node service data "
-                          + ldapHelper.debugInfo() + ", error: " + e.getMessage() );
+                            + ldapHelper.debugInfo() + ", error: " + e.getMessage() );
                 }
             }
         }
@@ -177,15 +181,15 @@ class LDAPNodeDataService implements NodeDataServiceProvider
             this.nodeService = nodeService;
             this.pwmDomain = pwmDomain;
 
-            final String ldapProfileID = pwmDomain.getConfig().getDefaultLdapProfile().getIdentifier();
+            final ProfileID ldapProfileID = pwmDomain.getConfig().getDefaultLdapProfile().getId();
 
             userIdentity = pwmDomain.getConfig().getDefaultLdapProfile().getTestUser( nodeService.getSessionLabel(), pwmDomain )
                     .orElseThrow( () ->
-            {
-                final String errorMsg = "a test user is not configured for ldap profile '" + ldapProfileID + "'";
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
-                return new PwmUnrecoverableException( errorInformation );
-            } );
+                    {
+                        final String errorMsg = "a test user is not configured for ldap profile '" + ldapProfileID + "'";
+                        final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, errorMsg );
+                        return new PwmUnrecoverableException( errorInformation );
+                    } );
 
             chaiUser = pwmDomain.getProxiedChaiUser( nodeService.getSessionLabel(), userIdentity );
 

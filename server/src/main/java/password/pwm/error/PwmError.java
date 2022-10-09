@@ -23,12 +23,15 @@ package password.pwm.error;
 import com.novell.ldapchai.exception.ChaiError;
 import password.pwm.config.SettingReader;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Jason D. Rivard
@@ -195,7 +198,7 @@ public enum PwmError
     ERROR_BAD_CURRENT_PASSWORD(
             5038, "Error_BadCurrentPassword", Collections.emptySet() ),
     ERROR_CLOSING(
-            5039, "Error_Closing", Collections.emptySet() ),
+            5039, "Error_Closing", Collections.emptySet(), ErrorFlag.AuditIgnored ),
     ERROR_MISSING_GUID(
             5040, "Error_Missing_GUID", Collections.emptySet() ),
     ERROR_TOKEN_EXPIRED(
@@ -306,6 +309,8 @@ public enum PwmError
             5094, "Error_WordlistImportError", Collections.emptySet() ),
     ERROR_PWNOTIFY_SERVICE_ERROR(
             5095, "Error_PwNotifyServiceError", Collections.emptySet() ),
+    ERROR_TIMEOUT(
+            5096, "Error_Timeout", Collections.emptySet() ),
 
     ERROR_REMOTE_ERROR_VALUE(
             6000, "Error_RemoteErrorValue", Collections.emptySet(), ErrorFlag.Permanent ),
@@ -358,6 +363,18 @@ public enum PwmError
     {
         Permanent,
         Trivial,
+        AuditIgnored,
+    }
+
+    private static final Set<PwmError> AUDIT_IGNORED_ERRORS;
+
+    static
+    {
+        final Set<PwmError> set = EnumSet.noneOf( PwmError.class );
+        set.addAll( Arrays.stream( values() )
+                .filter( PwmError::isAuditIgnored )
+                .collect( Collectors.toSet() ) );
+        AUDIT_IGNORED_ERRORS = Collections.unmodifiableSet( set );
     }
 
     private final int errorCode;
@@ -365,6 +382,7 @@ public enum PwmError
     private final Set<ChaiError> chaiErrorCode;
     private final boolean errorIsPermanent;
     private final boolean trivial;
+    private final boolean auditIgnored;
 
     PwmError(
             final int errorCode,
@@ -375,8 +393,9 @@ public enum PwmError
     {
         this.resourceKey = resourceKey;
         this.errorCode = errorCode;
-        this.errorIsPermanent = JavaHelper.enumArrayContainsValue( errorFlags, ErrorFlag.Permanent );
-        this.trivial = JavaHelper.enumArrayContainsValue( errorFlags, ErrorFlag.Trivial );
+        this.errorIsPermanent = EnumUtil.enumArrayContainsValue( errorFlags, ErrorFlag.Permanent );
+        this.trivial = EnumUtil.enumArrayContainsValue( errorFlags, ErrorFlag.Trivial );
+        this.auditIgnored = EnumUtil.enumArrayContainsValue( errorFlags, ErrorFlag.AuditIgnored );
         this.chaiErrorCode = chaiErrorCode == null ? Collections.emptySet() : Set.copyOf( chaiErrorCode );
     }
 
@@ -387,13 +406,13 @@ public enum PwmError
 
     public static Optional<PwmError> forChaiError( final ChaiError errorCode )
     {
-        return JavaHelper.readEnumFromPredicate( PwmError.class,
+        return EnumUtil.readEnumFromPredicate( PwmError.class,
                 pwmError -> pwmError.chaiErrorCode.contains( errorCode ) );
     }
 
     public static Optional<PwmError> forErrorNumber( final int code )
     {
-        return JavaHelper.readEnumFromPredicate( PwmError.class, pwmError -> pwmError.getErrorCode() == code );
+        return EnumUtil.readEnumFromPredicate( PwmError.class, pwmError -> pwmError.getErrorCode() == code );
     }
 
     public boolean isTrivial()
@@ -404,6 +423,16 @@ public enum PwmError
     public boolean isErrorIsPermanent( )
     {
         return errorIsPermanent;
+    }
+
+    public boolean isAuditIgnored()
+    {
+        return auditIgnored;
+    }
+
+    public static Set<PwmError> auditIgnoredErrors()
+    {
+        return AUDIT_IGNORED_ERRORS;
     }
 
     public String getResourceKey( )

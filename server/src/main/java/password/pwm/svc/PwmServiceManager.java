@@ -21,6 +21,7 @@
 package password.pwm.svc;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
@@ -124,7 +125,7 @@ public class PwmServiceManager
 
         initialized = true;
 
-        LOGGER.trace( sessionLabel, () -> logVerb + "ed services, " + statCounter.debugStats(), TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> logVerb + "ed services, " + statCounter.debugStats( PwmConstants.DEFAULT_LOCALE ), TimeDuration.fromCurrent( startTime ) );
     }
 
     private String debugSvcType()
@@ -156,8 +157,8 @@ public class PwmServiceManager
             newServiceInstance.init( pwmApplication, domainID );
             final TimeDuration startupDuration = TimeDuration.fromCurrent( startTime );
             LOGGER.debug( sessionLabel, () -> "completed initialization of " + debugSvcType()
-                    + " " + newServiceInstance.name() + " in " + startupDuration.asCompactString()
-                    + ", status=" + newServiceInstance.status() );
+                    + " " + newServiceInstance.name()
+                    + ", status=" + newServiceInstance.status(), startupDuration );
         }
         catch ( final PwmException e )
         {

@@ -65,6 +65,7 @@
                             <select id="downloadType" name="downloadType">
                                 <option value="plain">Plain</option>
                                 <option value="csv">CSV</option>
+                                <option value="json">JSON</option>
                             </select>
                         </td>
                         <td>

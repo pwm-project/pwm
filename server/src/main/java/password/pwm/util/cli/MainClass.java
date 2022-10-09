@@ -20,10 +20,6 @@
 
 package password.pwm.util.cli;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.EnhancedPatternLayout;
-import org.apache.log4j.Layout;
-import org.apache.log4j.Logger;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
@@ -65,11 +61,9 @@ import password.pwm.util.cli.commands.TokenInfoCommand;
 import password.pwm.util.cli.commands.UserReportCommand;
 import password.pwm.util.cli.commands.VersionCommand;
 import password.pwm.util.java.FileSystemUtility;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
-import password.pwm.util.logging.PwmLogLevel;
-import password.pwm.util.logging.PwmLogManager;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
@@ -298,7 +292,7 @@ public class MainClass
                             break;
 
                         default:
-                            MiscUtil.unhandledSwitchStatement( option.getType() );
+                            PwmUtil.unhandledSwitchStatement( option.getType() );
                     }
                 }
             }
@@ -318,8 +312,6 @@ public class MainClass
         out( PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " Command Line Utility" );
         mainOptions = MainOptions.parseMainCommandLineOptions( args, new OutputStreamWriter( System.out, PwmConstants.DEFAULT_CHARSET ) );
         final List<String> workingArgs = mainOptions.getRemainingArguments();
-
-        initLog4j( mainOptions.getPwmLogLevel() );
 
         final String commandStr = workingArgs == null || workingArgs.size() < 1 ? null : workingArgs.iterator().next();
 
@@ -405,28 +397,6 @@ public class MainClass
                 out( "error closing LocalDB environment: " + e.getMessage() );
             }
         }
-    }
-
-    private static void initLog4j( final PwmLogLevel logLevel )
-    {
-        if ( logLevel == null )
-        {
-            PwmLogger.disableAllLogging();
-            return;
-        }
-
-        final Layout patternLayout = new EnhancedPatternLayout( LOGGING_PATTERN );
-        final ConsoleAppender consoleAppender = new ConsoleAppender( patternLayout );
-        for ( final String logPackage : PwmLogManager.LOGGING_PACKAGES )
-        {
-            if ( logPackage != null )
-            {
-                final Logger logger = Logger.getLogger( logPackage );
-                logger.addAppender( consoleAppender );
-                logger.setLevel( logLevel.getLog4jLevel() );
-            }
-        }
-        PwmLogger.markInitialized();
     }
 
     private static LocalDB loadPwmDB(

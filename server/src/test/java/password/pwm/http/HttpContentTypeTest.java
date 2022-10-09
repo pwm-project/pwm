@@ -20,8 +20,8 @@
 
 package password.pwm.http;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.util.java.StringUtil;
 
 public class HttpContentTypeTest
@@ -33,7 +33,7 @@ public class HttpContentTypeTest
         for ( final HttpContentType httpContentType : HttpContentType.values() )
         {
             final String headerValue = httpContentType.getMimeType();
-            Assert.assertFalse( StringUtil.isEmpty( headerValue ) );
+            Assertions.assertFalse( StringUtil.isEmpty( headerValue ) );
         }
     }
 }

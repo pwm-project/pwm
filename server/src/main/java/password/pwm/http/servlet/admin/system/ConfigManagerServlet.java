@@ -58,8 +58,8 @@ import password.pwm.ldap.LdapPermissionCalculator;
 import password.pwm.util.debug.DebugItemGenerator;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.EnumUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -120,7 +120,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     protected Optional<ConfigManagerAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        return JavaHelper.readEnumFromString( ConfigManagerAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
+        return EnumUtil.readEnumFromString( ConfigManagerAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
     public static void verifyConfigAccess( final PwmRequest pwmRequest )
@@ -179,7 +179,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                     return;
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( processAction.get() );
+                    PwmUtil.unhandledSwitchStatement( processAction.get() );
             }
             return;
         }
@@ -395,7 +395,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = readCurrentConfiguration( pwmRequest );
-        final AppConfig appConfig = new AppConfig( storedConfiguration );
+        final AppConfig appConfig = AppConfig.forStoredConfig( storedConfiguration );
         final LdapPermissionCalculator ldapPermissionCalculator = new LdapPermissionCalculator( appConfig.getDomainConfigs().get( pwmRequest.getDomainID() ) );
         pwmRequest.setAttribute( PwmRequestAttribute.LdapPermissionItems, ldapPermissionCalculator );
         pwmRequest.forwardToJsp( JspUrl.CONFIG_MANAGER_PERMISSIONS );
@@ -412,7 +412,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
                 pwmRequest.getDomainConfig().readAppProperty( AppProperty.DOWNLOAD_FILENAME_LDAP_PERMISSION_CSV )
         );
 
-        try ( CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() ) )
+        try ( CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() ) )
         {
 
             final LdapPermissionCalculator ldapPermissionCalculator = new LdapPermissionCalculator( pwmRequest.getDomainConfig() );

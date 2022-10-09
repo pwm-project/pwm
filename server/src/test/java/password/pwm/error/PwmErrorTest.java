@@ -20,7 +20,7 @@
 
 package password.pwm.error;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import password.pwm.PwmConstants;
 
 import java.util.HashSet;

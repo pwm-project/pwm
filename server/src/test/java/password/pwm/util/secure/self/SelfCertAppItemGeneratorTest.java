@@ -20,8 +20,8 @@
 
 package password.pwm.util.secure.self;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.PwmConstants;
 import password.pwm.util.PasswordData;
 
@@ -38,6 +38,6 @@ public class SelfCertAppItemGeneratorTest
         final KeyStore keyStore = SelfCertFactory.generateNewCert( SelfCertSettings.builder().build(), null, new PasswordData( "password" ), "alias" );
         final Certificate certificate = keyStore.getCertificate( "alias" );
         final String subjectDN = ( ( X509Certificate) certificate ).getSubjectDN().getName();
-        Assert.assertEquals( "CN=" + PwmConstants.PWM_APP_NAME.toLowerCase() + ".example.com", subjectDN );
+        Assertions.assertEquals( "CN=" + PwmConstants.PWM_APP_NAME.toLowerCase() + ".example.com", subjectDN );
     }
 }

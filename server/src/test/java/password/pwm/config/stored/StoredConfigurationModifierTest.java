@@ -20,9 +20,10 @@
 
 package password.pwm.config.stored;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.NumericValue;
 import password.pwm.config.value.StringValue;
@@ -49,17 +50,19 @@ public class StoredConfigurationModifierTest
         final StoredConfiguration newConfig = modifier.newStoredConfiguration();
 
         final String notesText = ValueTypeConverter.valueToString( newConfig.readStoredValue( key ).orElseThrow() );
-        Assert.assertEquals( "notes test", notesText );
+        Assertions.assertEquals( "notes test", notesText );
     }
 
     @Test
     public void testCopyProfileID() throws PwmUnrecoverableException
     {
+        final ProfileID newProfileID = ProfileID.create( "newProfile" );
+
         final DomainID domainID = DomainID.DOMAIN_ID_DEFAULT;
         final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newConfig();
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
 
-        final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.HELPDESK_RESULT_LIMIT, "default", domainID );
+        final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.HELPDESK_RESULT_LIMIT, ProfileID.PROFILE_ID_DEFAULT, domainID );
 
         modifier.writeSetting( key, new NumericValue( 19 ), null );
         final StoredConfiguration preCopyConfig = modifier.newStoredConfiguration();
@@ -68,16 +71,16 @@ public class StoredConfigurationModifierTest
                 preCopyConfig,
                 domainID,
                 PwmSetting.HELPDESK_RESULT_LIMIT.getCategory(),
-                "default",
-                "newProfile",
+                ProfileID.PROFILE_ID_DEFAULT,
+                newProfileID,
                 null );
 
-        final List<String> profileNames = StoredConfigurationUtil.profilesForSetting( domainID, PwmSetting.HELPDESK_RESULT_LIMIT, postCopyConfig );
-        Assert.assertEquals( 2, profileNames.size() );
-        Assert.assertTrue( profileNames.contains( "default" ) );
-        Assert.assertTrue( profileNames.contains( "newProfile" ) );
+        final List<ProfileID> profileNames = StoredConfigurationUtil.profilesForSetting( domainID, PwmSetting.HELPDESK_RESULT_LIMIT, postCopyConfig );
+        Assertions.assertEquals( 2, profileNames.size() );
+        Assertions.assertTrue( profileNames.contains( ProfileID.PROFILE_ID_DEFAULT ) );
+        Assertions.assertTrue( profileNames.contains( newProfileID ) );
 
         final long copiedResultLimit = ValueTypeConverter.valueToLong( postCopyConfig.readStoredValue( key ).orElseThrow() );
-        Assert.assertEquals( 19, copiedResultLimit );
+        Assertions.assertEquals( 19, copiedResultLimit );
     }
 }

@@ -40,8 +40,8 @@ import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.CollectorUtil;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -67,8 +67,13 @@ import java.util.stream.Collectors;
 )
 public class ShortcutServlet extends ControlledPwmServlet
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( ShortcutServlet.class );
+
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
     public enum ShortcutAction implements AbstractPwmServlet.ProcessAction
     {
@@ -85,7 +90,7 @@ public class ShortcutServlet extends ControlledPwmServlet
     protected Optional<ShortcutAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        return JavaHelper.readEnumFromString( ShortcutAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
+        return EnumUtil.readEnumFromString( ShortcutAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
     @Override
@@ -201,7 +206,7 @@ public class ShortcutServlet extends ControlledPwmServlet
 
         final Map<String, ShortcutItem> visibleItems = Collections.unmodifiableMap( configuredItems.stream()
                 .filter( item -> checkItemMatch( pwmRequest, labelsFromHeader, item ) )
-                .collect( CollectionUtil.collectorToLinkedMap(
+                .collect( CollectorUtil.toLinkedMap(
                         ShortcutItem::getLabel,
                         Function.identity() ) ) );
 

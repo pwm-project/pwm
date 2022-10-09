@@ -20,8 +20,8 @@
 
 package password.pwm.bean;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,12 +34,12 @@ public class VersionNumberTest
     {
         {
             final VersionNumber versionNumber = VersionNumber.parse( "v1.2.3" );
-            Assert.assertEquals( VersionNumber.of( 1, 2, 3 ), versionNumber );
+            Assertions.assertEquals( VersionNumber.of( 1, 2, 3 ), versionNumber );
         }
 
         {
             final VersionNumber versionNumber = VersionNumber.parse( "v1.2" );
-            Assert.assertEquals( VersionNumber.of( 1, 2, 0 ), versionNumber );
+            Assertions.assertEquals( VersionNumber.of( 1, 2, 0 ), versionNumber );
         }
     }
 
@@ -57,11 +57,11 @@ public class VersionNumberTest
 
         Collections.sort( list );
 
-        Assert.assertEquals( VersionNumber.of( 1, 3, 3 ), list.get( 0 ) );
-        Assert.assertEquals( VersionNumber.of( 1, 3, 5 ), list.get( 1 ) );
-        Assert.assertEquals( VersionNumber.of( 1, 4, 5 ), list.get( 2 ) );
-        Assert.assertEquals( VersionNumber.of( 3, 2, 3 ), list.get( 3 ) );
-        Assert.assertEquals( VersionNumber.of( 7, 0, 11 ), list.get( 4 ) );
-        Assert.assertEquals( VersionNumber.of( 42, 2, 1 ), list.get( 5 ) );
+        Assertions.assertEquals( VersionNumber.of( 1, 3, 3 ), list.get( 0 ) );
+        Assertions.assertEquals( VersionNumber.of( 1, 3, 5 ), list.get( 1 ) );
+        Assertions.assertEquals( VersionNumber.of( 1, 4, 5 ), list.get( 2 ) );
+        Assertions.assertEquals( VersionNumber.of( 3, 2, 3 ), list.get( 3 ) );
+        Assertions.assertEquals( VersionNumber.of( 7, 0, 11 ), list.get( 4 ) );
+        Assertions.assertEquals( VersionNumber.of( 42, 2, 1 ), list.get( 5 ) );
     }
 }

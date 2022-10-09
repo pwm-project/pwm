@@ -84,6 +84,12 @@ public class SetupOtpServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SetupOtpServlet.class );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
     public enum SetupOtpAction implements AbstractPwmServlet.ProcessAction
     {
         clearOtp( HttpMethod.POST ),
@@ -287,8 +293,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
         final OTPUserRecord otpUserRecord = pwmSession.getUserInfo().getOtpUserRecord();
         final OtpService otpService = pwmDomain.getOtpService();
 
-        final String bodyString = pwmRequest.readRequestBodyAsString();
-        final Map<String, String> clientValues = JsonFactory.get().deserializeStringMap( bodyString );
+        final Map<String, String> clientValues = pwmRequest.readBodyAsJsonStringMap(  );
         final String code = Validator.sanitizeInputValue( pwmRequest.getAppConfig(), clientValues.get( "code" ), 1024 );
 
         try
@@ -528,7 +533,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
             if ( policy == ForceSetupPolicy.FORCE_ALLOW_SKIP )
             {
                 LOGGER.trace( pwmRequest, () -> "allowing setup skipping due to setting "
-                        + PwmSetting.OTP_FORCE_SETUP.toMenuLocationDebug( setupOtpProfile.getIdentifier(), pwmRequest.getLocale() ) );
+                        + PwmSetting.OTP_FORCE_SETUP.toMenuLocationDebug( setupOtpProfile.getId(), pwmRequest.getLocale() ) );
                 return true;
             }
 

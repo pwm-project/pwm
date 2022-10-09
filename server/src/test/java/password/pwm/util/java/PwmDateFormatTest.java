@@ -20,8 +20,8 @@
 
 package password.pwm.util.java;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;
 import java.time.Instant;
@@ -31,14 +31,14 @@ public class PwmDateFormatTest
     @Test
     public void testDateFormat() throws ParseException
     {
-        final PwmDateFormat pwmDateFormat = MiscUtil.newPwmDateFormat( "yyyyMMddhhmmss" );
-        Assert.assertEquals( "19700101120000", pwmDateFormat.format( Instant.ofEpochMilli( 0 ) ) );
+        final PwmDateFormat pwmDateFormat = PwmUtil.newPwmDateFormat( "yyyyMMddhhmmss" );
+        Assertions.assertEquals( "19700101120000", pwmDateFormat.format( Instant.ofEpochMilli( 0 ) ) );
     }
 
     @Test
     public void testDateParse() throws ParseException
     {
-        final PwmDateFormat pwmDateFormat = MiscUtil.newPwmDateFormat( "yyyyMMddhhmmss" );
-        Assert.assertEquals( Instant.ofEpochMilli( 0 ), pwmDateFormat.parse( "19700101120000" ) );
+        final PwmDateFormat pwmDateFormat = PwmUtil.newPwmDateFormat( "yyyyMMddhhmmss" );
+        Assertions.assertEquals( Instant.ofEpochMilli( 0 ), pwmDateFormat.parse( "19700101120000" ) );
     }
 }

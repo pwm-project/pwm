@@ -23,6 +23,7 @@ package password.pwm.http.servlet.oauth;
 import org.apache.http.HttpStatus;
 import password.pwm.AppProperty;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -86,8 +87,7 @@ public class OAuthMachine
         final String requestStateStr = pwmRequest.readParameterAsString( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_PARAM_OAUTH_STATE ) );
         if ( requestStateStr != null )
         {
-            final String stateJson = pwmRequest.getPwmDomain().getSecureService().decryptStringValue( requestStateStr );
-            final OAuthState oAuthState = JsonFactory.get().deserialize( stateJson, OAuthState.class );
+            final OAuthState oAuthState = pwmRequest.decryptObject( requestStateStr, OAuthState.class );
             if ( oAuthState != null )
             {
                 final boolean sessionMatch = oAuthState.getSessionID().equals( pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey() );
@@ -105,7 +105,7 @@ public class OAuthMachine
             final PwmRequest pwmRequest,
             final String nextUrl,
             final UserIdentity userIdentity,
-            final String forgottenPasswordProfile
+            final ProfileID forgottenPasswordProfile
     )
             throws PwmUnrecoverableException, IOException
     {
@@ -403,7 +403,7 @@ public class OAuthMachine
     private String makeStateStringForRequest(
             final PwmRequest pwmRequest,
             final String nextUrl,
-            final String forgottenPasswordProfileID
+            final ProfileID forgottenPasswordProfileID
     )
             throws PwmUnrecoverableException
     {
@@ -430,8 +430,7 @@ public class OAuthMachine
                 + oAuthState.getStateID() + " with the next destination URL set to " + oAuthState.getNextUrl() );
 
 
-        final String jsonValue = JsonFactory.get().serialize( oAuthState );
-        return pwmRequest.getPwmDomain().getSecureService().encryptToString( jsonValue );
+        return pwmRequest.encryptObjectToString( oAuthState );
     }
 
     private Optional<String> figureUsernameGrantParam(

@@ -38,7 +38,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
 <%@ page import="java.util.TreeMap" %>
-<%@ page import="password.pwm.util.java.MiscUtil" %>
+<%@ page import="password.pwm.util.java.PwmUtil" %>
 <%@ page import="java.time.Instant" %>
 
 <%

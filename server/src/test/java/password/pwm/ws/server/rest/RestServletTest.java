@@ -20,8 +20,8 @@
 
 package password.pwm.ws.server.rest;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ClasspathHelper;
@@ -55,7 +55,7 @@ public class RestServletTest
         {
             if ( restServlet.getAnnotation( RestWebServer.class ) == null )
             {
-                Assert.fail( restServlet.getName() + " is missing annotation type of " + RestWebServer.class.getName() );
+                Assertions.fail( restServlet.getName() + " is missing annotation type of " + RestWebServer.class.getName() );
             }
 
             final Collection<Method> methods = JavaHelper.getAllMethodsForClass( restServlet );
@@ -83,7 +83,7 @@ public class RestServletTest
 
                         if ( requiresRestResultBeanReturnType )
                         {
-                            Assert.fail( "method " + restServlet.getName()
+                            Assertions.fail( "method " + restServlet.getName()
                                     + ":" + method.getName() + " should have return type of " + RestResultBean.class.getName() );
                         }
                     }
@@ -91,25 +91,25 @@ public class RestServletTest
                     final Class[] paramTypes = method.getParameterTypes();
                     if ( paramTypes == null || paramTypes.length != 1 )
                     {
-                        Assert.fail( "method " + restServlet.getName()
+                        Assertions.fail( "method " + restServlet.getName()
                                 + ":" + method.getName() + " should have exactly one parameter" );
                     }
 
                     final String paramTypeName = paramTypes[0].getName();
                     if ( !paramTypeName.equals( RestRequest.class.getName() ) )
                     {
-                        Assert.fail( "method " + restServlet.getName()
+                        Assertions.fail( "method " + restServlet.getName()
                                 + ":" + method.getName() + " parameter type must be type " + RestRequest.class.getName() );
                     }
 
                     if ( seenHandlers.contains( methodHandler ) )
                     {
-                        Assert.fail( "duplicate " + RestMethodHandler.class + " assertions on class " + restServlet.getName() );
+                        Assertions.fail( "duplicate " + RestMethodHandler.class + " assertions on class " + restServlet.getName() );
                     }
 
                     if ( !Modifier.isPublic( method.getModifiers() ) )
                     {
-                        Assert.fail( "duplicate " + RestMethodHandler.class + " assertions on class " + restServlet.getName() );
+                        Assertions.fail( "duplicate " + RestMethodHandler.class + " assertions on class " + restServlet.getName() );
                     }
                     seenHandlers.add( methodHandler );
                 }
@@ -132,7 +132,7 @@ public class RestServletTest
                 {
                     if ( !Modifier.isPublic( method.getModifiers() ) )
                     {
-                        Assert.fail( "method " + method + " must be public" );
+                        Assertions.fail( "method " + method + " must be public" );
                     }
                 }
             }

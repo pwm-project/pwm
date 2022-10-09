@@ -21,8 +21,6 @@
 package password.pwm.util;
 
 import com.novell.ldapchai.cr.Answer;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
@@ -30,6 +28,7 @@ import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
@@ -55,7 +54,7 @@ import java.util.Map;
 public class SampleDataGenerator
 {
     private static final DomainID SAMPLE_USER_DOMAIN = DomainID.create( "default" );
-    private static final String SAMPLE_USER_LDAP_PROFILE = "default";
+    private static final ProfileID SAMPLE_USER_LDAP_PROFILE = ProfileID.PROFILE_ID_DEFAULT;
 
     private static final UserIdentity SAMPLE_CONFIG_MODIFIER_IDENTITY = UserIdentity
             .create( "cn=configModifier,ou=users,o=org", SAMPLE_USER_LDAP_PROFILE, SAMPLE_USER_DOMAIN );
@@ -194,7 +193,7 @@ public class SampleDataGenerator
                         PwmSetting.LDAP_PROFILE_DISPLAY_NAME, SAMPLE_USER_LDAP_PROFILE, SAMPLE_USER_DOMAIN ),
                 new LocalizedStringValue( Map.of( "", "ProfileName" ) ), SAMPLE_CONFIG_MODIFIER_IDENTITY );
 
-        return new AppConfig( modifier.newStoredConfiguration() );
+        return AppConfig.forStoredConfig( modifier.newStoredConfiguration() );
     }
 
     private static PwmApplication makeSamplePwmApp()
@@ -206,7 +205,6 @@ public class SampleDataGenerator
     private static PwmApplication makeSamplePwmApp( final AppConfig appConfig )
             throws PwmUnrecoverableException
     {
-        Logger.getRootLogger().setLevel( Level.OFF );
         final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
                 .config( appConfig )
                 .applicationPath( null )

@@ -31,8 +31,9 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.LazySoftReference;
+import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -46,7 +47,7 @@ public class UserAgentUtils
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserAgentUtils.class );
 
-    private static final LazySoftReference<UserAgentParser> CACHED_PARSER = new LazySoftReference<>( UserAgentUtils::loadUserAgentParser );
+    private static final LazySupplier<UserAgentParser> CACHED_PARSER = LazySupplier.create( UserAgentUtils::loadUserAgentParser );
 
     public enum BrowserType
     {
@@ -64,7 +65,7 @@ public class UserAgentUtils
 
         static Optional<BrowserType> forBrowserCapName( final String browserCapName )
         {
-            return JavaHelper.readEnumFromPredicate( BrowserType.class, browserType -> browserType.browserCapName.equalsIgnoreCase( browserCapName ) );
+            return EnumUtil.readEnumFromPredicate( BrowserType.class, browserType -> browserType.browserCapName.equalsIgnoreCase( browserCapName ) );
         }
     }
 

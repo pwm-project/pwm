@@ -20,8 +20,8 @@
 
 package password.pwm;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -37,7 +37,7 @@ public class AppPropertyTest
         for ( final AppProperty appProperty : AppProperty.values() )
         {
             final String value = appProperty.getDefaultValue();
-            Assert.assertNotNull( "AppProperty " + appProperty + " does not have a value", value );
+            Assertions.assertNotNull( "AppProperty " + appProperty + " does not have a value", value );
         }
     }
 
@@ -47,7 +47,7 @@ public class AppPropertyTest
         for ( final AppProperty appProperty : AppProperty.values() )
         {
             final String key = appProperty.getKey();
-            Assert.assertNotNull( "AppProperty " + appProperty + " does not have a key", key );
+            Assertions.assertNotNull( "AppProperty " + appProperty + " does not have a key", key );
         }
     }
 
@@ -72,7 +72,7 @@ public class AppPropertyTest
         bundleKeysMissingEnum.removeAll( allEnumKeys );
         if ( !bundleKeysMissingEnum.isEmpty() )
         {
-            Assert.fail( "AppProperty resource bundle contains key " + bundleKeysMissingEnum.iterator().next()
+            Assertions.fail( "AppProperty resource bundle contains key " + bundleKeysMissingEnum.iterator().next()
                     + " does not have a corresponding Enum value" );
         }
 
@@ -80,7 +80,7 @@ public class AppPropertyTest
         enumKeysMissingResource.removeAll( allResourceBundleKeys );
         if ( !enumKeysMissingResource.isEmpty() )
         {
-            Assert.fail( "AppProperty enum contains key " + bundleKeysMissingEnum.iterator().next()
+            Assertions.fail( "AppProperty enum contains key " + bundleKeysMissingEnum.iterator().next()
                     + " does not have a corresponding resource bundle value" );
         }
     }

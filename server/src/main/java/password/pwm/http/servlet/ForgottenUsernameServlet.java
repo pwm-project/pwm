@@ -24,6 +24,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -39,18 +40,18 @@ import password.pwm.http.JspUrl;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.user.UserInfo;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.EnumUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
@@ -92,7 +93,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
     protected Optional<ForgottenUsernameAction> readProcessAction( final PwmRequest request )
             throws PwmUnrecoverableException
     {
-        return JavaHelper.readEnumFromString( ForgottenUsernameAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
+        return EnumUtil.readEnumFromString( ForgottenUsernameAction.class, request.readParameterAsString( PwmConstants.PARAM_ACTION_REQUEST ) );
     }
 
     @Override
@@ -119,7 +120,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
                     return;
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( action.get() );
+                    PwmUtil.unhandledSwitchStatement( action.get() );
             }
         }
 
@@ -148,7 +149,8 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
         }
 
         final String contextParam = pwmRequest.readParameterAsString( PwmConstants.PARAM_CONTEXT );
-        final String ldapProfile = pwmRequest.readParameterAsString( PwmConstants.PARAM_LDAP_PROFILE );
+        final Optional<ProfileID> ldapProfile = pwmDomain.getConfig()
+                .ldapProfileForStringId( pwmRequest.readParameterAsString( PwmConstants.PARAM_LDAP_PROFILE ) );
 
         final List<FormConfiguration> forgottenUsernameForm = pwmDomain.getConfig().readSettingAsForm( PwmSetting.FORGOTTEN_USERNAME_FORM );
 
@@ -181,19 +183,19 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
 
             final UserIdentity userIdentity;
             {
-                final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
+                final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
                 final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                         .filter( searchFilter )
                         .formValues( formValues )
-                        .ldapProfile( ldapProfile )
+                        .ldapProfile( ldapProfile.orElse( null ) )
                         .contexts( Collections.singletonList( contextParam ) )
                         .build();
-                userIdentity = userSearchEngine.performSingleUserSearch( searchConfiguration, pwmRequest.getLabel() );
+                userIdentity = userSearchService.performSingleUserSearch( searchConfiguration, pwmRequest.getLabel() );
             }
 
             if ( userIdentity == null )
             {
-                IntruderServiceClient.markAddressAndSession( pwmDomain, pwmSession );
+                IntruderServiceClient.markAddressAndSession( pwmRequest );
                 StatisticsClient.incrementStat( pwmRequest, Statistic.FORGOTTEN_USERNAME_FAILURES );
                 setLastError( pwmRequest, PwmError.ERROR_CANT_MATCH_USER.toInfo() );
                 forwardToFormJsp( pwmRequest );
@@ -230,7 +232,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
                     e.getErrorInformation().getFieldValues() )
                     : e.getErrorInformation();
             setLastError( pwmRequest, errorInfo );
-            IntruderServiceClient.markAddressAndSession( pwmDomain, pwmSession );
+            IntruderServiceClient.markAddressAndSession( pwmRequest );
             IntruderServiceClient.markAttributes( pwmDomain, formValues, pwmRequest.getLabel() );
         }
 

@@ -20,7 +20,7 @@
 
 package password.pwm;
 
-import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.EnumUtil;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -80,6 +80,7 @@ public enum AppProperty
     CONFIG_EDITOR_BLOCK_OLD_IE                      ( "configEditor.blockOldIE" ),
     CONFIG_EDITOR_USER_PERMISSION_MATCH_LIMIT       ( "configEditor.userPermission.matchResultsLimit" ),
     CONFIG_EDITOR_IDLE_TIMEOUT                      ( "configEditor.idleTimeoutSeconds" ),
+    CONFIG_EDITOR_SETTING_FUNCTION_TIMEOUT_MS       ( "configEditor.settingFunction.timeoutMs" ),
     CONFIG_GUIDE_IDLE_TIMEOUT                       ( "configGuide.idleTimeoutSeconds" ),
     CONFIG_MANAGER_ZIPDEBUG_MAXLOGBYTES             ( "configManager.zipDebug.maxLogBytes" ),
     CONFIG_MANAGER_ZIPDEBUG_MAXLOGSECONDS           ( "configManager.zipDebug.maxLogSeconds" ),
@@ -244,8 +245,11 @@ public enum AppProperty
     LDAP_SEARCH_PARALLEL_FACTOR                     ( "ldap.search.parallel.factor" ),
     LDAP_SEARCH_PARALLEL_THREAD_MAX                 ( "ldap.search.parallel.threadMax" ),
     LDAP_ORACLE_POST_TEMPPW_USE_CURRENT_TIME        ( "ldap.oracle.postTempPasswordUseCurrentTime" ),
-    LOGGING_OUTPUT_CONFIGURATION                    ( "logging.outputConfiguration" ),
-    LOGGING_PATTERN                                 ( "logging.pattern" ),
+    LOGGING_OUTPUT_CONFIGURATION                    ( "logging.output.configuration.enable" ),
+    LOGGING_OUTPUT_HEALTHCHECK                      ( "logging.output.healthCheck.enable" ),
+    LOGGING_OUTPUT_RUNTIME                          ( "logging.output.runtime.enable" ),
+    LOGGING_OUTPUT_MODE                             ( "logging.logOutputMode" ),
+    LOGGING_PACKAGE_LIST                            ( "logging.packageList" ),
     LOGGING_EXTRA_PERIODIC_THREAD_DUMP_INTERVAL     ( "logging.extra.periodicThreadDumpIntervalSeconds" ),
     LOGGING_FILE_MAX_SIZE                           ( "logging.file.maxSize" ),
     LOGGING_FILE_MAX_ROLLOVER                       ( "logging.file.maxRollover" ),
@@ -285,6 +289,8 @@ public enum AppProperty
     OTP_ENCRYPTION_ALG                              ( "otp.encryptionAlg" ),
     PASSWORD_RANDOMGEN_MAX_ATTEMPTS                 ( "password.randomGenerator.maxAttempts" ),
     PASSWORD_RANDOMGEN_MAX_LENGTH                   ( "password.randomGenerator.maxLength" ),
+    PASSWORD_RANDOMGEN_MIN_LENGTH                   ( "password.randomGenerator.minLength" ),
+    PASSWORD_RANDOMGEN_DEFAULT_STRENGTH             ( "password.randomGenerator.defaultStrength" ),
     PASSWORD_RANDOMGEN_JITTER_COUNT                 ( "password.randomGenerator.jitter.count" ),
 
     /* Strength thresholds, introduced by the addition of the zxcvbn strength meter library (since it has 5 levels) */
@@ -427,6 +433,11 @@ public enum AppProperty
         return defaultValue;
     }
 
+    public boolean isDefaultValue( final String value )
+    {
+        return Objects.equals( defaultValue, value );
+    }
+
     public String getDescription( )
     {
         return readAppPropertiesBundle( this.getKey() + DESCRIPTION_SUFFIX );
@@ -439,8 +450,6 @@ public enum AppProperty
 
     public static Optional<AppProperty> forKey( final String key )
     {
-        return CollectionUtil.enumStream( AppProperty.class )
-                .filter( loopProperty -> Objects.equals( loopProperty.getKey(), key ) )
-                .findFirst();
+        return EnumUtil.readEnumFromPredicate( AppProperty.class, appProperty -> Objects.equals( appProperty.getKey(), key ) );
     }
 }

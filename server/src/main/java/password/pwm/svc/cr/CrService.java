@@ -35,6 +35,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -60,13 +61,14 @@ import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -129,6 +131,8 @@ public class CrService extends AbstractPwmService implements PwmService
     )
             throws PwmUnrecoverableException
     {
+        checkOpenStatus();
+
         final DomainConfig config = pwmDomain.getConfig();
         final long methodStartTime = System.currentTimeMillis();
 
@@ -156,10 +160,8 @@ public class CrService extends AbstractPwmService implements PwmService
                     }
                     else
                     {
-                        final String challengeID = "nmasPolicy-" + userIdentity.toDelimitedKey();
-
                         final ChallengeProfile challengeProfile = ChallengeProfile.createChallengeProfile(
-                                challengeID,
+                                ProfileID.PROFILE_ID_NMAS,
                                 locale,
                                 applyPwmPolicyToNmasChallenges( returnSet, config ),
                                 null,
@@ -207,11 +209,11 @@ public class CrService extends AbstractPwmService implements PwmService
         }
 
         // use PWM policies if PWM is configured and either its all that is configured OR the NMAS policy read was not successful
-        final String challengeProfileID = determineChallengeProfileForUser( pwmDomain, sessionLabel, userIdentity, locale );
+        final ProfileID challengeProfileID = determineChallengeProfileForUser( pwmDomain, sessionLabel, userIdentity, locale );
         final ChallengeProfile challengeProfile = config.getChallengeProfile( challengeProfileID, locale );
 
         LOGGER.trace( sessionLabel, () -> "readUserChallengeProfile completed in " + TimeDuration.fromCurrent( methodStartTime ).asCompactString() + " returned profile: "
-                + ( challengeProfile == null ? "null" : challengeProfile.getIdentifier() ) );
+                + ( challengeProfile == null ? "null" : challengeProfile.getId() ) );
         return challengeProfile;
     }
 
@@ -252,7 +254,7 @@ public class CrService extends AbstractPwmService implements PwmService
     }
 
 
-    protected static String determineChallengeProfileForUser(
+    protected static ProfileID determineChallengeProfileForUser(
             final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
@@ -260,13 +262,13 @@ public class CrService extends AbstractPwmService implements PwmService
     )
             throws PwmUnrecoverableException
     {
-        final List<String> profiles = pwmDomain.getConfig().getChallengeProfileIDs();
+        final List<ProfileID> profiles = pwmDomain.getConfig().getChallengeProfileIDs();
         if ( profiles.isEmpty() )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_NO_PROFILE_ASSIGNED, "no challenge profile is configured" ) );
         }
 
-        for ( final String profile : profiles )
+        for ( final ProfileID profile : profiles )
         {
             final ChallengeProfile loopPolicy = pwmDomain.getConfig().getChallengeProfile( profile, locale );
             final List<UserPermission> queryMatch = loopPolicy.getUserPermissions();
@@ -299,6 +301,8 @@ public class CrService extends AbstractPwmService implements PwmService
     )
             throws PwmDataValidationException, PwmUnrecoverableException
     {
+        checkOpenStatus();
+
         //strip null keys from responseMap;
         responseMap.keySet().removeIf( Objects::isNull );
 
@@ -428,6 +432,8 @@ public class CrService extends AbstractPwmService implements PwmService
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
+        checkOpenStatus();
+
         final DomainConfig config = pwmDomain.getConfig();
 
         LOGGER.trace( sessionLabel, () -> "beginning read of user response sequence" );
@@ -649,7 +655,7 @@ public class CrService extends AbstractPwmService implements PwmService
         }
 
         {
-            final Optional<String> profileId = ProfileUtility.discoverProfileIDForUser( pwmDomain, sessionLabel, userIdentity, ProfileDefinition.SetupResponsesProfile );
+            final Optional<ProfileID> profileId = ProfileUtility.discoverProfileIDForUser( pwmDomain, sessionLabel, userIdentity, ProfileDefinition.SetupResponsesProfile );
             if ( profileId.isPresent() )
             {
                 final SetupResponsesProfile setupResponsesProfile = pwmDomain.getConfig().getSetupResponseProfiles().get( profileId.get() );
@@ -723,5 +729,10 @@ public class CrService extends AbstractPwmService implements PwmService
                 .collect( Collectors.toSet() );
 
         return ServiceInfoBean.builder().storageMethods( usedStorageMethods ).build();
+    }
+
+    protected Set<PwmApplication.Condition> openConditions()
+    {
+        return EnumSet.noneOf( PwmApplication.Condition.class );
     }
 }

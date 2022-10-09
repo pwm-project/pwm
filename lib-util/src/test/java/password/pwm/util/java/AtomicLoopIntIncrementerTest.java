@@ -20,8 +20,8 @@
 
 package password.pwm.util.java;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class AtomicLoopIntIncrementerTest
 {
@@ -33,16 +33,16 @@ public class AtomicLoopIntIncrementerTest
         for ( int i = 0; i < 5; i++ )
         {
             final int next = atomicLoopIntIncrementer.next();
-            Assert.assertEquals( i, next );
+            Assertions.assertEquals( i, next );
         }
 
-        Assert.assertEquals( 0,  atomicLoopIntIncrementer.next() );
+        Assertions.assertEquals( 0,  atomicLoopIntIncrementer.next() );
 
         for ( int i = 0; i < 5; i++ )
         {
             atomicLoopIntIncrementer.next();
         }
 
-        Assert.assertEquals( 1,  atomicLoopIntIncrementer.next() );
+        Assertions.assertEquals( 1,  atomicLoopIntIncrementer.next() );
     }
 }

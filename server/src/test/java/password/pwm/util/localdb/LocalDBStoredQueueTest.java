@@ -20,98 +20,111 @@
 
 package password.pwm.util.localdb;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import password.pwm.PwmApplication;
+import password.pwm.util.java.FileSystemUtility;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 public class LocalDBStoredQueueTest
 {
-    private static final int MAX_PROBLEM_SIZE = 100;
+    private static final int MAX_PROBLEM_SIZE = 10_000;
 
-    @Rule
-    public TemporaryFolder testFolder = new TemporaryFolder();
+    @TempDir
+    public Path temporaryFolder;
 
+    private LocalDB localDB;
     private LocalDBStoredQueue localDBStoredQueue;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception
     {
-        final File localDbTestFolder = testFolder.newFolder( "test-stored-queue-test" );
+        final File localDbTestFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-stored-queue-test" );
         final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( localDbTestFolder );
-        final LocalDB localDB = LocalDBFactory.getInstance( localDbTestFolder, false, pwmApplication.getPwmEnvironment(), pwmApplication.getConfig() );
+        localDB = LocalDBFactory.getInstance( localDbTestFolder, false, pwmApplication.getPwmEnvironment(), pwmApplication.getConfig() );
         localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( localDB, LocalDB.DB.TEMP, true );
+    }
+
+    @AfterEach
+    public void shutdown() throws Exception
+    {
+        localDB.close();
+        localDBStoredQueue = null;
     }
 
     @Test
     public void testStoredQueueSimple() throws LocalDBException
     {
-        Assert.assertEquals( 0, localDBStoredQueue.size() );
+        Assertions.assertEquals( 0, localDBStoredQueue.size() );
 
         localDBStoredQueue.add( "one" );
-        Assert.assertEquals( 1, localDBStoredQueue.size() );
+        Assertions.assertEquals( 1, localDBStoredQueue.size() );
 
         localDBStoredQueue.add( "two" );
-        Assert.assertEquals( 2, localDBStoredQueue.size() );
+        Assertions.assertEquals( 2, localDBStoredQueue.size() );
 
         localDBStoredQueue.add( "three" );
-        Assert.assertEquals( 3, localDBStoredQueue.size() );
+        Assertions.assertEquals( 3, localDBStoredQueue.size() );
 
         localDBStoredQueue.removeFirst();
-        Assert.assertEquals( 2, localDBStoredQueue.size() );
+        Assertions.assertEquals( 2, localDBStoredQueue.size() );
 
         {
-            final List<String> values = localDBStoredQueue.stream().collect( Collectors.toList() );
-            Assert.assertEquals( 2, values.size() );
+            final List<String> values = new ArrayList<>( localDBStoredQueue );
+            Assertions.assertEquals( 2, values.size() );
         }
 
         {
             final List<String> values = new ArrayList<>( localDBStoredQueue );
-            Assert.assertEquals( 2, values.size() );
+            Assertions.assertEquals( 2, values.size() );
         }
     }
 
     @Test
     public void testStoredQueueBulk() throws LocalDBException
     {
+        Assertions.assertEquals( 0, localDBStoredQueue.size() );
+
         addValues( localDBStoredQueue, MAX_PROBLEM_SIZE );
 
-        Assert.assertEquals( MAX_PROBLEM_SIZE, localDBStoredQueue.size() );
-        Assert.assertEquals( "99", localDBStoredQueue.getFirst() );
-        Assert.assertEquals( "0", localDBStoredQueue.getLast() );
+        Assertions.assertEquals( MAX_PROBLEM_SIZE, localDBStoredQueue.size() );
+        Assertions.assertEquals( String.valueOf( MAX_PROBLEM_SIZE - 1 ), localDBStoredQueue.getFirst() );
+        Assertions.assertEquals( "0", localDBStoredQueue.getLast() );
 
-        for ( int i = 99; i > -1; i-- )
+        for ( int i = ( MAX_PROBLEM_SIZE - 1 ); i > -1; i-- )
         {
             localDBStoredQueue.removeLast();
-            Assert.assertEquals( i, localDBStoredQueue.size() );
+            Assertions.assertEquals( i, localDBStoredQueue.size() );
         }
     }
 
     @Test
     public void testStoredQueueIterators()
     {
+        Assertions.assertEquals( 0, localDBStoredQueue.size() );
+
         addValues( localDBStoredQueue, MAX_PROBLEM_SIZE );
 
-        Assert.assertEquals( MAX_PROBLEM_SIZE, localDBStoredQueue.size() );
+        Assertions.assertEquals( MAX_PROBLEM_SIZE, localDBStoredQueue.size() );
 
         {
             final Iterator<String> iter = localDBStoredQueue.descendingIterator();
             for ( int i = 0; i < MAX_PROBLEM_SIZE; i++ )
             {
-                Assert.assertTrue( iter.hasNext() );
-                Assert.assertTrue( iter.hasNext() );
-                Assert.assertEquals( String.valueOf( i ), iter.next() );
+                Assertions.assertTrue( iter.hasNext() );
+                Assertions.assertTrue( iter.hasNext() );
+                Assertions.assertEquals( String.valueOf( i ), iter.next() );
             }
-            Assert.assertFalse( iter.hasNext() );
+            Assertions.assertFalse( iter.hasNext() );
 
             boolean seenNoSuchElementException = false;
             try
@@ -122,18 +135,18 @@ public class LocalDBStoredQueueTest
             {
                 seenNoSuchElementException = true;
             }
-            Assert.assertTrue( seenNoSuchElementException );
+            Assertions.assertTrue( seenNoSuchElementException );
         }
 
         {
             final Iterator<String> iter = localDBStoredQueue.iterator();
             for ( int i = ( MAX_PROBLEM_SIZE - 1 ); i > -1; i-- )
             {
-                Assert.assertTrue( iter.hasNext() );
-                Assert.assertTrue( iter.hasNext() );
-                Assert.assertEquals( String.valueOf( i ), iter.next() );
+                Assertions.assertTrue( iter.hasNext() );
+                Assertions.assertTrue( iter.hasNext() );
+                Assertions.assertEquals( String.valueOf( i ), iter.next() );
             }
-            Assert.assertFalse( iter.hasNext() );
+            Assertions.assertFalse( iter.hasNext() );
 
             boolean seenNoSuchElementException = false;
             try
@@ -144,7 +157,7 @@ public class LocalDBStoredQueueTest
             {
                 seenNoSuchElementException = true;
             }
-            Assert.assertTrue( seenNoSuchElementException );
+            Assertions.assertTrue( seenNoSuchElementException );
         }
     }
 
@@ -154,7 +167,7 @@ public class LocalDBStoredQueueTest
         for ( int i = 0; i < MAX_PROBLEM_SIZE; i++ )
         {
             localDBStoredQueue.addFirst( String.valueOf( i ) );
-            Assert.assertEquals( String.valueOf( i ), localDBStoredQueue.removeLast() );
+            Assertions.assertEquals( String.valueOf( i ), localDBStoredQueue.removeLast() );
         }
 
         localDBStoredQueue.clear();
@@ -162,7 +175,7 @@ public class LocalDBStoredQueueTest
         for ( int i = 0; i < MAX_PROBLEM_SIZE; i++ )
         {
             localDBStoredQueue.addLast( String.valueOf( i ) );
-            Assert.assertEquals( String.valueOf( i ), localDBStoredQueue.removeLast() );
+            Assertions.assertEquals( String.valueOf( i ), localDBStoredQueue.removeLast() );
         }
 
         localDBStoredQueue.clear();
@@ -174,7 +187,7 @@ public class LocalDBStoredQueueTest
 
         for ( int i = 0; i < MAX_PROBLEM_SIZE; i++ )
         {
-            Assert.assertEquals( String.valueOf( i ), localDBStoredQueue.removeLast() );
+            Assertions.assertEquals( String.valueOf( i ), localDBStoredQueue.removeLast() );
         }
     }
 
@@ -195,7 +208,7 @@ public class LocalDBStoredQueueTest
 
         for ( int i = aBunchOfString.length - 1; i >= 0; i-- )
         {
-            Assert.assertEquals( aBunchOfString[i], localDBStoredQueue.removeFirst() );
+            Assertions.assertEquals( aBunchOfString[i], localDBStoredQueue.removeFirst() );
         }
     }
 
@@ -216,7 +229,7 @@ public class LocalDBStoredQueueTest
 
         for ( int i = aBunchOfString.length - 1; i >= 0; i-- )
         {
-            Assert.assertEquals( aBunchOfString[i], localDBStoredQueue.removeLast() );
+            Assertions.assertEquals( aBunchOfString[i], localDBStoredQueue.removeLast() );
         }
     }
 
@@ -226,12 +239,11 @@ public class LocalDBStoredQueueTest
     {
         localDBStoredQueue.addFirst( "Something" );
         boolean empty = localDBStoredQueue.isEmpty();
-        Assert.assertFalse( empty );
+        Assertions.assertFalse( empty );
         localDBStoredQueue.removeFirst();
 
         empty = localDBStoredQueue.isEmpty();
-        Assert.assertTrue( "Should be empty after adding then removing",
-                empty );
+        Assertions.assertTrue( empty, "Should be empty after adding then removing" );
 
     }
 
@@ -239,32 +251,29 @@ public class LocalDBStoredQueueTest
     public void testIsEmptyAfterAddRemoveLast()
     {
         localDBStoredQueue.addLast( "Something" );
-        Assert.assertFalse( localDBStoredQueue.isEmpty() );
+        Assertions.assertFalse( localDBStoredQueue.isEmpty() );
         localDBStoredQueue.removeLast();
-        Assert.assertTrue( "Should be empty after adding then removing",
-                localDBStoredQueue.isEmpty() );
+        Assertions.assertTrue( localDBStoredQueue.isEmpty(), "Should be empty after adding then removing" );
 
     }
 
     @Test
     public void testIsEmptyAfterAddFirstRemoveLast()
     {
-        Assert.assertTrue( localDBStoredQueue.isEmpty() );
+        Assertions.assertTrue( localDBStoredQueue.isEmpty() );
         localDBStoredQueue.addFirst( "Something" );
-        Assert.assertFalse( localDBStoredQueue.isEmpty() );
+        Assertions.assertFalse( localDBStoredQueue.isEmpty() );
         localDBStoredQueue.removeLast();
-        Assert.assertTrue( "Should be empty after adding then removing",
-                localDBStoredQueue.isEmpty() );
+        Assertions.assertTrue( localDBStoredQueue.isEmpty(), "Should be empty after adding then removing" );
     }
 
     @Test
     public void testIsEmptyAfterAddLastRemoveFirst()
     {
         localDBStoredQueue.addLast( "Something" );
-        Assert.assertFalse( localDBStoredQueue.isEmpty() );
+        Assertions.assertFalse( localDBStoredQueue.isEmpty() );
         localDBStoredQueue.removeFirst();
-        Assert.assertTrue( "Should be empty after adding then removing",
-                localDBStoredQueue.isEmpty() );
+        Assertions.assertTrue( localDBStoredQueue.isEmpty(), "Should be empty after adding then removing" );
     }
 
     @Test
@@ -273,77 +282,79 @@ public class LocalDBStoredQueueTest
         for ( int i = 0; i < MAX_PROBLEM_SIZE; i++ )
         {
             localDBStoredQueue.addFirst( "Something" );
-            Assert.assertFalse( "Should not be empty after " + i + " item added",
-                    localDBStoredQueue.isEmpty() );
+            Assertions.assertFalse( localDBStoredQueue.isEmpty(), "Should not be empty after " + i + " item added" );
         }
 
         for ( int i = 0; i < MAX_PROBLEM_SIZE; i++ )
         {
-            Assert.assertFalse( "Should not be empty after " + i + " item removed",
-                    localDBStoredQueue.isEmpty() );
+            Assertions.assertFalse( localDBStoredQueue.isEmpty(), "Should not be empty after " + i + " item removed" );
             localDBStoredQueue.removeLast();
         }
 
-        Assert.assertTrue( "Should be empty after adding and removing "
-                        + MAX_PROBLEM_SIZE + " elements.",
-                localDBStoredQueue.isEmpty() );
+        Assertions.assertTrue( localDBStoredQueue.isEmpty(),
+                "Should be empty after adding and removing " + MAX_PROBLEM_SIZE + " elements." );
     }
 
     @Test
     public void testMultipleFillAndEmpty()
     {
-        for ( int tries = 0; tries < 50; tries++ )
+        final int outerLoopIterations = 10;
+        final int innerLoopIterations = 1_000;
+
+        localDBStoredQueue.clear();
+
+        for ( int tries = 0; tries < outerLoopIterations; tries++ )
         {
-            for ( int i = 0; i < MAX_PROBLEM_SIZE; i++ )
+            for ( int i = 0; i < innerLoopIterations; i++ )
             {
                 localDBStoredQueue.addFirst( String.valueOf( i ) );
             }
 
-            Assert.assertFalse( localDBStoredQueue.isEmpty() );
+            Assertions.assertFalse( localDBStoredQueue.isEmpty() );
             int counter = 0;
             while ( !localDBStoredQueue.isEmpty() )
             {
-                Assert.assertEquals( String.valueOf( counter ), localDBStoredQueue.removeLast() );
+                Assertions.assertEquals( String.valueOf( counter ), localDBStoredQueue.removeLast() );
                 counter++;
             }
 
-            Assert.assertTrue( localDBStoredQueue.isEmpty() );
+            Assertions.assertTrue( localDBStoredQueue.isEmpty() );
 
-            for ( int j = 0; j < MAX_PROBLEM_SIZE; j++ )
+            for ( int j = 0; j < innerLoopIterations; j++ )
             {
                 localDBStoredQueue.addLast( String.valueOf( j ) );
             }
 
-            Assert.assertFalse( localDBStoredQueue.isEmpty() );
+            Assertions.assertFalse( localDBStoredQueue.isEmpty() );
 
             counter = 0;
             while ( !localDBStoredQueue.isEmpty() )
             {
-                Assert.assertEquals( String.valueOf( counter ), localDBStoredQueue.removeFirst() );
+                Assertions.assertEquals( String.valueOf( counter ), localDBStoredQueue.removeFirst() );
                 counter++;
             }
 
-            Assert.assertTrue( localDBStoredQueue.isEmpty() );
+            Assertions.assertTrue( localDBStoredQueue.isEmpty() );
         }
     }
 
     @Test
     public void testSize()
     {
-        Assert.assertEquals( 0, localDBStoredQueue.size() );
+        Assertions.assertEquals( 0, localDBStoredQueue.size() );
         for ( int i = 0; i < MAX_PROBLEM_SIZE; i++ )
         {
             localDBStoredQueue.addFirst( "Something" );
-            Assert.assertEquals( i + 1, localDBStoredQueue.size() );
+            Assertions.assertEquals( i + 1, localDBStoredQueue.size() );
         }
 
         for ( int i = MAX_PROBLEM_SIZE; i > 0; i-- )
         {
-            Assert.assertEquals( i, localDBStoredQueue.size() );
+            Assertions.assertEquals( i, localDBStoredQueue.size() );
             localDBStoredQueue.removeLast();
         }
 
-        Assert.assertEquals( 0, localDBStoredQueue.size() );
+        Assertions.assertEquals( 0, localDBStoredQueue.size() );
     }
 
     @Test
@@ -352,7 +363,7 @@ public class LocalDBStoredQueueTest
         try
         {
             localDBStoredQueue.addFirst( null );
-            Assert.fail( "Should have thrown a NullPointerException" );
+            Assertions.fail( "Should have thrown a NullPointerException" );
         }
         catch ( final NullPointerException npe )
         {
@@ -360,13 +371,13 @@ public class LocalDBStoredQueueTest
         }
         catch ( final Exception e )
         {
-            Assert.fail( "Wrong exception catched." + e );
+            Assertions.fail( "Wrong exception catched." + e );
         }
 
         try
         {
             localDBStoredQueue.addLast( null );
-            Assert.fail( "Should have thrown a NullPointerException" );
+            Assertions.fail( "Should have thrown a NullPointerException" );
         }
         catch ( final NullPointerException npe )
         {
@@ -374,7 +385,7 @@ public class LocalDBStoredQueueTest
         }
         catch ( final Exception e )
         {
-            Assert.fail( "Wrong exception catched." + e );
+            Assertions.fail( "Wrong exception cached." + e );
         }
     }
 
@@ -384,7 +395,7 @@ public class LocalDBStoredQueueTest
         for ( int i = 0; i < MAX_PROBLEM_SIZE; i++ )
         {
             localDBStoredQueue.addFirst( String.valueOf( i ) );
-            Assert.assertEquals( String.valueOf( i ), localDBStoredQueue.removeFirst() );
+            Assertions.assertEquals( String.valueOf( i ), localDBStoredQueue.removeFirst() );
         }
 
         localDBStoredQueue.clear();
@@ -392,7 +403,7 @@ public class LocalDBStoredQueueTest
         for ( int i = 0; i < MAX_PROBLEM_SIZE; i++ )
         {
             localDBStoredQueue.addLast( String.valueOf( i ) );
-            Assert.assertEquals( String.valueOf( i ), localDBStoredQueue.removeFirst() );
+            Assertions.assertEquals( String.valueOf( i ), localDBStoredQueue.removeFirst() );
         }
 
         localDBStoredQueue.clear();
@@ -404,7 +415,7 @@ public class LocalDBStoredQueueTest
 
         for ( int i = 0; i < MAX_PROBLEM_SIZE; i++ )
         {
-            Assert.assertEquals( String.valueOf( i ), localDBStoredQueue.removeFirst() );
+            Assertions.assertEquals( String.valueOf( i ), localDBStoredQueue.removeFirst() );
         }
 
     }
@@ -414,9 +425,9 @@ public class LocalDBStoredQueueTest
     {
         try
         {
-            Assert.assertTrue( localDBStoredQueue.isEmpty() );
+            Assertions.assertTrue( localDBStoredQueue.isEmpty() );
             localDBStoredQueue.removeFirst();
-            Assert.fail( "Expected a NoSuchElementException" );
+            Assertions.fail( "Expected a NoSuchElementException" );
         }
         catch ( final NoSuchElementException nsee )
         {
@@ -424,14 +435,14 @@ public class LocalDBStoredQueueTest
         }
         catch ( final Exception e )
         {
-            Assert.fail( "Unexpected exception : " + e );
+            Assertions.fail( "Unexpected exception : " + e );
         }
 
         try
         {
-            Assert.assertTrue( localDBStoredQueue.isEmpty() );
+            Assertions.assertTrue( localDBStoredQueue.isEmpty() );
             localDBStoredQueue.removeLast();
-            Assert.fail( "Expected a NoSuchElementException" );
+            Assertions.fail( "Expected a NoSuchElementException" );
         }
         catch ( final NoSuchElementException nsee )
         {
@@ -439,12 +450,12 @@ public class LocalDBStoredQueueTest
         }
         catch ( final Exception e )
         {
-            Assert.fail( "Unexpected exception : " + e );
+            Assertions.fail( "Unexpected exception : " + e );
         }
 
         try
         {
-            Assert.assertTrue( localDBStoredQueue.isEmpty() );
+            Assertions.assertTrue( localDBStoredQueue.isEmpty() );
 
             for ( int i = 0; i < MAX_PROBLEM_SIZE; i++ )
             {
@@ -455,7 +466,7 @@ public class LocalDBStoredQueueTest
                 localDBStoredQueue.removeLast();
             }
             localDBStoredQueue.removeLast();
-            Assert.fail( "Expected a NoSuchElementException" );
+            Assertions.fail( "Expected a NoSuchElementException" );
         }
         catch ( final NoSuchElementException nsee )
         {
@@ -463,7 +474,7 @@ public class LocalDBStoredQueueTest
         }
         catch ( final Exception e )
         {
-            Assert.fail( "Unexpected exception : " + e );
+            Assertions.fail( "Unexpected exception : " + e );
         }
     }
 
@@ -474,7 +485,7 @@ public class LocalDBStoredQueueTest
         try
         {
             anIterator.remove();
-            Assert.fail( "Should have thrown an UnsupportedOperationException" );
+            Assertions.fail( "Should have thrown an UnsupportedOperationException" );
         }
         catch ( final UnsupportedOperationException uoe )
         {
@@ -482,7 +493,7 @@ public class LocalDBStoredQueueTest
         }
         catch ( final Exception e )
         {
-            Assert.fail( "Unexpected exception : " + e );
+            Assertions.fail( "Unexpected exception : " + e );
         }
     }
 
@@ -517,9 +528,10 @@ public class LocalDBStoredQueueTest
                 int index = 0;
                 while ( manyStringIterators[iterID].hasNext() )
                 {
-                    Assert.assertEquals( "Iterator #" + iterID + " failed:\n",
+                    Assertions.assertEquals(
                             String.valueOf( index ),
-                            manyStringIterators[iterID].next() );
+                            manyStringIterators[iterID].next(),
+                            "Iterator #" + iterID + " failed:\n" );
                     index++;
                 }
             }
@@ -544,7 +556,7 @@ public class LocalDBStoredQueueTest
 
         for ( final String loopString : aBunchOfString )
         {
-            Assert.assertEquals( loopString, localDBStoredQueue.removeLast() );
+            Assertions.assertEquals( loopString, localDBStoredQueue.removeLast() );
         }
     }
 
@@ -566,7 +578,7 @@ public class LocalDBStoredQueueTest
 
         for ( int i = aBunchOfString.length - 1; i >= 0; i-- )
         {
-            Assert.assertEquals( aBunchOfString[i], localDBStoredQueue.removeFirst() );
+            Assertions.assertEquals( aBunchOfString[i], localDBStoredQueue.removeFirst() );
         }
     }
 

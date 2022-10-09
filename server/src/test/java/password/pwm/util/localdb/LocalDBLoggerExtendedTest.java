@@ -22,29 +22,30 @@ package password.pwm.util.localdb;
 
 import lombok.Builder;
 import lombok.Value;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import password.pwm.AppProperty;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.java.FileSystemUtility;
-import password.pwm.util.json.JsonFactory;
-import password.pwm.util.java.Percent;
+import password.pwm.util.Percent;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.LocalDBLoggerSettings;
-import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
+import password.pwm.util.logging.PwmLogMessage;
 import password.pwm.util.secure.PwmRandom;
 
 import java.io.File;
 import java.io.Serializable;
 import java.math.RoundingMode;
+import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -59,6 +60,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 public class LocalDBLoggerExtendedTest
 {
@@ -71,21 +73,21 @@ public class LocalDBLoggerExtendedTest
 
     private final AtomicInteger eventsAdded = new AtomicInteger( 0 );
 
-    private final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.of( 60, TimeDuration.Unit.SECONDS ) );
+    private final EventRateMeter eventRateMeter = new EventRateMeter( TimeDuration.of( 60, TimeDuration.Unit.SECONDS ).asDuration() );
 
     private static Settings settings;
     private Instant startTime;
 
-    @Rule
-    public TemporaryFolder testFolder = new TemporaryFolder();
+    @TempDir
+    public Path temporaryFolder;
 
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception
     {
-        TestHelper.setupLogging();
-        final File localDBPath = testFolder.newFolder( "localdb-logger-test" );
-        config = new AppConfig( StoredConfigurationFactory.newConfig() );
+        final File localDBPath = FileSystemUtility.createDirectory( temporaryFolder, "test-localdb-logger-test" );
+
+        config = AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() );
 
         localDB = LocalDBFactory.getInstance(
                 localDBPath,
@@ -105,7 +107,7 @@ public class LocalDBLoggerExtendedTest
                     .maxAge( TimeDuration.of( 1, TimeDuration.Unit.MINUTES ) )
                     .flags( Collections.emptySet() )
                     .build();
-            localDBLogger = new LocalDBLogger( null, localDB, settings );
+            localDBLogger = new LocalDBLogger( null, localDB, PwmLogLevel.TRACE, settings );
         }
 
         settings = Settings.builder()
@@ -162,31 +164,33 @@ public class LocalDBLoggerExtendedTest
             final RandomValueMaker randomValueMaker = new RandomValueMaker( settings.valueLength );
             while ( TimeDuration.fromCurrent( startTime ).isShorterThan( settings.testDuration ) )
             {
-                final Collection<PwmLogEvent> events = makeEvents( randomValueMaker );
-                for ( final PwmLogEvent logEvent : events )
+                final Collection<PwmLogMessage> events = makeEvents( randomValueMaker );
+                for ( final PwmLogMessage logEvent : events )
                 {
                     localDBLogger.writeEvent( logEvent );
-                    eventRateMeter.markEvents( 1 );
+                    eventRateMeter.markEvent();
                     eventsAdded.incrementAndGet();
                 }
             }
         }
     }
 
-    private Collection<PwmLogEvent> makeEvents( final RandomValueMaker randomValueMaker )
+    private Collection<PwmLogMessage> makeEvents( final RandomValueMaker randomValueMaker )
     {
         final int count = settings.batchSize;
-        final Collection<PwmLogEvent> events = new ArrayList<>();
+        final Collection<PwmLogMessage> events = new ArrayList<>();
         for ( int i = 0; i < count; i++ )
         {
-            final String description = randomValueMaker.next();
-            final PwmLogEvent event = PwmLogEvent.createPwmLogEvent(
+            final Supplier<? extends CharSequence> description = ( Supplier<CharSequence> ) randomValueMaker::next;
+            final PwmLogMessage event = PwmLogMessage.create(
                     Instant.now(),
                     LocalDBLogger.class.getName(),
+                    PwmLogLevel.TRACE,
+                    SessionLabel.TEST_SESSION_LABEL,
                     description,
+                    TimeDuration.ZERO,
                     null,
-                    null,
-                    PwmLogLevel.TRACE );
+                    "threadName" );
             events.add( event );
         }
 
@@ -199,7 +203,7 @@ public class LocalDBLoggerExtendedTest
                 "size", StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize( localDB.getFileLocation() ) ),
                 "eventsInDb", figureEventsInDbStat(),
                 "free", StringUtil.formatDiskSize( FileSystemUtility.diskSpaceRemaining( localDB.getFileLocation() ) ),
-                "eps", eventRateMeter.readEventRate().setScale( 0, RoundingMode.UP ).toString(),
+                "eps", eventRateMeter.rawEps().setScale( 0, RoundingMode.UP ).toString(),
                 "remain", settings.testDuration.subtract( TimeDuration.fromCurrent( startTime ) ).asCompactString() ) );
         localDBLogger.getTailDate().ifPresent( tailDate -> debugParams.put( "tail", TimeDuration.compactFromCurrent( tailDate ) ) );
         out( "added " + StringUtil.mapToString( debugParams ) );

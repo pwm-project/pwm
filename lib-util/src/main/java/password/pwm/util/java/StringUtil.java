@@ -31,6 +31,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -51,8 +52,12 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public abstract class StringUtil
+public final class StringUtil
 {
+    private StringUtil()
+    {   
+    }
+
     private static final Charset STRING_UTIL_CHARSET = StandardCharsets.UTF_8;
 
     private static final Base64.Decoder B64_MIME_DECODER = Base64.getMimeDecoder();
@@ -247,6 +252,11 @@ public abstract class StringUtil
         return instant == null ? "" : instant.truncatedTo( ChronoUnit.SECONDS ).toString();
     }
 
+    public static String toIsoDuration( final Duration duration )
+    {
+        return duration == null ? "" : duration.truncatedTo( ChronoUnit.SECONDS ).toString();
+    }
+
     public enum Base64Options
     {
         GZIP,
@@ -319,7 +329,7 @@ public abstract class StringUtil
         }
 
         final byte[] decodedBytes;
-        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
+        if ( EnumUtil.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
         {
             decodedBytes = B64_URL_DECODER.decode( input.toString() );
         }
@@ -328,7 +338,7 @@ public abstract class StringUtil
             decodedBytes = B64_MIME_DECODER.decode( input.toString() );
         }
 
-        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.GZIP ) )
+        if ( EnumUtil.enumArrayContainsValue( options, Base64Options.GZIP ) )
         {
             return JavaHelper.gunzip( decodedBytes );
         }
@@ -341,7 +351,7 @@ public abstract class StringUtil
     public static String base64Encode( final byte[] input, final StringUtil.Base64Options... options )
     {
         final byte[] compressedBytes;
-        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.GZIP ) )
+        if ( EnumUtil.enumArrayContainsValue( options, Base64Options.GZIP ) )
         {
             try
             {
@@ -357,7 +367,7 @@ public abstract class StringUtil
             compressedBytes = input;
         }
 
-        if ( JavaHelper.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
+        if ( EnumUtil.enumArrayContainsValue( options, Base64Options.URL_SAFE ) )
         {
             return B64_URL_ENCODER.encodeToString( compressedBytes );
         }
@@ -389,20 +399,13 @@ public abstract class StringUtil
             return input;
         }
 
-        final StringBuilder sb = new StringBuilder( input );
-        while ( sb.length() < length )
-        {
-            if ( right )
-            {
-                sb.append( appendChar );
-            }
-            else
-            {
-                sb.insert( 0, appendChar );
-            }
-        }
+        final char[] charArray = new char[ length - input.length() ];
+        Arrays.fill( charArray, appendChar );
+        final String paddingString = new String( charArray );
 
-        return sb.toString();
+        return right
+                ? input + paddingString
+                : paddingString + input;
     }
 
     public static List<String> splitAndTrim( final String input, final String separator )
@@ -768,24 +771,28 @@ public abstract class StringUtil
      */
     public static boolean convertStrToBoolean( final String string )
     {
-        return !( string == null || string.length() < 1 ) && ( "true".equalsIgnoreCase( string )
+        if ( StringUtil.isEmpty( string ) )
+        {
+            return false;
+        }
+
+        return "true".equalsIgnoreCase( string )
                 || "1".equalsIgnoreCase( string )
                 || "yes".equalsIgnoreCase( string )
-                || "y".equalsIgnoreCase( string )
-        );
+                || "y".equalsIgnoreCase( string );
     }
 
     public static List<String> tokenizeString(
             final String inputString,
-            final String seperator
+            final String separator
     )
     {
-        if ( inputString == null || inputString.length() < 1 )
+        if ( StringUtil.isEmpty( inputString ) )
         {
             return Collections.emptyList();
         }
 
-        final List<String> values = new ArrayList<>( Arrays.asList( inputString.split( seperator ) ) );
+        final List<String> values = new ArrayList<>( Arrays.asList( inputString.split( separator ) ) );
         return Collections.unmodifiableList( values );
     }
 }

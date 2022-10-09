@@ -21,6 +21,7 @@
 package password.pwm.config.profile;
 
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredSettingReader;
 import password.pwm.config.option.IdentityVerificationMethod;
@@ -30,19 +31,20 @@ import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 public abstract class AbstractProfile implements Profile
 {
-    private final String identifier;
+    private final ProfileID profileID;
     private final StoredConfiguration storedConfiguration;
     private final StoredSettingReader settingReader;
 
@@ -53,23 +55,23 @@ public abstract class AbstractProfile implements Profile
         ATTRIBUTE,
     }
 
-    AbstractProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedConfiguration )
+    AbstractProfile( final DomainID domainID, final ProfileID profileID, final StoredConfiguration storedConfiguration )
     {
-        this.identifier = identifier;
+        this.profileID = Objects.requireNonNull( profileID );
         this.storedConfiguration = storedConfiguration;
-        this.settingReader = new StoredSettingReader( storedConfiguration, identifier, domainID );
+        this.settingReader = new StoredSettingReader( storedConfiguration, profileID, domainID );
     }
 
     @Override
-    public String getIdentifier( )
+    public ProfileID getId( )
     {
-        return identifier;
+        return profileID;
     }
 
     @Override
     public String getDisplayName( final Locale locale )
     {
-        return getIdentifier();
+        return getId().stringValue();
     }
 
     public List<UserPermission> readSettingAsUserPermission( final PwmSetting setting )
@@ -174,6 +176,6 @@ public abstract class AbstractProfile implements Profile
     public GuidMode readGuidMode()
     {
         final String guidAttributeName = readSettingAsString( PwmSetting.LDAP_GUID_ATTRIBUTE );
-        return JavaHelper.readEnumFromString( GuidMode.class, guidAttributeName ).orElse( GuidMode.VENDORGUID );
+        return EnumUtil.readEnumFromString( GuidMode.class, guidAttributeName ).orElse( GuidMode.VENDORGUID );
     }
 }

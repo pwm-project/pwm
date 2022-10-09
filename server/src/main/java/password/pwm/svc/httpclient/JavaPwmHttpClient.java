@@ -191,7 +191,7 @@ public class JavaPwmHttpClient implements PwmHttpClientProvider
 
     private void logRequest( final PwmHttpClientRequest clientRequest, final SessionLabel sessionLabel ) throws PwmUnrecoverableException
     {
-        if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        if ( LOGGER.isInterestingLevel( PwmLogLevel.TRACE ) )
         {
             final String sslDebugText;
             if ( clientRequest.isHttps() )

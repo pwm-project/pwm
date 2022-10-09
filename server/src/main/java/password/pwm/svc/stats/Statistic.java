@@ -24,7 +24,7 @@ import password.pwm.PwmDomain;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.TimeDuration;
 
 import java.util.Arrays;
@@ -213,6 +213,6 @@ public enum Statistic
 
     public static Optional<Statistic> forKey( final String key )
     {
-        return JavaHelper.readEnumFromPredicate( Statistic.class,  loopValue -> loopValue.getKey().equals( key ) );
+        return EnumUtil.readEnumFromPredicate( Statistic.class, loopValue -> loopValue.getKey().equals( key ) );
     }
 }

@@ -9,9 +9,9 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <packaging>jar</packaging>
-
+    <url>https://github.com/pwm-project/pwm</url>
     <artifactId>pwm-docker</artifactId>
+    <packaging>jar</packaging>
 
     <name>PWM Password Self Service: Docker Image</name>
 
@@ -34,7 +34,7 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <id>make-docker-image</id>
@@ -45,7 +45,7 @@
                         <configuration>
                             <skip>${skipDocker}</skip>
                             <from>
-                                <image>openjdk:17-alpine</image>
+                                <image>eclipse-temurin:18-jre</image>
                             </from>
                             <to>
                                 <image>${dockerImageTag}</image>

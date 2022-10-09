@@ -62,7 +62,7 @@ import password.pwm.http.servlet.peoplesearch.PublicPeopleSearchServlet;
 import password.pwm.http.servlet.setupresponses.SetupResponsesServlet;
 import password.pwm.http.servlet.updateprofile.UpdateProfileServlet;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 
 import javax.servlet.annotation.WebServlet;
 import java.lang.annotation.Annotation;
@@ -202,6 +202,6 @@ public enum PwmServletDefinition
 
     public static Set<PwmServletDefinition> withFlag( final Flag flag )
     {
-        return JavaHelper.readEnumsFromPredicate( PwmServletDefinition.class, e -> e.flags.contains( flag ) );
+        return EnumUtil.readEnumsFromPredicate( PwmServletDefinition.class, e -> e.flags.contains( flag ) );
     }
 }

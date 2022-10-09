@@ -122,7 +122,7 @@ public class ApplicationModeFilter extends AbstractPwmFilter
 
         if ( mode == PwmApplicationMode.ERROR )
         {
-            ErrorInformation rootError = ContextManager.getContextManager( pwmRequest.getHttpServletRequest().getSession() ).getStartupErrorInformation();
+            ErrorInformation rootError = ContextManager.getContextManager( pwmRequest ).getStartupErrorInformation();
             if ( rootError == null )
             {
                 rootError = new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE, "Application startup failed." );

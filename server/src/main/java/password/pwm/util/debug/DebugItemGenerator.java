@@ -91,7 +91,7 @@ public class DebugItemGenerator
         this.sessionLabel = sessionLabel;
 
         final StoredConfiguration obfuscatedStoredConfig = StoredConfigurationUtil.copyConfigAndBlankAllPasswords( pwmApplication.getConfig().getStoredConfiguration() );
-        this.obfuscatedAppConfig = new AppConfig( obfuscatedStoredConfig );
+        this.obfuscatedAppConfig = AppConfig.forStoredConfig( obfuscatedStoredConfig );
     }
 
     private String getFilenameBase()

@@ -21,7 +21,7 @@
 package password.pwm.http;
 
 import password.pwm.PwmConstants;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 
 import java.util.Optional;
 
@@ -85,11 +85,11 @@ public enum HttpHeader
 
     public boolean isSensitive( )
     {
-        return JavaHelper.enumArrayContainsValue( properties, Property.Sensitive );
+        return EnumUtil.enumArrayContainsValue( properties, Property.Sensitive );
     }
 
     public static Optional<HttpHeader> forHttpHeader( final String header )
     {
-        return JavaHelper.readEnumFromCaseIgnoreString( HttpHeader.class, header );
+        return EnumUtil.readEnumFromCaseIgnoreString( HttpHeader.class, header );
     }
 }

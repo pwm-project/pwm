@@ -20,7 +20,7 @@
 
 package password.pwm.config.profile;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import password.pwm.PwmConstants;
 
 public class PwmPasswordRuleTest

@@ -20,34 +20,41 @@
 
 package password.pwm.ldap.search;
 
-import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.data.FormConfiguration;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.CollectorUtil;
+import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class UserSearchResults implements Serializable
 {
+    public static final String JSON_KEY_USER_KEY = "userKey";
+    public static final String JSON_KEY_ID = "id";
+
     private final Map<String, String> headerAttributeMap;
     private final Map<UserIdentity, Map<String, String>> results;
     private final boolean sizeExceeded;
 
-    public UserSearchResults( final Map<String, String> headerAttributeMap, final Map<UserIdentity, Map<String, String>> results, final boolean sizeExceeded )
+    public UserSearchResults(
+            final Map<String, String> headerAttributeMap,
+            final Map<UserIdentity, Map<String, String>> results,
+            final boolean sizeExceeded
+    )
     {
-        this.headerAttributeMap = headerAttributeMap;
-        this.results = Collections.unmodifiableMap( defaultSort( results, headerAttributeMap ) );
+        this.headerAttributeMap = headerAttributeMap == null ? Collections.emptyMap() : Map.copyOf( headerAttributeMap );
+        this.results = Map.copyOf( defaultSort( results, headerAttributeMap ) );
         this.sizeExceeded = sizeExceeded;
-
     }
 
     private static Map<UserIdentity, Map<String, String>> defaultSort(
@@ -67,9 +74,9 @@ public class UserSearchResults implements Serializable
 
         return Collections.unmodifiableMap( results.keySet().stream()
                 .sorted( comparator )
-                .collect( CollectionUtil.collectorToLinkedMap(
+                .collect( CollectorUtil.toLinkedMap(
                         Function.identity(),
-                        results::get
+                        userIdentity -> CollectionUtil.stripNulls( results.get( userIdentity ) )
                 ) ) );
     }
 
@@ -89,37 +96,47 @@ public class UserSearchResults implements Serializable
     }
 
     public List<Map<String, Object>> resultsAsJsonOutput(
-            final PwmDomain pwmDomain,
+            final Function<UserIdentity, String> identityEncoder,
             final UserIdentity ignoreUser
     )
-            throws PwmUnrecoverableException
     {
-        final List<Map<String, Object>> outputList = new ArrayList<>( this.getResults().size() );
-        int idCounter = 0;
-        for ( final UserIdentity userIdentity : this.getResults().keySet() )
+        final AtomicInteger idCounter = new AtomicInteger();
+
+        final Function<UserIdentity, Map<String, Object>> makeRowMap = userIdentity ->
         {
-            if ( ignoreUser == null || !ignoreUser.equals( userIdentity ) )
-            {
-                final Map<String, Object> rowMap = new LinkedHashMap<>( this.getHeaderAttributeMap().size() );
-                for ( final String attribute : this.getHeaderAttributeMap().keySet() )
-                {
-                    rowMap.put( attribute, this.getResults().get( userIdentity ).get( attribute ) );
-                }
-                rowMap.put( "userKey", userIdentity.toObfuscatedKey( pwmDomain.getPwmApplication() ) );
-                rowMap.put( "id", idCounter );
-                outputList.add( rowMap );
-                idCounter++;
-            }
-        }
-        return outputList;
+            final Map<String, Object> rowMap = headerAttributeMap.keySet().stream()
+                    .collect( CollectorUtil.toLinkedMap(
+                            Function.identity(),
+                            attribute -> attributeValue( userIdentity, attribute ) ) );
+
+            rowMap.put( JSON_KEY_USER_KEY, identityEncoder.apply( userIdentity ) );
+            rowMap.put( JSON_KEY_ID, idCounter.getAndIncrement() );
+            return Map.copyOf( rowMap );
+        };
+
+        return this.getResults().keySet().stream()
+                .filter( Objects::nonNull )
+                .filter( userIdentity -> ignoreUser == null || !ignoreUser.equals( userIdentity ) )
+                .map( makeRowMap )
+                .collect( Collectors.toUnmodifiableList() );
     }
+
+    private String attributeValue( final UserIdentity userIdentity, final String attributeName )
+    {
+        if ( userIdentity == null || StringUtil.isEmpty( attributeName ) )
+        {
+            return "";
+        }
+
+        return results.getOrDefault( userIdentity, Collections.emptyMap() ).getOrDefault( attributeName, "" );
+    }
+
 
     public static Map<String, String> fromFormConfiguration( final List<FormConfiguration> formItems, final Locale locale )
     {
-        return Collections.unmodifiableMap( formItems.stream().collect( CollectionUtil.collectorToLinkedMap(
+        return formItems.stream().collect( CollectorUtil.toUnmodifiableLinkedMap(
                 FormConfiguration::getName,
-                formItem -> formItem.getLabel( locale )
-        ) ) );
+                formItem -> formItem.getLabel( locale ) ) );
     }
 
     private static class UserIdentitySearchResultComparator implements Comparator<UserIdentity>, Serializable

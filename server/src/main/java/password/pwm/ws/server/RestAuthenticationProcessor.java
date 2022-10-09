@@ -36,7 +36,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.auth.AuthenticationResult;
 import password.pwm.ldap.auth.SimpleLdapAuthenticator;
 import password.pwm.ldap.permission.UserPermissionUtility;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -200,10 +200,10 @@ public class RestAuthenticationProcessor
             return Optional.empty();
         }
 
-        final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
+        final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
         try
         {
-            return Optional.of( userSearchEngine.resolveUsername( basicAuthInfo.get().getUsername(), null, null, sessionLabel ) );
+            return Optional.of( userSearchService.resolveUsername( basicAuthInfo.get().getUsername(), null, null, sessionLabel ) );
         }
         catch ( final PwmOperationalException e )
         {

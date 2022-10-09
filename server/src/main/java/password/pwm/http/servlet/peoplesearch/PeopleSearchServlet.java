@@ -44,7 +44,7 @@ import password.pwm.http.servlet.peoplesearch.bean.UserDetailBean;
 import password.pwm.bean.PhotoDataBean;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -62,6 +62,13 @@ import java.util.concurrent.Callable;
 public abstract class PeopleSearchServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PeopleSearchServlet.class );
+
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
 
     private static final String PARAM_USERKEY = "userKey";
     private static final String PARAM_DEPTH = "depth";
@@ -177,7 +184,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
             }
             else
             {
-                userIdentity = UserIdentity.fromObfuscatedKey( userKey, pwmRequest.getPwmApplication() );
+                userIdentity = PeopleSearchServlet.clarifyUserIdentity( pwmRequest, userKey ).orElseThrow();
             }
         }
 
@@ -284,7 +291,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         pwmRequest.getPwmResponse().getHttpServletResponse().setBufferSize( 0 );
         pwmRequest.getPwmResponse().markAsDownload( HttpContentType.csv, "userData.csv" );
 
-        try ( CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() ) )
+        try ( CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( pwmRequest.getPwmResponse().getOutputStream() ) )
         {
             peopleSearchDataReader.writeUserOrgChartDetailToCsv( csvPrinter, userIdentity, effectiveDepth );
         }
@@ -348,8 +355,44 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
 
         final PeopleSearchProfile peopleSearchProfile = peopleSearchProfile( pwmRequest );
         final PeopleSearchDataReader peopleSearchDataReader = new PeopleSearchDataReader( pwmRequest, peopleSearchProfile );
-        final UserIdentity userIdentity = UserIdentity.fromKey( pwmRequest.getLabel(), userKey, pwmRequest.getPwmApplication() );
-        peopleSearchDataReader.checkIfUserIdentityViewable( userIdentity );
-        return userIdentity;
+        final Optional<UserIdentity> userIdentity = PeopleSearchServlet.clarifyUserIdentity( pwmRequest, userKey );
+        if ( userIdentity.isPresent() )
+        {
+            peopleSearchDataReader.checkIfUserIdentityViewable( userIdentity.get() );
+            return userIdentity.get();
+        }
+
+        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, PARAM_USERKEY + " parameter is invalid" );
+        LOGGER.error( pwmRequest, errorInformation );
+        throw new PwmUnrecoverableException( errorInformation );
+    }
+
+    static String obfuscateUserIdentity( final PwmRequest pwmRequest, final UserIdentity userIdentity )
+    {
+        try
+        {
+            return pwmRequest.encryptObjectToString( userIdentity );
+        }
+        catch ( final PwmUnrecoverableException e )
+        {
+            throw new IllegalStateException( "unexpected error encoding userIdentity: " + e.getMessage() );
+        }
+    }
+
+    static Optional<UserIdentity> clarifyUserIdentity( final PwmRequest pwmRequest, final String input )
+    {
+        if ( !StringUtil.isEmpty( input ) )
+        {
+            try
+            {
+                return Optional.of( pwmRequest.decryptObject( input, UserIdentity.class ) );
+            }
+            catch ( final PwmUnrecoverableException e )
+            {
+                LOGGER.debug( pwmRequest, () -> "error clarifying obfuscated userIdentity in request: " + e.getMessage() );
+            }
+        }
+
+        return Optional.empty();
     }
 }

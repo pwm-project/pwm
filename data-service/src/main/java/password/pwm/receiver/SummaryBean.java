@@ -26,6 +26,7 @@ import password.pwm.PwmAboutProperty;
 import password.pwm.bean.TelemetryPublishBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.svc.stats.Statistic;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
 import java.time.Duration;
@@ -45,6 +46,7 @@ public class SummaryBean
     private Map<String, Integer> settingCount;
     private Map<String, Integer> statCount;
     private Map<String, Integer> osCount;
+    private Map<String, Integer> deploymentCount;
     private Map<String, Integer> dbCount;
     private Map<String, Integer> javaCount;
     private Map<String, Integer> appVersionCount;
@@ -60,6 +62,7 @@ public class SummaryBean
         final Map<String, Integer> appServerCount = new TreeMap<>();
         final Map<String, Integer> settingCount = new TreeMap<>();
         final Map<String, Integer> statCount = new TreeMap<>();
+        final Map<String, Integer> deploymentCount = new TreeMap<>();
         final Map<String, Integer> osCount = new TreeMap<>();
         final Map<String, Integer> dbCount = new TreeMap<>();
         final Map<String, Integer> javaCount = new TreeMap<>();
@@ -86,6 +89,7 @@ public class SummaryBean
                         .installAge( TimeDuration.fromCurrent( bean.getInstallTime() ).asDuration() )
                         .updateAge( TimeDuration.fromCurrent( bean.getTimestamp() ).asDuration() )
                         .ldapVendor( ldapVendor )
+
                         .osName( bean.getAbout().get( PwmAboutProperty.java_osName.name() ) )
                         .osVersion( bean.getAbout().get( PwmAboutProperty.java_osVersion.name() ) )
                         .servletName( bean.getAbout().get( PwmAboutProperty.java_appServerInfo.name() ) )
@@ -105,6 +109,8 @@ public class SummaryBean
                 incrementCounterMap( osCount, bean.getAbout().get( PwmAboutProperty.java_osName.name() ) );
 
                 incrementCounterMap( javaCount, siteSummary.getJavaVm() );
+
+                incrementCounterMap( deploymentCount, bean.getAbout().get( PwmAboutProperty.app_deployment_type.name() ) );
 
                 incrementCounterMap( appVersionCount, siteSummary.getVersion() );
 
@@ -138,6 +144,7 @@ public class SummaryBean
                 .appServerCount( appServerCount )
                 .osCount( osCount )
                 .dbCount( dbCount )
+                .deploymentCount( deploymentCount )
                 .javaCount( javaCount )
                 .appVersionCount( appVersionCount )
                 .build();
@@ -151,6 +158,11 @@ public class SummaryBean
 
     private static void incrementCounterMap( final Map<String, Integer> map, final String key, final int count )
     {
+        if ( map == null || StringUtil.isEmpty( key ) )
+        {
+            return;
+        }
+
         if ( map.containsKey( key ) )
         {
             map.put( key, map.get( key ) + count );
@@ -198,6 +210,7 @@ public class SummaryBean
         private String osName;
         private String osVersion;
         private String servletName;
+        private String deploymentType;
         private String dbVendor;
         private String javaVm;
         private String platform;

@@ -31,8 +31,9 @@ import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.DailySummaryJob;
 import password.pwm.util.EventRateMeter;
-import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.CollectorUtil;
+import password.pwm.util.java.EnumUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -94,7 +95,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
     public StatisticsService( )
     {
         epsMeterMap = EpsKey.allKeys().stream()
-                .map( key -> Map.entry( key, new EventRateMeter( key.getEpsDuration().getTimeDuration() ) ) )
+                .map( key -> Map.entry( key, new EventRateMeter( key.getEpsDuration().getTimeDuration().asDuration() ) ) )
                 .collect( Collectors.toUnmodifiableMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue ) );
@@ -272,9 +273,9 @@ public class StatisticsService extends AbstractPwmService implements PwmService
 
         {
             // setup a timer to roll over at 0 Zulu and one to write current stats regularly
-            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new DailySummaryJob( pwmApplication ), getExecutorService(), TimeDuration.ZERO );
-            pwmApplication.getPwmScheduler().scheduleFixedRateJob( new FlushTask(), getExecutorService(), DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
-            pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new NightlyTask(), getExecutorService(), TimeDuration.ZERO );
+            scheduleDailyZuluZeroStartJob( new DailySummaryJob( pwmApplication ), TimeDuration.ZERO );
+            scheduleFixedRateJob( new FlushTask(), DB_WRITE_FREQUENCY, DB_WRITE_FREQUENCY );
+            scheduleDailyZuluZeroStartJob( new NightlyTask(), TimeDuration.ZERO );
         }
 
         return STATUS.OPEN;
@@ -300,11 +301,10 @@ public class StatisticsService extends AbstractPwmService implements PwmService
 
     public Map<String, String> dailyStatisticsAsLabelValueMap()
     {
-        return Collections.unmodifiableMap( CollectionUtil.enumStream( Statistic.class )
-                .collect( CollectionUtil.collectorToLinkedMap(
+        return EnumUtil.enumStream( Statistic.class )
+                .collect( CollectorUtil.toUnmodifiableLinkedMap(
                         statistic -> statistic.getLabel( PwmConstants.DEFAULT_LOCALE ),
-                        statistic -> statsDaily.getStatistic( statistic )
-                ) ) );
+                        statistic -> statsDaily.getStatistic( statistic ) ) );
     }
 
     private void resetDailyStats( )
@@ -366,7 +366,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
     public BigDecimal readEps( final EpsStatistic type, final Statistic.EpsDuration duration )
     {
         final EpsKey epsKey = new EpsKey( type, duration );
-        return epsMeterMap.get( epsKey ).readEventRate();
+        return epsMeterMap.get( epsKey ).rawEps();
     }
 
 
@@ -377,7 +377,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
         final Instant startTime = Instant.now();
 
         final StatisticsService statsManger = getPwmApplication().getStatisticsManager();
-        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
 
         if ( includeHeader )
         {
@@ -405,7 +405,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
             lineOutput.add( String.valueOf( loopKey.getYear() ) );
             lineOutput.add( String.valueOf( loopKey.getDay() ) );
 
-            lineOutput.addAll( CollectionUtil.enumStream( Statistic.class )
+            lineOutput.addAll( EnumUtil.enumStream( Statistic.class )
                     .map( bundle::getStatistic )
                     .collect( Collectors.toList() ) );
 

@@ -52,13 +52,13 @@ public class PwmDateFormat
     public static String format( final String formatString, final Instant date )
             throws IllegalArgumentException, NullPointerException
     {
-        return MiscUtil.newPwmDateFormat( formatString ).format( date );
+        return PwmUtil.newPwmDateFormat( formatString ).format( date );
     }
 
     public static Instant parse( final String formatString, final String input )
             throws ParseException, IllegalArgumentException, NullPointerException
     {
-        return MiscUtil.newPwmDateFormat( formatString ).parse( input );
+        return PwmUtil.newPwmDateFormat( formatString ).parse( input );
     }
 
     private SimpleDateFormat newSimpleDateFormat()

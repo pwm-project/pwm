@@ -53,7 +53,8 @@ public class PwmURL
     private final URI uri;
     private final String contextPath;
     private final AppConfig appConfig;
-    private final Supplier<Optional<PwmServletDefinition>> pwmServletDefinition = new LazySupplier<>( () -> getServletDefinitionImpl( this ) );
+    private final Supplier<Optional<PwmServletDefinition>> pwmServletDefinition = LazySupplier.create(
+            () -> getServletDefinitionImpl( this ) );
 
     private PwmURL(
             final URI uri,

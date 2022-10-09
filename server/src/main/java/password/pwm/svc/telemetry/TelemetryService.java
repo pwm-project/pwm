@@ -193,7 +193,7 @@ public class TelemetryService extends AbstractPwmService implements PwmService
     private void scheduleNextJob( )
     {
         final TimeDuration durationUntilNextPublish = durationUntilNextPublish();
-        getPwmApplication().getPwmScheduler().scheduleJob( new PublishJob(), getExecutorService(), durationUntilNextPublish );
+        scheduleJob( new PublishJob(), durationUntilNextPublish );
         LOGGER.trace( getSessionLabel(), () -> "next publish time: " + durationUntilNextPublish().asCompactString() );
     }
 

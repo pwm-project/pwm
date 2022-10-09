@@ -20,11 +20,13 @@
 
 package password.pwm.svc.event;
 
+import password.pwm.bean.ProfileID;
+
 public interface HelpdeskAuditRecord extends UserAuditRecord
 {
     String getTargetID( );
 
     String getTargetDN( );
 
-    String getTargetLdapProfile( );
+    ProfileID getTargetLdapProfile( );
 }

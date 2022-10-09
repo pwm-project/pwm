@@ -20,6 +20,7 @@
 
 package password.pwm.util.localdb;
 
+import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.java.StatisticCounterBundle;
@@ -102,7 +103,7 @@ public class LocalDBAdaptor implements LocalDB
     public Map<String, Serializable> debugInfo( )
     {
         final Map<String, Serializable> debugValues = new LinkedHashMap<>( innerDB.debugInfo() );
-        debugValues.putAll( stats.debugStats() );
+        debugValues.putAll( stats.debugStats( PwmConstants.DEFAULT_LOCALE ) );
         return Collections.unmodifiableMap( debugValues );
     }
 

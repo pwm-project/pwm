@@ -65,7 +65,7 @@ import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.DataStore;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -198,7 +198,7 @@ public class TokenService extends AbstractPwmService implements PwmService
                     break;
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( storageMethod );
+                    PwmUtil.unhandledSwitchStatement( storageMethod );
             }
             dataStorageMethod = usedStorageMethod;
         }
@@ -354,13 +354,13 @@ public class TokenService extends AbstractPwmService implements PwmService
                 {
                     if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_EMAIL_VERIFICATION ) )
                     {
-                        final String label = PwmSetting.NEWUSER_EMAIL_VERIFICATION.toMenuLocationDebug( newUserProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE );
+                        final String label = PwmSetting.NEWUSER_EMAIL_VERIFICATION.toMenuLocationDebug( newUserProfile.getId(), PwmConstants.DEFAULT_LOCALE );
                         final String label2 = PwmSetting.TOKEN_STORAGEMETHOD.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
                         returnRecords.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.CryptoTokenWithNewUserVerification, label, label2 ) );
                     }
                     if ( newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_SMS_VERIFICATION ) )
                     {
-                        final String label = PwmSetting.NEWUSER_SMS_VERIFICATION.toMenuLocationDebug( newUserProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE );
+                        final String label = PwmSetting.NEWUSER_SMS_VERIFICATION.toMenuLocationDebug( newUserProfile.getId(), PwmConstants.DEFAULT_LOCALE );
                         final String label2 = PwmSetting.TOKEN_STORAGEMETHOD.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
                         returnRecords.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.CryptoTokenWithNewUserVerification, label, label2 ) );
                     }
@@ -541,7 +541,7 @@ public class TokenService extends AbstractPwmService implements PwmService
     public ServiceInfoBean serviceInfo( )
     {
         return ServiceInfoBean.builder()
-                .debugProperties( stats.debugStats() )
+                .debugProperties( stats.debugStats( PwmConstants.DEFAULT_LOCALE ) )
                 .storageMethod( dataStorageMethod )
                 .build();
     }

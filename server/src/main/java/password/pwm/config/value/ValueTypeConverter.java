@@ -32,11 +32,10 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.util.PasswordData;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.CollectorUtil;
+import password.pwm.util.java.EnumUtil;
 
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -166,7 +165,7 @@ public final class ValueTypeConverter
 
         if ( value instanceof CustomLinkValue )
         {
-            return ( List<FormConfiguration> ) value.toNativeObject();
+            return List.copyOf( ( List<FormConfiguration> ) value.toNativeObject() );
         }
 
         if ( ( !( value instanceof FormValue ) ) )
@@ -174,7 +173,7 @@ public final class ValueTypeConverter
             throw new IllegalArgumentException( "setting value is not readable as form" );
         }
 
-        return ( List<FormConfiguration> ) value.toNativeObject();
+        return List.copyOf( ( List<FormConfiguration> ) value.toNativeObject() );
     }
 
     public static List<String> valueToStringArray( final StoredValue value )
@@ -184,9 +183,8 @@ public final class ValueTypeConverter
             throw new IllegalArgumentException( "setting value is not readable as string array" );
         }
 
-        final List<String> results = new ArrayList<>( ( List<String> ) value.toNativeObject() );
-        results.removeIf( StringUtil::isEmpty );
-        return List.copyOf( results );
+        final List<String> results = ( List<String> ) value.toNativeObject();
+        return List.copyOf( CollectionUtil.stripNulls( results ) );
     }
 
     public static List<UserPermission> valueToUserPermissions( final StoredValue value )
@@ -198,9 +196,8 @@ public final class ValueTypeConverter
             throw new IllegalArgumentException( "setting value is not readable as string array" );
         }
 
-        final List<UserPermission> results = new ArrayList<>( ( List<UserPermission> ) value.toNativeObject() );
-        results.removeIf( Objects::isNull );
-        return List.copyOf( results );
+        final List<UserPermission> results = ( List<UserPermission> ) value.toNativeObject();
+        return List.copyOf( CollectionUtil.stripNulls( results ) );
     }
 
     public static Map<String, List<ChallengeItemConfiguration>> valueToChallengeItems( final StoredValue value )
@@ -212,7 +209,7 @@ public final class ValueTypeConverter
             throw new IllegalArgumentException( "setting value is not readable as challenge items" );
         }
 
-        return ( Map<String, List<ChallengeItemConfiguration>> ) value.toNativeObject();
+        return Map.copyOf( CollectionUtil.stripNulls( ( Map<String, List<ChallengeItemConfiguration>> ) value.toNativeObject() ) );
     }
 
     public static boolean valueToBoolean( final StoredValue value )
@@ -234,7 +231,7 @@ public final class ValueTypeConverter
 
         final Map<String, String> availableValues = ( Map<String, String> ) value.toNativeObject();
         final Map<Locale, String> availableLocaleMap = Collections.unmodifiableMap( availableValues.entrySet().stream()
-                .collect( CollectionUtil.collectorToLinkedMap(
+                .collect( CollectorUtil.toLinkedMap(
                     entry -> LocaleHelper.parseLocaleString( entry.getKey() ),
                         Map.Entry::getValue ) ) );
 
@@ -251,14 +248,14 @@ public final class ValueTypeConverter
         }
         final Map<String, List<String>> storedValues = ( Map<String, List<String>> ) value.toNativeObject();
 
-        final Map<Locale, List<String>> availableLocaleMap = Collections.unmodifiableMap( storedValues.entrySet().stream()
-                .collect( CollectionUtil.collectorToLinkedMap(
+        final Map<Locale, List<String>> availableLocaleMap = storedValues.entrySet().stream()
+                .collect( CollectorUtil.toLinkedMap(
                         entry -> LocaleHelper.parseLocaleString( entry.getKey() ),
-                        Map.Entry::getValue ) ) );
+                        Map.Entry::getValue ) );
 
         final Locale matchedLocale = LocaleHelper.localeResolver( locale, availableLocaleMap.keySet() );
 
-        return availableLocaleMap.get( matchedLocale );
+        return List.copyOf( availableLocaleMap.get( matchedLocale ) );
     }
 
     public static <E extends Enum<E>> E valueToEnum( final PwmSetting setting, final StoredValue value, final Class<E> enumClass )
@@ -269,7 +266,7 @@ public final class ValueTypeConverter
         }
 
         final String strValue = ( String ) value.toNativeObject();
-        return JavaHelper.readEnumFromString( enumClass, strValue ).orElse( null );
+        return EnumUtil.readEnumFromString( enumClass, strValue ).orElse( null );
     }
 
     public static Map<Locale, EmailItemBean> valueToLocalizedEmail( final PwmSetting setting, final StoredValue storedValue )
@@ -281,9 +278,9 @@ public final class ValueTypeConverter
 
         final Map<String, EmailItemBean> storedValues =  ( Map<String, EmailItemBean> ) storedValue.toNativeObject();
 
-        return Collections.unmodifiableMap( storedValues.entrySet().stream().collect( CollectionUtil.collectorToLinkedMap(
+        return storedValues.entrySet().stream().collect( CollectorUtil.toUnmodifiableLinkedMap(
                 entry -> LocaleHelper.parseLocaleString( entry.getKey() ),
-                Map.Entry::getValue ) ) );
+                Map.Entry::getValue ) );
     }
 
     public static Map<FileValue.FileInformation, FileValue.FileContent> valueToFile( final PwmSetting setting, final StoredValue storedValue )

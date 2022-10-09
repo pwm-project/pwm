@@ -33,21 +33,22 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.bean.ProfileID" %>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     SelectableContextMode selectableContextMode = SelectableContextMode.NONE;
-    Map<String,LdapProfile> ldapProfiles = Collections.emptyMap();
-    String selectedProfileParam = "";
-    LdapProfile selectedProfile;
+    Map<ProfileID,LdapProfile> ldapProfiles = Collections.emptyMap();
+    ProfileID selectedProfileParam = null;
+    final LdapProfile selectedProfile;
     Map<String,String> selectableContexts = null;
     boolean showContextSelector = false;
     try {
         final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
         selectableContextMode = pwmRequest.getDomainConfig().readSettingAsEnum(PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE,SelectableContextMode.class);
         ldapProfiles = pwmRequest.getDomainConfig().getLdapProfiles();
-        selectedProfileParam = pwmRequest.readParameterAsString(PwmConstants.PARAM_LDAP_PROFILE);
-        selectedProfile = pwmRequest.getDomainConfig().getLdapProfiles().containsKey(selectedProfileParam)
+        selectedProfileParam = ProfileID.createNullable( pwmRequest.readParameterAsString(PwmConstants.PARAM_LDAP_PROFILE) ).orElse( null );
+        selectedProfile = selectedProfileParam != null && pwmRequest.getDomainConfig().getLdapProfiles().containsKey(selectedProfileParam)
                 ? pwmRequest.getDomainConfig().getLdapProfiles().get(selectedProfileParam)
                 : pwmRequest.getDomainConfig().getDefaultLdapProfile();
         selectableContexts = selectedProfile.getSelectableContexts(pwmRequest.getLabel(),pwmRequest.getPwmDomain());
@@ -62,7 +63,7 @@
     <select name="<%=PwmConstants.PARAM_LDAP_PROFILE%>" id="<%=PwmConstants.PARAM_LDAP_PROFILE%>" class="selectfield" title="<pwm:display key="Field_LdapProfile"/>">
         <% for (final LdapProfile ldapProfile : ldapProfiles.values()) { %>
         <% final String displayName = ldapProfile.getDisplayName(JspUtility.locale(request)); %>
-        <option value="<%=ldapProfile.getIdentifier()%>"<%=(ldapProfile.getIdentifier().equals(selectedProfileParam))?" selected=\"selected\"":""%>><%=StringUtil.escapeHtml(
+        <option value="<%=ldapProfile.getId()%>"<%=(ldapProfile.getId().equals(selectedProfileParam))?" selected=\"selected\"":""%>><%=StringUtil.escapeHtml(
                 displayName)%></option>
         <% } %>
     </select>

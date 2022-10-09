@@ -60,6 +60,12 @@ public class AdminReportServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( AdminReportServlet.class );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
     enum AdminReportAction implements AbstractPwmServlet.ProcessAction
     {
         reportProcessStatus( HttpMethod.POST ),

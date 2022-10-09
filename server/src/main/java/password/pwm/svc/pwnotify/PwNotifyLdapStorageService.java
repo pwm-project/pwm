@@ -78,7 +78,7 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
         if ( StringUtil.isEmpty( testUserDN ) )
         {
             final String msg = "LDAP storage type selected, but LDAP test user ("
-                    + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( defaultLdapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
+                    + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( defaultLdapProfile.getId(), PwmConstants.DEFAULT_LOCALE )
                     + ") not defined.";
             throw new PwmUnrecoverableException( PwmError.ERROR_PWNOTIFY_SERVICE_ERROR, msg );
         }
@@ -88,7 +88,7 @@ class PwNotifyLdapStorageService implements PwNotifyStorageService
             if ( StringUtil.isEmpty( ldapProfile.readSettingAsString( PwmSetting.LDAP_ATTRIBUTE_PWNOTIFY ) ) )
             {
                 final String msg = "LDAP storage type selected, but setting '"
-                        + PwmSetting.LDAP_ATTRIBUTE_PWNOTIFY.toMenuLocationDebug( ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
+                        + PwmSetting.LDAP_ATTRIBUTE_PWNOTIFY.toMenuLocationDebug( ldapProfile.getId(), PwmConstants.DEFAULT_LOCALE )
                         + " is not configured ";
                 throw new PwmUnrecoverableException( PwmError.ERROR_PWNOTIFY_SERVICE_ERROR, msg );
             }

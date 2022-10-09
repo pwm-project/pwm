@@ -1090,7 +1090,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
                 return;
             }
 
-            final Supplier<CharSequence> debugOutput = () ->
+            final Supplier<String> debugOutput = () ->
             {
                 final StringBuilder sb = new StringBuilder();
                 try

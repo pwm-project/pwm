@@ -51,13 +51,13 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.FormMap;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -97,6 +97,12 @@ import java.util.Set;
 public class GuestRegistrationServlet extends ControlledPwmServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( GuestRegistrationServlet.class );
+
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
     public static final String HTTP_PARAM_EXPIRATION_DATE = "_expirationDateFormInput";
 
@@ -318,11 +324,11 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
                 .username( usernameParam )
                 .build();
 
-        final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
+        final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
 
         try
         {
-            final UserIdentity theGuest = userSearchEngine.performSingleUserSearch( searchConfiguration, pwmRequest.getLabel() );
+            final UserIdentity theGuest = userSearchService.performSingleUserSearch( searchConfiguration, pwmRequest.getLabel() );
             final FormMap formProps = guBean.getFormValues();
             try
             {
@@ -676,7 +682,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
 
     private void calculateFutureDateFlags( final PwmRequest pwmRequest, final GuestRegistrationBean guestRegistrationBean )
     {
-        final PwmDateFormat dateFormat = MiscUtil.newPwmDateFormat( "yyyy-MM-dd" );
+        final PwmDateFormat dateFormat = PwmUtil.newPwmDateFormat( "yyyy-MM-dd" );
 
         final long maxValidDays = pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.GUEST_MAX_VALID_DAYS );
         pwmRequest.setAttribute( PwmRequestAttribute.GuestMaximumValidDays, String.valueOf( maxValidDays ) );

@@ -80,7 +80,7 @@ public class FileValue extends AbstractValue implements StoredValue
         private FileContent( final String b64EncodedContents )
         {
             this.b64EncodedContents = b64EncodedContents;
-            this.byteContents = new LazySupplier<>( () -> b64decode( b64EncodedContents ) );
+            this.byteContents = LazySupplier.create( () -> b64decode( b64EncodedContents ) );
         }
 
         public static FileContent fromEncodedString( final String input )

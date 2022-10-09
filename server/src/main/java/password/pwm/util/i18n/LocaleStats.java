@@ -24,8 +24,8 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.i18n.PwmLocaleBundle;
-import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.Percent;
+import password.pwm.util.java.CollectorUtil;
+import password.pwm.util.Percent;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
@@ -59,10 +59,9 @@ public class LocaleStats
 
     public static Map<PwmLocaleBundle, LocaleStats> getAllLocaleStats()
     {
-        return Collections.unmodifiableMap( PwmLocaleBundle.allValues().stream().collect( CollectionUtil.collectorToLinkedMap(
+        return Collections.unmodifiableMap( PwmLocaleBundle.allValues().stream().collect( CollectorUtil.toLinkedMap(
                 Function.identity(),
-                LocaleStats::createLocaleStatsForBundle
-        ) ) );
+                LocaleStats::createLocaleStatsForBundle ) ) );
     }
 
 

@@ -39,7 +39,7 @@ import password.pwm.user.UserInfo;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
@@ -196,7 +196,7 @@ public class SessionTrackService extends AbstractPwmService implements PwmServic
             )
             throws IOException
     {
-        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
         {
             final List<String> headerRow = new ArrayList<>();
             headerRow.add( LocaleHelper.getLocalizedMessage( locale, Admin.Field_Session_Label, config ) );
@@ -237,7 +237,7 @@ public class SessionTrackService extends AbstractPwmService implements PwmServic
     }
 
 
-    private static SessionStateInfoBean infoBeanFromPwmSession( final PwmSession loopSession )
+    private SessionStateInfoBean infoBeanFromPwmSession( final PwmSession loopSession )
     {
         final LocalSessionStateBean loopSsBean = loopSession.getSessionStateBean();
         final LoginInfoBean loginInfoBean = loopSession.getLoginInfoBean();
@@ -258,7 +258,7 @@ public class SessionTrackService extends AbstractPwmService implements PwmServic
         {
             final UserInfo loopUiBean = loopSession.getUserInfo();
             sessionStateInfoBean.setLdapProfile( loginInfoBean.isAuthenticated()
-                    ? loopUiBean.getUserIdentity().getLdapProfileID()
+                    ? loopUiBean.getUserIdentity().getLdapProfileID().stringValue()
                     : "" );
 
             sessionStateInfoBean.setUserDN( loginInfoBean.isAuthenticated()
@@ -273,7 +273,7 @@ public class SessionTrackService extends AbstractPwmService implements PwmServic
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( loopSession.getLabel(), () -> "unexpected error reading username: " + e.getMessage(), e );
+                LOGGER.error( getSessionLabel(), () -> "unexpected error reading username: " + e.getMessage(), e );
             }
         }
 

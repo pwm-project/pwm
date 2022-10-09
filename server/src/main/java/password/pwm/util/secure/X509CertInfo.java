@@ -23,7 +23,7 @@ package password.pwm.util.secure;
 import password.pwm.PwmConstants;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.security.PrivateKey;
@@ -66,7 +66,7 @@ public enum X509CertInfo
 
     public static Map<String, String> makeDebugInfoMap( final X509Certificate cert, final X509Utils.DebugInfoFlag... flags )
     {
-        if ( JavaHelper.enumArrayContainsValue( flags, X509Utils.DebugInfoFlag.IncludeCertificateDetail ) )
+        if ( EnumUtil.enumArrayContainsValue( flags, X509Utils.DebugInfoFlag.IncludeCertificateDetail ) )
         {
             final Map<X509CertInfo, String> infoMap = new EnumMap<>( X509CertInfo.class );
             infoMap.putAll( makeDebugInfoMapImpl( cert ) );

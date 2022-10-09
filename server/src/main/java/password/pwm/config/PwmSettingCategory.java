@@ -22,9 +22,11 @@ package password.pwm.config;
 
 import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
+import password.pwm.bean.ProfileID;
 import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.CollectorUtil;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.macro.MacroRequest;
@@ -211,21 +213,21 @@ public enum PwmSettingCategory
     private static final Comparator<PwmSettingCategory> MENU_LOCATION_COMPARATOR = Comparator.comparing(
             ( pwmSettingCategory ) -> pwmSettingCategory.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE ) );
 
-    private static final Supplier<List<PwmSettingCategory>> SORTED_VALUES = new LazySupplier<>( () -> Collections.unmodifiableList( Arrays.stream( values() )
+    private static final Supplier<List<PwmSettingCategory>> SORTED_VALUES = LazySupplier.create( () -> Collections.unmodifiableList( Arrays.stream( values() )
             .sorted( MENU_LOCATION_COMPARATOR )
             .collect( Collectors.toList() ) ) );
 
     private final PwmSettingCategory parent;
 
-    private final transient Supplier<Optional<PwmSetting>> profileSetting = new LazySupplier<>( () -> DataReader.readProfileSettingFromXml( this, true ) );
-    private final transient Supplier<Integer> level = new LazySupplier<>( () -> DataReader.readLevel( this ) );
-    private final transient Supplier<Boolean> hidden = new LazySupplier<>( () -> DataReader.readHidden( this ) );
-    private final transient Supplier<Boolean> isTopLevelProfile = new LazySupplier<>( () -> DataReader.readIsTopLevelProfile( this ) );
-    private final transient Supplier<String> defaultLocaleLabel = new LazySupplier<>( () -> DataReader.readLabel( this, PwmConstants.DEFAULT_LOCALE ) );
-    private final transient Supplier<String> defaultLocaleDescription = new LazySupplier<>( () -> DataReader.readDescription( this, PwmConstants.DEFAULT_LOCALE ) );
-    private final transient Supplier<PwmSettingScope> scope = new LazySupplier<>( () -> DataReader.readScope( this ) );
-    private final transient Supplier<Set<PwmSettingCategory>> children = new LazySupplier<>( () -> DataReader.readChildren( this ) );
-    private final transient Supplier<Set<PwmSetting>> settings = new LazySupplier<>( () -> DataReader.readSettings( this ) );
+    private final transient Supplier<Optional<PwmSetting>> profileSetting = LazySupplier.create( () -> DataReader.readProfileSettingFromXml( this, true ) );
+    private final transient Supplier<Integer> level = LazySupplier.create( () -> DataReader.readLevel( this ) );
+    private final transient Supplier<Boolean> hidden = LazySupplier.create( () -> DataReader.readHidden( this ) );
+    private final transient Supplier<Boolean> isTopLevelProfile = LazySupplier.create( () -> DataReader.readIsTopLevelProfile( this ) );
+    private final transient Supplier<String> defaultLocaleLabel = LazySupplier.create( () -> DataReader.readLabel( this, PwmConstants.DEFAULT_LOCALE ) );
+    private final transient Supplier<String> defaultLocaleDescription = LazySupplier.create( () -> DataReader.readDescription( this, PwmConstants.DEFAULT_LOCALE ) );
+    private final transient Supplier<PwmSettingScope> scope = LazySupplier.create( () -> DataReader.readScope( this ) );
+    private final transient Supplier<Set<PwmSettingCategory>> children = LazySupplier.create( () -> DataReader.readChildren( this ) );
+    private final transient Supplier<Set<PwmSetting>> settings = LazySupplier.create( () -> DataReader.readSettings( this ) );
 
     PwmSettingCategory( final PwmSettingCategory parent )
     {
@@ -313,7 +315,7 @@ public enum PwmSettingCategory
     }
 
     public String toMenuLocationDebug(
-            final String profileID,
+            final ProfileID profileID,
             final Locale locale
     )
     {
@@ -322,7 +324,7 @@ public enum PwmSettingCategory
 
     private static String toMenuLocationDebugImpl(
             final PwmSettingCategory category,
-            final String profileID,
+            final ProfileID profileID,
             final Locale locale
     )
     {
@@ -455,7 +457,7 @@ public enum PwmSettingCategory
         private static PwmSettingScope readScope( final PwmSettingCategory category )
         {
             final String attributeValue = readAttributeFromCategoryOrParent( category, PwmSettingXml.XML_ELEMENT_SCOPE );
-            return JavaHelper.readEnumFromString( PwmSettingScope.class, attributeValue ).orElseThrow( () -> new IllegalStateException(
+            return EnumUtil.readEnumFromString( PwmSettingScope.class, attributeValue ).orElseThrow( () -> new IllegalStateException(
                     "unable to parse value for PwmSettingCategory '" + category + "' scope attribute" ) );
         }
 
@@ -509,19 +511,17 @@ public enum PwmSettingCategory
 
         public static Set<PwmSettingCategory> readChildren( final PwmSettingCategory category )
         {
-            final Set<PwmSettingCategory> categories = CollectionUtil.enumStream( PwmSettingCategory.class )
+            return EnumUtil.enumStream( PwmSettingCategory.class )
                     .filter( ( loopCategory ) -> loopCategory.getParent() == category )
-                    .collect( Collectors.toUnmodifiableSet() );
-            return Collections.unmodifiableSet( CollectionUtil.copyToEnumSet( categories, PwmSettingCategory.class ) );
+                    .collect( CollectorUtil.toUnmodifiableEnumSet( PwmSettingCategory.class, s -> s ) );
         }
 
         public static Set<PwmSetting> readSettings( final PwmSettingCategory category )
         {
-            final Set<PwmSetting> settings = EnumSet.allOf( PwmSetting.class )
+            return EnumSet.allOf( PwmSetting.class )
                     .stream()
                     .filter( ( setting ) -> setting.getCategory() == category )
-                    .collect( Collectors.toSet() );
-            return Collections.unmodifiableSet( CollectionUtil.copyToEnumSet( settings, PwmSetting.class ) );
+                    .collect( CollectorUtil.toUnmodifiableEnumSet( PwmSetting.class, s -> s ) );
         }
     }
 }

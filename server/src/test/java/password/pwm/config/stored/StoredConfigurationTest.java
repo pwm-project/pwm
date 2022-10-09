@@ -20,30 +20,33 @@
 
 package password.pwm.config.stored;
 
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import password.pwm.PwmApplication;
 import password.pwm.config.AppConfig;
+import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.TestHelper;
 
+import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Path;
 
 public class StoredConfigurationTest
 {
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @TempDir
+    public Path temporaryFolder;
 
     private static AppConfig appConfig;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception
     {
         try ( InputStream xmlFile = ConfigurationCleanerTest.class.getResourceAsStream( "ConfigurationCleanerTest.xml" ) )
         {
             final StoredConfiguration storedConfiguration = StoredConfigurationFactory.input( xmlFile );
-            appConfig = new AppConfig( storedConfiguration );
+            appConfig = AppConfig.forStoredConfig( storedConfiguration );
         }
     }
 
@@ -51,7 +54,10 @@ public class StoredConfigurationTest
     public void configurationHashTest()
             throws Exception
     {
-        final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), appConfig );
+        final File testFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-configurationHashTest" );
+        final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( testFolder, appConfig );
         final String configHash = StoredConfigurationUtil.valueHash( appConfig.getStoredConfiguration() );
+
+        Assertions.assertTrue( !configHash.isEmpty() );
     }
 }

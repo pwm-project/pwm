@@ -31,7 +31,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.util.cli.CliException;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.TimeDuration;
@@ -86,18 +86,18 @@ public class ExportResponsesCommand extends AbstractCliCommand
     )
             throws PwmUnrecoverableException, PwmOperationalException, IOException, ChaiValidationException
     {
-        final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
+        final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
         final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                 .searchTimeout( TimeDuration.MINUTE )
                 .enableValueEscaping( false )
                 .username( "*" )
                 .build();
 
-        final Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(
+        final Map<UserIdentity, Map<String, String>> results = userSearchService.performMultiUserSearch(
                 searchConfiguration,
                 Integer.MAX_VALUE,
                 Collections.emptyList(),
-                SessionLabel.SYSTEM_LABEL
+                SessionLabel.CLI_SESSION_LABEL
         );
         out( "searching " + results.size() + " users for stored responses...." );
         int counter = 0;

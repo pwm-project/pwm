@@ -172,6 +172,18 @@
         <description>Displays the context url path</description>
     </tag>
     <tag>
+        <name>textFile</name>
+        <tag-class>password.pwm.http.tag.PwmTextFileTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Displays contents of standard text files</description>
+        <attribute>
+            <name>textFileResource</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>password.pwm.http.servlet.resource.TextFileResource</type>
+        </attribute>
+    </tag>
+    <tag>
         <name>if</name>
         <tag-class>password.pwm.http.tag.conditional.PwmIfTag</tag-class>
         <body-content>JSP</body-content>
@@ -205,6 +217,12 @@
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
             <type>password.pwm.http.PwmRequestFlag</type>
+        </attribute>
+        <attribute>
+            <name>textFileResource</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+            <type>password.pwm.http.servlet.resource.TextFileResource</type>
         </attribute>
     </tag>
     <tag>

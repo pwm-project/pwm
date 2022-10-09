@@ -20,10 +20,10 @@
 
 package password.pwm.util.java;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.LongAccumulator;
 import java.util.stream.Collectors;
 
@@ -34,9 +34,9 @@ public class StatisticCounterBundle<K extends Enum<K>>
 
     public StatisticCounterBundle( final Class<K> keyType )
     {
-        this.keyType = keyType;
-        statMap = new EnumMap<>( keyType );
-        Arrays.stream( keyType.getEnumConstants() ).forEach( k -> statMap.put( k, JavaHelper.newAbsLongAccumulator() ) );
+        this.keyType = Objects.requireNonNull( keyType );
+        this.statMap = new EnumMap<>( keyType );
+        EnumUtil.forEach( keyType, k -> statMap.put( k, JavaHelper.newAbsLongAccumulator() ) );
     }
 
     public void increment( final K stat )
@@ -55,12 +55,12 @@ public class StatisticCounterBundle<K extends Enum<K>>
         return longAdder == null ? 0 : longAdder.longValue();
     }
 
-    public Map<String, String> debugStats()
+    public Map<String, String> debugStats( final Locale locale )
     {
-        return Collections.unmodifiableMap( Arrays.stream( keyType.getEnumConstants() )
-                .collect( Collectors.toMap(
-                        Enum::name,
-                        stat -> Long.toString( get( stat ) )
-                ) ) );
+        final PwmNumberFormat pwmNumberFormat = PwmNumberFormat.forLocale( locale );
+        return statMap.entrySet().stream()
+                .collect( Collectors.toUnmodifiableMap(
+                        entry -> entry.getKey().name(),
+                        entry -> pwmNumberFormat.format( entry.getValue().longValue() ) ) );
     }
 }

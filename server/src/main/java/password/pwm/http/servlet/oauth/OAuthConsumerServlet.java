@@ -23,6 +23,7 @@ package password.pwm.http.servlet.oauth;
 import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.profile.ForgottenPasswordProfile;
@@ -40,8 +41,8 @@ import password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
-import password.pwm.ldap.search.UserSearchEngine;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.ldap.search.UserSearchService;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
@@ -142,7 +143,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                     return;
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( oAuthUseCaseCase );
+                    PwmUtil.unhandledSwitchStatement( oAuthUseCaseCase );
             }
 
         }
@@ -184,7 +185,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                         return;
 
                     default:
-                        MiscUtil.unhandledSwitchStatement( oAuthUseCaseCase );
+                        PwmUtil.unhandledSwitchStatement( oAuthUseCaseCase );
                 }
             }
             catch ( final PwmUnrecoverableException e )
@@ -248,8 +249,8 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         {
             try
             {
-                final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
-                final UserIdentity resolvedIdentity = userSearchEngine.resolveUsername(
+                final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
+                final UserIdentity resolvedIdentity = userSearchService.resolveUsername(
                         oauthSuppliedUsername,
                         null,
                         null,
@@ -318,12 +319,12 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                 return OAuthSettings.forSSOAuthentication( pwmRequest.getDomainConfig() );
 
             case ForgottenPassword:
-                final String profileId = oAuthState.getForgottenProfileId();
+                final ProfileID profileId = oAuthState.getForgottenProfileId();
                 final ForgottenPasswordProfile profile = pwmRequest.getDomainConfig().getForgottenPasswordProfiles().get( profileId );
                 return OAuthSettings.forForgottenPassword( profile );
 
             default:
-                MiscUtil.unhandledSwitchStatement( oAuthUseCase );
+                PwmUtil.unhandledSwitchStatement( oAuthUseCase );
 
         }
 

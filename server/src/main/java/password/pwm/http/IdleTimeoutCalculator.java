@@ -26,6 +26,7 @@ import password.pwm.Permission;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.HelpdeskProfile;
@@ -35,7 +36,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.user.UserInfo;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -83,7 +83,7 @@ public class IdleTimeoutCalculator
                     if ( peopleSearchIdleTimeout > 0 )
                     {
                         results.add( new MaxIdleTimeoutResult(
-                                MaxIdleTimeoutResult.reasonFor( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS, publicProfile.getIdentifier() ),
+                                MaxIdleTimeoutResult.reasonFor( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS, publicProfile.getId() ),
                                 TimeDuration.of( peopleSearchIdleTimeout, TimeDuration.Unit.SECONDS ) ) );
                     }
                 }
@@ -117,8 +117,8 @@ public class IdleTimeoutCalculator
 
         if ( domainConfig.readSettingAsBoolean( PwmSetting.HELPDESK_ENABLE ) )
         {
-            final String helpdeskProfileID = userInfo.getProfileIDs().get( ProfileDefinition.Helpdesk );
-            if ( StringUtil.notEmpty( helpdeskProfileID ) )
+            final ProfileID helpdeskProfileID = userInfo.getProfileIDs().get( ProfileDefinition.Helpdesk );
+            if ( helpdeskProfileID != null )
             {
                 final HelpdeskProfile helpdeskProfile = domainConfig.getHelpdeskProfiles().get( helpdeskProfileID );
                 final long helpdeskIdleTimeout = helpdeskProfile.readSettingAsLong( PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS );
@@ -130,8 +130,8 @@ public class IdleTimeoutCalculator
 
         if ( domainConfig.readSettingAsBoolean( PwmSetting.PEOPLE_SEARCH_ENABLE ) )
         {
-            final String peopleSearchID = userInfo.getProfileIDs().get( ProfileDefinition.PeopleSearch );
-            if ( StringUtil.notEmpty( peopleSearchID ) )
+            final ProfileID peopleSearchID = userInfo.getProfileIDs().get( ProfileDefinition.PeopleSearch );
+            if ( peopleSearchID != null )
             {
                 final PeopleSearchProfile peopleSearchProfile = domainConfig.getPeopleSearchProfiles().get( peopleSearchID );
                 final long peopleSearchIdleTimeout = peopleSearchProfile.readSettingAsLong( PwmSetting.PEOPLE_SEARCH_IDLE_TIMEOUT_SECONDS );
@@ -167,7 +167,7 @@ public class IdleTimeoutCalculator
             return this.idleTimeout.compareTo( o.getIdleTimeout() );
         }
 
-        static Supplier<String> reasonFor( final PwmSetting pwmSetting, final String profileID )
+        static Supplier<String> reasonFor( final PwmSetting pwmSetting, final ProfileID profileID )
         {
             return () -> "Setting " + pwmSetting.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE );
         }

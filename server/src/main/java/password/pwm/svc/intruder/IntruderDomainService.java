@@ -52,7 +52,7 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.DataStore;
 import password.pwm.util.DataStoreFactory;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -83,7 +83,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
     private IntruderSettings intruderSettings;
     private ServiceInfoBean serviceInfo = ServiceInfoBean.builder().build();
 
-    public IntruderDomainService( )
+    public IntruderDomainService()
     {
         EnumSet.allOf( IntruderRecordType.class ).forEach( recordType -> recordManagers.put( recordType, new StubRecordManager() ) );
     }
@@ -170,7 +170,8 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
         return dataStore;
     }
 
-    private void initializeRecordManagers() throws PwmUnrecoverableException
+    private void initializeRecordManagers()
+            throws PwmUnrecoverableException
     {
         this.recordManagers.clear();
         final IntruderRecordStore recordStore = pwmDomain.getPwmApplication().getIntruderSystemService().getRecordStore();
@@ -193,13 +194,13 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
 
 
     @Override
-    public void shutdownImpl( )
+    public void shutdownImpl()
     {
         setStatus( STATUS.CLOSED );
     }
 
     @Override
-    public List<HealthRecord> serviceHealthCheck( )
+    public List<HealthRecord> serviceHealthCheck()
     {
         return Collections.emptyList();
     }
@@ -238,7 +239,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
                     throw new PwmUnrecoverableException( PwmError.ERROR_INTRUDER_USER );
 
                 default:
-                    MiscUtil.unhandledSwitchStatement( recordType );
+                    PwmUtil.unhandledSwitchStatement( recordType );
             }
         }
     }
@@ -292,13 +293,17 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
 
         if ( recordType == IntruderRecordType.USER_ID )
         {
-            final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( sessionLabel, subject );
-            final UserAuditRecord auditRecord = AuditRecordFactory.make( sessionLabel, pwmDomain ).createUserAuditRecord(
-                    AuditEvent.INTRUDER_USER_ATTEMPT,
-                    userIdentity,
-                    sessionLabel
-            );
-            AuditServiceClient.submit( pwmDomain.getPwmApplication(), sessionLabel, auditRecord );
+
+            final Optional<UserIdentity> userIdentity = subjectToIdentity( sessionLabel, subject );
+            if ( userIdentity.isPresent() )
+            {
+                final UserAuditRecord auditRecord = AuditRecordFactory.make( sessionLabel, pwmDomain ).createUserAuditRecord(
+                        AuditEvent.INTRUDER_USER_ATTEMPT,
+                        userIdentity.get(),
+                        sessionLabel
+                );
+                AuditServiceClient.submit( pwmDomain.getPwmApplication(), sessionLabel, auditRecord );
+            }
         }
         else
         {
@@ -323,14 +328,17 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
             {
                 if ( recordType == IntruderRecordType.USER_ID )
                 {
-                    final UserIdentity userIdentity = UserIdentity.fromDelimitedKey( sessionLabel, subject );
-                    final UserAuditRecord auditRecord = AuditRecordFactory.make( sessionLabel, pwmDomain ).createUserAuditRecord(
-                            AuditEvent.INTRUDER_USER_LOCK,
-                            userIdentity,
-                            sessionLabel
-                    );
-                    AuditServiceClient.submit( pwmDomain.getPwmApplication(), sessionLabel, auditRecord );
-                    manager.readIntruderRecord( subject ).ifPresent( record -> sendAlert( record, sessionLabel ) );
+                    final Optional<UserIdentity> userIdentity = subjectToIdentity( sessionLabel, subject );
+                    if ( userIdentity.isPresent() )
+                    {
+                        final UserAuditRecord auditRecord = AuditRecordFactory.make( sessionLabel, pwmDomain ).createUserAuditRecord(
+                                AuditEvent.INTRUDER_USER_LOCK,
+                                userIdentity.get(),
+                                sessionLabel
+                        );
+                        AuditServiceClient.submit( pwmDomain.getPwmApplication(), sessionLabel, auditRecord );
+                        manager.readIntruderRecord( subject ).ifPresent( record -> sendAlert( record, sessionLabel ) );
+                    }
                 }
                 else
                 {
@@ -387,15 +395,8 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
 
         if ( intruderRecord.getType() == IntruderRecordType.USER_ID )
         {
-            try
-            {
-                final UserIdentity identity = UserIdentity.fromDelimitedKey( sessionLabel, intruderRecord.getSubject() );
-                sendIntruderNoticeEmail( pwmDomain, sessionLabel, identity );
-            }
-            catch ( final PwmUnrecoverableException e )
-            {
-                LOGGER.error( sessionLabel, () -> "unable to send intruder mail, can't read userDN/ldapProfile from stored record: " + e.getMessage() );
-            }
+            final Optional<UserIdentity> userIdentity = subjectToIdentity( sessionLabel, intruderRecord.getSubject() );
+            userIdentity.ifPresent( identity -> sendIntruderNoticeEmail( pwmDomain, sessionLabel, identity ) );
         }
     }
 
@@ -417,7 +418,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
         {
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
                     pwmDomain.getPwmApplication(),
-                    SessionLabel.SYSTEM_LABEL,
+                    sessionLabel,
                     userIdentity, locale
             );
 
@@ -437,7 +438,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
     }
 
     @Override
-    public ServiceInfoBean serviceInfo( )
+    public ServiceInfoBean serviceInfo()
     {
         return serviceInfo;
     }
@@ -457,5 +458,27 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
         }
 
         return intruderRecord.get().getAttemptCount();
+    }
+
+    static String identityToSubject( final UserIdentity userIdentity )
+    {
+        return JsonFactory.get().serialize( userIdentity );
+    }
+
+    static Optional<UserIdentity> subjectToIdentity( final SessionLabel sessionLabel, final String subject )
+    {
+        if ( !StringUtil.isEmpty( subject ) )
+        {
+            try
+            {
+                return Optional.of( JsonFactory.get().deserialize( subject, UserIdentity.class ) );
+            }
+            catch ( final Exception e )
+            {
+                LOGGER.error( sessionLabel, () -> "can't read userDN/ldapProfile from stored record: " + e.getMessage() );
+            }
+        }
+
+        return Optional.empty();
     }
 }

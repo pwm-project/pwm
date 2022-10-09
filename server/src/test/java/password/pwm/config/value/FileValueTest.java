@@ -25,8 +25,8 @@ import org.jrivard.xmlchai.AccessMode;
 import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.ConfigurationCleanerTest;
@@ -80,11 +80,11 @@ public class FileValueTest
                 fileContent = map.values().iterator().next();
             }
 
-            Assert.assertEquals( "filename", fileInformation.getFilename() );
-            Assert.assertEquals( "fileType", fileInformation.getFiletype() );
-            Assert.assertEquals( inputFile.length, fileContent.getContents().size() );
-            Assert.assertArrayEquals( inputFile, fileContent.getContents().copyOf() );
-            Assert.assertEquals( inputHash, fileContent.sha512sum() );
+            Assertions.assertEquals( "filename", fileInformation.getFilename() );
+            Assertions.assertEquals( "fileType", fileInformation.getFiletype() );
+            Assertions.assertEquals( inputFile.length, fileContent.getContents().size() );
+            Assertions.assertArrayEquals( inputFile, fileContent.getContents().copyOf() );
+            Assertions.assertEquals( inputHash, fileContent.sha512sum() );
         }
     }
 }

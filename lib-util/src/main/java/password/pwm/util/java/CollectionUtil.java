@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,23 +38,28 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class CollectionUtil
+public final class CollectionUtil
 {
+    private CollectionUtil()
+    {
+    }
+
     public static <T> Stream<T> iteratorToStream( final Iterator<T> iterator )
     {
-        return StreamSupport.stream( Spliterators.spliteratorUnknownSize( iterator, Spliterator.ORDERED ), false );
+        return Optional.ofNullable( iterator )
+                .map( it -> StreamSupport.stream( Spliterators.spliteratorUnknownSize( it, Spliterator.ORDERED ), false ) )
+                .orElse( Stream.empty() );
     }
 
     public static <V> List<V> stripNulls( final List<V> input )
     {
         if ( input == null )
         {
-            return Collections.emptyList();
+            return List.of();
         }
 
         return input.stream()
@@ -65,7 +71,7 @@ public class CollectionUtil
     {
         if ( input == null )
         {
-            return Collections.emptySet();
+            return Set.of();
         }
 
         return input.stream()
@@ -77,42 +83,45 @@ public class CollectionUtil
     {
         if ( input == null )
         {
-            return Collections.emptyMap();
+            return Map.of();
         }
 
-        return input.entrySet().stream()
-                .filter( e -> e.getKey() != null && e.getValue() != null )
-                .collect( collectorToLinkedMap( Map.Entry::getKey, Map.Entry::getValue ) );
+        final Stream<Map.Entry<K, V>> stream = input.entrySet().stream()
+                .filter( CollectionUtil::testMapEntryForNotNull );
+
+        final boolean ordered = input instanceof LinkedHashMap;
+        return ordered
+                ? stream.collect( CollectorUtil.toUnmodifiableLinkedMap( Map.Entry::getKey, Map.Entry::getValue ) )
+                : stream.collect( Collectors.toUnmodifiableMap( Map.Entry::getKey, Map.Entry::getValue ) );
     }
 
     public static <K extends Enum<K>, V> EnumMap<K, V> copiedEnumMap( final Map<K, V> source, final Class<K> classOfT )
     {
-        if ( source == null )
+        if ( CollectionUtil.isEmpty( source ) )
         {
-            return new EnumMap<>( classOfT );
+            return new EnumMap<K, V>( classOfT );
         }
 
-        final EnumMap<K, V> returnMap = new EnumMap<>( classOfT );
-        for ( final Map.Entry<K, V> entry : source.entrySet() )
-        {
-            final K key = entry.getKey();
-            if ( key != null )
-            {
-                returnMap.put( key, entry.getValue() );
-            }
-        }
-        return returnMap;
+        return source.entrySet().stream()
+                .filter( CollectionUtil::testMapEntryForNotNull )
+                .collect( Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        CollectorUtil::errorOnDuplicateMergeOperator,
+                        () -> new EnumMap<>( classOfT ) ) );
+
     }
 
     public static <E extends Enum<E>> Set<E> readEnumSetFromStringCollection( final Class<E> enumClass, final Collection<String> inputs )
     {
-        if ( inputs == null )
+        if ( CollectionUtil.isEmpty( inputs ) )
         {
             return Collections.emptySet();
         }
 
         final Set<E> set = inputs.stream()
-                .map( input -> JavaHelper.readEnumFromString( enumClass, input ) )
+                .filter( Objects::nonNull )
+                .map( input -> EnumUtil.readEnumFromString( enumClass, input ) )
                 .flatMap( Optional::stream )
                 .collect( Collectors.toSet() );
 
@@ -131,10 +140,16 @@ public class CollectionUtil
             final Function<E, String> keyToStringFunction
     )
     {
-        return Collections.unmodifiableMap( inputMap.entrySet().stream()
-                .collect( collectorToLinkedMap(
+        if ( CollectionUtil.isEmpty( inputMap ) )
+        {
+            return Collections.emptyMap();
+        }
+
+        return inputMap.entrySet().stream()
+                .filter( CollectionUtil::testMapEntryForNotNull )
+                .collect( CollectorUtil.toUnmodifiableLinkedMap(
                         entry -> keyToStringFunction.apply( entry.getKey() ),
-                        Map.Entry::getValue ) ) );
+                        Map.Entry::getValue ) );
     }
 
     public static <E extends Enum<E>> Map<String, String> enumMapToStringMap( final Map<E, String> inputMap )
@@ -159,13 +174,15 @@ public class CollectionUtil
                 : EnumSet.copyOf( source );
     }
 
+    public static <E extends Enum<E>> EnumSet<E> copyToEnumSet( final Set<E> source, final Class<E> classOfT )
+    {
+        return isEmpty( source )
+                ? EnumSet.noneOf( classOfT )
+                : EnumSet.copyOf( source );
+    }
+
     public static <E> List<E> iteratorToList( final Iterator<E> iterator )
     {
-        if ( iterator == null )
-        {
-            return Collections.emptyList();
-        }
-
         return iteratorToStream( iterator )
                 .collect( Collectors.toUnmodifiableList() );
     }
@@ -176,51 +193,56 @@ public class CollectionUtil
      * {@link Collections#unmodifiableMap(Map)}.
      */
     @SuppressFBWarnings( "OCP_OVERLY_CONCRETE_PARAMETER" )
-    public static <K, V> Map<K, V> combineOrderedMaps( final List<Map<K, V>> maps )
+    public static <K, V> Map<K, V> combineOrderedMaps( final List<Map<K, V>> listOfMaps )
     {
-        final Map<K, V> returnMap = new LinkedHashMap<>();
-        for ( final Map<K, V> loopMap : maps )
+        if ( CollectionUtil.isEmpty( listOfMaps ) )
         {
-            returnMap.putAll( loopMap );
+            return Collections.emptyMap();
         }
-        return Collections.unmodifiableMap( returnMap );
+
+        return listOfMaps.stream()
+                .filter( Objects::nonNull )
+                .flatMap( kvMap -> kvMap.entrySet().stream() )
+                .filter( CollectionUtil::testMapEntryForNotNull )
+                .collect( CollectorUtil.toUnmodifiableLinkedMap( Map.Entry::getKey, Map.Entry::getValue ) );
     }
 
-    public static <T, K, U> Collector<T, ?, Map<K, U>> collectorToLinkedMap(
-            final Function<? super T, ? extends K> keyMapper,
-            final Function<? super T, ? extends U> valueMapper
-    )
+    public static <T> Set<T> setUnion( final Set<T> set1, final Set<T> set2 )
     {
-        return Collectors.toMap(
-                keyMapper,
-                valueMapper,
-                ( key1, key2 ) ->
-                {
-                    throw new IllegalStateException( "Duplicate key " + key1 );
-                },
-                LinkedHashMap::new
-        );
+        final Set<T> unionSet = new HashSet<>( set1 == null ? Collections.emptySet() : set1 );
+        unionSet.retainAll( set2 == null ? Collections.<T>emptySet() : set2 );
+        return Set.copyOf( unionSet );
     }
 
-    public static <T, K extends Enum<K>, U> Collector<T, ?, Map<K, U>> collectorToEnumMap(
-            final Class<K> keyClass,
-            final Function<? super T, ? extends K> keyMapper,
-            final Function<? super T, ? extends U> valueMapper
-    )
+    public static <T, R> List<R> convertListType( final List<T> input, final Function<T, R> convertFunction )
+
     {
-        return Collectors.toMap(
-                keyMapper,
-                valueMapper,
-                ( key1, key2 ) ->
-                {
-                    throw new IllegalStateException( "Duplicate key " + key1 );
-                },
-                () -> new EnumMap<>( keyClass )
-        );
+        return stripNulls( input ).stream().map( convertFunction ).collect( Collectors.toUnmodifiableList() );
     }
 
-    public static <E extends Enum<E>> Stream<E> enumStream( final Class<E> enumClass )
+    private static <K, V> boolean testMapEntryForNotNull( final Map.Entry<K, V> entry )
     {
-        return EnumSet.allOf( enumClass ).stream();
+        return entry != null && entry.getKey() != null && entry.getValue() != null;
     }
+
+    public static <E extends Enum<E>, V> Map<E, V> unmodifiableEnumMap( final Map<E, V> inputSet, final Class<E> classOfT )
+    {
+        if ( CollectionUtil.isEmpty( inputSet ) )
+        {
+            return Map.of();
+        }
+
+        return Collections.unmodifiableMap( copiedEnumMap( inputSet, classOfT ) );
+    }
+
+    public static <E extends Enum<E>> Set<E> unmodifiableEnumSet( final Set<E> inputSet, final Class<E> classOfT )
+    {
+        if ( CollectionUtil.isEmpty( inputSet ) )
+        {
+            return Set.of();
+        }
+
+        return Collections.unmodifiableSet( copyToEnumSet( inputSet, classOfT ) );
+    }
+
 }

@@ -22,6 +22,7 @@ package password.pwm.svc.secure;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -32,9 +33,9 @@ import password.pwm.svc.PwmService;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.CopyingInputStream;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.HmacAlgorithm;
 import password.pwm.util.secure.PwmBlockAlgorithm;
@@ -46,7 +47,6 @@ import password.pwm.util.secure.SecureEngine;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -140,7 +140,7 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
     {
         return ServiceInfoBean.builder()
                 .debugProperties( CollectionUtil.combineOrderedMaps( List.of(
-                        stats.debugStats(),
+                        stats.debugStats( PwmConstants.DEFAULT_LOCALE ),
                         CollectionUtil.enumMapToStringMap( debugData() ) ) ) )
                 .build();
     }
@@ -171,7 +171,9 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
         return SecureEngine.encryptToString( value, securityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE );
     }
 
-    public String encryptObjectToString( final Serializable serializableObject ) throws PwmUnrecoverableException
+    @Override
+    public String encryptObjectToString( final Object serializableObject )
+            throws PwmUnrecoverableException
     {
         final String jsonValue = JsonFactory.get().serialize( serializableObject );
         stats.increment( StatKey.encryptOperations );
@@ -179,7 +181,9 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
         return encryptToString( jsonValue );
     }
 
-    public String encryptObjectToString( final Serializable serializableObject, final PwmSecurityKey securityKey ) throws PwmUnrecoverableException
+    @Override
+    public String encryptObjectToString( final Object serializableObject, final PwmSecurityKey securityKey )
+            throws PwmUnrecoverableException
     {
         final String jsonValue = JsonFactory.get().serialize( serializableObject );
         stats.increment( StatKey.encryptOperations );
@@ -208,7 +212,8 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
         return SecureEngine.decryptStringValue( value, securityKey, defaultBlockAlgorithm, SecureEngine.Flag.URL_SAFE );
     }
 
-    public <T extends Serializable> T decryptObject( final String value, final Class<T> returnClass ) throws PwmUnrecoverableException
+    @Override
+    public <T> T decryptObject( final String value, final Class<T> returnClass ) throws PwmUnrecoverableException
     {
         final String decryptedValue = decryptStringValue( value );
         stats.increment( StatKey.decryptOperations );
@@ -216,7 +221,8 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
         return JsonFactory.get().deserialize( decryptedValue, returnClass );
     }
 
-    public <T extends Serializable> T decryptObject( final String value, final PwmSecurityKey securityKey, final Class<T> returnClass ) throws PwmUnrecoverableException
+    @Override
+    public <T> T decryptObject( final String value, final PwmSecurityKey securityKey, final Class<T> returnClass ) throws PwmUnrecoverableException
     {
         final String decryptedValue = decryptStringValue( value, securityKey );
         stats.increment( StatKey.decryptOperations );

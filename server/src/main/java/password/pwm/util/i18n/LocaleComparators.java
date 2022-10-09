@@ -21,7 +21,7 @@
 package password.pwm.util.i18n;
 
 import password.pwm.PwmConstants;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 
 import java.io.Serializable;
 import java.util.Comparator;
@@ -57,7 +57,7 @@ public class LocaleComparators
     {
         if ( Objects.equals( comparisonLocale, PwmConstants.DEFAULT_LOCALE ) )
         {
-            if ( JavaHelper.enumArrayContainsValue( flag, Flag.DefaultFirst ) )
+            if ( EnumUtil.enumArrayContainsValue( flag, Flag.DefaultFirst ) )
             {
                 return LOCALE_COMPARATOR_DEFAULT_FIRST;
             }
@@ -78,7 +78,7 @@ public class LocaleComparators
     {
         if ( Objects.equals( comparisonLocale, PwmConstants.DEFAULT_LOCALE ) )
         {
-            if ( JavaHelper.enumArrayContainsValue( flag, Flag.DefaultFirst ) )
+            if ( EnumUtil.enumArrayContainsValue( flag, Flag.DefaultFirst ) )
             {
                 return STR_COMPARATOR_DEFAULT_FIRST;
             }
@@ -97,7 +97,7 @@ public class LocaleComparators
 
         LocaleComparator( final Locale comparisonLocale, final Flag... flag )
         {
-            this.defaultFirst = JavaHelper.enumArrayContainsValue( flag, Flag.DefaultFirst );
+            this.defaultFirst = EnumUtil.enumArrayContainsValue( flag, Flag.DefaultFirst );
             this.comparisonLocale = comparisonLocale;
         }
 

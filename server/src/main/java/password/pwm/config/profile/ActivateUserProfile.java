@@ -21,13 +21,14 @@
 package password.pwm.config.profile;
 
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.stored.StoredConfiguration;
 
 public class ActivateUserProfile extends AbstractProfile implements Profile
 {
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.ActivateUser;
 
-    protected ActivateUserProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedValueMap )
+    protected ActivateUserProfile( final DomainID domainID, final ProfileID identifier, final StoredConfiguration storedValueMap )
     {
         super( domainID, identifier, storedValueMap );
     }
@@ -41,7 +42,7 @@ public class ActivateUserProfile extends AbstractProfile implements Profile
     public static class UserActivationProfileFactory implements ProfileFactory
     {
         @Override
-        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final String identifier )
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final ProfileID identifier )
         {
             return new ActivateUserProfile( domainID, identifier, storedConfiguration );
         }

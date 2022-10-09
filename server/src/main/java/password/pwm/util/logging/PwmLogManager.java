@@ -20,151 +20,251 @@
 
 package password.pwm.util.logging;
 
-import com.novell.ldapchai.ChaiUser;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Layout;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.RollingFileAppender;
-import org.apache.log4j.xml.DOMConfigurator;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
+import ch.qos.logback.classic.filter.ThresholdFilter;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
+import ch.qos.logback.core.ConsoleAppender;
+import ch.qos.logback.core.encoder.EncoderBase;
+import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
+import ch.qos.logback.core.filter.Filter;
+import ch.qos.logback.core.joran.spi.ConfigurationWatchList;
+import ch.qos.logback.core.joran.util.ConfigurationWatchListUtil;
+import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
+import ch.qos.logback.core.rolling.RollingFileAppender;
+import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
+import ch.qos.logback.core.util.FileSize;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.slf4j.LoggerFactory;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
-import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.Callable;
 
 public class PwmLogManager
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmLogManager.class );
 
-    public static final List<String> LOGGING_PACKAGES = List.of(
-            PwmApplication.class.getPackage().getName(),
-            ChaiUser.class.getPackage().getName(),
-            "org.jasig.cas.client" );
+    private static final String LOGGER_NAME_LOCALDB = "pwmLocalDBLogger";
+    private static final String LOGGER_NAME_FILE = "pwmFileLogger";
+    private static final String LOGGER_NAME_CONSOLE = "pwmConsoleLogger";
 
-    public static void deinitializeLogger( )
+    private static final ThreadLocal<SessionLabel> THREAD_SESSION_DATA = new ThreadLocal<>();
+
+    private static PwmApplication pwmApplication;
+    private static LocalDBLogger localDBLogger;
+    private static PwmLogSettings pwmLogSettings = PwmLogSettings.defaultSettings();
+    private static PwmLogLevel lowestLogLevelConfigured = PwmLogLevel.TRACE;
+
+    public static void disableLogging( )
     {
-        // clear all existing package loggers
-        for ( final String logPackage : LOGGING_PACKAGES )
+        if ( logbackConfigFileExists() )
         {
-            if ( logPackage != null )
-            {
-                final Logger logger = Logger.getLogger( logPackage );
-                logger.setAdditivity( false );
-                logger.removeAllAppenders();
-                logger.setLevel( Level.TRACE );
-            }
+            LOGGER.info( () -> "skipping " + PwmConstants.PWM_APP_NAME
+                    + " logback configuration, logback is already configured" );
+
+            return;
         }
 
-        PwmLogger.setLocalDBLogger( null, null );
-        PwmLogger.setPwmApplication( null );
-        PwmLogger.setFileAppender( null );
+        final LoggerContext logCtx = getLoggerContext();
+
+        final Logger rootLogger = logCtx.getLogger( Logger.ROOT_LOGGER_NAME );
+        for ( final Iterator<Appender<ILoggingEvent>> iter = rootLogger.iteratorForAppenders(); iter.hasNext(); )
+        {
+            final Appender<ILoggingEvent> appender = iter.next();
+            rootLogger.detachAppender( appender );
+            appender.stop();
+        }
+
+        logCtx.reset();
+        logCtx.stop();
+
+        PwmLogManager.localDBLogger = null;
+        PwmLogManager.pwmApplication = null;
+        PwmLogManager.pwmLogSettings = PwmLogSettings.defaultSettings();
+        lowestLogLevelConfigured = PwmLogLevel.TRACE;
     }
 
-    public static void initializeLogger(
+    @SuppressFBWarnings( "EI_EXPOSE_STATIC_REP2" )
+    public static void initializeLogging(
             final PwmApplication pwmApplication,
             final AppConfig config,
-            final File log4jConfigFile,
-            final String consoleLogLevel,
             final File pwmApplicationPath,
-            final String fileLogLevel
+            final PwmLogSettings pwmLogSettings
     )
     {
-        PwmLogger.setPwmApplication( pwmApplication );
-
-        // try to configure using the log4j config file (if it exists)
-        if ( log4jConfigFile != null )
+        if ( pwmApplicationPath != null )
         {
-            try
+            final File logbackXmlInAppPath = new File( pwmApplicationPath.getPath() + File.separator + "logback.xml" );
+            if ( logbackXmlInAppPath.exists() )
             {
-                if ( !log4jConfigFile.exists() )
+                if ( PwmLogUtil.initLogbackFromXmlFile( logbackXmlInAppPath ) )
                 {
-                    throw new Exception( "file not found: " + log4jConfigFile.getAbsolutePath() );
+                    LOGGER.info( () -> "used appPath logback xml file '" + logbackXmlInAppPath.getPath()
+                            + "' to configure logging system, will ignore configured logging settings " );
                 }
-                DOMConfigurator.configure( log4jConfigFile.getAbsolutePath() );
-                LOGGER.debug( () -> "successfully initialized log4j using file " + log4jConfigFile.getAbsolutePath() );
-                return;
-            }
-            catch ( final Exception e )
-            {
-                LOGGER.error( () -> "error loading log4jconfig file '" + log4jConfigFile + "' error: " + e.getMessage() );
             }
         }
 
-        deinitializeLogger();
+        if ( logbackConfigFileExists() )
+        {
+            LOGGER.info( () -> "skipping " + PwmConstants.PWM_APP_NAME
+                    + " logback configuration, logback is already configured" );
 
-        initConsoleLogger( config, consoleLogLevel );
+            return;
+        }
 
-        initFileLogger( config, fileLogLevel, pwmApplicationPath );
+        disableLogging();
 
-        // disable jersey warnings.
-        java.util.logging.Logger.getLogger( "org.glassfish.jersey" ).setLevel( java.util.logging.Level.SEVERE );
+        // all initialize lines start here (above line disables everything !!)
+
+        PwmLogManager.pwmLogSettings = pwmLogSettings;
+        PwmLogManager.pwmApplication = pwmApplication;
+        PwmLogManager.lowestLogLevelConfigured = pwmLogSettings.calculateLowestLevel();
+
+        initConsoleLogger( config, pwmLogSettings.getStdoutLevel() );
+        initFileLogger( config, pwmLogSettings.getFileLevel(), pwmApplicationPath );
     }
 
-    public static void preInitConsoleLogLevel( final String pwmLogLevel )
+    static PwmLogLevel getLowestLogLevelConfigured()
     {
-        try
-        {
-            initConsoleLogger( new AppConfig( StoredConfigurationFactory.newConfig() ), pwmLogLevel );
-        }
-        catch ( final Exception e )
-        {
-            final String msg = "error pre-initializing logger: " + e.getMessage();
-            System.err.println( msg );
-        }
+        return lowestLogLevelConfigured;
+    }
+
+    static PwmLogSettings getPwmLogSettings()
+    {
+        return pwmLogSettings;
+    }
+
+    static LocalDBLogger getLocalDbLogger()
+    {
+        return localDBLogger;
+    }
+
+    static PwmApplication getPwmApplication()
+    {
+        return pwmApplication;
     }
 
     private static void initConsoleLogger(
             final AppConfig config,
-            final String consoleLogLevel
+            final PwmLogLevel consoleLogLevel
     )
     {
-        final Layout patternLayout = new PatternLayout( config.readAppProperty( AppProperty.LOGGING_PATTERN ) );
-        // configure console logging
-        if ( consoleLogLevel != null && consoleLogLevel.length() > 0 && !"Off".equals( consoleLogLevel ) )
+        final LoggerContext logCtx = getLoggerContext();
+
+        final ConsoleAppender<ILoggingEvent> logConsoleAppender = new ConsoleAppender<>();
+        logConsoleAppender.setContext( logCtx );
+        logConsoleAppender.setName( LOGGER_NAME_CONSOLE );
+        logConsoleAppender.setEncoder( makePatternLayoutEncoder( config ) );
+        logConsoleAppender.addFilter( makeLevelFilter( consoleLogLevel ) );
+        logConsoleAppender.start();
+
+        attachAppender( logConsoleAppender );
+    }
+
+    static boolean logbackConfigFileExists()
+    {
+        final LoggerContext context = getLoggerContext();
+        final ConfigurationWatchList configurationWatchList = ConfigurationWatchListUtil.getConfigurationWatchList( context );
+
+        if ( configurationWatchList != null )
         {
-            final ConsoleAppender consoleAppender = new ConsoleAppender( patternLayout );
-            final Level level = Level.toLevel( consoleLogLevel );
-            consoleAppender.setThreshold( level );
-            for ( final String logPackage : LOGGING_PACKAGES )
-            {
-                if ( logPackage != null )
+            final List<File> watchList = ConfigurationWatchListUtil.getConfigurationWatchList( context ).getCopyOfFileWatchList();
+            return !watchList.isEmpty();
+        }
+
+        return false;
+    }
+
+    static LoggerContext getLoggerContext()
+    {
+        return ( LoggerContext ) LoggerFactory.getILoggerFactory();
+    }
+
+    private static void attachAppender( final Appender<ILoggingEvent> appender )
+    {
+        final LoggerContext logCtx = getLoggerContext();
+
+        PwmLogManager.getPwmLogSettings().getLoggingPackages().stream()
+                .filter( Objects::nonNull )
+                .map( logCtx::getLogger )
+                .forEach( logger ->
                 {
-                    final Logger logger = Logger.getLogger( logPackage );
                     logger.setLevel( Level.TRACE );
-                    logger.addAppender( consoleAppender );
-                }
-            }
-            LOGGER.debug( () -> "successfully initialized default console log4j config at log level " + level.toString() );
+                    logger.detachAppender( appender.getName() );
+                    logger.addAppender( appender );
+                } );
+    }
+
+    private static Filter<ILoggingEvent> makeLevelFilter( final PwmLogLevel pwmLogLevel )
+    {
+        final ThresholdFilter levelFilter = new ThresholdFilter();
+        levelFilter.setContext( getLoggerContext() );
+        levelFilter.setLevel( pwmLogLevel.getLogbackLevel().levelStr );
+        levelFilter.start();
+        return levelFilter;
+    }
+
+    private static EncoderBase<ILoggingEvent> makePatternLayoutEncoder( final AppConfig appConfig )
+    {
+        final String loggingPatternStr;
+        if ( appConfig == null )
+        {
+            loggingPatternStr = "no-pattern %-12date{YYYY-MM-dd HH:mm:ss.SSS} %-5level – %msg%n";
         }
         else
         {
-            LOGGER.debug( () -> "skipping stdout log4j initialization due to blank setting for log level" );
+            if ( pwmLogSettings.getLogOutputMode() == PwmLogSettings.LogOutputMode.json )
+            {
+                loggingPatternStr = "%msg%n";
+            }
+            else
+            {
+                final PwmLogbackPattern pwmLogbackPattern = new PwmLogbackPattern();
+                pwmLogbackPattern.setContext( getLoggerContext() );
+                pwmLogbackPattern.start();
+                final LayoutWrappingEncoder<ILoggingEvent> layoutWrappingEncoder = new LayoutWrappingEncoder<>();
+                layoutWrappingEncoder.setLayout( pwmLogbackPattern );
+                layoutWrappingEncoder.setContext( getLoggerContext() );
+                layoutWrappingEncoder.start();
+                return layoutWrappingEncoder;
+            }
         }
+
+        final PatternLayoutEncoder logEncoder = new PatternLayoutEncoder();
+        logEncoder.setContext( getLoggerContext() );
+        logEncoder.setPattern( loggingPatternStr );
+        logEncoder.start();
+        return logEncoder;
     }
 
     private static void initFileLogger(
             final AppConfig config,
-            final String fileLogLevel,
+            final PwmLogLevel fileLogLevel,
             final File pwmApplicationPath
     )
     {
-        final Layout patternLayout = new PatternLayout( config.readAppProperty( AppProperty.LOGGING_PATTERN ) );
-
         // configure file logging
         final String logDirectorySetting = config.readAppProperty( AppProperty.LOGGING_FILE_PATH );
         final File logDirectory = FileSystemUtility.figureFilepath( logDirectorySetting, pwmApplicationPath );
 
-        if ( logDirectory != null && fileLogLevel != null && fileLogLevel.length() > 0 && !"Off".equals( fileLogLevel ) )
+        if ( logDirectory != null && fileLogLevel != null )
         {
             try
             {
@@ -181,27 +281,40 @@ public class PwmLogManager
                 }
 
                 final String fileName = logDirectory.getAbsolutePath() + File.separator + PwmConstants.PWM_APP_NAME + ".log";
-                final RollingFileAppender fileAppender = new RollingFileAppender( patternLayout, fileName, true );
-                final Level level = Level.toLevel( fileLogLevel );
-                fileAppender.setThreshold( level );
-                fileAppender.setEncoding( PwmConstants.DEFAULT_CHARSET.name() );
-                fileAppender.setMaxBackupIndex( Integer.parseInt( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_ROLLOVER ) ) );
-                fileAppender.setMaxFileSize( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_SIZE ) );
+                final String fileNamePattern = logDirectory.getAbsolutePath() + File.separator + PwmConstants.PWM_APP_NAME + ".log.%i.zip";
 
-                PwmLogger.setFileAppender( fileAppender );
+                final LoggerContext logCtx = getLoggerContext();
 
-                for ( final String logPackage : LOGGING_PACKAGES )
-                {
-                    if ( logPackage != null )
-                    {
-                        //if (!logPackage.equals(PwmApplication.class.getPackage())) {
-                        final Logger logger = Logger.getLogger( logPackage );
-                        logger.setLevel( Level.TRACE );
-                        logger.addAppender( fileAppender );
-                        //}
-                    }
-                }
-                LOGGER.debug( () -> "successfully initialized default file log4j config at log level " + level.toString() );
+                final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
+                rollingPolicy.setContext( logCtx );
+                rollingPolicy.setMinIndex( 1 );
+                rollingPolicy.setMaxIndex( Integer.parseInt( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_ROLLOVER ) )  );
+                rollingPolicy.setFileNamePattern( fileNamePattern );
+
+                final SizeBasedTriggeringPolicy<ILoggingEvent> sizeBasedTriggeringPolicy = new SizeBasedTriggeringPolicy<>();
+                sizeBasedTriggeringPolicy.setMaxFileSize( FileSize.valueOf( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_SIZE ) ) );
+                sizeBasedTriggeringPolicy.setContext( logCtx );
+                sizeBasedTriggeringPolicy.start();
+
+                final RollingFileAppender<ILoggingEvent> fileAppender = new RollingFileAppender<>();
+                fileAppender.setContext( logCtx );
+                fileAppender.setName( LOGGER_NAME_FILE );
+                fileAppender.setEncoder( makePatternLayoutEncoder( config ) );
+                fileAppender.setFile( fileName );
+                fileAppender.setPrudent( false );
+                fileAppender.addFilter( makeLevelFilter( fileLogLevel ) );
+                fileAppender.setRollingPolicy( rollingPolicy );
+                fileAppender.setTriggeringPolicy( sizeBasedTriggeringPolicy );
+
+                rollingPolicy.setParent( fileAppender );
+
+                rollingPolicy.start();
+                fileAppender.start();
+
+                attachAppender( fileAppender );
+
+                LOGGER.debug( () -> "successfully initialized default file log4j config at log level "
+                        + fileLogLevel );
             }
             catch ( final IOException e )
             {
@@ -214,7 +327,7 @@ public class PwmLogManager
     {
         final LocalDB localDB = pwmApplication.getLocalDB();
 
-        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY )
+        if ( pwmApplication.getApplicationMode() == PwmApplicationMode.READ_ONLY || pwmApplication.getPwmEnvironment().isInternalRuntimeInstance() )
         {
             LOGGER.trace( () -> "skipping initialization of LocalDBLogger due to read-only mode" );
             return null;
@@ -222,13 +335,13 @@ public class PwmLogManager
 
         // initialize the localDBLogger
         final LocalDBLogger localDBLogger;
-        final PwmLogLevel localDBLogLevel = pwmApplication.getConfig().getEventLogLocalDBLevel();
+        final PwmLogSettings pwmLogSettings = PwmLogSettings.fromAppConfig( pwmApplication.getConfig() );
         try
         {
-            localDBLogger = initLocalDBLogger( localDB, pwmApplication );
+            localDBLogger = initLocalDBLogger( localDB, pwmApplication, pwmLogSettings.getLocalDbLevel() );
             if ( localDBLogger != null )
             {
-                PwmLogger.setLocalDBLogger( localDBLogLevel, localDBLogger );
+                PwmLogManager.localDBLogger = localDBLogger;
             }
         }
         catch ( final Exception e )
@@ -240,17 +353,13 @@ public class PwmLogManager
         // add appender for other packages;
         try
         {
-            final LocalDBLog4jAppender localDBLog4jAppender = new LocalDBLog4jAppender( localDBLogger );
-            localDBLog4jAppender.setThreshold( localDBLogLevel.getLog4jLevel() );
-            for ( final String logPackage : LOGGING_PACKAGES )
-            {
-                if ( logPackage != null && !logPackage.equals( PwmApplication.class.getPackage().getName() ) )
-                {
-                    final Logger logger = Logger.getLogger( logPackage );
-                    logger.addAppender( localDBLog4jAppender );
-                    logger.setLevel( Level.TRACE );
-                }
-            }
+            final LocalDBLogbackAppender localDBLogbackAppender = new LocalDBLogbackAppender( localDBLogger );
+            localDBLogbackAppender.setContext( getLoggerContext() );
+            localDBLogbackAppender.setName( LOGGER_NAME_LOCALDB );
+            localDBLogbackAppender.addFilter( makeLevelFilter( pwmLogSettings.getLocalDbLevel() ) );
+            localDBLogbackAppender.start();
+
+            attachAppender( localDBLogbackAppender );
         }
         catch ( final Exception e )
         {
@@ -261,19 +370,68 @@ public class PwmLogManager
     }
 
     static LocalDBLogger initLocalDBLogger(
-            final LocalDB pwmDB,
-            final PwmApplication pwmApplication
+            final LocalDB localDB,
+            final PwmApplication pwmApplication,
+            final PwmLogLevel level
     )
     {
         try
         {
             final LocalDBLoggerSettings settings = LocalDBLoggerSettings.fromConfiguration( pwmApplication.getConfig() );
-            return new LocalDBLogger( pwmApplication, pwmDB, settings );
+            return new LocalDBLogger( pwmApplication, localDB, level, settings );
         }
         catch ( final LocalDBException e )
         {
             //nothing to do;
         }
         return null;
+    }
+
+    static SessionLabel getThreadSessionData()
+    {
+        return THREAD_SESSION_DATA.get();
+    }
+
+    public static void executeWithThreadSessionData( final SessionLabel sessionLabel, final Runnable runnable )
+    {
+        final SessionLabel previous = THREAD_SESSION_DATA.get();
+        THREAD_SESSION_DATA.set( sessionLabel );
+        try
+        {
+            runnable.run();
+        }
+        finally
+        {
+            if ( previous == null )
+            {
+                THREAD_SESSION_DATA.remove();
+            }
+            else
+            {
+                THREAD_SESSION_DATA.set( previous );
+            }
+        }
+    }
+
+    public static <V> V executeWithThreadSessionData( final SessionLabel sessionLabel, final Callable<V> callable )
+            throws Exception
+    {
+        final SessionLabel previous = THREAD_SESSION_DATA.get();
+        THREAD_SESSION_DATA.set( sessionLabel );
+        try
+        {
+            return callable.call();
+        }
+        finally
+        {
+            if ( previous == null )
+            {
+                THREAD_SESSION_DATA.remove();
+            }
+            else
+            {
+                THREAD_SESSION_DATA.set( previous );
+            }
+        }
     }
 }

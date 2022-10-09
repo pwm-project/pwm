@@ -21,7 +21,8 @@
 package password.pwm.svc.wordlist;
 
 import lombok.Value;
-import password.pwm.util.java.CollectionUtil;
+import password.pwm.PwmConstants;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StatisticAverageBundle;
 import password.pwm.util.java.StatisticCounterBundle;
 
@@ -58,7 +59,7 @@ class WordlistStatistics
 
     WordlistStatistics()
     {
-        CollectionUtil.enumStream( WordType.class ).forEach( wordType -> wordTypeHits.put( wordType, new LongAdder() ) );
+        EnumUtil.enumStream( WordType.class ).forEach( wordType -> wordTypeHits.put( wordType, new LongAdder() ) );
     }
 
     Map<String, String> asDebugMap()
@@ -68,7 +69,7 @@ class WordlistStatistics
         {
             outputMap.put( "Hits-" + entry.getKey().name(), Long.toString( entry.getValue().sum() ) );
         }
-        outputMap.putAll( counterStats.debugStats() );
+        outputMap.putAll( counterStats.debugStats( PwmConstants.DEFAULT_LOCALE ) );
         outputMap.putAll( averageStats.debugStats() );
         return Collections.unmodifiableMap( outputMap );
     }

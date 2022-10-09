@@ -24,7 +24,7 @@ import org.apache.commons.csv.CSVPrinter;
 import password.pwm.config.DomainConfig;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapPermissionCalculator;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.io.IOException;
@@ -48,7 +48,7 @@ class LDAPPermissionItemGenerator implements DomainItemGenerator
         final DomainConfig domainConfig = debugItemInput.getObfuscatedDomainConfig();
         final LdapPermissionCalculator ldapPermissionCalculator = new LdapPermissionCalculator( domainConfig );
 
-        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
+        final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
         {
             final List<String> headerRow = new ArrayList<>();
             headerRow.add( "Attribute" );
@@ -66,7 +66,7 @@ class LDAPPermissionItemGenerator implements DomainItemGenerator
             dataRow.add( record.getActor() == null ? "" : record.getActor().toString() );
             dataRow.add( record.getAccess() == null ? "" : record.getAccess().toString() );
             dataRow.add( record.getPwmSetting() == null ? "" : record.getPwmSetting().getKey() );
-            dataRow.add( record.getProfile() == null ? "" : record.getProfile() );
+            dataRow.add( record.getProfile() == null ? "" : record.getProfile().stringValue() );
             csvPrinter.printRecord( dataRow );
         }
         csvPrinter.flush();

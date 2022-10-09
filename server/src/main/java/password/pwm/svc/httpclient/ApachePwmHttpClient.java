@@ -269,7 +269,7 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClientProvider
             throws IOException, PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
-        if ( LOGGER.isEnabled( PwmLogLevel.TRACE ) )
+        if ( LOGGER.isInterestingLevel( PwmLogLevel.TRACE ) )
         {
             final String sslDebugText;
             if ( clientRequest.isHttps() )

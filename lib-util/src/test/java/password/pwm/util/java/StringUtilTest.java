@@ -21,8 +21,8 @@
 package password.pwm.util.java;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
@@ -33,7 +33,7 @@ public class StringUtilTest
     {
         final String input = "this is a test this is a test this is a test.";
         final String expected = "this is a !test this !is a test !this is a !test.";
-        Assert.assertEquals( expected, StringUtil.repeatedInsert( input, 10, "!" ) );
+        Assertions.assertEquals( expected, StringUtil.repeatedInsert( input, 10, "!" ) );
     }
 
 
@@ -42,7 +42,7 @@ public class StringUtilTest
     {
         final String input = " this is a \n test \t string\r\nsecond line ";
         final String expected = "thisisateststringsecondline";
-        Assert.assertEquals( expected, StringUtil.stripAllWhitespace( input ) );
+        Assertions.assertEquals( expected, StringUtil.stripAllWhitespace( input ) );
     }
 
     @Test
@@ -50,7 +50,7 @@ public class StringUtilTest
     {
         final String input = " this is a \n test \t string\r\nsecond line ";
         final String expected = "thisisateststringsecondline";
-        Assert.assertEquals( expected, StringUtil.stripAllWhitespace( input ) );
+        Assertions.assertEquals( expected, StringUtil.stripAllWhitespace( input ) );
     }
 
     @Test
@@ -58,7 +58,7 @@ public class StringUtilTest
     {
         final String input = "nochangetest";
         final String expected = "nochangetest";
-        Assert.assertEquals( expected, StringUtil.stripAllWhitespace( input ) );
+        Assertions.assertEquals( expected, StringUtil.stripAllWhitespace( input ) );
     }
 
     @Test
@@ -92,7 +92,7 @@ public class StringUtilTest
                 + "sLd5kinMLYBq8I4g4Xmk/gNHE+r1hspZcX30BJZr01lYPf7TMSVcGDiEo+afgv2MW5gxTs14nhr9hctJqvIni5ly/D6q1UEL2tU2ob8cbkdJf17ZSHwD2f2L"
                 + "SaCYJkJA69aSEaRkCldUxPUd1gJea6zuxICaEnL6VpPX/78whQYwvwt/Tv9XBZ0k7YXDK/umdaisLRbvfXknsuvCnQsH6qqF0wGjIChBWUMo0oHjqvbsezt3"
                 + "tkBigAVBRQHvFwY+3sAzm2fTYS5yh+Rp/BIAV0AecPUeybQ=";
-        Assert.assertEquals( expected, StringUtil.stripAllWhitespace( input ) );
+        Assertions.assertEquals( expected, StringUtil.stripAllWhitespace( input ) );
     }
 
     @Test
@@ -163,7 +163,7 @@ public class StringUtilTest
                 + "g";
         final String expected = "H4sIAAAAAAAAAKR7A5Rly5ZtVlbatm3btm3bNipt27Ztm5W2baPS/97X/bvve79H9e3+Z4w9ttaaJ2LuWDNW7IgtJ/kdCAIADAwMQNViXcL1eWngGAAAIOcb"
                 + "AADSH3tpYSV+anEZEVppfhlxEWFFJRppEe/YTYlBOrig6+/uIVw/sDUi8JBprZYhUSn8d6qkEupMWKUt4rXbba+HabTf+yr8HHmmJzNRqnwK4BpQ7/g";
-        Assert.assertEquals( expected, StringUtil.stripAllWhitespace( input ) );
+        Assertions.assertEquals( expected, StringUtil.stripAllWhitespace( input ) );
     }
 
     @Test
@@ -173,9 +173,9 @@ public class StringUtilTest
 
         final String original = RandomStringUtils.random( 1024 * 1024, true, true );
         final String linebreaks = StringUtil.insertRepeatedLineBreaks( original, 80 );
-        Assert.assertEquals( lineSeparator, linebreaks.substring( 80, 80 + lineSeparator.length() ) );
+        Assertions.assertEquals( lineSeparator, linebreaks.substring( 80, 80 + lineSeparator.length() ) );
         final String stripped = StringUtil.stripAllWhitespace( linebreaks );
-        Assert.assertEquals( original, stripped );
+        Assertions.assertEquals( original, stripped );
     }
 
     @Test
@@ -184,14 +184,14 @@ public class StringUtilTest
     {
         final String input = "0�\u0000\u0000\u0000\u0007\u0002\u0001\u0001\u0002\u0002�\u007F";
         final String expected = "0�?????????�?";
-        Assert.assertEquals( expected, StringUtil.cleanNonPrintableCharacters( input ) );
+        Assertions.assertEquals( expected, StringUtil.cleanNonPrintableCharacters( input ) );
     }
 
     @Test
     public void urlPathEncodeTest()
     {
         final String input = "dsad(dsadaasds)dsdasdad";
-        Assert.assertEquals( "dsad%28dsadaasds%29dsdasdad", StringUtil.urlPathEncode( input ) );
+        Assertions.assertEquals( "dsad%28dsadaasds%29dsdasdad", StringUtil.urlPathEncode( input ) );
     }
 
     @Test
@@ -217,7 +217,7 @@ public class StringUtilTest
                 + "IFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKBIFAUCQKB"
                 + "IFAUCQKB";
 
-        Assert.assertEquals( expectedValue, b32value );
+        Assertions.assertEquals( expectedValue, b32value );
     }
 
     private static byte[] makeB64inputByteArray()
@@ -259,55 +259,75 @@ public class StringUtilTest
     public void base64TestEncode() throws Exception
     {
         final String b64string = StringUtil.base64Encode( makeB64inputByteArray() );
-        Assert.assertEquals( B64_TEST, b64string );
+        Assertions.assertEquals( B64_TEST, b64string );
     }
 
     @Test
     public void base64TestDecode() throws Exception
     {
         final byte[] b64array = StringUtil.base64Decode( B64_TEST );
-        Assert.assertArrayEquals( makeB64inputByteArray(), b64array );
+        Assertions.assertArrayEquals( makeB64inputByteArray(), b64array );
     }
 
     @Test
     public void base64TestEncodeUrlSafe() throws Exception
     {
         final String b64string = StringUtil.base64Encode( makeB64inputByteArray(), StringUtil.Base64Options.URL_SAFE );
-        Assert.assertEquals( B64_TEST_URL_SAFE, b64string );
+        Assertions.assertEquals( B64_TEST_URL_SAFE, b64string );
     }
 
     @Test
     public void base64TestDecodeUrlSafe() throws Exception
     {
         final byte[] b64array = StringUtil.base64Decode( B64_TEST_URL_SAFE, StringUtil.Base64Options.URL_SAFE );
-        Assert.assertArrayEquals( makeB64inputByteArray(), b64array );
+        Assertions.assertArrayEquals( makeB64inputByteArray(), b64array );
     }
 
     @Test
     public void base64TestEncodeGzipAndUrlSafe() throws Exception
     {
         final String b64string = StringUtil.base64Encode( makeB64inputByteArray(), StringUtil.Base64Options.URL_SAFE, StringUtil.Base64Options.GZIP );
-        Assert.assertEquals( B64_TEST_GZIP_URL_SAFE, b64string );
+        Assertions.assertEquals( B64_TEST_GZIP_URL_SAFE, b64string );
     }
 
     @Test
     public void base64TestDecodeGzipAndUrlSafe() throws Exception
     {
         final byte[] b64array = StringUtil.base64Decode( B64_TEST_GZIP_URL_SAFE, StringUtil.Base64Options.URL_SAFE, StringUtil.Base64Options.GZIP );
-        Assert.assertArrayEquals( makeB64inputByteArray(), b64array );
+        Assertions.assertArrayEquals( makeB64inputByteArray(), b64array );
     }
 
     @Test
     public void base64TestEncodeGzip() throws Exception
     {
         final String b64string = StringUtil.base64Encode( makeB64inputByteArray(), StringUtil.Base64Options.GZIP );
-        Assert.assertEquals( B64_TEST_GZIP, b64string );
+        Assertions.assertEquals( B64_TEST_GZIP, b64string );
     }
 
     @Test
     public void base64TestDecodeGzip() throws Exception
     {
         final byte[] b64array = StringUtil.base64Decode( B64_TEST_GZIP, StringUtil.Base64Options.GZIP );
-        Assert.assertArrayEquals( makeB64inputByteArray(), b64array );
+        Assertions.assertArrayEquals( makeB64inputByteArray(), b64array );
+    }
+
+    @Test
+    public void padRightTest()
+    {
+        Assertions.assertEquals( "TEST   ", StringUtil.padRight( "TEST", 7, ' ' ) );
+        Assertions.assertEquals( "TEST888", StringUtil.padRight( "TEST", 7, '8' ) );
+        Assertions.assertEquals( "TEST", StringUtil.padRight( "TEST", 4, ' ' ) );
+        Assertions.assertEquals( "TEST", StringUtil.padRight( "TEST", 3, ' ' ) );
+        Assertions.assertEquals( "TEST", StringUtil.padRight( "TEST", -3, ' ' ) );
+    }
+
+    @Test
+    public void padLeftTest()
+    {
+        Assertions.assertEquals( "   TEST", StringUtil.padLeft( "TEST", 7, ' ' ) );
+        Assertions.assertEquals( "888TEST", StringUtil.padLeft( "TEST", 7, '8' ) );
+        Assertions.assertEquals( "TEST", StringUtil.padLeft( "TEST", 4, ' ' ) );
+        Assertions.assertEquals( "TEST", StringUtil.padLeft( "TEST", 3, ' ' ) );
+        Assertions.assertEquals( "TEST", StringUtil.padLeft( "TEST", -3, ' ' ) );
     }
 }

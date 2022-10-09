@@ -20,8 +20,8 @@
 
 package password.pwm.http.servlet.oauth;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class OAuthMachineTest
 {
@@ -36,7 +36,7 @@ public class OAuthMachineTest
                 + "}";
         final OAuthSettings oAuthSettings = OAuthSettings.builder().build();
         final OAuthMachine oAuthMachine = new OAuthMachine( null, oAuthSettings );
-        Assert.assertEquals( "3599", oAuthMachine.readAttributeFromBodyMap( input, "expires_in" ) );
+        Assertions.assertEquals( "3599", oAuthMachine.readAttributeFromBodyMap( input, "expires_in" ) );
     }
 
     @Test
@@ -45,8 +45,8 @@ public class OAuthMachineTest
         final String input = "{\"sub\":\"0c8463c904e6444fa5c2b4597f816bc2\",\"claims\":[],\"email\":\"testadmin@example.com\"}";
         final OAuthSettings oAuthSettings = OAuthSettings.builder().build();
         final OAuthMachine oAuthMachine = new OAuthMachine( null, oAuthSettings );
-        Assert.assertEquals( "testadmin@example.com", oAuthMachine.readAttributeFromBodyMap( input, "email" ) );
-        Assert.assertNull( oAuthMachine.readAttributeFromBodyMap( input, "claims" ) );
+        Assertions.assertEquals( "testadmin@example.com", oAuthMachine.readAttributeFromBodyMap( input, "email" ) );
+        Assertions.assertNull( oAuthMachine.readAttributeFromBodyMap( input, "claims" ) );
     }
 
     @Test
@@ -55,6 +55,6 @@ public class OAuthMachineTest
         final String input = "{\"sub\":\"0c8463c904e6444fa5c2b4597f816bc2\",\"claims\":[\"value1\",\"value2\"],\"email\":\"testadmin@example.com\"}";
         final OAuthSettings oAuthSettings = OAuthSettings.builder().build();
         final OAuthMachine oAuthMachine = new OAuthMachine( null, oAuthSettings );
-        Assert.assertEquals( "value1", oAuthMachine.readAttributeFromBodyMap( input, "claims" ) );
+        Assertions.assertEquals( "value1", oAuthMachine.readAttributeFromBodyMap( input, "claims" ) );
     }
 }

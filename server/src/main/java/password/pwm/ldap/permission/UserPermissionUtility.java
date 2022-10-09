@@ -21,8 +21,8 @@
 package password.pwm.ldap.permission;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.profile.LdapProfile;
@@ -32,7 +32,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -96,8 +96,7 @@ public class UserPermissionUtility
     )
     {
         return userPermission.getLdapProfileID() == null
-                || userPermission.getLdapProfileID().isEmpty()
-                || PwmConstants.PROFILE_ID_ALL.equals( userPermission.getLdapProfileID() )
+                || ProfileID.PROFILE_ID_ALL.equals( userPermission.getLdapProfileID() )
                 || userIdentity.getLdapProfileID().equals( userPermission.getLdapProfileID() );
     }
 
@@ -146,7 +145,7 @@ public class UserPermissionUtility
         final List<UserPermission> sortedPermissions = new ArrayList<>( userPermissions );
         Collections.sort( sortedPermissions );
 
-        final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
+        final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
         final List<UserIdentity> resultSet = new ArrayList<>();
 
         for ( final UserPermission userPermission : sortedPermissions )
@@ -161,7 +160,7 @@ public class UserPermissionUtility
 
                 try
                 {
-                    final Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(
+                    final Map<UserIdentity, Map<String, String>> results = userSearchService.performMultiUserSearch(
                             searchConfiguration,
                             ( maxResultSize ) - resultSet.size(),
                             Collections.emptyList(),
@@ -185,11 +184,10 @@ public class UserPermissionUtility
                 .collect( Collectors.toUnmodifiableList() );
     }
 
-    static Optional<String> profileIdForPermission( final UserPermission userPermission )
+    static Optional<ProfileID> profileIdForPermission( final UserPermission userPermission )
     {
         if ( userPermission.getLdapProfileID() != null
-                && !userPermission.getLdapProfileID().isEmpty()
-                && !PwmConstants.PROFILE_ID_ALL.equals( userPermission.getLdapProfileID() ) )
+                && !ProfileID.PROFILE_ID_ALL.equals( userPermission.getLdapProfileID() ) )
         {
             return Optional.of( userPermission.getLdapProfileID() );
         }
@@ -240,7 +238,7 @@ public class UserPermissionUtility
             final UserIdentity userIdentity
     )
     {
-        final String ldapProfileID = userIdentity.getLdapProfileID();
+        final ProfileID ldapProfileID = userIdentity.getLdapProfileID();
         final PwmDomain pwmDomain = pwmApplication.domains().get( userIdentity.getDomainID() );
         final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( ldapProfileID );
 
@@ -285,9 +283,9 @@ public class UserPermissionUtility
         return userDN.endsWith( canonicalBaseDN );
     }
 
-    public static boolean isAllProfiles( final String profile )
+    public static boolean isAllProfiles( final ProfileID profile )
     {
-        return StringUtil.isEmpty( profile ) || PwmConstants.PROFILE_ID_ALL.equalsIgnoreCase( profile );
+        return ProfileID.PROFILE_ID_ALL.equals( profile );
     }
 
 

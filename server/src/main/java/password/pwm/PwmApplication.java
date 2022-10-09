@@ -22,6 +22,7 @@ package password.pwm;
 
 import lombok.Value;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -55,7 +56,6 @@ import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.stats.StatisticsService;
-import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.svc.wordlist.SharedHistoryService;
 import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.MBeanUtility;
@@ -113,9 +113,7 @@ public class PwmApplication
             throws PwmUnrecoverableException
     {
         this.pwmEnvironment = Objects.requireNonNull( pwmEnvironment );
-        this.sessionLabel = pwmEnvironment.isInternalRuntimeInstance()
-                ? SessionLabel.RUNTIME_LABEL
-                : SessionLabel.SYSTEM_LABEL;
+        this.sessionLabel = SessionLabel.forSystem( pwmEnvironment, DomainID.systemId() );
 
         this.pwmServiceManager = new PwmServiceManager(
                 sessionLabel, this, DomainID.systemId(), PwmServiceEnum.forScope( PwmSettingScope.SYSTEM ) );
@@ -437,6 +435,11 @@ public class PwmApplication
 
         LOGGER.info( sessionLabel, () -> PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION
                 + " closed for bidness, cya!", TimeDuration.fromCurrent( startTime ) );
+
+        if ( !pwmEnvironment.isInternalRuntimeInstance() )
+        {
+            PwmLogManager.disableLogging();
+        }
     }
 
     public String getInstanceID( )
@@ -451,7 +454,6 @@ public class PwmApplication
 
         if ( localDB == null || localDB.status() != LocalDB.Status.OPEN )
         {
-            LOGGER.debug( () -> "error retrieving key '" + appAttribute.getKey() + "', localDB unavailable: " );
             return Optional.empty();
         }
 
@@ -475,7 +477,7 @@ public class PwmApplication
         return Optional.empty();
     }
 
-    public void writeLastLdapFailure( final DomainID domainID, final Map<String, ErrorInformation> errorInformationMap )
+    public void writeLastLdapFailure( final DomainID domainID, final Map<ProfileID, ErrorInformation> errorInformationMap )
     {
         try
         {
@@ -489,7 +491,7 @@ public class PwmApplication
         }
     }
 
-    public Map<String, ErrorInformation> readLastLdapFailure( final DomainID domainID )
+    public Map<ProfileID, ErrorInformation> readLastLdapFailure( final DomainID domainID )
     {
         return readLastLdapFailure().getRecords().getOrDefault( domainID, Collections.emptyMap() );
     }
@@ -519,14 +521,14 @@ public class PwmApplication
     @Value
     private static class StoredErrorRecords
     {
-        private final Map<DomainID, Map<String, ErrorInformation>> records;
+        private final Map<DomainID, Map<ProfileID, ErrorInformation>> records;
 
-        StoredErrorRecords( final Map<DomainID, Map<String, ErrorInformation>> records )
+        StoredErrorRecords( final Map<DomainID, Map<ProfileID, ErrorInformation>> records )
         {
             this.records = records == null ? Collections.emptyMap() : Map.copyOf( records );
         }
 
-        public Map<DomainID, Map<String, ErrorInformation>> getRecords()
+        public Map<DomainID, Map<ProfileID, ErrorInformation>> getRecords()
         {
             // required because json deserialization can still set records == null
             return records == null ? Collections.emptyMap() : records;
@@ -534,9 +536,9 @@ public class PwmApplication
 
         StoredErrorRecords addDomainErrorMap(
                 final DomainID domainID,
-                final Map<String, ErrorInformation> errorInformationMap )
+                final Map<ProfileID, ErrorInformation> errorInformationMap )
         {
-            final Map<DomainID, Map<String, ErrorInformation>> newRecords = new HashMap<>( getRecords() );
+            final Map<DomainID, Map<ProfileID, ErrorInformation>> newRecords = new HashMap<>( getRecords() );
             newRecords.put( domainID, Map.copyOf( errorInformationMap ) );
             return new StoredErrorRecords( newRecords );
         }
@@ -566,7 +568,6 @@ public class PwmApplication
 
         if ( localDB == null || localDB.status() != LocalDB.Status.OPEN )
         {
-            LOGGER.error( () -> "error writing key '" + appAttribute.getKey() + "', localDB unavailable: " );
             return;
         }
 
@@ -589,7 +590,7 @@ public class PwmApplication
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error retrieving key '" + appAttribute.getKey() + "' installation date from localDB: " + e.getMessage() );
+            LOGGER.error( () -> "error retrieving key '" + appAttribute.getKey() + "' from localDB: " + e.getMessage() );
             try
             {
                 localDB.remove( LocalDB.DB.PWM_META, appAttribute.getKey() );
@@ -681,11 +682,6 @@ public class PwmApplication
     public WordlistService getWordlistService( )
     {
         return ( WordlistService ) pwmServiceManager.getService( PwmServiceEnum.WordlistService );
-    }
-
-    public SeedlistService getSeedlistManager( )
-    {
-        return ( SeedlistService ) pwmServiceManager.getService( PwmServiceEnum.SeedlistService );
     }
 
     public ReportService getReportService( )

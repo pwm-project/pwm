@@ -43,7 +43,7 @@ import password.pwm.user.UserInfoBean;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -125,7 +125,7 @@ public class PwmPasswordRuleValidator
             throw new PwmDataValidationException( errorResults.get( 0 ) );
         }
 
-        if ( user != null && !JavaHelper.enumArrayContainsValue( flags, Flag.BypassLdapRuleCheck ) )
+        if ( user != null && !EnumUtil.enumArrayContainsValue( flags, Flag.BypassLdapRuleCheck ) )
         {
             try
             {
@@ -253,8 +253,9 @@ public class PwmPasswordRuleValidator
             final MacroRequest macroRequest = MacroRequest.forUser(
                     pwmDomain.getPwmApplication(),
                     PwmConstants.DEFAULT_LOCALE,
-                    SessionLabel.SYSTEM_LABEL,
+                    sessionLabel,
                     userInfo.getUserIdentity() );
+
             final PublicUserInfoBean publicUserInfoBean = UserInfoBean.toPublicUserInfoBean( userInfo, pwmDomain.getConfig(), locale, macroRequest );
             sendData.put( "userInfo", publicUserInfoBean );
         }

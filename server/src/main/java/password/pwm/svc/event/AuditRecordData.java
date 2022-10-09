@@ -24,6 +24,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -43,11 +44,11 @@ public class AuditRecordData implements AuditRecord, SystemAuditRecord, UserAudi
     private final String instance;
     private final String perpetratorID;
     private final String perpetratorDN;
-    private final String perpetratorLdapProfile;
+    private final ProfileID perpetratorLdapProfile;
     private final String sourceAddress;
     private final String sourceHost;
     private final String targetID;
     private final String targetDN;
-    private final String targetLdapProfile;
+    private final ProfileID targetLdapProfile;
     private final DomainID domain;
 }

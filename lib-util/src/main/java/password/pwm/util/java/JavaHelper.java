@@ -49,20 +49,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAccumulator;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-public class JavaHelper
+public final class JavaHelper
 {
     private static final char[] HEX_CHAR_ARRAY = "0123456789ABCDEF".toCharArray();
 
-    private JavaHelper( )
+    private JavaHelper()
     {
     }
 
@@ -79,66 +77,7 @@ public class JavaHelper
 
     public static <E extends Enum<E>> E readEnumFromString( final Class<E> enumClass, final E defaultValue, final String input )
     {
-        return readEnumFromString( enumClass, input ).orElse( defaultValue );
-    }
-
-    public static <E extends Enum<E>> Optional<E> readEnumFromCaseIgnoreString( final Class<E> enumClass, final String input )
-    {
-        return JavaHelper.readEnumFromPredicate( enumClass, loopValue -> loopValue.name().equalsIgnoreCase( input ) );
-    }
-
-    public static <E extends Enum<E>> Optional<E> readEnumFromPredicate( final Class<E> enumClass, final Predicate<E> match )
-    {
-        if ( match == null )
-        {
-            return Optional.empty();
-        }
-
-        if ( enumClass == null || !enumClass.isEnum() )
-        {
-            return Optional.empty();
-        }
-
-        return CollectionUtil.enumStream( enumClass ).filter( match ).findFirst();
-    }
-
-    public static <E extends Enum<E>> Set<E> readEnumsFromPredicate( final Class<E> enumClass, final Predicate<E> match )
-    {
-        if ( match == null )
-        {
-            return Collections.emptySet();
-        }
-
-        if ( enumClass == null || !enumClass.isEnum() )
-        {
-            return Collections.emptySet();
-        }
-
-        return CollectionUtil.enumStream( enumClass ).filter( match ).collect( Collectors.toUnmodifiableSet() );
-    }
-
-    public static <E extends Enum<E>> Optional<E> readEnumFromString( final Class<E> enumClass, final String input )
-    {
-        if ( StringUtil.isEmpty( input ) )
-        {
-            return Optional.empty();
-        }
-
-        if ( enumClass == null || !enumClass.isEnum() )
-        {
-            return Optional.empty();
-        }
-
-        try
-        {
-            return Optional.of( Enum.valueOf( enumClass, input ) );
-        }
-        catch ( final IllegalArgumentException e )
-        {
-            /* noop */
-        }
-
-        return Optional.empty();
+        return EnumUtil.readEnumFromString( enumClass, input ).orElse( defaultValue );
     }
 
     public static String throwableToString( final Throwable throwable )
@@ -180,24 +119,6 @@ public class JavaHelper
         }
 
         return errorMsg.toString();
-    }
-
-    public static <E extends Enum<E>> boolean enumArrayContainsValue( final E[] enumArray, final E enumValue )
-    {
-        if ( enumArray == null || enumArray.length == 0 )
-        {
-            return false;
-        }
-
-        for ( final E loopValue : enumArray )
-        {
-            if ( loopValue == enumValue )
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     public static long copy( final InputStream input, final OutputStream output )
@@ -310,6 +231,7 @@ public class JavaHelper
 
     /**
      * Copy of {@link ThreadInfo#toString()} but with the MAX_FRAMES changed from 8 to 256.
+     *
      * @param threadInfo thread information
      * @return a stacktrace string with newline formatting
      */
@@ -520,7 +442,7 @@ public class JavaHelper
     public static byte[] gunzip( final byte[] bytes )
             throws IOException
     {
-        try (  GZIPInputStream inputGzipStream = new GZIPInputStream( new ByteArrayInputStream( bytes ) ) )
+        try ( GZIPInputStream inputGzipStream = new GZIPInputStream( new ByteArrayInputStream( bytes ) ) )
         {
             return inputGzipStream.readAllBytes();
         }
@@ -547,6 +469,7 @@ public class JavaHelper
 
     /**
      * Append multiple byte array values into a single array.
+     *
      * @param byteArrays two or more byte arrays.
      * @return A new array with the contents of all byteArrays appended
      */
@@ -604,5 +527,11 @@ public class JavaHelper
         e.printStackTrace( new PrintWriter( stackTraceOutput ) );
         return stackTraceOutput.toString();
 
+    }
+
+    public static long nextPositiveLong( final long input )
+    {
+        final long next = input + 1;
+        return next > 0 ? next : 0;
     }
 }

@@ -20,29 +20,27 @@
 
 package password.pwm.util;
 
-import password.pwm.util.java.MovingAverage;
-import password.pwm.util.java.TimeDuration;
+import password.pwm.util.java.PwmNumberFormat;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class EventRateMeter implements Serializable
 {
-    private final TimeDuration maxDuration;
+    private final long maxDuration;
     private final Lock lock = new ReentrantLock();
 
     private volatile MovingAverage movingAverage;
     private volatile double remainder;
 
-    public EventRateMeter( final TimeDuration maxDuration )
+    public EventRateMeter( final Duration maxDuration )
     {
-        if ( maxDuration == null )
-        {
-            throw new NullPointerException( "maxDuration cannot be null" );
-        }
-        this.maxDuration = maxDuration;
+        this.maxDuration = Objects.requireNonNull( maxDuration ) .toMillis();
         reset();
     }
 
@@ -51,13 +49,18 @@ public class EventRateMeter implements Serializable
         lock.lock();
         try
         {
-            movingAverage = new MovingAverage( maxDuration.asMillis() );
+            movingAverage = new MovingAverage( Duration.ofMillis( maxDuration ) );
             remainder = 0;
         }
         finally
         {
             lock.unlock();
         }
+    }
+
+    public void markEvent()
+    {
+        markEvents( 1 );
     }
 
     public void markEvents( final int eventCount )
@@ -83,7 +86,12 @@ public class EventRateMeter implements Serializable
         }
     }
 
-    public BigDecimal readEventRate( )
+    public String prettyEps( final Locale locale )
+    {
+        return PwmNumberFormat.prettyBigDecimal( rawEps(), 3, locale );
+    }
+
+    public BigDecimal rawEps( )
     {
         lock.lock();
         try

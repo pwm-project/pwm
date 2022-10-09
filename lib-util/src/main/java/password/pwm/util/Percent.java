@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.util.java;
+package password.pwm.util;
 
 import java.math.BigDecimal;
 import java.math.MathContext;

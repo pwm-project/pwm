@@ -22,7 +22,6 @@ package password.pwm.util.java;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
@@ -37,7 +36,7 @@ import java.util.function.BooleanSupplier;
  * reliance, the conditional is only evaluated during execution of {@code conditionallyExecuteTask()} so the conditional on its own is not
  * a strictly reliable indicator of how frequently the task will execute.</p>
  */
-public class ConditionalTaskExecutor
+public final class ConditionalTaskExecutor
 {
     private final Runnable task;
     private final BooleanSupplier predicate;
@@ -53,7 +52,6 @@ public class ConditionalTaskExecutor
         {
             if ( predicate.getAsBoolean() )
             {
-
                 task.run();
             }
         }
@@ -63,7 +61,7 @@ public class ConditionalTaskExecutor
         }
     }
 
-    public ConditionalTaskExecutor( final Runnable task, final BooleanSupplier predicate )
+    private ConditionalTaskExecutor( final Runnable task, final BooleanSupplier predicate )
     {
         this.task = Objects.requireNonNull( task );
         this.predicate = Objects.requireNonNull( predicate );
@@ -77,7 +75,8 @@ public class ConditionalTaskExecutor
     public static ConditionalTaskExecutor forPeriodicTask(
             final Runnable task,
             final Duration timeDuration,
-            final Duration firstExecutionDelay )
+            final Duration firstExecutionDelay
+    )
     {
         return new ConditionalTaskExecutor( task, new TimeDurationPredicate( timeDuration, firstExecutionDelay ) );
     }
@@ -101,7 +100,7 @@ public class ConditionalTaskExecutor
 
         private void setNextTimeFromNow( final Duration duration )
         {
-            nextExecuteTimestamp.set( Instant.now().plus( duration.toMillis(), ChronoUnit.MILLIS ) );
+            nextExecuteTimestamp.set( Instant.now().plus( duration ) );
         }
 
         @Override

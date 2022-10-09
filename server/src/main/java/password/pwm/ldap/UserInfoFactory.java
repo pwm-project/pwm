@@ -24,6 +24,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
@@ -52,7 +53,7 @@ public class UserInfoFactory
             throws PwmUnrecoverableException
     {
         final PwmDomain pwmDomain = pwmApplication.domains().get( userIdentity.getDomainID() );
-        final String userLdapProfile = userIdentity.getLdapProfileID();
+        final ProfileID userLdapProfile = userIdentity.getLdapProfileID();
         final ChaiProvider provider = pwmDomain.getProxyChaiProvider( sessionLabel, userLdapProfile );
         return newUserInfo(
                 pwmApplication,

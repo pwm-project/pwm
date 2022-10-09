@@ -23,6 +23,7 @@ package password.pwm.http.servlet.admin.domain;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.PwmDomain;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -32,12 +33,12 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.user.UserInfoBean;
-import password.pwm.ldap.permission.UserPermissionUtility;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.pwnotify.PwNotifyUserStatus;
+import password.pwm.user.UserInfo;
+import password.pwm.user.UserInfoBean;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
@@ -68,7 +69,7 @@ public class UserDebugDataReader
 
         final Map<Permission, String> permissions = UserDebugDataReader.permissionMap( pwmDomain, sessionLabel, userIdentity );
 
-        final Map<ProfileDefinition, String> profiles = UserDebugDataReader.profileMap( pwmDomain, sessionLabel, userIdentity );
+        final Map<ProfileDefinition, ProfileID> profiles = UserDebugDataReader.profileMap( pwmDomain, sessionLabel, userIdentity );
 
         final PwmPasswordPolicy ldapPasswordPolicy = PasswordUtility.readLdapPasswordPolicy( pwmDomain, pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity ) );
 
@@ -134,14 +135,14 @@ public class UserDebugDataReader
         return Collections.unmodifiableMap( results );
     }
 
-    private static Map<ProfileDefinition, String> profileMap(
+    private static Map<ProfileDefinition, ProfileID> profileMap(
             final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity
     )
         throws PwmUnrecoverableException
     {
-        final Map<ProfileDefinition, String> results = new TreeMap<>( Comparator.comparing( Enum::name ) );
+        final Map<ProfileDefinition, ProfileID> results = new TreeMap<>( Comparator.comparing( Enum::name ) );
         for ( final ProfileDefinition profileDefinition : ProfileDefinition.values() )
         {
             if ( profileDefinition.getQueryMatch().isPresent() && profileDefinition.getProfileFactoryClass().isPresent() )

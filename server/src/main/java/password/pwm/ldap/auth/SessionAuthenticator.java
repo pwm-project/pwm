@@ -31,6 +31,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -44,21 +45,16 @@ import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
-import password.pwm.ldap.search.UserSearchEngine;
-import password.pwm.svc.event.AuditEvent;
-import password.pwm.svc.event.AuditRecord;
-import password.pwm.svc.event.AuditRecordFactory;
-import password.pwm.svc.event.AuditServiceClient;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.intruder.IntruderDomainService;
 import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.macro.MacroRequest;
 
 import java.time.Instant;
 import java.util.EnumSet;
@@ -90,7 +86,7 @@ public class SessionAuthenticator
             final String username,
             final PasswordData password,
             final String context,
-            final String ldapProfile
+            final ProfileID ldapProfile
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
@@ -98,8 +94,8 @@ public class SessionAuthenticator
         UserIdentity userIdentity = null;
         try
         {
-            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
-            userIdentity = userSearchEngine.resolveUsername( username, context, ldapProfile, sessionLabel );
+            final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
+            userIdentity = userSearchService.resolveUsername( username, context, ldapProfile, sessionLabel );
 
             final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
                     pwmDomain,
@@ -201,8 +197,8 @@ public class SessionAuthenticator
         UserIdentity userIdentity = null;
         try
         {
-            final UserSearchEngine userSearchEngine = pwmDomain.getUserSearchEngine();
-            userIdentity = userSearchEngine.resolveUsername( username, null, null, sessionLabel );
+            final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
+            userIdentity = userSearchService.resolveUsername( username, null, null, sessionLabel );
 
             final AuthenticationRequest authEngine = LDAPAuthenticationRequest.createLDAPAuthenticationRequest(
                     pwmDomain,
@@ -346,7 +342,7 @@ public class SessionAuthenticator
         final IntruderDomainService intruderManager = pwmDomain.getIntruderService();
         if ( intruderManager != null )
         {
-            IntruderServiceClient.markAddressAndSession( pwmRequest.getPwmDomain(), pwmRequest.getPwmSession() );
+            IntruderServiceClient.markAddressAndSession( pwmRequest );
 
             if ( username != null )
             {
@@ -376,7 +372,7 @@ public class SessionAuthenticator
         loginInfoBean.setUserIdentity( userIdentity );
 
         //update the session connection
-        pwmSession.updateLdapAuthentication( pwmRequest.getPwmApplication(), userIdentity, authenticationResult );
+        pwmSession.updateLdapAuthentication( sessionLabel, pwmRequest.getPwmApplication(), userIdentity, authenticationResult );
 
         // update the actor user info bean
         {
@@ -434,47 +430,11 @@ public class SessionAuthenticator
             StatisticsClient.incrementStat( pwmRequest, Statistic.AUTHENTICATION_EXPIRED );
         }
 
-
         //clear permission cache - needs rechecking after login
         LOGGER.debug( pwmRequest, () -> "clearing permission cache" );
         pwmSession.getUserSessionDataCacheBean().clearPermissions();
 
-        logAuthEvent( loginInfoBean, authenticationResult );
-
         // update the users ldap attribute.
         LdapOperationsHelper.processAutoUpdateLanguageAttribute( pwmDomain, sessionLabel, ssBean.getLocale(), userIdentity );
-
-        pwmSession.setLoginInfoBean( loginInfoBean );
-    }
-
-    private void logAuthEvent( final LoginInfoBean loginInfoBean, final AuthenticationResult authenticationResult )
-            throws PwmUnrecoverableException
-    {
-        if ( loginInfoBean.getLoginFlags().contains( LoginInfoBean.LoginFlag.audit ) )
-        {
-            return;
-        }
-
-        System.out.println( loginInfoBean.getGuid() );
-
-        final UserIdentity userIdentity = loginInfoBean.getUserIdentity();
-        final MacroRequest macroRequest = MacroRequest.forUser( pwmDomain.getPwmApplication(), PwmConstants.DEFAULT_LOCALE, sessionLabel, userIdentity );
-        final AuditRecord auditRecord = AuditRecordFactory.make( sessionLabel, pwmDomain, macroRequest ).createUserAuditRecord(
-                AuditEvent.AUTHENTICATE,
-                loginInfoBean.getUserIdentity(),
-                makeAuditLogMessage( authenticationResult.getAuthenticationType() ),
-                sessionLabel.getSourceAddress(),
-                sessionLabel.getSourceHostname()
-        );
-        AuditServiceClient.submit( pwmDomain.getPwmApplication(), sessionLabel, auditRecord );
-        loginInfoBean.getLoginFlags().add( LoginInfoBean.LoginFlag.audit );
-    }
-
-    private static String makeAuditLogMessage( final AuthenticationType authenticationType )
-    {
-        return "type=" + authenticationType.toString()
-                + ", "
-                + "source="
-                + ( authenticationType == null ? "null" : authenticationType.toString() );
     }
 }

@@ -25,6 +25,7 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.user.UserInfo;
@@ -38,7 +39,7 @@ public class UserReportRecord implements Serializable
 {
     private DomainID domainID;
     private String userDN;
-    private String ldapProfile;
+    private ProfileID ldapProfile;
     private String userGUID;
 
     private String username;

@@ -38,7 +38,9 @@ public enum AppAttribute
     CONFIG_LOGIN_HISTORY( "config.loginHistory" ),
     LOCALDB_LOGGER_STORAGE_FORMAT( "localdb.logger.storage.format" ),
     TELEMETRY_LAST_PUBLISH_TIMESTAMP( "telemetry.lastPublish.timestamp" ),
-    VERSION_CHECK_CACHE( "versionCheckInfoCache" ),;
+    VERSION_CHECK_CACHE( "versionCheckInfoCache" ),
+    REPORT_COUNTER( "report.counter" ),;
+
 
     private final String key;
 

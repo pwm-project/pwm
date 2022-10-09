@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package password.pwm.util.java;
+package password.pwm.util;
 
 import java.io.Serializable;
 import java.text.NumberFormat;
@@ -59,20 +59,12 @@ public class MovingAverage implements Serializable
     private volatile long lastMillis;
     private volatile double average;
 
-
     /**
      * Construct a {@link MovingAverage}, providing the time window
-     * we want the average over. For example, providing a value of
-     * 3,600,000 provides a moving average over the last hour.
+     * we want the average over.
      *
-     * @param windowMillis the length of the sliding window in
-     *                     milliseconds
+     * @param timeDuration the length of the sliding window.
      */
-    public MovingAverage( final long windowMillis )
-    {
-        this.windowMillis = windowMillis;
-    }
-
     public MovingAverage( final Duration timeDuration )
     {
         this.windowMillis = timeDuration.toMillis();

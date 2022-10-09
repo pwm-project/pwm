@@ -23,7 +23,6 @@ package password.pwm.http;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.EqualsAndHashCode;
 import password.pwm.AppProperty;
-import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
@@ -32,9 +31,7 @@ import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ChallengeProfile;
-import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -42,14 +39,12 @@ import password.pwm.http.bean.UserSessionDataCacheBean;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.auth.AuthenticationResult;
 import password.pwm.ldap.auth.AuthenticationType;
-import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.report.ReportProcess;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.user.UserInfo;
 import password.pwm.user.UserInfoBean;
-import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
@@ -62,8 +57,6 @@ import java.lang.ref.SoftReference;
 import java.time.Instant;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -93,8 +86,6 @@ public class PwmSession implements Serializable
     private LoginInfoBean loginInfoBean;
     private transient UserInfo userInfo;
 
-    private static final Lock CREATION_LOCK = new ReentrantLock();
-
     private final Lock securityKeyLock = new ReentrantLock();
 
 
@@ -102,20 +93,13 @@ public class PwmSession implements Serializable
 
     public static PwmSession createPwmSession( final PwmDomain pwmDomain )
     {
-        CREATION_LOCK.lock();
-        try
-        {
-            return new PwmSession( pwmDomain );
-        }
-        finally
-        {
-            CREATION_LOCK.unlock();
-        }
+         return new PwmSession( pwmDomain );
     }
 
     private PwmSession( final PwmDomain pwmDomain )
     {
         Objects.requireNonNull( pwmDomain );
+
         this.domainID = pwmDomain.getDomainID();
 
         this.sessionStateBean.setSessionID( pwmDomain.getSessionTrackService().generateNewSessionID() );
@@ -130,7 +114,7 @@ public class PwmSession implements Serializable
     }
 
 
-    public ClientConnectionHolder getClientConnectionHolder( final PwmApplication pwmApplication )
+    public ClientConnectionHolder getClientConnectionHolder( final SessionLabel sessionLabel, final PwmApplication pwmApplication )
     {
         if ( clientConnectionHolder != null )
         {
@@ -142,7 +126,7 @@ public class PwmSession implements Serializable
 
         if ( clientConnectionHolder == null )
         {
-            clientConnectionHolder = ClientConnectionHolder.unauthenticatedClientConnectionContext( pwmApplication, domainID, this::getLabel );
+            clientConnectionHolder = ClientConnectionHolder.unauthenticatedClientConnectionContext( pwmApplication, domainID, () -> sessionLabel );
         }
 
         return clientConnectionHolder;
@@ -227,40 +211,6 @@ public class PwmSession implements Serializable
         return userSessionDataCacheBean;
     }
 
-    public SessionLabel getLabel( )
-    {
-        final LocalSessionStateBean ssBean = this.getSessionStateBean();
-
-        UserIdentity userIdentity = null;
-        String userID = null;
-        String profile = null;
-
-        if ( isAuthenticated() )
-        {
-            try
-            {
-                final UserInfo userInfo = getUserInfo();
-                userIdentity = userInfo.getUserIdentity();
-                userID = userInfo.getUsername();
-                profile = userIdentity == null ? null : userIdentity.getLdapProfileID();
-            }
-            catch ( final PwmUnrecoverableException e )
-            {
-                LOGGER.error( () -> "unexpected error reading username: " + e.getMessage(), e );
-            }
-        }
-
-        return SessionLabel.builder()
-                .sessionID( ssBean.getSessionID() )
-                .userID( userIdentity == null ? null : userIdentity.toDelimitedKey() )
-                .username( userID )
-                .domain( domainID.stringValue() )
-                .profile( profile )
-                .sourceAddress( ssBean.getSrcAddress() )
-                .sourceHostname( ssBean.getSrcHostname() )
-                .build();
-    }
-
     /**
      * UnAuthenticate the pwmSession.
      *
@@ -290,7 +240,7 @@ public class PwmSession implements Serializable
             // close out any outstanding connections
             if ( pwmRequest != null && clientConnectionHolder != null )
             {
-                getClientConnectionHolder( pwmRequest.getPwmApplication() ).closeConnections();
+                getClientConnectionHolder( pwmRequest.getLabel(), pwmRequest.getPwmApplication() ).closeConnections();
             }
             clientConnectionHolder = null;
 
@@ -359,38 +309,6 @@ public class PwmSession implements Serializable
         return "PwmSession instance: " + JsonFactory.get().serializeMap( debugData );
     }
 
-    public boolean setLocale( final PwmRequest pwmRequest, final String localeString )
-            throws PwmUnrecoverableException
-    {
-        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        if ( pwmDomain == null )
-        {
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_APP_UNAVAILABLE, "unable to read context manager" ) );
-        }
-
-        final LocalSessionStateBean ssBean = this.getSessionStateBean();
-        final List<Locale> knownLocales = pwmRequest.getAppConfig().getKnownLocales();
-        final Locale requestedLocale = LocaleHelper.parseLocaleString( localeString );
-        if ( knownLocales.contains( requestedLocale ) || "default".equalsIgnoreCase( localeString ) )
-        {
-            LOGGER.debug( pwmRequest, () -> "setting session locale to '" + localeString + "'" );
-            ssBean.setLocale( "default".equalsIgnoreCase( localeString )
-                    ? PwmConstants.DEFAULT_LOCALE
-                    : requestedLocale );
-            if ( this.isAuthenticated() )
-            {
-                this.reloadUserInfoBean( pwmRequest );
-            }
-            return true;
-        }
-        else
-        {
-            LOGGER.error( pwmRequest, () -> "ignoring unknown locale value set request for locale '" + localeString + "'" );
-            ssBean.setLocale( PwmConstants.DEFAULT_LOCALE );
-            return false;
-        }
-    }
-
     public boolean isAuthenticated( )
     {
         return getLoginInfoBean().isAuthenticated();
@@ -398,7 +316,7 @@ public class PwmSession implements Serializable
 
     public int size( )
     {
-        return ( int ) MiscUtil.sizeof( this );
+        return ( int ) PwmUtil.sizeof( this );
     }
 
     PwmSecurityKey getSecurityKey( final PwmRequest pwmRequest )
@@ -449,6 +367,7 @@ public class PwmSession implements Serializable
     }
 
     public void updateLdapAuthentication(
+            final SessionLabel sessionLabel,
             final PwmApplication pwmApplication,
             final UserIdentity userIdentity,
             final AuthenticationResult authenticationResult
@@ -457,57 +376,9 @@ public class PwmSession implements Serializable
         clientConnectionHolder = ClientConnectionHolder.authenticatedClientConnectionContext(
                 pwmApplication,
                 userIdentity,
-                this::getLabel,
+                () -> sessionLabel,
                 authenticationResult.getUserProvider(),
                 authenticationResult.getAuthenticationType() );
-    }
-
-    public boolean checkPermission(
-            final PwmRequestContext pwmRequestContext,
-            final Permission permission
-    )
-            throws PwmUnrecoverableException
-    {
-        final Instant startTime = Instant.now();
-
-        final SessionLabel sessionLabel = pwmRequestContext.getSessionLabel();
-        final PwmDomain pwmDomain = pwmRequestContext.getPwmDomain();
-
-        if ( !isAuthenticated() )
-        {
-            LOGGER.trace( sessionLabel, () -> "user is not authenticated, returning false for permission check" );
-            return false;
-        }
-
-        Permission.PermissionStatus status = getUserSessionDataCacheBean().getPermission( permission );
-        if ( status == Permission.PermissionStatus.UNCHECKED )
-        {
-            LOGGER.debug( sessionLabel, () -> "checking permission " + permission.toString() + " for user " + getUserInfo().getUserIdentity().toDisplayString() );
-
-            if ( permission == Permission.PWMADMIN && !pwmDomain.getConfig().isAdministrativeDomain() )
-            {
-                status = Permission.PermissionStatus.DENIED;
-            }
-            else
-            {
-                final PwmSetting setting = permission.getPwmSetting();
-                final List<UserPermission> userPermission = pwmDomain.getConfig().readSettingAsUserPermission( setting );
-                final boolean result = UserPermissionUtility.testUserPermission( pwmDomain, sessionLabel, getUserInfo().getUserIdentity(), userPermission );
-                status = result ? Permission.PermissionStatus.GRANTED : Permission.PermissionStatus.DENIED;
-            }
-
-            getUserSessionDataCacheBean().setPermission( permission, status );
-
-            {
-                final String debugName = isAuthenticated()
-                        ? getUserInfo().getUserIdentity().toDelimitedKey()
-                        : "[unauthenticated]";
-                final Permission.PermissionStatus finalStatus = status;
-                LOGGER.debug( sessionLabel, () -> "permission " + permission + " for user " + debugName + " is " + finalStatus, TimeDuration.fromCurrent( startTime ) );
-            }
-        }
-
-        return status == Permission.PermissionStatus.GRANTED;
     }
 
     public MacroRequest getMacroMachine(

@@ -20,9 +20,9 @@
 
 package password.pwm.config;
 
-import org.junit.Assert;
-import org.junit.Test;
-import password.pwm.util.java.JavaHelper;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import password.pwm.util.java.EnumUtil;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -42,7 +42,7 @@ public class PwmSettingTemplateTest
 
                 for ( final String xmlValue : xmlValues )
                 {
-                    final PwmSettingTemplate pwmSettingTemplate = JavaHelper.readEnumFromString( PwmSettingTemplate.class, xmlValue )
+                    final PwmSettingTemplate pwmSettingTemplate = EnumUtil.readEnumFromString( PwmSettingTemplate.class, xmlValue )
                             .orElseThrow( () -> new IllegalStateException(
                                     "PwmSetting.xml has option value '" + xmlValue
                                             + "' for " + associatedSetting
@@ -55,7 +55,7 @@ public class PwmSettingTemplateTest
                 {
                     if ( !seenTemplatesOfType.contains( enumValue ) )
                     {
-                        Assert.fail( "PwmSettingTemplate enum value " + enumValue
+                        Assertions.fail( "PwmSettingTemplate enum value " + enumValue
                                 + " is missing corresponding option value in setting " + associatedSetting );
                     }
                 }

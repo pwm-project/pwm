@@ -50,9 +50,9 @@ class SearchResultItem implements Serializable
         return new SearchResultItem(
                 setting.getCategory().toString(),
                 storedConfiguration.readStoredValue( key ).orElseThrow().toDebugString( locale ),
-                setting.getCategory().toMenuLocationDebug( key.getProfileID(), locale ),
+                setting.getCategory().toMenuLocationDebug( key.getProfileID().orElse( null ), locale ),
                 StoredConfigurationUtil.isDefaultValue( storedConfiguration, key ),
-                key.getProfileID()
+                key.getProfileID().map( v -> v.stringValue() ).orElse( null )
         );
     }
 }

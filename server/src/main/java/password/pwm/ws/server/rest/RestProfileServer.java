@@ -23,6 +23,7 @@ package password.pwm.ws.server.rest;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Data;
 import password.pwm.PwmConstants;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.config.profile.ProfileDefinition;
@@ -178,7 +179,7 @@ public class RestProfileServer extends RestServlet
     private static UpdateProfileProfile getProfile( final RestRequest restRequest, final TargetUserIdentity targetUserIdentity )
             throws PwmUnrecoverableException
     {
-        final String updateProfileID = ProfileUtility.discoverProfileIDForUser(
+        final ProfileID updateProfileID = ProfileUtility.discoverProfileIDForUser(
                 restRequest.getDomain(),
                 restRequest.getSessionLabel(),
                 targetUserIdentity.getUserIdentity(),

@@ -47,7 +47,7 @@ public class PasswordValue implements StoredValue
 {
     private static final long serialVersionUID = 1L;
 
-    private final transient LazySupplier<String> valueHashSupplier = new LazySupplier<>( () -> AbstractValue.valueHashComputer( PasswordValue.this ) );
+    private final transient LazySupplier<String> valueHashSupplier = LazySupplier.create( () -> AbstractValue.valueHashComputer( PasswordValue.this ) );
 
     private final PasswordData value;
 

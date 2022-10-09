@@ -67,12 +67,12 @@ public class Storage
         final EnvironmentConfig environmentConfig = new EnvironmentConfig();
         environment = Environments.newInstance( storagePath.getAbsolutePath(), environmentConfig );
 
-        LOGGER.info( "environment open" );
+        LOGGER.info( () -> "environment open" );
 
         environment.executeInTransaction( txn -> store
                 = environment.openStore( STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, txn ) );
 
-        LOGGER.info( "store open with " + count() + " records" );
+        LOGGER.info( () -> "store open with " + count() + " records" );
     }
 
     public void store( final TelemetryPublishBean bean )

@@ -22,6 +22,7 @@ package password.pwm.svc.report;
 
 import org.apache.commons.csv.CSVPrinter;
 import org.jetbrains.annotations.NotNull;
+import password.pwm.AppAttribute;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
@@ -41,12 +42,14 @@ import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.user.UserInfo;
 import password.pwm.util.EventRateMeter;
 import password.pwm.util.java.ConditionalTaskExecutor;
+import password.pwm.util.java.FunctionalReentrantLock;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.MiscUtil;
 import password.pwm.util.java.PwmTimeUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.json.JsonProvider;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
@@ -54,11 +57,11 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -70,6 +73,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -77,7 +81,7 @@ public class ReportProcess implements AutoCloseable
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ReportProcess.class );
 
-    private static final AtomicLong REPORT_COUNTER = new AtomicLong();
+    private static final FunctionalReentrantLock REPORT_ID_LOCK = new FunctionalReentrantLock();
 
     private final PwmApplication pwmApplication;
     private final Semaphore reportServiceSemaphore;
@@ -90,11 +94,11 @@ public class ReportProcess implements AutoCloseable
     private final AtomicLong recordCounter = new AtomicLong();
     private final AtomicBoolean inProgress = new AtomicBoolean();
     private final AtomicBoolean cancelFlag = new AtomicBoolean();
-    private final EventRateMeter processRateMeter = new EventRateMeter( TimeDuration.MINUTE );
+    private final EventRateMeter processRateMeter = new EventRateMeter( TimeDuration.MINUTE.asDuration() );
 
 
     private Instant startTime = Instant.now();
-    private ReportSummaryData summaryData = ReportSummaryData.newSummaryData( Collections.singletonList( 1 ) );
+    private ReportSummaryCalculator summaryData = ReportSummaryCalculator.newSummaryData( Collections.singletonList( 1 ) );
 
     ReportProcess(
             @NotNull final PwmApplication pwmApplication,
@@ -110,13 +114,18 @@ public class ReportProcess implements AutoCloseable
         this.locale = Objects.requireNonNullElse( locale, PwmConstants.DEFAULT_LOCALE );
         this.sessionLabel = sessionLabel;
 
-        this.reportId = REPORT_COUNTER.incrementAndGet();
+        this.reportId = nextProcessId();
 
         this.debugOutputLogger = ConditionalTaskExecutor.forPeriodicTask(
-                () -> LOGGER.trace( sessionLabel, () -> "live report #" + reportId + " in progress: " + recordCounter.longValue() + " records exported",
+                () -> log( PwmLogLevel.TRACE, () -> " in progress: " + recordCounter.longValue() + " records exported at " + processRateMeter.prettyEps( locale ),
                         TimeDuration.fromCurrent( startTime ) ),
                 TimeDuration.MINUTE.asDuration() );
+    }
 
+    private void log( final PwmLogLevel level, final Supplier<String> message, final TimeDuration timeDuration )
+    {
+        final Supplier<String> wrappedMsg = () -> "report #" + reportId + " " + message.get();
+        LOGGER.log( level, sessionLabel, wrappedMsg, null, timeDuration );
     }
 
     static ReportProcess createReportProcess(
@@ -132,24 +141,19 @@ public class ReportProcess implements AutoCloseable
 
     public static void outputSummaryToCsv(
             final AppConfig config,
-            final ReportSummaryData reportSummaryData,
+            final ReportSummaryCalculator reportSummaryData,
             final OutputStream outputStream,
             final Locale locale
     )
             throws IOException
     {
 
-        final List<ReportSummaryData.PresentationRow> outputList = reportSummaryData.asPresentableCollection( config, locale );
-        final CSVPrinter csvPrinter = MiscUtil.makeCsvPrinter( outputStream );
+        final List<ReportSummaryCalculator.PresentationRow> outputList = reportSummaryData.asPresentableCollection( config, locale );
+        final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
 
-        for ( final ReportSummaryData.PresentationRow presentationRow : outputList )
+        for ( final ReportSummaryCalculator.PresentationRow presentationRow : outputList )
         {
-            final List<String> row = List.of(
-                    presentationRow.getLabel(),
-                    presentationRow.getCount(),
-                    presentationRow.getPct() );
-
-            csvPrinter.printRecord( row );
+            csvPrinter.printRecord( presentationRow.toStringList() );
         }
 
         csvPrinter.flush();
@@ -166,23 +170,23 @@ public class ReportProcess implements AutoCloseable
 
         if ( inProgress.get() )
         {
-            throw new PwmUnrecoverableException( PwmError.ERROR_INTERNAL, "report process cannot be started, report already in progress" );
+            throw new PwmUnrecoverableException( PwmError.ERROR_INTERNAL, "report process #" + reportId + " cannot be started, report already in progress" );
         }
 
         if ( !reportServiceSemaphore.tryAcquire() )
         {
-            throw new PwmUnrecoverableException( PwmError.ERROR_INTERNAL, "report process cannot be started, maximum concurrent reports already in progress." );
+            throw new PwmUnrecoverableException( PwmError.ERROR_INTERNAL, "report process #" + reportId + " cannot be started, maximum concurrent reports already in progress." );
         }
 
         this.startTime = Instant.now();
-        this.summaryData = ReportSummaryData.newSummaryData( reportSettings.getTrackDays() );
+        this.summaryData = ReportSummaryCalculator.newSummaryData( reportSettings.getTrackDays() );
         this.recordCounter.set( 0 );
         this.processRateMeter.reset();
         this.inProgress.set( true );
         this.cancelFlag.set( false );
 
-        LOGGER.trace( sessionLabel, () -> "beginning live report #" + reportId + " generation, request parameters: "
-                + JsonFactory.get().serialize( reportProcessRequest, ReportProcessRequest.class ) );
+        log( PwmLogLevel.TRACE, () -> "beginning report generation, request parameters: "
+                + JsonFactory.get().serialize( reportProcessRequest, ReportProcessRequest.class ), null );
 
         try ( ZipOutputStream zipOutputStream = new ZipOutputStream( outputStream ) )
         {
@@ -190,13 +194,13 @@ public class ReportProcess implements AutoCloseable
         }
         catch ( final PwmException e )
         {
-            LOGGER.debug( sessionLabel, () -> "error during live report #" + reportId + " generation: " + e.getMessage() );
+            log( PwmLogLevel.DEBUG, () -> "error during report generation: " + e.getMessage(), null );
             cancelFlag.set( true );
             throw new PwmUnrecoverableException( new ErrorInformation(  PwmError.ERROR_INTERNAL, e.getMessage() ) );
         }
         catch ( final IOException e )
         {
-            LOGGER.debug( sessionLabel, () -> "I/O error during live report #" + reportId + " generation: " + e.getMessage() );
+            log( PwmLogLevel.DEBUG, () -> "I/O error during report generation: " + e.getMessage(), null );
             cancelFlag.set( true );
         }
         finally
@@ -223,8 +227,8 @@ public class ReportProcess implements AutoCloseable
         checkCancel( zipOutputStream );
         outputResult( reportProcessRequest, zipOutputStream, recordLimitReached );
 
-        LOGGER.trace( sessionLabel, () -> "completed liveReport generation with " + recordCounter.longValue() + " records",
-                TimeDuration.fromCurrent( startTime ) );
+        log( PwmLogLevel.TRACE, () -> "completed report generation with " + recordCounter.longValue() + " records at "
+                + processRateMeter.prettyEps( locale ), TimeDuration.fromCurrent( startTime ) );
 
     }
 
@@ -246,7 +250,7 @@ public class ReportProcess implements AutoCloseable
     {
         final ReportProcessResult result = new ReportProcessResult(
                 request,
-                this.recordCounter.incrementAndGet(),
+                this.recordCounter.get(),
                 startTime,
                 Instant.now(),
                 TimeDuration.fromCurrent( startTime ),
@@ -331,8 +335,11 @@ public class ReportProcess implements AutoCloseable
     {
         final Queue<UserIdentity> identityIterator = readUserListFromLdap( reportProcessRequest, pwmDomain );
         final ExecutorService executor = pwmApplication.getReportService().getExecutor();
-        final Queue<Future<UserReportRecord>> returnQueue = new LinkedList<>();
-        identityIterator.forEach( userIdentity -> returnQueue.add( executor.submit( new UserReportRecordReaderTask( userIdentity ) ) ) );
+        final Queue<Future<UserReportRecord>> returnQueue = new ArrayDeque<>();
+        while ( !identityIterator.isEmpty() )
+        {
+            returnQueue.add( executor.submit( new UserReportRecordReaderTask( identityIterator.poll() ) ) );
+        }
         return new FutureUserReportRecordIterator( returnQueue );
     }
 
@@ -355,17 +362,19 @@ public class ReportProcess implements AutoCloseable
         processRateMeter.markEvents( 1 );
         debugOutputLogger.conditionallyExecuteTask();
 
-        LOGGER.trace( sessionLabel, () -> "live report #" + reportId + ": completed output of user " + UserIdentity.create(
-                userReportRecord.getUserDN(),
-                userReportRecord.getLdapProfile(),
-                userReportRecord.getDomainID() ).toDisplayString() );
+        log( PwmLogLevel.TRACE, () -> "completed output of user " + UserIdentity.create(
+                        userReportRecord.getUserDN(),
+                        userReportRecord.getLdapProfile(),
+                        userReportRecord.getDomainID() ).toDisplayString(),
+                TimeDuration.fromCurrent( startTime ) );
     }
 
-    private static void outputJsonSummaryToZip( final ReportSummaryData reportSummaryData, final OutputStream outputStream )
+    private static void outputJsonSummaryToZip( final ReportSummaryCalculator reportSummary, final OutputStream outputStream )
     {
         try
         {
-            final String json = JsonFactory.get().serialize( reportSummaryData, ReportSummaryData.class, JsonProvider.Flag.PrettyPrint );
+            final ReportSummaryData data = ReportSummaryData.fromCalculator( reportSummary );
+            final String json = JsonFactory.get().serialize( data, ReportSummaryData.class, JsonProvider.Flag.PrettyPrint );
             outputStream.write( json.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
         catch ( final IOException e )
@@ -401,7 +410,7 @@ public class ReportProcess implements AutoCloseable
     {
         final Instant loopStartTime = Instant.now();
         final int maxSearchSize = ( int ) JavaHelper.rangeCheck( 0, reportSettings.getMaxSearchSize(), reportProcessRequest.getMaximumRecords() );
-        LOGGER.trace( sessionLabel, () -> "beginning ldap search process for domain '" + pwmDomain.getDomainID() + "'" );
+        log( PwmLogLevel.TRACE, () -> "beginning ldap search process for domain '" + pwmDomain.getDomainID() + "'", null );
 
         final List<UserPermission> searchFilters = reportSettings.getSearchFilter().get( pwmDomain.getDomainID() );
 
@@ -412,13 +421,12 @@ public class ReportProcess implements AutoCloseable
                 maxSearchSize,
                 reportSettings.getSearchTimeout() );
 
-        LOGGER.trace(
-                sessionLabel,
+        log( PwmLogLevel.TRACE,
                 () -> "completed ldap search process with for domain '" + pwmDomain.getDomainID() + "'",
                 TimeDuration.fromCurrent( loopStartTime ) );
 
         processRateMeter.reset();
-        return new LinkedList<>( searchResults );
+        return new ArrayDeque<>( searchResults );
     }
 
     public ReportProcessStatus getStatus( final Locale locale )
@@ -437,7 +445,7 @@ public class ReportProcess implements AutoCloseable
                     PwmTimeUtil.asLongString( TimeDuration.fromCurrent( startTime ), locale ) ) );
             if ( recordCounter.get() > 0 )
             {
-                final String rate = processRateMeter.readEventRate()
+                final String rate = processRateMeter.rawEps()
                         .multiply( new BigDecimal( "60" ) )
                         .setScale( 2, RoundingMode.UP ).toString();
                 list.add( new DisplayElement( "eventRate", DisplayElement.Type.number,
@@ -458,7 +466,7 @@ public class ReportProcess implements AutoCloseable
         this.inProgress.set( false );
         if ( !cancelFlag.get() )
         {
-            LOGGER.trace( sessionLabel, () -> "cancelling report process" );
+            log( PwmLogLevel.TRACE, () -> "cancelling report process", null );
             cancelFlag.set( true );
         }
         reportServiceSemaphore.release();
@@ -513,10 +521,21 @@ public class ReportProcess implements AutoCloseable
             }
             catch ( final InterruptedException | ExecutionException | NoSuchMethodException e )
             {
-                LOGGER.trace( sessionLabel, () -> "user report record job failure: " + e.getMessage() );
+                log( PwmLogLevel.TRACE, () -> "user report record job failure: " + e.getMessage(), null );
                 throw new RuntimeException( e );
             }
         }
+    }
+
+    private long nextProcessId()
+    {
+        return REPORT_ID_LOCK.exec( () ->
+        {
+            final long lastId = pwmApplication.readAppAttribute( AppAttribute.REPORT_COUNTER, Long.class ).orElse( 0L );
+            final long nextId = JavaHelper.nextPositiveLong( lastId );
+            pwmApplication.writeAppAttribute( AppAttribute.REPORT_COUNTER, nextId );
+            return nextId;
+        } );
     }
 
 }

@@ -21,16 +21,17 @@
 package password.pwm.util;
 
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.stored.StoredConfigKey;
-import password.pwm.config.value.StoredValue;
 import password.pwm.config.stored.ConfigurationProperty;
+import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.config.stored.StoredConfigurationModifier;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.config.value.BooleanValue;
 import password.pwm.config.value.PasswordValue;
+import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.UserPermissionValue;
@@ -58,7 +59,7 @@ import java.util.regex.Pattern;
 
 public class PropertyConfigurationImporter
 {
-    private static final String LDAP_PROFILE = "default";
+    private static final ProfileID LDAP_PROFILE = ProfileID.PROFILE_ID_DEFAULT;
     private static final DomainID DOMAIN_ID = DomainID.DOMAIN_ID_DEFAULT;
 
 
@@ -207,7 +208,7 @@ public class PropertyConfigurationImporter
         return modifier.newStoredConfiguration();
     }
 
-    private void modifySetting( final StoredConfigurationModifier modifier, final PwmSetting pwmSetting, final String profile, final StoredValue storedValue )
+    private void modifySetting( final StoredConfigurationModifier modifier, final PwmSetting pwmSetting, final ProfileID profile, final StoredValue storedValue )
             throws PwmUnrecoverableException
     {
         final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, profile, DOMAIN_ID );

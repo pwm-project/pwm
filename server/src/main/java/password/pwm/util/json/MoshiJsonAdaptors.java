@@ -27,9 +27,11 @@ import com.squareup.moshi.Moshi;
 import org.jetbrains.annotations.Nullable;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmDateFormat;
 import password.pwm.util.java.StringUtil;
@@ -49,6 +51,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.LongAccumulator;
 import java.util.concurrent.atomic.LongAdder;
 
 class MoshiJsonAdaptors
@@ -62,17 +65,20 @@ class MoshiJsonAdaptors
         moshiBuilder.add( X509Certificate.class, applyFlagsToAdapter( new X509CertificateAdapter(), flags ) );
         moshiBuilder.add( PasswordData.class, applyFlagsToAdapter( new PasswordDataAdapter(), flags ) );
         moshiBuilder.add( DomainID.class, applyFlagsToAdapter( new DomainIdAdaptor(), flags ) );
+        moshiBuilder.add( ProfileID.class, applyFlagsToAdapter( new ProfileIdAdaptor(), flags ) );
         moshiBuilder.add( LongAdder.class, applyFlagsToAdapter( new LongAdderTypeAdaptor(), flags ) );
+        moshiBuilder.add( LongAccumulator.class, applyFlagsToAdapter( new LongAccumulatorTypeAdaptor(), flags ) );
         moshiBuilder.add( BigInteger.class, applyFlagsToAdapter( new BigIntegerTypeAdaptor(), flags ) );
         moshiBuilder.add( Locale.class, applyFlagsToAdapter( new LocaleTypeAdaptor(), flags ) );
         moshiBuilder.add( TimeDuration.class, applyFlagsToAdapter( new TimeDurationAdaptor(), flags ) );
+        moshiBuilder.add( Duration.class, applyFlagsToAdapter( new DurationAdaptor(), flags ) );
     }
 
     static <T> JsonAdapter<T> applyFlagsToAdapter( final JsonAdapter<T> adapter, final JsonProvider.Flag... flags )
     {
         JsonAdapter<T> adapterInProgress = adapter;
 
-        if ( JavaHelper.enumArrayContainsValue( flags, JsonProvider.Flag.PrettyPrint ) )
+        if ( EnumUtil.enumArrayContainsValue( flags, JsonProvider.Flag.PrettyPrint ) )
         {
             adapterInProgress = adapter.indent( "  " );
         }
@@ -196,16 +202,40 @@ class MoshiJsonAdaptors
                 return null;
             }
 
-            if ( DomainID.systemId().toString().equals( stringValue ) )
-            {
-                return DomainID.systemId();
-            }
-
             return DomainID.create( stringValue );
         }
 
         @Override
         public void toJson( final JsonWriter writer, @Nullable final DomainID value ) throws IOException
+        {
+            if ( value == null )
+            {
+                writer.nullValue();
+                return;
+            }
+
+            writer.value( value.toString() );
+        }
+    }
+
+    private static class ProfileIdAdaptor extends JsonAdapter<ProfileID>
+    {
+        @Nullable
+        @Override
+        public ProfileID fromJson( final JsonReader reader ) throws IOException
+        {
+            final String stringValue = reader.nextString();
+
+            if ( StringUtil.isEmpty( stringValue ) )
+            {
+                return null;
+            }
+
+            return ProfileID.create( stringValue );
+        }
+
+        @Override
+        public void toJson( final JsonWriter writer, @Nullable final ProfileID value ) throws IOException
         {
             if ( value == null )
             {
@@ -307,6 +337,33 @@ class MoshiJsonAdaptors
         }
     }
 
+    private static class LongAccumulatorTypeAdaptor extends JsonAdapter<LongAccumulator>
+    {
+        @Nullable
+        @Override
+        public LongAccumulator fromJson( final JsonReader reader ) throws IOException
+        {
+            final String strValue = reader.nextString();
+            final long longValue = Long.parseLong( strValue );
+            final LongAccumulator longAccumulator = JavaHelper.newAbsLongAccumulator();
+            longAccumulator.accumulate( longValue );
+            return longAccumulator;
+        }
+
+        @Override
+        public void toJson( final JsonWriter writer, @Nullable final LongAccumulator value ) throws IOException
+        {
+            if ( value == null )
+            {
+                writer.nullValue();
+                return;
+            }
+
+            writer.value( value.longValue() );
+        }
+    }
+
+
     private static class LongAdderTypeAdaptor extends JsonAdapter<LongAdder>
     {
         @Nullable
@@ -315,9 +372,9 @@ class MoshiJsonAdaptors
         {
             final String strValue = reader.nextString();
             final long longValue = Long.parseLong( strValue );
-            final LongAdder longAddr = new LongAdder();
-            longAddr.add( longValue );
-            return longAddr;
+            final LongAdder longAdder = new LongAdder();
+            longAdder.add( longValue );
+            return longAdder;
         }
 
         @Override
@@ -403,6 +460,33 @@ class MoshiJsonAdaptors
             }
 
             writer.value( value.asDuration().toString() );
+        }
+    }
+
+    private static class DurationAdaptor extends JsonAdapter<Duration>
+    {
+        @Nullable
+        @Override
+        public Duration fromJson( final JsonReader reader ) throws IOException
+        {
+            final String strValue = reader.nextString();
+            if ( StringUtil.isEmpty( strValue ) )
+            {
+                return null;
+            }
+            return Duration.parse( strValue );
+        }
+
+        @Override
+        public void toJson( final JsonWriter writer, @Nullable final Duration value ) throws IOException
+        {
+            if ( value == null )
+            {
+                writer.nullValue();
+                return;
+            }
+
+            writer.value( value.toString() );
         }
     }
 }

@@ -24,6 +24,7 @@ import lombok.Value;
 import password.pwm.Permission;
 import password.pwm.config.PwmSetting;
 import password.pwm.http.PwmRequestFlag;
+import password.pwm.http.servlet.resource.TextFileResource;
 
 @Value
 class PwmIfOptions
@@ -32,4 +33,6 @@ class PwmIfOptions
     private final Permission permission;
     private final PwmSetting pwmSetting;
     private final PwmRequestFlag requestFlag;
+    private final TextFileResource textFileResource;
+
 }

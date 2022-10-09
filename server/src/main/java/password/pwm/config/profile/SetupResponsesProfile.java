@@ -21,13 +21,14 @@
 package password.pwm.config.profile;
 
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.stored.StoredConfiguration;
 
 public class SetupResponsesProfile extends AbstractProfile
 {
     private static final ProfileDefinition PROFILE_TYPE = ProfileDefinition.SetupOTPProfile;
 
-    protected SetupResponsesProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedConfiguration )
+    protected SetupResponsesProfile( final DomainID domainID, final ProfileID identifier, final StoredConfiguration storedConfiguration )
     {
         super( domainID, identifier, storedConfiguration );
     }
@@ -41,7 +42,7 @@ public class SetupResponsesProfile extends AbstractProfile
     public static class SetupResponseProfileFactory implements ProfileFactory
     {
         @Override
-        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID,  final String identifier )
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID,  final ProfileID identifier )
         {
             return new SetupResponsesProfile( domainID, identifier, storedConfiguration );
         }

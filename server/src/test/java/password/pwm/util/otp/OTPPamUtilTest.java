@@ -20,12 +20,12 @@
 
 package password.pwm.util.otp;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import password.pwm.svc.otp.OTPPamUtil;
 
 import java.util.List;
@@ -40,22 +40,22 @@ public class OTPPamUtilTest
     {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass()
     {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass()
     {
     }
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
     }
 
-    @After
+    @AfterEach
     public void tearDown()
     {
     }
@@ -68,7 +68,7 @@ public class OTPPamUtilTest
     {
         final String text = "TUC2JMV7BLJVV6YX\r\n\" WINDOW_SIZE -1\r\n\" TOTP_AUTH\r\n72706699\r\n";
         final List<String> result = OTPPamUtil.splitLines( text );
-        Assert.assertEquals( 4, result.size() );
+        Assertions.assertEquals( 4, result.size() );
     }
 
     /**

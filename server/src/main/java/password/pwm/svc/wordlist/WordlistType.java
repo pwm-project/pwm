@@ -24,8 +24,7 @@ import password.pwm.PwmApplication;
 
 public enum WordlistType
 {
-    WORDLIST,
-    SEEDLIST,;
+    WORDLIST,;
 
     public Wordlist forType( final PwmApplication pwmApplication )
     {
@@ -33,9 +32,6 @@ public enum WordlistType
         {
             case WORDLIST:
                 return pwmApplication.getWordlistService();
-
-            case SEEDLIST:
-                return pwmApplication.getSeedlistManager();
 
             default:
                 throw new IllegalStateException( "unhandled wordlistType" );

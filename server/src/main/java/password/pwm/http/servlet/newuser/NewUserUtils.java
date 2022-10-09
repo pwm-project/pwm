@@ -60,7 +60,7 @@ import password.pwm.user.UserInfoBean;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.stats.Statistic;
@@ -70,7 +70,7 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -79,6 +79,7 @@ import password.pwm.util.macro.MacroReplacer;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.password.PasswordUtility;
+import password.pwm.util.password.RandomGeneratorConfig;
 import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.client.rest.form.FormDataRequestBean;
 import password.pwm.ws.client.rest.form.FormDataResponseBean;
@@ -212,9 +213,9 @@ class NewUserUtils
             NewUserUtils.LOGGER.trace( pwmRequest, () -> "will use temporary password process for new user entry: " + newUserDN );
             final PasswordData temporaryPassword;
             {
-                final RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = RandomPasswordGenerator.RandomGeneratorConfig.builder()
-                        .passwordPolicy( newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() ) )
-                        .build();
+                final RandomGeneratorConfig randomGeneratorConfig = RandomGeneratorConfig.make( pwmRequest.getPwmDomain(),
+                         newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() ) );
+
                 temporaryPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), randomGeneratorConfig, pwmDomain );
             }
             final ChaiUser proxiedUser = chaiProvider.getEntryFactory().newChaiUser( newUserDN );
@@ -259,7 +260,7 @@ class NewUserUtils
                         .setSetting( ChaiSetting.BIND_DN, newUserDN )
                         .setSetting( ChaiSetting.BIND_PASSWORD, temporaryPassword.getStringValue() )
                         .build();
-                final ChaiProvider bindAsProvider = pwmDomain.getLdapConnectionService().getChaiProviderFactory().newProvider( chaiConfiguration );
+                final ChaiProvider bindAsProvider = pwmDomain.getLdapService().getChaiProviderFactory().newProvider( chaiConfiguration );
                 final ChaiUser bindAsUser = bindAsProvider.getEntryFactory().newChaiUser( newUserDN );
                 bindAsUser.changePassword( temporaryPassword.getStringValue(), userPassword.getStringValue() );
                 NewUserUtils.LOGGER.debug( pwmRequest, () -> "changed to user requested password for new user entry: " + newUserDN );
@@ -312,7 +313,7 @@ class NewUserUtils
         remoteWriteFormData( pwmRequest, newUserForm );
 
         // authenticate the user to pwm
-        final UserIdentity userIdentity = UserIdentity.create( newUserDN, newUserProfile.getLdapProfile( pwmDomain.getConfig() ).getIdentifier(), pwmRequest.getDomainID() );
+        final UserIdentity userIdentity = UserIdentity.create( newUserDN, newUserProfile.getLdapProfile( pwmDomain.getConfig() ).getId(), pwmRequest.getDomainID() );
         final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator( pwmDomain, pwmRequest, PwmAuthenticationSource.NEW_USER_REGISTRATION );
         sessionAuthenticator.authenticateUser( userIdentity, userPassword );
 
@@ -437,14 +438,14 @@ class NewUserUtils
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final UserSearchEngine userSearchEngine = pwmRequest.getPwmDomain().getUserSearchEngine();
+        final UserSearchService userSearchService = pwmRequest.getPwmDomain().getUserSearchEngine();
         final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                 .username( rdnValue )
                 .build();
 
         try
         {
-            final Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(
+            final Map<UserIdentity, Map<String, String>> results = userSearchService.performMultiUserSearch(
                     searchConfiguration, 2, Collections.emptyList(), pwmRequest.getLabel() );
             return results != null && !results.isEmpty();
         }
@@ -532,7 +533,7 @@ class NewUserUtils
             final boolean visible = newUserProfile.readSettingAsBoolean( PwmSetting.NEWUSER_PROFILE_DISPLAY_VISIBLE );
             if ( visible )
             {
-                returnMap.put( newUserProfile.getIdentifier(), newUserProfile.getDisplayName( pwmRequest.getLocale() ) );
+                returnMap.put( newUserProfile.getId().stringValue(), newUserProfile.getDisplayName( pwmRequest.getLocale() ) );
             }
         }
         return Collections.unmodifiableMap( returnMap );
@@ -833,7 +834,7 @@ class NewUserUtils
                 return newUserProfile.getTokenDurationSMS( domainConfig );
 
             default:
-                MiscUtil.unhandledSwitchStatement( tokenDestinationItem );
+                PwmUtil.unhandledSwitchStatement( tokenDestinationItem );
         }
 
         return null;

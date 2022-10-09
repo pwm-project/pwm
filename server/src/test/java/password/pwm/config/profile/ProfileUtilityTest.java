@@ -20,8 +20,8 @@
 
 package password.pwm.config.profile;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingSyntax;
@@ -36,9 +36,9 @@ public class ProfileUtilityTest
             if ( pwmSettingCategory.hasProfiles() )
             {
                 final PwmSetting profileSetting = pwmSettingCategory.getProfileSetting().get();
-                Assert.assertEquals( PwmSettingSyntax.PROFILE, profileSetting.getSyntax() );
-                Assert.assertFalse( profileSetting.getCategory().hasProfiles() );
-                Assert.assertEquals( pwmSettingCategory.getScope(), profileSetting.getCategory().getScope() );
+                Assertions.assertEquals( PwmSettingSyntax.PROFILE, profileSetting.getSyntax() );
+                Assertions.assertFalse( profileSetting.getCategory().hasProfiles() );
+                Assertions.assertEquals( pwmSettingCategory.getScope(), profileSetting.getCategory().getScope() );
             }
         }
     }
@@ -48,10 +48,10 @@ public class ProfileUtilityTest
     {
         for ( final ProfileDefinition profileDefinition : ProfileDefinition.values() )
         {
-            Assert.assertTrue( profileDefinition.getCategory().hasProfiles() );
+            Assertions.assertTrue( profileDefinition.getCategory().hasProfiles() );
             final PwmSetting profileSetting = profileDefinition.getCategory().getProfileSetting().get();
-            Assert.assertEquals( PwmSettingSyntax.PROFILE, profileSetting.getSyntax() );
-            Assert.assertFalse( profileSetting.getCategory().hasProfiles() );
+            Assertions.assertEquals( PwmSettingSyntax.PROFILE, profileSetting.getSyntax() );
+            Assertions.assertFalse( profileSetting.getCategory().hasProfiles() );
         }
     }
 }

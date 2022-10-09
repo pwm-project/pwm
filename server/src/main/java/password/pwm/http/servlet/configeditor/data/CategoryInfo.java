@@ -53,7 +53,7 @@ public class CategoryInfo implements Serializable
                 .hidden( category.isHidden() )
                 .parent( category.getParent() != null ? category.getParent().getKey() : null )
                 .profiles( category.hasProfiles() )
-                .menuLocation( category.toMenuLocationDebug( "PROFILE", locale ) )
+                .menuLocation( category.toMenuLocationDebug( null, locale ) )
                 .build();
     }
 }

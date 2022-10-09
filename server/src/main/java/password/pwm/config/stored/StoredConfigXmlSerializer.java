@@ -27,6 +27,7 @@ import org.jrivard.xmlchai.XmlElement;
 import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -232,7 +233,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                     final PwmSetting pwmSetting = optionalPwmSetting.get();
                     final boolean defaultValueSaved = settingElement.getChild( StoredConfigXmlConstants.XML_ELEMENT_DEFAULT ).isPresent();
                     final DomainID domainID = readDomainIdForSetting( settingElement, pwmSetting );
-                    final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, profileID.orElse( null ), domainID );
+                    final StoredConfigKey key = StoredConfigKey.forSetting( pwmSetting, profileID.map( ProfileID::create ).orElse( null ), domainID );
                     final ValueMetaData metaData = readMetaDataFromXmlElement( key, settingElement ).orElse( null );
 
                     final StoredValue storedValue = defaultValueSaved
@@ -561,7 +562,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             Objects.requireNonNull( storedValue );
 
             final PwmSetting pwmSetting = key.toPwmSetting();
-            final String profileID = key.getProfileID();
+            final Optional<ProfileID> profileID = key.getProfileID();
 
             final XmlFactory xmlFactory = XmlChai.getFactory();
 
@@ -570,16 +571,16 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
             settingElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY, pwmSetting.getKey() );
 
-            if ( StringUtil.notEmpty( profileID ) )
+            profileID.ifPresent( value ->
             {
-                settingElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_PROFILE, profileID );
-            }
+                settingElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_PROFILE, value.stringValue() );
+            } );
 
             settingElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX, pwmSetting.getSyntax().name() );
 
             {
                 final XmlElement labelElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_LABEL );
-                labelElement.setText( pwmSetting.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ) );
+                labelElement.setText( pwmSetting.toMenuLocationDebug( profileID.orElse( null ), PwmConstants.DEFAULT_LOCALE ) );
                 settingElement.attachElement( labelElement );
             }
 

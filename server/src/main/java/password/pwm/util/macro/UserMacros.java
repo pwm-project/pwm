@@ -386,7 +386,7 @@ public class UserMacros
                 final UserIdentity userIdentity = userInfo.getUserIdentity();
                 if ( userIdentity != null )
                 {
-                    return userIdentity.getLdapProfileID();
+                    return userIdentity.getLdapProfileID().stringValue();
                 }
             }
 

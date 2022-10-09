@@ -1,6 +1,6 @@
 # PWM
 
-PWM is an open source password self-service application for LDAP directories. PWM is an ideal candidate for organizations that wish to “roll their own” password self service solution, but do not wish to start from scratch. [Overview/Screenshots](https://docs.google.com/presentation/d/1LxDXV_iiToJXAzzT9mc1xXO0atVObmRpCame6qXOyxM/pub?slide=id.p8)
+PWM is an open source password self-service application for LDAP directories.
 
 Official project page is at [https://github.com/pwm-project/pwm/](https://github.com/pwm-project/pwm/).
 
@@ -8,52 +8,108 @@ Official project page is at [https://github.com/pwm-project/pwm/](https://github
 * [PWM-General Google Group](https://groups.google.com/group/pwm-general) - please ask for assistance here first.
 * [PWM Documentation Wiki](https://github.com/pwm-project/pwm/wiki) - Home for PWM documentation
 * [PWM Reference](https://www.pwm-project.org/pwm/public/reference/) - Reference documentation built into PWM.
+* [Downloads](https://github.com/pwm-project/pwm/releases)
 
 # Features
 * Web based configuration manager with over 500 configurable settings
+  * All configuration contained in a single importable/exportable file
   * Configurable display values for every user-facing text string
-  * Localized for Chinese (中文), Czech (ceština), Dutch (Nederlands), English, Finnish (suomi), French (français), German (Deutsch), Hebrew (עברית), Italian (italiano), Japanese (日本語), Korean (한국어), Polish (polski), Portuguese (português), Slovak (Slovenčina), Spanish (español), Thai (ไทย) and Turkish (Türkçe)
-* Change Password functionality
-  * Polished, intuitive end-user interface with as-you-type password rule enforcement
-  * Large set of configurable password polices to match any organizational requirements
-  * Read policies from LDAP directories (where supported by LDAP server)
-* Forgotten Password
-  * Store Responses in local server, standard RDBMS database, LDAP server or Novell NMAS repositories
-  * Use Forgotten Password, Email/SMS Token/PIN, TOTP, Remote REST service, User LDAP attribute values, or any combination
-  * Stand-alone, easy to deploy, java web application
-* Helpdesk password reset and intruder lockout clearing
-* New User Registration / Account Creation
-* Guest User Registration / Updating
-* PeopleSearch (white pages)
-  * Configurable detail pages
-  * OrgChart view
-* Account Activation  / First time password assignment
-* All configuration contained in a single importable/exportable file
-* Support for multple domains/tenants  
-* Administration modules including intruder-lockout manager, and online log viewer, daily stats viewer and user information debugging
+* Included localizations (not all are complete or current):
+  * English - English
+  * Catalan - català
+  * Chinese (China) - 中文 (中国)
+  * Chinese (Taiwan) - 中文 (台灣)
+  * Czech - čeština
+  * Danish - dansk
+  * Dutch - Nederlands
+  * English (Canada) - English (Canada)
+  * Finnish - suomi
+  * French - français
+  * French (Canada) - français (Canada)
+  * German - Deutsch
+  * Greek - Ελληνικά
+  * Hebrew - עברית
+  * Hungarian - magyar
+  * Italian - italiano
+  * Japanese - 日本語
+  * Korean - 한국어
+  * Norwegian - norsk
+  * Norwegian Bokmål - norsk bokmål
+  * Norwegian Nynorsk - nynorsk
+  * Polish - polski
+  * Portuguese - português
+  * Portuguese (Brazil) - português (Brasil)
+  * Russian - русский
+  * Slovak - slovenčina
+  * Spanish - español
+  * Swedish - svenska
+  * Thai - ไทย
+  * Turkish - Türkçe
+* LDAP Directory Support:
+  * Multiple LDAP vendor support:
+    * Generic LDAP (best-effort, LDAP password behavior and error handling is not standardized in LDAP)
+    * Directory 389
+      * Reading of configured user password policies
+    * NetIQ eDirectory
+      * Read Password Policies & Challenge Sets
+      * NMAS Operations and Error handling
+      * Support for NMAS user challenge/responses
+    * Microsoft Active Directory
+      * Reading of Fine-Grained Password Policy (FGPP) Password Setting Objects (PSO) (does not read domain policies)
+    * OpenLDAP
+  * Native LDAP retry/failover support of multiple redundant LDAP servers
+* Large set of locally configurable password polices
+  * Standard syntax rules
+  * Regex rules
+  * Password dictionary enforcement
+  * Remote REST server checking
+  * AD-style syntax groups
+  * Shared password history to prevent passwords from being reused organizationally
+* Modules
+  * Change Password
+    * as-you-type password rule enforcement
+    * password strength feedback display
+  * Account Activation / First time password assignment
+  * Forgotten Password
+    * Store Responses in local server, standard RDBMS database, LDAP server or eDirectory NMAS repositories
+    * User verification options:
+      * Email/SMS Token/PIN
+      * TOTP
+      * Remote REST service
+      * OAuth service
+      * User LDAP attribute values
+  * New User Registration / Account Creation
+  * Guest User Registration / Updating
+  * PeopleSearch (white pages)
+    * Configurable detail pages
+    * OrgChart view
+  * Helpdesk password reset and intruder lockout clearing
+  * Administration modules including intruder-lockout manager
+    * online log viewer 
+    * daily stats viewer and user information debugging
+    * statistics
+    * audit records
+* Multiple Deployment Options
+  * Java WAR file (bring your own application server, tested with Apache Tomcat)
+  * Java single JAR file (bring your own Java VM)
+  * Docker container
 * Theme-able interface with several example CSS themes
-* Support for large dictionary wordlists to enforce strong passwords
-* Shared password history to prevent passwords from being reused organizationally
+  * Mobile devices specific CSS themes
+  * Configuration support for additional web assets (css, js, images, etc)
+  * Force display of organizational 
 * Captcha support using Google reCaptcha
-* Integration with CAS
-* Support for minimal, restricted and mobile browsers with no cookies, javascript or css
-* Specialized skins for iPhone/Mobile devices
-* Designed for integration with existing portals and web security gateways
-* OAuth Service Provider to allow single-signon from OAuth servers and using OAuth as a forgotten password verification method
-* REST Server APIs for most functionality  
-* Callout to REST servers for custom integrations of several functions    
-* LDAP Features
-  * Support for password replication checking and minimum time delays during password sets
-  * Automatic LDAP server fail-over to multiple ldap servers and retry during LDAP server failures
-* LDAP Directory Support
-  * Generic LDAP
-  * Directory 389
-  * NetIQ eDirectory
-    * Password Policies & Challenge Sets
-    * NMAS Operations and Error handling
-    * Support for NMAS user challenge/responses
-  * Microsoft Active Directory
-  * OpenLDAP
+* Multiple SSO options
+  * Basic Authentication 
+  * HTTP header username injection
+  * Central Authentication Service (CAS)
+  * OAuth client
+* REST Server APIs for most functionality
+  * Password set
+  * Forgotten password
+  * Password policy reading
+  * User attribute updates
+  * Password policy verification
+* Outbound REST API for custom integrations during user activities such as change password, new user registration, etc.    
 
 ## Deploy
 PWM is distributed in the following artifacts:
@@ -104,8 +160,8 @@ By default the executable will remain attached to the console and listen for HTT
 
 ### Docker
 The PWM docker image includes Java and Tomcat.  It listens using https on port 8443, and has a volume exposed
-as `/config`.  You will need to map the `/config` volume to either a localhost or some type of persistent docker
-volume for PWM to work properly.
+as `/config`.  You will need to map the `/config` volume to some type of persistent docker
+volume for PWM to retain configuration.
 
 Requirements:
 * Server running docker
@@ -120,7 +176,7 @@ docker load --input=pwm-docker-image-v2.0.0.tar
 1. Create docker image named _mypwm_, map to the server's 8443 port, and set the config volume to use the server's
 local file system _/home/user/pwm-config_ folder:
 ```
-docker create --name mypwm -p '8443:8443' pwm/pwm-webapp -v '/config:/home/user/pwm-config'
+docker create --name mypwm -p '8443:8443' --mount 'type=bind,source=/home/user/pwm-config,destination=/config' pwm/pwm-webapp
 ```
 
 1. Start the _mypwm_ container:

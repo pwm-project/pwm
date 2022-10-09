@@ -30,6 +30,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
@@ -38,7 +39,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.RecoveryAction;
 import password.pwm.config.option.SelectableContextMode;
-import password.pwm.config.profile.AbstractProfile;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
@@ -55,12 +55,11 @@ import password.pwm.http.bean.ForgottenPasswordStage;
 import password.pwm.http.tag.PasswordRequirementsTag;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.auth.AuthenticationUtility;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchEngine;
+import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.otp.OTPUserRecord;
 import password.pwm.svc.stats.Statistic;
@@ -69,6 +68,7 @@ import password.pwm.svc.token.TokenPayload;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
+import password.pwm.user.UserInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.i18n.LocaleHelper;
@@ -925,7 +925,7 @@ public class ForgottenPasswordStateMachine
                 throws PwmUnrecoverableException
         {
             final PwmRequestContext pwmRequestContext = forgottenPasswordStateMachine.getRequestContext();
-            final String profile = forgottenPasswordStateMachine.getForgottenPasswordBean().getProfile();
+            final ProfileID profile = forgottenPasswordStateMachine.getForgottenPasswordBean().getProfile();
             final List<FormConfiguration> formFields = new ArrayList<>( makeSelectableContextValues( pwmRequestContext, profile ) );
             formFields.addAll( pwmRequestContext.getDomainConfig().readSettingAsForm( PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM ) );
 
@@ -954,11 +954,13 @@ public class ForgottenPasswordStateMachine
 
             // process input profile
             {
-                final String inputProfile = values.get( PwmConstants.PARAM_LDAP_PROFILE );
-                if ( StringUtil.notEmpty( inputProfile ) && pwmRequestContext.getDomainConfig().getLdapProfiles().containsKey( inputProfile ) )
+                ProfileID.createNullable( values.get( PwmConstants.PARAM_LDAP_PROFILE ) ).ifPresent( inputProfile ->
                 {
-                    forgottenPasswordStateMachine.getForgottenPasswordBean().setProfile( inputProfile );
-                }
+                    if ( pwmRequestContext.getDomainConfig().getLdapProfiles().containsKey( inputProfile ) )
+                    {
+                        forgottenPasswordStateMachine.getForgottenPasswordBean().setProfile( inputProfile );
+                    }
+                } );
             }
 
             final LdapProfile ldapProfile = pwmRequestContext.getDomainConfig().getLdapProfiles().getOrDefault(
@@ -1001,15 +1003,15 @@ public class ForgottenPasswordStateMachine
 
                 // convert the username field to an identity
                 {
-                    final UserSearchEngine userSearchEngine = pwmRequestContext.getPwmDomain().getUserSearchEngine();
+                    final UserSearchService userSearchService = pwmRequestContext.getPwmDomain().getUserSearchEngine();
                     final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                             .filter( searchFilter )
                             .formValues( formValues )
                             .contexts( Collections.singletonList( contextParam ) )
-                            .ldapProfile( ldapProfile.getIdentifier() )
+                            .ldapProfile( ldapProfile.getId() )
                             .build();
 
-                    userIdentity = userSearchEngine.performSingleUserSearch( searchConfiguration, pwmRequestContext.getSessionLabel() );
+                    userIdentity = userSearchService.performSingleUserSearch( searchConfiguration, pwmRequestContext.getSessionLabel() );
                 }
 
                 if ( userIdentity == null )
@@ -1050,7 +1052,7 @@ public class ForgottenPasswordStateMachine
             forgottenPasswordStateMachine.getForgottenPasswordBean().setUserSearchValues( FormUtility.asStringMap( formValues ) );
         }
 
-        private List<FormConfiguration> makeSelectableContextValues( final PwmRequestContext pwmRequestContext, final String profile )
+        private List<FormConfiguration> makeSelectableContextValues( final PwmRequestContext pwmRequestContext, final ProfileID profile )
                 throws PwmUnrecoverableException
         {
             final SelectableContextMode selectableContextMode = pwmRequestContext.getDomainConfig().readSettingAsEnum(
@@ -1069,7 +1071,7 @@ public class ForgottenPasswordStateMachine
 
                 final Map<String, String> profileSelectValues = pwmRequestContext.getDomainConfig().getLdapProfiles().values().stream()
                         .collect( Collectors.toUnmodifiableMap(
-                                AbstractProfile::getIdentifier,
+                                ldapProfile -> ldapProfile.getId().stringValue(),
                                 ldapProfile -> ldapProfile.getDisplayName( pwmRequestContext.getLocale() ) ) );
 
                 final Map<String, String> labelLocaleMap = LocaleHelper.localeMapToStringMap(

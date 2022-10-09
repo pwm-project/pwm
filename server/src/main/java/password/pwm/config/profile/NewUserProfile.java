@@ -27,6 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -44,6 +45,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public class NewUserProfile extends AbstractProfile implements Profile
 {
@@ -54,7 +56,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
     private Instant newUserPasswordPolicyCacheTime;
     private final Map<Locale, PwmPasswordPolicy> newUserPasswordPolicyCache = new HashMap<>();
 
-    protected NewUserProfile( final DomainID domainID, final String identifier, final StoredConfiguration storedConfiguration )
+    protected NewUserProfile( final DomainID domainID, final ProfileID identifier, final StoredConfiguration storedConfiguration )
     {
         super( domainID, identifier, storedConfiguration );
     }
@@ -69,7 +71,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
     public String getDisplayName( final Locale locale )
     {
         final String value = this.readSettingAsLocalizedString( PwmSetting.NEWUSER_PROFILE_DISPLAY_NAME, locale );
-        return value != null && !value.isEmpty() ? value : this.getIdentifier();
+        return value != null && !value.isEmpty() ? value : this.getId().stringValue();
     }
 
     public PwmPasswordPolicy getNewUserPasswordPolicy( final PwmRequestContext pwmRequestContext )
@@ -101,7 +103,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
         if ( StringUtil.isEmpty( configuredNewUserPasswordDN ) )
         {
             final String errorMsg = "the setting "
-                    + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( this.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
+                    + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( this.getId(), PwmConstants.DEFAULT_LOCALE )
                     + " must have a value";
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg ) );
         }
@@ -114,9 +116,9 @@ public class NewUserProfile extends AbstractProfile implements Profile
                 if ( StringUtil.isEmpty( lookupDN ) )
                 {
                     final String errorMsg = "setting "
-                            + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
+                            + PwmSetting.LDAP_TEST_USER_DN.toMenuLocationDebug( ldapProfile.getId(), PwmConstants.DEFAULT_LOCALE )
                             + " must be configured since setting "
-                            + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( this.getIdentifier(), PwmConstants.DEFAULT_LOCALE )
+                            + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug( this.getId(), PwmConstants.DEFAULT_LOCALE )
                             + " is set to " + TEST_USER_CONFIG_VALUE;
                     throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg ) );
                 }
@@ -139,9 +141,9 @@ public class NewUserProfile extends AbstractProfile implements Profile
             {
                 try
                 {
-                    final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( sessionLabel, ldapProfile.getIdentifier() );
+                    final ChaiProvider chaiProvider = pwmDomain.getProxyChaiProvider( sessionLabel, ldapProfile.getId() );
                     final ChaiUser chaiUser = chaiProvider.getEntryFactory().newChaiUser( lookupDN );
-                    final UserIdentity userIdentity = UserIdentity.create( lookupDN, ldapProfile.getIdentifier(), pwmDomain.getDomainID() );
+                    final UserIdentity userIdentity = UserIdentity.create( lookupDN, ldapProfile.getId(), pwmDomain.getDomainID() );
                     thePolicy = PasswordUtility.readPasswordPolicyForUser( pwmDomain, null, userIdentity, chaiUser );
                 }
                 catch ( final ChaiUnavailableException e )
@@ -179,7 +181,7 @@ public class NewUserProfile extends AbstractProfile implements Profile
     public static class NewUserProfileFactory implements ProfileFactory
     {
         @Override
-        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final String identifier )
+        public Profile makeFromStoredConfiguration( final StoredConfiguration storedConfiguration, final DomainID domainID, final ProfileID identifier )
         {
             return new NewUserProfile( domainID, identifier, storedConfiguration );
         }
@@ -188,16 +190,17 @@ public class NewUserProfile extends AbstractProfile implements Profile
     public LdapProfile getLdapProfile( final DomainConfig domainConfig )
             throws PwmUnrecoverableException
     {
-        final String configuredProfile = readSettingAsString( PwmSetting.NEWUSER_LDAP_PROFILE );
-        if ( StringUtil.notEmpty( configuredProfile ) )
+        final Optional<ProfileID> configuredProfile = domainConfig
+                .profileForStringId( ProfileDefinition.NewUser, readSettingAsString( PwmSetting.NEWUSER_LDAP_PROFILE ) );
+        if ( configuredProfile.isPresent() )
         {
-            final LdapProfile ldapProfile = domainConfig.getLdapProfiles().get( configuredProfile );
+            final LdapProfile ldapProfile = domainConfig.getLdapProfiles().get( configuredProfile.get() );
             if ( ldapProfile == null )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
                         {
                                 "configured ldap profile for new user profile is invalid.  check setting "
-                                        + PwmSetting.NEWUSER_LDAP_PROFILE.toMenuLocationDebug( this.getIdentifier(), PwmConstants.DEFAULT_LOCALE ),
+                                        + PwmSetting.NEWUSER_LDAP_PROFILE.toMenuLocationDebug( this.getId(), PwmConstants.DEFAULT_LOCALE ),
                         }
                 ) );
             }

@@ -22,6 +22,7 @@ package password.pwm.svc.httpclient;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
@@ -105,6 +106,7 @@ public class HttpClientService extends AbstractPwmService implements PwmService
                 LOGGER.debug( () -> "error closing pwmHttpClient instance: " + e.getMessage() );
             }
         }
+        issuedClients.clear();
     }
 
     public PwmHttpClient getPwmHttpClient( final SessionLabel sessionLabel )
@@ -155,7 +157,7 @@ public class HttpClientService extends AbstractPwmService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo()
     {
-        final Map<String, String> debugMap = new HashMap<>( stats.debugStats() );
+        final Map<String, String> debugMap = new HashMap<>( stats.debugStats( PwmConstants.DEFAULT_LOCALE ) );
         debugMap.put( "issuedClients", Integer.toString( issuedClients.size() ) );
         debugMap.put( "openClients", Long.toString( openClients() ) );
         return ServiceInfoBean.builder()

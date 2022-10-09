@@ -26,7 +26,7 @@ import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Message;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 
 import java.util.List;
 import java.util.Locale;
@@ -367,7 +367,7 @@ public enum PwmPasswordRule
         this.appProperty = null;
         this.ruleType = ruleType;
         this.defaultValue = defaultValue;
-        this.positiveBooleanMerge = JavaHelper.enumArrayContainsValue( flags, Flag.positiveBooleanMerge );
+        this.positiveBooleanMerge = EnumUtil.enumArrayContainsValue( flags, Flag.positiveBooleanMerge );
     }
 
     PwmPasswordRule(
@@ -382,7 +382,7 @@ public enum PwmPasswordRule
         this.appProperty = appProperty;
         this.ruleType = ruleType;
         this.defaultValue = defaultValue;
-        this.positiveBooleanMerge = JavaHelper.enumArrayContainsValue( flags, Flag.positiveBooleanMerge );
+        this.positiveBooleanMerge = EnumUtil.enumArrayContainsValue( flags, Flag.positiveBooleanMerge );
     }
 
     public String getKey( )

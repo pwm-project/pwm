@@ -22,6 +22,7 @@ package password.pwm.config;
 
 import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
+import password.pwm.bean.ProfileID;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.ValueFactory;
@@ -71,7 +72,7 @@ public enum PwmSetting
     DOMAIN_SYSTEM_ADMIN(
             "domain.system.adminDomain", PwmSettingSyntax.STRING, PwmSettingCategory.DOMAINS ),
     DOMAIN_DOMAIN_PATHS(
-            "domain.system.domainPaths", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.DOMAINS ),
+            "domain.system.domainPathsEnabled", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.DOMAINS ),
 
     // application settings
     APP_PROPERTY_OVERRIDES(
@@ -480,8 +481,6 @@ public enum PwmSetting
             "wordlistCaseSensitive", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WORDLISTS ),
     PASSWORD_WORDLIST_WORDSIZE(
             "password.wordlist.wordSize", PwmSettingSyntax.NUMERIC, PwmSettingCategory.WORDLISTS ),
-    SEEDLIST_FILENAME(
-            "pwm.seedlist.location", PwmSettingSyntax.STRING, PwmSettingCategory.WORDLISTS ),
 
 
     // password policy profile settings
@@ -704,8 +703,6 @@ public enum PwmSetting
             "events.pwmDB.maxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.LOGGING ),
     EVENTS_ALERT_DAILY_SUMMARY(
             "events.alert.dailySummary.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LOGGING ),
-    EVENTS_JAVA_LOG4JCONFIG_FILE(
-            "events.java.log4jconfigFile", PwmSettingSyntax.STRING, PwmSettingCategory.LOGGING ),
 
     PASSWORD_STRENGTH_METER_TYPE(
             "password.strengthMeter.type", PwmSettingSyntax.SELECT, PwmSettingCategory.LOGGING ),
@@ -1277,6 +1274,16 @@ public enum PwmSetting
 
 
     // deprecated.
+
+
+    // deprecated 2022-09-04
+    EVENTS_JAVA_LOG4JCONFIG_FILE(
+            "events.java.log4jconfigFile", PwmSettingSyntax.STRING, PwmSettingCategory.LOGGING ),
+
+    // deprecated 2022-07-25
+    SEEDLIST_FILENAME(
+            "pwm.seedlist.location", PwmSettingSyntax.STRING, PwmSettingCategory.WORDLISTS ),
+
     // deprecated 2022-04-20
     IP_PERMITTED_RANGE(
             "network.ip.permittedRange", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY ),
@@ -1333,13 +1340,13 @@ public enum PwmSetting
 
     private static final Map<PwmSetting, List<TemplateSetReference<StoredValue>>> DEFAULT_VALUE_CACHE = initDefaultValueCache();
 
-    private final transient Supplier<String> defaultMenuLocation = new LazySupplier<>(
+    private final transient Supplier<String> defaultMenuLocation = LazySupplier.create(
             () -> readMenuLocationDebug( this, null, PwmConstants.DEFAULT_LOCALE ) );
 
-    private final transient Supplier<String> defaultLocaleLabel = new LazySupplier<>(
+    private final transient Supplier<String> defaultLocaleLabel = LazySupplier.create(
             () -> readLabel( this, PwmConstants.DEFAULT_LOCALE ) );
 
-    private final transient Supplier<String> defaultLocaleDescription = new LazySupplier<>(
+    private final transient Supplier<String> defaultLocaleDescription = LazySupplier.create(
             () -> readDescription( this, PwmConstants.DEFAULT_LOCALE ) );
 
 
@@ -1473,11 +1480,11 @@ public enum PwmSetting
     }
 
     public String toMenuLocationDebug(
-            final String profileID,
+            final ProfileID profileID,
             final Locale locale
     )
     {
-        if ( PwmConstants.DEFAULT_LOCALE.equals( locale ) && StringUtil.isEmpty( profileID ) )
+        if ( PwmConstants.DEFAULT_LOCALE.equals( locale ) && profileID == null )
         {
             return defaultMenuLocation.get();
         }
@@ -1544,7 +1551,7 @@ public enum PwmSetting
         return macroRequest.expandMacros( storedText );
     }
 
-    private static String readMenuLocationDebug( final PwmSetting pwmSetting, final String profileID, final Locale locale )
+    private static String readMenuLocationDebug( final PwmSetting pwmSetting, final ProfileID profileID, final Locale locale )
     {
         final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
         return pwmSetting.getCategory().toMenuLocationDebug( profileID, locale ) + separator + pwmSetting.getLabel( locale );

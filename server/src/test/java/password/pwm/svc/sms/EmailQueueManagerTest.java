@@ -23,8 +23,8 @@ package password.pwm.svc.sms;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
@@ -59,28 +59,28 @@ public class EmailQueueManagerTest
                 .build();
 
         final List<Message> messages = EmailServerUtil.convertEmailItemToMessages( emailItemBean, config, emailServer, SessionLabel.TEST_SESSION_LABEL );
-        Assert.assertEquals( 2, messages.size() );
+        Assertions.assertEquals( 2, messages.size() );
 
         {
             final Message message = messages.get( 0 );
-            Assert.assertEquals( new InternetAddress( "fred@flintstones.tv" ), message.getRecipients( Message.RecipientType.TO )[0] );
-            Assert.assertEquals( new InternetAddress( "bedrock-admin@flintstones.tv" ), message.getFrom()[0] );
-            Assert.assertEquals( "Test Subject", message.getSubject() );
+            Assertions.assertEquals( new InternetAddress( "fred@flintstones.tv" ), message.getRecipients( Message.RecipientType.TO )[0] );
+            Assertions.assertEquals( new InternetAddress( "bedrock-admin@flintstones.tv" ), message.getFrom()[0] );
+            Assertions.assertEquals( "Test Subject", message.getSubject() );
             final String content = JavaHelper.copyToString( message.getInputStream(), PwmConstants.DEFAULT_CHARSET, Integer.MAX_VALUE )
                     .orElse( "" );
-            Assert.assertTrue( content.contains( "bodyPlain" ) );
-            Assert.assertTrue( content.contains( "bodyHtml" ) );
+            Assertions.assertTrue( content.contains( "bodyPlain" ) );
+            Assertions.assertTrue( content.contains( "bodyHtml" ) );
         }
 
         {
             final Message message = messages.get( 1 );
-            Assert.assertEquals( new InternetAddress( "barney@flintstones.tv" ), message.getRecipients( Message.RecipientType.TO )[0] );
-            Assert.assertEquals( new InternetAddress( "bedrock-admin@flintstones.tv" ), message.getFrom()[0] );
-            Assert.assertEquals( "Test Subject", message.getSubject() );
+            Assertions.assertEquals( new InternetAddress( "barney@flintstones.tv" ), message.getRecipients( Message.RecipientType.TO )[0] );
+            Assertions.assertEquals( new InternetAddress( "bedrock-admin@flintstones.tv" ), message.getFrom()[0] );
+            Assertions.assertEquals( "Test Subject", message.getSubject() );
             final String content = JavaHelper.copyToString( message.getInputStream(), PwmConstants.DEFAULT_CHARSET, Integer.MAX_VALUE )
                     .orElse( "" );
-            Assert.assertTrue( content.contains( "bodyPlain" ) );
-            Assert.assertTrue( content.contains( "bodyHtml" ) );
+            Assertions.assertTrue( content.contains( "bodyPlain" ) );
+            Assertions.assertTrue( content.contains( "bodyHtml" ) );
         }
     }
 }

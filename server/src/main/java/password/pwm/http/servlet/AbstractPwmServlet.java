@@ -246,7 +246,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
 
             case ERROR_INTERNAL:
             default:
-                final Supplier<CharSequence> msg = () -> "unexpected error: " + e.getErrorInformation().toDebugStr();
+                final Supplier<String> msg = () -> "unexpected error: " + e.getErrorInformation().toDebugStr();
                 final PwmLogLevel level = e.getError().isTrivial() ? PwmLogLevel.TRACE : PwmLogLevel.ERROR;
                 LOGGER.log( level, pwmRequest.getLabel(), msg );
                 StatisticsClient.incrementStat( pwmRequest, Statistic.PWM_UNKNOWN_ERRORS );

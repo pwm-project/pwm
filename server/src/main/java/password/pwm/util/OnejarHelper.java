@@ -118,6 +118,7 @@ public class OnejarHelper
                 .applicationPath( applicationPath )
                 .applicationMode( PwmApplicationMode.READ_ONLY )
                 .configurationFile( configFile )
+                .internalRuntimeInstance( true )
                 .flags( Collections.singleton( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
                 .build();
 

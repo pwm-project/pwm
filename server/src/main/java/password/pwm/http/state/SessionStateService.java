@@ -32,7 +32,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.MiscUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
@@ -103,7 +103,7 @@ public class SessionStateService extends AbstractPwmService implements PwmServic
                             break;
 
                         default:
-                            MiscUtil.unhandledSwitchStatement( loginSessionMode );
+                            PwmUtil.unhandledSwitchStatement( loginSessionMode );
                     }
                 }
                 sessionLoginProvider.init( pwmApplication );
