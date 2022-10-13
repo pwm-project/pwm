@@ -63,7 +63,7 @@
                             Maximum Record Count
                         </td>
                         <td>
-                            <input type="number" name="recordCount" id="recordCount" value="1000"/>
+                            <input type="number" name="recordCount" id="recordCount" value="1000" min="0" max="<%=Integer.MAX_VALUE%>"/>
                         </td>
                     </tr>
                 </table>

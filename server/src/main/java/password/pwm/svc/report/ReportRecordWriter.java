@@ -29,7 +29,7 @@ interface ReportRecordWriter
     void outputHeader()
             throws IOException;
 
-    void outputRecord( UserReportRecord userReportRecord, boolean lastRecord )
+    void outputRecord( UserReportRecord userReportRecord )
             throws IOException;
 
     void outputFooter()

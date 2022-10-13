@@ -60,7 +60,6 @@ public enum PwmServiceEnum
     TokenSystemService( password.pwm.svc.token.TokenSystemService.class, PwmSettingScope.SYSTEM ),
     HealthMonitor( HealthService.class, PwmSettingScope.SYSTEM ),
     DebugOutputService( password.pwm.health.DebugOutputService.class, PwmSettingScope.SYSTEM ),
-    ReportService( password.pwm.svc.report.ReportService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     SessionTrackService( password.pwm.svc.sessiontrack.SessionTrackService.class, PwmSettingScope.SYSTEM ),
     SessionStateSvc( password.pwm.http.state.SessionStateService.class, PwmSettingScope.SYSTEM ),
     TelemetryService( password.pwm.svc.telemetry.TelemetryService.class, PwmSettingScope.SYSTEM ),
@@ -77,7 +76,8 @@ public enum PwmServiceEnum
     UserHistoryService( password.pwm.svc.userhistory.UserHistoryService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
     PeopleSearchService( password.pwm.http.servlet.peoplesearch.PeopleSearchService.class, PwmSettingScope.DOMAIN ),
     PwExpiryNotifyService( PwNotifyService.class, PwmSettingScope.DOMAIN ),
-    ResourceServletService( password.pwm.http.servlet.resource.ResourceServletService.class, PwmSettingScope.DOMAIN ),;
+    ResourceServletService( password.pwm.http.servlet.resource.ResourceServletService.class, PwmSettingScope.DOMAIN ),
+    ReportService( password.pwm.svc.report.ReportService.class, PwmSettingScope.DOMAIN  ),;
 
 
     private final Class<? extends PwmService> clazz;

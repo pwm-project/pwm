@@ -20,35 +20,39 @@
 
 package password.pwm.svc.report;
 
-import org.jetbrains.annotations.NotNull;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
-import password.pwm.bean.SessionLabel;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
-import password.pwm.util.PwmScheduler;
+import password.pwm.util.java.StatisticCounterBundle;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Semaphore;
 
 
 public class ReportService extends AbstractPwmService implements PwmService
 {
-    private PwmApplication pwmApplication;
+    private PwmDomain pwmDomain;
     private ReportSettings settings = ReportSettings.builder().build();
 
-    private final Semaphore activeReportSemaphore = new Semaphore( 5 );
     private final Set<ReportProcess> outstandingReportProcesses = Collections.newSetFromMap( new WeakHashMap<>() );
 
-    private ExecutorService threadPool;
+    private final StatisticCounterBundle<CounterStats> statisticCounterBundle = new StatisticCounterBundle<>( CounterStats.class );
+
+    private enum CounterStats
+    {
+        ReportsStarted,
+        ReportsCompleted,
+        RecordsRead,
+        RecordReadErrors,
+    }
 
     public ReportService( )
     {
@@ -59,9 +63,17 @@ public class ReportService extends AbstractPwmService implements PwmService
         return settings;
     }
 
-    public ExecutorService getExecutor()
+    void closeReportProcess( final ReportProcess reportProcess )
     {
-        return this.threadPool;
+        outstandingReportProcesses.remove( reportProcess );
+
+        statisticCounterBundle.increment( CounterStats.ReportsCompleted );
+
+        reportProcess.getResult().ifPresent( result ->
+        {
+            statisticCounterBundle.increment( CounterStats.RecordsRead, result.getRecordCount() );
+            statisticCounterBundle.increment( CounterStats.RecordReadErrors, result.getErrorCount() );
+        } );
     }
 
     public enum ReportCommand
@@ -74,21 +86,13 @@ public class ReportService extends AbstractPwmService implements PwmService
     protected STATUS postAbstractInit( final PwmApplication pwmApplication, final DomainID domainID )
             throws PwmException
     {
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmApplication.domains().get( domainID );
         this.settings = ReportSettings.readSettingsFromConfig( this.getPwmApplication().getConfig() );
-        final int maxThreads = settings.getReportJobThreads();
-        this.threadPool = PwmScheduler.makeMultiThreadExecutor( maxThreads, pwmApplication, getSessionLabel(), ReportService.class );
         return STATUS.OPEN;
     }
 
     public void shutdownImpl( )
     {
-        if ( threadPool != null )
-        {
-            threadPool.shutdown();
-            threadPool = null;
-        }
-
         setStatus( STATUS.CLOSED );
 
         for ( final ReportProcess reportProcess : outstandingReportProcesses )
@@ -101,12 +105,12 @@ public class ReportService extends AbstractPwmService implements PwmService
     }
 
     public ReportProcess createReportProcess(
-            final Locale locale,
-            @NotNull final SessionLabel sessionLabel
+            final ReportProcessRequest request
     )
     {
-        final ReportProcess reportProcess = ReportProcess.createReportProcess( pwmApplication, activeReportSemaphore, settings, locale, sessionLabel );
+        final ReportProcess reportProcess = ReportProcess.createReportProcess( pwmDomain, this, request, settings );
         outstandingReportProcesses.add( reportProcess );
+        statisticCounterBundle.increment( CounterStats.ReportsStarted );
         return reportProcess;
     }
 
@@ -120,6 +124,8 @@ public class ReportService extends AbstractPwmService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        return ServiceInfoBean.builder().storageMethod( DataStorageMethod.LDAP ).build();
+        return ServiceInfoBean.builder()
+                .debugProperties( statisticCounterBundle.debugStats( PwmConstants.DEFAULT_LOCALE ) )
+                .storageMethod( DataStorageMethod.LDAP ).build();
     }
 }

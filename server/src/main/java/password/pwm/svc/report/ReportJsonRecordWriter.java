@@ -36,6 +36,8 @@ class ReportJsonRecordWriter implements ReportRecordWriter
     private final Writer writer;
     private final JsonProvider jsonFactory = JsonFactory.get();
 
+    private boolean firstRecordWritten = false;
+
     ReportJsonRecordWriter( final OutputStream outputStream )
             throws IOException
     {
@@ -55,9 +57,14 @@ class ReportJsonRecordWriter implements ReportRecordWriter
     }
 
     @Override
-    public void outputRecord( final UserReportRecord userReportRecord, final boolean lastRecord ) throws IOException
+    public void outputRecord( final UserReportRecord userReportRecord ) throws IOException
     {
         writer.write( ' ' );
+
+        if ( firstRecordWritten )
+        {
+            writer.write( ',' );
+        }
 
         final String jsonString = jsonFactory.serialize( userReportRecord, UserReportRecord.class, JsonProvider.Flag.PrettyPrint );
         final String indentedJson = " " + StringUtil.replaceAllChars( jsonString, character ->
@@ -70,13 +77,9 @@ class ReportJsonRecordWriter implements ReportRecordWriter
         } );
 
         writer.write( indentedJson );
-
-        if ( !lastRecord )
-        {
-            writer.write( ',' );
-        }
-
         writer.write( '\n' );
+
+        firstRecordWritten = true;
     }
 
     @Override

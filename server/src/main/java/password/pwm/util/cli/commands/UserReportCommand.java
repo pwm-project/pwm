@@ -72,11 +72,14 @@ public class UserReportCommand extends AbstractCliCommand
                 return;
             }
 
-            final ReportProcessRequest reportProcessRequest = ReportProcessRequest.builder().build();
+            final ReportProcessRequest reportProcessRequest = ReportProcessRequest.builder()
+                    .locale( PwmConstants.DEFAULT_LOCALE )
+                    .sessionLabel( SessionLabel.CLI_SESSION_LABEL )
+                    .build();
 
-            try ( ReportProcess reportProcess = reportService.createReportProcess( PwmConstants.DEFAULT_LOCALE, SessionLabel.CLI_SESSION_LABEL ) )
+            try ( ReportProcess reportProcess = reportService.createReportProcess( reportProcessRequest ) )
             {
-                reportProcess.startReport( reportProcessRequest, outputFileStream );
+                reportProcess.startReport( outputFileStream );
             }
         }
         catch ( final IOException | PwmUnrecoverableException e )

@@ -289,7 +289,7 @@ public class PwmScheduler
     )
     {
         final ThreadPoolExecutor executor = new ThreadPoolExecutor(
-                1,
+                maxThreadCount,
                 maxThreadCount,
                 1, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(),

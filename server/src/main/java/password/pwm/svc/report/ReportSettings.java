@@ -76,6 +76,10 @@ public class ReportSettings implements Serializable
     @Builder.Default
     private JobIntensity reportJobIntensity = JobIntensity.LOW;
 
+
+    @Builder.Default
+    private TimeDuration reportJobTimeout = TimeDuration.MINUTE;
+
     public enum JobIntensity
     {
         LOW,
@@ -96,7 +100,7 @@ public class ReportSettings implements Serializable
         builder.maxSearchSize ( ( int ) config.readSettingAsLong( PwmSetting.REPORTING_MAX_QUERY_SIZE ) );
         builder.dailyJobEnabled( config.readSettingAsBoolean( PwmSetting.REPORTING_ENABLE_DAILY_JOB ) );
         builder.searchTimeout( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT_MS ) ), TimeDuration.Unit.MILLISECONDS ) );
-
+        builder.reportJobTimeout( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.REPORTING_LDAP_JOB_TIMEOUT_MS ) ), TimeDuration.Unit.SECONDS ) );
 
         {
             int reportJobOffset = ( int ) config.readSettingAsLong( PwmSetting.REPORTING_JOB_TIME_OFFSET );
@@ -110,7 +114,7 @@ public class ReportSettings implements Serializable
 
         builder.trackDays( parseDayIntervalStr( config ) );
 
-        builder.reportJobThreads( Integer.parseInt( config.readAppProperty( AppProperty.REPORTING_LDAP_SEARCH_THREADS ) ) );
+        builder.reportJobThreads( Integer.parseInt( config.readAppProperty( AppProperty.REPORTING_LDAP_JOB_THREADS ) ) );
 
         builder.reportJobIntensity( config.readSettingAsEnum( PwmSetting.REPORTING_JOB_INTENSITY, JobIntensity.class ) );
 

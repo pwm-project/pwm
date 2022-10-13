@@ -31,8 +31,11 @@ public class ReportProcessResult implements Serializable
 {
     private final ReportProcessRequest request;
     private final long recordCount;
+    private final long errorCount;
     private final Instant startTime;
     private final Instant finishTime;
     private final TimeDuration timeDuration;
     private final boolean recordLimitReached;
+    private final String instanceId;
+    private final String reportId;
 }

@@ -37,6 +37,7 @@ import javax.servlet.jsp.PageContext;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.Locale;
+import java.util.function.Supplier;
 
 public abstract class JspUtility
 {
@@ -188,6 +189,26 @@ public abstract class JspUtility
         }
         return StringUtil.escapeHtml( input );
     }
+
+    public static String friendlyWrite( final PageContext pageContext, final Supplier<String> input )
+    {
+        try
+        {
+            final String str = input.get();
+            if ( StringUtil.isEmpty( str ) )
+            {
+                return friendlyWriteNotApplicable( pageContext );
+            }
+            return StringUtil.escapeHtml( str );
+        }
+        catch ( final Exception e )
+        {
+            LOGGER.debug( () -> "error while performing JSP write: " + e.getMessage() );
+        }
+
+        return "";
+    }
+
 
     public static String friendlyWriteNotApplicable( final PageContext pageContext )
     {

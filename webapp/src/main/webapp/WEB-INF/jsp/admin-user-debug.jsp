@@ -344,9 +344,9 @@
                         <tr>
                             <td>ID</td>
                             <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
-                            <td><%=JspUtility.friendlyWrite(pageContext, configPolicy.getId().stringValue())%></td>
-                            <td><%=JspUtility.friendlyWrite(pageContext, ldapPolicy.getId().stringValue())%></td>
-                            <td><%=JspUtility.friendlyWrite(pageContext, userPolicy.getId().stringValue())%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, () -> configPolicy.getId().stringValue())%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, () -> ldapPolicy.getId().stringValue())%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, () -> userPolicy.getId().stringValue())%></td>
                         </tr>
                         <tr>
                             <td>Display Name</td>

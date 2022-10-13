@@ -22,15 +22,23 @@ package password.pwm.svc.report;
 
 import lombok.Builder;
 import lombok.Value;
+import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 
 import java.io.Serializable;
+import java.util.Locale;
 
 @Value
 @Builder
 public class ReportProcessRequest implements Serializable
 {
     private final DomainID domainID;
+
+    @Builder.Default
+    private final Locale locale = PwmConstants.DEFAULT_LOCALE;
+
+    private final SessionLabel sessionLabel;
 
     @Builder.Default
     private long maximumRecords = Long.MAX_VALUE;

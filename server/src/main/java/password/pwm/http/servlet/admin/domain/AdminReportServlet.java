@@ -145,6 +145,8 @@ public class AdminReportServlet extends ControlledPwmServlet
 
         final ReportProcessRequest reportProcessRequest = ReportProcessRequest.builder()
                 .domainID( pwmRequest.getDomainID() )
+                .sessionLabel( pwmRequest.getLabel() )
+                .locale( pwmRequest.getLocale() )
                 .maximumRecords( pwmRequest.readParameterAsInt( "recordCount", 1000 ) )
                 .reportType( pwmRequest.readParameterAsEnum( "recordType", ReportProcessRequest.ReportType.class )
                         .orElse( ReportProcessRequest.ReportType.json ) )
@@ -153,10 +155,10 @@ public class AdminReportServlet extends ControlledPwmServlet
         try ( OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream() )
         {
             final ReportService reportService = pwmRequest.getPwmApplication().getReportService();
-            try ( ReportProcess reportProcess = reportService.createReportProcess( pwmRequest.getLocale(), pwmRequest.getLabel() ) )
+            try ( ReportProcess reportProcess = reportService.createReportProcess( reportProcessRequest ) )
             {
                 pwmRequest.getPwmSession().setReportProcess( reportProcess );
-                reportProcess.startReport( reportProcessRequest, outputStream );
+                reportProcess.startReport( outputStream );
             }
         }
         catch ( final PwmException e )

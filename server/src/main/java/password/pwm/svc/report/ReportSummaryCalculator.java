@@ -67,6 +67,11 @@ public class ReportSummaryCalculator
     {
     }
 
+    static ReportSummaryCalculator empty()
+    {
+        return ReportSummaryCalculator.newSummaryData( Collections.singletonList( 1 ) );
+    }
+
     static ReportSummaryCalculator newSummaryData( final List<Integer> trackedDays )
     {
         final ReportSummaryCalculator reportSummaryData = new ReportSummaryCalculator();

@@ -21,7 +21,7 @@
 package password.pwm.svc.report;
 
 import org.apache.commons.csv.CSVPrinter;
-import password.pwm.PwmApplication;
+import password.pwm.PwmDomain;
 import password.pwm.config.SettingReader;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
@@ -38,15 +38,15 @@ import java.util.Locale;
 class ReportCsvRecordWriter implements ReportRecordWriter
 {
     private final Locale locale;
-    private final PwmApplication pwmApplication;
+    private final PwmDomain pwmDomain;
     private final CSVPrinter csvPrinter;
 
-    ReportCsvRecordWriter( final OutputStream outputStream, final PwmApplication pwmApplication, final Locale locale )
+    ReportCsvRecordWriter( final OutputStream outputStream, final PwmDomain pwmDomain, final Locale locale )
             throws IOException
     {
         this.csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
         this.locale = locale;
-        this.pwmApplication = pwmApplication;
+        this.pwmDomain = pwmDomain;
     }
 
     static void outputHeaderRow( final Locale locale, final CSVPrinter csvPrinter, final SettingReader config )
@@ -146,13 +146,13 @@ class ReportCsvRecordWriter implements ReportRecordWriter
     @Override
     public void outputHeader() throws IOException
     {
-        outputHeaderRow( locale, csvPrinter, pwmApplication.getConfig() );
+        outputHeaderRow( locale, csvPrinter, pwmDomain.getConfig() );
     }
 
     @Override
-    public void outputRecord( final UserReportRecord userReportRecord, final boolean lastRecord ) throws IOException
+    public void outputRecord( final UserReportRecord userReportRecord ) throws IOException
     {
-        final SettingReader settingReader = pwmApplication.getConfig();
+        final SettingReader settingReader = pwmDomain.getConfig();
         outputRecordRow( settingReader, locale, userReportRecord, csvPrinter );
     }
 
