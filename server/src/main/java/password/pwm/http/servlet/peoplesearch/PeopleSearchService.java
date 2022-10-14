@@ -52,7 +52,7 @@ public class PeopleSearchService extends AbstractPwmService implements PwmServic
     {
         if ( threadPoolExecutor != null )
         {
-            threadPoolExecutor.shutdown();
+            threadPoolExecutor.shutdownNow();
             threadPoolExecutor = null;
         }
     }

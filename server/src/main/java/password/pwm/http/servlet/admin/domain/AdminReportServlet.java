@@ -154,7 +154,7 @@ public class AdminReportServlet extends ControlledPwmServlet
 
         try ( OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream() )
         {
-            final ReportService reportService = pwmRequest.getPwmApplication().getReportService();
+            final ReportService reportService = pwmRequest.getPwmDomain().getReportService();
             try ( ReportProcess reportProcess = reportService.createReportProcess( reportProcessRequest ) )
             {
                 pwmRequest.getPwmSession().setReportProcess( reportProcess );

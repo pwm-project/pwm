@@ -95,7 +95,8 @@ class PwmDomainUtil
             throw domainStartupException.get();
         }
 
-        LOGGER.trace( pwmApplication.getSessionLabel(), () -> "completed domain initialization for domains", TimeDuration.fromCurrent( domainInitStartTime ) );
+        LOGGER.trace( pwmApplication.getSessionLabel(), () -> "completed domain initialization for domains",
+                TimeDuration.fromCurrent( domainInitStartTime ) );
     }
 
     private static class DomainInitializingCallable implements Callable<Optional<PwmUnrecoverableException>>
@@ -130,6 +131,7 @@ class PwmDomainUtil
             throws PwmUnrecoverableException
     {
         final Map<DomainModifyCategory, Set<DomainID>> categorizedDomains = categorizeDomainModifications( newConfig, oldConfig );
+
         categorizedDomains.forEach( (  modifyCategory, domainIDSet ) -> domainIDSet.forEach( domainID ->
                 LOGGER.trace( pwmApplication.getSessionLabel(), () -> "domain '" + domainID
                         + "' configuration modification detected as: " + modifyCategory ) ) );
@@ -206,40 +208,46 @@ class PwmDomainUtil
             final AppConfig oldConfig
     )
     {
-
         {
             final Instant newInstant = newConfig.getStoredConfiguration().modifyTime();
             final Instant oldInstant = oldConfig.getStoredConfiguration().modifyTime();
             if ( newInstant != null && oldInstant != null && newInstant.isBefore( oldInstant ) )
             {
-                throw new IllegalStateException( "refusing request to categorize changes due to oldConfig being newer than new config" );
+                throw new IllegalStateException( "refusing request to categorize changes due to oldConfig "
+                        + "being newer than new config" );
             }
         }
 
-        final Set<StoredConfigKey> modifiedValues = StoredConfigurationUtil.changedValues( newConfig.getStoredConfiguration(), oldConfig.getStoredConfiguration() );
+        final Set<StoredConfigKey> modifiedValues = StoredConfigurationUtil.changedValues(
+                newConfig.getStoredConfiguration(),
+                oldConfig.getStoredConfiguration() );
 
-        return CATEGORIZERS.entrySet().stream()
+        return CLASSIFIERS.entrySet().stream()
                 .collect( Collectors.toUnmodifiableMap(
                         Map.Entry::getKey,
                         entry -> entry.getValue().categorize( newConfig, oldConfig, modifiedValues )
                 ) );
     }
 
-    interface DomainModificationCategorizer
+    interface DomainModificationClassifier
     {
         Set<DomainID> categorize( AppConfig newConfig, AppConfig oldConfig, Set<StoredConfigKey> modifiedValues );
     }
 
-    private static final Map<DomainModifyCategory, DomainModificationCategorizer> CATEGORIZERS = Map.of(
-            DomainModifyCategory.removed, new RemovalCategorizer(),
-            DomainModifyCategory.created, new CreationCategorizer(),
-            DomainModifyCategory.unchanged, new UnchangedCategorizer(),
-            DomainModifyCategory.modified, new ModifiedCategorizer() );
+    private static final Map<DomainModifyCategory, DomainModificationClassifier> CLASSIFIERS = Map.of(
+            DomainModifyCategory.removed, new RemovalClassifier(),
+            DomainModifyCategory.created, new CreationClassifier(),
+            DomainModifyCategory.unchanged, new UnchangedClassifier(),
+            DomainModifyCategory.modified, new ModifiedClassifier() );
 
-    private static class RemovalCategorizer implements DomainModificationCategorizer
+    private static class RemovalClassifier implements DomainModificationClassifier
     {
         @Override
-        public Set<DomainID> categorize( final AppConfig newConfig, final AppConfig oldConfig, final Set<StoredConfigKey> modifiedValues )
+        public Set<DomainID> categorize(
+                final AppConfig newConfig,
+                final AppConfig oldConfig,
+                final Set<StoredConfigKey> modifiedValues
+        )
         {
             final Set<DomainID> removedDomains = new HashSet<>( oldConfig.getDomainConfigs().keySet() );
             removedDomains.removeAll( newConfig.getDomainConfigs().keySet() );
@@ -247,10 +255,14 @@ class PwmDomainUtil
         }
     }
 
-    private static class CreationCategorizer implements DomainModificationCategorizer
+    private static class CreationClassifier implements DomainModificationClassifier
     {
         @Override
-        public Set<DomainID> categorize( final AppConfig newConfig, final AppConfig oldConfig, final Set<StoredConfigKey> modifiedValues )
+        public Set<DomainID> categorize(
+                final AppConfig newConfig,
+                final AppConfig oldConfig,
+                final Set<StoredConfigKey> modifiedValues
+        )
         {
             final Set<DomainID> createdDomains = new HashSet<>( newConfig.getDomainConfigs().keySet() );
             createdDomains.removeAll( oldConfig.getDomainConfigs().keySet() );
@@ -258,27 +270,39 @@ class PwmDomainUtil
         }
     }
 
-    private static class UnchangedCategorizer implements DomainModificationCategorizer
+    private static class UnchangedClassifier implements DomainModificationClassifier
     {
         @Override
-        public Set<DomainID> categorize( final AppConfig newConfig, final AppConfig oldConfig, final Set<StoredConfigKey> modifiedValues )
+        public Set<DomainID> categorize(
+                final AppConfig newConfig,
+                final AppConfig oldConfig,
+                final Set<StoredConfigKey> modifiedValues
+        )
         {
-            final Set<DomainID> persistentDomains = new HashSet<>( CollectionUtil.setUnion( newConfig.getDomainConfigs().keySet(), oldConfig.getDomainConfigs().keySet() ) );
+            final Set<DomainID> persistentDomains = new HashSet<>(
+                    CollectionUtil.setUnion(
+                            newConfig.getDomainConfigs().keySet(),
+                            oldConfig.getDomainConfigs().keySet() ) );
             persistentDomains.removeAll( StoredConfigKey.uniqueDomains( modifiedValues ) );
             return Set.copyOf( persistentDomains );
         }
     }
 
-    private static class ModifiedCategorizer implements DomainModificationCategorizer
+    private static class ModifiedClassifier implements DomainModificationClassifier
     {
         @Override
-        public Set<DomainID> categorize( final AppConfig newConfig, final AppConfig oldConfig, final Set<StoredConfigKey> modifiedValues )
+        public Set<DomainID> categorize(
+                final AppConfig newConfig,
+                final AppConfig oldConfig,
+                final Set<StoredConfigKey> modifiedValues
+        )
         {
-            final Set<DomainID> persistentDomains = new HashSet<>( CollectionUtil.setUnion( newConfig.getDomainConfigs().keySet(), oldConfig.getDomainConfigs().keySet() ) );
-            persistentDomains.retainAll( StoredConfigKey.uniqueDomains( modifiedValues ) );
-            return Set.copyOf( persistentDomains );
+            final Set<DomainID> modifiedDomains = new HashSet<>(
+                    CollectionUtil.setUnion(
+                            newConfig.getDomainConfigs().keySet(),
+                            oldConfig.getDomainConfigs().keySet() ) );
+            modifiedDomains.retainAll( StoredConfigKey.uniqueDomains( modifiedValues ) );
+            return Set.copyOf( modifiedDomains );
         }
     }
-
-
 }

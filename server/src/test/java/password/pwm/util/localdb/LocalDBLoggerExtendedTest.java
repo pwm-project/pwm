@@ -147,7 +147,7 @@ public class LocalDBLoggerExtendedTest
             threadPoolExecutor.execute( new PopulatorThread() );
         }
 
-        threadPoolExecutor.shutdown();
+        threadPoolExecutor.shutdownNow();
         threadPoolExecutor.awaitTermination( 1, TimeUnit.DAYS );
         timer.cancel();
         out( "bulk operations completed" );

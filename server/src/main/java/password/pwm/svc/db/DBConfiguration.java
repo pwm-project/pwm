@@ -30,7 +30,6 @@ import password.pwm.config.value.FileValue;
 import password.pwm.data.ImmutableByteArray;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.StringUtil;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -57,15 +56,6 @@ public class DBConfiguration implements Serializable
     public ImmutableByteArray getJdbcDriver( )
     {
         return jdbcDriver;
-    }
-
-    public boolean isEnabled( )
-    {
-        return
-                StringUtil.notEmpty( driverClassname )
-                        && StringUtil.notEmpty( connectionString )
-                        && StringUtil.notEmpty( username )
-                        && !( password == null );
     }
 
     static DBConfiguration fromConfiguration( final AppConfig config )

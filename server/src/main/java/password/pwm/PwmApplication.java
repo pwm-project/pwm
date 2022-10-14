@@ -47,7 +47,6 @@ import password.pwm.svc.httpclient.HttpClientService;
 import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.intruder.IntruderSystemService;
 import password.pwm.svc.node.NodeService;
-import password.pwm.svc.report.ReportService;
 import password.pwm.svc.secure.SystemSecureService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
 import password.pwm.svc.sessiontrack.UserAgentUtils;
@@ -682,11 +681,6 @@ public class PwmApplication
     public WordlistService getWordlistService( )
     {
         return ( WordlistService ) pwmServiceManager.getService( PwmServiceEnum.WordlistService );
-    }
-
-    public ReportService getReportService( )
-    {
-        return ( ReportService ) pwmServiceManager.getService( PwmServiceEnum.ReportService );
     }
 
     public EmailService getEmailQueue( )

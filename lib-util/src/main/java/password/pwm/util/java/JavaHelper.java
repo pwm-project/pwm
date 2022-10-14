@@ -49,8 +49,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAccumulator;
 import java.util.function.Predicate;
 import java.util.zip.GZIPInputStream;
@@ -495,30 +493,6 @@ public final class JavaHelper
         }
 
         return newByteArray;
-    }
-
-    /**
-     * Close executor and wait up to the specified TimeDuration for all executor jobs to terminate.  There is no guarantee that either all jobs will
-     * terminate or the entire duration will be waited for, though the duration should not be exceeded.
-     * @param executor Executor close
-     * @param timeDuration TimeDuration to wait for
-     */
-    public static void closeAndWaitExecutor( final ExecutorService executor, final TimeDuration timeDuration )
-    {
-        if ( executor == null )
-        {
-            return;
-        }
-
-        executor.shutdown();
-        try
-        {
-            executor.awaitTermination( timeDuration.asMillis(), TimeUnit.MILLISECONDS );
-        }
-        catch ( final InterruptedException e )
-        {
-            /* ignore */
-        }
     }
 
     public static String stackTraceToString( final Throwable e )

@@ -24,6 +24,7 @@ import org.jrivard.xmlchai.AccessMode;
 import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.TimeDuration;
@@ -72,8 +73,8 @@ public class PwmSettingXml
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSettingXml.class );
 
-    private static final LazySupplier<XmlDocument> XML_DOC_CACHE = LazySupplier.synchronizedSupplier(
-            LazySupplier.create( PwmSettingXml::readXml ) );
+    private static final LazySupplier<XmlDocument> XML_DOC_CACHE = LazySupplier.createSynchronized(
+            PwmSettingXml::readXml );
 
     private static final AtomicInteger LOAD_COUNTER = new AtomicInteger( 0 );
 
@@ -86,8 +87,14 @@ public class PwmSettingXml
             final TimeDuration parseDuration = TimeDuration.fromCurrent( startTime );
             LOGGER.trace( () -> "parsed PwmSettingXml in " + parseDuration.asCompactString() + ", loads=" + LOAD_COUNTER.getAndIncrement() );
 
-            final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-            scheduledExecutorService.schedule( XML_DOC_CACHE::clear, 30, TimeUnit.SECONDS );
+            final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(
+                    PwmScheduler.makePwmThreadFactory( "pwmSetting-xml-cache-timeout-thread" ) );
+
+            scheduledExecutorService.schedule( () ->
+            {
+                XML_DOC_CACHE.clear();
+                scheduledExecutorService.shutdownNow();
+            }, 30, TimeUnit.SECONDS );
 
             return newDoc;
         }

@@ -288,7 +288,7 @@ public class ReportProcess implements AutoCloseable
 
                     log( PwmLogLevel.TRACE, () -> msg, null );
 
-                    if ( recordErrorMessages.size() < 1000 )
+                    if ( recordErrorMessages.size() < reportSettings.getMaxErrorRecords() )
                     {
                         recordErrorMessages.add( msg );
                     }
@@ -305,7 +305,7 @@ public class ReportProcess implements AutoCloseable
         }
         finally
         {
-            completion.getExecutorService().shutdown();
+            completion.getExecutorService().shutdownNow();
         }
 
         final Instant finishTime = Instant.now();

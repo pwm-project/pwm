@@ -391,7 +391,7 @@ public class ConfigEditorServletUtils
 
         try
         {
-            return PwmScheduler.timeoutExecutor( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), configEditorSettings.getMaxWaitSettingsFunction(), callable );
+            return PwmScheduler.executeWithTimeout( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), configEditorSettings.getMaxWaitSettingsFunction(), callable );
         }
         catch ( final PwmUnrecoverableException e )
         {

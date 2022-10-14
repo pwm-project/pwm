@@ -127,7 +127,7 @@ public final class WorkQueueProcessor<W extends Serializable>
 
         if ( settings.getPreThreads() > 0 )
         {
-            final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( sessionLabel, pwmApplication, sourceClass ), true );
+            final ThreadFactory threadFactory = PwmScheduler.makePwmThreadFactory( PwmScheduler.makeThreadName( sessionLabel, pwmApplication, sourceClass ) );
             executorService = new ThreadPoolExecutor(
                     1,
                     settings.getPreThreads(),
@@ -143,14 +143,14 @@ public final class WorkQueueProcessor<W extends Serializable>
 
     public void close( )
     {
+        if ( executorService != null )
+        {
+            executorService.shutdownNow();
+        }
+
         if ( workerThread == null )
         {
             return;
-        }
-
-        if ( executorService != null )
-        {
-            executorService.shutdown();
         }
 
         final WorkerThread localWorkerThread = workerThread;

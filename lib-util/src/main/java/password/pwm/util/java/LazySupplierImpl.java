@@ -24,6 +24,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.lang.ref.SoftReference;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 class LazySupplierImpl
@@ -107,8 +109,8 @@ class LazySupplierImpl
     static class LockingSupplier<T> implements LazySupplier<T>
     {
         private final Supplier<T> realSupplier;
-        private volatile T value;
-        private volatile boolean supplied = false;
+        private final AtomicReference<T> value = new AtomicReference<>();
+        private final AtomicBoolean  supplied = new AtomicBoolean();
 
         private final FunctionalReentrantLock lock = new FunctionalReentrantLock();
 
@@ -122,20 +124,20 @@ class LazySupplierImpl
         {
             return lock.exec( () ->
             {
-                if ( !supplied )
+                if ( !supplied.get() )
                 {
-                    value = realSupplier.get();
-                    supplied = true;
+                    value.set( realSupplier.get() );
+                    supplied.set( true );
                 }
 
-                return value;
+                return value.get();
             } );
         }
 
         @Override
         public boolean isSupplied()
         {
-            return lock.exec( () -> supplied );
+            return lock.exec( supplied::get );
         }
 
         @Override
@@ -143,8 +145,8 @@ class LazySupplierImpl
         {
             lock.exec( () ->
             {
-                supplied = false;
-                value = null;
+                supplied.set( false );
+                value.set( null );
             } );
         }
     }

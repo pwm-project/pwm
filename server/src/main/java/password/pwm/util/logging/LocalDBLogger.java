@@ -259,10 +259,10 @@ public class LocalDBLogger extends AbstractPwmService implements PwmService
             flushedEvents = tempMemoryEventQueue.size();
             if ( cleanerService != null )
             {
-                cleanerService.shutdown();
+                cleanerService.shutdownNow();
             }
             writerService.execute( new FlushTask() );
-            JavaHelper.closeAndWaitExecutor( writerService, TimeDuration.SECONDS_10 );
+            PwmScheduler.closeAndWaitExecutor( writerService, TimeDuration.SECONDS_10, LOGGER, SESSION_LABEL );
         }
         else
         {

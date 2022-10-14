@@ -239,7 +239,7 @@ public class NMASCrOperator implements CrOperator
                 if ( localTimer != null )
                 {
                     LOGGER.debug( pwmDomain.getSessionLabel(), () -> "discontinuing NMASCrOperator watchdog timer, no active threads" );
-                    localTimer.shutdown();
+                    localTimer.shutdownNow();
                     executorService = null;
                 }
             }

@@ -76,6 +76,8 @@ public class ReportSettings implements Serializable
     @Builder.Default
     private JobIntensity reportJobIntensity = JobIntensity.LOW;
 
+    @Builder.Default
+    private int maxErrorRecords = 1_000;
 
     @Builder.Default
     private TimeDuration reportJobTimeout = TimeDuration.MINUTE;

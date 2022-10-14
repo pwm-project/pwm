@@ -23,6 +23,7 @@ package password.pwm.util.cli.commands;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
@@ -57,7 +58,7 @@ public class UserReportCommand extends AbstractCliCommand
 
             final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
-            final ReportService reportService = pwmApplication.getReportService();
+            final ReportService reportService = pwmApplication.domains().get( DomainID.DOMAIN_ID_DEFAULT ).getReportService();
             if ( reportService.status() != PwmService.STATUS.OPEN )
             {
                 out( "report service is not open or enabled" );

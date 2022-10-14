@@ -106,9 +106,32 @@ public class DatabaseService extends AbstractPwmService implements PwmService
                 Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) ),
                 TimeDuration.Unit.SECONDS );
 
+        if ( !dbShouldOpen() )
+        {
+            initialized = true;
+            return STATUS.CLOSED;
+        }
+
         scheduleFixedRateJob( new ConnectionMonitor(), watchdogFrequency, watchdogFrequency );
 
         return dbInit();
+    }
+
+    private boolean dbShouldOpen()
+    {
+        if ( getPwmApplication().getPwmEnvironment().isInternalRuntimeInstance() )
+        {
+            return false;
+        }
+
+        if ( !getPwmApplication().getConfig().hasDbConfigured() )
+        {
+            setStatus( STATUS.CLOSED );
+            LOGGER.debug( getSessionLabel(), () -> "skipping database connection open, connection parameters are not configured" );
+            return false;
+        }
+
+        return true;
     }
 
     private STATUS dbInit( )
@@ -116,14 +139,6 @@ public class DatabaseService extends AbstractPwmService implements PwmService
         if ( initialized )
         {
             return STATUS.OPEN;
-        }
-
-        if ( !dbConfiguration.isEnabled() )
-        {
-            setStatus( STATUS.CLOSED );
-            LOGGER.debug( getSessionLabel(), () -> "skipping database connection open, no connection parameters configured" );
-            initialized = true;
-            return STATUS.CLOSED;
         }
 
         final Instant startTime = Instant.now();
@@ -282,7 +297,7 @@ public class DatabaseService extends AbstractPwmService implements PwmService
     {
 
         final String errorMsg;
-        if ( dbConfiguration != null && !dbConfiguration.isEnabled() )
+        if ( dbConfiguration != null && !getPwmApplication().getConfig().hasDbConfigured() )
         {
             errorMsg = "database is not configured";
         }

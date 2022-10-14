@@ -80,7 +80,7 @@ public class LocalDbAuditVault implements AuditVault
     @Override
     public void close( )
     {
-        executorService.shutdown();
+        executorService.shutdownNow();
         status = PwmService.STATUS.CLOSED;
     }
 

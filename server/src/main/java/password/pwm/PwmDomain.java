@@ -45,6 +45,7 @@ import password.pwm.svc.httpclient.HttpClientService;
 import password.pwm.svc.intruder.IntruderDomainService;
 import password.pwm.svc.otp.OtpService;
 import password.pwm.svc.pwnotify.PwNotifyService;
+import password.pwm.svc.report.ReportService;
 import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.svc.sessiontrack.SessionTrackService;
 import password.pwm.svc.stats.StatisticsService;
@@ -236,6 +237,11 @@ public class PwmDomain
     public ResourceServletService getResourceServletService( )
     {
         return ( ResourceServletService ) pwmServiceManager.getService( PwmServiceEnum.ResourceServletService );
+    }
+
+    public ReportService getReportService( )
+    {
+        return ( ReportService ) pwmServiceManager.getService( PwmServiceEnum.ReportService );
     }
 
     public UserHistoryService getUserHistoryService()

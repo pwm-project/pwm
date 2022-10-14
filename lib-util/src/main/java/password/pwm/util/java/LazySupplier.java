@@ -42,14 +42,14 @@ public interface LazySupplier<T> extends Supplier<T>
     }
 
     /**
-     * Synchronized wrapper for any other {@code LazySupplier} implementation that
+     * Synchronized wrapper for any other {@code Supplier} implementation that
      * guarantee thread safety.  In particular, the backing realSupplier will only ever be called
      * a single time unless {@code #clear} is invoked.
      * @param realSupplier another {@code LazySupplier} instance
      * @param <T> return type.
      * @return a {@code LazyWrapper} thread safe synchronization.
      */
-    static <T> LazySupplier<T> synchronizedSupplier( final LazySupplier<T> realSupplier )
+    static <T> LazySupplier<T> createSynchronized( final Supplier<T> realSupplier )
     {
         return new LazySupplierImpl.LockingSupplier<>( realSupplier );
     }
@@ -59,7 +59,7 @@ public interface LazySupplier<T> extends Supplier<T>
         return new LazySupplierImpl.StandardLazySupplier<T>( realSupplier );
     }
 
-    static <T> LazySupplier<T> soft( final Supplier<T> realSupplier )
+    static <T> LazySupplier<T> createSoft( final Supplier<T> realSupplier )
     {
         return new LazySupplierImpl.SoftLazySupplier<T>( realSupplier );
     }

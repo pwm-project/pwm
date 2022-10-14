@@ -45,6 +45,7 @@ public enum PwmServiceEnum
 {
     LocalDBService( password.pwm.util.localdb.LocalDBService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     SystemSecureService( password.pwm.svc.secure.SystemSecureService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
+    EmailService( EmailService.class, PwmSettingScope.SYSTEM ),
     HttpClientService( password.pwm.svc.httpclient.HttpClientService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     DatabaseService( password.pwm.svc.db.DatabaseService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     SharedHistoryManager( SharedHistoryService.class, PwmSettingScope.SYSTEM ),
@@ -52,7 +53,6 @@ public enum PwmServiceEnum
     StatisticsService( StatisticsService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     WordlistService( WordlistService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     IntruderSystemService( IntruderSystemService.class, PwmSettingScope.SYSTEM ),
-    EmailService( EmailService.class, PwmSettingScope.SYSTEM ),
     SmsQueueManager( SmsQueueService.class, PwmSettingScope.SYSTEM ),
     UrlShortenerService( password.pwm.svc.shorturl.UrlShortenerService.class, PwmSettingScope.SYSTEM ),
     CacheService( password.pwm.svc.cache.CacheService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),

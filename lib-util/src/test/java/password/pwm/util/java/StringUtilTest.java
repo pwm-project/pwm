@@ -330,4 +330,18 @@ public class StringUtilTest
         Assertions.assertEquals( "TEST", StringUtil.padLeft( "TEST", 3, ' ' ) );
         Assertions.assertEquals( "TEST", StringUtil.padLeft( "TEST", -3, ' ' ) );
     }
+
+    @Test
+    public void stripEdgeCharsTest()
+    {
+        Assertions.assertEquals( "testvalue", StringUtil.stripEdgeChars( "testvalue", '-' ) );
+        Assertions.assertEquals( "testvalue", StringUtil.stripEdgeChars( "testvalue-", '-' ) );
+        Assertions.assertEquals( "testvalue", StringUtil.stripEdgeChars( "testvalue--", '-' ) );
+        Assertions.assertEquals( "testvalue", StringUtil.stripEdgeChars( "-testvalue", '-' ) );
+        Assertions.assertEquals( "testvalue", StringUtil.stripEdgeChars( "--testvalue", '-' ) );
+        Assertions.assertEquals( "testvalue", StringUtil.stripEdgeChars( "-testvalue-", '-' ) );
+        Assertions.assertEquals( "testvalue", StringUtil.stripEdgeChars( "--testvalue--", '-' ) );
+        Assertions.assertEquals( "testvalue", StringUtil.stripEdgeChars( "---testvalue---", '-' ) );
+        Assertions.assertEquals( "testvalue", StringUtil.stripEdgeChars( "----testvalue----", '-' ) );
+    }
 }

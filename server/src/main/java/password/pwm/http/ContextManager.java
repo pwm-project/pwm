@@ -287,8 +287,7 @@ public class ContextManager implements Serializable
 
         taskMaster = Executors.newSingleThreadScheduledExecutor(
                 PwmScheduler.makePwmThreadFactory(
-                        PwmScheduler.makeThreadName( SESSION_LABEL, pwmApplication, this.getClass() ) + "-",
-                        true
+                        PwmScheduler.makeThreadName( SESSION_LABEL, pwmApplication, this.getClass() ) + "-"
                 ) );
 
         boolean reloadOnChange = true;
@@ -388,7 +387,7 @@ public class ContextManager implements Serializable
                 LOGGER.error( () -> "unexpected error attempting to close application: " + e.getMessage() );
             }
         }
-        taskMaster.shutdown();
+        taskMaster.shutdownNow();
 
 
         this.pwmApplication = null;

@@ -30,10 +30,10 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.PwmScheduler;
-import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogManager;
+import password.pwm.util.logging.PwmLogger;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -103,8 +103,7 @@ public abstract class AbstractPwmService implements PwmService
         this.status = STATUS.CLOSED;
         if ( executorService != null && executorService.isSupplied() )
         {
-            executorService.get().shutdownNow();
-            JavaHelper.closeAndWaitExecutor( executorService.get(), TimeDuration.SECONDS_10 );
+            PwmScheduler.closeAndWaitExecutor( executorService.get(), TimeDuration.SECONDS_10,  PwmLogger.forClass( this.getClass() ), getSessionLabel() );
         }
         shutdownImpl();
     }

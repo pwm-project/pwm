@@ -795,4 +795,37 @@ public final class StringUtil
         final List<String> values = new ArrayList<>( Arrays.asList( inputString.split( separator ) ) );
         return Collections.unmodifiableList( values );
     }
+
+    /**
+     * Strip leading and trailing characters of a string.
+     * @param input input string
+     * @param charToStrip character to trip from input.
+     * @return A non-null string.
+     */
+    public static String stripEdgeChars( final String input, final char charToStrip )
+    {
+        if ( StringUtil.isEmpty( input ) )
+        {
+            return "";
+        }
+
+        if ( input.charAt( 0 ) != charToStrip && input.charAt( input.length() - 1 ) != charToStrip )
+        {
+            return input;
+        }
+
+        final StringBuilder stringBuilder = new StringBuilder( input );
+
+        while ( stringBuilder.length() > 0 && stringBuilder.charAt( 0 ) == charToStrip )
+        {
+            stringBuilder.deleteCharAt( 0 );
+        }
+
+        while ( stringBuilder.length() > 0 && stringBuilder.charAt( stringBuilder.length() - 1 ) == charToStrip )
+        {
+            stringBuilder.deleteCharAt( stringBuilder.length() - 1 );
+        }
+
+        return stringBuilder.toString();
+    }
 }

@@ -126,7 +126,7 @@ public class UserSearchService extends AbstractPwmService implements PwmService
     {
         if ( executor != null )
         {
-            executor.shutdown();
+            executor.shutdownNow();
         }
         executor = null;
     }
