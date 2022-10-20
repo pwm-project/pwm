@@ -282,19 +282,19 @@ public class ConfigurationFileManager
             final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
 
             final Optional<StoredValue> storedValue = newConfig.readStoredValue( key );
-            String modifyMessage = "configuration record '" + key.getLabel( PwmConstants.DEFAULT_LOCALE ) + "' has been ";
+            final StringBuilder modifyMessage = new StringBuilder();
+            modifyMessage.append( "configuration record '" ).append( key.getLabel( PwmConstants.DEFAULT_LOCALE ) ).append( "' has been " );
 
-            modifyMessage += storedValue.map( value -> "modified, new value: " + value.toDebugString( PwmConstants.DEFAULT_LOCALE ) )
-                    .orElse( "removed" );
+            modifyMessage.append( storedValue.map( value -> "modified, new value: " + value.toDebugString( PwmConstants.DEFAULT_LOCALE ) )
+                    .orElse( "removed" ) );
 
-            final String finalMsg = modifyMessage;
-            LOGGER.trace( sessionLabel, () -> "sending audit notice: " + finalMsg );
+            LOGGER.trace( sessionLabel, () -> "sending audit notice: " + modifyMessage );
 
             AuditServiceClient.submit( pwmApplication, sessionLabel, AuditRecordFactory.make( sessionLabel, pwmApplication ).createUserAuditRecord(
                     AuditEvent.MODIFY_CONFIGURATION,
                     userIdentity,
                     sessionLabel,
-                    modifyMessage ) );
+                    modifyMessage.toString() ) );
 
             changeCount++;
         }
