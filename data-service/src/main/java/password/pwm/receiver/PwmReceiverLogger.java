@@ -20,16 +20,17 @@
 
 package password.pwm.receiver;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 public class PwmReceiverLogger
 {
-    private final Class<?> clazz;
+    private final Logger logger;
 
     private PwmReceiverLogger( final Class<?> clazz )
     {
-        this.clazz = clazz;
+        this.logger = LoggerFactory.getLogger( clazz );
     }
 
     public static PwmReceiverLogger forClass( final Class<?> clazz )
@@ -39,7 +40,7 @@ public class PwmReceiverLogger
 
     public void debug( final CharSequence logMsg )
     {
-        log( Level.FINE, logMsg, null );
+        log( Level.DEBUG, logMsg, null );
     }
 
     public void info( final CharSequence logMsg )
@@ -49,17 +50,18 @@ public class PwmReceiverLogger
 
     public void error( final CharSequence logMsg )
     {
-        log( Level.SEVERE, logMsg, null );
+        log( Level.ERROR, logMsg, null );
     }
 
     public void error( final CharSequence logMsg, final Throwable throwable )
     {
-        log( Level.SEVERE, logMsg, throwable );
+        log( Level.ERROR, logMsg, throwable );
     }
 
-    private void log( final Level level, final CharSequence logMsg, final Throwable throwable )
+    private void log( final org.slf4j.event.Level level, final CharSequence logMsg, final Throwable throwable )
     {
-        final Logger logger = Logger.getLogger( clazz.getName() );
-        logger.log( level, logMsg.toString(), throwable );
+        logger.atLevel( level )
+                .setCause( throwable )
+                .log( logMsg == null ? null : logMsg.toString() );
     }
 }
