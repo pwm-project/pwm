@@ -21,14 +21,15 @@
 
 <configuration debug="true">
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <layout class="ch.qos.logback.classic.PatternLayout">
-            <Pattern>testlog %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Pattern>
-        </layout>
+        <encoder>
+            <pattern>testlog %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <!-- set level in next line to "TRACE" to enable logging during JUnit test execution during build -->
             <level>OFF</level>
         </filter>
     </appender>
-    <root level="OFF">
+    <root>
         <appender-ref ref="CONSOLE"/>
     </root>
 </configuration>
