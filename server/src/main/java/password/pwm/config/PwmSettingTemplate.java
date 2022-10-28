@@ -22,7 +22,6 @@ package password.pwm.config;
 
 import org.jrivard.xmlchai.XmlElement;
 import password.pwm.util.java.EnumUtil;
-import password.pwm.util.java.JavaHelper;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -60,8 +59,12 @@ public enum PwmSettingTemplate
 
     public static PwmSettingTemplate templateForString( final String input, final Type type )
     {
-        final PwmSettingTemplate template = JavaHelper.readEnumFromString( PwmSettingTemplate.class, type.getDefaultValue(), input );
-        return template == null || template.getType() != type ? type.getDefaultValue() : template;
+        final PwmSettingTemplate template = EnumUtil.readEnumFromString( PwmSettingTemplate.class, input )
+                .orElse( type.getDefaultValue() );
+
+        return template.getType() != type
+                ? type.getDefaultValue()
+                : template;
     }
 
     public boolean isHidden( )

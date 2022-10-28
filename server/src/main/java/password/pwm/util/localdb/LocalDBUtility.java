@@ -28,14 +28,14 @@ import password.pwm.PwmConstants;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.EventRateMeter;
+import password.pwm.util.Percent;
 import password.pwm.util.ProgressInfoCalculator;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.java.AverageTracker;
 import password.pwm.util.java.ConditionalTaskExecutor;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.PwmUtil;
-import password.pwm.util.Percent;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.PwmTimeUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -334,17 +334,18 @@ public class LocalDBUtility
                         eventRateMeter.markEvent();
                         byteReaderCounter = countingInputStream.getByteCount();
                         final String dbNameRecordStr = record.get( 0 );
-                        final LocalDB.DB db = JavaHelper.readEnumFromString( LocalDB.DB.class, null, dbNameRecordStr );
+                        final Optional<LocalDB.DB> db = EnumUtil.readEnumFromString( LocalDB.DB.class, dbNameRecordStr );
                         final String key = record.get( 1 );
                         final String value = record.get( 2 );
-                        if ( db == null )
+                        if ( db.isEmpty() )
                         {
-                            writeStringToOut( debugOutput, "ignoring localdb import record #" + lineReaderCounter + ", invalid DB name '" + dbNameRecordStr + "'" );
+                            writeStringToOut( debugOutput, "ignoring localdb import record #"
+                                    + lineReaderCounter + ", invalid DB name '" + dbNameRecordStr + "'" );
                         }
                         else
                         {
                             transactionCharCounter += key.length() + value.length();
-                            transactionMap.get( db ).put( key, value );
+                            transactionMap.get( db.get() ).put( key, value );
                             cachedTransactions++;
                             if ( cachedTransactions >= transactionCalculator.getTransactionSize() || transactionCharCounter > MAX_CHAR_PER_TRANSACTIONS )
                             {

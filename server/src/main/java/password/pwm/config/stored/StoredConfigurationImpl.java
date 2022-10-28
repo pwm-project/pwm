@@ -30,7 +30,7 @@ import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueTypeConverter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
@@ -161,7 +161,7 @@ public class StoredConfigurationImpl implements StoredConfiguration
                 try
                 {
                     final String strValue = ( String ) storedValue.toNativeObject();
-                    return Optional.ofNullable( JavaHelper.readEnumFromString( PwmSettingTemplate.class, null, strValue ) );
+                    return EnumUtil.readEnumFromString( PwmSettingTemplate.class, strValue );
                 }
                 catch ( final IllegalStateException e )
                 {

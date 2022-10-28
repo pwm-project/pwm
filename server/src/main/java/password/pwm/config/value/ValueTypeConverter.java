@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 public final class ValueTypeConverter
@@ -258,7 +259,7 @@ public final class ValueTypeConverter
         return List.copyOf( availableLocaleMap.get( matchedLocale ) );
     }
 
-    public static <E extends Enum<E>> E valueToEnum( final PwmSetting setting, final StoredValue value, final Class<E> enumClass )
+    public static <E extends Enum<E>> Optional<E> valueToEnum( final PwmSetting setting, final StoredValue value, final Class<E> enumClass )
     {
         if ( PwmSettingSyntax.SELECT != setting.getSyntax() )
         {
@@ -266,7 +267,7 @@ public final class ValueTypeConverter
         }
 
         final String strValue = ( String ) value.toNativeObject();
-        return EnumUtil.readEnumFromString( enumClass, strValue ).orElse( null );
+        return EnumUtil.readEnumFromString( enumClass, strValue );
     }
 
     public static Map<Locale, EmailItemBean> valueToLocalizedEmail( final PwmSetting setting, final StoredValue storedValue )

@@ -45,7 +45,6 @@ import password.pwm.http.bean.ChangePasswordBean;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.PasswordChangeProgressChecker;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
@@ -53,9 +52,10 @@ import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.svc.stats.AvgStatistic;
+import password.pwm.user.UserInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -143,7 +143,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
 
     static ChangePasswordBean getBean( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-       return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
+        return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, ChangePasswordBean.class );
     }
 
     @ActionHandler( action = "reset" )
@@ -171,10 +171,10 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         if ( pwmRequest.getPwmSession().getUserInfo().getPasswordStatus().isWarnPeriod() )
         {
             final String warnResponseStr = pwmRequest.readParameterAsString( "warnResponse" );
-            final WarnResponseValue warnResponse = JavaHelper.readEnumFromString( WarnResponseValue.class, null, warnResponseStr );
-            if ( warnResponse != null )
+            final Optional<WarnResponseValue> warnResponse = EnumUtil.readEnumFromString( WarnResponseValue.class, warnResponseStr );
+            if ( warnResponse.isPresent() )
             {
-                switch ( warnResponse )
+                switch ( warnResponse.get() )
                 {
                     case skip:
                         pwmRequest.getPwmSession().getLoginInfoBean().setFlag( LoginInfoBean.LoginFlag.skipNewPw );

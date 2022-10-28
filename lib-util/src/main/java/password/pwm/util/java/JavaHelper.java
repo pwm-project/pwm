@@ -73,11 +73,6 @@ public final class JavaHelper
         return new String( chars );
     }
 
-    public static <E extends Enum<E>> E readEnumFromString( final Class<E> enumClass, final E defaultValue, final String input )
-    {
-        return EnumUtil.readEnumFromString( enumClass, input ).orElse( defaultValue );
-    }
-
     public static String throwableToString( final Throwable throwable )
     {
         final StringWriter sw = new StringWriter();

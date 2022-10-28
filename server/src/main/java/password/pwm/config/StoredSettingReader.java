@@ -43,6 +43,7 @@ import password.pwm.config.value.data.NamedSecretData;
 import password.pwm.config.value.data.RemoteWebServiceConfiguration;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
@@ -143,7 +144,14 @@ public class StoredSettingReader implements SettingReader
 
     public <E extends Enum<E>> E readSettingAsEnum( final PwmSetting setting, final Class<E> enumClass )
     {
-        return ValueTypeConverter.valueToEnum( setting, readSetting( setting ), enumClass );
+        return ValueTypeConverter.valueToEnum( setting, readSetting( setting ), enumClass )
+                .orElseGet( () ->
+                {
+                    final PwmSettingTemplateSet templateSet = this.storedConfiguration.getTemplateSets().get( domainID );
+                    final StoredValue defaultValue = setting.getDefaultValue( templateSet );
+                    return ValueTypeConverter.valueToEnum( setting, defaultValue, enumClass )
+                            .orElseThrow( () -> new PwmInternalException( "error reading default enum value for setting " + setting.getKey() ) );
+                } );
     }
 
     public List<ActionConfiguration> readSettingAsAction( final PwmSetting setting )

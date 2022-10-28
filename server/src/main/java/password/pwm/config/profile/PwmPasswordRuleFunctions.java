@@ -27,7 +27,7 @@ import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingReader;
 import password.pwm.config.option.ADPolicyComplexity;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.util.Collections;
@@ -192,8 +192,8 @@ class PwmPasswordRuleFunctions
         public Optional<String> apply( final PwmPasswordRule rule, final String value1, final String value2 )
         {
             final TreeSet<ADPolicyComplexity> seenValues = new TreeSet<>();
-            seenValues.add( JavaHelper.readEnumFromString( ADPolicyComplexity.class, ADPolicyComplexity.NONE, value1 ) );
-            seenValues.add( JavaHelper.readEnumFromString( ADPolicyComplexity.class, ADPolicyComplexity.NONE, value2 ) );
+            seenValues.add( EnumUtil.readEnumFromString( ADPolicyComplexity.class, value1 ).orElse( ADPolicyComplexity.NONE ) );
+            seenValues.add( EnumUtil.readEnumFromString( ADPolicyComplexity.class, value2 ).orElse( ADPolicyComplexity.NONE ) );
             return Optional.of( seenValues.last().name() );
         }
     }

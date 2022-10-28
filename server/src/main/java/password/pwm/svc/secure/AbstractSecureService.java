@@ -32,7 +32,7 @@ import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.CopyingInputStream;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
@@ -99,15 +99,18 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
 
         {
             final String defaultBlockAlgString = pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_BLOCK_ALG );
-            defaultBlockAlgorithm = JavaHelper.readEnumFromString( PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, defaultBlockAlgString );
+            defaultBlockAlgorithm = EnumUtil.readEnumFromString( PwmBlockAlgorithm.class, defaultBlockAlgString )
+                    .orElse( PwmBlockAlgorithm.AES );
         }
         {
             final String defaultHashAlgString = pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_HASH_ALG );
-            defaultHashAlgorithm = JavaHelper.readEnumFromString( PwmHashAlgorithm.class, PwmHashAlgorithm.SHA512, defaultHashAlgString );
+            defaultHashAlgorithm = EnumUtil.readEnumFromString( PwmHashAlgorithm.class, defaultHashAlgString )
+                    .orElse( PwmHashAlgorithm.SHA512 );
         }
         {
             final String defaultHmacAlgString = pwmApplication.getConfig().readAppProperty( AppProperty.SECURITY_DEFAULT_EPHEMERAL_HMAC_ALG );
-            defaultHmacAlgorithm = JavaHelper.readEnumFromString( HmacAlgorithm.class, HmacAlgorithm.HMAC_SHA_512, defaultHmacAlgString );
+            defaultHmacAlgorithm = EnumUtil.readEnumFromString( HmacAlgorithm.class, defaultHmacAlgString )
+                    .orElse( HmacAlgorithm.HMAC_SHA_512 );
         }
         LOGGER.debug( getSessionLabel(), () -> "using default algorithms: " + StringUtil.mapToString( debugData() ) );
 

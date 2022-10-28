@@ -29,7 +29,7 @@ import password.pwm.config.option.OTPStorageFormat;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmBlockAlgorithm;
@@ -102,7 +102,8 @@ public abstract class AbstractOtpOperator implements OtpOperator
     public PwmBlockAlgorithm figureBlockAlg( )
     {
         final String otpEncryptionAlgString = pwmDomain.getConfig().readAppProperty( AppProperty.OTP_ENCRYPTION_ALG );
-        return JavaHelper.readEnumFromString( PwmBlockAlgorithm.class, PwmBlockAlgorithm.AES, otpEncryptionAlgString );
+        return EnumUtil.readEnumFromString( PwmBlockAlgorithm.class, otpEncryptionAlgString )
+                .orElse( PwmBlockAlgorithm.AES );
     }
 
     /**

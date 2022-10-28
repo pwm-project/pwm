@@ -25,7 +25,7 @@ import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
 import password.pwm.util.PwmScheduler;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -141,11 +141,8 @@ public class PwmSettingXml
         final Set<PwmSettingTemplate> definedTemplates = new LinkedHashSet<>();
         for ( final String templateStrValue : templateSplitValues )
         {
-            final PwmSettingTemplate template = JavaHelper.readEnumFromString( PwmSettingTemplate.class, null, templateStrValue );
-            if ( template != null )
-            {
-                definedTemplates.add( template );
-            }
+            EnumUtil.readEnumFromString( PwmSettingTemplate.class, templateStrValue )
+                    .ifPresent( definedTemplates::add );
         }
         return Collections.unmodifiableSet( definedTemplates );
     }

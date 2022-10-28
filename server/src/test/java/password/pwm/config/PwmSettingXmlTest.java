@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXParseException;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.stream.StreamSource;
@@ -105,11 +105,10 @@ public class PwmSettingXmlTest
             final String key = element.getAttribute( "key" )
                     .orElseThrow( () -> new IllegalStateException( "category element " + element.getName() + " missing key attribute" ) );
 
-            final PwmSettingCategory category = JavaHelper.readEnumFromString( PwmSettingCategory.class, null, key );
+            final Optional<PwmSettingCategory> category = EnumUtil.readEnumFromString( PwmSettingCategory.class, key );
 
-            final String errorMsg = "PwmSetting.xml contains category key of '"
-                    + key + "' which does not exist in PwmSettingCategory.java";
-            Assertions.assertNotNull( category, errorMsg );
+            Assertions.assertTrue( category.isPresent(), () -> "PwmSetting.xml contains category key of '"
+                    + key + "' which does not exist in PwmSettingCategory.java" );
         }
     }
 

@@ -85,7 +85,7 @@ import password.pwm.svc.token.TokenUtil;
 import password.pwm.user.UserInfo;
 import password.pwm.util.CaptchaUtility;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -273,10 +273,10 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         {
             final String choice = pwmRequest.readParameterAsString( "choice" );
 
-            final ActionChoice actionChoice = JavaHelper.readEnumFromString( ActionChoice.class, null, choice );
-            if ( actionChoice != null )
+            final Optional<ActionChoice> actionChoice = EnumUtil.readEnumFromString( ActionChoice.class, choice );
+            if ( actionChoice.isPresent() )
             {
-                switch ( actionChoice )
+                switch ( actionChoice.get() )
                 {
                     case unlock:
                         this.executeUnlock( pwmRequest );

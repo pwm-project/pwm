@@ -72,7 +72,7 @@ import password.pwm.user.UserInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -864,20 +864,19 @@ public class ForgottenPasswordStateMachine
                     ForgottenPasswordUtil.figureRemainingAvailableOptionalAuthMethods( pwmRequestContext, forgottenPasswordBean )
             );
 
-            final IdentityVerificationMethod requestedChoice = JavaHelper.readEnumFromString(
+            final Optional<IdentityVerificationMethod> requestedChoice = EnumUtil.readEnumFromString(
                     IdentityVerificationMethod.class,
-                    null,
                     formValues.get( PwmConstants.PARAM_METHOD_CHOICE ) );
-            if ( requestedChoice == null )
+            if ( requestedChoice.isEmpty() )
             {
                 final String errorMsg = "unknown verification method requested";
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_PARAMETER, errorMsg );
                 throw new PwmUnrecoverableException( errorInformation );
             }
 
-            if ( remainingAvailableOptionalMethods.contains( requestedChoice ) )
+            if ( remainingAvailableOptionalMethods.contains( requestedChoice.get() ) )
             {
-                forgottenPasswordBean.getProgress().setInProgressVerificationMethod( requestedChoice );
+                forgottenPasswordBean.getProgress().setInProgressVerificationMethod( requestedChoice.get() );
             }
         }
 

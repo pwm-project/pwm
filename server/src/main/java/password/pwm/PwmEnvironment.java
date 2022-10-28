@@ -31,7 +31,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
@@ -89,9 +89,9 @@ public class PwmEnvironment
         InstanceID,
         InitConsoleLogLevel,;
 
-        public static ApplicationParameter forString( final String input )
+        public static Optional<ApplicationParameter> forString( final String input )
         {
-            return JavaHelper.readEnumFromString( ApplicationParameter.class, null, input );
+            return EnumUtil.readEnumFromString( ApplicationParameter.class, input );
         }
     }
 
@@ -101,9 +101,9 @@ public class PwmEnvironment
         NoFileLock,
         CommandLineInstance,;
 
-        public static ApplicationFlag forString( final String input )
+        public static Optional<ApplicationFlag> forString( final String input )
         {
-            return JavaHelper.readEnumFromString( ApplicationFlag.class, null, input );
+            return EnumUtil.readEnumFromString( ApplicationFlag.class, input );
         }
     }
 
@@ -316,10 +316,10 @@ public class PwmEnvironment
             final Set<ApplicationFlag> returnFlags = EnumSet.noneOf( ApplicationFlag.class );
             for ( final String value : input.split( "," ) )
             {
-                final ApplicationFlag flag = ApplicationFlag.forString( value );
-                if ( value != null )
+                final Optional<ApplicationFlag> flag = ApplicationFlag.forString( value );
+                if ( flag.isPresent() )
                 {
-                    returnFlags.add( flag );
+                    returnFlags.add( flag.get() );
                 }
                 else
                 {
@@ -353,10 +353,10 @@ public class PwmEnvironment
                 for ( final Object key : propValues.keySet() )
                 {
                     final String keyString = key.toString();
-                    final ApplicationParameter param = ApplicationParameter.forString( keyString );
-                    if ( param != null )
+                    final Optional<ApplicationParameter> param = ApplicationParameter.forString( keyString );
+                    if ( param.isPresent() )
                     {
-                        returnParams.put( param, propValues.getProperty( keyString ) );
+                        returnParams.put( param.get(), propValues.getProperty( keyString ) );
                     }
                     else
                     {

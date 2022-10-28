@@ -54,6 +54,7 @@ import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.pwnotify.PwNotifyStoredJobState;
 import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmTimeUtil;
@@ -156,7 +157,7 @@ public class SystemAdminServlet extends ControlledPwmServlet
     @Override
     public ProcessStatus preProcessCheck( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException, ServletException
     {
-       return preProcessAdminCheck( pwmRequest );
+        return preProcessAdminCheck( pwmRequest );
     }
 
     public static ProcessStatus preProcessAdminCheck( final PwmRequest pwmRequest )
@@ -309,7 +310,7 @@ public class SystemAdminServlet extends ControlledPwmServlet
                 iterator.hasNext()
                         && records.size() < max
                         && TimeDuration.fromCurrent( startTime ).isShorterThan( maxSearchTime )
-                )
+        )
         {
             final AuditRecord loopRecord = iterator.next();
             if ( auditDataType == loopRecord.getType() )
@@ -424,7 +425,7 @@ public class SystemAdminServlet extends ControlledPwmServlet
             pwmRequest.setAttribute( PwmRequestAttribute.AppDashboardData, appDashboardData );
         }
 
-            pwmRequest.forwardToJsp( currentPage.getJspURL() );
+        pwmRequest.forwardToJsp( currentPage.getJspURL() );
     }
 
     private static int readMaxParameter( final PwmRequest pwmRequest, final int defaultValue, final int maxValue )
@@ -576,9 +577,10 @@ public class SystemAdminServlet extends ControlledPwmServlet
             final TimeDuration maxTimeSeconds = TimeDuration.of( Integer.parseInt( inputMap.getOrDefault( "maxTime", "5" ) ), TimeDuration.Unit.SECONDS );
             final String username = inputMap.getOrDefault( "username", "" );
             final String text = inputMap.getOrDefault( "text", "" );
-            final PwmLogLevel logLevel = JavaHelper.readEnumFromString( PwmLogLevel.class, PwmLogLevel.TRACE, inputMap.get( "level" ) );
-            final LocalDBLogger.EventType logType = JavaHelper.readEnumFromString( LocalDBLogger.EventType.class, LocalDBLogger.EventType.Both, inputMap.get( "type" ) );
-            logDisplayType = JavaHelper.readEnumFromString( LogDisplayType.class, LogDisplayType.grid, inputMap.get( "displayType" ) );
+            final PwmLogLevel logLevel = EnumUtil.readEnumFromString( PwmLogLevel.class, inputMap.get( "level" ) ).orElse( PwmLogLevel.TRACE );
+            final LocalDBLogger.EventType logType = EnumUtil.readEnumFromString( LocalDBLogger.EventType.class, inputMap.get( "type" ) )
+                    .orElse( LocalDBLogger.EventType.Both );
+            logDisplayType = EnumUtil.readEnumFromString( LogDisplayType.class, inputMap.get( "displayType" ) ).orElse( LogDisplayType.grid );
 
             searchParameters = LocalDBSearchQuery.builder()
                     .minimumLevel( logLevel )
@@ -637,7 +639,8 @@ public class SystemAdminServlet extends ControlledPwmServlet
     {
         final LocalDBLogger localDBLogger = pwmRequest.getPwmApplication().getLocalDBLogger();
 
-        final LogDownloadType logDownloadType = JavaHelper.readEnumFromString( LogDownloadType.class, LogDownloadType.plain, pwmRequest.readParameterAsString( "downloadType" ) );
+        final LogDownloadType logDownloadType = EnumUtil.readEnumFromString( LogDownloadType.class, pwmRequest.readParameterAsString( "downloadType" ) )
+                .orElse( LogDownloadType.plain );
 
         final LocalDBSearchQuery searchParameters = LocalDBSearchQuery.builder()
                 .minimumLevel( PwmLogLevel.TRACE )
@@ -650,10 +653,10 @@ public class SystemAdminServlet extends ControlledPwmServlet
         final HttpContentType compressedContentType;
         final Writer writer;
         {
-            final LogDownloadCompression logDownloadCompression = JavaHelper.readEnumFromString(
-                    LogDownloadCompression.class,
-                    SystemAdminServlet.LogDownloadCompression.none,
-                    pwmRequest.readParameterAsString( "compressionType" ) );
+            final LogDownloadCompression logDownloadCompression = EnumUtil.readEnumFromString(
+                            LogDownloadCompression.class,
+                            pwmRequest.readParameterAsString( "compressionType" ) )
+                    .orElse( SystemAdminServlet.LogDownloadCompression.none );
 
             final OutputStream compressedStream;
 
@@ -680,7 +683,7 @@ public class SystemAdminServlet extends ControlledPwmServlet
             }
             writer = new OutputStreamWriter( compressedStream, PwmConstants.DEFAULT_CHARSET );
         }
-        
+
         switch ( logDownloadType )
         {
             case plain:
@@ -725,6 +728,4 @@ public class SystemAdminServlet extends ControlledPwmServlet
         private List<DisplayElement> statusData;
         private boolean enableStartButton;
     }
-
 }
-
