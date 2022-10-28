@@ -43,7 +43,6 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.AutoSetLdapUserLanguage;
-import password.pwm.config.profile.AbstractProfile;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.data.ImmutableByteArray;
@@ -51,8 +50,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.search.SearchConfiguration;
-import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.EpsStatistic;
@@ -84,6 +81,8 @@ import java.util.Set;
 public class LdapOperationsHelper
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapOperationsHelper.class );
+
+    private static final String NULL_CACHE_GUID = "NULL_CACHE_GUID";
 
     public static void addConfiguredUserObjectClass(
             final SessionLabel sessionLabel,
@@ -203,14 +202,10 @@ public class LdapOperationsHelper
         }
     }
 
-
-    private static final String NULL_CACHE_GUID = "NULL_CACHE_GUID";
-
-    public static String readLdapGuidValue(
+    public static Optional<String> readLdapGuidValue(
             final PwmDomain pwmDomain,
             final SessionLabel sessionLabel,
-            final UserIdentity userIdentity,
-            final boolean throwExceptionOnError
+            final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException
     {
@@ -223,41 +218,42 @@ public class LdapOperationsHelper
             if ( cachedValue != null )
             {
                 return NULL_CACHE_GUID.equals( cachedValue )
-                        ? null
-                        : cachedValue;
+                        ? Optional.empty()
+                        : Optional.of( cachedValue );
             }
         }
 
-        final String existingValue = GuidReaderUtil.readExistingGuidValue(
+        final Optional<String> existingValue = LdapGuidReaderUtil.readExistingGuidValue(
                 pwmDomain,
                 sessionLabel,
-                userIdentity,
-                throwExceptionOnError
-        );
+                userIdentity );
 
-        final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
-        final String guidAttributeName = ldapProfile.readSettingAsString( PwmSetting.LDAP_GUID_ATTRIBUTE );
-        if ( StringUtil.isEmpty( existingValue ) )
+        if ( existingValue.isEmpty() )
         {
-            if ( !"DN".equalsIgnoreCase( guidAttributeName ) && !"VENDORGUID".equalsIgnoreCase( guidAttributeName ) )
+            final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
+            final LdapProfile.GuidMode guidMode = ldapProfile.getGuidMode();
+
+            if ( guidMode == LdapProfile.GuidMode.ATTRIBUTE )
             {
                 if ( ldapProfile.readSettingAsBoolean( PwmSetting.LDAP_GUID_AUTO_ADD ) )
                 {
-                    LOGGER.trace( sessionLabel, () -> "assigning new GUID to user " + userIdentity );
-                    return GuidReaderUtil.assignGuidToUser( pwmDomain, sessionLabel, userIdentity, guidAttributeName );
+                    LOGGER.trace( sessionLabel, () -> "auto-assigning new GUID to user " + userIdentity );
+                    final String newGuid = LdapGuidReaderUtil.assignGuidToUser(
+                            pwmDomain,
+                            sessionLabel,
+                            userIdentity,
+                            ldapProfile.readSettingAsString( PwmSetting.LDAP_GUID_ATTRIBUTE ) );
+
+                    return Optional.of( newGuid );
                 }
             }
-            final String errorMsg = "unable to resolve GUID value for user " + userIdentity;
-            GuidReaderUtil.processError( errorMsg, throwExceptionOnError );
         }
 
         if ( enableCache )
         {
             final long cacheSeconds = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_CACHE_USER_GUID_SECONDS ) );
             final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( TimeDuration.of( cacheSeconds, TimeDuration.Unit.SECONDS ) );
-            final String cacheValue = existingValue == null
-                    ? NULL_CACHE_GUID
-                    : existingValue;
+            final String cacheValue = existingValue.orElse( NULL_CACHE_GUID );
             pwmDomain.getCacheService().put( cacheKey, cachePolicy, cacheValue );
         }
 
@@ -453,199 +449,6 @@ public class LdapOperationsHelper
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_LDAP_DATA_ERROR, errorMsg );
                 throw new PwmUnrecoverableException( errorInformation );
             }
-        }
-    }
-
-
-    private static class GuidReaderUtil
-    {
-        private static String readExistingGuidValue(
-                final PwmDomain pwmDomain,
-                final SessionLabel sessionLabel,
-                final UserIdentity userIdentity,
-                final boolean throwExceptionOnError
-        )
-                throws PwmUnrecoverableException
-        {
-            final ChaiUser theUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
-            final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() );
-            final AbstractProfile.GuidMode guidMode = ldapProfile.readGuidMode();
-
-            if ( guidMode == AbstractProfile.GuidMode.DN )
-            {
-                return userIdentity.getUserDN();
-            }
-
-            if ( guidMode == AbstractProfile.GuidMode.VENDORGUID )
-            {
-                return readVendorGuid( theUser, sessionLabel, throwExceptionOnError );
-            }
-
-            return readAttributeGuid( ldapProfile, userIdentity, theUser, throwExceptionOnError );
-        }
-
-        private static String readAttributeGuid(
-                final LdapProfile ldapProfile,
-                final UserIdentity userIdentity,
-                final ChaiUser theUser,
-                final boolean throwExceptionOnError
-        )
-                throws PwmUnrecoverableException
-        {
-            final String guidAttributeName = ldapProfile.readSettingAsString( PwmSetting.LDAP_GUID_ATTRIBUTE );
-            try
-            {
-                return theUser.readStringAttribute( guidAttributeName );
-            }
-            catch ( final ChaiOperationException e )
-            {
-                final String errorMsg = "unexpected error while reading attribute GUID value for user "
-                        + userIdentity + " from '" + guidAttributeName + "', error: " + e.getMessage();
-                return processError( errorMsg, throwExceptionOnError );
-            }
-            catch ( final ChaiUnavailableException e )
-            {
-                throw PwmUnrecoverableException.fromChaiException( e );
-            }
-        }
-
-        private static String readVendorGuid(
-                final ChaiUser theUser,
-                final SessionLabel sessionLabel,
-                final boolean throwExceptionOnError
-        )
-                throws PwmUnrecoverableException
-        {
-            try
-            {
-                final String guidValue = theUser.readGUID();
-                if ( guidValue != null && guidValue.length() > 1 )
-                {
-                    LOGGER.trace( sessionLabel, () -> "read VENDORGUID value for user " + theUser + ": " + guidValue );
-                }
-                else
-                {
-                    LOGGER.trace( sessionLabel, () -> "unable to find a VENDORGUID value for user " + theUser.getEntryDN() );
-                }
-                return guidValue;
-            }
-            catch ( final Exception e )
-            {
-                final String errorMsg = "error while reading vendor GUID value for user " + theUser.getEntryDN() + ", error: " + e.getMessage();
-                return processError( errorMsg, throwExceptionOnError );
-            }
-        }
-
-        private static String processError( final String errorMsg, final boolean throwExceptionOnError )
-                throws PwmUnrecoverableException
-        {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_MISSING_GUID, errorMsg );
-            if ( throwExceptionOnError )
-            {
-                throw new PwmUnrecoverableException( errorInformation );
-            }
-            LOGGER.warn( () -> errorMsg );
-            return null;
-        }
-
-        private static boolean searchForExistingGuidValue(
-                final PwmDomain pwmDomain,
-                final SessionLabel sessionLabel,
-                final String guidValue
-        )
-                throws PwmUnrecoverableException
-        {
-            boolean exists = false;
-            for ( final LdapProfile ldapProfile : pwmDomain.getConfig().getLdapProfiles().values() )
-            {
-                final String guidAttributeName = ldapProfile.readSettingAsString( PwmSetting.LDAP_GUID_ATTRIBUTE );
-                if ( !"DN".equalsIgnoreCase( guidAttributeName ) && !"VENDORGUID".equalsIgnoreCase( guidAttributeName ) )
-                {
-                    try
-                    {
-                        // check if it is unique
-                        final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
-                                .filter( "(" + guidAttributeName + "=" + guidValue + ")" )
-                                .build();
-
-                        final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
-                        final UserIdentity result = userSearchService.performSingleUserSearch( searchConfiguration, sessionLabel );
-                        exists = result != null;
-                    }
-                    catch ( final PwmOperationalException e )
-                    {
-                        if ( e.getError() != PwmError.ERROR_CANT_MATCH_USER )
-                        {
-                            LOGGER.warn( sessionLabel, () -> "error while searching to verify new unique GUID value: " + e.getError() );
-                        }
-                    }
-                }
-            }
-            return exists;
-        }
-
-        private static String assignGuidToUser(
-                final PwmDomain pwmDomain,
-                final SessionLabel sessionLabel,
-                final UserIdentity userIdentity,
-                final String guidAttributeName
-        )
-                throws PwmUnrecoverableException
-        {
-            int attempts = 0;
-            String newGuid = null;
-
-            while ( attempts < 10 && newGuid == null )
-            {
-                attempts++;
-                newGuid = generateGuidValue( pwmDomain, sessionLabel );
-                if ( searchForExistingGuidValue( pwmDomain, sessionLabel, newGuid ) )
-                {
-                    newGuid = null;
-                }
-            }
-
-            if ( newGuid == null )
-            {
-                throw new PwmUnrecoverableException( new ErrorInformation(
-                        PwmError.ERROR_INTERNAL,
-                        "unable to generate unique GUID value for user " + userIdentity )
-                );
-            }
-
-            addConfiguredUserObjectClass( sessionLabel, userIdentity, pwmDomain );
-            try
-            {
-                // write it to the directory
-                final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
-                chaiUser.writeStringAttribute( guidAttributeName, newGuid );
-                final String finalNewGuid = newGuid;
-                LOGGER.info( sessionLabel, () -> "added GUID value '" + finalNewGuid + "' to user " + userIdentity );
-                return newGuid;
-            }
-            catch ( final ChaiOperationException e )
-            {
-                final String errorMsg = "unable to write GUID value to user attribute " + guidAttributeName + " : " + e.getMessage()
-                        + ", cannot write GUID value to user " + userIdentity;
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-                LOGGER.error( errorInformation::toDebugStr );
-                throw new PwmUnrecoverableException( errorInformation );
-            }
-            catch ( final ChaiUnavailableException e )
-            {
-                throw PwmUnrecoverableException.fromChaiException( e );
-            }
-        }
-
-        private static String generateGuidValue(
-                final PwmDomain pwmDomain,
-                final SessionLabel sessionLabel
-        )
-                throws PwmUnrecoverableException
-        {
-            final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmDomain.getPwmApplication(), sessionLabel );
-            final String guidPattern = pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_GUID_PATTERN );
-            return macroRequest.expandMacros( guidPattern );
         }
     }
 

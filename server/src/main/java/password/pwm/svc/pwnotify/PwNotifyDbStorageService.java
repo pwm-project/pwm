@@ -30,7 +30,6 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.db.DatabaseException;
 import password.pwm.svc.db.DatabaseTable;
 import password.pwm.util.json.JsonFactory;
-import password.pwm.util.java.StringUtil;
 
 import java.util.Optional;
 
@@ -59,13 +58,10 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
     )
             throws PwmUnrecoverableException
     {
-        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity, true );
+        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity )
+                .orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_MISSING_GUID ) );
 
-        if ( StringUtil.isEmpty( guid ) )
-        {
-            throw new PwmUnrecoverableException( PwmError.ERROR_MISSING_GUID );
-        }
-
+        
         final Optional<String> rawDbValue;
         try
         {
@@ -87,12 +83,8 @@ class PwNotifyDbStorageService implements PwNotifyStorageService
     )
             throws PwmUnrecoverableException
     {
-        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity, true );
-
-        if ( StringUtil.isEmpty( guid ) )
-        {
-            throw new PwmUnrecoverableException( PwmError.ERROR_MISSING_GUID );
-        }
+        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity )
+                .orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_MISSING_GUID ) );
 
         final String rawDbValue = JsonFactory.get().serialize( pwNotifyUserStatus );
         try

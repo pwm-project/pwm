@@ -597,7 +597,7 @@ public class LdapUserInfoReader implements UserInfo
     @Override
     public String getUserGuid( ) throws PwmUnrecoverableException
     {
-        return LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity, false );
+        return LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity ).orElse( null );
     }
 
     @Override

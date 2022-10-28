@@ -22,7 +22,9 @@ package password.pwm.svc.otp;
 
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import lombok.Getter;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Value;
 import org.apache.commons.codec.binary.Base32;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -499,13 +501,14 @@ public class OtpService extends AbstractPwmService implements PwmService
             final UserIdentity userIdentity
 
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final String userGUID;
         if ( otpSecretStorageLocations.contains( DataStorageMethod.DB ) || otpSecretStorageLocations.contains(
                 DataStorageMethod.LOCALDB ) )
         {
-            userGUID = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity, false );
+            userGUID = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity )
+                    .orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_MISSING_GUID ) );
         }
         else
         {
@@ -514,7 +517,8 @@ public class OtpService extends AbstractPwmService implements PwmService
         return userGUID;
     }
 
-    @Getter
+    @Value
+    @Builder( access = AccessLevel.PRIVATE )
     public static class OtpSettings implements Serializable
     {
         private OTPStorageFormat otpStorageFormat;
@@ -530,17 +534,18 @@ public class OtpService extends AbstractPwmService implements PwmService
 
         static OtpSettings fromConfig( final DomainConfig config )
         {
-            final OtpSettings otpSettings = new OtpSettings();
+            final OtpSettings.OtpSettingsBuilder builder = OtpSettings.builder();
 
-            otpSettings.otpStorageFormat = config.readSettingAsEnum( PwmSetting.OTP_SECRET_STORAGEFORMAT, OTPStorageFormat.class );
-            otpSettings.totpPastIntervals = Integer.parseInt( config.readAppProperty( AppProperty.TOTP_PAST_INTERVALS ) );
-            otpSettings.totpFutureIntervals = Integer.parseInt( config.readAppProperty( AppProperty.TOTP_FUTURE_INTERVALS ) );
-            otpSettings.totpIntervalSeconds = Integer.parseInt( config.readAppProperty( AppProperty.TOTP_INTERVAL ) );
-            otpSettings.otpTokenLength = Integer.parseInt( config.readAppProperty( AppProperty.OTP_TOKEN_LENGTH ) );
-            otpSettings.recoveryTokenMacro = config.readAppProperty( AppProperty.OTP_RECOVERY_TOKEN_MACRO );
-            otpSettings.recoveryHashIterations = Integer.parseInt( config.readAppProperty( AppProperty.OTP_RECOVERY_HASH_COUNT ) );
-            otpSettings.recoveryHashMethod = config.readAppProperty( AppProperty.OTP_RECOVERY_HASH_METHOD );
-            return otpSettings;
+            builder.otpStorageFormat = config.readSettingAsEnum( PwmSetting.OTP_SECRET_STORAGEFORMAT, OTPStorageFormat.class );
+            builder.totpPastIntervals = Integer.parseInt( config.readAppProperty( AppProperty.TOTP_PAST_INTERVALS ) );
+            builder.totpFutureIntervals = Integer.parseInt( config.readAppProperty( AppProperty.TOTP_FUTURE_INTERVALS ) );
+            builder.totpIntervalSeconds = Integer.parseInt( config.readAppProperty( AppProperty.TOTP_INTERVAL ) );
+            builder.otpTokenLength = Integer.parseInt( config.readAppProperty( AppProperty.OTP_TOKEN_LENGTH ) );
+            builder.recoveryTokenMacro = config.readAppProperty( AppProperty.OTP_RECOVERY_TOKEN_MACRO );
+            builder.recoveryHashIterations = Integer.parseInt( config.readAppProperty( AppProperty.OTP_RECOVERY_HASH_COUNT ) );
+            builder.recoveryHashMethod = config.readAppProperty( AppProperty.OTP_RECOVERY_HASH_METHOD );
+
+            return builder.build();
         }
     }
 }

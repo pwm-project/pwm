@@ -36,7 +36,6 @@ import password.pwm.http.state.SessionStateService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.PwmServiceEnum;
 import password.pwm.svc.PwmServiceManager;
-import password.pwm.svc.cache.CacheService;
 import password.pwm.svc.db.DatabaseAccessor;
 import password.pwm.svc.db.DatabaseService;
 import password.pwm.svc.email.EmailService;
@@ -743,12 +742,6 @@ public class PwmApplication
     public SessionStateService getSessionStateService( )
     {
         return ( SessionStateService ) pwmServiceManager.getService( PwmServiceEnum.SessionStateSvc );
-    }
-
-
-    public CacheService getCacheService( )
-    {
-        return ( CacheService ) pwmServiceManager.getService( PwmServiceEnum.CacheService );
     }
 
     public SystemSecureService getSecureService( )

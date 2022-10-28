@@ -55,7 +55,6 @@ public enum PwmServiceEnum
     IntruderSystemService( IntruderSystemService.class, PwmSettingScope.SYSTEM ),
     SmsQueueManager( SmsQueueService.class, PwmSettingScope.SYSTEM ),
     UrlShortenerService( password.pwm.svc.shorturl.UrlShortenerService.class, PwmSettingScope.SYSTEM ),
-    CacheService( password.pwm.svc.cache.CacheService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     LdapSystemService( password.pwm.ldap.LdapSystemService.class, PwmSettingScope.SYSTEM, Flag.StartDuringRuntimeInstance ),
     TokenSystemService( password.pwm.svc.token.TokenSystemService.class, PwmSettingScope.SYSTEM ),
     HealthMonitor( HealthService.class, PwmSettingScope.SYSTEM ),
@@ -67,6 +66,7 @@ public enum PwmServiceEnum
     NodeService( NodeService.class, PwmSettingScope.SYSTEM ),
 
     DomainSecureService( password.pwm.svc.secure.DomainSecureService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
+    CacheService( password.pwm.svc.cache.CacheService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
     LdapConnectionService( LdapDomainService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
     CrService( password.pwm.svc.cr.CrService.class, PwmSettingScope.DOMAIN, Flag.StartDuringRuntimeInstance ),
     OtpService( password.pwm.svc.otp.OtpService.class, PwmSettingScope.DOMAIN ),

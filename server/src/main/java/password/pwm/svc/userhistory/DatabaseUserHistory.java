@@ -72,7 +72,8 @@ class DatabaseUserHistory implements UserHistoryStore
             userIdentity = UserIdentity.create( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile(), auditRecord.getDomain() );
         }
 
-        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, null, userIdentity, false );
+        final String guid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity )
+                .orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_MISSING_GUID ) );
 
         try
         {

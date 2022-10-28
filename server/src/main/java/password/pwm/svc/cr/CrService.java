@@ -52,7 +52,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
@@ -444,15 +443,7 @@ public class CrService extends AbstractPwmService implements PwmService
                 + JsonFactory.get().serializeCollection( readPreferences ) + " for response info for user " + theUser.getEntryDN();
         LOGGER.debug( sessionLabel, () -> debugMsg );
 
-        final String userGUID;
-        if ( readPreferences.contains( DataStorageMethod.DB ) || readPreferences.contains( DataStorageMethod.LOCALDB ) )
-        {
-            userGUID = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity, false );
-        }
-        else
-        {
-            userGUID = null;
-        }
+        final String userGUID = readUserGuidIfNeeded( userIdentity, sessionLabel, readPreferences );
 
         for ( final DataStorageMethod storageMethod : readPreferences )
         {
@@ -475,6 +466,21 @@ public class CrService extends AbstractPwmService implements PwmService
         return Optional.empty();
     }
 
+    private String readUserGuidIfNeeded(
+            final UserIdentity userIdentity,
+            final SessionLabel sessionLabel,
+            final List<DataStorageMethod> storageMethods
+    )
+            throws PwmUnrecoverableException
+    {
+        /* only some storage methods require user guid, for others we can safely have a null */
+        if ( storageMethods.contains( DataStorageMethod.DB ) || storageMethods.contains( DataStorageMethod.LOCALDB ) )
+        {
+            return LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity )
+                    .orElseThrow( () -> PwmUnrecoverableException.newException( PwmError.ERROR_MISSING_GUID ) );
+        }
+        return null;
+    }
 
     public Optional<ResponseSet> readUserResponseSet(
             final SessionLabel sessionLabel,
@@ -492,15 +498,7 @@ public class CrService extends AbstractPwmService implements PwmService
         LOGGER.debug( sessionLabel, () -> "will attempt to read the following storage methods: "
                 + JsonFactory.get().serializeCollection( readPreferences ) + " for user " + theUser.getEntryDN() );
 
-        final String userGUID;
-        if ( readPreferences.contains( DataStorageMethod.DB ) || readPreferences.contains( DataStorageMethod.LOCALDB ) )
-        {
-            userGUID = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity, false );
-        }
-        else
-        {
-            userGUID = null;
-        }
+        final String userGUID = readUserGuidIfNeeded( userIdentity, sessionLabel, readPreferences );
 
         for ( final DataStorageMethod storageMethod : readPreferences )
         {
@@ -528,10 +526,9 @@ public class CrService extends AbstractPwmService implements PwmService
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final ChaiUser theUser,
-            final String userGUID,
             final ResponseInfoBean responseInfoBean
     )
-            throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException
+            throws PwmUnrecoverableException
     {
         int attempts = 0;
         int successes = 0;
@@ -542,6 +539,7 @@ public class CrService extends AbstractPwmService implements PwmService
         LOGGER.debug( sessionLabel, () -> "will attempt to write the following storage methods: "
                 + JsonFactory.get().serializeCollection( writeMethods ) + " for user " + theUser.getEntryDN() );
 
+        final String userGUID = readUserGuidIfNeeded( userIdentity, sessionLabel, writeMethods );
 
         for ( final DataStorageMethod loopWriteMethod : writeMethods )
         {
@@ -565,7 +563,7 @@ public class CrService extends AbstractPwmService implements PwmService
         {
             final String errorMsg = "no response save methods are available or configured";
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, errorMsg );
-            throw new PwmOperationalException( errorInfo );
+            throw new PwmUnrecoverableException( errorInfo );
         }
 
         if ( successes == 0 )
@@ -573,7 +571,7 @@ public class CrService extends AbstractPwmService implements PwmService
             final String errorMsg = "response storage unsuccessful; attempts=" + attempts + ", successes=" + successes
                     + ", detail=" + JsonFactory.get().serializeMap( errorMessages, DataStorageMethod.class, String.class );
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, errorMsg );
-            throw new PwmOperationalException( errorInfo );
+            throw new PwmUnrecoverableException( errorInfo );
         }
 
         if ( attempts != successes )
@@ -581,7 +579,7 @@ public class CrService extends AbstractPwmService implements PwmService
             final String errorMsg = "response storage only partially successful; attempts=" + attempts + ", successes=" + successes
                     + ", detail=" + JsonFactory.get().serializeMap( errorMessages, DataStorageMethod.class, String.class );
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_WRITING_RESPONSES, errorMsg );
-            throw new PwmOperationalException( errorInfo );
+            throw new PwmUnrecoverableException( errorInfo );
         }
     }
 
@@ -589,11 +587,10 @@ public class CrService extends AbstractPwmService implements PwmService
     public void clearResponses(
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
-            final ChaiUser theUser,
-            final String userGUID
+            final ChaiUser theUser
 
     )
-            throws PwmOperationalException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         int attempts = 0;
         int successes = 0;
@@ -602,7 +599,9 @@ public class CrService extends AbstractPwmService implements PwmService
 
         LOGGER.debug( sessionLabel, () -> "will attempt to clear the following storage methods: "
                 + JsonFactory.get().serializeCollection( writeMethods ) + " for user " + theUser.getEntryDN()
-                + theUser.getEntryDN() + " guid=" + userGUID );
+                + theUser.getEntryDN() );
+
+        final String userGUID = readUserGuidIfNeeded( userIdentity, sessionLabel, writeMethods );
 
         for ( final DataStorageMethod loopWriteMethod : writeMethods )
         {
@@ -623,7 +622,7 @@ public class CrService extends AbstractPwmService implements PwmService
         {
             final String errorMsg = "no response save methods are available or configured";
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CLEARING_RESPONSES, errorMsg );
-            throw new PwmOperationalException( errorInfo );
+            throw new PwmUnrecoverableException( errorInfo );
         }
 
         if ( attempts != successes )
@@ -631,7 +630,7 @@ public class CrService extends AbstractPwmService implements PwmService
             // should be impossible to read here, but just in case.
             final String errorMsg = "response clear partially successful; attempts=" + attempts + ", successes=" + successes;
             final ErrorInformation errorInfo = new ErrorInformation( PwmError.ERROR_CLEARING_RESPONSES, errorMsg );
-            throw new PwmOperationalException( errorInfo );
+            throw new PwmUnrecoverableException( errorInfo );
         }
     }
 

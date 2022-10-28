@@ -63,7 +63,6 @@ import password.pwm.http.servlet.oauth.OAuthForgottenPasswordResults;
 import password.pwm.http.servlet.oauth.OAuthMachine;
 import password.pwm.http.servlet.oauth.OAuthSettings;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.AuthenticationUtility;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
@@ -974,7 +973,6 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
     protected void nextStep( final PwmRequest pwmRequest )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
         final DomainConfig config = pwmRequest.getDomainConfig();
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean( pwmRequest );
 
@@ -1018,8 +1016,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             if ( !progress.getSatisfiedMethods().contains( IdentityVerificationMethod.PREVIOUS_AUTH ) )
             {
                 final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
-                final String userGuid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, pwmRequest.getLabel(), userIdentity, true );
-                if ( ForgottenPasswordUtil.checkAuthRecord( pwmRequest, userGuid ) )
+                if ( ForgottenPasswordUtil.checkAuthRecord( pwmRequest, userIdentity ) )
                 {
                     LOGGER.debug( pwmRequest, () -> "marking " + IdentityVerificationMethod.PREVIOUS_AUTH + " method as satisfied" );
                     progress.getSatisfiedMethods().add( IdentityVerificationMethod.PREVIOUS_AUTH );

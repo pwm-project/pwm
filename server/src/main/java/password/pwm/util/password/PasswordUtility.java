@@ -592,8 +592,7 @@ public class PasswordUtility
 
         if ( settingClearResponses == HelpdeskClearResponseMode.yes )
         {
-            final String userGUID = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity, false );
-            pwmDomain.getCrService().clearResponses( pwmRequest.getLabel(), userIdentity, proxiedUser, userGUID );
+            pwmDomain.getCrService().clearResponses( pwmRequest.getLabel(), userIdentity, proxiedUser );
 
             // mark the event log
             final HelpdeskAuditRecord auditRecord = AuditRecordFactory.make( pwmRequest ).createHelpdeskAuditRecord(

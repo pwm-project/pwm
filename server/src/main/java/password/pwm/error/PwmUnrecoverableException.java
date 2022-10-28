@@ -72,6 +72,11 @@ public class PwmUnrecoverableException extends PwmException
         return new PwmUnrecoverableException( new ErrorInformation( error, message ) );
     }
 
+    public static PwmUnrecoverableException newException( final PwmError error )
+    {
+        return new PwmUnrecoverableException( new ErrorInformation( error ) );
+    }
+
     public static PwmUnrecoverableException convert( final IOException e )
     {
         final String msg = "unexpected io error: " + e.getMessage();

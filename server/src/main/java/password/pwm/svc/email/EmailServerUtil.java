@@ -104,37 +104,39 @@ public class EmailServerUtil
     {
         final ProfileID id = profile.getId();
         final String address = profile.readSettingAsString( PwmSetting.EMAIL_SERVER_ADDRESS );
-        final int port = (int) profile.readSettingAsLong( PwmSetting.EMAIL_SERVER_PORT );
+        final int port = ( int ) profile.readSettingAsLong( PwmSetting.EMAIL_SERVER_PORT );
         final String username = profile.readSettingAsString( PwmSetting.EMAIL_USERNAME );
         final PasswordData password = profile.readSettingAsPassword( PwmSetting.EMAIL_PASSWORD );
 
         final SmtpServerType smtpServerType = profile.readSettingAsEnum( PwmSetting.EMAIL_SERVER_TYPE, SmtpServerType.class );
-        if ( StringUtil.notEmpty( address )
-                && port > 0
-        )
+
+        if ( StringUtil.isEmpty( address ) )
         {
-            final TrustManager[] effectiveTrustManagers = trustManagers == null
-                    ? trustManagerForProfile( appConfig, profile )
-                    : trustManagers;
-            final Properties properties = makeJavaMailProps( appConfig, profile, effectiveTrustManagers );
-            final jakarta.mail.Session session = jakarta.mail.Session.getInstance( properties, null );
-            return Optional.of( EmailServer.builder()
-                    .id( id )
-                    .host( address )
-                    .port( port )
-                    .username( username )
-                    .password( password )
-                    .javaMailProps( properties )
-                    .session( session )
-                    .type( smtpServerType )
-                    .build() );
-        }
-        else
-        {
-            LOGGER.warn( () -> "discarding incompletely configured email address for smtp server profile " + id );
+            LOGGER.debug( () -> "discarding incompletely configured email address for smtp server profile " + id + ", no server address" );
+            return Optional.empty();
         }
 
-        return Optional.empty();
+        if ( port <= 0 )
+        {
+            LOGGER.debug( () -> "discarding incompletely configured email address for smtp server profile " + id + ", missing port number" );
+            return Optional.empty();
+        }
+
+        final TrustManager[] effectiveTrustManagers = trustManagers == null
+                ? trustManagerForProfile( appConfig, profile )
+                : trustManagers;
+        final Properties properties = makeJavaMailProps( appConfig, profile, effectiveTrustManagers );
+        final jakarta.mail.Session session = jakarta.mail.Session.getInstance( properties, null );
+        return Optional.of( EmailServer.builder()
+                .id( id )
+                .host( address )
+                .port( port )
+                .username( username )
+                .password( password )
+                .javaMailProps( properties )
+                .session( session )
+                .type( smtpServerType )
+                .build() );
     }
 
     private static TrustManager[] trustManagerForProfile( final AppConfig appConfig, final EmailServerProfile emailServerProfile )

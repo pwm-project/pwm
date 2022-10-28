@@ -38,6 +38,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -62,6 +63,12 @@ public class LdapProfile extends AbstractProfile implements Profile
     private Optional<UserIdentity> cachedTestUser;
     private UserIdentity cachedProxyUser;
 
+    public enum GuidMode
+    {
+        DN,
+        VENDORGUID,
+        ATTRIBUTE,
+    }
 
     protected LdapProfile( final DomainID domainID, final ProfileID identifier, final StoredConfiguration storedValueMap )
     {
@@ -306,5 +313,11 @@ public class LdapProfile extends AbstractProfile implements Profile
 
         final String msg = "specified search context '" + testDN + "' is not contained by a configured root context";
         throw new PwmUnrecoverableException( PwmError.CONFIG_FORMAT_ERROR, msg );
+    }
+
+    public GuidMode getGuidMode()
+    {
+        final String guidAttributeString = readSettingAsString( PwmSetting.LDAP_GUID_ATTRIBUTE );
+        return EnumUtil.readEnumFromString( GuidMode.class, guidAttributeString ).orElse( GuidMode.ATTRIBUTE );
     }
 }

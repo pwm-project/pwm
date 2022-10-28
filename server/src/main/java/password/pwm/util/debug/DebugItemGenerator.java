@@ -65,7 +65,6 @@ public class DebugItemGenerator
             LocalDBDebugGenerator.class,
             SessionDataGenerator.class,
             ClusterInfoDebugGenerator.class,
-            CacheServiceDebugItemGenerator.class,
             RootFileSystemDebugItemGenerator.class,
             StatisticsDataDebugItemGenerator.class,
             StatisticsEpsDataDebugItemGenerator.class,
@@ -73,6 +72,7 @@ public class DebugItemGenerator
 
     private static final List<Class<? extends DomainItemGenerator>> DOMAIN_ITEM_GENERATORS = List.of(
             LDAPPermissionItemGenerator.class,
+            CacheServiceDebugItemGenerator.class,
             LdapDebugItemGenerator.class,
             LdapRecentUserDebugGenerator.class,
             DashboardDataDebugItemGenerator.class,

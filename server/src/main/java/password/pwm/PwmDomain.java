@@ -141,7 +141,7 @@ public class PwmDomain
 
     public CacheService getCacheService( )
     {
-        return pwmApplication.getCacheService();
+        return ( CacheService ) pwmServiceManager.getService( PwmServiceEnum.CacheService );
     }
 
     public DomainSecureService getSecureService( )

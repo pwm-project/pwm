@@ -42,7 +42,6 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.svc.cr.CrService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
@@ -55,7 +54,6 @@ import password.pwm.ws.server.RestUtility;
 import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
-import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Collections;
@@ -257,19 +255,13 @@ public class RestChallengesServer extends RestServlet
         try
         {
             final ChaiUser chaiUser;
-            final String userGUID;
             final String csIdentifer;
             final UserIdentity userIdentity;
             final CrService crService = restRequest.getDomain().getCrService();
 
             userIdentity = targetUserIdentity.getUserIdentity();
             chaiUser = targetUserIdentity.getChaiUser();
-            userGUID = LdapOperationsHelper.readLdapGuidValue(
-                    restRequest.getDomain(),
-                    restRequest.getSessionLabel(),
-                    userIdentity,
-                    false
-            );
+
             final ChallengeProfile challengeProfile = crService.readUserChallengeProfile(
                     restRequest.getSessionLabel(),
                     userIdentity,
@@ -283,7 +275,7 @@ public class RestChallengesServer extends RestServlet
                     .getIdentifier();
 
             final ResponseInfoBean responseInfoBean = jsonInput.toResponseInfoBean( restRequest.getLocale(), csIdentifer );
-            crService.writeResponses( restRequest.getSessionLabel(), userIdentity, chaiUser, userGUID, responseInfoBean );
+            crService.writeResponses( restRequest.getSessionLabel(), userIdentity, chaiUser, responseInfoBean );
 
             // update statistics
             StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_CHALLENGES );
@@ -300,7 +292,7 @@ public class RestChallengesServer extends RestServlet
 
     @RestMethodHandler( method = HttpMethod.DELETE, produces = HttpContentType.json )
     public RestResultBean processJsonDeleteChallengeData( final RestRequest restRequest )
-            throws IOException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final String username = restRequest.readParameterAsString( FIELD_USERNAME );
 
@@ -310,28 +302,17 @@ public class RestChallengesServer extends RestServlet
     private RestResultBean doDeleteChallengeData( final RestRequest restRequest, final String username )
             throws PwmUnrecoverableException
     {
-
         final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 
         try
         {
-            final ChaiUser chaiUser;
-            final String userGUID;
-
-            chaiUser = targetUserIdentity.getChaiUser();
-            userGUID = LdapOperationsHelper.readLdapGuidValue(
-                    restRequest.getDomain(),
-                    restRequest.getSessionLabel(),
-                    targetUserIdentity.getUserIdentity(),
-                    false );
+            final ChaiUser chaiUser = targetUserIdentity.getChaiUser();
 
             final CrService crService = restRequest.getDomain().getCrService();
             crService.clearResponses(
                     restRequest.getSessionLabel(),
                     targetUserIdentity.getUserIdentity(),
-                    chaiUser,
-                    userGUID
-            );
+                    chaiUser );
 
             // update statistics
             StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_CHALLENGES );

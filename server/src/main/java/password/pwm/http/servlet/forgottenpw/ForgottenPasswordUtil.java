@@ -60,6 +60,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.auth.HttpAuthRecord;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecord;
@@ -209,16 +210,26 @@ public class ForgottenPasswordUtil
         );
     }
 
-    static boolean checkAuthRecord( final PwmRequest pwmRequest, final String userGuid )
+    static boolean checkAuthRecord(
+            final PwmRequest pwmRequest,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
     {
-        if ( userGuid == null || userGuid.isEmpty() )
+        final PwmDomain pwmDomain = pwmRequest.getPwmApplication().domains().get( userIdentity.getDomainID() );
+        final Optional<String> userGuid = LdapOperationsHelper.readLdapGuidValue(
+                pwmDomain,
+                pwmRequest.getLabel(),
+                userIdentity );
+
+        if ( userGuid.isEmpty() )
         {
             return false;
         }
 
         try
         {
-            final String cookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_NAME );
+            final String cookieName = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_NAME );
             if ( cookieName == null || cookieName.isEmpty() )
             {
                 LOGGER.trace( pwmRequest, () -> "skipping auth record cookie read, cookie name parameter is blank" );
@@ -229,7 +240,7 @@ public class ForgottenPasswordUtil
             if ( optionalHttpAuthRecord.isPresent() )
             {
                 final HttpAuthRecord httpAuthRecord = optionalHttpAuthRecord.get();
-                if ( httpAuthRecord.getGuid() != null && !httpAuthRecord.getGuid().isEmpty() && httpAuthRecord.getGuid().equals( userGuid ) )
+                if ( userGuid.get().equals( httpAuthRecord.getGuid() ) )
                 {
                     LOGGER.debug( pwmRequest, () -> "auth record cookie validated" );
                     return true;
