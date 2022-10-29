@@ -30,7 +30,7 @@
     <fileSets>
         <fileSet>
             <outputDirectory>/</outputDirectory>
-            <directory>${project.basedir}/src/build/ldif</directory>
+            <directory>${project.basedir}/src/main/resources/ldif</directory>
             <includes>
                 <include>*/**</include>
             </includes>

@@ -51,6 +51,7 @@
     <modules>
         <module>lib-data</module>
         <module>lib-util</module>
+        <module>ldif</module>
         <module>server</module>
         <module>client</module>
         <module>webapp</module>
