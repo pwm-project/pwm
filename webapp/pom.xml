@@ -63,26 +63,24 @@
                             </artifactItems>
                         </configuration>
                     </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.4.2</version>
-                <executions>
                     <execution>
-                        <id>make-source-reference-zip</id>
+                        <id>copy-source-zip</id>
                         <phase>prepare-package</phase>
-                        <configuration>
-                            <finalName>${project.build.finalName}/public/reference/source</finalName>
-                            <appendAssemblyId>false</appendAssemblyId>
-                            <descriptors>
-                                <descriptor>src/build/assembly/source-reference.xml</descriptor>
-                            </descriptors>
-                        </configuration>
                         <goals>
-                            <goal>single</goal>
+                            <goal>copy</goal>
                         </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <artifactId>pwm-source</artifactId>
+                                    <groupId>${project.groupId}</groupId>
+                                    <version>${project.version}</version>
+                                    <type>jar</type>
+                                    <outputDirectory>${project.build.directory}/${project.build.finalName}/public/reference</outputDirectory>
+                                    <destFileName>source.zip</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
