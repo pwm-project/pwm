@@ -21,6 +21,7 @@
 package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiEntry;
+import com.novell.ldapchai.ChaiEntryFactory;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -51,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -174,7 +176,7 @@ public class LdapBrowser
         for ( final Map.Entry<String, DnType> entry : childDNs.entrySet() )
         {
             final String childDN = entry.getKey();
-            final DNInformation dnInformation = new DNInformation( entryNameFromDN( childDN ), childDN );
+            final DNInformation dnInformation = new DNInformation( rdnNameFromDN( childDN ), childDN );
 
             if ( entry.getValue() == DnType.navigable )
             {
@@ -226,67 +228,42 @@ public class LdapBrowser
             ) ) );
         }
 
-        final Map<String, Map<String, List<String>>> results = doLdapSearch( dn, chaiProvider );
+        final Set<String> results = doLdapSearch( dn, chaiProvider );
 
-        final HashMap<String, DnType> returnMap = new HashMap<>( results.size() );
-        for ( final Map.Entry<String, Map<String, List<String>>> entry : results.entrySet() )
+        final HashMap<String, DnType> returnMap = new LinkedHashMap<>( results.size() );
+        for ( final String resultDN : results )
         {
-            final String resultDN = entry.getKey();
-            final Map<String, List<String>> attributeResults = entry.getValue();
-
-            final DnType dnType = dnHasSubordinates( dn, chaiProvider, resultDN, attributeResults );
+            final DnType dnType = dnHasSubordinates( resultDN, chaiProvider );
             returnMap.put( resultDN, dnType );
         }
+
         return Collections.unmodifiableMap( returnMap );
     }
 
     private DnType dnHasSubordinates(
             final String dn,
-            final ChaiProvider chaiProvider,
-            final String resultDN,
-            final Map<String, List<String>> attributeResults
+            final ChaiProvider chaiProvider
     )
+            throws ChaiUnavailableException, ChaiOperationException
     {
-        if ( attributeResults.containsKey( ATTR_SUBORDINATE_COUNT ) )
-        {
-            // only eDir actually returns this operational attribute
-            final int subordinateCount = Integer.parseInt( attributeResults.get( ATTR_SUBORDINATE_COUNT ).get( 0 ) );
-            return subordinateCount > 0 ? DnType.navigable : DnType.selectable;
-        }
-        else
-        {
-            final SearchHelper searchHelper = new SearchHelper();
-            searchHelper.setFilter( "(objectclass=*)" );
-            searchHelper.setMaxResults( 1 );
-            searchHelper.setAttributes( Collections.emptyList() );
-            searchHelper.setSearchScope( SearchScope.ONE );
-            try
-            {
-                final Map<String, Map<String, String>> subSearchResults = chaiProvider.search( resultDN, searchHelper );
-                return !subSearchResults.isEmpty() ? DnType.navigable : DnType.selectable;
-            }
-            catch ( final Exception e )
-            {
-                LOGGER.debug( sessionLabel, () -> "error during subordinate entry count of " + dn + ", error: " + e.getMessage() );
-            }
-        }
-        return DnType.selectable;
+        final ChaiEntry chaiEntry = ChaiEntryFactory.newChaiFactory( chaiProvider ).newChaiEntry( dn );
+        return chaiEntry.hasChildren()
+                ? DnType.navigable
+                : DnType.selectable;
     }
 
-    private Map<String, Map<String, List<String>>> doLdapSearch(
+    private Set<String> doLdapSearch(
             final String dn, final ChaiProvider chaiProvider
     )
             throws ChaiUnavailableException, ChaiOperationException
     {
-        final Map<String, Map<String, List<String>>> results;
-
         final SearchHelper searchHelper = new SearchHelper();
-        searchHelper.setFilter( "(objectclass=*)" );
+        searchHelper.setFilter( SearchHelper.DEFAULT_FILTER );
+        searchHelper.setAttributes( Collections.emptyList() );
         searchHelper.setMaxResults( getMaxSizeLimit() );
-        searchHelper.setAttributes( ATTR_SUBORDINATE_COUNT );
         searchHelper.setSearchScope( SearchScope.ONE );
 
-        return chaiProvider.searchMultiValues( dn, searchHelper );
+        return chaiProvider.search( dn, searchHelper ).keySet();
     }
 
     private Set<String> adRootDNList( final DomainID domainID, final ProfileID profile )
@@ -302,17 +279,15 @@ public class LdapBrowser
         return adRootValues;
     }
 
-    private static String entryNameFromDN( final String dn )
+    private static String rdnNameFromDN( final String dn )
     {
-        int start = dn.indexOf( '=' );
-        start = start == -1 ? 0 : start + 1;
         int end = dn.indexOf( ',' );
         if ( end == -1 )
         {
             end = dn.length();
         }
 
-        return dn.substring( start, end );
+        return dn.substring( 0, end );
     }
 
     @Value
