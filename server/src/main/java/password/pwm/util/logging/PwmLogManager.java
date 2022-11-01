@@ -33,9 +33,8 @@ import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.joran.spi.ConfigurationWatchList;
 import ch.qos.logback.core.joran.util.ConfigurationWatchListUtil;
-import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
 import ch.qos.logback.core.rolling.RollingFileAppender;
-import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
+import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy;
 import ch.qos.logback.core.util.FileSize;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.LoggerFactory;
@@ -139,6 +138,9 @@ public class PwmLogManager
 
         initConsoleLogger( config, pwmLogSettings.getStdoutLevel() );
         initFileLogger( config, pwmLogSettings.getFileLevel(), pwmApplicationPath );
+
+        // for debugging
+        // StatusPrinter.print( getLoggerContext() );
     }
 
     static PwmLogLevel getLowestLogLevelConfigured()
@@ -281,20 +283,16 @@ public class PwmLogManager
                 }
 
                 final String fileName = logDirectory.getAbsolutePath() + File.separator + PwmConstants.PWM_APP_NAME + ".log";
-                final String fileNamePattern = logDirectory.getAbsolutePath() + File.separator + PwmConstants.PWM_APP_NAME + ".log.%i.zip";
+                final String fileNamePattern = logDirectory.getAbsolutePath() + File.separator + PwmConstants.PWM_APP_NAME + ".log.%d{yyyy-MM-dd}.%i.gz";
 
                 final LoggerContext logCtx = getLoggerContext();
 
-                final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
-                rollingPolicy.setContext( logCtx );
-                rollingPolicy.setMinIndex( 1 );
-                rollingPolicy.setMaxIndex( Integer.parseInt( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_ROLLOVER ) )  );
-                rollingPolicy.setFileNamePattern( fileNamePattern );
-
-                final SizeBasedTriggeringPolicy<ILoggingEvent> sizeBasedTriggeringPolicy = new SizeBasedTriggeringPolicy<>();
-                sizeBasedTriggeringPolicy.setMaxFileSize( FileSize.valueOf( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_SIZE ) ) );
-                sizeBasedTriggeringPolicy.setContext( logCtx );
-                sizeBasedTriggeringPolicy.start();
+                final SizeAndTimeBasedRollingPolicy<ILoggingEvent> sizeAndTimeBasedRollingPolicy = new SizeAndTimeBasedRollingPolicy<>();
+                sizeAndTimeBasedRollingPolicy.setContext( logCtx );
+                sizeAndTimeBasedRollingPolicy.setFileNamePattern( fileNamePattern );
+                sizeAndTimeBasedRollingPolicy.setMaxFileSize( FileSize.valueOf( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_FILE_SIZE ) ) );
+                sizeAndTimeBasedRollingPolicy.setTotalSizeCap( FileSize.valueOf( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_TOTAL_SIZE ) ) );
+                sizeAndTimeBasedRollingPolicy.setMaxHistory( Integer.parseInt( config.readAppProperty( AppProperty.LOGGING_FILE_MAX_HISTORY ) ) );
 
                 final RollingFileAppender<ILoggingEvent> fileAppender = new RollingFileAppender<>();
                 fileAppender.setContext( logCtx );
@@ -303,12 +301,11 @@ public class PwmLogManager
                 fileAppender.setFile( fileName );
                 fileAppender.setPrudent( false );
                 fileAppender.addFilter( makeLevelFilter( fileLogLevel ) );
-                fileAppender.setRollingPolicy( rollingPolicy );
-                fileAppender.setTriggeringPolicy( sizeBasedTriggeringPolicy );
+                fileAppender.setTriggeringPolicy( sizeAndTimeBasedRollingPolicy );
 
-                rollingPolicy.setParent( fileAppender );
+                sizeAndTimeBasedRollingPolicy.setParent( fileAppender );
+                sizeAndTimeBasedRollingPolicy.start();
 
-                rollingPolicy.start();
                 fileAppender.start();
 
                 attachAppender( fileAppender );

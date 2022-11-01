@@ -202,13 +202,13 @@ class ResourceServletConfiguration
                 if ( contents.size() > MAX_RESOURCE_COUNT )
                 {
                     final String entryName = entry.getName();
-                    LOGGER.error( () -> "ignoring resource bundle zip file entry '" + entryName
+                    LOGGER.error( sessionLabel, () -> "ignoring resource bundle zip file entry '" + entryName
                             + "' due to size being greater than max of " + MAX_RESOURCE_SIZE + " bytes " );
                 }
                 else if ( memoryMap.size() > MAX_RESOURCE_COUNT )
                 {
                     final String entryName = entry.getName();
-                    LOGGER.error( () -> "ignoring resource bundle zip file entry '" + entryName
+                    LOGGER.error( sessionLabel, () -> "ignoring resource bundle zip file entry '" + entryName
                             + "' due to total resource count being greater than max of " + MAX_RESOURCE_COUNT );
                 }
                 else
