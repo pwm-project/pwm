@@ -50,15 +50,14 @@ import java.util.List;
 import java.util.Optional;
 
 @WebServlet(
-        name = "AdminReportServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/admin/report",
                 PwmConstants.URL_PREFIX_PRIVATE + "/admin/report/*",
         }
 )
-public class AdminReportServlet extends ControlledPwmServlet
+public class DomainAdminReportServlet extends ControlledPwmServlet
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( AdminReportServlet.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( DomainAdminReportServlet.class );
 
     @Override
     protected PwmLogger getLogger()
@@ -89,7 +88,7 @@ public class AdminReportServlet extends ControlledPwmServlet
     @Override
     protected PwmServletDefinition getServletDefinition()
     {
-        return PwmServletDefinition.AdminReport;
+        return PwmServletDefinition.DomainAdminReport;
     }
 
     @Override

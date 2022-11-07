@@ -734,7 +734,7 @@ public class PwmApplication
         return ( DatabaseService ) pwmServiceManager.getService( PwmServiceEnum.DatabaseService );
     }
 
-    public StatisticsService getStatisticsManager( )
+    public StatisticsService getStatisticsService( )
     {
         return ( StatisticsService ) pwmServiceManager.getService( PwmServiceEnum.StatisticsService );
     }

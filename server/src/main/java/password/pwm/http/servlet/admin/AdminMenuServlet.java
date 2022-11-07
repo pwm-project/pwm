@@ -43,17 +43,16 @@ import java.util.Optional;
  * Simple servlet to front requests to the otherwise standard index page at '/private/admin/index.jsp'.
  */
 @WebServlet(
-        name = "AdminServlet",
         urlPatterns = {
-                PwmConstants.URL_PREFIX_PRIVATE + "/oldadmin",
-                PwmConstants.URL_PREFIX_PRIVATE + "/oldadmin/",
-                PwmConstants.URL_PREFIX_PRIVATE + "/oldadministration",
-                PwmConstants.URL_PREFIX_PRIVATE + "/oldadministration/",
+                PwmConstants.URL_PREFIX_PRIVATE + "/admin",
+                PwmConstants.URL_PREFIX_PRIVATE + "/admin/",
+                PwmConstants.URL_PREFIX_PRIVATE + "/administration",
+                PwmConstants.URL_PREFIX_PRIVATE + "/administration/",
         }
 )
-public class AdminServlet extends ControlledPwmServlet
+public class AdminMenuServlet extends ControlledPwmServlet
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( AdminServlet.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( AdminMenuServlet.class );
 
     @Override
     protected PwmLogger getLogger()

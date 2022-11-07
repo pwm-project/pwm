@@ -80,7 +80,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
 @WebServlet(
-        name = "ConfigManagerServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/config/manager",
                 PwmConstants.URL_PREFIX_PRIVATE + "/config/ConfigManager"

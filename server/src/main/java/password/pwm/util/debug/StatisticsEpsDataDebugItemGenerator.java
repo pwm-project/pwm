@@ -51,7 +51,7 @@ class StatisticsEpsDataDebugItemGenerator implements AppItemGenerator
 
     {
         final PwmApplication pwmDomain = debugItemInput.getPwmApplication();
-        final StatisticsService statsManager = pwmDomain.getStatisticsManager();
+        final StatisticsService statsManager = pwmDomain.getStatisticsService();
         final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
         {
             final List<String> headerRow = new ArrayList<>();

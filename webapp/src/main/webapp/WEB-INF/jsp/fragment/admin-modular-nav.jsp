@@ -23,15 +23,9 @@
 --%>
 
 
-<%@ page import="password.pwm.http.servlet.admin.SystemAdminServlet" %>
-<%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
-<%@ page import="password.pwm.http.JspUtility" %>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
-<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
-<pwm:script-ref url="/public/resources/js/main.js"/>
-<pwm:script-ref url="/public/resources/js/admin.js"/>
 <link href="<pwm:url url='/public/resources/adminStyle.css' addContext="true"/>" rel="stylesheet" type="text/css" media="screen"/>
 
 <div class="admin-breadcrumb-navigation-button">

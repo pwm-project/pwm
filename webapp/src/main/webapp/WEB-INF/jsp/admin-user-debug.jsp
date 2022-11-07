@@ -38,7 +38,7 @@
 <%@ page import="password.pwm.util.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.svc.PwmService" %>
-<%@ page import="password.pwm.http.servlet.admin.domain.AdminUserDebugServlet" %>
+<%@ page import="password.pwm.http.servlet.admin.domain.DomainAdminUserDebugServlet" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -57,7 +57,7 @@
         <% if (userDebugDataBean == null) { %>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <div id="panel-searchbar" class="searchbar">
-            <form method="post" class="pwm-form" action="<pwm:current-url/>?processAction=<%=AdminUserDebugServlet.AdminUserDebugAction.searchUsername.toString()%>">
+            <form method="post" class="pwm-form" action="<pwm:current-url/>?processAction=<%=DomainAdminUserDebugServlet.AdminUserDebugAction.searchUsername.toString()%>">
                 <input id="username" name="username" placeholder="<pwm:display key="Placeholder_Search"/>" title="<pwm:display key="Placeholder_Search"/>" class="helpdesk-input-username" <pwm:autofocus/> autocomplete="off"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
                 <button type="submit" class="btn"><pwm:display key="Button_Search"/></button>
@@ -65,9 +65,9 @@
         </div>
 
         <% } else { %>
-        <div class="buttonbar">
+        <div class="buttonbar center">
             <form method="get" class="pwm-form">
-                <button type="submit" class="btn"><pwm:display key="Button_Continue"/></button>
+                <button type="submit" class="btn"><pwm:display key="Button_Reset"/></button>
             </form>
         </div>
         <% final PublicUserInfoBean userInfo = userDebugDataBean.getPublicUserInfoBean(); %>
@@ -291,16 +291,20 @@
                 <td class="key">Profiles</td>
                 <td>
                     <table>
+                        <thead>
                         <tr>
                             <td class="key">Service</td>
                             <td class="key">ProfileID</td>
                         </tr>
+                        </thead>
+                        <tbody>
                         <% for (final ProfileDefinition profileDefinition : userDebugDataBean.getProfiles().keySet()) { %>
                         <tr>
                             <td><%=profileDefinition%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getProfiles().get(profileDefinition).stringValue())%></td>
                         </tr>
                         <% } %>
+                        </tbody>
                     </table>
                 </td>
             </tr>
@@ -308,16 +312,20 @@
                 <td class="key">Permissions</td>
                 <td>
                     <table>
+                        <thead>
                         <tr>
                             <td class="key">Permission</td>
                             <td class="key">Status</td>
                         </tr>
+                        </thead>
+                        <tbody>
                         <% for (final Permission permission : userDebugDataBean.getPermissions().keySet()) { %>
                         <tr>
                             <td><%=permission%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getPermissions().get(permission))%></td>
                         </tr>
                         <% } %>
+                        </tbody>
                     </table>
                 </td>
             </tr>
@@ -334,6 +342,7 @@
             <tr>
                 <td colspan="10">
                     <table>
+                        <thead>
                         <tr class="title">
                             <td class="key" style="width: 1px;">Rule</td>
                             <td class="key" style="width: 1px;">Rule Type</td>
@@ -342,28 +351,31 @@
                             <td class="key" style="width: 20%;">Effective Policy</td>
                         </tr>
                         <tr>
-                            <td>ID</td>
+                            <td class="key">ID</td>
                             <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, () -> configPolicy.getId().stringValue())%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, () -> ldapPolicy.getId().stringValue())%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, () -> userPolicy.getId().stringValue())%></td>
                         </tr>
                         <tr>
-                            <td>Display Name</td>
+                            <td class="key">Display Name</td>
                             <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, configPolicy.getDisplayName(JspUtility.locale(request)))%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, ldapPolicy.getDisplayName(JspUtility.locale(request)))%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, userPolicy.getDisplayName(JspUtility.locale(request)))%></td>
                         </tr>
+                        </thead>
+                        <tbody>
                         <% for (final PwmPasswordRule rule : PwmPasswordRule.sortedByLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getDomainConfig())) { %>
                         <tr>
-                            <td><span title="<%=rule.getKey()%>"><%=rule.getLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getDomainConfig())%></span></td>
+                            <td class="key"><span title="<%=rule.getKey()%>"><%=rule.getLabel(JspUtility.locale(request), JspUtility.getPwmRequest(pageContext).getDomainConfig())%></span></td>
                             <td><%=rule.getRuleType()%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, configPolicy.getValue(rule))%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, ldapPolicy.getValue(rule))%></td>
                             <td><%=JspUtility.friendlyWrite(pageContext, userPolicy.getValue(rule))%></td>
                         </tr>
                         <% } %>
+                        </tbody>
                     </table>
                 </td>
             </tr>
@@ -377,32 +389,32 @@
             <% final ResponseInfoBean responseInfoBean = userDebugDataBean.getUserInfo().getResponseInfoBean(); %>
             <% if (responseInfoBean == null) { %>
             <tr>
-                <td>Stored Responses</td>
+                <td class="key">Stored Responses</td>
                 <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
             </tr>
             <% } else { %>
             <tr>
-                <td>Identifier</td>
+                <td class="key">Identifier</td>
                 <td><%=responseInfoBean.getCsIdentifier()%></td>
             </tr>
             <tr>
-                <td>Storage Type</td>
+                <td class="key">Storage Type</td>
                 <td><%=responseInfoBean.getDataStorageMethod()%></td>
             </tr>
             <tr>
-                <td>Format</td>
+                <td class="key">Format</td>
                 <td><%=responseInfoBean.getFormatType()%></td>
             </tr>
             <tr>
-                <td>Locale</td>
+                <td class="key">Locale</td>
                 <td><%=responseInfoBean.getLocale()%></td>
             </tr>
             <tr>
-                <td>Storage Timestamp</td>
+                <td class="key">Storage Timestamp</td>
                 <td><%=JspUtility.friendlyWrite(pageContext, responseInfoBean.getTimestamp())%></td>
             </tr>
             <tr>
-                <td>Answered Challenges</td>
+                <td class="key">Answered Challenges</td>
                 <% final Map<Challenge,String> crMap = responseInfoBean.getCrMap(); %>
                 <% if (crMap == null) { %>
                 <td>
@@ -411,11 +423,14 @@
                 <% } else { %>
                 <td>
                     <table>
+                        <thead>
                         <tr>
                             <td class="key">Type</td>
                             <td class="key">Required</td>
                             <td class="key">Text</td>
                         </tr>
+                        </thead>
+                        <tbody>
                         <% for (final Challenge challenge : crMap.keySet()) { %>
                         <tr>
                             <td>
@@ -429,12 +444,13 @@
                             </td>
                         </tr>
                         <% } %>
+                        </tbody>
                     </table>
                 </td>
                 <% } %>
             </tr>
             <tr>
-                <td>
+                <td class="key">
                     Minimum Randoms Required
                 </td>
                 <td>
@@ -442,7 +458,7 @@
                 </td>
             </tr>
             <tr>
-                <td>Helpdesk Answered Challenges</td>
+                <td class="key">Helpdesk Answered Challenges</td>
                 <% final Map<Challenge,String> helpdeskCrMap = responseInfoBean.getHelpdeskCrMap(); %>
                 <% if (helpdeskCrMap == null) { %>
                 <td>
@@ -467,24 +483,24 @@
             <% final ChallengeProfile challengeProfile = userDebugDataBean.getUserInfo().getChallengeProfile(); %>
             <% if ( challengeProfile == null ) { %>
             <tr>
-                <td>Assigned Profile</td>
+                <td class="key">Assigned Profile</td>
                 <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
             </tr>
             <% } else { %>
             <tr>
-                <td>Display Name</td>
+                <td class="key">Display Name</td>
                 <td><%=challengeProfile.getDisplayName(JspUtility.locale(request))%></td>
             </tr>
             <tr>
-                <td>Identifier</td>
+                <td class="key">Identifier</td>
                 <td><%=challengeProfile.getId()%></td>
             </tr>
             <tr>
-                <td>Locale</td>
+                <td class="key">Locale</td>
                 <td><%=challengeProfile.getLocale()%></td>
             </tr>
             <tr>
-                <td>Challenges</td>
+                <td class="key">Challenges</td>
                 <td>
                     <table>
                         <tr>
@@ -527,9 +543,10 @@
                 </td>
             </tr>
             <tr>
-                <td>Helpdesk Challenges</td>
+                <td class="key">Helpdesk Challenges</td>
                 <td>
                     <table>
+                        <thead>
                         <tr>
                             <td class="key">Type</td>
                             <td class="key">Text</td>
@@ -539,6 +556,8 @@
                             <td class="key">Enforce Wordlist</td>
                             <td class="key">Max Question Characters</td>
                         </tr>
+                        </thead>
+                        <tbody>
                         <% if ( challengeProfile.hasHelpdeskChallenges() ) { %>
                         <% for (final Challenge challenge : challengeProfile.getHelpdeskChallengeSet().get().getChallenges()) { %>
                         <tr>
@@ -566,6 +585,7 @@
                         </tr>
                         <% } %>
                         <% } %>
+                        </tbody>
                     </table>
                 </td>
             </tr>
@@ -574,12 +594,9 @@
         <% } %><%-- End Challenge Profile --%>
         <% } %>
         </tr>
-        <div class="buttonbar">
-            <form method="get" class="pwm-form">
-                <button type="submit" class="btn"><pwm:display key="Button_Continue"/></button>
-            </form>
+        <div class="buttonbar center">
             <form method="get">
-                <input type="hidden" name="processAction" value="<%=AdminUserDebugServlet.AdminUserDebugAction.downloadUserDebug.toString()%>"/>
+                <input type="hidden" name="processAction" value="<%=DomainAdminUserDebugServlet.AdminUserDebugAction.downloadUserDebug.toString()%>"/>
                 <button type="submit" class="btn">Download</button>
             </form>
         </div>

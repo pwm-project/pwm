@@ -52,12 +52,11 @@ import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.intruder.PublicIntruderRecord;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.pwnotify.PwNotifyStoredJobState;
-import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmTimeUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.LocalDBLogger;
@@ -96,7 +95,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 @WebServlet(
-        name = "SystemAdminServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/admin/system/dashboard",
                 PwmConstants.URL_PREFIX_PRIVATE + "/admin/system/Administration",
@@ -116,7 +114,6 @@ public class SystemAdminServlet extends ControlledPwmServlet
     {
         viewLogWindow( HttpMethod.GET ),
         downloadAuditLogCsv( HttpMethod.POST ),
-        downloadStatisticsLogCsv( HttpMethod.POST ),
         downloadSessionsCsv( HttpMethod.POST ),
         clearIntruderTable( HttpMethod.POST ),
         auditData( HttpMethod.GET ),
@@ -219,34 +216,6 @@ public class SystemAdminServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
-    @ActionHandler( action = "downloadStatisticsLogCsv" )
-    public ProcessStatus downloadStatisticsLogCsv( final PwmRequest pwmRequest )
-            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
-    {
-        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-
-        pwmRequest.getPwmResponse().markAsDownload(
-                HttpContentType.csv,
-                pwmRequest.getPwmDomain().getConfig().readAppProperty( AppProperty.DOWNLOAD_FILENAME_STATISTICS_CSV )
-        );
-
-        final OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream();
-        try
-        {
-            final StatisticsService statsManager = pwmDomain.getStatisticsManager();
-            statsManager.outputStatsToCsv( outputStream, pwmRequest.getLocale(), true );
-        }
-        catch ( final Exception e )
-        {
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
-            pwmRequest.respondWithError( errorInformation );
-        }
-        finally
-        {
-            outputStream.close();
-        }
-        return ProcessStatus.Halt;
-    }
 
     @ActionHandler( action = "downloadSessionsCsv" )
     public ProcessStatus downloadSessionsCsv( final PwmRequest pwmRequest )
@@ -438,7 +407,6 @@ public class SystemAdminServlet extends ControlledPwmServlet
     public enum Page
     {
         dashboard( JspUrl.ADMIN_DASHBOARD, "/dashboard" ),
-        analysis( JspUrl.ADMIN_ANALYSIS, "/analysis" ),
         activity( JspUrl.ADMIN_ACTIVITY, "/activity" ),
         tokenLookup( JspUrl.ADMIN_TOKEN_LOOKUP, "/tokens" ),
         viewLog( JspUrl.ADMIN_LOGVIEW, "/logs" ),

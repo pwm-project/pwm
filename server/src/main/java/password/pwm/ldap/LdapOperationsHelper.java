@@ -471,7 +471,7 @@ public class LdapOperationsHelper
                 userPassword
         );
 
-        pwmDomain.getStatisticsManager().updateEps( EpsStatistic.LDAP_BINDS, 1 );
+        pwmDomain.getStatisticsService().updateEps( EpsStatistic.LDAP_BINDS, 1 );
 
         return chaiProvider;
     }

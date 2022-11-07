@@ -237,7 +237,7 @@ public class LdapDomainService extends AbstractPwmService implements PwmService
                     sessionLabel,
                     ldapProfile,
                     pwmDomain.getConfig(),
-                    pwmDomain.getStatisticsManager()
+                    pwmDomain.getStatisticsService()
             );
             LOGGER.trace( sessionLabel, () -> "created new system proxy chaiProvider id=" + chaiProvider.toString()
                     + " for ldap profile '" + ldapProfile.getId() + "'"

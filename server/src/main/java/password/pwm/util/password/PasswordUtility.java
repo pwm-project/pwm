@@ -484,10 +484,10 @@ public class PasswordUtility
         }
 
         // update stats
-        pwmDomain.getStatisticsManager().updateEps( EpsStatistic.PASSWORD_CHANGES, 1 );
+        pwmDomain.getStatisticsService().updateEps( EpsStatistic.PASSWORD_CHANGES, 1 );
 
         final int passwordStrength = PasswordUtility.judgePasswordStrength( pwmDomain.getConfig(), newPassword.getStringValue() );
-        pwmDomain.getStatisticsManager().updateAverageValue( AvgStatistic.AVG_PASSWORD_STRENGTH, passwordStrength );
+        pwmDomain.getStatisticsService().updateAverageValue( AvgStatistic.AVG_PASSWORD_STRENGTH, passwordStrength );
 
         // at this point the password has been changed, so log it.
         final String msg = ( bindIsSelf

@@ -113,13 +113,13 @@ public class DailySummaryJob implements Runnable
             return;
         }
 
-        if ( pwmDomain.getStatisticsManager().status() != PwmService.STATUS.OPEN )
+        if ( pwmDomain.getStatisticsService().status() != PwmService.STATUS.OPEN )
         {
             LOGGER.debug( () -> "skipping daily summary alert job, statistics service is not open" );
             return;
         }
 
-        final Map<String, String> dailyStatistics = pwmDomain.getStatisticsManager().dailyStatisticsAsLabelValueMap();
+        final Map<String, String> dailyStatistics = pwmDomain.getStatisticsService().dailyStatisticsAsLabelValueMap();
 
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
 

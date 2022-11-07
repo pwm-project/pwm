@@ -35,8 +35,8 @@
 <% final ErrorInformation requestError = (ErrorInformation)JspUtility.getAttribute(pageContext, PwmRequestAttribute.PwmErrorInfo); %>
 <% if (requestError != null) { %>
     <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
-    <span id="errorCode"><%=requestError.getError().getErrorCode()%></span>
-    <span id="errorName"><%=requestError.getError().toString()%></span>
+    <span id="errorCode" class="nodisplay"><%=requestError.getError().getErrorCode()%></span>
+    <span id="errorName" class="nodisplay"><%=JspUtility.friendlyWrite( pageContext, requestError.getError().toString())%></span>
 <% } else { %>
     <span id="message" class="message nodisplay">&nbsp;</span>
 <% } %>

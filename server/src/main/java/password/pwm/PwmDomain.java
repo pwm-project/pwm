@@ -119,9 +119,9 @@ public class PwmDomain
         return pwmApplication.getApplicationMode();
     }
 
-    public StatisticsService getStatisticsManager( )
+    public StatisticsService getStatisticsService( )
     {
-        return pwmApplication.getStatisticsManager();
+        return pwmApplication.getStatisticsService();
     }
 
     public OtpService getOtpService( )

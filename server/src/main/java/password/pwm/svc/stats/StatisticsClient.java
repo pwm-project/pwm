@@ -56,7 +56,7 @@ public class StatisticsClient
     {
         if ( pwmApplication != null && pwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING )
         {
-            final StatisticsService statisticsService = pwmApplication.getStatisticsManager();
+            final StatisticsService statisticsService = pwmApplication.getStatisticsService();
             if ( statisticsService != null && statisticsService.status() == PwmService.STATUS.OPEN )
             {
                 statisticsService.updateEps( type, itemCount );
@@ -72,7 +72,7 @@ public class StatisticsClient
             return;
         }
 
-        final StatisticsService statisticsManager = pwmApplication.getStatisticsManager();
+        final StatisticsService statisticsManager = pwmApplication.getStatisticsService();
         if ( statisticsManager == null )
         {
             LOGGER.error( () -> "skipping requested statistic increment of " + statistic + " due to null statisticsManager" );
@@ -94,7 +94,7 @@ public class StatisticsClient
             return;
         }
 
-        final StatisticsService statisticsManager = pwmApplication.getStatisticsManager();
+        final StatisticsService statisticsManager = pwmApplication.getStatisticsService();
         if ( statisticsManager == null )
         {
             LOGGER.error( () -> "skipping requested statistic increment of " + statistic + " due to null statisticsManager" );

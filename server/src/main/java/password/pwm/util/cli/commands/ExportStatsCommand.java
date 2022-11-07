@@ -21,7 +21,10 @@
 package password.pwm.util.cli.commands;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.svc.stats.StatisticsService;
+import password.pwm.svc.stats.StatisticsUtils;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.TimeDuration;
@@ -30,7 +33,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Locale;
 
 public class ExportStatsCommand extends AbstractCliCommand
 {
@@ -40,7 +42,7 @@ public class ExportStatsCommand extends AbstractCliCommand
             throws IOException
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
-        final StatisticsService statsManger = pwmApplication.getStatisticsManager();
+        final StatisticsService statsManger = pwmApplication.getStatisticsService();
 
         final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
         final long startTime = System.currentTimeMillis();
@@ -48,8 +50,12 @@ public class ExportStatsCommand extends AbstractCliCommand
         final int counter;
         try ( FileOutputStream fileOutputStream = new FileOutputStream( outputFile, true ) )
         {
-            counter = statsManger.outputStatsToCsv( fileOutputStream, Locale.getDefault(), true );
-            fileOutputStream.close();
+            counter = StatisticsUtils.outputStatsToCsv(
+                    SessionLabel.CLI_SESSION_LABEL,
+                    statsManger,
+                    fileOutputStream,
+                    PwmConstants.DEFAULT_LOCALE,
+                    StatisticsUtils.CsvOutputFlag.includeHeader );
         }
         out( "completed writing " + counter + " rows of stats output in " + PwmTimeUtil.asLongString( TimeDuration.fromCurrent( startTime ) ) );
     }

@@ -46,7 +46,6 @@ import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsBundle;
-import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -103,7 +102,7 @@ public class TelemetryService extends AbstractPwmService implements PwmService
             return STATUS.CLOSED;
         }
 
-        if ( pwmApplication.getStatisticsManager().status() != STATUS.OPEN )
+        if ( pwmApplication.getStatisticsService().status() != STATUS.OPEN )
         {
             LOGGER.trace( getSessionLabel(), () -> "will remain closed, statistics manager is not enabled" );
             return STATUS.CLOSED;
@@ -165,7 +164,7 @@ public class TelemetryService extends AbstractPwmService implements PwmService
 
     private void executePublishJob( ) throws PwmUnrecoverableException, IOException, URISyntaxException
     {
-        final String authValue = getPwmApplication().getStatisticsManager().getStatBundleForKey( StatisticsService.KEY_CUMULATIVE ).getStatistic( Statistic.AUTHENTICATIONS );
+        final String authValue = getPwmApplication().getStatisticsService().getCumulativeBundle().getStatistic( Statistic.AUTHENTICATIONS );
         if ( StringUtil.isEmpty( authValue ) || Integer.parseInt( authValue ) < settings.getMinimumAuthentications() )
         {
             LOGGER.trace( getSessionLabel(), () -> "skipping telemetry send, authentication count is too low" );
@@ -250,7 +249,7 @@ public class TelemetryService extends AbstractPwmService implements PwmService
     public TelemetryPublishBean generatePublishableBean( )
             throws PwmUnrecoverableException
     {
-        final StatisticsBundle bundle = getPwmApplication().getStatisticsManager().getStatBundleForKey( StatisticsService.KEY_CUMULATIVE );
+        final StatisticsBundle bundle = getPwmApplication().getStatisticsService().getCumulativeBundle();
         final AppConfig config = getPwmApplication().getConfig();
         final Map<PwmAboutProperty, String> aboutPropertyStringMap = PwmAboutProperty.makeInfoBean( getPwmApplication() );
 

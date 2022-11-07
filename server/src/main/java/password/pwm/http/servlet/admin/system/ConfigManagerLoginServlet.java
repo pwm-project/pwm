@@ -72,7 +72,6 @@ import java.util.List;
 import java.util.Optional;
 
 @WebServlet(
-        name = "ConfigManagerLogin",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/config/login",
         }

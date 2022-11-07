@@ -180,7 +180,7 @@
             </pwm:if>
         </pwm:if>
         <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>">
-            <a id="button_Admin" href="<pwm:url url='<%=PwmServletDefinition.Admin.servletUrl()%>' addContext="true"/> ">
+            <a id="button_Admin" href="<pwm:url url='<%=PwmServletDefinition.AdminMenu.servletUrl()%>' addContext="true"/> ">
                 <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image admin-image"></div>

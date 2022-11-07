@@ -115,9 +115,9 @@ class UserSearchJob implements Callable<Map<UserIdentity, Map<String, String>>>
 
         final TimeDuration searchDuration = TimeDuration.fromCurrent( startTime );
 
-        if ( pwmDomain.getStatisticsManager() != null && pwmDomain.getStatisticsManager().status() == PwmService.STATUS.OPEN )
+        if ( pwmDomain.getStatisticsService() != null && pwmDomain.getStatisticsService().status() == PwmService.STATUS.OPEN )
         {
-            pwmDomain.getStatisticsManager().updateAverageValue( AvgStatistic.AVG_LDAP_SEARCH_TIME, searchDuration.asMillis() );
+            pwmDomain.getStatisticsService().updateAverageValue( AvgStatistic.AVG_LDAP_SEARCH_TIME, searchDuration.asMillis() );
         }
 
         if ( results.isEmpty() )

@@ -293,9 +293,9 @@ public class RequestInitializationFilter implements Filter
     {
         if ( localPwmApplication != null && localPwmApplication.getApplicationMode() == PwmApplicationMode.RUNNING )
         {
-            if ( localPwmApplication.getStatisticsManager() != null )
+            if ( localPwmApplication.getStatisticsService() != null )
             {
-                localPwmApplication.getStatisticsManager().updateEps( EpsStatistic.REQUESTS, 1 );
+                localPwmApplication.getStatisticsService().updateEps( EpsStatistic.REQUESTS, 1 );
             }
         }
     }
@@ -722,14 +722,14 @@ public class RequestInitializationFilter implements Filter
     {
         if ( PwmConstants.TRIAL_MODE )
         {
-            final StatisticsService statisticsManager = pwmRequest.getPwmDomain().getStatisticsManager();
-            final String currentAuthString = statisticsManager.getStatBundleForKey( StatisticsService.KEY_CURRENT ).getStatistic( Statistic.AUTHENTICATIONS );
+            final StatisticsService statisticsManager = pwmRequest.getPwmDomain().getStatisticsService();
+            final String currentAuthString = statisticsManager.getCurrentBundle().getStatistic( Statistic.AUTHENTICATIONS );
             if ( new BigInteger( currentAuthString ).compareTo( BigInteger.valueOf( PwmConstants.TRIAL_MAX_AUTHENTICATIONS ) ) > 0 )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TRIAL_VIOLATION, "maximum usage per server startup exceeded" ) );
             }
 
-            final String totalAuthString = statisticsManager.getStatBundleForKey( StatisticsService.KEY_CUMULATIVE ).getStatistic( Statistic.AUTHENTICATIONS );
+            final String totalAuthString = statisticsManager.getCumulativeBundle().getStatistic( Statistic.AUTHENTICATIONS );
             if ( new BigInteger( totalAuthString ).compareTo( BigInteger.valueOf( PwmConstants.TRIAL_MAX_TOTAL_AUTH ) ) > 0 )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_TRIAL_VIOLATION, "maximum usage for this server has been exceeded" ) );

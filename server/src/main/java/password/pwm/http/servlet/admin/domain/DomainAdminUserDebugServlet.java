@@ -54,14 +54,13 @@ import java.util.List;
 import java.util.Optional;
 
 @WebServlet(
-        name = "AdminUserDebugServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/admin/user-debug",
         }
 )
-public class AdminUserDebugServlet extends ControlledPwmServlet
+public class DomainAdminUserDebugServlet extends ControlledPwmServlet
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( AdminUserDebugServlet.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( DomainAdminUserDebugServlet.class );
 
     @Override
     protected PwmLogger getLogger()
@@ -91,7 +90,7 @@ public class AdminUserDebugServlet extends ControlledPwmServlet
     @Override
     protected PwmServletDefinition getServletDefinition()
     {
-        return PwmServletDefinition.AdminUserDebug;
+        return PwmServletDefinition.DomainAdminUserDebug;
     }
 
     @Override
@@ -140,8 +139,8 @@ public class AdminUserDebugServlet extends ControlledPwmServlet
                 setLastError( pwmRequest, e.getErrorInformation() );
             }
         }
-
-        return ProcessStatus.Continue;
+        pwmRequest.forwardToJsp( JspUrl.ADMIN_DEBUG );
+        return ProcessStatus.Halt;
     }
 
     @ActionHandler( action = "downloadUserDebug" )

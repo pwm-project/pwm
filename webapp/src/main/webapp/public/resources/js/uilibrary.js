@@ -785,7 +785,7 @@ UILibrary.displayElementsToTableContents = function(fields) {
     for (var field in fields) {(function(field){
         var fieldData = fields[field];
         var classValue = fieldData['type'] === 'timestamp' ? 'timestamp' : '';
-        htmlTable += '<tr><td>' + fieldData['label'] + '</td><td><span class="' + classValue + '" id="report_status_' + fieldData['key']  + '"</tr>';
+        htmlTable += '<tr><td class="key">' + fieldData['label'] + '</td><td><span class="' + classValue + '" id="' + fieldData['key']  + '"</tr>';
     }(field)); }
     return htmlTable;
 };
@@ -797,7 +797,7 @@ UILibrary.initElementsToTableContents = function(fields) {
         if (fieldData['type'] === 'number') {
             value = PWM_MAIN.numberFormat(value);
         }
-        PWM_MAIN.getObject('report_status_' + fieldData['key']).innerHTML = value;
+        PWM_MAIN.getObject( fieldData['key']).innerHTML = value;
         if (fieldData['type'] === 'timestamp') {
             PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject("report_status_" + fieldData['key']));
         }

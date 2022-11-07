@@ -396,7 +396,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                 final TimeDuration totalTime = TimeDuration.fromCurrent( progressTracker.getBeginTime() );
                 try
                 {
-                    pwmRequest.getPwmDomain().getStatisticsManager().updateAverageValue( AvgStatistic.AVG_PASSWORD_SYNC_TIME, totalTime.asMillis() );
+                    pwmRequest.getPwmDomain().getStatisticsService().updateAverageValue( AvgStatistic.AVG_PASSWORD_SYNC_TIME, totalTime.asMillis() );
                     LOGGER.trace( pwmRequest, () -> "password sync process marked completed (" + totalTime.asCompactString() + ")" );
                 }
                 catch ( final Exception e )

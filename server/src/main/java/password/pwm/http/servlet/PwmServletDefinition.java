@@ -40,10 +40,11 @@ import password.pwm.http.bean.ShortcutsBean;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.http.servlet.accountinfo.AccountInformationServlet;
 import password.pwm.http.servlet.activation.ActivateUserServlet;
-import password.pwm.http.servlet.admin.domain.AdminReportServlet;
-import password.pwm.http.servlet.admin.AdminServlet;
+import password.pwm.http.servlet.admin.domain.DomainAdminReportServlet;
+import password.pwm.http.servlet.admin.AdminMenuServlet;
 import password.pwm.http.servlet.admin.SystemAdminServlet;
-import password.pwm.http.servlet.admin.domain.AdminUserDebugServlet;
+import password.pwm.http.servlet.admin.domain.DomainAdminStatisticsServlet;
+import password.pwm.http.servlet.admin.domain.DomainAdminUserDebugServlet;
 import password.pwm.http.servlet.changepw.PrivateChangePasswordServlet;
 import password.pwm.http.servlet.changepw.PublicChangePasswordServlet;
 import password.pwm.http.servlet.command.PrivateCommandServlet;
@@ -94,10 +95,12 @@ public enum PwmServletDefinition
 
     ClientApi( ClientApiServlet.class, null ),
 
-    Admin( AdminServlet.class, null, Flag.RequiresUserPasswordAndBind ),
+    AdminMenu( AdminMenuServlet.class, null, Flag.RequiresUserPasswordAndBind ),
     SystemAdmin( SystemAdminServlet.class, AdminBean.class, Flag.RequiresUserPasswordAndBind ),
-    AdminReport( AdminReportServlet.class, null, Flag.RequiresUserPasswordAndBind ),
-    AdminUserDebug( AdminUserDebugServlet.class, null, Flag.RequiresUserPasswordAndBind ),
+
+    DomainAdminReport( DomainAdminReportServlet.class, null, Flag.RequiresUserPasswordAndBind ),
+    DomainAdminStatistics( DomainAdminStatisticsServlet.class, null, Flag.RequiresUserPasswordAndBind ),
+    DomainAdminUserDebug( DomainAdminUserDebugServlet.class, null, Flag.RequiresUserPasswordAndBind ),
 
     ConfigGuide( ConfigGuideServlet.class, ConfigGuideBean.class ),
     ConfigEditor( ConfigEditorServlet.class, null, Flag.RequiresConfigAuth ),

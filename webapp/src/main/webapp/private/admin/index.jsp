@@ -50,7 +50,7 @@
             </form>
         </div>
         <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>">
-            <a id="button_reporting" href="<pwm:url url='<%=PwmServletDefinition.AdminReport.servletUrl()%>' addContext="true"/> ">
+            <a id="button_reporting" href="<pwm:url url='<%=PwmServletDefinition.DomainAdminReport.servletUrl()%>' addContext="true"/> ">
                 <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image admin-image"></div>
@@ -61,12 +61,23 @@
             </a>
         </pwm:if>
         <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>">
-            <a id="button_userdebug" href="<pwm:url url='<%=PwmServletDefinition.AdminUserDebug.servletUrl()%>' addContext="true"/> ">
+            <a id="button_userdebug" href="<pwm:url url='<%=PwmServletDefinition.DomainAdminUserDebug.servletUrl()%>' addContext="true"/> ">
                 <div class="tile">
                     <div class="tile-content">
                         <div class="tile-image user-image"></div>
                         <div class="tile-title" title="<pwm:display key='Title_UserDebug' bundle="Admin"/>"><pwm:display key="Title_UserDebug" bundle="Admin"/></div>
                         <div class="tile-subtitle" title="<pwm:display key='Title_UserDebug' bundle="Admin"/>"><pwm:display key="Title_UserDebug" bundle="Admin"/></div>
+                    </div>
+                </div>
+            </a>
+        </pwm:if>
+        <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>">
+            <a id="button_userdebug" href="<pwm:url url='<%=PwmServletDefinition.DomainAdminStatistics.servletUrl()%>' addContext="true"/> ">
+                <div class="tile">
+                    <div class="tile-content">
+                        <div class="tile-image user-image"></div>
+                        <div class="tile-title" title="<pwm:display key='Title_Statistics' bundle="Admin"/>"><pwm:display key="Title_Statistics" bundle="Admin"/></div>
+                        <div class="tile-subtitle" title="<pwm:display key='Title_Statistics' bundle="Admin"/>"><pwm:display key="Title_Statistics" bundle="Admin"/></div>
                     </div>
                 </div>
             </a>

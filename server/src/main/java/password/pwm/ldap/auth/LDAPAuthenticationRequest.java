@@ -345,7 +345,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
             final boolean usingProxy
     )
     {
-        final StatisticsService statisticsManager = pwmDomain.getStatisticsManager();
+        final StatisticsService statisticsManager = pwmDomain.getStatisticsService();
         StatisticsClient.incrementStat( pwmDomain.getPwmApplication(), Statistic.AUTHENTICATIONS );
         StatisticsClient.updateEps( pwmDomain.getPwmApplication(), EpsStatistic.AUTHENTICATION );
         statisticsManager.updateAverageValue( AvgStatistic.AVG_AUTHENTICATION_TIME,

@@ -88,7 +88,6 @@ import java.util.Set;
  */
 
 @WebServlet(
-        name = "GuestRegistrationServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/guest-registration",
                 PwmConstants.URL_PREFIX_PRIVATE + "/GuestRegistration",

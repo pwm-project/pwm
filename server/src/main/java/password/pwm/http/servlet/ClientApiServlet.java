@@ -464,7 +464,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         final String statName = pwmRequest.readParameterAsString( "statName" );
         final String days = pwmRequest.readParameterAsString( "days" );
 
-        final StatisticsService statisticsManager = pwmRequest.getPwmDomain().getStatisticsManager();
+        final StatisticsService statisticsManager = pwmRequest.getPwmDomain().getStatisticsService();
         final RestStatisticsServer.OutputVersion1.JsonOutput jsonOutput = new RestStatisticsServer.OutputVersion1.JsonOutput();
         jsonOutput.EPS = RestStatisticsServer.OutputVersion1.addEpsStats( statisticsManager );
 

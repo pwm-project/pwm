@@ -1310,7 +1310,7 @@ PWM_MAIN.JSLibrary.readValueOfSelectElement = function(nodeID) {
     if (element && element.options && element.selectedIndex >= 0) {
         return element.options[element.selectedIndex].value;
     }
-    return "";
+    return null;
 };
 
 PWM_MAIN.JSLibrary.setValueOfSelectElement = function(nodeID, value) {

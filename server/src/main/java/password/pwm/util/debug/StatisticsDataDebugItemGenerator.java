@@ -22,6 +22,7 @@ package password.pwm.util.debug;
 
 import password.pwm.PwmApplication;
 import password.pwm.svc.stats.StatisticsService;
+import password.pwm.svc.stats.StatisticsUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -39,7 +40,12 @@ class StatisticsDataDebugItemGenerator implements AppItemGenerator
             throws IOException
     {
         final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
-        final StatisticsService statsManager = pwmApplication.getStatisticsManager();
-        statsManager.outputStatsToCsv( outputStream, debugItemInput.getLocale(), true );
+        final StatisticsService statsManager = pwmApplication.getStatisticsService();
+        StatisticsUtils.outputStatsToCsv(
+                debugItemInput.getSessionLabel(),
+                statsManager,
+                outputStream,
+                debugItemInput.getLocale(),
+                StatisticsUtils.CsvOutputFlag.includeHeader );
     }
 }

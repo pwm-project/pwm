@@ -59,7 +59,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @WebServlet(
-        name = "SystemAdminCertificateServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/admin/system/certificates",
         }

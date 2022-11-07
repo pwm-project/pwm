@@ -20,21 +20,19 @@
 
 package password.pwm.http.bean;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Value;
 
 import java.io.Serializable;
 import java.util.List;
 
-@Getter
-@EqualsAndHashCode
+@Value
 public class DisplayElement implements Serializable
 {
-    private String key;
-    private Type type;
-    private String label;
-    private String value;
-    private List<String> values;
+    private final String key;
+    private final Type type;
+    private final String label;
+    private final String value;
+    private final List<String> values;
 
     public enum Type
     {
@@ -50,6 +48,7 @@ public class DisplayElement implements Serializable
         this.type = type;
         this.label = label;
         this.value = value;
+        this.values = null;
     }
 
     public DisplayElement( final String key, final Type type, final String label, final List<String> values )
@@ -57,6 +56,7 @@ public class DisplayElement implements Serializable
         this.key = key;
         this.type = type;
         this.label = label;
+        this.value = null;
         this.values = values;
     }
 }

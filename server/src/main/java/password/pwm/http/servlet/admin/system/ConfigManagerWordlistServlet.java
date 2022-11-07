@@ -61,7 +61,6 @@ import java.util.Map;
 import java.util.Optional;
 
 @WebServlet(
-        name = "ConfigManagerWordlistServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/config/manager/wordlists",
         }

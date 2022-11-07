@@ -22,6 +22,8 @@ package password.pwm.svc.stats;
 
 import password.pwm.i18n.Admin;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.JavaHelper;
+import password.pwm.util.java.TimeDuration;
 
 import java.util.Locale;
 
@@ -65,5 +67,18 @@ public enum AvgStatistic
     {
         final String keyName = Admin.STATISTICS_DESCRIPTION_PREFIX + this.getKey();
         return LocaleHelper.getLocalizedMessage( locale, keyName, null, Admin.class );
+    }
+
+    public String prettyValue( final String stringValue, final Locale locale )
+    {
+        final long longValue = JavaHelper.silentParseLong( stringValue, 0 );
+
+        if ( this == AVG_PASSWORD_STRENGTH )
+        {
+            return Long.toString( longValue );
+        }
+
+        final TimeDuration timeDuration = TimeDuration.of( longValue, TimeDuration.Unit.SECONDS );
+        return timeDuration.asCompactString();
     }
 }

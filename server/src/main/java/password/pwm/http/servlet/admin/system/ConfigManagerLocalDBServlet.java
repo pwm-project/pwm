@@ -64,7 +64,6 @@ import java.util.Collections;
 import java.util.Optional;
 
 @WebServlet(
-        name = "ConfigManagerLocalDBServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/config/manager/localdb",
         }

@@ -58,13 +58,6 @@
             <pwm:display key="Title_UserActivity" bundle="Admin"/>
         </button>
     </form>
-    <% selected = currentPage == SystemAdminServlet.Page.analysis; %>
-    <form action="<%=SystemAdminServlet.Page.analysis%>" method="get" id="analysis" name="analysis">
-        <button type="submit" class="navbutton<%=selected?" selected":""%>">
-            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-bar-chart-o"></span></pwm:if>
-            <pwm:display key="Title_DataAnalysis" bundle="Admin"/>
-        </button>
-    </form>
     <div style="display: inline" id="admin-nav-menu-container">
     </div>
 </div>
