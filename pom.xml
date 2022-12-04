@@ -222,7 +222,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>10.4</version>
+                        <version>10.5.0</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -364,7 +364,7 @@
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>7.3.0</version>
+                <version>7.3.2</version>
                 <executions>
                     <execution>
                         <goals>
@@ -409,7 +409,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.4.0</version>
             </plugin>
 
         </plugins>
@@ -488,7 +488,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>4.8.1</version>
+            <version>4.9.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -512,13 +512,13 @@
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-core</artifactId>
-            <version>1.35</version>
+            <version>1.36</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-generator-annprocess</artifactId>
-            <version>1.35</version>
+            <version>1.36</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
