@@ -37,7 +37,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.security.KeyStore;
-import java.util.Collections;
 import java.util.Properties;
 
 public class OnejarHelper
@@ -119,7 +118,6 @@ public class OnejarHelper
                 .applicationMode( PwmApplicationMode.READ_ONLY )
                 .configurationFile( configFile )
                 .internalRuntimeInstance( true )
-                .flags( Collections.singleton( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
                 .build();
 
         return PwmApplication.createPwmApplication( pwmEnvironment );

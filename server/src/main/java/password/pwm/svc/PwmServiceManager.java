@@ -20,9 +20,9 @@
 
 package password.pwm.svc;
 
+import password.pwm.EnvironmentProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmEnvironment;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
@@ -84,7 +84,7 @@ public class PwmServiceManager
         final Instant startTime = Instant.now();
 
         final boolean internalRuntimeInstance = pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
-                || pwmApplication.getPwmEnvironment().getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance );
+                || pwmApplication.getPwmEnvironment().readPropertyAsBoolean( EnvironmentProperty.CommandLineInstance );
 
         final String logVerb = initialized ? "restart" : "start";
         final StatisticCounterBundle<InitializationStats> statCounter = new StatisticCounterBundle<>( InitializationStats.class );

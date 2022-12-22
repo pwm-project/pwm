@@ -22,6 +22,7 @@ package password.pwm.http;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.AppProperty;
+import password.pwm.EnvironmentProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
@@ -63,11 +64,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -100,7 +98,7 @@ public class ContextManager implements Serializable
 
     private File applicationPath;
 
-    private static final String UNSPECIFIED_VALUE = "unspecified";
+    public static final String UNSPECIFIED_VALUE = "unspecified";
 
     public ContextManager( final ServletContext servletContext )
     {
@@ -193,35 +191,18 @@ public class ContextManager implements Serializable
         throw new PwmUnrecoverableException( errorInformation );
     }
 
-    @SuppressFBWarnings( "MDM_SETDEFAULTLOCALE" )
     public void initialize( )
     {
         final Instant startTime = Instant.now();
 
-        try
-        {
-            Locale.setDefault( PwmConstants.DEFAULT_LOCALE );
-        }
-        catch ( final Exception e )
-        {
-            outputError( "unable to set default locale as Java machine default locale: " + e.getMessage() );
-        }
+        initializeSystemLocale();
 
         AppConfig appConfig = null;
         PwmApplicationMode mode = PwmApplicationMode.ERROR;
 
-        final ParameterReader parameterReader = new ParameterReader( servletContext );
+        if ( initializeApplicationPath() == ProcessStatus.Halt )
         {
-            final Optional<String> applicationPathStr = parameterReader.readApplicationPath();
-            if ( applicationPathStr.isEmpty() )
-            {
-                startupErrorInformation = new ErrorInformation( PwmError.ERROR_ENVIRONMENT_ERROR, "application path is not specified" );
-                return;
-            }
-            else
-            {
-                applicationPath = new File( applicationPathStr.get() );
-            }
+            return;
         }
 
         File configurationFile = null;
@@ -254,9 +235,6 @@ public class ContextManager implements Serializable
             LOGGER.debug( SESSION_LABEL, () -> "configuration file was loaded from " + ( filename ) );
         }
 
-        final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = parameterReader.readApplicationFlags();
-        final Map<PwmEnvironment.ApplicationParameter, String> applicationParams = parameterReader.readApplicationParams( applicationPath );
-
         mode = PwmEnvironment.checkForTrial( mode );
 
         try
@@ -267,8 +245,6 @@ public class ContextManager implements Serializable
                     .applicationMode( mode )
                     .configurationFile( configurationFile )
                     .contextManager( this )
-                    .flags( applicationFlags )
-                    .parameters( applicationParams )
                     .build();
 
             if ( pwmApplication == null )
@@ -290,6 +266,45 @@ public class ContextManager implements Serializable
                         PwmScheduler.makeThreadName( SESSION_LABEL, pwmApplication, this.getClass() ) + "-"
                 ) );
 
+        initializeFileWatchers();
+
+        LOGGER.trace( SESSION_LABEL, () -> "initialization complete (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
+    }
+
+    @SuppressFBWarnings( "MDM_SETDEFAULTLOCALE" )
+    private static void initializeSystemLocale()
+    {
+        try
+        {
+            Locale.setDefault( PwmConstants.DEFAULT_LOCALE );
+        }
+        catch ( final Exception e )
+        {
+            outputError( "unable to set default locale as Java machine default locale: " + e.getMessage() );
+        }
+    }
+
+    private ProcessStatus initializeApplicationPath()
+    {
+        EnvironmentProperty.readApplicationPath( this.servletContext ).ifPresent( appPath -> this.applicationPath = appPath.toFile() );
+
+        if ( this.applicationPath == null )
+        {
+            startupErrorInformation = new ErrorInformation( PwmError.ERROR_ENVIRONMENT_ERROR, "application path is not specified" );
+            return ProcessStatus.Halt;
+        }
+
+        if ( !this.applicationPath.exists() )
+        {
+            startupErrorInformation = new ErrorInformation( PwmError.ERROR_ENVIRONMENT_ERROR, "specified application path does not exist" );
+            return ProcessStatus.Halt;
+        }
+
+        return ProcessStatus.Continue;
+    }
+
+    private void initializeFileWatchers()
+    {
         boolean reloadOnChange = true;
         long fileScanFrequencyMs = 5000;
         {
@@ -315,10 +330,8 @@ public class ContextManager implements Serializable
         {
             taskMaster.scheduleWithFixedDelay( new SilentPropertiesFileWatcher(), fileScanFrequencyMs, fileScanFrequencyMs, TimeUnit.MILLISECONDS );
         }
-
-        LOGGER.trace( SESSION_LABEL, () -> "initialization complete (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
     }
-
+    
     private void checkConfigForAutoImportLdapCerts(
             final ConfigurationFileManager configReader
     )
@@ -565,6 +578,11 @@ public class ContextManager implements Serializable
         return restartCount.get();
     }
 
+    public ServletContext getServletContext()
+    {
+        return servletContext;
+    }
+
     private File locateConfigurationFile( final File applicationPath, final String filename )
     {
         return new File( applicationPath.getAbsolutePath() + File.separator + filename );
@@ -596,92 +614,6 @@ public class ContextManager implements Serializable
     public InputStream getResourceAsStream( final String path )
     {
         return servletContext.getResourceAsStream( path );
-    }
-
-    private static class ParameterReader
-    {
-        private final ServletContext servletContext;
-
-
-        ParameterReader( final ServletContext servletContext )
-        {
-            this.servletContext = servletContext;
-        }
-
-        Optional<String> readApplicationPath( )
-        {
-            final Optional<String> contextAppPathSetting = readEnvironmentParameter( PwmEnvironment.EnvironmentParameter.applicationPath );
-            if ( contextAppPathSetting.isPresent() )
-            {
-                return contextAppPathSetting;
-            }
-
-            final String contextPath = servletContext.getContextPath().replace( "/", "" );
-            return PwmEnvironment.ParseHelper.readValueFromSystem(
-                    PwmEnvironment.EnvironmentParameter.applicationPath,
-                    contextPath
-            );
-        }
-
-        Set<PwmEnvironment.ApplicationFlag> readApplicationFlags( )
-        {
-            final Optional<String> contextAppFlagsValue = readEnvironmentParameter( PwmEnvironment.EnvironmentParameter.applicationFlags );
-            if ( contextAppFlagsValue.isPresent() )
-            {
-                return PwmEnvironment.ParseHelper.parseApplicationFlagValueParameter( contextAppFlagsValue.get() );
-            }
-
-            final String contextPath = servletContext.getContextPath().replace( "/", "" );
-            return PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem( contextPath );
-        }
-
-        Map<PwmEnvironment.ApplicationParameter, String> readApplicationParams( final File applicationPath  )
-        {
-            // attempt to read app params file from specified env param file value
-            {
-                final Optional<String> contextAppParamsValue = readEnvironmentParameter( PwmEnvironment.EnvironmentParameter.applicationParamFile );
-                if ( contextAppParamsValue.isPresent() )
-                {
-                    return PwmEnvironment.ParseHelper.readAppParametersFromPath( contextAppParamsValue.get() );
-                }
-            }
-
-            // attempt to read app params file from specified system file value
-            {
-                final String contextPath = servletContext.getContextPath().replace( "/", "" );
-                final Map<PwmEnvironment.ApplicationParameter, String> results = PwmEnvironment.ParseHelper.readApplicationParmsFromSystem( contextPath );
-                if ( !results.isEmpty() )
-                {
-                    return results;
-                }
-            }
-
-            // attempt to read via application.properties in applicationPath
-            if ( applicationPath != null && applicationPath.exists() )
-            {
-                final File appPropertiesFile = new File( applicationPath.getPath() + File.separator + "application.properties" );
-                if ( appPropertiesFile.exists() )
-                {
-                    return PwmEnvironment.ParseHelper.readAppParametersFromPath( appPropertiesFile.getPath() );
-                }
-            }
-
-            return Collections.emptyMap();
-        }
-
-
-        private Optional<String> readEnvironmentParameter( final PwmEnvironment.EnvironmentParameter environmentParameter )
-        {
-            final String value = servletContext.getInitParameter( environmentParameter.toString() );
-            if ( StringUtil.notEmpty( value ) )
-            {
-                if ( !UNSPECIFIED_VALUE.equalsIgnoreCase( value ) )
-                {
-                    return Optional.of( value );
-                }
-            }
-            return Optional.empty();
-        }
     }
 
     public String getServerInfo( )

@@ -49,9 +49,4 @@ class OnejarConfig
     {
         return new File( this.getWorkingPath().getAbsoluteFile() + File.separator + "keystore" );
     }
-
-    File getPwmAppPropertiesFile( )
-    {
-        return new File( this.getWorkingPath().getAbsoluteFile() + File.separator + "application.properties" );
-    }
 }

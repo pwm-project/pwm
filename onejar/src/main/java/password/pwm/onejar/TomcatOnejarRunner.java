@@ -29,12 +29,9 @@ import org.apache.coyote.http2.Http2Protocol;
 import javax.servlet.ServletException;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -80,8 +77,6 @@ public class TomcatOnejarRunner
             }
             throw new OnejarException( "error generating keystore: " + e.getMessage() );
         }
-
-        outputPwmAppProperties( onejarConfig );
 
         setupEnv( onejarConfig );
 
@@ -164,7 +159,6 @@ public class TomcatOnejarRunner
         connector.setScheme( "https" );
         connector.addUpgradeProtocol( new Http2Protocol() );
         connector.setProperty( "SSLEnabled", "true" );
-       // connector.setAttribute( "truststoreType", "PKCS12" );
         connector.setProperty( "keystoreFile", onejarConfig.getKeystoreFile().getAbsolutePath() );
         connector.setProperty( "keystorePass", onejarConfig.getKeystorePass() );
         connector.setProperty( "keyAlias", OnejarMain.KEYSTORE_ALIAS );
@@ -253,25 +247,16 @@ public class TomcatOnejarRunner
 
     private void setupEnv( final OnejarConfig onejarConfig )
     {
-        final String envVarPrefix = Resource.envVarPrefix.getValue();
-        System.setProperty( envVarPrefix + "_APPLICATIONPATH", onejarConfig.getApplicationPath().getAbsolutePath() );
-        System.setProperty( envVarPrefix + "_APPLICATIONFLAGS", "[\"ManageHttps\",\"Onejar\"]" );
-        System.setProperty( envVarPrefix + "_APPLICATIONPARAMFILE", onejarConfig.getPwmAppPropertiesFile().getAbsolutePath() );
-        System.setProperty( "ONEJAR_ENV", "TRUE" );
+        final String envVarPrefix = Resource.envVarPrefix.getValue() + ".";
+        System.setProperty( envVarPrefix + "applicationPath", onejarConfig.getApplicationPath().getAbsolutePath() );
+        System.setProperty( envVarPrefix + "ManageHttps", Boolean.TRUE.toString() );
+        System.setProperty( envVarPrefix + "OnejarInstance", Boolean.TRUE.toString() );
+        System.setProperty( envVarPrefix + "AutoExportHttpsKeyStoreFile", onejarConfig.getKeystoreFile().getAbsolutePath() );
+        System.setProperty( envVarPrefix + "AutoExportHttpsKeyStorePassword", onejarConfig.getKeystorePass() );
+        System.setProperty( envVarPrefix + "AutoExportHttpsKeyStoreAlias", OnejarMain.KEYSTORE_ALIAS );
+
     }
 
-    private void outputPwmAppProperties( final OnejarConfig onejarConfig ) throws IOException
-    {
-        final Properties properties = new Properties();
-        properties.setProperty( "AutoExportHttpsKeyStoreFile", onejarConfig.getKeystoreFile().getAbsolutePath() );
-        properties.setProperty( "AutoExportHttpsKeyStorePassword", onejarConfig.getKeystorePass() );
-        properties.setProperty( "AutoExportHttpsKeyStoreAlias", OnejarMain.KEYSTORE_ALIAS );
-        final File propFile = onejarConfig.getPwmAppPropertiesFile( );
-        try ( Writer writer = new OutputStreamWriter( new FileOutputStream( propFile ), StandardCharsets.UTF_8 ) )
-        {
-            properties.store( writer, "auto-generated file" );
-        }
-    }
 
     private void copyFileAndReplace(
             final String srcPath,

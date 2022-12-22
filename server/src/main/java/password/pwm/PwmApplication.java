@@ -216,7 +216,7 @@ public class PwmApplication
         PwmDomainUtil.initDomains( this, domains().values() );
 
         final boolean skipPostInit = pwmEnvironment.isInternalRuntimeInstance()
-                || pwmEnvironment.getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance );
+                || pwmEnvironment.readPropertyAsBoolean( EnvironmentProperty.CommandLineInstance );
 
         if ( !skipPostInit )
         {
@@ -273,9 +273,8 @@ public class PwmApplication
         PwmApplicationUtil.outputKeystore( this );
         PwmApplicationUtil.outputTomcatConf( this );
 
-        LOGGER.debug( sessionLabel, () -> "application environment flags: " + StringUtil.collectionToString( pwmEnvironment.getFlags() ) );
         LOGGER.debug( sessionLabel, () -> "application environment parameters: "
-                + StringUtil.mapToString( pwmEnvironment.getParameters() ) );
+                + StringUtil.mapToString( pwmEnvironment.readProperties() ) );
 
         PwmApplicationUtil.outputApplicationInfoToLog( this );
         PwmApplicationUtil.outputConfigurationToLog( this, DomainID.systemId() );

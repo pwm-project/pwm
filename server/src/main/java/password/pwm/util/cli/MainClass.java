@@ -21,6 +21,7 @@
 package password.pwm.util.cli;
 
 import password.pwm.AppProperty;
+import password.pwm.EnvironmentProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
@@ -67,13 +68,12 @@ import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -193,7 +193,7 @@ public class MainClass
 
         if ( parameters.needsPwmApplication )
         {
-            pwmApplication = loadPwmApplication( applicationPath, mainOptions.getApplicationFlags(), config, configurationFile, parameters.readOnly );
+            pwmApplication = loadPwmApplication( applicationPath, config, configurationFile, parameters.readOnly );
             localDB = pwmApplication.getLocalDB();
         }
         else if ( parameters.needsLocalDB )
@@ -428,7 +428,6 @@ public class MainClass
 
     private static PwmApplication loadPwmApplication(
             final File applicationPath,
-            final Collection<PwmEnvironment.ApplicationFlag> flags,
             final AppConfig config,
             final File configurationFile,
             final boolean readonly
@@ -436,22 +435,15 @@ public class MainClass
             throws PwmUnrecoverableException
     {
         final PwmApplicationMode mode = readonly ? PwmApplicationMode.READ_ONLY : PwmApplicationMode.RUNNING;
-        final Collection<PwmEnvironment.ApplicationFlag> applicationFlags = EnumSet.noneOf( PwmEnvironment.ApplicationFlag.class  );
-        if ( flags == null )
-        {
-            applicationFlags.addAll( PwmEnvironment.ParseHelper.readApplicationFlagsFromSystem( null ) );
-        }
-        else
-        {
-            applicationFlags.addAll( flags );
-        }
-        applicationFlags.add( PwmEnvironment.ApplicationFlag.CommandLineInstance );
+        System.setProperty(
+                PwmConstants.PWM_APP_NAME.toLowerCase() + "." + EnvironmentProperty.CommandLineInstance.name(),
+                Boolean.TRUE.toString() );
+
         final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
                 .config( config )
                 .applicationPath( applicationPath )
                 .applicationMode( mode )
                 .configurationFile( configurationFile )
-                .flags( applicationFlags )
                 .build();
 
         final PwmApplication pwmApplication = PwmApplication.createPwmApplication( pwmEnvironment );
@@ -475,7 +467,7 @@ public class MainClass
         System.out.println( txt );
     }
 
-    private static File figureApplicationPath( final MainOptions mainOptions ) throws IOException, PwmUnrecoverableException
+    private static File figureApplicationPath( final MainOptions mainOptions ) throws PwmUnrecoverableException
     {
         final File applicationPath;
         if ( mainOptions != null && mainOptions.getApplicationPath() != null )
@@ -484,17 +476,17 @@ public class MainClass
         }
         else
         {
-            final Optional<String> appPathStr = PwmEnvironment.ParseHelper.readValueFromSystem( PwmEnvironment.EnvironmentParameter.applicationPath, null );
+            final Optional<Path> appPathStr = EnvironmentProperty.readApplicationPath( null );
             if ( appPathStr.isPresent() )
             {
-                applicationPath = new File( appPathStr.get() );
+                applicationPath = appPathStr.get().toFile();
             }
             else
             {
                 final String errorMsg = "unable to locate applicationPath.  Specify using -applicationPath option, java option "
-                        + "\"" + PwmEnvironment.EnvironmentParameter.applicationPath.conicalJavaOptionSystemName() + "\""
+                        + "\"" + EnvironmentProperty.applicationPath.conicalJavaOptionSystemName( null ) + "\""
                         + ", or system environment setting "
-                        + "\"" + PwmEnvironment.EnvironmentParameter.applicationPath.conicalEnvironmentSystemName() + "\"";
+                        + "\"" + EnvironmentProperty.applicationPath.conicalEnvironmentSystemName( null ) + "\"";
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR, errorMsg ) );
             }
         }

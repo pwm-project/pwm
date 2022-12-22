@@ -101,7 +101,7 @@ class PwmApplicationUtil
     {
         final PwmEnvironment pwmEnvironment = pwmApplication.getPwmEnvironment();
 
-        if ( pwmEnvironment.isInternalRuntimeInstance() || pwmEnvironment.getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance ) )
+        if ( pwmEnvironment.isInternalRuntimeInstance() || pwmEnvironment.readPropertyAsBoolean( EnvironmentProperty.CommandLineInstance ) )
         {
             return;
         }
@@ -133,11 +133,10 @@ class PwmApplicationUtil
     )
     {
         {
-            final String newInstanceID = pwmApplication.getPwmEnvironment().getParameters().get( PwmEnvironment.ApplicationParameter.InstanceID );
-
-            if ( !StringUtil.isTrimEmpty( newInstanceID ) )
+            final Optional<String> newInstanceID = pwmApplication.getPwmEnvironment().readProperty( EnvironmentProperty.InstanceID );
+            if ( newInstanceID.isPresent() )
             {
-                return newInstanceID;
+                return newInstanceID.get();
             }
         }
 
@@ -175,17 +174,18 @@ class PwmApplicationUtil
     {
         try
         {
-
-            final Map<PwmEnvironment.ApplicationParameter, String> applicationParams = pwmApplication.getPwmEnvironment().getParameters();
-            final String keystoreFileString = applicationParams.get( PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStoreFile );
-            if ( StringUtil.isEmpty( keystoreFileString ) )
+            final PwmEnvironment pwmEnvironment = pwmApplication.getPwmEnvironment();
+            final Optional<String> keystoreFileString = pwmEnvironment.readProperty( EnvironmentProperty.AutoExportHttpsKeyStoreFile );
+            if ( keystoreFileString.isEmpty() )
             {
                 return;
             }
 
-            final File keyStoreFile = new File( keystoreFileString );
-            final String password = applicationParams.get( PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStorePassword );
-            final String alias = applicationParams.get( PwmEnvironment.ApplicationParameter.AutoExportHttpsKeyStoreAlias );
+            final File keyStoreFile = new File( keystoreFileString.get() );
+            final String password = pwmEnvironment.readProperty( EnvironmentProperty.AutoExportHttpsKeyStorePassword )
+                    .orElseThrow( () -> new IllegalArgumentException( "keystore export property is configured, but keystore password is not specified " ) );
+            final String alias = pwmEnvironment.readProperty( EnvironmentProperty.AutoExportHttpsKeyStoreAlias )
+                    .orElseThrow( () -> new IllegalArgumentException( "keystore export property is configured, but keystore alias is not specified " ) );
             final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication( pwmApplication, new PasswordData( password ), alias );
             X509Utils.outputKeystore( keyStore, keyStoreFile, password );
             LOGGER.info( pwmApplication.getSessionLabel(), () -> "exported application https key to keystore file " + keyStoreFile.getAbsolutePath() );
@@ -198,65 +198,67 @@ class PwmApplicationUtil
 
     static void outputTomcatConf( final PwmApplication pwmApplication )
     {
+        final PwmEnvironment pwmEnvironment = pwmApplication.getPwmEnvironment();
+        final Optional<String> tomcatOutputFileStr = pwmEnvironment.readProperty( EnvironmentProperty.AutoWriteTomcatConfOutputFile );
+        if ( tomcatOutputFileStr.isEmpty() )
+        {
+            return;
+        }
+
         try
         {
-            final Map<PwmEnvironment.ApplicationParameter, String> applicationParams = pwmApplication.getPwmEnvironment().getParameters();
-            final String tomcatOutputFileStr = applicationParams.get( PwmEnvironment.ApplicationParameter.AutoWriteTomcatConfOutputFile );
-            if ( tomcatOutputFileStr != null && !tomcatOutputFileStr.isEmpty() )
+            LOGGER.trace( pwmApplication.getSessionLabel(),
+                    () -> "attempting to output tomcat configuration file as configured by environment parameters to " + tomcatOutputFileStr );
+            final File tomcatOutputFile = new File( tomcatOutputFileStr.get() );
+            final File tomcatSourceFile;
             {
-                LOGGER.trace( pwmApplication.getSessionLabel(),
-                        () -> "attempting to output tomcat configuration file as configured by environment parameters to " + tomcatOutputFileStr );
-                final File tomcatOutputFile = new File( tomcatOutputFileStr );
-                final File tomcatSourceFile;
+                final Optional<String> tomcatSourceFileStr = pwmEnvironment.readProperty( EnvironmentProperty.AutoWriteTomcatConfSourceFile );
+                if ( tomcatSourceFileStr.isPresent() )
                 {
-                    final String tomcatSourceFileStr = applicationParams.get( PwmEnvironment.ApplicationParameter.AutoWriteTomcatConfSourceFile );
-                    if ( tomcatSourceFileStr != null && !tomcatSourceFileStr.isEmpty() )
-                    {
-                        tomcatSourceFile = new File( tomcatSourceFileStr );
-                        if ( !tomcatSourceFile.exists() )
-                        {
-                            LOGGER.error( pwmApplication.getSessionLabel(),
-                                    () -> "can not output tomcat configuration file, source file does not exist: " + tomcatSourceFile.getAbsolutePath() );
-                            return;
-                        }
-                    }
-                    else
+                    tomcatSourceFile = new File( tomcatSourceFileStr.get() );
+                    if ( !tomcatSourceFile.exists() )
                     {
                         LOGGER.error( pwmApplication.getSessionLabel(),
-                                () -> "can not output tomcat configuration file, source file parameter '"
-                                        + PwmEnvironment.ApplicationParameter.AutoWriteTomcatConfSourceFile + "' is not specified." );
+                                () -> "can not output tomcat configuration file, source file does not exist: " + tomcatSourceFile.getAbsolutePath() );
                         return;
                     }
                 }
-
-                try ( ByteArrayOutputStream outputContents = new ByteArrayOutputStream() )
+                else
                 {
-                    try ( InputStream fileInputStream = Files.newInputStream( tomcatOutputFile.toPath() ) )
-                    {
-                        ExportHttpsTomcatConfigCommand.TomcatConfigWriter.writeOutputFile(
-                                pwmApplication.getConfig(),
-                                fileInputStream,
-                                outputContents
-                        );
-                    }
+                    LOGGER.error( pwmApplication.getSessionLabel(),
+                            () -> "can not output tomcat configuration file, source file parameter '"
+                                    + EnvironmentProperty.AutoWriteTomcatConfSourceFile + "' is not specified." );
+                    return;
+                }
+            }
 
-                    if ( tomcatOutputFile.exists() )
-                    {
-                        LOGGER.trace( pwmApplication.getSessionLabel(), () -> "deleting existing tomcat configuration file " + tomcatOutputFile.getAbsolutePath() );
-                        if ( tomcatOutputFile.delete() )
-                        {
-                            LOGGER.trace( pwmApplication.getSessionLabel(), () -> "deleted existing tomcat configuration file: " + tomcatOutputFile.getAbsolutePath() );
-                        }
-                    }
+            try ( ByteArrayOutputStream outputContents = new ByteArrayOutputStream() )
+            {
+                try ( InputStream fileInputStream = Files.newInputStream( tomcatOutputFile.toPath() ) )
+                {
+                    ExportHttpsTomcatConfigCommand.TomcatConfigWriter.writeOutputFile(
+                            pwmApplication.getConfig(),
+                            fileInputStream,
+                            outputContents
+                    );
+                }
 
-                    try ( OutputStream fileOutputStream = Files.newOutputStream( tomcatOutputFile.toPath() ) )
+                if ( tomcatOutputFile.exists() )
+                {
+                    LOGGER.trace( pwmApplication.getSessionLabel(), () -> "deleting existing tomcat configuration file " + tomcatOutputFile.getAbsolutePath() );
+                    if ( tomcatOutputFile.delete() )
                     {
-                        fileOutputStream.write( outputContents.toByteArray() );
+                        LOGGER.trace( pwmApplication.getSessionLabel(), () -> "deleted existing tomcat configuration file: " + tomcatOutputFile.getAbsolutePath() );
                     }
                 }
 
-                LOGGER.info( pwmApplication.getSessionLabel(), () -> "successfully wrote tomcat configuration to file " + tomcatOutputFile.getAbsolutePath() );
+                try ( OutputStream fileOutputStream = Files.newOutputStream( tomcatOutputFile.toPath() ) )
+                {
+                    fileOutputStream.write( outputContents.toByteArray() );
+                }
             }
+
+            LOGGER.info( pwmApplication.getSessionLabel(), () -> "successfully wrote tomcat configuration to file " + tomcatOutputFile.getAbsolutePath() );
         }
         catch ( final Exception e )
         {

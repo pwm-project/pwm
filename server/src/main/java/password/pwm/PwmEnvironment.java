@@ -22,7 +22,6 @@ package password.pwm;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Builder;
-import lombok.Singular;
 import lombok.Value;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
@@ -30,26 +29,16 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
-import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.LazySupplier;
-import password.pwm.util.java.StringUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
+import javax.servlet.ServletContext;
 import java.io.File;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
+import java.util.function.Supplier;
 
 @Value
 @Builder( toBuilder = true )
@@ -68,44 +57,11 @@ public class PwmEnvironment
     private File configurationFile;
     private ContextManager contextManager;
 
-    @Singular
-    private Set<ApplicationFlag> flags;
+    private final Supplier<Map<EnvironmentProperty, String>> parameters = LazySupplier.create( this::readApplicationParams );
 
-    @Singular
-    private Map<ApplicationParameter, String> parameters;
+    private final LazySupplier<DeploymentPlatform> deploymentPlatformLazySupplier
+            = LazySupplier.create( this::determineDeploymentPlatform );
 
-    private final LazySupplier<DeploymentPlatform> deploymentPlatformLazySupplier = LazySupplier.create( this::determineDeploymentPlatform );
-
-    public enum ApplicationParameter
-    {
-        AutoExportHttpsKeyStoreFile,
-        AutoExportHttpsKeyStorePassword,
-        AutoExportHttpsKeyStoreAlias,
-        AutoWriteTomcatConfSourceFile,
-        AutoWriteTomcatConfOutputFile,
-        AppliancePort,
-        ApplianceHostnameFile,
-        ApplianceTokenFile,
-        InstanceID,
-        InitConsoleLogLevel,;
-
-        public static Optional<ApplicationParameter> forString( final String input )
-        {
-            return EnumUtil.readEnumFromString( ApplicationParameter.class, input );
-        }
-    }
-
-    public enum ApplicationFlag
-    {
-        ManageHttps,
-        NoFileLock,
-        CommandLineInstance,;
-
-        public static Optional<ApplicationFlag> forString( final String input )
-        {
-            return EnumUtil.readEnumFromString( ApplicationFlag.class, input );
-        }
-    }
 
     public enum DeploymentPlatform
     {
@@ -115,55 +71,8 @@ public class PwmEnvironment
         Appliance,;
     }
 
-    public enum EnvironmentParameter
-    {
-        applicationPath,
-        applicationFlags,
-        applicationParamFile,;
 
-        public String conicalJavaOptionSystemName( )
-        {
-            return PwmConstants.PWM_APP_NAME.toLowerCase() + "." + this;
-        }
-
-        public String conicalEnvironmentSystemName( )
-        {
-            return ( PwmConstants.PWM_APP_NAME.toLowerCase() + "_" + this ).toUpperCase();
-        }
-
-        public List<String> possibleNames( final String contextName )
-        {
-            final List<String> returnValues = new ArrayList<>();
-            if ( contextName != null )
-            {
-                // java property format <app>.<context>.<paramName> like pwm.pwm.applicationFlag
-                final String value = PwmConstants.PWM_APP_NAME.toLowerCase()
-                        + "."
-                        + contextName
-                        + "."
-                        + this;
-                returnValues.add( value );
-                returnValues.add( value.toUpperCase() );
-                returnValues.add( value.replace( '.', '_' ) );
-                returnValues.add( value.toUpperCase().replace( '.', '_' ) );
-            }
-            {
-                // java property format <app>.<paramName> like pwm.applicationFlag
-                final String value = PwmConstants.PWM_APP_NAME.toLowerCase()
-                        + "."
-                        + this;
-                returnValues.add( value );
-                returnValues.add( value.toUpperCase() );
-                returnValues.add( value.replace( '.', '_' ) );
-                returnValues.add( value.toUpperCase().replace( '.', '_' ) );
-            }
-
-            return Collections.unmodifiableList( returnValues );
-        }
-    }
-
-
-    public void verifyIfApplicationPathIsSetProperly( )
+    public void verifyIfApplicationPathIsSetProperly()
             throws PwmUnrecoverableException
     {
         final File applicationPath = this.getApplicationPath();
@@ -185,6 +94,21 @@ public class PwmEnvironment
         }
     }
 
+    public Map<EnvironmentProperty, String> readProperties()
+    {
+        return parameters.get();
+    }
+
+    public Optional<String> readProperty( final EnvironmentProperty environmentParameter )
+    {
+        return Optional.ofNullable( parameters.get().get( environmentParameter ) );
+    }
+
+    public boolean readPropertyAsBoolean( final EnvironmentProperty environmentParameter )
+    {
+        return Boolean.parseBoolean( parameters.get().get( environmentParameter ) );
+    }
+
     public PwmEnvironment makeRuntimeInstance(
             final AppConfig appConfig
     )
@@ -198,7 +122,8 @@ public class PwmEnvironment
     }
 
 
-    public static void verifyApplicationPath( final File applicationPath ) throws PwmUnrecoverableException
+    public static void verifyApplicationPath( final File applicationPath )
+            throws PwmUnrecoverableException
     {
 
         if ( applicationPath == null )
@@ -248,132 +173,6 @@ public class PwmEnvironment
 
     }
 
-    public static class ParseHelper
-    {
-        public static Set<ApplicationFlag> readApplicationFlagsFromSystem( final String contextName )
-        {
-            final Optional<String> rawValue = readValueFromSystem( EnvironmentParameter.applicationFlags, contextName );
-            if ( rawValue.isPresent() )
-            {
-                return parseApplicationFlagValueParameter( rawValue.get() );
-            }
-            return Collections.emptySet();
-        }
-
-        public static Map<ApplicationParameter, String> readApplicationParmsFromSystem( final String contextName )
-        {
-            final Optional<String> rawValue = readValueFromSystem( EnvironmentParameter.applicationParamFile, contextName );
-            if ( rawValue.isPresent() )
-            {
-                return readAppParametersFromPath( rawValue.get() );
-            }
-            return Collections.emptyMap();
-        }
-
-        public static Optional<String> readValueFromSystem( final PwmEnvironment.EnvironmentParameter parameter, final String contextName )
-        {
-            final List<String> namePossibilities = parameter.possibleNames( contextName );
-
-            for ( final String propertyName : namePossibilities )
-            {
-                final String propValue = System.getProperty( propertyName );
-                if ( StringUtil.notEmpty( propValue ) )
-                {
-                    return Optional.of( propValue );
-                }
-            }
-
-            for ( final String propertyName : namePossibilities )
-            {
-                final String propValue = System.getenv( propertyName );
-                if ( StringUtil.notEmpty( propValue ) )
-                {
-                    return Optional.of( propValue );
-                }
-            }
-
-            return Optional.empty();
-        }
-
-        public static Set<ApplicationFlag> parseApplicationFlagValueParameter( final String input )
-        {
-            if ( input == null )
-            {
-                return Collections.emptySet();
-            }
-
-            try
-            {
-                final List<String> jsonValues = JsonFactory.get().deserializeStringList( input );
-                final Set<ApplicationFlag> returnFlags = CollectionUtil.readEnumSetFromStringCollection( ApplicationFlag.class, jsonValues );
-                return Collections.unmodifiableSet( returnFlags );
-            }
-            catch ( final Exception e )
-            {
-                //
-            }
-
-            final Set<ApplicationFlag> returnFlags = EnumSet.noneOf( ApplicationFlag.class );
-            for ( final String value : input.split( "," ) )
-            {
-                final Optional<ApplicationFlag> flag = ApplicationFlag.forString( value );
-                if ( flag.isPresent() )
-                {
-                    returnFlags.add( flag.get() );
-                }
-                else
-                {
-                    LOGGER.warn( SESSION_LABEL, () -> "unknown " + EnvironmentParameter.applicationFlags + " value: " + input );
-                }
-            }
-            return returnFlags;
-        }
-
-        public static Map<ApplicationParameter, String> readAppParametersFromPath( final String input )
-        {
-            if ( input == null )
-            {
-                return Collections.emptyMap();
-            }
-
-            final Properties propValues = new Properties();
-            try ( InputStream fileInputStream = Files.newInputStream( Path.of( input ) ) )
-            {
-                propValues.load( fileInputStream );
-            }
-            catch ( final Exception e )
-            {
-                LOGGER.warn( SESSION_LABEL, () -> "error reading properties file '" + input + "' specified by environment setting "
-                        + EnvironmentParameter.applicationParamFile + ", error: " + e.getMessage() );
-            }
-
-            try
-            {
-                final Map<ApplicationParameter, String> returnParams = new EnumMap<>( ApplicationParameter.class );
-                for ( final Object key : propValues.keySet() )
-                {
-                    final String keyString = key.toString();
-                    final Optional<ApplicationParameter> param = ApplicationParameter.forString( keyString );
-                    if ( param.isPresent() )
-                    {
-                        returnParams.put( param.get(), propValues.getProperty( keyString ) );
-                    }
-                    else
-                    {
-                        LOGGER.warn( SESSION_LABEL, () -> "unknown " + EnvironmentParameter.applicationParamFile + " value: " + input );
-                    }
-                }
-                return Collections.unmodifiableMap( returnParams );
-            }
-            catch ( final Exception e )
-            {
-                LOGGER.warn( SESSION_LABEL, () -> "unable to parse jason value of " + EnvironmentParameter.applicationParamFile + ", error: " + e.getMessage() );
-            }
-
-            return Collections.emptyMap();
-        }
-    }
-
     public static PwmApplicationMode checkForTrial( final PwmApplicationMode mode )
     {
         if ( PwmConstants.TRIAL_MODE && mode == PwmApplicationMode.RUNNING )
@@ -393,18 +192,26 @@ public class PwmEnvironment
     @SuppressFBWarnings( "DMI_HARDCODED_ABSOLUTE_FILENAME" )
     private DeploymentPlatform determineDeploymentPlatform()
     {
-        final File dockerEnvFile = new File( "/.dockerenv" );
-
-        if ( dockerEnvFile.exists() )
+        if ( Files.exists( Path.of( "/.dockerenv" ) ) )
         {
             return DeploymentPlatform.Docker;
         }
 
-        final String envValue = System.getProperty( "ONEJAR_ENV", "FALSE" );
-        if ( Boolean.getBoolean( envValue ) )
+        if ( readPropertyAsBoolean( EnvironmentProperty.OnejarInstance ) )
         {
             return DeploymentPlatform.Onejar;
         }
         return DeploymentPlatform.War;
     }
+
+    private Map<EnvironmentProperty, String> readApplicationParams()
+    {
+        final Path applicationPath = this.applicationPath == null ? null : this.applicationPath.toPath();
+        final ServletContext effectiveContext = this.contextManager == null
+                ? null
+                : this.contextManager.getServletContext();
+
+        return EnvironmentProperty.readApplicationParams( applicationPath, effectiveContext );
+    }
 }
+

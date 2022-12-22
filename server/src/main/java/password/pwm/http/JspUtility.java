@@ -32,11 +32,11 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.PageContext;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public abstract class JspUtility
@@ -44,43 +44,40 @@ public abstract class JspUtility
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( JspUtility.class );
 
-    private static PwmRequest forRequest(
+    private static Optional<PwmRequest> forRequest(
             final ServletRequest request
     )
     {
-        final PwmRequest pwmRequest = ( PwmRequest ) request.getAttribute( PwmRequestAttribute.PwmRequest.toString() );
-        if ( pwmRequest == null )
-        {
-            LOGGER.warn( () -> "unable to load pwmRequest object during jsp execution" );
-        }
-        return pwmRequest;
+        return Optional.of( ( PwmRequest ) request.getAttribute( PwmRequestAttribute.PwmRequest.toString() ) );
+    }
+
+    private static PwmUnrecoverableException makeMissingRequestException()
+    {
+        final String msg = "unable to load pwmRequest object during jsp execution";
+        return PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, msg );
     }
 
     public static <E extends PwmSessionBean> E getSessionBean( final PageContext pageContext, final Class<E> theClass )
             throws PwmUnrecoverableException
     {
-        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
-        try
-        {
-            return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, theClass );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            final String msg = "unable to load pwmRequest object during jsp execution: " + e.getMessage();
-            LOGGER.warn( () -> msg );
-            throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, msg );
-        }
+        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() )
+                .orElseThrow( JspUtility::makeMissingRequestException );
+        return pwmRequest.getPwmDomain().getSessionStateService().getBean( pwmRequest, theClass );
     }
 
     public static Object getAttribute( final PageContext pageContext, final PwmRequestAttribute requestAttr )
+            throws PwmUnrecoverableException
     {
-        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
+        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() )
+                .orElseThrow( JspUtility::makeMissingRequestException );
         return pwmRequest.getAttribute( requestAttr );
     }
 
     public static boolean getBooleanAttribute( final PageContext pageContext, final PwmRequestAttribute requestAttr )
+            throws PwmUnrecoverableException
     {
-        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
+        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() )
+                .orElseThrow( JspUtility::makeMissingRequestException );
         final Object value = pwmRequest.getAttribute( requestAttr );
         return value != null && Boolean.parseBoolean( value.toString() );
     }
@@ -92,44 +89,30 @@ public abstract class JspUtility
 
     public static void setFlag( final PageContext pageContext, final PwmRequestFlag flag, final boolean value )
     {
-        final PwmRequest pwmRequest;
-        try
-        {
-            pwmRequest = PwmRequest.forRequest(
-                    ( HttpServletRequest ) pageContext.getRequest(),
-                    ( HttpServletResponse ) pageContext.getResponse()
-            );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            LOGGER.warn( () -> "unable to load pwmRequest object during jsp execution: " + e.getMessage() );
-            return;
-        }
-        if ( pwmRequest != null )
+        forRequest( pageContext.getRequest() ).ifPresent( pwmRequest ->
         {
             pwmRequest.setFlag( flag, value );
-        }
+        } );
     }
 
     public static boolean isFlag( final HttpServletRequest request, final PwmRequestFlag flag )
+            throws PwmUnrecoverableException
     {
-        final PwmRequest pwmRequest = forRequest( request );
-        return pwmRequest != null && pwmRequest.isFlag( flag );
+        final PwmRequest pwmRequest = forRequest( request )
+                .orElseThrow( JspUtility::makeMissingRequestException );
+        return pwmRequest.isFlag( flag );
     }
 
     public static Locale locale( final HttpServletRequest request )
     {
-        final PwmRequest pwmRequest = forRequest( request );
-        if ( pwmRequest != null )
-        {
-            return pwmRequest.getLocale();
-        }
-        return PwmConstants.DEFAULT_LOCALE;
+        return forRequest( request ).map( PwmRequest::getLocale ).orElse( PwmConstants.DEFAULT_LOCALE );
     }
 
     public static long numberSetting( final HttpServletRequest request, final PwmSetting pwmSetting, final long defaultValue )
+            throws PwmUnrecoverableException
     {
-        final PwmRequest pwmRequest = forRequest( request );
+        final PwmRequest pwmRequest = forRequest( request )
+                .orElseThrow( JspUtility::makeMissingRequestException );
         if ( pwmRequest != null )
         {
             try
@@ -146,39 +129,48 @@ public abstract class JspUtility
 
     public static void logError( final PageContext pageContext, final String message )
     {
-        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
-        final PwmLogger logger = PwmLogger.getLogger( "jsp:" + pageContext.getPage().getClass() );
-        logger.error( pwmRequest, () -> message );
+        forRequest( pageContext.getRequest() ).ifPresent( pwmRequest ->
+        {
+            final PwmLogger logger = PwmLogger.getLogger( "jsp:" + pageContext.getPage().getClass() );
+            logger.error( pwmRequest, () -> message );
+        } );
     }
 
     public static String getMessage( final PageContext pageContext, final PwmDisplayBundle key )
+            throws PwmUnrecoverableException
     {
-        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
+        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() )
+                .orElseThrow( JspUtility::makeMissingRequestException );
         return LocaleHelper.getLocalizedMessage( key, pwmRequest );
     }
 
     public static PwmSession getPwmSession( final PageContext pageContext )
+            throws PwmUnrecoverableException
     {
-        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
+        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() )
+                .orElseThrow( JspUtility::makeMissingRequestException );
         return pwmRequest.getPwmSession();
     }
 
     public static PwmRequest getPwmRequest( final PageContext pageContext )
+            throws PwmUnrecoverableException
     {
-        return forRequest( pageContext.getRequest() );
+        return forRequest( pageContext.getRequest() )
+                .orElseThrow( JspUtility::makeMissingRequestException );
     }
 
     public static String friendlyWrite( final PageContext pageContext, final boolean value )
     {
-        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
-        return LocaleHelper.valueBoolean( pwmRequest.getLocale(), value );
+        return forRequest( pageContext.getRequest() )
+                .map( pwmRequest -> LocaleHelper.valueBoolean( pwmRequest.getLocale(), value ) )
+                .orElse( "" );
     }
 
     public static String friendlyWrite( final PageContext pageContext, final long value )
     {
-        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
-        final NumberFormat numberFormat = NumberFormat.getInstance( pwmRequest.getLocale() );
-        return numberFormat.format( value );
+        return forRequest( pageContext.getRequest() )
+                .map( pwmRequest -> NumberFormat.getInstance( pwmRequest.getLocale() ).format( value ) )
+                .orElse( "" );
     }
 
     public static String friendlyWrite( final PageContext pageContext, final String input )
@@ -212,24 +204,23 @@ public abstract class JspUtility
 
     public static String friendlyWriteNotApplicable( final PageContext pageContext )
     {
-        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
-        return LocaleHelper.valueNotApplicable( pwmRequest.getLocale() );
+        return forRequest( pageContext.getRequest() )
+                .map( pwmRequest -> LocaleHelper.valueNotApplicable( pwmRequest.getLocale() ) )
+                .orElse( "" );
     }
 
     public static String friendlyWrite( final PageContext pageContext, final Instant instant )
     {
-        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
-        if ( instant == null )
-        {
-            return LocaleHelper.valueNotApplicable( pwmRequest.getLocale() );
-        }
-        return "<span class=\"timestamp\">" + instant + "</span>";
+        return forRequest( pageContext.getRequest() )
+                .map( pwmRequest -> "<span class=\"timestamp\">" + instant + "</span>" )
+                .orElse( "" );
     }
 
     public static String localizedString( final PageContext pageContext, final String key, final Class<? extends PwmDisplayBundle> bundleClass, final String... values )
     {
-        final PwmRequest pwmRequest = forRequest( pageContext.getRequest() );
-        return LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), key, pwmRequest.getDomainConfig(), bundleClass, values );
+        return forRequest( pageContext.getRequest() )
+                .map( pwmRequest -> LocaleHelper.getLocalizedMessage( pwmRequest.getLocale(), key, pwmRequest.getDomainConfig(), bundleClass, values ) )
+                .orElse( "" );
     }
 }
 

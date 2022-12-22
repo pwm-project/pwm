@@ -57,18 +57,27 @@
     <div id="centerbody">
         <%@ include file="reference-nav.jsp"%>
         <h1><%=PwmConstants.PWM_APP_NAME%> Environment</h1>
-        <h2><code>ApplicationPath</code></h2>
-        <p>The application path setting is required.  Configure the application path to use a directory on the local filesystem.  <%=PwmConstants.PWM_APP_NAME%> will store it's
-            operating files in this directory.  Specifically, the following contents will be stored in the application path:</p>
+        <h2><code>Application Path</code></h2>
+        <p>
+            The application path is the primary configuration and working directory for an instance of <%=PwmConstants.PWM_APP_NAME%>.
+            Each instance of <%=PwmConstants.PWM_APP_NAME%> must have its own unique application path.
+            The following contents are stored in the application path directory:
+        </p>
         <ul>
-            <li>Configuration</li>
+            <li>configuration</li>
+            <li>log files</li>
+            <li>backup data</li>
             <li>LocalDB database</li>
-            <li>Log files</li>
-            <li>Backup data</li>
+            <ul>
+                <li>temporary working files</li>
+                <li>caches</li>
+                <li>server statistics</li>
+            </ul>
         </ul>
         <p>
-            The path value is given as an absolute directory path on the local file system.  The <%=PwmConstants.PWM_APP_NAME%> application must have full permissions to create, modify and delete folders in this directory.  The directory must already be exist when <%=PwmConstants.PWM_APP_NAME%> is started, it will not be
-            automatically created.
+            The path value is given as an absolute directory path on the local file system.
+            The <%=PwmConstants.PWM_APP_NAME%> application must have full permissions to create, modify and delete folders in this directory.
+            The directory must already be exist when <%=PwmConstants.PWM_APP_NAME%> is started, it will not be automatically created.
         </p>
         <p>
             Older versions of <%=PwmConstants.PWM_APP_NAME%> did not require the application path to be set and would automatically use the exploded war directory's
@@ -83,8 +92,14 @@
             <li><a href="#webxml">Servlet <code>web.xml</code></a></li>
         </ul>
         <h3><a id="envvar">Environment Variable (Recommended)</a></h3>
-        <p>The application will read the <b><%=PwmConstants.PWM_APP_NAME%>_APPLICATIONPATH</b> variable to determine the location of the application path.  Relative paths are not permitted.</p>
-        <p>Because you set this value at the OS level, it will make maintaining and updating the application easier because you will not need to change anything other than applying a new <code>war</code> file.</p>
+        <p>
+            The application will read the <b><%=PwmConstants.PWM_APP_NAME%>_APPLICATIONPATH</b> variable to determine the location of the application path.
+            Relative paths are not permitted.
+        </p>
+        <p>
+            Because you set this value at the OS level, it will make maintaining and updating the application easier because you will not need to change anything other than
+            applying a new <code>war</code> file.
+        </p>
         <h3>Linux Example</h3>
         <div class="codeExample">
             <code>export <%=PwmConstants.PWM_APP_NAME%>_APPLICATIONPATH='/home/user/<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-data'</code>
@@ -109,8 +124,9 @@
             <code>-D<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>.applicationPath="c:\<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-data"</code>
         </div>
         <h3><a id="webxml">Servlet web.xml</a></h3>
-        Modify the servlet <code>WEB-INF/web.xml</code> file.  You must modify the application war file to accomplish this method.  This method accommodates multiple
-        applications on a single application server.  File paths must be absolute.
+        <p>Modify the servlet <code>WEB-INF/web.xml</code> file.  You must modify the application war file to accomplish this method.  This method accommodates multiple
+            applications on a single application server.  File paths must be absolute.</p><p>This method is not recommended because updates to the WAR will
+        overwrite the web.xml and you will need to re-apply any changes.</p>
         <h4>Linux Example</h4>
         <div class="codeExample">
             <code>
@@ -136,26 +152,25 @@
             <code>export <%=PwmConstants.PWM_APP_NAME%>_APPLICATIONFLAGS='ManageHttps,NoFileLock'</code>
         </div>
         <br/>
-        <h1>Environment Variable Names and Servlet Context</h1>
+        <h1>Property Names and Servlet Context</h1>
         <p>
-            The environment variables listed above, such as <code><%=PwmConstants.PWM_APP_NAME%>_APPLICATIONPATH</code> and <code><%=PwmConstants.PWM_APP_NAME.toLowerCase()%>.applicationPath</code> assume the default context name of
-            <code>/<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>/</code> is used.  The context path will default to the war file name on most systems.
+            The environment variables and system properties listed above, such as <code><%=PwmConstants.PWM_APP_NAME%>_APPLICATIONPATH</code> and <code><%=PwmConstants.PWM_APP_NAME.toLowerCase()%>.applicationPath</code> assume the default context name of
+            <code>/<%=PwmConstants.PWM_APP_NAME.toLowerCase()%></code> is used.
         </p>
         <p>
-            For non-default context names, or when there are multiple <%=PwmConstants.PWM_APP_NAME%> applications deployed on the same server, the environment variable must include the context.  For example:
         </p>
         <table>
             <tr>
-                <td><h3>Context</h3></td><td><h3>Environment Property Name</h3></td><td><h3>Environment Variable Name</h3></td>
+                <td><h3>Context</h3></td><td><h3>Java System Property Name</h3></td><td><h3>Environment Variable Name</h3></td>
             </tr>
             <tr>
-                <td><code>/<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>/</code></td><td><code><%=PwmConstants.PWM_APP_NAME.toLowerCase()%>.applicationPath</code><br/>or<br/><code><%=PwmConstants.PWM_APP_NAME.toLowerCase()%>.<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>.applicationPath</code></td><td><code><%=PwmConstants.PWM_APP_NAME%>_APPLICATIONPATH</code><br/>or<br/><code><%=PwmConstants.PWM_APP_NAME%>_<%=PwmConstants.PWM_APP_NAME%>_APPLICATIONPATH</code></td>
+                <td><code>/<%=PwmConstants.PWM_APP_NAME.toLowerCase()%></code></td><td><code><%=PwmConstants.PWM_APP_NAME.toLowerCase()%>.applicationPath</code><br/>or<br/><code><%=PwmConstants.PWM_APP_NAME.toLowerCase()%>.<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>.applicationPath</code></td><td><code><%=PwmConstants.PWM_APP_NAME%>_APPLICATIONPATH</code><br/>or<br/><code><%=PwmConstants.PWM_APP_NAME%>_<%=PwmConstants.PWM_APP_NAME%>_APPLICATIONPATH</code></td>
             </tr>
             <tr>
-                <td><code>/acme/</code></td><td><code><%=PwmConstants.PWM_APP_NAME.toLowerCase()%>.acme.applicationPath</code></td><td><code><%=PwmConstants.PWM_APP_NAME%>_ACME_APPLICATIONPATH</code></td>
+                <td><code>/acme</code></td><td><code><%=PwmConstants.PWM_APP_NAME.toLowerCase()%>.acme.applicationPath</code></td><td><code><%=PwmConstants.PWM_APP_NAME%>_ACME_APPLICATIONPATH</code></td>
             </tr>
             <tr>
-                <td><code>/acme2/</code></td><td><code><%=PwmConstants.PWM_APP_NAME.toLowerCase()%>.acme2.applicationPath</code></td><td><code><%=PwmConstants.PWM_APP_NAME%>_ACME2_APPLICATIONPATH</code></td>
+                <td><code>/acme2</code></td><td><code><%=PwmConstants.PWM_APP_NAME.toLowerCase()%>.acme2.applicationPath</code></td><td><code><%=PwmConstants.PWM_APP_NAME%>_ACME2_APPLICATIONPATH</code></td>
             </tr>
         </table>
         <p>In case of conflict, the application path parameters are evaluated in the following order.</p>
@@ -164,13 +179,16 @@
             <li><a href="#property">Java System Property</a></li>
             <li><a href="#envvar">Environment Variable (Recommended)</a></li>
         </ol>
-        <h2><code>ApplicationFlags</code></h2>
-        <p>Application flags can be set to enable or disable behaviors in <%=PwmConstants.PWM_APP_NAME%>.   By default, no flags are set.  Setting flags is optional.  Flags are specified as a comma seperated
-            list of values.  Values are case sensitive.  In most cases, you will not need to set an application flag.
+        <h2><code>Other <%=PwmConstants.PWM_APP_NAME%> Environment Properties</code></h2>
+        <p>The <code>applicationPath</code> property is just one of many that can be set.  The following properties also exist, and are set the same way as the <code>applicationPath</code>
+            describe above.  Additionally, properties can also be set using a <i>application.properties</i> file in the root of the
+            <code>applicationPath</code>directory, though in that case the keys do not need a context prefix.
         <table>
             <tr><td><h3>Flag</h3></td><td><h3>Behavior</h3></td></tr>
+            <tr><td>applicationPath</td><td>Root of the application path directory as discussed above.</td></tr>
             <tr><td>ManageHttps</td><td>Enable the setting category <code><%=PwmSettingCategory.HTTPS_SERVER.getLabel(PwmConstants.DEFAULT_LOCALE)%></code></td></tr>
             <tr><td>NoFileLock</td><td>Disable the file lock in the application path directory.</td></tr>
+            <tr><td>InstanceID</td><td>Override the default random-generated InstanceID value</td></tr>
         </table>
     </div>
 </div>

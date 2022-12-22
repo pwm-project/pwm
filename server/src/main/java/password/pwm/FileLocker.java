@@ -54,7 +54,7 @@ class FileLocker
 
     private boolean lockingAllowed( )
     {
-        return !pwmEnvironment.isInternalRuntimeInstance() && !pwmEnvironment.getFlags().contains( PwmEnvironment.ApplicationFlag.NoFileLock );
+        return !pwmEnvironment.isInternalRuntimeInstance() && !pwmEnvironment.readPropertyAsBoolean( EnvironmentProperty.NoFileLock );
     }
 
     public boolean isLocked( )
@@ -129,7 +129,7 @@ class FileLocker
             throws PwmUnrecoverableException
     {
         final AppConfig domainConfig = pwmEnvironment.getConfig();
-        final int maxWaitSeconds = pwmEnvironment.getFlags().contains( PwmEnvironment.ApplicationFlag.CommandLineInstance )
+        final int maxWaitSeconds = pwmEnvironment.readPropertyAsBoolean( EnvironmentProperty.CommandLineInstance )
                 ? 1
                 : Integer.parseInt( domainConfig.readAppProperty( AppProperty.APPLICATION_FILELOCK_WAIT_SECONDS ) );
         final Instant startTime = Instant.now();

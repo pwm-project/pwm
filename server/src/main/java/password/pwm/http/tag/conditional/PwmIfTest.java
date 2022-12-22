@@ -451,22 +451,6 @@ public enum PwmIfTest
         }
     }
 
-    private static class EnvironmentFlagTest implements Test
-    {
-        private final PwmEnvironment.ApplicationFlag flag;
-
-        EnvironmentFlagTest( final PwmEnvironment.ApplicationFlag flag )
-        {
-            this.flag = flag;
-        }
-
-        @Override
-        public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
-        {
-            return pwmRequest.getPwmApplication().getPwmEnvironment().getFlags().contains( flag );
-        }
-    }
-
     private static class EndUserFunctionalityTest implements Test
     {
         @Override
