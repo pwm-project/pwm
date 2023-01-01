@@ -54,10 +54,10 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
@@ -187,7 +187,7 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
             try ( InputStream inputStream = optionalFileUpload.get() )
             {
                 localDB = pwmApplication.getLocalDB();
-                final File localDBLocation = pwmApplication.getLocalDB().getFileLocation();
+                final Path localDBLocation = pwmApplication.getLocalDB().getFileLocation();
                 final DomainConfig domainConfig = pwmDomain.getConfig();
                 contextManager.shutdown();
 

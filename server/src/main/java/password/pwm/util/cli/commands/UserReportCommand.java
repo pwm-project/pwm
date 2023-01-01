@@ -33,11 +33,10 @@ import password.pwm.svc.report.ReportProcessRequest;
 import password.pwm.svc.report.ReportService;
 import password.pwm.util.cli.CliParameters;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -51,9 +50,9 @@ public class UserReportCommand extends AbstractCliCommand
     void doCommand( )
             throws IOException
     {
-        final File outputFile = ( File ) cliEnvironment.getOptions().get( OUTPUT_FILE_OPTIONNAME );
+        final Path outputFile = ( Path ) cliEnvironment.getOptions().get( OUTPUT_FILE_OPTIONNAME );
 
-        try ( OutputStream outputFileStream = new BufferedOutputStream( new FileOutputStream( outputFile ) ) )
+        try ( OutputStream outputFileStream = Files.newOutputStream( outputFile ) )
         {
 
             final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
@@ -85,7 +84,7 @@ public class UserReportCommand extends AbstractCliCommand
         }
         catch ( final IOException | PwmUnrecoverableException e )
         {
-            out( "unable to open file '" + outputFile.getAbsolutePath() + "' for writing" );
+            out( "unable to open file '" + outputFile + "' for writing" );
             System.exit( -1 );
         }
 

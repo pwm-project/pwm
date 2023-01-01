@@ -29,9 +29,11 @@ import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.TimeDuration;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 
 public class ExportStatsCommand extends AbstractCliCommand
@@ -44,11 +46,11 @@ public class ExportStatsCommand extends AbstractCliCommand
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
         final StatisticsService statsManger = pwmApplication.getStatisticsService();
 
-        final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
+        final Path outputFile = ( Path ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
         final long startTime = System.currentTimeMillis();
-        out( "beginning output to " + outputFile.getAbsolutePath() );
+        out( "beginning output to " + outputFile );
         final int counter;
-        try ( FileOutputStream fileOutputStream = new FileOutputStream( outputFile, true ) )
+        try ( OutputStream fileOutputStream = Files.newOutputStream( outputFile, StandardOpenOption.APPEND ) )
         {
             counter = StatisticsUtils.outputStatsToCsv(
                     SessionLabel.CLI_SESSION_LABEL,

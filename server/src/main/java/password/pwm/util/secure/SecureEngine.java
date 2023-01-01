@@ -37,16 +37,13 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Objects;
@@ -276,33 +273,16 @@ public class SecureEngine
     }
 
     public static String hash(
-            final File file,
+            final Path file,
             final PwmHashAlgorithm hashAlgorithm
     )
             throws PwmUnrecoverableException
     {
-        try
+        try ( InputStream inputStream = Files.newInputStream( file ) )
         {
-            final MessageDigest messageDigest = MessageDigest.getInstance( hashAlgorithm.getAlgName() );
-            final int bufferSize = (int) Math.min( file.length(), HASH_FILE_BUFFER_SIZE );
-            final FileChannel fileChannel = FileChannel.open( file.toPath() );
-            final ByteBuffer byteBuffer = ByteBuffer.allocateDirect( bufferSize );
-
-            while ( fileChannel.read( byteBuffer ) > 0 )
-            {
-                // redundant cast to buffer to solve jdk8/9 inter-op issue
-                ( ( Buffer ) byteBuffer ).flip();
-
-                messageDigest.update( byteBuffer );
-
-                // redundant cast to buffer to solve jdk8/9 inter-op issue
-                ( ( Buffer ) byteBuffer ).clear();
-            }
-
-            return JavaHelper.binaryArrayToHex( messageDigest.digest() );
-
+            return hash( inputStream, hashAlgorithm );
         }
-        catch ( final NoSuchAlgorithmException | IOException e )
+        catch ( final IOException e )
         {
             final String errorMsg = "unexpected error during file hash operation: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CRYPT_ERROR, errorMsg );

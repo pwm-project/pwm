@@ -32,7 +32,6 @@ import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.TestHelper;
 
-import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
 
@@ -159,7 +158,7 @@ public class WordlistServiceTest
         final URL url = this.getClass().getResource( "test-wordlist.zip" );
         Mockito.when( appConfig.readAppProperty( AppProperty.WORDLIST_BUILTIN_PATH ) ).thenReturn( url.toString() );
 
-        final File testFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-makeWordlistService" );
+        final Path testFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-makeWordlistService" );
         final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( testFolder, appConfig );
         return pwmApplication.getWordlistService();
     }

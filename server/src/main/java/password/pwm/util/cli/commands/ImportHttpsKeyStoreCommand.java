@@ -31,9 +31,10 @@ import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 public class ImportHttpsKeyStoreCommand extends AbstractCliCommand
@@ -45,8 +46,8 @@ public class ImportHttpsKeyStoreCommand extends AbstractCliCommand
     void doCommand( )
             throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
-        final File inputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
-        if ( inputFile == null || !inputFile.exists() )
+        final Path inputFile = ( Path ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
+        if ( inputFile == null || !Files.exists( inputFile ) )
         {
             out( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() + " does not exist" );
             return;
@@ -66,11 +67,13 @@ public class ImportHttpsKeyStoreCommand extends AbstractCliCommand
         final String keyStorePassword = getOptionalPassword();
         final String inputAliasName = ( String ) cliEnvironment.getOptions().get( ALIAS_OPTIONNAME );
 
-        final ConfigurationFileManager configurationFileManager = new ConfigurationFileManager( cliEnvironment.getConfigurationFile(), SessionLabel.CLI_SESSION_LABEL );
+        final ConfigurationFileManager configurationFileManager = new ConfigurationFileManager(
+                cliEnvironment.getConfigurationFile(),
+                SessionLabel.CLI_SESSION_LABEL );
         final StoredConfiguration storedConfiguration = configurationFileManager.getStoredConfiguration();
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );
 
-        try ( FileInputStream fileInputStream = new FileInputStream( inputFile ) )
+        try ( InputStream fileInputStream = Files.newInputStream( inputFile ) )
         {
             HttpsServerCertificateManager.importKey(
                     modifier,

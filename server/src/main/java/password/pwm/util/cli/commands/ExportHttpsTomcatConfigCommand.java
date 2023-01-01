@@ -27,11 +27,11 @@ import password.pwm.config.option.TLSVersion;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.java.JavaHelper;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -39,15 +39,18 @@ import java.util.Set;
 
 public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
 {
+
+    public static final String PARAM_NAME_SOURCE_FILE = "sourceFile";
+
     @Override
     void doCommand( )
             throws IOException
     {
-        final File sourceFile = ( File ) cliEnvironment.getOptions().get( "sourceFile" );
-        final File outputFile = ( File ) cliEnvironment.getOptions().get( "outputFile" );
+        final Path sourceFile = ( Path ) cliEnvironment.getOptions().get( PARAM_NAME_SOURCE_FILE );
+        final Path outputFile = ( Path ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
         try (
-                InputStream fileInputStream = Files.newInputStream( sourceFile.toPath() );
-                OutputStream fileOutputStream = Files.newOutputStream( outputFile.toPath() )
+                InputStream fileInputStream = Files.newInputStream( sourceFile );
+                OutputStream fileOutputStream = Files.newOutputStream( outputFile )
         )
         {
             TomcatConfigWriter.writeOutputFile(
@@ -60,7 +63,7 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
         {
             out( "error during tomcat config file export: " + e.getMessage() );
         }
-        out( "successfully exported tomcat https settings to " + outputFile.getAbsolutePath() );
+        out( "successfully exported tomcat https settings to " + outputFile );
     }
 
     @Override
@@ -87,7 +90,7 @@ public class ExportHttpsTomcatConfigCommand extends AbstractCliCommand
             @Override
             public String getName( )
             {
-                return "sourceFile";
+                return PARAM_NAME_SOURCE_FILE;
             }
 
         };

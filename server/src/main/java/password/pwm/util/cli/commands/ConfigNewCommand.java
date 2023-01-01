@@ -25,9 +25,10 @@ import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.cli.CliParameters;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 
 public class ConfigNewCommand extends AbstractCliCommand
@@ -38,9 +39,9 @@ public class ConfigNewCommand extends AbstractCliCommand
     {
         final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newConfig();
 
-        final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
+        final Path outputFile = ( Path ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
 
-        try ( FileOutputStream fileOutputStream = new FileOutputStream( outputFile, false ) )
+        try ( OutputStream fileOutputStream = Files.newOutputStream( outputFile ) )
         {
             StoredConfigurationFactory.output( storedConfiguration, fileOutputStream );
         }

@@ -44,9 +44,10 @@ import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -308,12 +309,12 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
 
     @Override
     public String hash(
-            final File file
+            final Path file
     )
             throws IOException, PwmUnrecoverableException
     {
         stats.increment( StatKey.hashOperations );
-        stats.increment( StatKey.hashBytes, file.length() );
+        stats.increment( StatKey.hashBytes, Files.size( file ) );
         return SecureEngine.hash( file, defaultHashAlgorithm );
     }
 

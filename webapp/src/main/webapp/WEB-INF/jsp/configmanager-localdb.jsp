@@ -86,7 +86,7 @@
                             ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                             : localdb_pwmApplication.getLocalDB().getFileLocation() == null
                             ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
-                            : localdb_pwmApplication.getLocalDB().getFileLocation().getAbsolutePath()
+                            : localdb_pwmApplication.getLocalDB().getFileLocation().toString()
                     %>
                 </td>
             </tr>

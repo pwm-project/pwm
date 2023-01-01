@@ -28,9 +28,11 @@ interface FileResource
 {
     InputStream getInputStream( ) throws IOException;
 
-    long length( );
+    long length( )
+            throws IOException;
 
-    Instant lastModified( );
+    Instant lastModified( )
+            throws IOException;
 
     String getName( );
 }

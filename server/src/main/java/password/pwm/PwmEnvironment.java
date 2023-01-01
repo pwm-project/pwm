@@ -33,7 +33,6 @@ import password.pwm.util.java.LazySupplier;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletContext;
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -52,9 +51,9 @@ public class PwmEnvironment
     private PwmApplicationMode applicationMode = PwmApplicationMode.ERROR;
 
     private AppConfig config;
-    private File applicationPath;
+    private Path applicationPath;
     private boolean internalRuntimeInstance;
-    private File configurationFile;
+    private Path configurationFile;
     private ContextManager contextManager;
 
     private final Supplier<Map<EnvironmentProperty, String>> parameters = LazySupplier.create( this::readApplicationParams );
@@ -75,15 +74,15 @@ public class PwmEnvironment
     public void verifyIfApplicationPathIsSetProperly()
             throws PwmUnrecoverableException
     {
-        final File applicationPath = this.getApplicationPath();
+        final Path applicationPath = this.getApplicationPath();
 
         verifyApplicationPath( applicationPath );
 
         boolean applicationPathIsWebInfPath = false;
-        if ( applicationPath.getAbsolutePath().endsWith( "/WEB-INF" ) )
+        if ( applicationPath.endsWith( "WEB-INF" ) )
         {
-            final File webXmlFile = new File( applicationPath.getAbsolutePath() + File.separator + "web.xml" );
-            if ( webXmlFile.exists() )
+            final Path webXmlFilePath = applicationPath.resolve( "web.xml" );
+            if ( Files.exists( webXmlFilePath ) )
             {
                 applicationPathIsWebInfPath = true;
             }
@@ -122,7 +121,7 @@ public class PwmEnvironment
     }
 
 
-    public static void verifyApplicationPath( final File applicationPath )
+    public static void verifyApplicationPath( final Path applicationPath )
             throws PwmUnrecoverableException
     {
 
@@ -134,37 +133,37 @@ public class PwmEnvironment
             );
         }
 
-        LOGGER.trace( SESSION_LABEL, () -> "examining applicationPath of " + applicationPath.getAbsolutePath() + "" );
+        LOGGER.trace( SESSION_LABEL, () -> "examining applicationPath of " + applicationPath + "" );
 
-        if ( !applicationPath.exists() )
+        if ( !Files.exists( applicationPath ) )
         {
             throw new PwmUnrecoverableException(
                     new ErrorInformation( PwmError.ERROR_STARTUP_ERROR,
-                            "applicationPath " + applicationPath.getAbsolutePath() + " does not exist" )
+                            "applicationPath " + applicationPath + " does not exist" )
             );
         }
 
-        if ( !applicationPath.canRead() )
+        if ( !Files.isReadable( applicationPath ) )
         {
             throw new PwmUnrecoverableException(
                     new ErrorInformation( PwmError.ERROR_STARTUP_ERROR,
-                            "unable to read from applicationPath " + applicationPath.getAbsolutePath() + "" )
+                            "unable to read from applicationPath " + applicationPath + "" )
             );
         }
 
-        if ( !applicationPath.canWrite() )
+        if ( !Files.isWritable( applicationPath ) )
         {
             throw new PwmUnrecoverableException(
                     new ErrorInformation( PwmError.ERROR_STARTUP_ERROR,
-                            "unable to write to applicationPath " + applicationPath.getAbsolutePath() + "" )
+                            "unable to write to applicationPath " + applicationPath + "" )
             );
         }
 
-        final File infoFile = new File( applicationPath.getAbsolutePath() + File.separator + PwmConstants.APPLICATION_PATH_INFO_FILE );
-        LOGGER.trace( SESSION_LABEL, () -> "checking " + infoFile.getAbsolutePath() + " status" );
-        if ( infoFile.exists() )
+        final Path infoFile = applicationPath.resolve( PwmConstants.APPLICATION_PATH_INFO_FILE );
+        LOGGER.trace( SESSION_LABEL, () -> "checking " + infoFile + " status" );
+        if ( Files.exists( infoFile ) )
         {
-            final String errorMsg = "The file " + infoFile.getAbsolutePath() + " exists, and an applicationPath was not explicitly specified."
+            final String errorMsg = "The file " + infoFile + " exists, and an applicationPath was not explicitly specified."
                     + "  This happens when an applicationPath was previously configured, but is not now being specified."
                     + "  An explicit applicationPath parameter must be specified, or the file can be removed if the applicationPath"
                     + " should be changed to the default /WEB-INF directory.";
@@ -206,7 +205,6 @@ public class PwmEnvironment
 
     private Map<EnvironmentProperty, String> readApplicationParams()
     {
-        final Path applicationPath = this.applicationPath == null ? null : this.applicationPath.toPath();
         final ServletContext effectiveContext = this.contextManager == null
                 ? null
                 : this.contextManager.getServletContext();

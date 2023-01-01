@@ -28,7 +28,6 @@ import org.junit.jupiter.api.io.TempDir;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.TimeDuration;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -48,7 +47,7 @@ public class LocalDBStoredQueueExtendedTest
     @BeforeAll
     public static void setUp() throws Exception
     {
-        final File fileLocation = FileSystemUtility.createDirectory( temporaryFolder, "localdb-storedqueue-test" );
+        final Path fileLocation = FileSystemUtility.createDirectory( temporaryFolder, "localdb-storedqueue-test" );
         localDB = LocalDBFactory.getInstance( fileLocation, false, null, null );
         storedQueue = LocalDBStoredQueue.createLocalDBStoredQueue( localDB, LocalDB.DB.TEMP, ENABLE_DEBUG_OUTPUT );
     }

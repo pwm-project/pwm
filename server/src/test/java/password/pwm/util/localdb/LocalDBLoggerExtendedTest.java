@@ -31,8 +31,8 @@ import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.EventRateMeter;
-import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.Percent;
+import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -42,7 +42,6 @@ import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogMessage;
 import password.pwm.util.secure.PwmRandom;
 
-import java.io.File;
 import java.io.Serializable;
 import java.math.RoundingMode;
 import java.nio.file.Path;
@@ -85,7 +84,7 @@ public class LocalDBLoggerExtendedTest
     @BeforeEach
     public void setUp() throws Exception
     {
-        final File localDBPath = FileSystemUtility.createDirectory( temporaryFolder, "test-localdb-logger-test" );
+        final Path localDBPath = FileSystemUtility.createDirectory( temporaryFolder, "test-localdb-logger-test" );
 
         config = AppConfig.forStoredConfig( StoredConfigurationFactory.newConfig() );
 

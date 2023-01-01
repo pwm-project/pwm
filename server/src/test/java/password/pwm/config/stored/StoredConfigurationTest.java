@@ -29,7 +29,6 @@ import password.pwm.config.AppConfig;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.TestHelper;
 
-import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Path;
 
@@ -54,7 +53,7 @@ public class StoredConfigurationTest
     public void configurationHashTest()
             throws Exception
     {
-        final File testFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-configurationHashTest" );
+        final Path testFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-configurationHashTest" );
         final PwmApplication pwmDomain = TestHelper.makeTestPwmApplication( testFolder, appConfig );
         final String configHash = StoredConfigurationUtil.valueHash( appConfig.getStoredConfiguration() );
 

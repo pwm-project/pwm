@@ -23,30 +23,30 @@ package password.pwm.onejar;
 import lombok.Builder;
 import lombok.Value;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 
 @Value
 @Builder
 class OnejarConfig
 {
     private int port;
-    private File applicationPath;
-    private File workingPath;
+    private Path applicationPath;
+    private Path workingPath;
     private InputStream war;
     private String context;
     private String localAddress;
     private String keystorePass;
     private String execCommand;
 
-    File getWarFolder( ) throws IOException
+    Path getWarFolder( ) throws IOException
     {
-        return new File( this.getWorkingPath().getAbsoluteFile() + File.separator + "war" );
+        return getWorkingPath().resolve( "war" );
     }
 
-    File getKeystoreFile( )
+    Path getKeystoreFile( )
     {
-        return new File( this.getWorkingPath().getAbsoluteFile() + File.separator + "keystore" );
+        return getWorkingPath().resolve( "keystore" );
     }
 }

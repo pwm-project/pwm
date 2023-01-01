@@ -32,8 +32,9 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.cli.CliParameters;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class ConfigResetHttpsCommand
         extends AbstractCliCommand
@@ -42,8 +43,8 @@ public class ConfigResetHttpsCommand
     public void doCommand( )
             throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
-        final File configurationFile = cliEnvironment.getConfigurationFile();
-        if ( configurationFile == null || !configurationFile.exists() )
+        final Path configurationFile = cliEnvironment.getConfigurationFile();
+        if ( configurationFile == null || !Files.exists( configurationFile ) )
         {
             out( "configuration file is not present" );
             return;
@@ -54,7 +55,9 @@ public class ConfigResetHttpsCommand
             return;
         }
 
-        final ConfigurationFileManager configurationFileManager = new ConfigurationFileManager( cliEnvironment.getConfigurationFile(), SessionLabel.CLI_SESSION_LABEL );
+        final ConfigurationFileManager configurationFileManager = new ConfigurationFileManager(
+                cliEnvironment.getConfigurationFile(),
+                SessionLabel.CLI_SESSION_LABEL );
         final StoredConfiguration storedConfiguration = configurationFileManager.getStoredConfiguration();
 
         final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( storedConfiguration );

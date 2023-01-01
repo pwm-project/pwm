@@ -30,7 +30,6 @@ import password.pwm.util.localdb.TestHelper;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordRuleReaderHelper;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +53,7 @@ public class PasswordRuleReaderHelperTest
                     "sn", "Flintstone" );
         }
 
-        final File testFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-makeMacroRequest" );
+        final Path testFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-makeMacroRequest" );
         final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( testFolder );
 
         final UserInfoBean userInfo = UserInfoBean.builder()

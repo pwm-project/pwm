@@ -25,15 +25,14 @@ import org.xeustechnologies.jcl.JarClassLoader;
 import org.xeustechnologies.jcl.JclObjectFactory;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.data.ImmutableByteArray;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.data.ImmutableByteArray;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
@@ -41,6 +40,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.sql.Driver;
@@ -207,7 +207,7 @@ public class JDBCDriverLoader
 
         private static final PwmLogger LOGGER = PwmLogger.forClass( TempFileDriverLoader.class, true );
 
-        private File tempFile;
+        private Path tempFile;
 
         @Override
 
@@ -232,26 +232,25 @@ public class JDBCDriverLoader
                 if ( tempFile == null )
                 {
                     final String prefixName = PwmConstants.PWM_APP_NAME.toLowerCase() + "_jdbcJar_";
-                    tempFile = File.createTempFile( prefixName, "jar" );
-                    LOGGER.trace( () -> "created temp file " + tempFile.getAbsolutePath() );
+                    tempFile = Files.createTempFile( pwmApplication.getTempDirectory(), prefixName, "jar" );
+                    LOGGER.trace( () -> "created temp file " + tempFile );
                 }
 
-                try ( OutputStream fos = Files.newOutputStream( tempFile.toPath() ) )
+                try ( OutputStream outputStream = Files.newOutputStream( tempFile ) )
                 {
-                    JavaHelper.copy( jdbcDriverBytes.newByteArrayInputStream(), fos );
-                    fos.close();
+                    JavaHelper.copy( jdbcDriverBytes.newByteArrayInputStream(), outputStream );
                 }
 
                 final URLClassLoader urlClassLoader = new URLClassLoader(
                         new URL[]
                                 {
-                                        tempFile.toURI().toURL(),
+                                        tempFile.toUri().toURL(),
                                 },
                         this.getClass().getClassLoader()
                 );
 
                 //Create object of loaded class
-                final Class jdbcDriverClass = urlClassLoader.loadClass( jdbcClassName );
+                final Class<?> jdbcDriverClass = urlClassLoader.loadClass( jdbcClassName );
                 final Driver driver = ( Driver ) jdbcDriverClass.getDeclaredConstructor().newInstance();
 
                 LOGGER.debug( () -> "successfully loaded JDBC database driver '" + jdbcClassName + "' from application configuration" );
@@ -271,9 +270,16 @@ public class JDBCDriverLoader
         {
             if ( tempFile != null )
             {
-                if ( tempFile.delete() )
+                try
                 {
-                    LOGGER.trace( () -> "removed temporary file " + tempFile.getAbsolutePath() );
+                    if ( Files.deleteIfExists( tempFile ) )
+                    {
+                        LOGGER.trace( () -> "removed temporary file " + tempFile );
+                    }
+                }
+                catch ( final IOException e )
+                {
+                    LOGGER.trace( () -> "error removing temporary file " + tempFile + ", error: " + e.getMessage(), e );
                 }
             }
             tempFile = null;
@@ -285,7 +291,7 @@ public class JDBCDriverLoader
 
         private static final PwmLogger LOGGER = PwmLogger.forClass( AppPathDriverLoader.class, true );
 
-        // static ccache of classloader to prevent classloader memory leak
+        // static cache of classloader to prevent classloader memory leak
         private static Map<String, ClassLoader> driverCache = new ConcurrentHashMap<>();
 
 
@@ -327,11 +333,11 @@ public class JDBCDriverLoader
                 try
                 {
                     LOGGER.debug( () -> "loading JDBC database driver stored in configuration" );
-                    final File tempFile = createOrGetTempJarFile( pwmApplication, jdbcDriverBytes );
+                    final Path tempFile = createOrGetTempJarFile( pwmApplication, jdbcDriverBytes );
                     urlClassLoader = new URLClassLoader(
                             new URL[]
                                     {
-                                            tempFile.toURI().toURL(),
+                                            tempFile.toUri().toURL(),
                                     },
                             this.getClass().getClassLoader()
                     );
@@ -348,7 +354,7 @@ public class JDBCDriverLoader
             try
             {
                 //Create object of loaded class
-                final Class jdbcDriverClass = urlClassLoader.loadClass( jdbcClassName );
+                final Class<?> jdbcDriverClass = urlClassLoader.loadClass( jdbcClassName );
                 final Driver driver = ( Driver ) jdbcDriverClass.getDeclaredConstructor().newInstance();
                 LOGGER.debug( () -> "successfully loaded JDBC database driver '" + jdbcClassName + "' from application configuration" );
                 return driver;
@@ -366,35 +372,33 @@ public class JDBCDriverLoader
         {
         }
 
-        File createOrGetTempJarFile( final PwmApplication pwmApplication, final ImmutableByteArray jarBytes ) throws PwmUnrecoverableException, IOException
+        Path createOrGetTempJarFile( final PwmApplication pwmApplication, final ImmutableByteArray jarBytes )
+                throws PwmUnrecoverableException, IOException
         {
-            final File file = pwmApplication.getTempDirectory();
+            final Path file = pwmApplication.getTempDirectory();
             final String jarHash = pwmApplication.getSecureService().hash( jarBytes.newByteArrayInputStream() );
             final String tempFileName = "jar-" + jarHash + ".jar";
-            final File tempFile = new File( file.getAbsolutePath() + File.separator + tempFileName );
-            if ( tempFile.exists() )
+            final Path tempFile = file.resolve( tempFileName );
+            if ( Files.exists( tempFile ) )
             {
                 final String fileHash = pwmApplication.getSecureService().hash( tempFile );
                 if ( !jarHash.equals( fileHash ) )
                 {
-                    LOGGER.debug( () -> "existing temp jar file " + tempFile.getAbsolutePath() + " has wrong contents, will delete" );
-                    if ( !tempFile.delete() )
-                    {
-                        throw new IOException( "unable to delete temp file " + jarHash );
-                    }
+                    LOGGER.debug( () -> "existing temp jar file " + tempFile + " has wrong contents, will delete" );
+                    Files.delete( tempFile );
                 }
             }
-            if ( !tempFile.exists() )
+            if ( !Files.exists( tempFile ) )
             {
-                LOGGER.debug( () -> "creating temp jar file " + tempFile.getAbsolutePath() );
-                try ( OutputStream fos = Files.newOutputStream( tempFile.toPath() ) )
+                LOGGER.debug( () -> "creating temp jar file " + tempFile );
+                try ( OutputStream fos = Files.newOutputStream( tempFile ) )
                 {
                     JavaHelper.copy( jarBytes.newByteArrayInputStream(), fos );
                 }
             }
             else
             {
-                LOGGER.trace( () -> "reusing existing temp jar file " + tempFile.getAbsolutePath() );
+                LOGGER.trace( () -> "reusing existing temp jar file " + tempFile );
             }
 
             return tempFile;

@@ -25,8 +25,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.java.StatisticCounterBundle;
 
-import java.io.File;
 import java.io.Serializable;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -52,7 +52,7 @@ public class LocalDBAdaptor implements LocalDB
     }
 
     @Override
-    public File getFileLocation( )
+    public Path getFileLocation( )
     {
         return innerDB.getFileLocation();
     }
@@ -88,7 +88,8 @@ public class LocalDBAdaptor implements LocalDB
     }
 
     @WriteOperation
-    public void init( final File dbDirectory, final Map<String, String> initParameters, final Map<LocalDBProvider.Parameter, String> parameters ) throws LocalDBException
+    public void init( final Path dbDirectory, final Map<String, String> initParameters, final Map<LocalDBProvider.Parameter, String> parameters )
+            throws LocalDBException
     {
         innerDB.init( dbDirectory, initParameters, parameters );
     }

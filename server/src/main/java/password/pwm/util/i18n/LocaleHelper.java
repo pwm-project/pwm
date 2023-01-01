@@ -494,6 +494,20 @@ public class LocaleHelper
         return getLocalizedMessage( locale, Display.Value_NotApplicable, null );
     }
 
+    public static String orNotApplicable( final Object input, final Locale locale )
+    {
+        if ( input == null )
+        {
+            return valueNotApplicable( locale );
+        }
+        final String stringValue = input.toString();
+        if ( StringUtil.isEmpty( stringValue ) )
+        {
+            return valueNotApplicable( locale );
+        }
+        return stringValue;
+    }
+
     public static TextDirection textDirectionForLocale( final PwmDomain pwmDomain, final Locale locale )
     {
         final String rtlRegex = pwmDomain.getConfig().readAppProperty( AppProperty.L10N_RTL_REGEX );

@@ -52,7 +52,7 @@ public enum PwmAboutProperty
     app_instanceID( "App InstanceID", PwmApplication::getInstanceID ),
     app_trialMode( null, pwmApplication -> Boolean.toString( PwmConstants.TRIAL_MODE ) ),
     app_deployment_type( null, pwmApplication -> pwmApplication.getPwmEnvironment().getDeploymentPlatform().name() ),
-    app_applicationPath( null, pwmApplication -> pwmApplication.getPwmEnvironment().getApplicationPath().getAbsolutePath() ),
+    app_applicationPath( null, pwmApplication -> pwmApplication.getPwmEnvironment().getApplicationPath().toString() ),
     app_wordlistSize( null, pwmApplication -> Long.toString( pwmApplication.getWordlistService().size() ) ),
     app_sharedHistorySize( null, pwmApplication -> Long.toString( pwmApplication.getSharedHistoryManager().size() ) ),
     app_sharedHistoryOldestTime( null, pwmApplication -> format( pwmApplication.getSharedHistoryManager().getOldestEntryTime() ) ),

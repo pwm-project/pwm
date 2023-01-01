@@ -88,7 +88,7 @@ public class LocalDBHealthChecker implements HealthSupplier
         final long minFreeSpace = JavaHelper.silentParseLong( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_DISK_MIN_FREE_WARNING ), 500_000_000 );
         final long freeSpace = FileSystemUtility.diskSpaceRemaining( pwmApplication.getLocalDB().getFileLocation() );
 
-        if ( freeSpace < minFreeSpace )
+        if ( freeSpace > 0 && freeSpace < minFreeSpace )
         {
             final String spaceValue = StringUtil.formatDiskSizeforDebug( freeSpace );
             return Collections.singletonList( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.LocalDB_LowDiskSpace, spaceValue ) );

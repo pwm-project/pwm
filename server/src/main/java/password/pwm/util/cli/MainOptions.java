@@ -22,28 +22,26 @@ package password.pwm.util.cli;
 
 import password.pwm.util.logging.PwmLogLevel;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainOptions implements Serializable
+public class MainOptions
 {
     private static final String OPT_DEBUG_LEVEL = "-debugLevel";
     private static final String OPT_APP_PATH = "-applicationPath";
     private static final String OPT_FORCE = "-force";
 
-
     private PwmLogLevel pwmLogLevel;
-    private File applicationPath;
+    private Path applicationPath;
     private boolean forceFlag;
     private List<String> remainingArguments;
 
     MainOptions(
             final PwmLogLevel pwmLogLevel,
-            final File applicationPath,
+            final Path applicationPath,
             final boolean forceFlag,
             final List<String> remainingArguments
 
@@ -60,7 +58,7 @@ public class MainOptions implements Serializable
         return pwmLogLevel;
     }
 
-    public File getApplicationPath( )
+    public Path getApplicationPath( )
     {
         return applicationPath;
     }
@@ -81,7 +79,7 @@ public class MainOptions implements Serializable
     )
     {
         PwmLogLevel pwmLogLevel = null;
-        File applicationPath = null;
+        Path applicationPath = null;
         boolean forceFlag = false;
         final List<String> remainingArguments;
 
@@ -123,7 +121,7 @@ public class MainOptions implements Serializable
                         else
                         {
                             final String pathStr = arg.substring( OPT_APP_PATH.length() + 1 );
-                            applicationPath = new File( pathStr );
+                            applicationPath = Path.of( pathStr );
                         }
                     }
                     else if ( OPT_FORCE.equals( arg ) )

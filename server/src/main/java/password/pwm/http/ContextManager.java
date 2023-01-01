@@ -56,10 +56,8 @@ import password.pwm.util.secure.X509Utils;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpSession;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.cert.X509Certificate;
@@ -74,29 +72,27 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ContextManager implements Serializable
+public class ContextManager
 {
-    private static final long serialVersionUID = 1L;
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( ContextManager.class );
     private static final SessionLabel SESSION_LABEL = SessionLabel.CONTEXT_SESSION_LABEL;
 
     private static final TimeDuration RESTART_DELAY = TimeDuration.of( 5, TimeDuration.Unit.SECONDS );
 
-    private final transient ServletContext servletContext;
+    private final ServletContext servletContext;
     private final String contextPath;
 
-    private transient ScheduledExecutorService taskMaster;
+    private ScheduledExecutorService taskMaster;
 
-    private transient volatile PwmApplication pwmApplication;
-    private transient ConfigurationFileManager configReader;
+    private volatile PwmApplication pwmApplication;
+    private ConfigurationFileManager configReader;
     private ErrorInformation startupErrorInformation;
 
     private final AtomicInteger restartCount = new AtomicInteger( 0 );
     private TimeDuration readApplicationLockMaxWait = TimeDuration.of( 10, TimeDuration.Unit.SECONDS );
     private final AtomicBoolean restartInProgressFlag = new AtomicBoolean();
 
-    private File applicationPath;
+    private Path applicationPath;
 
     public static final String UNSPECIFIED_VALUE = "unspecified";
 
@@ -205,7 +201,7 @@ public class ContextManager implements Serializable
             return;
         }
 
-        File configurationFile = null;
+        Path configurationFile = null;
         try
         {
             configurationFile = locateConfigurationFile( applicationPath, PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
@@ -231,7 +227,7 @@ public class ContextManager implements Serializable
         }
 
         {
-            final String filename = configurationFile == null ? "null" : configurationFile.getAbsoluteFile().getAbsolutePath();
+            final String filename = configurationFile == null ? "null" : configurationFile.toString();
             LOGGER.debug( SESSION_LABEL, () -> "configuration file was loaded from " + ( filename ) );
         }
 
@@ -286,7 +282,7 @@ public class ContextManager implements Serializable
 
     private ProcessStatus initializeApplicationPath()
     {
-        EnvironmentProperty.readApplicationPath( this.servletContext ).ifPresent( appPath -> this.applicationPath = appPath.toFile() );
+        this.applicationPath = EnvironmentProperty.readApplicationPath( this.servletContext ).orElse( null );
 
         if ( this.applicationPath == null )
         {
@@ -294,7 +290,7 @@ public class ContextManager implements Serializable
             return ProcessStatus.Halt;
         }
 
-        if ( !this.applicationPath.exists() )
+        if ( !Files.exists( this.applicationPath ) )
         {
             startupErrorInformation = new ErrorInformation( PwmError.ERROR_ENVIRONMENT_ERROR, "specified application path does not exist" );
             return ProcessStatus.Halt;
@@ -425,10 +421,17 @@ public class ContextManager implements Serializable
         {
             if ( configReader != null )
             {
-                if ( configReader.modifiedSinceLoad() )
+                try
                 {
-                    LOGGER.info( SESSION_LABEL, () -> "configuration file modification has been detected" );
-                    requestPwmApplicationRestart();
+                    if ( configReader.modifiedSinceLoad() )
+                    {
+                        LOGGER.info( SESSION_LABEL, () -> "configuration file modification has been detected" );
+                        requestPwmApplicationRestart();
+                    }
+                }
+                catch ( final IOException e )
+                {
+                    LOGGER.warn( SESSION_LABEL, () -> "error checking for config file modifications: " + e.getMessage() );
                 }
             }
         }
@@ -436,7 +439,7 @@ public class ContextManager implements Serializable
 
     private class SilentPropertiesFileWatcher implements Runnable
     {
-        private final File silentPropertiesFile;
+        private final Path silentPropertiesFile;
 
         SilentPropertiesFileWatcher()
         {
@@ -448,32 +451,32 @@ public class ContextManager implements Serializable
         {
             if ( pwmApplication == null || pwmApplication.getApplicationMode() == PwmApplicationMode.NEW )
             {
-                if ( silentPropertiesFile.exists() )
+                if ( Files.exists( silentPropertiesFile ) )
                 {
                     boolean success = false;
-                    LOGGER.info( SESSION_LABEL, () -> "file " + silentPropertiesFile.getAbsolutePath() + " has appeared, will import as configuration" );
+                    LOGGER.info( SESSION_LABEL, () -> "file " + silentPropertiesFile + " has appeared, will import as configuration" );
                     try
                     {
                         final PropertyConfigurationImporter importer = new PropertyConfigurationImporter();
 
                         final StoredConfiguration storedConfiguration;
-                        try ( InputStream fileInputStream = Files.newInputStream( silentPropertiesFile.toPath() ) )
+                        try ( InputStream fileInputStream = Files.newInputStream( silentPropertiesFile ) )
                         {
                             storedConfiguration = importer.readConfiguration( fileInputStream );
                         }
 
                         configReader.saveConfiguration( storedConfiguration, pwmApplication );
-                        LOGGER.info( SESSION_LABEL, () -> "file " + silentPropertiesFile.getAbsolutePath() + " has been successfully imported and saved as configuration file" );
+                        LOGGER.info( SESSION_LABEL, () -> "file " + silentPropertiesFile + " has been successfully imported and saved as configuration file" );
                         requestPwmApplicationRestart();
                         success = true;
                     }
                     catch ( final Exception e )
                     {
-                        LOGGER.error( SESSION_LABEL, () -> "error importing " + silentPropertiesFile.getAbsolutePath() + ", error: " + e.getMessage() );
+                        LOGGER.error( SESSION_LABEL, () -> "error importing " + silentPropertiesFile + ", error: " + e.getMessage() );
                     }
 
                     final String appendValue = success ? ".imported" : ".error";
-                    final Path source = silentPropertiesFile.toPath();
+                    final Path source = silentPropertiesFile;
                     final Path dest = source.resolveSibling( "silent.properties" + appendValue );
 
                     try
@@ -583,19 +586,19 @@ public class ContextManager implements Serializable
         return servletContext;
     }
 
-    private File locateConfigurationFile( final File applicationPath, final String filename )
+    private Path locateConfigurationFile( final Path applicationPath, final String filename )
     {
-        return new File( applicationPath.getAbsolutePath() + File.separator + filename );
+        return applicationPath.resolve( filename );
     }
 
-    public Optional<File> locateWebInfFilePath( )
+    public Optional<Path> locateWebInfFilePath( )
     {
         final String realPath = servletContext.getRealPath( "/WEB-INF" );
 
         if ( realPath != null )
         {
-            final File servletPath = new File( realPath );
-            if ( servletPath.exists() )
+            final Path servletPath = Path.of( realPath );
+            if ( Files.exists( servletPath ) )
             {
                 return Optional.of( servletPath );
             }

@@ -117,7 +117,7 @@ public final class JavaHelper
     public static long copy( final InputStream input, final OutputStream output )
             throws IOException
     {
-        return IOUtils.copyLarge( input, output, 0, -1 );
+        return input.transferTo( output );
     }
 
 
@@ -157,8 +157,10 @@ public final class JavaHelper
     public static void copy( final String input, final OutputStream output, final Charset charset )
             throws IOException
     {
-        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream( input.getBytes( charset ) );
-        JavaHelper.copy( byteArrayInputStream, output );
+        try ( ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream( input.getBytes( charset ) ) )
+        {
+            byteArrayInputStream.transferTo( output );
+        }
     }
 
     public static long copyWhilePredicate(

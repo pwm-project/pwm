@@ -27,8 +27,8 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.Serializable;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.PreparedStatement;
@@ -58,7 +58,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     private static final String WIDTH_KEY = String.valueOf( LocalDB.MAX_KEY_LENGTH );
 
     protected Driver driver;
-    protected File dbDirectory;
+    protected Path dbDirectory;
 
     // cache of dbIterators
     private final Set<LocalDB.LocalDBIterator<Map.Entry<String, String>>> dbIterators = Collections.newSetFromMap(
@@ -280,7 +280,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     }
 
     @Override
-    public void init( final File dbDirectory, final Map<String, String> initParams, final Map<Parameter, String> parameters )
+    public void init( final Path dbDirectory, final Map<String, String> initParams, final Map<Parameter, String> parameters )
             throws LocalDBException
     {
         this.dbDirectory = dbDirectory;
@@ -603,7 +603,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     }
 
     abstract Connection openConnection(
-            File databaseDirectory,
+            Path databaseDirectory,
             String driverClasspath,
             Map<String, String> initParams
     ) throws LocalDBException;
@@ -688,7 +688,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     }
 
     @Override
-    public File getFileLocation( )
+    public Path getFileLocation( )
     {
         return dbDirectory;
     }

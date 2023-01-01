@@ -40,9 +40,9 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.ws.server.rest.RestChallengesServer;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Iterator;
@@ -55,7 +55,7 @@ public class ImportResponsesCommand extends AbstractCliCommand
     {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
-        final File inputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
+        final Path inputFile = ( Path ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
 
         try
         {
@@ -67,12 +67,12 @@ public class ImportResponsesCommand extends AbstractCliCommand
         }
     }
 
-    private void doImport( final PwmApplication pwmApplication,  final File inputFile )
+    private void doImport( final PwmApplication pwmApplication,  final Path inputFile )
             throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final Iterator<String> lineIterator = Files.lines( inputFile.toPath() ).iterator();
+        final Iterator<String> lineIterator = Files.lines( inputFile ).iterator();
 
-        out( "importing stored responses from " + inputFile.getAbsolutePath() + "...." );
+        out( "importing stored responses from " + inputFile + "...." );
 
         int counter = 0;
         final Instant startTime = Instant.now();

@@ -25,8 +25,8 @@ import password.pwm.util.cli.CliParameters;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBUtility;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collections;
 
 public class ImportLocalDBCommand extends AbstractCliCommand
@@ -48,7 +48,7 @@ public class ImportLocalDBCommand extends AbstractCliCommand
         }
 
         final LocalDBUtility pwmDBUtility = new LocalDBUtility( localDB );
-        final File inputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
+        final Path inputFile = ( Path ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
         try
         {
             pwmDBUtility.importLocalDB( inputFile, System.out );

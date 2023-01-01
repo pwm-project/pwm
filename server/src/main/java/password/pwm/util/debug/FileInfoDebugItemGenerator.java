@@ -27,11 +27,11 @@ import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,17 +50,17 @@ class FileInfoDebugItemGenerator implements AppItemGenerator
             throws IOException
     {
         final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
-        final File applicationPath = pwmApplication.getPwmEnvironment().getApplicationPath();
-        final List<File> interestedFiles = new ArrayList<>();
+        final Path applicationPath = pwmApplication.getPwmEnvironment().getApplicationPath();
+        final List<Path> interestedFiles = new ArrayList<>();
 
         if ( pwmApplication.getPwmEnvironment().getContextManager() != null )
         {
             try
             {
-                final Optional<File> webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
-                if ( webInfPath.isPresent() && webInfPath.get().exists() )
+                final Optional<Path> webInfPath = pwmApplication.getPwmEnvironment().getContextManager().locateWebInfFilePath();
+                if ( webInfPath.isPresent() && Files.exists( webInfPath.get() ) )
                 {
-                    final File servletRootPath = webInfPath.get().getParentFile();
+                    final Path servletRootPath = webInfPath.get().getParent();
 
                     if ( servletRootPath != null )
                     {
@@ -97,18 +97,18 @@ class FileInfoDebugItemGenerator implements AppItemGenerator
             csvPrinter.printComment( StringUtil.join( headerRow, "," ) );
         }
 
-        final Iterator<FileSystemUtility.FileSummaryInformation> iter = FileSystemUtility.readFileInformation( interestedFiles );
-        while ( iter.hasNext() )
+        final List<FileSystemUtility.FileSummaryInformation> fileSummaries = FileSystemUtility.readFileInformation( interestedFiles );
+        for ( final FileSystemUtility.FileSummaryInformation fileSummaryInformation : fileSummaries )
         {
-            final FileSystemUtility.FileSummaryInformation fileSummaryInformation = iter.next();
             try
             {
-                final List<String> dataRow = new ArrayList<>();
-                dataRow.add( fileSummaryInformation.getFilepath() );
-                dataRow.add( fileSummaryInformation.getFilename() );
-                dataRow.add( StringUtil.toIsoDate( fileSummaryInformation.getModified() ) );
-                dataRow.add( String.valueOf( fileSummaryInformation.getSize() ) );
-                dataRow.add( fileSummaryInformation.getSha512Hash() );
+                final List<String> dataRow = List.of(
+                        fileSummaryInformation.getFilepath(),
+                        fileSummaryInformation.getFilename(),
+                        StringUtil.toIsoDate( fileSummaryInformation.getModified() ),
+                        String.valueOf( fileSummaryInformation.getSize() ),
+                        fileSummaryInformation.getSha512Hash() );
+
                 csvPrinter.printRecord( dataRow );
             }
             catch ( final Exception e )

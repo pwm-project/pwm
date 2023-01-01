@@ -31,11 +31,12 @@ import jetbrains.exodus.env.Store;
 import jetbrains.exodus.env.StoreConfig;
 import jetbrains.exodus.env.Transaction;
 import password.pwm.bean.TelemetryPublishBean;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.json.JsonFactory;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Iterator;
 
@@ -49,23 +50,23 @@ public class Storage
 
     public Storage( final Settings settings ) throws IOException
     {
-        final String path = settings.getSetting( Settings.Setting.storagePath );
-        if ( path == null )
+        final String pathStr = settings.getSetting( Settings.Setting.storagePath );
+        if ( pathStr == null )
         {
             throw new IOException( "data path is not specified!" );
         }
 
-        final File dataPath = new File( path );
-        if ( !dataPath.exists() )
+        final Path dataPath = Path.of( pathStr );
+        if ( !Files.exists( dataPath ) )
         {
             throw new IOException( "data path '" + dataPath + "' does not exist" );
         }
 
-        final File storagePath = new File( dataPath.getAbsolutePath() + File.separator + "storage" );
-        mkdirs( storagePath );
+        final Path storagePath = dataPath.resolve( "storage" );
+        Files.createDirectories( storagePath );
 
         final EnvironmentConfig environmentConfig = new EnvironmentConfig();
-        environment = Environments.newInstance( storagePath.getAbsolutePath(), environmentConfig );
+        environment = Environments.newInstance( storagePath.toFile(), environmentConfig );
 
         LOGGER.info( () -> "environment open" );
 
@@ -219,22 +220,4 @@ public class Storage
             throw new UnsupportedOperationException( "remove not supported" );
         }
     }
-
-    static void mkdirs( final File file ) throws IOException
-    {
-        if ( file.exists() )
-        {
-            if ( file.isDirectory() )
-            {
-                return;
-            }
-            throw new IOException( "path already exists as file: " + file.getAbsolutePath() );
-        }
-
-        if ( !file.mkdirs() )
-        {
-            throw new IOException( "unable to create path " + file.getAbsolutePath() );
-        }
-    }
-
 }

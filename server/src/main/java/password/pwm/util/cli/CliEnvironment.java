@@ -27,8 +27,8 @@ import password.pwm.config.AppConfig;
 import password.pwm.config.stored.ConfigurationFileManager;
 import password.pwm.util.localdb.LocalDB;
 
-import java.io.File;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.Map;
 
 @Value
@@ -36,9 +36,9 @@ import java.util.Map;
 public class CliEnvironment
 {
     final ConfigurationFileManager configurationFileManager;
-    final File configurationFile;
+    final Path configurationFile;
     final AppConfig config;
-    final File applicationPath;
+    final Path applicationPath;
     final PwmApplication pwmApplication;
     final LocalDB localDB;
     final Writer debugWriter;

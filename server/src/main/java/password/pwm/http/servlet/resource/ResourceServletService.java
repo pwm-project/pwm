@@ -33,9 +33,9 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
+import password.pwm.util.Percent;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.Percent;
 import password.pwm.util.java.StatisticAverageBundle;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.TimeDuration;
@@ -43,17 +43,17 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 
 import javax.servlet.ServletContext;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.DigestOutputStream;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -299,37 +299,36 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
 
     private static void checksumResourceFilePath( final PwmDomain pwmDomain, final DigestOutputStream checksumStream )
     {
-        if ( pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager() != null )
+        if ( pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager() == null )
         {
-            try
-            {
-                final Optional<File> webInfPath = pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager().locateWebInfFilePath();
-                if ( webInfPath.isPresent() && webInfPath.get().exists() )
-                {
-                    final File basePath = webInfPath.get().getParentFile();
-                    if ( basePath != null && basePath.exists() )
-                    {
-                        final File resourcePath = new File( basePath.getAbsolutePath() + File.separator + "public" + File.separator + "resources" );
-                        if ( resourcePath.exists() )
-                        {
-                            final Iterator<FileSystemUtility.FileSummaryInformation> iter =
-                                    FileSystemUtility.readFileInformation( Collections.singletonList( resourcePath ) );
-                            {
-                                while ( iter.hasNext()  )
-                                {
-                                    final FileSystemUtility.FileSummaryInformation fileSummaryInformation = iter.next();
-                                    checksumStream.write( fileSummaryInformation.getSha512Hash().getBytes( StandardCharsets.UTF_8 ) );
-                                }
+            return;
+        }
 
+        pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager().locateWebInfFilePath().ifPresent( webInfPath ->
+        {
+            final Path basePath = webInfPath.getParent();
+            if ( basePath != null && Files.exists( basePath ) )
+            {
+                final Path resourcePath = basePath.resolve( "public" ).resolve( "resources" );
+                if ( Files.exists( resourcePath ) )
+                {
+                    final List<FileSystemUtility.FileSummaryInformation> fileSummaryInformations =
+                            FileSystemUtility.readFileInformation( Collections.singletonList( resourcePath ) );
+                    {
+                        for ( final FileSystemUtility.FileSummaryInformation fileSummaryInformation : fileSummaryInformations  )
+                        {
+                            try
+                            {
+                                checksumStream.write( fileSummaryInformation.getSha512Hash().getBytes( StandardCharsets.UTF_8 ) );
+                            }
+                            catch ( final Exception e )
+                            {
+                                LOGGER.error( () -> "unable to generate resource path nonce: " + e.getMessage() );
                             }
                         }
                     }
                 }
             }
-            catch ( final Exception e )
-            {
-                LOGGER.error( () -> "unable to generate resource path nonce: " + e.getMessage() );
-            }
-        }
+        } );
     }
 }

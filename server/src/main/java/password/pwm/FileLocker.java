@@ -28,12 +28,12 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.StringWriter;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Properties;
 
@@ -43,13 +43,13 @@ class FileLocker
 
     private final PwmEnvironment pwmEnvironment;
     private FileLock lock;
-    private final File lockfile;
+    private final Path lockfile;
 
     FileLocker( final PwmEnvironment pwmEnvironment )
     {
         this.pwmEnvironment = pwmEnvironment;
         final String lockfileName = pwmEnvironment.getConfig().readAppProperty( AppProperty.APPLICATION_FILELOCK_FILENAME );
-        lockfile = new File( pwmEnvironment.getApplicationPath(), lockfileName );
+        lockfile = pwmEnvironment.getApplicationPath().resolve( lockfileName );
     }
 
     private boolean lockingAllowed( )
@@ -68,22 +68,22 @@ class FileLocker
         {
             try
             {
-                final RandomAccessFile file = new RandomAccessFile( lockfile, "rw" );
+                final RandomAccessFile file = new RandomAccessFile( lockfile.toFile(), "rw" );
                 final FileChannel f = file.getChannel();
                 lock = f.tryLock();
                 if ( lock != null )
                 {
-                    LOGGER.debug( () -> "obtained file lock on file " + lockfile.getAbsolutePath() + " lock is valid=" + lock.isValid() );
+                    LOGGER.debug( () -> "obtained file lock on file " + lockfile + " lock is valid=" + lock.isValid() );
                     writeLockFileContents( file );
                 }
                 else
                 {
-                    LOGGER.debug( () -> "unable to obtain file lock on file " + lockfile.getAbsolutePath() );
+                    LOGGER.debug( () -> "unable to obtain file lock on file " + lockfile );
                 }
             }
             catch ( final Exception e )
             {
-                LOGGER.error( () -> "unable to obtain file lock on file " + lockfile.getAbsolutePath() + " due to error: " + e.getMessage() );
+                LOGGER.error( () -> "unable to obtain file lock on file " + lockfile + " due to error: " + e.getMessage() );
             }
         }
     }
@@ -94,8 +94,8 @@ class FileLocker
         {
             final Properties props = new Properties();
             props.put( "timestamp", StringUtil.toIsoDate( Instant.now() ) );
-            props.put( "applicationPath", pwmEnvironment.getApplicationPath() == null ? "n/a" : pwmEnvironment.getApplicationPath().getAbsolutePath() );
-            props.put( "configurationFile", pwmEnvironment.getConfigurationFile() == null ? "n/a" : pwmEnvironment.getConfigurationFile().getAbsolutePath() );
+            props.put( "applicationPath", pwmEnvironment.getApplicationPath() == null ? "n/a" : pwmEnvironment.getApplicationPath() );
+            props.put( "configurationFile", pwmEnvironment.getConfigurationFile() == null ? "n/a" : pwmEnvironment.getConfigurationFile() );
             final String comment = PwmConstants.PWM_APP_NAME + " file lock";
             final StringWriter stringWriter = new StringWriter();
             props.store( stringWriter, comment );
@@ -121,7 +121,7 @@ class FileLocker
                 LOGGER.error( () -> "error releasing file lock: " + e.getMessage() );
             }
 
-            LOGGER.debug( () -> "released file lock on file " + lockfile.getAbsolutePath() );
+            LOGGER.debug( () -> "released file lock on file " + lockfile );
         }
     }
 

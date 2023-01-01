@@ -34,11 +34,11 @@ import password.pwm.config.value.StringValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogLevel;
 
-import java.io.File;
+import java.nio.file.Path;
 
 public class TestHelper
 {
-    public static PwmApplication makeTestPwmApplication( final File tempFolder )
+    public static PwmApplication makeTestPwmApplication( final Path tempFolder )
             throws PwmUnrecoverableException
     {
         final StoredConfiguration storedConfiguration = StoredConfigurationFactory.newConfig();
@@ -49,7 +49,7 @@ public class TestHelper
         return makeTestPwmApplication( tempFolder, appConfig );
     }
 
-    public static PwmApplication makeTestPwmApplication( final File tempFolder, final AppConfig appConfig )
+    public static PwmApplication makeTestPwmApplication( final Path tempFolder, final AppConfig appConfig )
             throws PwmUnrecoverableException
     {
         final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()

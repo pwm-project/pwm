@@ -23,7 +23,6 @@ package password.pwm.onejar;
 import org.apache.catalina.LifecycleException;
 
 import javax.servlet.ServletException;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -38,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -78,16 +78,16 @@ public class OnejarMain
     {
         try
         {
-            purgeDirectory( onejarConfig.getWorkingPath().toPath() );
+            purgeDirectory( onejarConfig.getWorkingPath() );
             this.explodeWar( onejarConfig );
             final String cmdLine = onejarConfig.getExecCommand();
             final TomcatOnejarRunner runner = new TomcatOnejarRunner( this );
             final URLClassLoader classLoader = runner.warClassLoaderFromConfig( onejarConfig );
 
-            final Class pwmMainClass = classLoader.loadClass( "password.pwm.util.cli.MainClass" );
+            final Class<?> pwmMainClass = classLoader.loadClass( "password.pwm.util.cli.MainClass" );
             final Method mainMethod = pwmMainClass.getMethod( "main", String[].class );
             final List<String> cmdLineItems = new ArrayList<>( );
-            cmdLineItems.add( "-applicationPath=" + onejarConfig.getApplicationPath().getAbsolutePath() );
+            cmdLineItems.add( "-applicationPath=" + onejarConfig.getApplicationPath() );
             cmdLineItems.addAll( Arrays.asList( cmdLine.split( " " ) ) );
             final String[] arguments = cmdLineItems.toArray( new String[0] );
 
@@ -107,7 +107,7 @@ public class OnejarMain
         {
             try
             {
-                purgeDirectory( onejarConfig.getWorkingPath().toPath() );
+                purgeDirectory( onejarConfig.getWorkingPath() );
                 this.explodeWar( onejarConfig );
                 final TomcatOnejarRunner runner = new TomcatOnejarRunner( this );
                 Runtime.getRuntime().addShutdownHook( new ShutdownThread( runner ) );
@@ -178,38 +178,49 @@ public class OnejarMain
     {
         final InputStream warSource = onejarConfig.getWar();
         final ZipInputStream zipInputStream = new ZipInputStream( warSource );
-        final File outputFolder = onejarConfig.getWarFolder( );
+        final Path outputFolder = onejarConfig.getWarFolder( );
 
-        ArgumentParser.mkdirs( outputFolder );
+        Files.createDirectories( outputFolder );
 
         ZipEntry zipEntry = zipInputStream.getNextEntry();
 
         while ( zipEntry != null )
         {
             final String fileName = zipEntry.getName();
-            final File newFile = new File( outputFolder + File.separator + fileName );
+            final Path newFile = outputFolder.resolve( fileName );
 
             if ( !zipEntry.isDirectory() )
             {
-                ArgumentParser.mkdirs( newFile.getParentFile() );
-                Files.copy( zipInputStream, newFile.toPath() );
+                final Path parentDir = newFile.getParent();
+                if ( parentDir != null
+                        && newFile.startsWith( outputFolder )
+                        && parentDir.startsWith( outputFolder ) )
+                {
+                    Files.createDirectories( parentDir );
+                    Files.copy( zipInputStream, newFile );
+                }
             }
             zipEntry = zipInputStream.getNextEntry();
         }
+
         out( "deployed war" );
     }
 
     private void purgeDirectory( final Path rootPath )
             throws IOException
     {
-        if ( rootPath.toFile().exists() )
+        if ( Files.exists( rootPath ) )
         {
             out( "purging work directory: " + rootPath );
-            Files.walk( rootPath, FileVisitOption.FOLLOW_LINKS )
+            final List<Path> filePaths = Files.walk( rootPath, FileVisitOption.FOLLOW_LINKS )
                     .sorted( Comparator.reverseOrder() )
-                    .map( Path::toFile )
-                    .filter( file -> !rootPath.toString().equals( file.getPath() ) )
-                    .forEach( File::delete );
+                    .filter( path -> !rootPath.equals( path ) )
+                    .collect( Collectors.toList() );
+
+            for ( final Path path : filePaths )
+            {
+                Files.delete( path );
+            }
         }
     }
 }

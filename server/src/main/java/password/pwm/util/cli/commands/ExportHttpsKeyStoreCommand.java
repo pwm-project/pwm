@@ -26,9 +26,10 @@ import password.pwm.util.cli.CliException;
 import password.pwm.util.cli.CliParameters;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyStore;
 import java.util.Arrays;
 
@@ -41,8 +42,8 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand
     void doCommand( )
             throws IOException, PwmUnrecoverableException, CliException
     {
-        final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
-        if ( outputFile.exists() )
+        final Path outputFile = ( Path ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
+        if ( Files.exists( outputFile ) )
         {
             out( "outputFile for ExportHttpsKeyStore cannot already exist" );
             return;
@@ -51,13 +52,16 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand
         final String password = getOptionalPassword();
         final String alias = ( String ) cliEnvironment.getOptions().get( ALIAS_OPTIONNAME );
 
-        final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication( cliEnvironment.getPwmApplication(), new PasswordData( password ), alias );
+        final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication(
+                cliEnvironment.getPwmApplication(),
+                new PasswordData( password ),
+                alias );
 
-        try ( FileOutputStream fos = new FileOutputStream( outputFile ) )
+        try ( OutputStream outputStream = Files.newOutputStream( outputFile ) )
         {
             try
             {
-                keyStore.store( fos, password.toCharArray() );
+                keyStore.store( outputStream, password.toCharArray() );
             }
             catch ( final Exception e )
             {
@@ -65,7 +69,7 @@ public class ExportHttpsKeyStoreCommand extends AbstractCliCommand
             }
         }
 
-        out( "successfully exported java keystore to " + outputFile.getAbsolutePath() );
+        out( "successfully exported java keystore to " + outputFile );
     }
 
     @Override

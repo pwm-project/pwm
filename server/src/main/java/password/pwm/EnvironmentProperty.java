@@ -157,7 +157,7 @@ public enum EnvironmentProperty
                 return Collections.emptyMap();
             }
 
-            final Path propFilePath = Path.of( appPath.toString(), PwmConstants.DEFAULT_ENVIRONMENT_PROPERTIES_FILENAME );
+            final Path propFilePath = appPath.resolve( PwmConstants.DEFAULT_ENVIRONMENT_PROPERTIES_FILENAME );
 
             if ( !Files.exists( propFilePath ) )
             {

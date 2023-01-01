@@ -42,13 +42,12 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.time.Instant;
@@ -65,7 +64,7 @@ public class ConfigurationFileManager
 {
     private static final PwmLogger LOGGER = PwmLogger.getLogger( ConfigurationFileManager.class.getName() );
 
-    private final File configFile;
+    private final Path configFile;
     private final String configFileChecksum;
     private final SessionLabel sessionLabel;
 
@@ -77,13 +76,28 @@ public class ConfigurationFileManager
 
     private volatile boolean saveInProgress;
 
-    public ConfigurationFileManager( final File configFile, final SessionLabel sessionLabel )
+    public ConfigurationFileManager( final Path configFile, final SessionLabel sessionLabel )
             throws PwmUnrecoverableException
     {
         this.configFile = configFile;
         this.sessionLabel = sessionLabel;
 
-        this.configFileChecksum = readFileChecksum( configFile );
+        {
+            String localChecksum = "";
+
+            try
+            {
+                localChecksum = readFileChecksum( configFile );
+            }
+            catch ( final IOException e )
+            {
+                this.configFileError = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, "i/o error: " + e.getMessage() );
+                LOGGER.warn( sessionLabel, () -> "error reading configuration file: " + e.getMessage() );
+            }
+            configFileChecksum = localChecksum;
+        }
+
+
         try
         {
             this.storedConfiguration = readStoredConfig();
@@ -129,16 +143,16 @@ public class ConfigurationFileManager
     {
         LOGGER.debug( sessionLabel, () -> "loading configuration file: " + configFile );
 
-        if ( !configFile.exists() )
+        if ( !Files.exists( configFile ) )
         {
-            LOGGER.warn( sessionLabel, () -> "configuration file '" + configFile.getAbsolutePath() + "' does not exist" );
+            LOGGER.warn( sessionLabel, () -> "configuration file '" + configFile + "' does not exist" );
             return null;
         }
 
         final StoredConfiguration storedConfiguration;
         final Instant startTime = Instant.now();
 
-        try ( InputStream theFileData = new BufferedInputStream( Files.newInputStream( configFile.toPath() ), 1024_1024 ) )
+        try ( InputStream theFileData = Files.newInputStream( configFile ) )
         {
             try
             {
@@ -170,6 +184,9 @@ public class ConfigurationFileManager
             }
 
             ConfigurationVerifier.verifyConfiguration( storedConfiguration );
+
+            final String fileSize = StringUtil.formatDiskSize( Files.size( configFile ) );
+            LOGGER.debug( sessionLabel, () -> "configuration reading/parsing of " + fileSize + " complete", TimeDuration.fromCurrent( startTime ) );
         }
         catch ( final Exception e )
         {
@@ -182,10 +199,6 @@ public class ConfigurationFileManager
             this.configMode = PwmApplicationMode.ERROR;
             throw new PwmUnrecoverableException( errorInformation );
         }
-
-        final String fileSize = StringUtil.formatDiskSize( configFile.length() );
-        LOGGER.debug( sessionLabel, () -> "configuration reading/parsing of " + fileSize + " complete", TimeDuration.fromCurrent( startTime ) );
-
 
         final Optional<String> configIsEditable = storedConfiguration.readConfigProperty( ConfigurationProperty.CONFIG_IS_EDITABLE );
         if ( PwmConstants.TRIAL_MODE || ( configIsEditable.isPresent() && "true".equalsIgnoreCase( configIsEditable.get() ) ) )
@@ -206,7 +219,7 @@ public class ConfigurationFileManager
     )
             throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
-        File backupDirectory = null;
+        Path backupDirectory = null;
         int backupRotations = 0;
         if ( pwmApplication != null )
         {
@@ -214,7 +227,7 @@ public class ConfigurationFileManager
             final String backupDirSetting = domainConfig.readAppProperty( AppProperty.BACKUP_LOCATION );
             if ( backupDirSetting != null && backupDirSetting.length() > 0 )
             {
-                final File pwmPath = pwmApplication.getPwmEnvironment().getApplicationPath();
+                final Path pwmPath = pwmApplication.getPwmEnvironment().getApplicationPath();
                 backupDirectory = FileSystemUtility.figureFilepath( backupDirSetting, pwmPath );
             }
             backupRotations = Integer.parseInt( domainConfig.readAppProperty( AppProperty.BACKUP_CONFIG_COUNT ) );
@@ -240,13 +253,9 @@ public class ConfigurationFileManager
             this.storedConfiguration = modifier.newStoredConfiguration();
         }
 
-        if ( backupDirectory != null && !backupDirectory.exists() )
+        if ( backupDirectory != null && !Files.exists( backupDirectory ) )
         {
-            if ( !backupDirectory.mkdirs() )
-            {
-                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_INTERNAL,
-                        "unable to create backup directory structure '" + backupDirectory + "'" ) );
-            }
+            Files.createDirectories( backupDirectory );
         }
 
         if ( pwmApplication != null && pwmApplication.getAuditService() != null )
@@ -307,18 +316,16 @@ public class ConfigurationFileManager
             final StoredConfiguration storedConfiguration,
             final PwmApplication pwmApplication,
             final int backupRotations,
-            final File backupDirectory
+            final Path backupDirectory
     )
             throws IOException, PwmUnrecoverableException
     {
         final Instant saveFileStartTime = Instant.now();
-        final File tempWriteFile = new File( configFile.getAbsoluteFile() + ".new" );
+        final Path tempWriteFile = FileSystemUtility.addFilenameSuffix( configFile, ".new" );
         LOGGER.info( sessionLabel, () -> "beginning write to configuration file " + tempWriteFile );
         saveInProgress = true;
 
-        try ( OutputStream fileOutputStream = Files.newOutputStream( tempWriteFile.toPath(),
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING ) )
+        try ( OutputStream fileOutputStream = Files.newOutputStream( tempWriteFile ) )
         {
             StoredConfigurationFactory.output( storedConfiguration, fileOutputStream );
         }
@@ -330,25 +337,24 @@ public class ConfigurationFileManager
             pwmApplication.writeAppAttribute( AppAttribute.CONFIG_HASH, actualChecksum );
         }
 
-        LOGGER.trace( sessionLabel, () -> "renaming file " + tempWriteFile.getAbsolutePath() + " to " + configFile.getAbsolutePath() );
+        LOGGER.trace( sessionLabel, () -> "renaming file " + tempWriteFile + " to " + configFile );
         try
         {
-            Files.move( tempWriteFile.toPath(), configFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE );
+            Files.move( tempWriteFile, configFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE );
         }
         catch ( final Exception e )
         {
-            final String errorMsg = "unable to rename temporary save file from " + tempWriteFile.getAbsolutePath()
-                    + " to " + configFile.getAbsolutePath() + "; error: " + e.getMessage();
+            final String errorMsg = "unable to rename temporary save file from " + tempWriteFile
+                    + " to " + configFile + "; error: " + e.getMessage();
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg ) );
         }
 
-        if ( backupDirectory != null )
+        if ( backupDirectory != null && configFile != null && configFile.getFileName() != null )
         {
-            final String configFileName = configFile.getName();
-            final String backupFilePath = backupDirectory.getAbsolutePath() + File.separatorChar + configFileName + "-backup";
-            final File backupFile = new File( backupFilePath );
+            final String configFileName = configFile.getFileName().toString();
+            final Path backupFile = backupDirectory.resolve( configFileName + "-backup" );
             FileSystemUtility.rotateBackups( backupFile, backupRotations );
-            try ( OutputStream fileOutputStream = Files.newOutputStream( backupFile.toPath(),
+            try ( OutputStream fileOutputStream = Files.newOutputStream( backupFile,
                     StandardOpenOption.CREATE,
                     StandardOpenOption.TRUNCATE_EXISTING ) )
             {
@@ -358,19 +364,21 @@ public class ConfigurationFileManager
     }
 
     public boolean modifiedSinceLoad( )
+            throws IOException
     {
         final String currentChecksum = readFileChecksum( configFile );
         return !currentChecksum.equals( configFileChecksum );
     }
 
-    private static String readFileChecksum( final File file )
+    private static String readFileChecksum( final Path file )
+            throws IOException
     {
-        if ( !file.exists() )
+        if ( !Files.exists( file ) )
         {
             return "";
         }
 
-        return file.lastModified() + "+" + file.length();
+        return Files.getLastModifiedTime( file ) + "+" + Files.size( file );
     }
 
     public ErrorInformation getConfigFileError( )
@@ -378,7 +386,7 @@ public class ConfigurationFileManager
         return configFileError;
     }
 
-    public File getConfigFile( )
+    public Path getConfigFile( )
     {
         return configFile;
     }

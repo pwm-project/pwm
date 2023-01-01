@@ -39,10 +39,10 @@ import password.pwm.util.json.JsonFactory;
 import password.pwm.ws.server.rest.RestChallengesServer;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
@@ -58,11 +58,11 @@ public class ExportResponsesCommand extends AbstractCliCommand
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
         final Instant startTime = Instant.now();
-        final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
+        final Path outputFile = ( Path ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
 
         long counter = 0;
 
-        try ( Writer writer = new BufferedWriter( new PrintWriter( outputFile, PwmConstants.DEFAULT_CHARSET.toString() ) ); )
+        try ( Writer writer = new BufferedWriter( new PrintWriter( outputFile.toFile(), PwmConstants.DEFAULT_CHARSET.toString() ) ); )
         {
             for ( final PwmDomain pwmDomain : pwmApplication.domains().values() )
             {

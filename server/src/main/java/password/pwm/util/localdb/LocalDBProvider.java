@@ -20,8 +20,8 @@
 
 package password.pwm.util.localdb;
 
-import java.io.File;
 import java.io.Serializable;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -54,7 +54,7 @@ public interface LocalDBProvider
             throws LocalDBException;
 
     @LocalDB.WriteOperation
-    void init( File dbDirectory, Map<String, String> initParameters, Map<Parameter, String> parameters )
+    void init( Path dbDirectory, Map<String, String> initParameters, Map<Parameter, String> parameters )
             throws LocalDBException;
 
     LocalDB.LocalDBIterator<Map.Entry<String, String>> iterator( LocalDB.DB db )
@@ -88,7 +88,7 @@ public interface LocalDBProvider
     void truncate( LocalDB.DB db )
             throws LocalDBException;
 
-    File getFileLocation( );
+    Path getFileLocation( );
 
     LocalDB.Status getStatus( );
 

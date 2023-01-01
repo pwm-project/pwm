@@ -20,17 +20,17 @@
 
 package password.pwm.http.servlet.resource;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 
 class RealFileResource implements FileResource
 {
-    private final File realFile;
+    private final Path realFile;
 
-    RealFileResource( final File realFile )
+    RealFileResource( final Path realFile )
     {
         this.realFile = realFile;
     }
@@ -38,24 +38,27 @@ class RealFileResource implements FileResource
     @Override
     public InputStream getInputStream( ) throws IOException
     {
-        return Files.newInputStream( realFile.toPath() );
+        return Files.newInputStream( realFile );
     }
 
     @Override
     public long length( )
+            throws IOException
     {
-        return realFile.length();
+        return Files.size( realFile );
     }
 
     @Override
     public Instant lastModified( )
+            throws IOException
     {
-        return Instant.ofEpochMilli( realFile.lastModified() );
+        return Files.getLastModifiedTime( realFile ).toInstant();
     }
 
     @Override
     public String getName( )
     {
-        return realFile.getAbsolutePath();
+        final Path fileName = realFile.getFileName();
+        return fileName == null ? "" : fileName.toString();
     }
 }

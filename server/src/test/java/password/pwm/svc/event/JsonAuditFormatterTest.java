@@ -57,7 +57,7 @@ public class JsonAuditFormatterTest
         final String expectedOutput = PwmConstants.PWM_APP_NAME + " " + JsonFactory.get().serialize( auditRecord );
         final AuditFormatter auditFormatter = new JsonAuditFormatter();
 
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.toFile() );
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder );
 
         final String output = auditFormatter.convertAuditRecordToMessage( pwmApplication, auditRecord );
         Assertions.assertEquals( expectedOutput, output );

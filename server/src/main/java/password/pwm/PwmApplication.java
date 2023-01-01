@@ -67,7 +67,9 @@ import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.PwmLogManager;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -157,16 +159,16 @@ public class PwmApplication
         // clear temp dir
         if ( !pwmEnvironment.isInternalRuntimeInstance() )
         {
-            final File tempFileDirectory = getTempDirectory();
+            final Path tempFileDirectory = getTempDirectory();
             try
             {
                 LOGGER.debug( sessionLabel, () -> "deleting directory (and sub-directory) contents in " + tempFileDirectory );
-                FileSystemUtility.deleteDirectoryContentsRecursively( tempFileDirectory.toPath() );
+                FileSystemUtility.deleteDirectoryContentsRecursively( tempFileDirectory );
             }
             catch ( final Exception e )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR,
-                        "unable to clear temp file directory '" + tempFileDirectory.getAbsolutePath() + "', error: " + e.getMessage()
+                        "unable to clear temp file directory '" + tempFileDirectory + "', error: " + e.getMessage()
                 ) );
             }
         }
@@ -174,8 +176,8 @@ public class PwmApplication
         if ( getApplicationMode() != PwmApplicationMode.READ_ONLY )
         {
             LOGGER.info( sessionLabel, () -> "initializing, application mode=" + getApplicationMode()
-                    + ", applicationPath=" + ( pwmEnvironment.getApplicationPath() == null ? "null" : pwmEnvironment.getApplicationPath().getAbsolutePath() )
-                    + ", configFile=" + ( pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile().getAbsolutePath() )
+                    + ", applicationPath=" + ( pwmEnvironment.getApplicationPath() == null ? "null" : pwmEnvironment.getApplicationPath() )
+                    + ", configFile=" + ( pwmEnvironment.getConfigurationFile() == null ? "null" : pwmEnvironment.getConfigurationFile() )
             );
         }
 
@@ -768,7 +770,8 @@ public class PwmApplication
         return this.getConfig().isMultiDomain();
     }
 
-    public File getTempDirectory( ) throws PwmUnrecoverableException
+    public Path getTempDirectory( )
+            throws PwmUnrecoverableException
     {
         if ( pwmEnvironment.getApplicationPath() == null )
         {
@@ -778,21 +781,21 @@ public class PwmApplication
             );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        final File tempDirectory = new File( pwmEnvironment.getApplicationPath() + File.separator + "temp" );
-        if ( !tempDirectory.exists() )
+        final Path tempDirectory = pwmEnvironment.getApplicationPath().resolve( "temp" );
+        if ( !Files.exists( tempDirectory ) )
         {
-            LOGGER.trace( () -> "preparing to create temporary directory " + tempDirectory.getAbsolutePath() );
-            if ( tempDirectory.mkdir() )
+            LOGGER.trace( () -> "preparing to create temporary directory " + tempDirectory );
+            try
             {
-                LOGGER.debug( () -> "created " + tempDirectory.getAbsolutePath() );
+                Files.createDirectories( tempDirectory );
+                LOGGER.debug( () -> "created " + tempDirectory );
             }
-            else
+            catch ( final IOException e )
             {
-                LOGGER.debug( () -> "unable to create temporary directory " + tempDirectory.getAbsolutePath() );
+                LOGGER.debug( () -> "unable to create temporary directory " + tempDirectory );
                 final ErrorInformation errorInformation = new ErrorInformation(
                         PwmError.ERROR_STARTUP_ERROR,
-                        "unable to establish create temp work directory " + tempDirectory.getAbsolutePath()
-                );
+                        "unable to establish create temp work directory " + tempDirectory );
                 throw new PwmUnrecoverableException( errorInformation );
             }
         }

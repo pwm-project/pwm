@@ -45,10 +45,10 @@ import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.X509Utils;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyStore;
 import java.time.Instant;
 import java.util.List;
@@ -67,7 +67,7 @@ class PwmApplicationUtil
     static LocalDB initializeLocalDB( final PwmApplication pwmApplication, final PwmEnvironment pwmEnvironment )
             throws PwmUnrecoverableException
     {
-        final File databaseDirectory;
+        final Path databaseDirectory;
 
         try
         {
@@ -181,14 +181,14 @@ class PwmApplicationUtil
                 return;
             }
 
-            final File keyStoreFile = new File( keystoreFileString.get() );
+            final Path keyStoreFile = Path.of( keystoreFileString.get() );
             final String password = pwmEnvironment.readProperty( EnvironmentProperty.AutoExportHttpsKeyStorePassword )
                     .orElseThrow( () -> new IllegalArgumentException( "keystore export property is configured, but keystore password is not specified " ) );
             final String alias = pwmEnvironment.readProperty( EnvironmentProperty.AutoExportHttpsKeyStoreAlias )
                     .orElseThrow( () -> new IllegalArgumentException( "keystore export property is configured, but keystore alias is not specified " ) );
             final KeyStore keyStore = HttpsServerCertificateManager.keyStoreForApplication( pwmApplication, new PasswordData( password ), alias );
             X509Utils.outputKeystore( keyStore, keyStoreFile, password );
-            LOGGER.info( pwmApplication.getSessionLabel(), () -> "exported application https key to keystore file " + keyStoreFile.getAbsolutePath() );
+            LOGGER.info( pwmApplication.getSessionLabel(), () -> "exported application https key to keystore file " + keyStoreFile );
         }
         catch ( final Exception e )
         {
@@ -209,17 +209,17 @@ class PwmApplicationUtil
         {
             LOGGER.trace( pwmApplication.getSessionLabel(),
                     () -> "attempting to output tomcat configuration file as configured by environment parameters to " + tomcatOutputFileStr );
-            final File tomcatOutputFile = new File( tomcatOutputFileStr.get() );
-            final File tomcatSourceFile;
+            final Path tomcatOutputFile = Path.of( tomcatOutputFileStr.get() );
+            final Path tomcatSourceFile;
             {
                 final Optional<String> tomcatSourceFileStr = pwmEnvironment.readProperty( EnvironmentProperty.AutoWriteTomcatConfSourceFile );
                 if ( tomcatSourceFileStr.isPresent() )
                 {
-                    tomcatSourceFile = new File( tomcatSourceFileStr.get() );
-                    if ( !tomcatSourceFile.exists() )
+                    tomcatSourceFile = Path.of( tomcatSourceFileStr.get() );
+                    if ( !Files.exists( tomcatSourceFile ) )
                     {
                         LOGGER.error( pwmApplication.getSessionLabel(),
-                                () -> "can not output tomcat configuration file, source file does not exist: " + tomcatSourceFile.getAbsolutePath() );
+                                () -> "can not output tomcat configuration file, source file does not exist: " + tomcatSourceFile );
                         return;
                     }
                 }
@@ -234,7 +234,7 @@ class PwmApplicationUtil
 
             try ( ByteArrayOutputStream outputContents = new ByteArrayOutputStream() )
             {
-                try ( InputStream fileInputStream = Files.newInputStream( tomcatOutputFile.toPath() ) )
+                try ( InputStream fileInputStream = Files.newInputStream( tomcatOutputFile ) )
                 {
                     ExportHttpsTomcatConfigCommand.TomcatConfigWriter.writeOutputFile(
                             pwmApplication.getConfig(),
@@ -243,22 +243,20 @@ class PwmApplicationUtil
                     );
                 }
 
-                if ( tomcatOutputFile.exists() )
+                if ( Files.exists( tomcatOutputFile ) )
                 {
-                    LOGGER.trace( pwmApplication.getSessionLabel(), () -> "deleting existing tomcat configuration file " + tomcatOutputFile.getAbsolutePath() );
-                    if ( tomcatOutputFile.delete() )
-                    {
-                        LOGGER.trace( pwmApplication.getSessionLabel(), () -> "deleted existing tomcat configuration file: " + tomcatOutputFile.getAbsolutePath() );
-                    }
+                    LOGGER.trace( pwmApplication.getSessionLabel(), () -> "deleting existing tomcat configuration file " + tomcatOutputFile );
+                    Files.delete( tomcatOutputFile );
+                    LOGGER.trace( pwmApplication.getSessionLabel(), () -> "deleted existing tomcat configuration file: " + tomcatOutputFile );
                 }
 
-                try ( OutputStream fileOutputStream = Files.newOutputStream( tomcatOutputFile.toPath() ) )
+                try ( OutputStream fileOutputStream = Files.newOutputStream( tomcatOutputFile ) )
                 {
                     fileOutputStream.write( outputContents.toByteArray() );
                 }
             }
 
-            LOGGER.info( pwmApplication.getSessionLabel(), () -> "successfully wrote tomcat configuration to file " + tomcatOutputFile.getAbsolutePath() );
+            LOGGER.info( pwmApplication.getSessionLabel(), () -> "successfully wrote tomcat configuration to file " + tomcatOutputFile );
         }
         catch ( final Exception e )
         {

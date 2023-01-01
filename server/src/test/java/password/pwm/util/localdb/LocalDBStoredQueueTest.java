@@ -28,7 +28,6 @@ import org.junit.jupiter.api.io.TempDir;
 import password.pwm.PwmApplication;
 import password.pwm.util.java.FileSystemUtility;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -48,7 +47,7 @@ public class LocalDBStoredQueueTest
     @BeforeEach
     public void setUp() throws Exception
     {
-        final File localDbTestFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-stored-queue-test" );
+        final Path localDbTestFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-stored-queue-test" );
         final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( localDbTestFolder );
         localDB = LocalDBFactory.getInstance( localDbTestFolder, false, pwmApplication.getPwmEnvironment(), pwmApplication.getConfig() );
         localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue( localDB, LocalDB.DB.TEMP, true );

@@ -39,7 +39,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.TestHelper;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -57,7 +56,7 @@ public class PasswordRuleChecksTest
     @BeforeEach
     void beforeAll() throws Exception
     {
-        final File localDbTestFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-stored-queue-test" );
+        final Path localDbTestFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-stored-queue-test" );
         this.pwmApplication = TestHelper.makeTestPwmApplication( localDbTestFolder );
     }
 

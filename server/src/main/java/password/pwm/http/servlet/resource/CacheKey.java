@@ -22,6 +22,7 @@ package password.pwm.http.servlet.resource;
 
 import lombok.Value;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
@@ -34,6 +35,7 @@ final class CacheKey implements Serializable
     private final Instant fileModificationTimestamp;
 
     static CacheKey createCacheKey( final FileResource file, final boolean acceptsGzip )
+            throws IOException
     {
         Objects.requireNonNull( file );
         return new CacheKey( file.getName(), acceptsGzip, file.lastModified() );

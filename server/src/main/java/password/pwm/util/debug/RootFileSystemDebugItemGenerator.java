@@ -26,13 +26,15 @@ import password.pwm.PwmConstants;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.json.JsonProvider;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.util.Arrays;
+import java.nio.file.FileStore;
+import java.nio.file.FileSystems;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.Iterator;
+import java.util.List;
 
 class RootFileSystemDebugItemGenerator implements AppItemGenerator
 {
@@ -54,24 +56,36 @@ class RootFileSystemDebugItemGenerator implements AppItemGenerator
     @Builder
     private static class RootFileSystemInfo implements Serializable
     {
-        private String rootPath;
+        private String name;
+        private String type;
         private long totalSpace;
         private long freeSpace;
         private long usableSpace;
 
         static Collection<RootFileSystemInfo> forAllRootFileSystems()
+                throws IOException
         {
-            return Arrays.stream( File.listRoots() )
-                    .map( RootFileSystemInfo::forRoot )
-                    .collect( Collectors.toList() );
+            final Iterator<FileStore> fileStoreIterator = FileSystems.getDefault().getFileStores().iterator();
+
+            final List<RootFileSystemInfo> returnList = new ArrayList<>();
+            while ( fileStoreIterator.hasNext() )
+            {
+                final FileStore fileStore = fileStoreIterator.next();
+                final RootFileSystemInfo rootFileSystemInfo = RootFileSystemInfo.forRoot( fileStore );
+                returnList.add( rootFileSystemInfo );
+            }
+
+            return List.copyOf( returnList );
         }
 
-        static RootFileSystemInfo forRoot( final File fileRoot )
+        static RootFileSystemInfo forRoot( final FileStore fileRoot )
+                throws IOException
         {
             return RootFileSystemInfo.builder()
-                    .rootPath( fileRoot.getAbsolutePath() )
+                    .name( fileRoot.name() )
+                    .type( fileRoot.type() )
                     .totalSpace( fileRoot.getTotalSpace() )
-                    .freeSpace( fileRoot.getFreeSpace() )
+                    .freeSpace( fileRoot.getUnallocatedSpace() )
                     .usableSpace( fileRoot.getUsableSpace() )
                     .build();
         }

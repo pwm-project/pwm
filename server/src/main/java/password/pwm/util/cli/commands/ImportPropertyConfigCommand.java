@@ -25,11 +25,11 @@ import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.util.PropertyConfigurationImporter;
 import password.pwm.util.cli.CliParameters;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 
 /**
@@ -41,25 +41,25 @@ public class ImportPropertyConfigCommand extends AbstractCliCommand
     void doCommand( )
             throws IOException
     {
-        final File configFile = cliEnvironment.getConfigurationFile();
+        final Path configFile = cliEnvironment.getConfigurationFile();
 
-        if ( configFile.exists() )
+        if ( Files.exists( configFile ) )
         {
             out( "this command can not be run with an existing configuration in place.  Exiting..." );
             return;
         }
 
-        final File inputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
+        final Path inputFile = ( Path ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_EXISTING_INPUT_FILE.getName() );
 
-        try ( FileInputStream fileInputStream = new FileInputStream( inputFile ) )
+        try ( InputStream fileInputStream = Files.newInputStream( inputFile ) )
         {
             final PropertyConfigurationImporter importer = new PropertyConfigurationImporter();
             final StoredConfiguration storedConfiguration = importer.readConfiguration( fileInputStream );
 
-            try ( OutputStream outputStream = new FileOutputStream( configFile ) )
+            try ( OutputStream outputStream = Files.newOutputStream( configFile ) )
             {
                 StoredConfigurationFactory.output( storedConfiguration,  outputStream );
-                out( "output configuration file " + configFile.getAbsolutePath() );
+                out( "output configuration file " + configFile );
             }
         }
         catch ( final Exception e )

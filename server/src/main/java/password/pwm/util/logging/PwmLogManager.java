@@ -48,10 +48,10 @@ import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
@@ -103,18 +103,18 @@ public class PwmLogManager
     public static void initializeLogging(
             final PwmApplication pwmApplication,
             final AppConfig config,
-            final File pwmApplicationPath,
+            final Path pwmApplicationPath,
             final PwmLogSettings pwmLogSettings
     )
     {
         if ( pwmApplicationPath != null )
         {
-            final File logbackXmlInAppPath = new File( pwmApplicationPath.getPath() + File.separator + "logback.xml" );
-            if ( logbackXmlInAppPath.exists() )
+            final Path logbackXmlInAppPath = pwmApplicationPath.resolve( "logback.xml" );
+            if ( Files.exists( logbackXmlInAppPath ) )
             {
                 if ( PwmLogUtil.initLogbackFromXmlFile( logbackXmlInAppPath ) )
                 {
-                    LOGGER.info( () -> "used appPath logback xml file '" + logbackXmlInAppPath.getPath()
+                    LOGGER.info( () -> "used appPath logback xml file '" + logbackXmlInAppPath
                             + "' to configure logging system, will ignore configured logging settings " );
                 }
             }
@@ -185,13 +185,8 @@ public class PwmLogManager
         final LoggerContext context = getLoggerContext();
         final ConfigurationWatchList configurationWatchList = ConfigurationWatchListUtil.getConfigurationWatchList( context );
 
-        if ( configurationWatchList != null )
-        {
-            final List<File> watchList = ConfigurationWatchListUtil.getConfigurationWatchList( context ).getCopyOfFileWatchList();
-            return !watchList.isEmpty();
-        }
-
-        return false;
+        return configurationWatchList != null
+                && ConfigurationWatchListUtil.getConfigurationWatchList( context ).getCopyOfFileWatchList().isEmpty();
     }
 
     static LoggerContext getLoggerContext()
@@ -259,31 +254,25 @@ public class PwmLogManager
     private static void initFileLogger(
             final AppConfig config,
             final PwmLogLevel fileLogLevel,
-            final File pwmApplicationPath
+            final Path pwmApplicationPath
     )
     {
         // configure file logging
         final String logDirectorySetting = config.readAppProperty( AppProperty.LOGGING_FILE_PATH );
-        final File logDirectory = FileSystemUtility.figureFilepath( logDirectorySetting, pwmApplicationPath );
+        final Path logDirectory = FileSystemUtility.figureFilepath( logDirectorySetting, pwmApplicationPath );
 
         if ( logDirectory != null && fileLogLevel != null )
         {
             try
             {
-                if ( !logDirectory.exists() )
+                if ( !Files.exists( logDirectory ) )
                 {
-                    if ( logDirectory.mkdir() )
-                    {
-                        LOGGER.info( () -> "created directory " + logDirectory.getAbsoluteFile() );
-                    }
-                    else
-                    {
-                        throw new IOException( "failed to create directory " + logDirectory.getAbsoluteFile() );
-                    }
+                    Files.createDirectories( logDirectory );
+                    LOGGER.info( () -> "created directory " + logDirectory );
                 }
 
-                final String fileName = logDirectory.getAbsolutePath() + File.separator + PwmConstants.PWM_APP_NAME + ".log";
-                final String fileNamePattern = logDirectory.getAbsolutePath() + File.separator + PwmConstants.PWM_APP_NAME + ".log.%d{yyyy-MM-dd}.%i.gz";
+                final String fileName = logDirectory.resolve( PwmConstants.PWM_APP_NAME + ".log" ).toString();
+                final String fileNamePattern = logDirectory.resolve( PwmConstants.PWM_APP_NAME + ".log.%d{yyyy-MM-dd}.%i.gz" ).toString();
 
                 final LoggerContext logCtx = getLoggerContext();
 

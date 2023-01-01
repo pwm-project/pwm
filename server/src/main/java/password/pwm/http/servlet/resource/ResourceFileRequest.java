@@ -36,9 +36,10 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
@@ -340,8 +341,8 @@ class ResourceFileRequest
             if ( effectiveUri.startsWith( ResourceFileServlet.WEBJAR_BASE_URL_PATH ) )
             {
                 // This allows us to override a webjar file, if needed.  Mostly helpful during development.
-                final File file = new File( servletContext.getRealPath( effectiveUri ) );
-                if ( file.exists() )
+                final Path file = Path.of( servletContext.getRealPath( effectiveUri ) );
+                if ( Files.exists( file ) )
                 {
                     return Optional.of( new RealFileResource( file ) );
                 }
@@ -414,9 +415,9 @@ class ResourceFileRequest
 
             // convert to file.
             final String filePath = servletContext.getRealPath( effectiveUri );
-            final File file = new File( filePath );
+            final Path file = Path.of( filePath );
 
-            if ( file.exists() )
+            if ( Files.exists( file ) )
             {
                 verifyPath( file, servletContext );
 
@@ -427,31 +428,21 @@ class ResourceFileRequest
         }
 
         private void verifyPath(
-                final File file,
+                final Path file,
                 final ServletContext servletContext
         )
                 throws PwmUnrecoverableException
         {
             // figure top-most path allowed by request
             final String parentDirectoryPath = servletContext.getRealPath( ResourceFileServlet.RESOURCE_PATH );
-            final File parentDirectory = new File( parentDirectoryPath );
+            final Path parentDirectory = Path.of( parentDirectoryPath );
 
+            if ( file.startsWith( parentDirectory ) )
             {
-                //verify the requested page is a child of the servlet resource path.
-                int recursions = 0;
-                File recurseFile = file.getParentFile();
-                while ( recurseFile != null && recursions < 100 )
-                {
-                    if ( parentDirectory.equals( recurseFile ) )
-                    {
-                        return;
-                    }
-                    recurseFile = recurseFile.getParentFile();
-                    recursions++;
-                }
+                return;
             }
 
-            LOGGER.warn( () -> "attempt to access file outside of servlet path " + file.getAbsolutePath() );
+            LOGGER.warn( () -> "attempt to access file outside of servlet path " + file );
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal file path request" ) );
         }
     }

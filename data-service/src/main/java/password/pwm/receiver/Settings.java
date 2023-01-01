@@ -25,7 +25,6 @@ import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -83,7 +82,7 @@ public class Settings
     static Settings readFromFile( final String filename ) throws IOException
     {
         final Properties properties = new Properties();
-        final Path path = new File( filename ).toPath();
+        final Path path = Path.of( filename );
         try ( Reader reader = new InputStreamReader( Files.newInputStream( path ), StandardCharsets.UTF_8 ) )
         {
             properties.load( reader );

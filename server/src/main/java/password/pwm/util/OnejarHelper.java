@@ -33,9 +33,9 @@ import password.pwm.util.cli.commands.ExportHttpsTomcatConfigCommand;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.HttpsServerCertificateManager;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyStore;
 import java.util.Properties;
 
@@ -55,10 +55,10 @@ public class OnejarHelper
     )
             throws Exception
     {
-        final PwmApplication pwmApplication = makePwmApplication( new File( applicationPath ) );
+        final PwmApplication pwmApplication = makePwmApplication( Path.of( applicationPath ) );
         try
         {
-            exportKeystore( pwmApplication, password, alias, new File( keystorePath ) );
+            exportKeystore( pwmApplication, password, alias, Path.of( keystorePath ) );
             return createProperties( pwmApplication.getConfig() );
         }
         finally
@@ -92,7 +92,7 @@ public class OnejarHelper
             final PwmApplication pwmApplication,
             final String password,
             final String alias,
-            final File exportFile
+            final Path exportFile
     )
             throws Exception
     {
@@ -100,16 +100,16 @@ public class OnejarHelper
                 pwmApplication,
                 new PasswordData( password ),
                 alias );
-        try ( OutputStream outputStream = new FileOutputStream( exportFile ) )
+        try ( OutputStream outputStream = Files.newOutputStream( exportFile ) )
         {
             keyStore.store( outputStream, password.toCharArray() );
         }
     }
 
-    private static PwmApplication makePwmApplication( final File applicationPath )
+    private static PwmApplication makePwmApplication( final Path applicationPath )
             throws Exception
     {
-        final File configFile = new File( applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
+        final Path configFile = applicationPath.resolve( PwmConstants.DEFAULT_CONFIG_FILE_FILENAME );
         final ConfigurationFileManager configReader = new ConfigurationFileManager( configFile, SessionLabel.ONEJAR_LABEL );
         final AppConfig config = configReader.getConfiguration();
         final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()

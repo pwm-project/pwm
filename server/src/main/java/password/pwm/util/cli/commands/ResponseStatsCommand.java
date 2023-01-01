@@ -44,10 +44,12 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.json.JsonProvider;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -77,12 +79,13 @@ public class ResponseStatsCommand extends AbstractCliCommand
                 throw new CliException( "error generating response statistics: " + e.getMessage(), e );
             }
         }
-        final File outputFile = ( File ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
+        final Path outputFile = ( Path ) cliEnvironment.getOptions().get( CliParameters.REQUIRED_NEW_OUTPUT_FILE.getName() );
         final long startTime = System.currentTimeMillis();
-        out( "beginning output to " + outputFile.getAbsolutePath() );
-        try ( FileOutputStream fileOutputStream = new FileOutputStream( outputFile, true ) )
+        out( "beginning output to " + outputFile );
+        try ( OutputStream fileOutputStream = Files.newOutputStream( outputFile, StandardOpenOption.APPEND ) )
         {
-            fileOutputStream.write( JsonFactory.get().serialize( responseStats, JsonProvider.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
+            final String jsonString = JsonFactory.get().serialize( responseStats, JsonProvider.Flag.PrettyPrint );
+            fileOutputStream.write( jsonString.getBytes( PwmConstants.DEFAULT_CHARSET ) );
         }
         out( "completed writing stats output in " + PwmTimeUtil.asLongString( TimeDuration.fromCurrent( startTime ) ) );
     }

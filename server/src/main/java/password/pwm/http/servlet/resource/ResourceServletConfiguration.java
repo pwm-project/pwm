@@ -21,15 +21,14 @@
 package password.pwm.http.servlet.resource;
 
 import lombok.Value;
-import org.apache.commons.io.FileUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
-import password.pwm.util.java.CollectionUtil;
 import password.pwm.data.ImmutableByteArray;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
@@ -38,6 +37,7 @@ import password.pwm.util.logging.PwmLogger;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
@@ -102,9 +102,10 @@ class ResourceServletConfiguration
         customFileBundle = makeCustomFileBundle( sessionLabel, domainConfig );
     }
 
-    private Map<String, FileResource> makeCustomFileBundle(
+    private static Map<String, FileResource> makeCustomFileBundle(
             final SessionLabel sessionLabel,
-            final DomainConfig domainConfig )
+            final DomainConfig domainConfig
+    )
     {
         final Map<String, FileResource> customFileBundle = new HashMap<>();
         final Map<FileValue.FileInformation, FileValue.FileContent> files = domainConfig.readSettingAsFile( PwmSetting.DISPLAY_CUSTOM_RESOURCE_BUNDLE );
@@ -113,14 +114,11 @@ class ResourceServletConfiguration
             final Map.Entry<FileValue.FileInformation, FileValue.FileContent> entry = files.entrySet().iterator().next();
             final FileValue.FileInformation fileInformation = entry.getKey();
             final FileValue.FileContent fileContent = entry.getValue();
-            LOGGER.debug( sessionLabel, () -> "examining configured zip file resource for items name=" + fileInformation.getFilename() + ", size=" + fileContent.size() );
+            LOGGER.debug( sessionLabel, () -> "examining configured zip file resource for items name=" + fileInformation.getFilename()
+                    + ", size=" + fileContent.size() );
 
             try
             {
-                final byte[] bytes = entry.getValue().getContents().copyOf();
-                final String path = "/tmp/" + domainConfig.getDomainID().stringValue();
-                FileUtils.writeByteArrayToFile( new File( path ), bytes );
-
                 final Map<String, FileResource> customFiles = makeMemoryFileMapFromZipInput( sessionLabel, fileContent.getContents() );
                 customFileBundle.putAll( customFiles );
             }
@@ -132,43 +130,51 @@ class ResourceServletConfiguration
         return Collections.unmodifiableMap( customFileBundle );
     }
 
-    private Map<String, ZipFile> makeZipResourcesFromConfig(
+    private static Map<String, ZipFile> makeZipResourcesFromConfig(
             final SessionLabel sessionLabel,
             final PwmDomain pwmDomain,
             final DomainConfig domainConfig )
     {
-        final Map<String, ZipFile> zipResources = new HashMap<>();
         final String zipFileResourceParam = domainConfig.getAppConfig().readAppProperty( AppProperty.HTTP_RESOURCES_ZIP_FILES );
-        if ( StringUtil.notEmpty( zipFileResourceParam ) )
+        if ( StringUtil.isEmpty( zipFileResourceParam ) )
         {
-            final List<ConfiguredZipFileResource> configuredZipFileResources = JsonFactory.get().deserializeList( zipFileResourceParam, ConfiguredZipFileResource.class );
-            for ( final ConfiguredZipFileResource configuredZipFileResource : configuredZipFileResources )
+            return Collections.emptyMap();
+        }
+
+        final List<ConfiguredZipFileResource> configuredZipFileResources = JsonFactory.get().deserializeList(
+                zipFileResourceParam,
+                ConfiguredZipFileResource.class );
+
+        final Map<String, ZipFile> zipResources = new HashMap<>();
+        for ( final ConfiguredZipFileResource configuredZipFileResource : configuredZipFileResources )
+        {
+            final Optional<Path> webInfPath = pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager().locateWebInfFilePath();
+            if ( webInfPath.isPresent() )
             {
-                final Optional<File> webInfPath = pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager().locateWebInfFilePath();
-                if ( webInfPath.isPresent() )
+                try
                 {
-                    try
-                    {
-                        final File zipFileFile = new File(
-                                webInfPath.get().getParentFile() + "/"
-                                        + ResourceFileServlet.RESOURCE_PATH
-                                        + configuredZipFileResource.getZipFile()
-                        );
-                        final ZipFile zipFile = new ZipFile( zipFileFile );
-                        zipResources.put( ResourceFileServlet.RESOURCE_PATH + configuredZipFileResource.getUrl(), zipFile );
-                        LOGGER.debug( sessionLabel, () -> "registered resource-zip file " + configuredZipFileResource.getZipFile() + " at path " + zipFileFile.getAbsolutePath() );
-                    }
-                    catch ( final IOException e )
-                    {
-                        LOGGER.warn( sessionLabel, () -> "unable to resource-zip file " + configuredZipFileResource + ", error: " + e.getMessage() );
-                    }
+                    final File zipFileFile = new File(
+                            webInfPath.get().toFile().getParentFile() + "/"
+                                    + ResourceFileServlet.RESOURCE_PATH
+                                    + configuredZipFileResource.getZipFile()
+                    );
+                    final ZipFile zipFile = new ZipFile( zipFileFile );
+                    zipResources.put( ResourceFileServlet.RESOURCE_PATH + configuredZipFileResource.getUrl(), zipFile );
+                    LOGGER.debug( sessionLabel, () -> "registered resource-zip file " + configuredZipFileResource.getZipFile()
+                            + " at path " + zipFileFile.getAbsolutePath() );
                 }
-                else
+                catch ( final IOException e )
                 {
-                    LOGGER.error( sessionLabel, () -> "can't register resource-zip file " + configuredZipFileResource.getZipFile() + " because WEB-INF path is unknown" );
+                    LOGGER.warn( sessionLabel, () -> "unable to resource-zip file " + configuredZipFileResource + ", error: " + e.getMessage() );
                 }
             }
+            else
+            {
+                LOGGER.error( sessionLabel, () -> "can't register resource-zip file " + configuredZipFileResource.getZipFile()
+                        + " because WEB-INF path is unknown" );
+            }
         }
+
         return Collections.unmodifiableMap( zipResources );
     }
 

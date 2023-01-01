@@ -26,13 +26,13 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.ParseException;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -111,10 +111,11 @@ public class ArgumentParser
         return null;
     }
 
-    private Map<Argument, String> mapFromProperties( final String filename ) throws ArgumentParserException
+    private Map<Argument, String> mapFromProperties( final String filename )
+            throws ArgumentParserException
     {
         final Properties props = new Properties();
-        try ( InputStream is = new FileInputStream( filename ) )
+        try ( InputStream is = Files.newInputStream( Path.of( filename ) ) )
         {
             props.load( is );
         }
@@ -180,15 +181,15 @@ public class ArgumentParser
 
         if ( argumentMap.containsKey( Argument.war ) )
         {
-            final File inputWarFile = new File( argumentMap.get( Argument.war ) );
-            if ( !inputWarFile.exists() )
+            final Path inputWarFile = Path.of( argumentMap.get( Argument.war ) );
+            if ( !Files.exists( inputWarFile ) )
             {
-                final String msg = "output war file " + inputWarFile.getAbsolutePath() + "does not exist";
+                final String msg = "output war file " + inputWarFile + "does not exist";
                 System.out.println( msg );
                 throw new IllegalStateException( msg );
             }
 
-            try ( InputStream inputStream = new FileInputStream( inputWarFile ) )
+            try ( InputStream inputStream = Files.newInputStream( inputWarFile ) )
             {
                 onejarConfig.war( inputStream );
             }
@@ -272,26 +273,26 @@ public class ArgumentParser
     }
 
 
-    private static File parseFileOption( final Map<Argument, String> argumentMap, final Argument argName )
+    private static Path parseFileOption( final Map<Argument, String> argumentMap, final Argument argName )
             throws ArgumentParserException
     {
         if ( !argumentMap.containsKey( argName ) )
         {
             throw new ArgumentParserException( "option " + argName + " required" );
         }
-        final File file = new File( argumentMap.get( argName ) );
+        final Path file = Path.of( argumentMap.get( argName ) );
         if ( !file.isAbsolute() )
         {
             throw new ArgumentParserException( "a fully qualified file path name is required for " + argName );
         }
-        if ( !file.exists() )
+        if ( !Files.exists( file ) )
         {
             throw new ArgumentParserException( "path specified by " + argName + " must exist" );
         }
         return file;
     }
 
-    private static File figureDefaultWorkPath(
+    private static Path figureDefaultWorkPath(
             final String localAddress,
             final String context,
             final int port,
@@ -302,29 +303,21 @@ public class ArgumentParser
         final String userHomePath = System.getProperty( "user.home" );
         if ( userHomePath != null && !userHomePath.isEmpty() )
         {
-            final File basePath = new File( userHomePath + File.separator
-                    + Resource.defaultWorkPathName.getValue() );
+            final Path basePath = Path.of( userHomePath ).resolve( Resource.defaultWorkPathName.getValue() );
 
-            mkdirs( basePath );
+            final String escapedLocalAddr = ( localAddress != null && !localAddress.isEmpty() )
+                    ? "-" + escapeFilename( localAddress )
+                    : "";
+            final String workPath = "work"
+                    + "-"
+                    + escapeFilename( context )
+                    + "-"
+                    + escapeFilename( Integer.toString( port ) )
+                    + ( isCommandExec ? "-cmd" : "" )
+                    + escapedLocalAddr;
 
-            final String workPath;
-            {
-                String workPathStr = basePath.getPath() + File.separator + "work"
-                        + "-"
-                        + escapeFilename( context )
-                        + "-"
-                        + escapeFilename( Integer.toString( port ) )
-                        + ( isCommandExec ? "-" + "cmd" : "" );
-
-                if ( localAddress != null && !localAddress.isEmpty() )
-                {
-                    workPathStr += "-" + escapeFilename( localAddress );
-
-                }
-                workPath = workPathStr;
-            }
-            final File workFile = new File( workPath );
-            mkdirs( workFile );
+            final Path workFile = basePath.resolve( workPath );
+            Files.createDirectories( workFile );
             OnejarMain.output( "using work directory: " + workPath );
             return workFile;
         }
@@ -360,13 +353,5 @@ public class ArgumentParser
             stringBuilder.append( ALPHABET.charAt( secureRandom.nextInt( ALPHABET.length() ) ) );
         }
         return stringBuilder.toString();
-    }
-
-    static void mkdirs( final File file ) throws IOException
-    {
-        if ( !file.mkdirs() && !file.exists() )
-        {
-            throw new IOException( "unable to create path " + file.getAbsolutePath() );
-        }
     }
 }

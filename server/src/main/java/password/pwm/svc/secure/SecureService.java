@@ -24,9 +24,9 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 
 public interface SecureService
 {
@@ -49,7 +49,7 @@ public interface SecureService
             throws PwmUnrecoverableException;
 
     String hash(
-            File file
+            Path file
     )
             throws IOException, PwmUnrecoverableException;
 

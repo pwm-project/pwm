@@ -48,7 +48,7 @@ class EnvironmentPropertyTest
             throws Exception
     {
         {
-            final Path propFilePath = Path.of( temporaryPath.toString(), PwmConstants.DEFAULT_ENVIRONMENT_PROPERTIES_FILENAME );
+            final Path propFilePath = temporaryPath.resolve( PwmConstants.DEFAULT_ENVIRONMENT_PROPERTIES_FILENAME );
             final Properties outputProps = new Properties();
             outputProps.setProperty( EnvironmentProperty.InstanceID.name(), "TEST-VALUE-22" );
             try ( OutputStream outputStream = Files.newOutputStream( propFilePath ) )

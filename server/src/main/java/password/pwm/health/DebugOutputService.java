@@ -38,12 +38,11 @@ import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogManager;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -137,8 +136,8 @@ public class DebugOutputService extends AbstractPwmService implements PwmService
         private void writeSupportZipToAppPath()
                 throws IOException, PwmUnrecoverableException
         {
-            final File appPath = getPwmApplication().getPwmEnvironment().getApplicationPath();
-            if ( !appPath.exists() )
+            final Path appPath = getPwmApplication().getPwmEnvironment().getApplicationPath();
+            if ( !Files.exists( appPath ) )
             {
                 return;
             }
@@ -146,24 +145,27 @@ public class DebugOutputService extends AbstractPwmService implements PwmService
             final int rotationCount = JavaHelper.silentParseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_SUPPORT_BUNDLE_FILE_WRITE_COUNT ), 10 );
             final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmApplication, getSessionLabel() );
 
-            final File supportPath = new File( appPath.getPath() + File.separator + "support" );
+            final Path supportPath = appPath.resolve( "support" );
 
-            Files.createDirectories( supportPath.toPath() );
+            Files.createDirectories( supportPath );
 
-            final File supportFile = new File ( supportPath.getPath() + File.separator + debugItemGenerator.getFilename() );
+            final Path supportFile = supportPath.resolve( debugItemGenerator.getFilename() );
 
             FileSystemUtility.rotateBackups( supportFile, rotationCount );
 
-            final File newSupportFile = new File ( supportFile.getPath() + ".new" );
-            Files.deleteIfExists( newSupportFile.toPath() );
-
-            try ( ZipOutputStream zipOutputStream = new ZipOutputStream( new FileOutputStream( newSupportFile ) ) )
+            if ( supportFile != null && supportFile.getFileName() != null && supportFile.getParent() != null )
             {
-                LOGGER.trace( getSessionLabel(), () -> "beginning periodic support bundle filesystem output" );
-                debugItemGenerator.outputZipDebugFile( zipOutputStream );
-            }
+                final Path newSupportFile = FileSystemUtility.addFilenameSuffix( supportFile, ".new" );
+                Files.deleteIfExists( newSupportFile );
 
-            Files.move( newSupportFile.toPath(), supportFile.toPath() );
+                try ( ZipOutputStream zipOutputStream = new ZipOutputStream( Files.newOutputStream( newSupportFile ) ) )
+                {
+                    LOGGER.trace( getSessionLabel(), () -> "beginning periodic support bundle filesystem output" );
+                    debugItemGenerator.outputZipDebugFile( zipOutputStream );
+                }
+
+                Files.move( newSupportFile, supportFile );
+            }
         }
     }
 

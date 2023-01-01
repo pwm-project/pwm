@@ -51,7 +51,7 @@ public class LdapXmlUserHistoryTest
     public void inputParserTest()
             throws Exception
     {
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.toFile() );
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder );
         final PwmDomain pwmDomain = pwmApplication.domains().get( DomainID.DOMAIN_ID_DEFAULT );
         final ResourceBundle bundle = ResourceBundle.getBundle( LdapXmlUserHistoryTest.class.getName() );
         final String xmlValue1 =  bundle.getString( "xmlValue1" );

@@ -23,10 +23,10 @@ package password.pwm.util.localdb;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.EnumUtil;
 
-import java.io.File;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -109,7 +109,7 @@ public interface LocalDB
     void truncate( DB db )
             throws LocalDBException;
 
-    File getFileLocation( );
+    Path getFileLocation( );
 
     Map<String, Serializable> debugInfo( );
 

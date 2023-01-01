@@ -47,7 +47,7 @@
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p>
             <pwm:if test="<%=PwmIfTest.appliance%>" negate="true">
-                Application Configuration Path: <code><%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath())%></code>
+                Application Configuration Path: <code><%=StringUtil.escapeHtml(JspUtility.getPwmRequest(pageContext).getPwmApplication().getPwmEnvironment().getApplicationPath().toString())%></code>
             </pwm:if>
         </p>
         <br/><br/>

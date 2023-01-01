@@ -27,7 +27,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Driver;
@@ -115,12 +115,13 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
 
     @Override
     Connection openConnection(
-            final File databaseDirectory,
+            final Path databaseDirectory,
             final String driverClasspath,
             final Map<String, String> initOptions
-    ) throws LocalDBException
+    )
+            throws LocalDBException
     {
-        final String filePath = databaseDirectory.getAbsolutePath() + File.separator + "derby-db";
+        final String filePath = databaseDirectory.resolve( "derby-db" ).toString();
         final String baseConnectionURL = "jdbc:derby:" + filePath;
         final String connectionURL = baseConnectionURL + ";create=true";
 

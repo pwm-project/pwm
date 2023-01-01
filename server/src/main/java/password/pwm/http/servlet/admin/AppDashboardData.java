@@ -425,7 +425,9 @@ public class AppDashboardData implements Serializable
                     ? notApplicable
                     : pwmDomain.getPwmApplication().getLocalDB().getFileLocation() == null
                             ? notApplicable
-                            : StringUtil.formatDiskSize( FileSystemUtility.diskSpaceRemaining( pwmDomain.getPwmApplication().getLocalDB().getFileLocation() ) );
+                            : StringUtil.formatDiskSize( FileSystemUtility.diskSpaceRemaining(
+                                    pwmDomain.getPwmApplication().getLocalDB().getFileLocation() ) );
+
             localDbInfo.add( new DisplayElement(
                     "localDbFreeSpace",
                     DisplayElement.Type.string,

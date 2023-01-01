@@ -64,7 +64,7 @@ public class CEFAuditFormatterTest
                 + " perpetratorID=per\\|son perpetratorDN=cn\\=per\\|son,o\\=org sourceAddress=2001:DB8:D:B8:35cc::/64 sourceHost=ws31222";
 
         final CEFAuditFormatter cefAuditFormatter = new CEFAuditFormatter();
-        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.toFile() );
+        final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder );
         final String output = cefAuditFormatter.convertAuditRecordToMessage( pwmApplication, auditRecord );
         Assertions.assertEquals( expectedOutput, output );
     }

@@ -35,7 +35,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.localdb.TestHelper;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -55,7 +54,7 @@ public class DomainConfigTest
         final StoredConfigKey key = StoredConfigKey.forSetting( PwmSetting.LDAP_PROFILE_LIST, null, DomainID.DOMAIN_ID_DEFAULT );
         modifier.writeSetting( key, StringArrayValue.create( List.of( "ldap1", "ldap2", "ldap3", "ldap4", "ldap5" ) ), null );
 
-        final File localDbTestFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-testLdapProfileOrdering" );
+        final Path localDbTestFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-testLdapProfileOrdering" );
         final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( localDbTestFolder, AppConfig.forStoredConfig( modifier.newStoredConfiguration() ) );
         final AppConfig appConfig = pwmApplication.getConfig();
         final DomainConfig domainConfig = appConfig.getDomainConfigs().get( DomainID.DOMAIN_ID_DEFAULT );

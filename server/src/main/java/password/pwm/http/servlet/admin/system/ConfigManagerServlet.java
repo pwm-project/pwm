@@ -192,8 +192,8 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     {
         final ConfigurationFileManager configurationFileManager = pwmRequest.getContextManager().getConfigReader();
         pwmRequest.setAttribute( PwmRequestAttribute.PageTitle, LocaleHelper.getLocalizedMessage( Config.Title_ConfigManager, pwmRequest ) );
-        pwmRequest.setAttribute( PwmRequestAttribute.ApplicationPath, pwmRequest.getPwmApplication().getPwmEnvironment().getApplicationPath().getAbsolutePath() );
-        pwmRequest.setAttribute( PwmRequestAttribute.ConfigFilename, configurationFileManager.getConfigFile().getAbsolutePath() );
+        pwmRequest.setAttribute( PwmRequestAttribute.ApplicationPath, pwmRequest.getPwmApplication().getPwmEnvironment().getApplicationPath().toString() );
+        pwmRequest.setAttribute( PwmRequestAttribute.ConfigFilename, configurationFileManager.getConfigFile().toString() );
         {
             final Instant lastModifyTime = configurationFileManager.getStoredConfiguration().modifyTime();
             final String output = lastModifyTime == null
