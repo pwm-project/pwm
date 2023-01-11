@@ -111,25 +111,36 @@ Official project page is at [https://github.com/pwm-project/pwm/](https://github
   * Password policy verification
 * Outbound REST API for custom integrations during user activities such as change password, new user registration, etc.    
 
-## Deploy
-PWM is distributed in the following artifacts:
+## Requirements
 
-| Artifact| Description |
+Minimum requirements for PWM application.
+
+| PWM Version | Java [^1] | Servlet | Tomcat [^2] |
+| --- | --- | --- | --- |
+| v2.1 | 17 | 3.0 | 9 |
+| v2.0 | 11-17 | 3.0 | 8-9 |
+| v1.9 | 8-11 | 3.0 | 7-9 |
+
+[^1] There is no requirement for a specific Java implementation, PWM builds use [Adoptium](https://adoptium.net/). 
+
+[^2] Tomcat isn't an explicit requirement, but it is the most common container used with PWM, and
+ the one that is used for the docker and onejar builds.
+
+
+
+## Deploy
+PWM is distributed in the following artifacts, you can use whichever one is most convenient.
+
+| Artifact | Description |
 | --- | --- |
 | WAR | Standard Java WAR (Web Archive) application deployment model, you need to have a working java & tomcat configuration on your server. |
 | Executable | Command line executable Java JAR application, includes tomcat. |
 | Docker | Docker image includes Java and Tomcat. |
 
-For all artifacts, each PWM instance will need an _applicationPath_ directory defined on your local server for PWM's configuration,
+For all deployment types, each PWM instance will need an _applicationPath_ directory defined on your local server for PWM's configuration,
 log, and runtime files.  Once PWM is configured, the initial web UI will prompt the administrator for LDAP and other configuration settings.  
-Alternatively, you can place the _PwmConfiguration.xml_ in the _applicationPath_ directory to create a fully configured instance.
-
-PWM is primarily developed tested and built using [Adoptium](https://adoptium.net/) Java, but any standard Java distribution should work.
 
 ### WAR
-Requirements:
-* Java 11 JDK or better
-* Servlet Container v3.0 or better ( tested with Apache Tomcat v9.5.x )
 
 Steps:
 1) Get Apache tomcat working to the point you can access the tomcat landing page with your browser.  See tomcat documentation/help sites for 
@@ -187,7 +198,7 @@ docker start mypwm
 ## Build
 
 Build pre-requisites:
-* Java 11 JDK or better
+* Java ( check requirements above for version )
 * Git
 * The build uses maven, but you do not need to install it; the maven wrapper in the source tree will download a local version.
 
