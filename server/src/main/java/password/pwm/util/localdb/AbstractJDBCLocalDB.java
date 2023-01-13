@@ -27,7 +27,6 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Closeable;
-import java.io.Serializable;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.Driver;
@@ -709,7 +708,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     abstract String getDriverClasspath( );
 
     @Override
-    public Map<String, Serializable> debugInfo( )
+    public Map<String, Object> debugInfo( )
     {
         return Collections.emptyMap();
     }

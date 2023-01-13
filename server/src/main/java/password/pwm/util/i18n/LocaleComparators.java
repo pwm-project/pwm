@@ -23,7 +23,6 @@ package password.pwm.util.i18n;
 import password.pwm.PwmConstants;
 import password.pwm.util.java.EnumUtil;
 
-import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
@@ -90,7 +89,7 @@ public class LocaleComparators
         return new StringLocaleComparator( new LocaleComparator( comparisonLocale, flag ) );
     }
 
-    private static class LocaleComparator implements Comparator<Locale>, Serializable
+    private static class LocaleComparator implements Comparator<Locale>
     {
         private final boolean defaultFirst;
         private final Locale comparisonLocale;
@@ -116,7 +115,7 @@ public class LocaleComparators
         }
     }
 
-    private static class StringLocaleComparator implements Comparator<String>, Serializable
+    private static class StringLocaleComparator implements Comparator<String>
     {
         private final Comparator<Locale> localeComparator;
 

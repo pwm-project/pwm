@@ -24,12 +24,11 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.bean.UserIdentity;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 @Value
 @Builder( toBuilder = true )
-public class ValueMetaData implements Serializable
+public class ValueMetaData
 {
     private Instant modifyDate;
     private UserIdentity userIdentity;

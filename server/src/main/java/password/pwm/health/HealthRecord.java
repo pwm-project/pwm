@@ -28,7 +28,6 @@ import password.pwm.config.SettingReader;
 import password.pwm.ws.server.rest.bean.PublicHealthData;
 import password.pwm.ws.server.rest.bean.PublicHealthRecord;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,7 +37,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 @EqualsAndHashCode
-public class HealthRecord implements Serializable, Comparable<HealthRecord>
+public class HealthRecord implements Comparable<HealthRecord>
 {
     private final HealthStatus status;
 

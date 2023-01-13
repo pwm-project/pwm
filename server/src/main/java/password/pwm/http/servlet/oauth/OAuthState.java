@@ -26,7 +26,6 @@ import lombok.Value;
 import password.pwm.bean.ProfileID;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 /*
@@ -36,7 +35,7 @@ import java.time.Instant;
 
 @Value
 @Builder
-class OAuthState implements Serializable
+class OAuthState
 {
     private static final AtomicLoopIntIncrementer OAUTH_STATE_ID_COUNTER = new AtomicLoopIntIncrementer();
 

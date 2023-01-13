@@ -32,7 +32,6 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Optional;
 
 /**
@@ -41,7 +40,7 @@ import java.util.Optional;
  * @author Jason D. Rivard
  */
 @Value
-public class BasicAuthInfo implements Serializable
+public class BasicAuthInfo
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( BasicAuthInfo.class );
 

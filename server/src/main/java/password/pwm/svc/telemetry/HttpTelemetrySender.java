@@ -20,8 +20,7 @@
 
 package password.pwm.svc.telemetry;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
@@ -36,7 +35,6 @@ import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -82,9 +80,8 @@ public class HttpTelemetrySender implements TelemetrySender
         LOGGER.trace( sessionLabel, () -> "sent telemetry data to '" + settings.getUrl() + ")" );
     }
 
-    @Getter
-    @AllArgsConstructor
-    private static class Settings implements Serializable
+    @Value
+    private static class Settings
     {
         private String url;
     }

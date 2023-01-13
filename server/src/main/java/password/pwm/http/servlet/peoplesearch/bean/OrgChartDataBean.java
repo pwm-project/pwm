@@ -22,12 +22,11 @@ package password.pwm.http.servlet.peoplesearch.bean;
 
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
 @Data
-public class OrgChartDataBean implements Serializable
+public class OrgChartDataBean
 {
     private OrgChartReferenceBean parent;
     private OrgChartReferenceBean self;

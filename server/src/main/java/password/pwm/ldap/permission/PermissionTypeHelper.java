@@ -27,9 +27,7 @@ import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.search.SearchConfiguration;
 
-import java.io.Serializable;
-
-interface PermissionTypeHelper extends Serializable
+interface PermissionTypeHelper
 {
     boolean testMatch(
             PwmDomain pwmDomain,

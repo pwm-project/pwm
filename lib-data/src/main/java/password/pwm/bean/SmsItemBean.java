@@ -18,35 +18,12 @@
  * limitations under the License.
  */
 
-package password.pwm.svc.cache;
+package password.pwm.bean;
 
-import password.pwm.util.java.TimeDuration;
 
-import java.time.Instant;
-
-public class CachePolicy
+public record SmsItemBean(
+        String to,
+        String message
+)
 {
-    private Instant expiration;
-
-    CachePolicy( )
-    {
-    }
-
-    public Instant getExpiration( )
-    {
-        return expiration;
-    }
-
-    public static CachePolicy makePolicyWithExpirationMS( final long expirationMs )
-    {
-        final CachePolicy policy = new CachePolicy();
-        policy.expiration = Instant.ofEpochMilli( System.currentTimeMillis() + expirationMs );
-        return policy;
-    }
-
-    public static CachePolicy makePolicyWithExpiration( final TimeDuration timeDuration )
-    {
-        return makePolicyWithExpirationMS( timeDuration.asMillis() );
-    }
-
 }

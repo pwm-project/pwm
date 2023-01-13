@@ -34,7 +34,6 @@ import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 
-import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,7 +49,7 @@ import java.util.regex.PatternSyntaxException;
 
 @Value
 @Builder( toBuilder = true )
-public class FormConfiguration implements Serializable
+public class FormConfiguration
 {
     public enum Type
     {

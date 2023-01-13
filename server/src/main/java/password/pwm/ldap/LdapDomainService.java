@@ -49,7 +49,6 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
@@ -355,7 +354,7 @@ public class LdapDomainService extends AbstractPwmService implements PwmService
 
     @Value
     @Builder
-    public static class ConnectionInfo implements Serializable
+    public static class ConnectionInfo
     {
         private final String bindDN;
         private final boolean active;

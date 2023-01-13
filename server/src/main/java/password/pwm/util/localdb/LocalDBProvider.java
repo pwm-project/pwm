@@ -20,7 +20,6 @@
 
 package password.pwm.util.localdb;
 
-import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
@@ -92,7 +91,7 @@ public interface LocalDBProvider
 
     LocalDB.Status getStatus( );
 
-    Map<String, Serializable> debugInfo( );
+    Map<String, Object> debugInfo( );
 
     Set<Flag> flags( );
 }

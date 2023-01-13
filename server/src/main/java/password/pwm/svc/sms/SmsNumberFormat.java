@@ -18,35 +18,12 @@
  * limitations under the License.
  */
 
-package password.pwm.svc.cache;
+package password.pwm.svc.sms;
 
-import password.pwm.util.java.TimeDuration;
-
-import java.time.Instant;
-
-public class CachePolicy
+enum SmsNumberFormat
 {
-    private Instant expiration;
-
-    CachePolicy( )
-    {
-    }
-
-    public Instant getExpiration( )
-    {
-        return expiration;
-    }
-
-    public static CachePolicy makePolicyWithExpirationMS( final long expirationMs )
-    {
-        final CachePolicy policy = new CachePolicy();
-        policy.expiration = Instant.ofEpochMilli( System.currentTimeMillis() + expirationMs );
-        return policy;
-    }
-
-    public static CachePolicy makePolicyWithExpiration( final TimeDuration timeDuration )
-    {
-        return makePolicyWithExpirationMS( timeDuration.asMillis() );
-    }
-
+    RAW,
+    PLAIN,
+    PLUS,
+    ZEROS,
 }

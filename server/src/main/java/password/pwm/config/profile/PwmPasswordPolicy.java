@@ -42,7 +42,6 @@ import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordRuleReaderHelper;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,10 +60,8 @@ import java.util.stream.Collectors;
 /**
  * @author Jason D. Rivard
  */
-public class PwmPasswordPolicy implements Profile, Serializable
+public class PwmPasswordPolicy implements Profile
 {
-    private static final long serialVersionUID = 1L;
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmPasswordPolicy.class );
 
     private static final PwmPasswordPolicy DEFAULT_POLICY = makeDefaultPolicy();
@@ -397,7 +394,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
 
     @Value
     @Builder
-    public static class PolicyMetaData implements Serializable
+    public static class PolicyMetaData
     {
         private final DomainID domainID;
 

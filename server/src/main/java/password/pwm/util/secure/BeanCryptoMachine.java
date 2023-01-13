@@ -27,16 +27,15 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.svc.secure.DomainSecureService;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Optional;
 
-public class BeanCryptoMachine<T extends Serializable>
+public class BeanCryptoMachine<T extends Object>
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( BeanCryptoMachine.class );
     private static final String DELIMITER = ".";
@@ -119,7 +118,7 @@ public class BeanCryptoMachine<T extends Serializable>
     }
 
     @Value
-    static class Wrapper implements Serializable
+    static class Wrapper
     {
         private Instant timestamp;
         private String className;

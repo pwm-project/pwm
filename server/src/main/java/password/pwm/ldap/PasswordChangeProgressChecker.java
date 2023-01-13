@@ -33,16 +33,15 @@ import password.pwm.config.option.PasswordSyncCheckMode;
 import password.pwm.config.profile.ChangePasswordProfile;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
+import password.pwm.util.Percent;
 import password.pwm.util.ProgressInfoCalculator;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.PwmTimeUtil;
-import password.pwm.util.json.JsonFactory;
-import password.pwm.util.Percent;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordUtility;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
@@ -95,7 +94,7 @@ public class PasswordChangeProgressChecker
     }
 
     @Value
-    public static class PasswordChangeProgress implements Serializable
+    public static class PasswordChangeProgress
     {
         private boolean complete;
         private BigDecimal percentComplete;
@@ -114,7 +113,7 @@ public class PasswordChangeProgressChecker
 
     @Value
     @Builder
-    public static class ProgressRecord implements Serializable
+    public static class ProgressRecord
     {
         private String key;
         private String label;
@@ -124,7 +123,7 @@ public class PasswordChangeProgressChecker
     }
 
     @Data
-    public static class ProgressTracker implements Serializable
+    public static class ProgressTracker
     {
         private Instant beginTime = Instant.now();
         private Instant lastReplicaCheckTime;

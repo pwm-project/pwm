@@ -30,7 +30,6 @@ import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.PwmSettingTemplateSet;
 import password.pwm.util.java.CollectionUtil;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
@@ -38,7 +37,7 @@ import java.util.Set;
 
 @Value
 @Builder
-public class SettingInfo implements Serializable
+public class SettingInfo
 {
     private String key;
     private String label;

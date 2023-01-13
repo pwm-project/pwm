@@ -38,17 +38,14 @@ import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Supplier;
 
 @Value
 @Builder( toBuilder = true )
-public class WordlistConfiguration implements Serializable
+public class WordlistConfiguration
 {
-    private static final long serialVersionUID = 1L;
-
     static final int STREAM_BUFFER_SIZE = 1_1024_1024;
     static final PwmHashAlgorithm HASH_ALGORITHM = PwmHashAlgorithm.SHA256;
 

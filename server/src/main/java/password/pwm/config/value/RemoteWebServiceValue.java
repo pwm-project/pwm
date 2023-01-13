@@ -34,7 +34,6 @@ import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -176,9 +175,9 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
     }
 
     @Override
-    public Serializable toDebugJsonObject( final Locale locale )
+    public Object toDebugJsonObject( final Locale locale )
     {
-        return ( Serializable ) makeDebugJsonObject( locale );
+        return makeDebugJsonObject( locale );
     }
 
     private List<RemoteWebServiceConfiguration> makeDebugJsonObject( final Locale locale )

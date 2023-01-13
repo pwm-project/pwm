@@ -23,12 +23,11 @@ package password.pwm.http.servlet.resource;
 import lombok.Value;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
 
 @Value
-final class CacheKey implements Serializable
+final class CacheKey
 {
     private final String fileName;
     private final boolean acceptsGzip;

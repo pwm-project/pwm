@@ -54,7 +54,6 @@ import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,7 +66,7 @@ import java.util.Set;
 
 @Value
 @Builder
-public class HelpdeskDetailInfoBean implements Serializable
+public class HelpdeskDetailInfoBean
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskDetailInfoBean.class );
 

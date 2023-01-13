@@ -29,13 +29,12 @@ import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.data.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +44,7 @@ import java.util.stream.Collectors;
 
 @Value
 @Builder( toBuilder = true )
-public class ReportSettings implements Serializable
+public class ReportSettings
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ReportSettings.class );
 

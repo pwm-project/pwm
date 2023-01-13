@@ -46,7 +46,6 @@ import password.pwm.util.json.JsonFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -241,7 +240,7 @@ class PwmLogUtil
 
     @Value
     @Builder
-    private static class LogToAuditMessageInfo implements Serializable
+    private static class LogToAuditMessageInfo
     {
         private final String level;
         private final String actor;

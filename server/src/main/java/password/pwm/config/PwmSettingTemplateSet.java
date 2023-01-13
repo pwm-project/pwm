@@ -24,13 +24,12 @@ import lombok.Value;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.EnumUtil;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Value
-public class PwmSettingTemplateSet implements Serializable
+public class PwmSettingTemplateSet
 {
     private final Set<PwmSettingTemplate> templates;
 

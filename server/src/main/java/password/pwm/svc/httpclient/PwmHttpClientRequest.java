@@ -24,19 +24,18 @@ import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
 import password.pwm.PwmApplication;
+import password.pwm.data.ImmutableByteArray;
 import password.pwm.http.HttpEntityDataType;
 import password.pwm.http.HttpMethod;
-import password.pwm.data.ImmutableByteArray;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.StringUtil;
 
-import java.io.Serializable;
 import java.net.URI;
 import java.util.Map;
 
 @Value
 @Builder( toBuilder = true )
-public class PwmHttpClientRequest implements Serializable, PwmHttpClientMessage
+public class PwmHttpClientRequest implements PwmHttpClientMessage
 {
     private static final AtomicLoopIntIncrementer REQUEST_COUNTER = new AtomicLoopIntIncrementer();
 

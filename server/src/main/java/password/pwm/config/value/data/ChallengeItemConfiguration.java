@@ -23,11 +23,9 @@ package password.pwm.config.value.data;
 import lombok.Builder;
 import lombok.Value;
 
-import java.io.Serializable;
-
 @Value
 @Builder
-public class ChallengeItemConfiguration implements Serializable
+public class ChallengeItemConfiguration
 {
     private String text;
     private int minLength;

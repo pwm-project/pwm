@@ -34,8 +34,8 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.i18n.Message;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
@@ -46,7 +46,6 @@ import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,7 +65,7 @@ public class RestVerifyResponsesServer extends RestServlet
     private static final String FIELD_USERNAME = "username";
 
     @Value
-    public static class JsonPutChallengesInput implements Serializable
+    public static class JsonPutChallengesInput
     {
         public List<ChallengeBean> challenges;
         public String username;

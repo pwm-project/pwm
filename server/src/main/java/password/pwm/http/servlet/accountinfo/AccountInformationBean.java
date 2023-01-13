@@ -33,16 +33,15 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.DisplayElement;
 import password.pwm.http.tag.PasswordRequirementsTag;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.ViewableUserInfoDisplayReader;
 import password.pwm.svc.event.UserAuditRecord;
+import password.pwm.user.UserInfo;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,12 +51,12 @@ import java.util.Map;
 
 @Value
 @Builder
-public class AccountInformationBean implements Serializable
+public class AccountInformationBean
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( AccountInformationBean.class );
 
     @Value
-    public static class ActivityRecord implements Serializable
+    public static class ActivityRecord
     {
         private Instant timestamp;
         private String label;

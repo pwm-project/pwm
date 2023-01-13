@@ -39,7 +39,6 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.PwmException;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -177,7 +176,7 @@ public class LdapDebugDataGenerator
 
     @Value
     @Builder
-    public static class LdapDebugInfo implements Serializable
+    public static class LdapDebugInfo
     {
         private ProfileID profileName;
         private String displayName;
@@ -186,7 +185,7 @@ public class LdapDebugDataGenerator
 
     @Value
     @Builder
-    public static class LdapDebugServerInfo implements Serializable
+    public static class LdapDebugServerInfo
     {
         private String ldapServerlUrl;
         private String testUserDN;

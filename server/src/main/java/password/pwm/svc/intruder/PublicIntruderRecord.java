@@ -25,12 +25,11 @@ import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.bean.DomainID;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 @Value
 @Builder
-public class PublicIntruderRecord implements Serializable
+public class PublicIntruderRecord
 {
     private final IntruderRecordType type;
     private final DomainID domainID;

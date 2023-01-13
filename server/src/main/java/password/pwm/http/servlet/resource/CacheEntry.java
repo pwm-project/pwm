@@ -23,13 +23,12 @@ package password.pwm.http.servlet.resource;
 import lombok.Value;
 import password.pwm.data.ImmutableByteArray;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
 @Value
-final class CacheEntry implements Serializable
+final class CacheEntry
 {
     private final ImmutableByteArray entity;
     private final Map<String, String> headerStrings;

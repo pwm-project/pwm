@@ -29,7 +29,6 @@ public class H2MVLocalDB
 /*
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -176,7 +175,7 @@ public class H2MVLocalDB {} implements LocalDBProvider {
     }
 
     @Override
-    public Map<String, Serializable> debugInfo() {
+    public Map<String, Object> debugInfo() {
         return Collections.emptyMap();
     }
 

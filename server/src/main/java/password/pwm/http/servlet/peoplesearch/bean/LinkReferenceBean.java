@@ -22,10 +22,8 @@ package password.pwm.http.servlet.peoplesearch.bean;
 
 import lombok.Data;
 
-import java.io.Serializable;
-
 @Data
-public class LinkReferenceBean implements Serializable
+public class LinkReferenceBean
 {
     private String name;
     private String link;

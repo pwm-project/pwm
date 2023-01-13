@@ -23,7 +23,6 @@ package password.pwm.util.localdb;
 import password.pwm.util.java.ClosableIterator;
 import password.pwm.util.java.EnumUtil;
 
-import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.nio.file.Path;
@@ -111,7 +110,7 @@ public interface LocalDB
 
     Path getFileLocation( );
 
-    Map<String, Serializable> debugInfo( );
+    Map<String, Object> debugInfo( );
 
     enum DB
     {

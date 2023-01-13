@@ -22,8 +22,8 @@ package password.pwm.ws.client.rest;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import lombok.Value;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.pub.PublicUserInfoBean;
@@ -32,16 +32,15 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.user.UserInfo;
-import password.pwm.user.UserInfoBean;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.token.TokenDestinationDisplayMasker;
-import password.pwm.util.json.JsonFactory;
+import password.pwm.user.UserInfo;
+import password.pwm.user.UserInfoBean;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
-import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -54,7 +53,7 @@ public class RestTokenDataClient implements RestClient
     private final PwmDomain pwmDomain;
 
     @Value
-    public static class TokenDestinationData implements Serializable
+    public static class TokenDestinationData
     {
         private String email;
         private String sms;

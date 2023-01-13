@@ -22,10 +22,8 @@ package password.pwm.svc.wordlist;
 
 import lombok.Value;
 
-import java.io.Serializable;
-
 @Value
-public class WordlistSourceInfo implements Serializable
+public class WordlistSourceInfo
 {
     private String hash;
     private long bytes;

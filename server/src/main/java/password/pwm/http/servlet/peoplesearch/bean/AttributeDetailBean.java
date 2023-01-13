@@ -23,12 +23,11 @@ package password.pwm.http.servlet.peoplesearch.bean;
 import lombok.Data;
 import password.pwm.config.value.data.FormConfiguration;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
 @Data
-public class AttributeDetailBean implements Serializable
+public class AttributeDetailBean
 {
     private String name;
     private String label;

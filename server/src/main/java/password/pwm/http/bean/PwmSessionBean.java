@@ -25,14 +25,13 @@ import lombok.Setter;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.error.ErrorInformation;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
 @Getter
 @Setter
-public abstract class PwmSessionBean implements Serializable
+public abstract class PwmSessionBean
 {
     public enum BeanType
     {

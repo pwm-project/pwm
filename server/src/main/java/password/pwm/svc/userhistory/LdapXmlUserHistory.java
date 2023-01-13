@@ -39,12 +39,12 @@ import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.user.UserInfo;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditEventType;
 import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.event.UserAuditRecord;
+import password.pwm.user.UserInfo;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
@@ -53,7 +53,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -339,7 +338,7 @@ public class LdapXmlUserHistory implements UserHistoryStore
     }
 
     @Value
-    public static class StoredEvent implements Serializable
+    public static class StoredEvent
     {
         private final AuditEvent auditEvent;
         private final long timestamp;

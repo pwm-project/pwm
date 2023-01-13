@@ -24,11 +24,10 @@ import lombok.Value;
 import password.pwm.bean.SessionLabel;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.net.URI;
 
 @Value
-public class ShortcutItem implements Serializable
+public class ShortcutItem
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ShortcutItem.class );
 

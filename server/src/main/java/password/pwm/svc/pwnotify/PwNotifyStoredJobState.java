@@ -24,12 +24,11 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.error.ErrorInformation;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 @Value
 @Builder
-public class PwNotifyStoredJobState implements Serializable
+public class PwNotifyStoredJobState
 {
     private Instant lastStart;
     private Instant lastCompletion;

@@ -54,7 +54,6 @@ import password.pwm.ws.server.RestUtility;
 import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -77,7 +76,7 @@ public class RestChallengesServer extends RestServlet
     private static final String FIELD_HELPDESK = "helpdesk";
 
     @Data
-    public static class Policy implements Serializable
+    public static class Policy
     {
         public List<ChallengeBean> challenges;
         public List<ChallengeBean> helpdeskChallenges;
@@ -85,13 +84,13 @@ public class RestChallengesServer extends RestServlet
     }
 
     @Data
-    private static class JsonDeleteInput implements Serializable
+    private static class JsonDeleteInput
     {
         private String username;
     }
 
     @Data
-    public static class JsonChallengesData implements Serializable
+    public static class JsonChallengesData
     {
         public String username;
         public List<ChallengeBean> challenges;

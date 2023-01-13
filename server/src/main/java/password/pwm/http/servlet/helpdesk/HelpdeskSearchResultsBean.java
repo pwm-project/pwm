@@ -23,14 +23,13 @@ package password.pwm.http.servlet.helpdesk;
 import lombok.Builder;
 import lombok.Value;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 @Value
 @Builder
-public class HelpdeskSearchResultsBean implements Serializable
+public class HelpdeskSearchResultsBean
 {
     private List<Map<String, Object>> searchResults;
     private boolean sizeExceeded;

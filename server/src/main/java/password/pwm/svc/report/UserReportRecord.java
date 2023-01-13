@@ -30,12 +30,11 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.user.UserInfo;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 @Value
 @Builder
-public class UserReportRecord implements Serializable
+public class UserReportRecord
 {
     private DomainID domainID;
     private String userDN;

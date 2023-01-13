@@ -28,15 +28,15 @@ import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmRequestContext;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.bean.ForgottenPasswordStage;
 import password.pwm.http.servlet.forgottenpw.ForgottenPasswordStateMachine;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.BeanCryptoMachine;
 import password.pwm.ws.server.PresentableForm;
@@ -48,7 +48,6 @@ import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
 
@@ -64,7 +63,7 @@ public class RestForgottenPasswordServer extends RestServlet
 
     @Value
     @Builder
-    static class JsonResponse implements Serializable
+    static class JsonResponse
     {
         private ForgottenPasswordStage stage;
         private IdentityVerificationMethod method;
@@ -88,7 +87,7 @@ public class RestForgottenPasswordServer extends RestServlet
     }
 
     @Value
-    static class JsonInput implements Serializable
+    static class JsonInput
     {
         private String state;
         private Map<String, String> form;

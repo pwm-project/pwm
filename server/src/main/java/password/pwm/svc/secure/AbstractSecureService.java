@@ -176,20 +176,20 @@ public abstract class AbstractSecureService extends AbstractPwmService implement
     }
 
     @Override
-    public String encryptObjectToString( final Object serializableObject )
+    public String encryptObjectToString( final Object object )
             throws PwmUnrecoverableException
     {
-        final String jsonValue = JsonFactory.get().serialize( serializableObject );
+        final String jsonValue = JsonFactory.get().serialize( object );
         stats.increment( StatKey.encryptOperations );
         stats.increment( StatKey.encryptBytes, jsonValue.length() );
         return encryptToString( jsonValue );
     }
 
     @Override
-    public String encryptObjectToString( final Object serializableObject, final PwmSecurityKey securityKey )
+    public String encryptObjectToString( final Object object, final PwmSecurityKey securityKey )
             throws PwmUnrecoverableException
     {
-        final String jsonValue = JsonFactory.get().serialize( serializableObject );
+        final String jsonValue = JsonFactory.get().serialize( object );
         stats.increment( StatKey.encryptOperations );
         stats.increment( StatKey.encryptBytes, jsonValue.length() );
         return encryptToString( jsonValue, securityKey );

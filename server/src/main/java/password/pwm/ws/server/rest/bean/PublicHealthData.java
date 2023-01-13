@@ -23,13 +23,12 @@ package password.pwm.ws.server.rest.bean;
 import lombok.Builder;
 import lombok.Value;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 
 @Value
 @Builder
-public class PublicHealthData implements Serializable
+public class PublicHealthData
 {
     @Builder.Default
     public Instant timestamp = Instant.now();

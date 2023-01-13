@@ -22,8 +22,8 @@ package password.pwm.ws.server.rest;
 
 import lombok.Value;
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -31,13 +31,13 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
+import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.ws.server.RestAuthenticationType;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
@@ -47,7 +47,6 @@ import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Map;
 
@@ -147,7 +146,7 @@ public class RestFormSigningServer extends RestServlet
     }
 
     @Value
-    private static class SignedFormData implements Serializable
+    private static class SignedFormData
     {
         private Instant timestamp;
         private Map<String, String> formData;

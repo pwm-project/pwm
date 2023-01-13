@@ -20,17 +20,16 @@
 
 package password.pwm.bean;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Value;
-
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-@Value
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class VersionNumber implements Comparable<VersionNumber>
+public record VersionNumber(
+        int major,
+        int minor,
+        int patch
+)
+        implements Comparable<VersionNumber>
 {
     private static final String VERSION_DELIMITER = ".";
     private static final String VERSION_PREFIX = "v";
@@ -41,13 +40,9 @@ public class VersionNumber implements Comparable<VersionNumber>
     public static final VersionNumber ZERO = VersionNumber.of( 0, 0, 0 );
 
     private static final Comparator<VersionNumber> COMPARATOR = Comparator
-            .comparingInt( VersionNumber::getMajor )
-            .thenComparingInt( VersionNumber::getMinor )
-            .thenComparingInt( VersionNumber::getPatch );
-
-    private final int major;
-    private final int minor;
-    private final int patch;
+            .comparingInt( VersionNumber::major )
+            .thenComparingInt( VersionNumber::minor )
+            .thenComparingInt( VersionNumber::patch );
 
     @Override
     public int compareTo( final VersionNumber o )

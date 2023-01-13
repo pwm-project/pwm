@@ -42,8 +42,6 @@ import java.util.Set;
 @EqualsAndHashCode( callSuper = false )
 public class NewUserBean extends PwmSessionBean
 {
-    private static final long serialVersionUID = 1L;
-
     @SerializedName( "p" )
     private ProfileID profileID;
 

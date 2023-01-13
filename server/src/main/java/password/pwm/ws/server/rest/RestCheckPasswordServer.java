@@ -34,14 +34,14 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.user.UserInfo;
 import password.pwm.util.PasswordData;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestMethodHandler;
@@ -53,7 +53,6 @@ import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.Serializable;
 import java.time.Instant;
 
 @WebServlet(
@@ -73,7 +72,7 @@ public class RestCheckPasswordServer extends RestServlet
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class JsonInput implements Serializable
+    public static class JsonInput
     {
         public String password1;
         public String password2;
@@ -83,7 +82,7 @@ public class RestCheckPasswordServer extends RestServlet
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class JsonOutput implements Serializable
+    public static class JsonOutput
     {
         public int version;
         public int strength;

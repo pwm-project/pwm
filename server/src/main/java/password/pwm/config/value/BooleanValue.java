@@ -30,7 +30,6 @@ import password.pwm.i18n.Display;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -113,7 +112,7 @@ public class BooleanValue implements StoredValue
     }
 
     @Override
-    public Serializable toDebugJsonObject( final Locale locale )
+    public Object toDebugJsonObject( final Locale locale )
     {
         return value;
     }

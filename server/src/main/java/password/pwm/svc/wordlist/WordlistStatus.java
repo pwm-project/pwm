@@ -23,14 +23,13 @@ package password.pwm.svc.wordlist;
 import lombok.Builder;
 import lombok.Value;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
 @Value
 @Builder( toBuilder = true )
-public class WordlistStatus implements Serializable
+public class WordlistStatus
 {
     public static final int CURRENT_VERSION = 8;
 

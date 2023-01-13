@@ -35,7 +35,6 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogManager;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,7 +62,7 @@ public class HealthService extends AbstractPwmService implements PwmService
 
     private HealthMonitorSettings settings;
 
-    private final Map<HealthMonitorFlag, Serializable> healthProperties = new ConcurrentHashMap<>();
+    private final Map<HealthMonitorFlag, Object> healthProperties = new ConcurrentHashMap<>();
     private final AtomicInteger healthCheckCount = new AtomicInteger( 0 );
 
     private final StatisticCounterBundle<CounterStatKey> counterStats = new StatisticCounterBundle<>( CounterStatKey.class );
@@ -259,7 +258,7 @@ public class HealthService extends AbstractPwmService implements PwmService
                 .build();
     }
 
-    Map<HealthMonitorFlag, Serializable> getHealthProperties( )
+    Map<HealthMonitorFlag, Object> getHealthProperties( )
     {
         return healthProperties;
     }

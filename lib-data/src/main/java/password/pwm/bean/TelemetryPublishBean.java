@@ -23,14 +23,13 @@ package password.pwm.bean;
 import lombok.Builder;
 import lombok.Value;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 @Value
 @Builder
-public class TelemetryPublishBean implements Serializable
+public class TelemetryPublishBean
 {
     private final Instant timestamp;
     private final String id;

@@ -25,7 +25,6 @@ import lombok.Value;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.json.JsonFactory;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
@@ -35,7 +34,7 @@ import java.util.Map;
  */
 @Value
 @EqualsAndHashCode( callSuper = false )
-public class CustomLinkConfiguration implements Serializable
+public class CustomLinkConfiguration
 {
     public enum Type
     {

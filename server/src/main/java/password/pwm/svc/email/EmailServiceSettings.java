@@ -28,17 +28,14 @@ import password.pwm.config.PwmSetting;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 @Value
 @Builder
-public class EmailServiceSettings implements Serializable
+public class EmailServiceSettings
 {
-    private static final long serialVersionUID = 0L;
-
     private final TimeDuration connectionSendItemDuration;
     private final TimeDuration queueRetryTimeout;
     private final TimeDuration queueDiscardAge;

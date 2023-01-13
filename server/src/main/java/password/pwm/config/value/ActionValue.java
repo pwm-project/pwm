@@ -38,7 +38,6 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.X509Utils;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -277,7 +276,7 @@ public class ActionValue extends AbstractValue implements StoredValue
     }
 
     @Override
-    public Serializable toDebugJsonObject( final Locale locale )
+    public Object toDebugJsonObject( final Locale locale )
     {
         final ArrayList<ActionConfiguration> output = new ArrayList<>( values.size() );
         for ( final ActionConfiguration actionConfiguration : values )

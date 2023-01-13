@@ -22,11 +22,10 @@ package password.pwm.http.bean;
 
 import lombok.Value;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Value
-public class DisplayElement implements Serializable
+public class DisplayElement
 {
     private final String key;
     private final Type type;

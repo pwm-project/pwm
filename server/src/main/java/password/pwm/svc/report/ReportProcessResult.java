@@ -23,11 +23,10 @@ package password.pwm.svc.report;
 import lombok.Value;
 import password.pwm.util.java.TimeDuration;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 @Value
-public class ReportProcessResult implements Serializable
+public class ReportProcessResult
 {
     private final ReportProcessRequest request;
     private final long recordCount;

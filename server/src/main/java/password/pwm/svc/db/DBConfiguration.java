@@ -31,14 +31,13 @@ import password.pwm.data.ImmutableByteArray;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
 @Value
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class DBConfiguration implements Serializable
+public class DBConfiguration
 {
     private final String driverClassname;
     private final String connectionString;

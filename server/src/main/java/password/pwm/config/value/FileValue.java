@@ -29,8 +29,8 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.data.ImmutableByteArray;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
@@ -41,7 +41,6 @@ import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -61,19 +60,15 @@ public class FileValue extends AbstractValue implements StoredValue
     private final Map<FileInformation, FileContent> values;
 
     @Value
-    public static class FileInformation implements Serializable
+    public static class FileInformation
     {
-        private static final long serialVersionUID = 1L;
-
         private final String filename;
         private final String filetype;
     }
 
     @EqualsAndHashCode
-    public static class FileContent implements Serializable
+    public static class FileContent
     {
-        private static final long serialVersionUID = 1L;
-
         private final String b64EncodedContents;
         private final transient Supplier<ImmutableByteArray> byteContents;
 
@@ -232,13 +227,13 @@ public class FileValue extends AbstractValue implements StoredValue
     )
     {
         final List<Map<String, Object>> output = asMetaData();
-        return JsonFactory.get().serialize( ( Serializable ) output, JsonProvider.Flag.PrettyPrint );
+        return JsonFactory.get().serialize( output, JsonProvider.Flag.PrettyPrint );
     }
 
     @Override
-    public Serializable toDebugJsonObject( final Locale locale )
+    public Object toDebugJsonObject( final Locale locale )
     {
-        return ( Serializable ) asMetaData();
+        return asMetaData();
     }
 
     List<Map<String, Object>> asMetaData( )
@@ -295,7 +290,7 @@ public class FileValue extends AbstractValue implements StoredValue
 
     @Value
     @Builder
-    public static class FileInfo implements Serializable
+    public static class FileInfo
     {
         private String name;
         private String type;

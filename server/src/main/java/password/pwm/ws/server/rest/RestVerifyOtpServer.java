@@ -31,10 +31,10 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.i18n.Message;
+import password.pwm.svc.otp.OTPUserRecord;
+import password.pwm.svc.otp.OtpService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.svc.otp.OtpService;
-import password.pwm.svc.otp.OTPUserRecord;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
@@ -44,7 +44,6 @@ import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.Serializable;
 
 @WebServlet(
         urlPatterns = {
@@ -56,7 +55,7 @@ public class RestVerifyOtpServer extends RestServlet
 {
 
     @Value
-    public static class JsonPutOtpInput implements Serializable
+    public static class JsonPutOtpInput
     {
         public String token;
         public String username;

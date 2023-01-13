@@ -27,7 +27,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.java.StringUtil;
 
-import java.io.Serializable;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +34,7 @@ import java.util.Map;
 
 @Value
 @Builder( toBuilder = true )
-public class ActionConfiguration implements Serializable
+public class ActionConfiguration
 {
     private String name;
     private String description;
@@ -58,7 +57,7 @@ public class ActionConfiguration implements Serializable
 
     @Value
     @Builder( toBuilder = true )
-    public static class WebAction implements Serializable
+    public static class WebAction
     {
         @Builder.Default
         private ActionConfiguration.WebMethod method = ActionConfiguration.WebMethod.get;
@@ -87,7 +86,7 @@ public class ActionConfiguration implements Serializable
 
     @Value
     @Builder
-    public static class LdapAction implements Serializable
+    public static class LdapAction
     {
         @Builder.Default
         private ActionConfiguration.LdapMethod ldapMethod = ActionConfiguration.LdapMethod.replace;
@@ -126,7 +125,7 @@ public class ActionConfiguration implements Serializable
 
     @Value
     @Builder( toBuilder = true )
-    public static class ActionConfigurationOldVersion1 implements Serializable
+    public static class ActionConfigurationOldVersion1
     {
         public enum Type
         {

@@ -32,7 +32,6 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 
-import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
@@ -40,7 +39,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public final class StoredConfigKey implements Serializable, Comparable<StoredConfigKey>
+public record StoredConfigKey(
+        RecordType recordType,
+        DomainID domainID,
+        String recordID,
+        String profileID
+)
+        implements Comparable<StoredConfigKey>
 {
     private static final Comparator<StoredConfigKey> COMPARATOR = makeComparator();
 
@@ -63,25 +68,11 @@ public final class StoredConfigKey implements Serializable, Comparable<StoredCon
         }
     }
 
-    private final RecordType recordType;
-    private final DomainID domainID;
-    private final String recordID;
-    private final String profileID;
-
-    private static final long serialVersionUID = 1L;
-
-    private StoredConfigKey(
-            final RecordType recordType,
-            final DomainID domainID,
-            final String recordID,
-            final String profileID
-    )
+    public StoredConfigKey
     {
-        this.recordType = Objects.requireNonNull( recordType, "recordType can not be null" );
-        this.recordID = Objects.requireNonNull( recordID, "recordID can not be null" );
-        this.domainID = Objects.requireNonNull( domainID, "domainID can not be null" );
-
-        this.profileID = profileID;
+        Objects.requireNonNull( recordType );
+        Objects.requireNonNull( recordID );
+        Objects.requireNonNull( domainID );
     }
 
     public RecordType getRecordType()
@@ -264,30 +255,6 @@ public final class StoredConfigKey implements Serializable, Comparable<StoredCon
     public int compareTo( @NotNull final StoredConfigKey o )
     {
         return COMPARATOR.compare( this, o );
-    }
-
-    @Override
-    public boolean equals( final Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-        final StoredConfigKey that = ( StoredConfigKey ) o;
-        return Objects.equals( recordType, that.recordType )
-                && Objects.equals( domainID, that.domainID )
-                && Objects.equals( recordID, that.recordID )
-                && Objects.equals( profileID, that.profileID );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( recordType, domainID, recordID, profileID );
     }
 
     @Override

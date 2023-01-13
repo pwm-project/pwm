@@ -68,7 +68,6 @@ import password.pwm.ws.server.rest.bean.PublicHealthData;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -101,14 +100,14 @@ public class ClientApiServlet extends ControlledPwmServlet
     }
 
     @Data
-    public static class AppData implements Serializable
+    public static class AppData
     {
         @SuppressWarnings( "checkstyle:MemberName" )
         public Map<String, Object> PWM_GLOBAL;
     }
 
     @Data
-    public static class PingResponse implements Serializable
+    public static class PingResponse
     {
         private Instant time;
         private String runtimeNonce;

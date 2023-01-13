@@ -38,7 +38,6 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -276,7 +275,7 @@ public class MapDBLocalDB implements LocalDBProvider {
     }
 
     @Override
-    public Map<String, Serializable> debugInfo() {
+    public Map<String, Object> debugInfo() {
         return Collections.emptyMap();
     }
 

@@ -29,7 +29,6 @@ import password.pwm.util.json.JsonProvider;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -48,7 +47,7 @@ class CacheServiceDebugItemGenerator implements DomainItemGenerator
         final PwmDomain pwmApplication = debugItemInput.getPwmDomain();
         final CacheService cacheService = pwmApplication.getCacheService();
 
-        final Map<String, Serializable> debugOutput = new LinkedHashMap<>( cacheService.debugInfo() );
+        final Map<String, Object> debugOutput = new LinkedHashMap<>( cacheService.debugInfo() );
         outputStream.write( JsonFactory.get().serializeMap( debugOutput, JsonProvider.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }
 }

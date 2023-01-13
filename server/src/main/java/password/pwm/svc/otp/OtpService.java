@@ -58,7 +58,6 @@ import password.pwm.util.secure.PwmRandom;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -519,7 +518,7 @@ public class OtpService extends AbstractPwmService implements PwmService
 
     @Value
     @Builder( access = AccessLevel.PRIVATE )
-    public static class OtpSettings implements Serializable
+    public static class OtpSettings
     {
         private OTPStorageFormat otpStorageFormat;
         private OTPUserRecord.Type otpType = OTPUserRecord.Type.TOTP;

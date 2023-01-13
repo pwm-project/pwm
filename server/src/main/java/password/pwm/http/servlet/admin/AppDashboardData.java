@@ -54,7 +54,6 @@ import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.time.Instant;
@@ -73,9 +72,8 @@ import java.util.TreeMap;
 
 @Value
 @Builder
-public class AppDashboardData implements Serializable
+public class AppDashboardData
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( AppDashboardData.class );
 
     private static final List<PwmAboutProperty> INTERESTED_ABOUT_PROPERTIES = Arrays.asList(
@@ -96,7 +94,7 @@ public class AppDashboardData implements Serializable
 
 
     @Value
-    public static class ServiceData implements Serializable, Comparable<ServiceData>
+    public static class ServiceData implements Comparable<ServiceData>
     {
         private static final Comparator<ServiceData> COMPARATOR = Comparator.comparing(
                 ServiceData::getDomainID,
@@ -124,7 +122,7 @@ public class AppDashboardData implements Serializable
     }
 
     @Value
-    public static class ThreadData implements Serializable
+    public static class ThreadData
     {
         private String id;
         private String name;
@@ -133,7 +131,7 @@ public class AppDashboardData implements Serializable
     }
 
     @Value
-    public static class NodeData implements Serializable
+    public static class NodeData
     {
         private String instanceID;
         private String uptime;

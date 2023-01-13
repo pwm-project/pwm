@@ -24,13 +24,12 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.http.bean.DisplayElement;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
 @Value
 @Builder
-public class ReportProcessStatus implements Serializable
+public class ReportProcessStatus
 {
     @Builder.Default
     private List<DisplayElement> presentable = Collections.singletonList( new DisplayElement( "status", DisplayElement.Type.string, "Status", "Idle" ) );

@@ -25,19 +25,18 @@ import lombok.AllArgsConstructor;
 import lombok.Value;
 import password.pwm.bean.UserIdentity;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 @Value
-public class CacheKey implements Serializable
+public class CacheKey
 {
-    final Class srcClass;
+    final Class<?> srcClass;
     final UserIdentity userIdentity;
     final String valueID;
 
     public static CacheKey newKey(
-            final Class srcClass,
+            final Class<?> srcClass,
             final UserIdentity userIdentity,
             final String valueID
     )

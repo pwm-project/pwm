@@ -26,11 +26,9 @@ import password.pwm.AppProperty;
 import password.pwm.config.AppConfig;
 import password.pwm.util.java.TimeDuration;
 
-import java.io.Serializable;
-
 @Value
 @Builder
-class HealthMonitorSettings implements Serializable
+class HealthMonitorSettings
 {
     private boolean healthCheckEnabled;
     private TimeDuration nominalCheckInterval;

@@ -22,11 +22,10 @@ package password.pwm.http.auth;
 
 import lombok.Value;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 @Value
-public class HttpAuthRecord implements Serializable
+public class HttpAuthRecord
 {
     private Instant date;
     private String guid;

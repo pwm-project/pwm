@@ -615,7 +615,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         else
         {
             final Map<String, String> testParams = pwmRequest.readBodyAsJsonStringMap();
-            final SmsItemBean testSmsItem = new SmsItemBean( testParams.get( "to" ), testParams.get( "message" ), pwmRequest.getLabel() );
+            final SmsItemBean testSmsItem = new SmsItemBean( testParams.get( "to" ), testParams.get( "message" ) );
             try
             {
                 final PwmHttpClientResponse responseBody = SmsQueueService.sendDirectMessage(

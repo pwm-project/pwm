@@ -37,7 +37,6 @@ import password.pwm.util.java.LazySupplier;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -45,8 +44,6 @@ import java.util.Optional;
 
 public class PasswordValue implements StoredValue
 {
-    private static final long serialVersionUID = 1L;
-
     private final transient LazySupplier<String> valueHashSupplier = LazySupplier.create( () -> AbstractValue.valueHashComputer( PasswordValue.this ) );
 
     private final PasswordData value;
@@ -192,7 +189,7 @@ public class PasswordValue implements StoredValue
     }
 
     @Override
-    public Serializable toDebugJsonObject( final Locale locale )
+    public Object toDebugJsonObject( final Locale locale )
     {
         return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }

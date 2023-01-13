@@ -23,10 +23,8 @@ package password.pwm.bean;
 import lombok.Value;
 import password.pwm.data.ImmutableByteArray;
 
-import java.io.Serializable;
-
 @Value
-public class PhotoDataBean implements Serializable
+public class PhotoDataBean
 {
     private String mimeType;
     private ImmutableByteArray contents;

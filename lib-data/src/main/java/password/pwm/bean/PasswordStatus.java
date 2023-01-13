@@ -23,11 +23,9 @@ package password.pwm.bean;
 import lombok.Builder;
 import lombok.Value;
 
-import java.io.Serializable;
-
 @Value
 @Builder
-public class PasswordStatus implements Serializable
+public class PasswordStatus
 {
     private final boolean expired;
     private final boolean preExpired;

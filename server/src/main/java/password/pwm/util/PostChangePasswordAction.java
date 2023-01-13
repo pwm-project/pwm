@@ -23,9 +23,7 @@ package password.pwm.util;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 
-import java.io.Serializable;
-
-public interface PostChangePasswordAction extends Serializable
+public interface PostChangePasswordAction
 {
     String getLabel( );
 

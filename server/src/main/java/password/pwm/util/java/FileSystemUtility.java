@@ -29,7 +29,6 @@ import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -162,7 +161,7 @@ public class FileSystemUtility
     }
 
     @Value
-    public static class FileSummaryInformation implements Serializable
+    public static class FileSummaryInformation
     {
         private final String filename;
         private final String filepath;

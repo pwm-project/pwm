@@ -53,7 +53,6 @@ import password.pwm.util.java.PwmTimeUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,7 +66,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserMatchViewerFunction.class );
 
     @Override
-    public Serializable provideFunction(
+    public Object provideFunction(
             final PwmRequest pwmRequest,
             final StoredConfigurationModifier storedConfiguration,
             final StoredConfigKey key,
@@ -203,7 +202,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
 
     @Value
     @Builder
-    public static class UserMatchViewerResults implements Serializable
+    public static class UserMatchViewerResults
     {
         private Collection<UserIdentity> users;
         private boolean sizeExceeded;

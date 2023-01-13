@@ -256,11 +256,11 @@ public class EmailServerUtil
     static EmailItemBean applyMacrosToEmail( final EmailItemBean emailItem, final MacroRequest macroRequest )
     {
         return new EmailItemBean(
-                macroRequest.expandMacros( emailItem.getTo() ),
-                macroRequest.expandMacros( emailItem.getFrom() ),
-                macroRequest.expandMacros( emailItem.getSubject() ),
-                macroRequest.expandMacros( emailItem.getBodyPlain() ),
-                macroRequest.expandMacros( emailItem.getBodyHtml() )
+                macroRequest.expandMacros( emailItem.to() ),
+                macroRequest.expandMacros( emailItem.from() ),
+                macroRequest.expandMacros( emailItem.subject() ),
+                macroRequest.expandMacros( emailItem.bodyPlain() ),
+                macroRequest.expandMacros( emailItem.bodyHtml() )
         );
     }
 
@@ -268,10 +268,10 @@ public class EmailServerUtil
     {
         return new EmailItemBean(
                 toAddress,
-                emailItem.getFrom(),
-                emailItem.getSubject(),
-                emailItem.getBodyPlain(),
-                emailItem.getBodyHtml()
+                emailItem.from(),
+                emailItem.subject(),
+                emailItem.bodyPlain(),
+                emailItem.bodyHtml()
         );
     }
 
@@ -323,12 +323,12 @@ public class EmailServerUtil
             throws MessagingException
     {
         final List<Message> messages = new ArrayList<>();
-        final boolean hasPlainText = emailItemBean.getBodyPlain() != null && emailItemBean.getBodyPlain().length() > 0;
-        final boolean hasHtml = emailItemBean.getBodyHtml() != null && emailItemBean.getBodyHtml().length() > 0;
+        final boolean hasPlainText = emailItemBean.bodyPlain() != null && emailItemBean.bodyPlain().length() > 0;
+        final boolean hasHtml = emailItemBean.bodyHtml() != null && emailItemBean.bodyHtml().length() > 0;
         final String subjectEncodingCharset = config.readAppProperty( AppProperty.SMTP_SUBJECT_ENCODING_CHARSET );
 
         // create a new Session object for the messagejavamail
-        final String emailTo = emailItemBean.getTo();
+        final String emailTo = emailItemBean.to();
         if ( emailTo != null )
         {
             final InternetAddress[] recipients = InternetAddress.parse( emailTo );
@@ -336,7 +336,7 @@ public class EmailServerUtil
             {
                 final MimeMessage message = new MimeMessage( emailServer.getSession() );
 
-                final Optional<InternetAddress> fromAddress = makeInternetAddress( emailItemBean.getFrom(), sessionLabel );
+                final Optional<InternetAddress> fromAddress = makeInternetAddress( emailItemBean.from(), sessionLabel );
                 if ( fromAddress.isPresent() )
                 {
                     message.setFrom( fromAddress.get() );
@@ -346,11 +346,11 @@ public class EmailServerUtil
                 {
                     if ( subjectEncodingCharset != null && !subjectEncodingCharset.isEmpty() )
                     {
-                        message.setSubject( emailItemBean.getSubject(), subjectEncodingCharset );
+                        message.setSubject( emailItemBean.subject(), subjectEncodingCharset );
                     }
                     else
                     {
-                        message.setSubject( emailItemBean.getSubject() );
+                        message.setSubject( emailItemBean.subject() );
                     }
                 }
                 message.setSentDate( new Date() );
@@ -360,19 +360,19 @@ public class EmailServerUtil
                     final MimeMultipart content = new MimeMultipart( "alternative" );
                     final MimeBodyPart text = new MimeBodyPart();
                     final MimeBodyPart html = new MimeBodyPart();
-                    text.setContent( emailItemBean.getBodyPlain(), HttpContentType.plain.getHeaderValueWithEncoding() );
-                    html.setContent( emailItemBean.getBodyHtml(), HttpContentType.html.getHeaderValueWithEncoding() );
+                    text.setContent( emailItemBean.bodyPlain(), HttpContentType.plain.getHeaderValueWithEncoding() );
+                    html.setContent( emailItemBean.bodyHtml(), HttpContentType.html.getHeaderValueWithEncoding() );
                     content.addBodyPart( text );
                     content.addBodyPart( html );
                     message.setContent( content );
                 }
                 else if ( hasPlainText )
                 {
-                    message.setContent( emailItemBean.getBodyPlain(), HttpContentType.plain.getHeaderValueWithEncoding() );
+                    message.setContent( emailItemBean.bodyPlain(), HttpContentType.plain.getHeaderValueWithEncoding() );
                 }
                 else if ( hasHtml )
                 {
-                    message.setContent( emailItemBean.getBodyHtml(), HttpContentType.html.getHeaderValueWithEncoding() );
+                    message.setContent( emailItemBean.bodyHtml(), HttpContentType.html.getHeaderValueWithEncoding() );
                 }
 
                 messages.add( message );

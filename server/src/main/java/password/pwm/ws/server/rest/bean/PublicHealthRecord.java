@@ -23,29 +23,28 @@ package password.pwm.ws.server.rest.bean;
 import password.pwm.config.SettingReader;
 import password.pwm.health.HealthStatus;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class PublicHealthRecord implements Serializable
+public record PublicHealthRecord(
+        HealthStatus status,
+        String topic,
+        String detail,
+        String domainID
+)
 {
-    public HealthStatus status;
-    public String topic;
-    public String detail;
-    public String domainID;
 
     public static PublicHealthRecord fromHealthRecord(
             final password.pwm.health.HealthRecord healthRecord,
             final Locale locale,
             final SettingReader config )
     {
-        final PublicHealthRecord bean = new PublicHealthRecord();
-        bean.status = healthRecord.getStatus();
-        bean.topic = healthRecord.getTopic( locale, config );
-        bean.detail = healthRecord.getDetail( locale, config );
-        bean.domainID = healthRecord.getDomainID().stringValue();
-        return bean;
+        final HealthStatus status = healthRecord.getStatus();
+        final String topic = healthRecord.getTopic( locale, config );
+        final String detail = healthRecord.getDetail( locale, config );
+        final String domainID = healthRecord.getDomainID().stringValue();
+        return new PublicHealthRecord( status, topic, detail, domainID );
     }
 
     public static List<PublicHealthRecord> fromHealthRecords(

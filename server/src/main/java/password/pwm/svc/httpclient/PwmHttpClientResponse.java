@@ -28,12 +28,11 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpEntityDataType;
 import password.pwm.util.java.StringUtil;
 
-import java.io.Serializable;
 import java.util.Map;
 
 @Value
 @Builder
-public class PwmHttpClientResponse implements Serializable, PwmHttpClientMessage
+public class PwmHttpClientResponse implements PwmHttpClientMessage
 {
     private final int requestID;
     private final int statusCode;

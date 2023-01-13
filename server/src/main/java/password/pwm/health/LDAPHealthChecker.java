@@ -53,14 +53,14 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
+import password.pwm.user.UserInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmTimeUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -69,7 +69,6 @@ import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.server.rest.bean.PublicHealthData;
 
-import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -723,7 +722,7 @@ public class LDAPHealthChecker implements HealthSupplier
 
     private List<HealthRecord> checkVendorSameness( final SessionLabel sessionLabel, final PwmDomain pwmDomain )
     {
-        final Map<HealthService.HealthMonitorFlag, Serializable> healthProperties = pwmDomain.getPwmApplication().getHealthMonitor().getHealthProperties();
+        final Map<HealthService.HealthMonitorFlag, Object> healthProperties = pwmDomain.getPwmApplication().getHealthMonitor().getHealthProperties();
         final List<HealthRecord> cachedRecords = ( List<HealthRecord> ) healthProperties.get( HealthService.HealthMonitorFlag.LdapVendorSameCheck );
         if ( cachedRecords != null )
         {
@@ -800,7 +799,7 @@ public class LDAPHealthChecker implements HealthSupplier
 
         if ( pwmDomain.getPwmApplication().getHealthMonitor() != null )
         {
-            final Map<HealthService.HealthMonitorFlag, Serializable> healthProperties = pwmDomain.getPwmApplication().getHealthMonitor().getHealthProperties();
+            final Map<HealthService.HealthMonitorFlag, Object> healthProperties = pwmDomain.getPwmApplication().getHealthMonitor().getHealthProperties();
             final List<HealthRecord> cachedRecords = ( List<HealthRecord> ) healthProperties.get( HealthService.HealthMonitorFlag.AdPasswordPolicyApiCheck );
             if ( cachedRecords != null )
             {
@@ -856,7 +855,7 @@ public class LDAPHealthChecker implements HealthSupplier
 
         if ( !errorReachingServer && pwmDomain.getPwmApplication().getHealthMonitor() != null )
         {
-            final Map<HealthService.HealthMonitorFlag, Serializable> healthProperties = pwmDomain.getPwmApplication().getHealthMonitor().getHealthProperties();
+            final Map<HealthService.HealthMonitorFlag, Object> healthProperties = pwmDomain.getPwmApplication().getHealthMonitor().getHealthProperties();
             healthProperties.put( HealthService.HealthMonitorFlag.AdPasswordPolicyApiCheck, healthRecords );
         }
 

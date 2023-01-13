@@ -494,6 +494,11 @@ public class LocaleHelper
         return getLocalizedMessage( locale, Display.Value_NotApplicable, null );
     }
 
+    public static String orNotApplicable( final Object input )
+    {
+        return orNotApplicable( input, PwmConstants.DEFAULT_LOCALE );
+    }
+
     public static String orNotApplicable( final Object input, final Locale locale )
     {
         if ( input == null )

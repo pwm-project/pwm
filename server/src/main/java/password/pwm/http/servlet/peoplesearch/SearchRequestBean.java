@@ -25,7 +25,6 @@ import lombok.Value;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +32,7 @@ import java.util.stream.Collectors;
 
 @Value
 @Builder
-public class SearchRequestBean implements Serializable
+public class SearchRequestBean
 {
     @Builder.Default
     private SearchMode mode = SearchMode.simple;
@@ -49,7 +48,7 @@ public class SearchRequestBean implements Serializable
     }
 
     @Value
-    public static class SearchValue implements Serializable
+    public static class SearchValue
     {
         private String key;
         private String value;

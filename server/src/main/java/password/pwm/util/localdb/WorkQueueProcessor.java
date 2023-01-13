@@ -30,17 +30,16 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.EventRateMeter;
+import password.pwm.util.MovingAverage;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.MovingAverage;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.Collections;
@@ -59,7 +58,7 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * A work item queue manager.   Items submitted to the queue will eventually be worked on by the client side @code {@link ItemProcessor}.
  */
-public final class WorkQueueProcessor<W extends Serializable>
+public final class WorkQueueProcessor<W>
 {
     private static final TimeDuration SUBMIT_QUEUE_FULL_RETRY_CYCLE_INTERVAL = TimeDuration.of( 100, TimeDuration.Unit.MILLISECONDS );
     private static final TimeDuration CLOSE_RETRY_CYCLE_INTERVAL = TimeDuration.of( 5, TimeDuration.Unit.MILLISECONDS );
@@ -514,7 +513,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         }
     }
 
-    private static class ItemWrapper<W extends Serializable> implements Serializable
+    private static class ItemWrapper<W>
     {
         @SerializedName( "t" )
         private final Instant timestamp;
@@ -545,7 +544,7 @@ public final class WorkQueueProcessor<W extends Serializable>
         {
             try
             {
-                final Class clazz = Class.forName( className );
+                final Class<?> clazz = Class.forName( className );
                 final Object o = JsonFactory.get().deserialize( item, clazz );
                 return ( W ) o;
             }
@@ -573,7 +572,7 @@ public final class WorkQueueProcessor<W extends Serializable>
     /**
      * Implementation of {@link ItemProcessor} must be included with the construction of a {@link WorkQueueProcessor}.
      */
-    public interface ItemProcessor<W extends Serializable>
+    public interface ItemProcessor<W>
     {
         ProcessResult process( W workItem );
 
@@ -582,7 +581,7 @@ public final class WorkQueueProcessor<W extends Serializable>
 
     @Value
     @Builder
-    public static class Settings implements Serializable
+    public static class Settings
     {
         @Builder.Default
         private int maxEvents = 1000;

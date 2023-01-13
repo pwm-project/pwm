@@ -23,11 +23,9 @@ package password.pwm.http.servlet.oauth;
 import lombok.Builder;
 import lombok.Value;
 
-import java.io.Serializable;
-
 @Value
 @Builder( toBuilder = true )
-class OAuthResolveResults implements Serializable
+class OAuthResolveResults
 {
     private String accessToken;
     private long expiresSeconds;

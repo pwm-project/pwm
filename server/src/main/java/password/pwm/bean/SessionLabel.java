@@ -38,7 +38,6 @@ import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.Serializable;
 import java.util.Objects;
 
 @Value
@@ -46,7 +45,7 @@ import java.util.Objects;
 /**
  * Increasingly miss-named data class that represents request/operation actor and origin data.
  */
-public class SessionLabel implements Serializable
+public class SessionLabel
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( SessionLabel.class );
 

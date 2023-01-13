@@ -22,13 +22,12 @@ package password.pwm.util;
 
 import password.pwm.util.java.TimeDuration;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.text.NumberFormat;
 import java.time.Instant;
 
-public class ProgressInfoCalculator implements Serializable
+public class ProgressInfoCalculator
 {
     private final Instant startTime;
     private final Instant nowTime;

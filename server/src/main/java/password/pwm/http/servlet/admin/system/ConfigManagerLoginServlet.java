@@ -29,8 +29,8 @@ import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.ConfigurationFileManager;
+import password.pwm.config.stored.ConfigurationProperty;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.ErrorInformation;
@@ -51,8 +51,8 @@ import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.intruder.IntruderServiceClient;
 import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmTimeUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -62,7 +62,6 @@ import password.pwm.util.secure.SecureEngine;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.Serializable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -213,7 +212,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
     }
 
     @Value
-    public static class ConfigLoginHistory implements Serializable
+    public static class ConfigLoginHistory
     {
         private List<ConfigLoginEvent> successEvents = new ArrayList<>();
         private List<ConfigLoginEvent> failedEvents = new ArrayList<>();
@@ -243,7 +242,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
     }
 
     @Value
-    public static class ConfigLoginEvent implements Serializable
+    public static class ConfigLoginEvent
     {
         private final String userIdentity;
         private final Instant date;
@@ -381,7 +380,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
 
     @Value
-    private static class PersistentLoginInfo implements Serializable
+    private static class PersistentLoginInfo
     {
         @SerializedName( "i" )
         private Instant issueTimestamp;

@@ -24,12 +24,11 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 @Value
 @AllArgsConstructor( access = AccessLevel.PACKAGE )
-public class NodeInfo implements Serializable
+public class NodeInfo
 {
     private String instanceID;
     private Instant lastSeen;

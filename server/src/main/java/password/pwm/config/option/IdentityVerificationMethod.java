@@ -23,10 +23,9 @@ package password.pwm.config.option;
 import password.pwm.config.SettingReader;
 import password.pwm.i18n.Display;
 
-import java.io.Serializable;
 import java.util.Locale;
 
-public enum IdentityVerificationMethod implements Serializable, ConfigurationOption
+public enum IdentityVerificationMethod implements ConfigurationOption
 {
     PREVIOUS_AUTH( false, Display.Field_VerificationMethodPreviousAuth, Display.Description_VerificationMethodPreviousAuth ),
     ATTRIBUTES( true, Display.Field_VerificationMethodAttributes, Display.Description_VerificationMethodAttributes ),

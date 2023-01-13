@@ -28,14 +28,13 @@ import password.pwm.config.PwmSetting;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.TimeDuration;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
 @Value
 @Builder( toBuilder = true )
-public class LocalDBLoggerSettings implements Serializable
+public class LocalDBLoggerSettings
 {
     @Builder.Default
     static final int MINIMUM_MAXIMUM_EVENTS = 100;

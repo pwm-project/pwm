@@ -24,12 +24,11 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.config.PwmSettingTemplateSet;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Value
 @Builder
-public class VarData implements Serializable
+public class VarData
 {
     private final List<String> ldapProfileIds;
     private final List<String> domainIds;

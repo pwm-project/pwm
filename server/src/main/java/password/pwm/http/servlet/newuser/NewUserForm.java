@@ -26,14 +26,12 @@ import lombok.Getter;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 
-import java.io.Serializable;
 import java.util.Map;
 
 @Getter
 @AllArgsConstructor
-public class NewUserForm implements Serializable
+public class NewUserForm
 {
-
     @SerializedName( "f" )
     private final Map<String, String> formData;
 

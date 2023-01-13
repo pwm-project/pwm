@@ -24,11 +24,9 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.i18n.PwmLocaleBundle;
 
-import java.io.Serializable;
-
 @Value
 @Builder
-public class LocaleInfo implements Serializable
+public class LocaleInfo
 {
     public String description;
     public String key;

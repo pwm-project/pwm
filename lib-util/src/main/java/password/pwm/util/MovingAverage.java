@@ -20,7 +20,6 @@
 
 package password.pwm.util;
 
-import java.io.Serializable;
 import java.text.NumberFormat;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -49,7 +48,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * sample itself; it merely computes the new average when updated with
  * a sample by an external mechanism.</p>
  **/
-public class MovingAverage implements Serializable
+public class MovingAverage
 {
     private static final int FORMATTED_FRACTION_DIGITS = 3;
 

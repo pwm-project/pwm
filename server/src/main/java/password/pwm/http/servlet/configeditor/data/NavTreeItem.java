@@ -23,12 +23,11 @@ package password.pwm.http.servlet.configeditor.data;
 import lombok.Builder;
 import lombok.Value;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Value
 @Builder( toBuilder = true )
-public class NavTreeItem implements Serializable
+public class NavTreeItem
 {
     private final String id;
     private final String name;

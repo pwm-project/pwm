@@ -22,12 +22,11 @@ package password.pwm.http.bean;
 
 import password.pwm.Permission;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 
-public class UserSessionDataCacheBean implements Serializable
+public class UserSessionDataCacheBean
 {
     private final Map<Permission, Permission.PermissionStatus> permissions = new EnumMap<>( Permission.class );
 

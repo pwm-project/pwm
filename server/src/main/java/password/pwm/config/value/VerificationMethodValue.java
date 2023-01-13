@@ -34,7 +34,6 @@ import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -55,7 +54,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
         optional,
     }
 
-    public static class VerificationMethodSettings implements Serializable
+    public static class VerificationMethodSettings
     {
         private final Map<IdentityVerificationMethod, VerificationMethodSetting> methodSettings;
         private final int minOptionalRequired;
@@ -87,7 +86,7 @@ public class VerificationMethodValue extends AbstractValue implements StoredValu
     }
 
     @Value
-    public static class VerificationMethodSetting implements Serializable
+    public static class VerificationMethodSetting
     {
         private EnabledState enabledState;
     }

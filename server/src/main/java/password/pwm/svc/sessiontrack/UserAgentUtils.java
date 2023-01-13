@@ -39,7 +39,6 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -146,7 +145,7 @@ public class UserAgentUtils
     }
 
     @Value
-    private static class BrowserInfo implements Serializable
+    private static class BrowserInfo
     {
         private final BrowserType browserType;
         private final int majorVersion;

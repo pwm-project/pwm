@@ -35,12 +35,12 @@ import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.PasswordData;
-import password.pwm.util.password.RandomGeneratorConfig;
-import password.pwm.util.password.RandomGeneratorConfigRequest;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordUtility;
+import password.pwm.util.password.RandomGeneratorConfig;
+import password.pwm.util.password.RandomGeneratorConfigRequest;
+import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
@@ -50,7 +50,6 @@ import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,13 +64,13 @@ public class RestRandomPasswordServer extends RestServlet
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestRandomPasswordServer.class );
 
     @Data
-    public static class JsonOutput implements Serializable
+    public static class JsonOutput
     {
         private String password;
     }
 
     @Data
-    public static class JsonInput implements Serializable
+    public static class JsonInput
     {
         private String username;
         private int strength;
@@ -79,7 +78,6 @@ public class RestRandomPasswordServer extends RestServlet
         private int maxLength;
         private String chars;
         private boolean noUser;
-
     }
 
     @Override

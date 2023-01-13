@@ -24,12 +24,11 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.http.servlet.peoplesearch.SearchRequestBean;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Value
 @Builder
-public class HelpdeskSearchRequestBean implements Serializable
+public class HelpdeskSearchRequestBean
 {
     @Builder.Default
     private SearchRequestBean.SearchMode mode = SearchRequestBean.SearchMode.simple;

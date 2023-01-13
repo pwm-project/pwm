@@ -23,11 +23,10 @@ package password.pwm.config.value.data;
 import lombok.Value;
 import password.pwm.util.PasswordData;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Value
-public class NamedSecretData implements Serializable
+public class NamedSecretData
 {
     private PasswordData password;
     private List<String> usage;

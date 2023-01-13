@@ -26,7 +26,6 @@ import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.CollectorUtil;
 import password.pwm.util.java.StringUtil;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -37,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class UserSearchResults implements Serializable
+public class UserSearchResults
 {
     public static final String JSON_KEY_USER_KEY = "userKey";
     public static final String JSON_KEY_ID = "id";
@@ -139,7 +138,7 @@ public class UserSearchResults implements Serializable
                 formItem -> formItem.getLabel( locale ) ) );
     }
 
-    private static class UserIdentitySearchResultComparator implements Comparator<UserIdentity>, Serializable
+    private static class UserIdentitySearchResultComparator implements Comparator<UserIdentity>
     {
         private final Map<UserIdentity, Map<String, String>> results;
         private final String sortAttribute;

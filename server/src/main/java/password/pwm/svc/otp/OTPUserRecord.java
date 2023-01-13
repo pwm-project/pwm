@@ -22,13 +22,12 @@ package password.pwm.svc.otp;
 
 import lombok.Data;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class OTPUserRecord implements Serializable
+public class OTPUserRecord
 {
     private static final String CURRENT_VERSION = "1";
 
@@ -42,7 +41,7 @@ public class OTPUserRecord implements Serializable
     private String version = CURRENT_VERSION;
 
     @Data
-    public static class RecoveryInfo implements Serializable
+    public static class RecoveryInfo
     {
         private String salt;
         private String hashMethod;
@@ -58,7 +57,7 @@ public class OTPUserRecord implements Serializable
     }
 
     @Data
-    public static class RecoveryCode implements Serializable
+    public static class RecoveryCode
     {
         private String hashCode;
         private boolean used;

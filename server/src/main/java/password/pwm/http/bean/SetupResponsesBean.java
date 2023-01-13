@@ -26,7 +26,6 @@ import lombok.EqualsAndHashCode;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.http.servlet.setupresponses.ResponseMode;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,7 +52,7 @@ public class SetupResponsesBean extends PwmSessionBean
 
     @Data
     @EqualsAndHashCode( callSuper = false )
-    public static class SetupData implements Serializable
+    public static class SetupData
     {
         private Map<String, Challenge> indexedChallenges = Collections.emptyMap();
         private boolean simpleMode;

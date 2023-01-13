@@ -29,7 +29,6 @@ import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -52,7 +51,7 @@ class MemoryCacheStore implements CacheStore
     }
 
     @Override
-    public void store( final CacheKey cacheKey, final Instant expirationDate, final Serializable data )
+    public void store( final CacheKey cacheKey, final Instant expirationDate, final Object data )
             throws PwmUnrecoverableException
     {
         cacheStoreInfo.increment( DebugKey.storeCount );
@@ -61,7 +60,7 @@ class MemoryCacheStore implements CacheStore
     }
 
     @Override
-    public <T extends Serializable> T readAndStore( final CacheKey cacheKey, final Instant expirationDate, final Class<T> classOfT, final CacheLoader<T> cacheLoader )
+    public <T extends Object> T readAndStore( final CacheKey cacheKey, final Instant expirationDate, final Class<T> classOfT, final CacheLoader<T> cacheLoader )
             throws PwmUnrecoverableException
     {
         cacheStoreInfo.increment( DebugKey.readCount );
@@ -81,7 +80,7 @@ class MemoryCacheStore implements CacheStore
         return data;
     }
 
-    private <T extends Serializable> T extractValue( final Class<T> classOfT, final CacheValueWrapper valueWrapper, final CacheKey cacheKey )
+    private <T extends Object> T extractValue( final Class<T> classOfT, final CacheValueWrapper valueWrapper, final CacheKey cacheKey )
     {
         if ( valueWrapper != null )
         {
@@ -100,7 +99,7 @@ class MemoryCacheStore implements CacheStore
     }
 
     @Override
-    public <T extends Serializable> T read( final CacheKey cacheKey, final Class<T> classOfT )
+    public <T extends Object> T read( final CacheKey cacheKey, final Class<T> classOfT )
     {
         cacheStoreInfo.increment( DebugKey.readCount );
         final CacheValueWrapper valueWrapper = memoryStore.getIfPresent( cacheKey );
@@ -156,7 +155,7 @@ class MemoryCacheStore implements CacheStore
     }
 
     @Value
-    private static class CacheValueWrapper implements Serializable
+    private static class CacheValueWrapper
     {
         private final CacheKey cacheKey;
         private final Instant expirationDate;

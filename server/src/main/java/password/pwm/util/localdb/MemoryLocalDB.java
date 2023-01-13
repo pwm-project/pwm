@@ -22,7 +22,6 @@ package password.pwm.util.localdb;
 
 import password.pwm.util.java.CollectionUtil;
 
-import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
@@ -208,7 +207,7 @@ public class MemoryLocalDB implements LocalDBProvider
     }
 
     @Override
-    public Map<String, Serializable> debugInfo( )
+    public Map<String, Object> debugInfo( )
     {
         return Collections.emptyMap();
     }

@@ -24,12 +24,11 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.config.PwmSettingTemplateSet;
 
-import java.io.Serializable;
 import java.util.Map;
 
 @Value
 @Builder
-public class SettingData implements Serializable
+public class SettingData
 {
     private final Map<String, SettingInfo> settings;
     private final Map<String, CategoryInfo> categories;
@@ -37,5 +36,4 @@ public class SettingData implements Serializable
     private final Object ldapProfileIds;
     private final PwmSettingTemplateSet currentTemplate;
     private final VarData var;
-
 }

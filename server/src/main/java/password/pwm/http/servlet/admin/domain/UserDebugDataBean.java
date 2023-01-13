@@ -36,8 +36,6 @@ import java.util.Map;
 @Builder
 public class UserDebugDataBean
 {
-    private static final long serialVersionUID = 1L;
-
     private transient UserInfo userInfo;
 
     private final PublicUserInfoBean publicUserInfoBean;

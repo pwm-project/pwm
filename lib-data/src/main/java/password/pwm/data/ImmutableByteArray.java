@@ -22,10 +22,9 @@ package password.pwm.data;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.util.Arrays;
 
-public class ImmutableByteArray implements Serializable
+public class ImmutableByteArray
 {
     private final byte[] bytes;
 

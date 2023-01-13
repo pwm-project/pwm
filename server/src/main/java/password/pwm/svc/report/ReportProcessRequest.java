@@ -26,12 +26,11 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.SessionLabel;
 
-import java.io.Serializable;
 import java.util.Locale;
 
 @Value
 @Builder
-public class ReportProcessRequest implements Serializable
+public class ReportProcessRequest
 {
     private final DomainID domainID;
 

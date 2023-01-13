@@ -24,7 +24,6 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSettingScope;
 import password.pwm.util.java.PwmUtil;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -32,7 +31,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-public final class DomainID implements Comparable<DomainID>, Serializable
+public final class DomainID implements Comparable<DomainID>
 {
     private static final Pattern REGEX_TEST = Pattern.compile( "^([a-z][a-z0-9]{2,10})$" );
     private static final List<String> DOMAIN_RESERVED_WORDS = List.of( "system", "private", "public", "pwm", "sspr", "domain", "profile", "password" );

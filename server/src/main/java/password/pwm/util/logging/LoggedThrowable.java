@@ -23,13 +23,12 @@ package password.pwm.util.logging;
 import lombok.Value;
 import password.pwm.util.java.JavaHelper;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Value
-public class LoggedThrowable implements Serializable
+public class LoggedThrowable
 {
     private final String message;
     private final List<LoggedStackTraceElement> stackTrace;
@@ -60,7 +59,7 @@ public class LoggedThrowable implements Serializable
     }
 
     @Value
-    static class LoggedStackTraceElement implements Serializable
+    static class LoggedStackTraceElement
     {
         private final String declaringClass;
         private final String methodName;

@@ -45,7 +45,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -241,13 +240,13 @@ public class PwmResponse extends PwmHttpResponseWrapper
     }
 
 
-    public void writeEncryptedCookie( final String cookieName, final Serializable cookieValue, final PwmCookiePath path )
+    public void writeEncryptedCookie( final String cookieName, final Object cookieValue, final PwmCookiePath path )
             throws PwmUnrecoverableException
     {
         writeEncryptedCookie( cookieName, cookieValue, -1, path );
     }
 
-    public void writeEncryptedCookie( final String cookieName, final Serializable cookieValue, final int seconds, final PwmCookiePath path )
+    public void writeEncryptedCookie( final String cookieName, final Object cookieValue, final int seconds, final PwmCookiePath path )
             throws PwmUnrecoverableException
     {
         final String encryptedValue = pwmRequest.encryptObjectToString( cookieValue );

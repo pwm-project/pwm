@@ -83,7 +83,6 @@ import password.pwm.ws.server.rest.bean.PublicHealthRecord;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -547,7 +546,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             if ( pwmSetting == PwmSetting.CHALLENGE_RANDOM_CHALLENGES )
             {
-                configGuideBean.getFormData().put( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA, JsonFactory.get().serialize( (Serializable) storedValue.toNativeObject() ) );
+                configGuideBean.getFormData().put( ConfigGuideFormField.CHALLENGE_RESPONSE_DATA, JsonFactory.get().serialize( storedValue.toNativeObject() ) );
             }
         }
         catch ( final Exception e )

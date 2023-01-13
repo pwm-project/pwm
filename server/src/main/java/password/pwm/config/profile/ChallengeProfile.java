@@ -38,14 +38,13 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
-public class ChallengeProfile implements Profile, Serializable
+public class ChallengeProfile implements Profile
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ChallengeProfile.class );
 

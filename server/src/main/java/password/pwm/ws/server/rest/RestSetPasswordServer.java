@@ -32,15 +32,15 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.i18n.Message;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.user.UserInfo;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordUtility;
+import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
@@ -50,7 +50,6 @@ import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Optional;
 
 @WebServlet(
@@ -69,7 +68,7 @@ public class RestSetPasswordServer extends RestServlet
     private static final String FIELD_PASSWORD = "password";
 
     @Value
-    public static class JsonInputData implements Serializable
+    public static class JsonInputData
     {
         private String username;
         private String password;

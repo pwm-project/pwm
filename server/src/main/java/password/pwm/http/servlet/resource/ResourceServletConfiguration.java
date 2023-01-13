@@ -36,7 +36,6 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collections;
@@ -229,7 +228,7 @@ class ResourceServletConfiguration
     }
 
     @Value
-    private static class ConfiguredZipFileResource implements Serializable
+    private static class ConfiguredZipFileResource
     {
         private String url;
         private String zipFile;

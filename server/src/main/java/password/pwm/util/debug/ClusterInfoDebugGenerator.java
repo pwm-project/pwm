@@ -30,7 +30,6 @@ import password.pwm.util.json.JsonProvider;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -50,7 +49,7 @@ class ClusterInfoDebugGenerator implements AppItemGenerator
         final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
         final NodeService nodeService = pwmApplication.getNodeService();
 
-        final Map<String, Serializable> debugOutput = new LinkedHashMap<>();
+        final Map<String, Object> debugOutput = new LinkedHashMap<>();
         debugOutput.put( "status", nodeService.status() );
 
         if ( nodeService.status() == PwmService.STATUS.OPEN )

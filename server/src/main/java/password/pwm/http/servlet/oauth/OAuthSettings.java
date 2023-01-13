@@ -27,13 +27,12 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.util.PasswordData;
 
-import java.io.Serializable;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
 @Value
 @Builder
-public class OAuthSettings implements Serializable
+public class OAuthSettings
 {
     private String loginURL;
     private String codeResolveUrl;

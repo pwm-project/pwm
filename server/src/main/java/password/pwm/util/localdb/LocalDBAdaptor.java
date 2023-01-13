@@ -25,7 +25,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.java.StatisticCounterBundle;
 
-import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
@@ -101,9 +100,9 @@ public class LocalDBAdaptor implements LocalDB
     }
 
     @Override
-    public Map<String, Serializable> debugInfo( )
+    public Map<String, Object> debugInfo( )
     {
-        final Map<String, Serializable> debugValues = new LinkedHashMap<>( innerDB.debugInfo() );
+        final Map<String, Object> debugValues = new LinkedHashMap<>( innerDB.debugInfo() );
         debugValues.putAll( stats.debugStats( PwmConstants.DEFAULT_LOCALE ) );
         return Collections.unmodifiableMap( debugValues );
     }

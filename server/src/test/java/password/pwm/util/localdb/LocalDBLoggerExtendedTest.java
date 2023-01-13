@@ -42,7 +42,6 @@ import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogMessage;
 import password.pwm.util.secure.PwmRandom;
 
-import java.io.Serializable;
 import java.math.RoundingMode;
 import java.nio.file.Path;
 import java.text.NumberFormat;
@@ -239,7 +238,7 @@ public class LocalDBLoggerExtendedTest
 
     @Value
     @Builder
-    private static class Settings implements Serializable
+    private static class Settings
     {
         private TimeDuration testDuration;
         private int threads;
@@ -249,7 +248,7 @@ public class LocalDBLoggerExtendedTest
 
     @Value
     @Builder
-    private static class Results implements Serializable
+    private static class Results
     {
         private String dbClass;
         private String duration;

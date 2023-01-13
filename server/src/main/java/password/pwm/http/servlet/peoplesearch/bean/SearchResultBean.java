@@ -20,19 +20,17 @@
 
 package password.pwm.http.servlet.peoplesearch.bean;
 
-import lombok.Data;
-
 import lombok.Builder;
+import lombok.Data;
 import lombok.Value;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 @Value
 @Builder( toBuilder = true )
 @Data
-public class SearchResultBean implements Serializable
+public class SearchResultBean
 {
     private List<Map<String, Object>> searchResults;
     private boolean sizeExceeded;

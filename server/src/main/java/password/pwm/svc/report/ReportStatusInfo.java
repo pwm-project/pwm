@@ -25,12 +25,11 @@ import lombok.Value;
 import password.pwm.error.ErrorInformation;
 import password.pwm.util.java.TimeDuration;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 @Value
 @Builder( toBuilder = true )
-public class ReportStatusInfo implements Serializable
+public class ReportStatusInfo
 {
     @Builder.Default
     private TimeDuration jobDuration = TimeDuration.ZERO;

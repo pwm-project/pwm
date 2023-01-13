@@ -25,13 +25,13 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.value.FileValue;
 import password.pwm.config.value.StoredValue;
+import password.pwm.data.ImmutableByteArray;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.data.ImmutableByteArray;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonProvider;
 import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
@@ -40,7 +40,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,7 +68,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
         final IntermediateRepresentation intermediateRepresentation = readIntermediateRep( inputStream );
 
         final Map<StoredConfigKey, StoredValue> storedValueMap = new HashMap<>();
-        for ( final SerializedValue serializedValue : intermediateRepresentation.getSerializedValues() )
+        for ( final SerializedValue serializedValue : intermediateRepresentation.serializedValues() )
         {
             try
             {
@@ -95,7 +94,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
                     {
                         final String hash = entry.getKey();
                         final FileValue.FileInformation fileInformation = entry.getValue();
-                        final ImmutableByteArray realContent = intermediateRepresentation.getExRefs().get( hash );
+                        final ImmutableByteArray realContent = intermediateRepresentation.exRefs().get( hash );
                         final FileValue.FileContent realFileContent = FileValue.FileContent.fromBytes( realContent );
                         unstrippedMap.put( fileInformation, realFileContent );
                     }
@@ -125,8 +124,8 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
         final StoredConfigData storedConfigData = StoredConfigData.builder()
                 .storedValues( storedValueMap )
                 .metaDatas( valueMetaDataMap )
-                .createTime( intermediateRepresentation.getMetaData().getCreateTime() )
-                .modifyTime( intermediateRepresentation.getMetaData().getModifyTime() )
+                .createTime( intermediateRepresentation.metaData().getCreateTime() )
+                .modifyTime( intermediateRepresentation.metaData().getModifyTime() )
                 .build();
 
         return new StoredConfigurationImpl( storedConfigData );
@@ -192,7 +191,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
             zipOutputStream.putNextEntry( new ZipEntry( SETTINGS_FILENAME ) );
             JavaHelper.copy(
                     JsonFactory.get().serializeCollection(
-                            intermediateRepresentation.getSerializedValues(),
+                            intermediateRepresentation.serializedValues(),
                             JsonProvider.Flag.PrettyPrint ),
                     zipOutputStream,
                     PwmConstants.DEFAULT_CHARSET );
@@ -202,7 +201,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
             zipOutputStream.putNextEntry( new ZipEntry( META_VALUES_FILENAME ) );
             JavaHelper.copy(
                     JsonFactory.get().serializeCollection(
-                            intermediateRepresentation.getSerializedMetaValues(),
+                            intermediateRepresentation.serializedMetaValues(),
                             JsonProvider.Flag.PrettyPrint ),
                     zipOutputStream,
                     PwmConstants.DEFAULT_CHARSET );
@@ -219,7 +218,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
                     PwmConstants.DEFAULT_CHARSET );
         }
 
-        for ( final Map.Entry<String, ImmutableByteArray> entry : intermediateRepresentation.getExRefs().entrySet() )
+        for ( final Map.Entry<String, ImmutableByteArray> entry : intermediateRepresentation.exRefs().entrySet() )
         {
             zipOutputStream.putNextEntry( new ZipEntry( entry.getKey() ) );
             zipOutputStream.write( entry.getValue().copyOf() );
@@ -268,7 +267,7 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
                     value = storedValue.get();
                     syntax = key.getSyntax();
                 }
-                final String jsonValue = JsonFactory.get().serialize( ( Serializable ) value.toNativeObject() );
+                final String jsonValue = JsonFactory.get().serialize( value.toNativeObject() );
                 final SerializedValue storedComponent = new SerializedValue( key, syntax, jsonValue );
                 serializedValues.add( storedComponent );
             }
@@ -294,18 +293,17 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
         return SecureEngine.hash( fileContent.getContents().newByteArrayInputStream(), PwmHashAlgorithm.SHA256 );
     }
 
-
-    @Value
-    private static class IntermediateRepresentation
+    private record IntermediateRepresentation(
+            List<SerializedValue> serializedValues,
+            List<SerializedMetaValue> serializedMetaValues,
+            Map<String, ImmutableByteArray> exRefs,
+            MetaData metaData
+    )
     {
-        private List<SerializedValue> serializedValues;
-        private List<SerializedMetaValue> serializedMetaValues;
-        private Map<String, ImmutableByteArray> exRefs;
-        private MetaData metaData;
     }
 
     @Value
-    private static class SerializedValue implements Serializable
+    private static class SerializedValue
     {
         private StoredConfigKey key;
         private PwmSettingSyntax syntax;
@@ -313,20 +311,20 @@ public class StoredConfigZipJsonSerializer implements StoredConfigSerializer
     }
 
     @Value
-    private static class SerializedFileValue implements Serializable
+    private static class SerializedFileValue
     {
         private Map<String, FileValue.FileInformation> fileInformation;
     }
 
     @Value
-    private static class SerializedMetaValue implements Serializable
+    private static class SerializedMetaValue
     {
         private StoredConfigKey key;
         private ValueMetaData valueMetaData;
     }
 
     @Value
-    private static class MetaData implements Serializable
+    private static class MetaData
     {
         private String createTime;
         private Instant modifyTime;

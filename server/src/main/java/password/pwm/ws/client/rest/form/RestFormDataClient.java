@@ -50,7 +50,6 @@ import java.util.Map;
 
 public class RestFormDataClient
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestFormDataClient.class );
 
     private final PwmDomain pwmDomain;

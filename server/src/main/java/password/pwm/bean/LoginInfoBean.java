@@ -30,7 +30,6 @@ import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.json.JsonFactory;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.EnumSet;
 import java.util.Set;
@@ -42,7 +41,7 @@ import java.util.Set;
  * <p>Short serialized names are used to shrink the effective size of the login cookie.</p>
  */
 @Data
-public class LoginInfoBean implements Serializable
+public class LoginInfoBean
 {
     public enum LoginFlag
     {

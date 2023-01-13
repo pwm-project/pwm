@@ -24,13 +24,12 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.bean.UserIdentity;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Map;
 
 @Value
 @Builder
-public class ReadSettingResponse implements Serializable
+public class ReadSettingResponse
 {
     private final boolean isDefault;
     private final String key;

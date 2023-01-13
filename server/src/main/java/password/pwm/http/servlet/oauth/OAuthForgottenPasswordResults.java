@@ -20,13 +20,12 @@
 
 package password.pwm.http.servlet.oauth;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 /**
  * This Json object gets sent as a redirect from the oauth consumer servlet to the ForgttenPasswordServlet.
  */
-public class OAuthForgottenPasswordResults implements Serializable
+public class OAuthForgottenPasswordResults
 {
     private final boolean authenticated;
     private final String username;

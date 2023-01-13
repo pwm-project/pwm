@@ -29,7 +29,6 @@ import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.X509CertInfo;
 import password.pwm.util.secure.X509Utils;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
 public class ActionCertViewerFunction implements SettingUIFunction
 {
     @Override
-    public Serializable provideFunction(
+    public Object provideFunction(
             final PwmRequest pwmRequest,
             final StoredConfigurationModifier modifier,
             final StoredConfigKey key,
@@ -49,7 +48,7 @@ public class ActionCertViewerFunction implements SettingUIFunction
         final int webActionIter = Integer.parseInt( parsedExtraData.get( "webActionIter" ).toString() );
 
         final List<Map<String, String>> certificateInfos = makeCertDebugMap( key, modifier, iteration, webActionIter );
-        return ( Serializable ) certificateInfos;
+        return List.copyOf( certificateInfos );
     }
 
     /**

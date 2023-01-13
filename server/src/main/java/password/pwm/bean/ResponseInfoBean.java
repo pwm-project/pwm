@@ -24,12 +24,11 @@ import com.novell.ldapchai.cr.Answer;
 import com.novell.ldapchai.cr.Challenge;
 import password.pwm.config.option.DataStorageMethod;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.Map;
 
-public class ResponseInfoBean implements Serializable
+public class ResponseInfoBean
 {
     private final Map<Challenge, String> crMap;
     private final Map<Challenge, String> helpdeskCrMap;

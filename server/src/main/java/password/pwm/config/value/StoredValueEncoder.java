@@ -20,7 +20,6 @@
 
 package password.pwm.config.value;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
@@ -34,7 +33,6 @@ import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,7 +51,6 @@ public abstract class StoredValueEncoder
 
         private final List<String> prefixes;
 
-        @SuppressFBWarnings( "SE_BAD_FIELD" )
         private final SecureOutputEngine secureOutputEngine;
 
         Mode( final SecureOutputEngine secureOutputEngine, final String... prefixes )
@@ -260,7 +257,7 @@ public abstract class StoredValueEncoder
     }
 
     @Value
-    private static class StoredPwData implements Serializable
+    private static class StoredPwData
     {
         private String salt;
         private String value;

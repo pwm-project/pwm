@@ -59,7 +59,6 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -371,7 +370,7 @@ public class ConfigEditorServletUtils
             final SettingUIFunction function = ( SettingUIFunction ) implementingClass.getDeclaredConstructor().newInstance();
             final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( configManagerBean.getStoredConfiguration() );
 
-            final Serializable result = timeoutExecutor( pwmRequest,
+            final Object result = timeoutExecutor( pwmRequest,
                     () -> function.provideFunction( pwmRequest, modifier, key, extraData ) );
 
             configManagerBean.setStoredConfiguration( modifier.newStoredConfiguration() );

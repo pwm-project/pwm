@@ -24,12 +24,11 @@ import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Value
 @Builder
-public class PresentableForm implements Serializable
+public class PresentableForm
 {
     @Singular
     private List<PresentableFormRow> formRows;

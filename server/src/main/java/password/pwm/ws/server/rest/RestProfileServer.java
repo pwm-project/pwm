@@ -40,11 +40,11 @@ import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.servlet.updateprofile.UpdateProfileUtil;
 import password.pwm.i18n.Message;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.permission.UserPermissionUtility;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.user.UserInfo;
 import password.pwm.util.FormMap;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.macro.MacroRequest;
@@ -57,7 +57,6 @@ import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -78,7 +77,7 @@ public class RestProfileServer extends RestServlet
     private static final String FIELD_USERNAME = "username";
 
     @Data
-    public static class JsonProfileData implements Serializable
+    public static class JsonProfileData
     {
         private String username;
         private Map<String, String> profile;

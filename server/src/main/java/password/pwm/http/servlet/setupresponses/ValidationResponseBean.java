@@ -23,10 +23,8 @@ package password.pwm.http.servlet.setupresponses;
 
 import lombok.Value;
 
-import java.io.Serializable;
-
 @Value
-public class ValidationResponseBean implements Serializable
+public class ValidationResponseBean
 {
     private String message;
     private boolean success;

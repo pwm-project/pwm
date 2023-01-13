@@ -20,12 +20,10 @@
 
 package password.pwm.svc.stats;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.json.JsonFactory;
 
-import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -125,14 +123,11 @@ public class StatisticsBundle
         return avgMap.get( statistic ).getAverage().toString();
     }
 
-    private static class AverageBean implements Serializable
+    private static class AverageBean
     {
-        private static final long serialVersionUID = 1L;
-
         private BigInteger total = BigInteger.ZERO;
         private BigInteger count = BigInteger.ZERO;
 
-        @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
         private final transient Lock lock = new ReentrantLock();
 
         AverageBean( )

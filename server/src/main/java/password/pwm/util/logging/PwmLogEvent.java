@@ -34,7 +34,6 @@ import password.pwm.util.json.JsonFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -45,7 +44,7 @@ import java.util.List;
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 @Builder( access = AccessLevel.PRIVATE, toBuilder = true )
 @SuppressWarnings( "checkstyle:ParameterNumber" )
-public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
+public class PwmLogEvent implements Comparable<PwmLogEvent>
 {
     private static final int MAX_MESSAGE_LENGTH = 10_000;
     private static final int MAX_FIELD_LENGTH = 256;

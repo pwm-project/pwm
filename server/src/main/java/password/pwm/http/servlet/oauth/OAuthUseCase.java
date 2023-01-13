@@ -22,9 +22,7 @@ package password.pwm.http.servlet.oauth;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.io.Serializable;
-
-enum OAuthUseCase implements Serializable
+enum OAuthUseCase
 {
     @SerializedName( "F" )
     ForgottenPassword,

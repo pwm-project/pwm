@@ -25,7 +25,6 @@ import password.pwm.user.UserInfoBean;
 import password.pwm.util.MovingAverage;
 import password.pwm.util.java.TimeDuration;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,9 +40,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 @Data
-public class LocalSessionStateBean implements Serializable
+public class LocalSessionStateBean
 {
-
     private String srcAddress;
     private String srcHostname;
     private String forwardURL;

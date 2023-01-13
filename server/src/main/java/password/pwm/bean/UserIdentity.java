@@ -21,7 +21,6 @@
 package password.pwm.bean;
 
 import com.novell.ldapchai.ChaiUser;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jetbrains.annotations.NotNull;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
@@ -35,16 +34,13 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.StringTokenizer;
 
-@SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
-public class UserIdentity implements Serializable, Comparable<UserIdentity>
+public class UserIdentity implements Comparable<UserIdentity>
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserIdentity.class );
-    private static final long serialVersionUID = 1L;
 
     private static final String DELIM_SEPARATOR = "|";
 

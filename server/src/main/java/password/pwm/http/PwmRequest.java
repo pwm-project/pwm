@@ -71,7 +71,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -500,7 +499,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
                 : new LinkedHashMap<>( formDataMap );
 
         this.setAttribute( PwmRequestAttribute.FormConfiguration, new ArrayList<>( formConfiguration ) );
-        this.setAttribute( PwmRequestAttribute.FormData, ( Serializable ) formDataMapValue );
+        this.setAttribute( PwmRequestAttribute.FormData, formDataMapValue );
         this.setAttribute( PwmRequestAttribute.FormReadOnly, readOnly );
         this.setAttribute( PwmRequestAttribute.FormShowPasswordFields, showPasswordFields );
     }

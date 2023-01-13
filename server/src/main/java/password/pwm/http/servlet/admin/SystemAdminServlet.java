@@ -21,7 +21,6 @@
 package password.pwm.http.servlet.admin;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmConstants;
@@ -53,6 +52,7 @@ import password.pwm.svc.intruder.PublicIntruderRecord;
 import password.pwm.svc.pwnotify.PwNotifyService;
 import password.pwm.svc.pwnotify.PwNotifyStoredJobState;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmTimeUtil;
@@ -72,7 +72,6 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Serializable;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -690,10 +689,18 @@ public class SystemAdminServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
-    @Value
-    public static class PwNotifyStatusBean implements Serializable
+    public record PwNotifyStatusBean(
+            List<DisplayElement> statusData,
+            boolean enableStartButton
+    )
     {
-        private List<DisplayElement> statusData;
-        private boolean enableStartButton;
+        public PwNotifyStatusBean(
+                final List<DisplayElement> statusData,
+                final boolean enableStartButton
+        )
+        {
+            this.statusData = CollectionUtil.stripNulls( statusData );
+            this.enableStartButton = enableStartButton;
+        }
     }
 }

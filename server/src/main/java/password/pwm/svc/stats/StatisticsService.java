@@ -78,7 +78,7 @@ public class StatisticsService extends AbstractPwmService implements PwmService
     public StatisticsService( )
     {
         epsMeterMap = EpsKey.allKeys().stream()
-                .map( key -> Map.entry( key, new EventRateMeter( key.getEpsDuration().getTimeDuration().asDuration() ) ) )
+                .map( key -> Map.entry( key, new EventRateMeter( key.epsDuration().getTimeDuration().asDuration() ) ) )
                 .collect( Collectors.toUnmodifiableMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue ) );

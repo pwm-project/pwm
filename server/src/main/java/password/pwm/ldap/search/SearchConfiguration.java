@@ -27,16 +27,13 @@ import password.pwm.bean.ProfileID;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.util.java.TimeDuration;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 @Value
 @Builder( toBuilder = true )
-public class SearchConfiguration implements Serializable
+public class SearchConfiguration
 {
-    private static final long serialVersionUID = 1L;
-
     private String filter;
     private ProfileID ldapProfile;
     private String username;

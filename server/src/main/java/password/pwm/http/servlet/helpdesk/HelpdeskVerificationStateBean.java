@@ -36,7 +36,6 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -45,10 +44,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
-class HelpdeskVerificationStateBean implements Serializable
+class HelpdeskVerificationStateBean
 {
-    private static final long serialVersionUID = 1L;
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskVerificationStateBean.class );
     public static final String PARAMETER_VERIFICATION_STATE_KEY = "verificationState";
 
@@ -56,8 +53,6 @@ class HelpdeskVerificationStateBean implements Serializable
     private final List<HelpdeskValidationRecord> records = new ArrayList<>();
 
     private transient TimeDuration maximumAge;
-
-
 
     private HelpdeskVerificationStateBean( final UserIdentity actor )
     {
@@ -137,7 +132,7 @@ class HelpdeskVerificationStateBean implements Serializable
     }
 
     @Value
-    static class ViewableValidationRecord implements Serializable
+    static class ViewableValidationRecord
     {
         private Instant timestamp;
         private String profile;
@@ -146,7 +141,7 @@ class HelpdeskVerificationStateBean implements Serializable
     }
 
     @Value
-    static class HelpdeskValidationRecord implements Serializable
+    static class HelpdeskValidationRecord
     {
         private Instant timestamp;
         private UserIdentity identity;

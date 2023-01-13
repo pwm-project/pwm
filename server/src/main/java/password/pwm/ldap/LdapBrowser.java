@@ -47,7 +47,6 @@ import password.pwm.util.java.CollectorUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -292,7 +291,7 @@ public class LdapBrowser
 
     @Value
     @Builder
-    public static class LdapBrowseResult implements Serializable
+    public static class LdapBrowseResult
     {
         private String dn;
         private ProfileID profileID;
@@ -305,7 +304,7 @@ public class LdapBrowser
     }
 
     @Value
-    public static class DNInformation implements Serializable
+    public static class DNInformation
     {
         private final String entryName;
         private final String dn;

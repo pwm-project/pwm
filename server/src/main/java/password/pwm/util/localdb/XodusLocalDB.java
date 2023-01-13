@@ -45,7 +45,6 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -517,9 +516,9 @@ public class XodusLocalDB implements LocalDBProvider
     }
 
     @Override
-    public Map<String, Serializable> debugInfo( )
+    public Map<String, Object> debugInfo( )
     {
-        final Map<String, Serializable> outputStats = new LinkedHashMap<>();
+        final Map<String, Object> outputStats = new LinkedHashMap<>();
         {
             final Statistics statistics = environment.getStatistics();
             for ( final EnvironmentStatistics.Type type : EnvironmentStatistics.Type.values() )

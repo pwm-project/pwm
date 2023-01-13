@@ -51,7 +51,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -310,7 +309,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
 
     @Value
     @Builder
-    public static class WordlistDataBean implements Serializable
+    public static class WordlistDataBean
     {
         private List<DisplayElement> presentableData;
         private boolean allowUpload;

@@ -25,7 +25,6 @@ import password.pwm.PwmConstants;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -34,7 +33,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-public final class ProfileID implements Serializable, Comparable<ProfileID>
+public final class ProfileID implements Comparable<ProfileID>
 {
     private static final Pattern REGEX_TEST = Pattern.compile( "^([a-zA-Z][a-zA-Z0-9-]{2,15})$" );
 

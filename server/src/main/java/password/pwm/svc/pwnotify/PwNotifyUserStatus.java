@@ -22,12 +22,11 @@ package password.pwm.svc.pwnotify;
 
 import lombok.Value;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 @Value
 public
-class PwNotifyUserStatus implements Serializable
+class PwNotifyUserStatus
 {
     private Instant expireTime;
     private Instant lastNotice;

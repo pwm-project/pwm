@@ -38,7 +38,6 @@ import password.pwm.util.json.JsonFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.InputStream;
-import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -72,7 +71,7 @@ public class PwmSettingTest
                 Assertions.assertNotNull( storedValue.valueHash() );
                 if ( storedValue.toNativeObject() != null )
                 {
-                    JsonFactory.get().serialize( ( Serializable ) storedValue.toNativeObject() );
+                    JsonFactory.get().serialize( storedValue.toNativeObject() );
                 }
             }
         }

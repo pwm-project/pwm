@@ -20,6 +20,7 @@
 
 package password.pwm.http;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
@@ -48,6 +49,7 @@ public class PwmSessionFactory
         return pwmSession;
     }
 
+    @SuppressFBWarnings( "J2EE_STORE_OF_NON_SERIALIZABLE_OBJECT_INTO_SESSION" )
     public static void sessionMerge(
             final PwmRequest pwmRequest,
             final PwmDomain pwmDomain,

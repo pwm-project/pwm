@@ -21,17 +21,14 @@
 package password.pwm.svc.cache;
 
 import lombok.Builder;
-import lombok.Value;
 
-import java.io.Serializable;
-
-@Value
 @Builder
-class CacheDebugItem implements Serializable
+record CacheDebugItem(
+        String srcClass,
+        String userIdentity,
+        String valueID,
+        String age,
+        int chars
+)
 {
-    private final String srcClass;
-    private final String userIdentity;
-    private final String valueID;
-    private final String age;
-    private final int chars;
 }

@@ -64,8 +64,8 @@ import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.user.UserInfo;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmTimeUtil;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -73,7 +73,6 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -451,7 +450,7 @@ class PeopleSearchDataReader
 
     private void storeDataInCache(
             final CacheKey cacheKey,
-            final Serializable data
+            final Object data
     )
             throws PwmUnrecoverableException
     {
@@ -464,7 +463,7 @@ class PeopleSearchDataReader
         }
     }
 
-    private <T extends Serializable> T storeDataInCache(
+    private <T extends Object> T storeDataInCache(
             final CacheIdentifier operationIdentifier,
             final String dataIdentifier,
             final Class<T> classOfT,

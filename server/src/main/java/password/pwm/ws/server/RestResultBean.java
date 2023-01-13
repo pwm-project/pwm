@@ -20,7 +20,6 @@
 
 package password.pwm.ws.server;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Value;
@@ -33,16 +32,13 @@ import password.pwm.i18n.Message;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.json.JsonProvider;
 
-import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.Locale;
 
 @Value
 @Builder( toBuilder =  true, access = AccessLevel.PACKAGE )
-public class RestResultBean<T> implements Serializable
+public class RestResultBean<T>
 {
-    private static final long serialVersionUID = 1L;
-
     private final T data;
     private final boolean error;
     private final int errorCode;
@@ -50,7 +46,6 @@ public class RestResultBean<T> implements Serializable
     private final String errorDetail;
     private final String successMessage;
 
-    @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
     private final transient Class<T> classOfT;
 
     public static <T> RestResultBean<T> withData( final T data, final Class<T> classOfT )

@@ -24,7 +24,6 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.config.value.data.FormConfiguration;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,7 +32,7 @@ import java.util.Map;
 
 @Value
 @Builder
-public class SearchAttributeBean implements Serializable
+public class SearchAttributeBean
 {
     private String attribute;
     private String label;

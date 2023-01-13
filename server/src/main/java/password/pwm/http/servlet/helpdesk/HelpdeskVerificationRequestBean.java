@@ -22,13 +22,11 @@ package password.pwm.http.servlet.helpdesk;
 
 import lombok.Data;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 @Data
-public class HelpdeskVerificationRequestBean implements Serializable
+public class HelpdeskVerificationRequestBean
 {
-
     private String destination;
     private String userKey;
     private String code;
@@ -39,7 +37,7 @@ public class HelpdeskVerificationRequestBean implements Serializable
 
 
     @Data
-    static class TokenData implements Serializable
+    static class TokenData
     {
         private String token;
         private Instant issueDate;

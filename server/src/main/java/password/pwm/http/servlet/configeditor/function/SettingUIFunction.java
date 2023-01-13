@@ -26,14 +26,12 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 
-import java.io.Serializable;
-
 /**
  * SettingUIFunction implementations can be invoked in the Configuration Editor UI and provide arbitrary, setting-specific functions.
  */
 public interface SettingUIFunction
 {
-    Serializable provideFunction(
+    Object provideFunction(
             PwmRequest pwmRequest,
             StoredConfigurationModifier modifier,
             StoredConfigKey key,

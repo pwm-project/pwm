@@ -46,7 +46,6 @@ import password.pwm.util.json.JsonProvider;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -90,7 +89,7 @@ public class ResponseStatsCommand extends AbstractCliCommand
         out( "completed writing stats output in " + PwmTimeUtil.asLongString( TimeDuration.fromCurrent( startTime ) ) );
     }
 
-    static class ResponseStats implements Serializable
+    static class ResponseStats
     {
         private final Map<String, Integer> challengeTextOccurrence = new TreeMap<>();
         private final Map<String, Integer> helpdeskChallengeTextOccurrence = new TreeMap<>();

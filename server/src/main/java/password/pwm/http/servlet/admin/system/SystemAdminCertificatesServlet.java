@@ -47,7 +47,6 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
-import java.io.Serializable;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -188,7 +187,7 @@ public class SystemAdminCertificatesServlet extends AbstractPwmServlet
 
     @Value
     @Builder
-    public static class CertificateDebugDataItem implements Serializable
+    public static class CertificateDebugDataItem
     {
         private String menuLocation;
         private String subject;

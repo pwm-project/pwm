@@ -36,13 +36,12 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.svc.token.TokenUtil;
+import password.pwm.user.UserInfo;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -55,7 +54,7 @@ import java.util.Set;
 
 @Value
 @Builder
-public class HelpdeskVerificationOptionsBean implements Serializable
+public class HelpdeskVerificationOptionsBean
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskVerificationOptionsBean.class );
 

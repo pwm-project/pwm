@@ -27,14 +27,13 @@ import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.util.java.TimeDuration;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Value
 @Builder
-class PwNotifySettings implements Serializable
+class PwNotifySettings
 {
     private final List<Integer> notificationIntervals;
     private final TimeDuration maximumSkipWindow;

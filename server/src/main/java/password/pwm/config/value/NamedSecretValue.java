@@ -40,7 +40,6 @@ import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -51,8 +50,6 @@ import java.util.Optional;
 
 public class NamedSecretValue implements StoredValue
 {
-    private static final long serialVersionUID = 1L;
-
     private final transient LazySupplier<String> valueHashSupplier = LazySupplier.create( () -> AbstractValue.valueHashComputer( NamedSecretValue.this ) );
 
     private static final String ELEMENT_NAME = "name";
@@ -227,7 +224,7 @@ public class NamedSecretValue implements StoredValue
     }
 
     @Override
-    public Serializable toDebugJsonObject( final Locale locale )
+    public Object toDebugJsonObject( final Locale locale )
     {
         if ( values == null )
         {

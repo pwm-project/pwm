@@ -40,6 +40,7 @@ import javax.servlet.http.HttpSessionActivationListener;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 import java.time.Instant;
+import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -114,6 +115,8 @@ public class HttpEventManager implements
                 LOGGER.warn( () -> "error during httpSessionDestroyed: " + e.getMessage() );
             }
         }
+
+        clearSessionAttributes( httpSession );
     }
 
 
@@ -164,11 +167,13 @@ public class HttpEventManager implements
     @Override
     public void sessionWillPassivate( final HttpSessionEvent event )
     {
+        clearSessionAttributes( event.getSession() );
     }
 
     @Override
     public void sessionDidActivate( final HttpSessionEvent event )
     {
+        clearSessionAttributes( event.getSession() );
     }
 
     private static String makeSessionDestroyedDebugMsg( final PwmSession pwmSession )
@@ -198,6 +203,20 @@ public class HttpEventManager implements
     public void requestInitialized( final ServletRequestEvent sre )
     {
         ServletRequestListener.super.requestInitialized( sre );
+    }
+
+    private static void clearSessionAttributes( final HttpSession httpSession )
+    {
+        if ( httpSession == null )
+        {
+            return;
+        }
+
+        for ( final Enumeration<String> stringEnumeration = httpSession.getAttributeNames(); stringEnumeration.hasMoreElements(); )
+        {
+            final String attributeName = stringEnumeration.nextElement();
+            httpSession.removeAttribute( attributeName );
+        }
     }
 }
 

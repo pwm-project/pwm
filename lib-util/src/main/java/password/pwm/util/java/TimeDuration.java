@@ -22,7 +22,6 @@ package password.pwm.util.java;
 
 import lombok.Value;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
@@ -41,7 +40,7 @@ import java.util.function.BooleanSupplier;
  *
  * @author Jason D. Rivard
  */
-public class TimeDuration implements Comparable<TimeDuration>, Serializable
+public class TimeDuration implements Comparable<TimeDuration>
 {
     public enum Unit
     {
@@ -389,7 +388,7 @@ public class TimeDuration implements Comparable<TimeDuration>, Serializable
     }
 
     @Value
-    public static class FractionalTimeDetail implements Serializable
+    public static class FractionalTimeDetail
     {
         private final long milliseconds;
         private final long seconds;

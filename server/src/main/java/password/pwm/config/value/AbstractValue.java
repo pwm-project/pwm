@@ -26,8 +26,8 @@ import org.jrivard.xmlchai.XmlElement;
 import password.pwm.PwmConstants;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.data.ImmutableByteArray;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
@@ -38,7 +38,6 @@ import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.security.DigestOutputStream;
 import java.util.List;
 import java.util.Locale;
@@ -69,13 +68,13 @@ public abstract class AbstractValue implements StoredValue
     @Override
     public String toDebugString( final Locale locale )
     {
-        return JsonFactory.get().serialize( ( Serializable ) this.toNativeObject(), JsonProvider.Flag.PrettyPrint );
+        return JsonFactory.get().serialize( this.toNativeObject(), JsonProvider.Flag.PrettyPrint );
     }
 
     @Override
-    public Serializable toDebugJsonObject( final Locale locale )
+    public Object toDebugJsonObject( final Locale locale )
     {
-        return ( Serializable ) this.toNativeObject();
+        return this.toNativeObject();
     }
 
     @Override

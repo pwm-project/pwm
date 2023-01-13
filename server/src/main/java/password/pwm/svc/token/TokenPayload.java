@@ -27,14 +27,13 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 @Value
-public class TokenPayload implements Serializable
+public class TokenPayload
 {
     @SerializedName( "t" )
     private final Instant issueTime;

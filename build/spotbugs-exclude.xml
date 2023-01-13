@@ -54,6 +54,10 @@
         <Bug pattern="CC_CYCLOMATIC_COMPLEXITY" />
     </Match>
     <Match>
+        <!-- overly aggressive suggestion -->
+        <Bug pattern="SE_COMPARATOR_SHOULD_BE_SERIALIZABLE"/>
+    </Match>
+    <Match>
         <!-- triggered by lombok @Data autogen -->
         <Bug pattern="FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY" />
     </Match>
@@ -76,6 +80,7 @@
         </Or>
         <!-- pretty much every line in jsp throws throwable :) -->
         <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_THROWABLE" />
+
     </Match>
 
 </FindBugsFilter>

@@ -43,7 +43,6 @@ import password.pwm.util.secure.X509Utils;
 import password.pwm.ws.server.RestResultBean;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
@@ -283,7 +282,7 @@ public class JsonProviderTest
         }
     }
 
-    public static class TestObject1 implements Serializable
+    public static class TestObject1
     {
         static final X509Certificate VALUE_X509_CERT1;
         static final Date VALUE_DATE1 = Date.from( Instant.parse( "2000-01-01T01:01:01Z" ) );

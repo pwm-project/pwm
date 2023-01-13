@@ -22,12 +22,12 @@ package password.pwm.util;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.PwmConstants;
+import password.pwm.data.ImmutableByteArray;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmInternalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.data.ImmutableByteArray;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmHashAlgorithm;
@@ -35,7 +35,6 @@ import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
-import java.io.Serializable;
 import java.util.Arrays;
 
 /*
@@ -43,10 +42,8 @@ import java.util.Arrays;
  * a per-jvm instance key.
  *
  */
-public class PasswordData implements Serializable
+public class PasswordData
 {
-    private static final long serialVersionUID = 1L;
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( PasswordData.class );
 
     private final ImmutableByteArray passwordData;

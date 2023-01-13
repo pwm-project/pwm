@@ -27,7 +27,6 @@ import password.pwm.bean.ProfileID;
 import password.pwm.ldap.permission.UserPermissionType;
 import password.pwm.util.java.StringUtil;
 
-import java.io.Serializable;
 import java.util.Comparator;
 
 @Value
@@ -35,7 +34,7 @@ import java.util.Comparator;
 /**
  * Represents a user permission configuration value.
  */
-public class UserPermission implements Serializable, Comparable<UserPermission>
+public class UserPermission implements Comparable<UserPermission>
 {
     @Builder.Default
     private UserPermissionType type = UserPermissionType.ldapQuery;

@@ -27,12 +27,11 @@ import password.pwm.PwmApplication;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.PwmUnrecoverableException;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 @Value
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
-class StoredNodeData implements Serializable
+class StoredNodeData
 {
     private Instant timestamp;
     private Instant startupTimestamp;

@@ -32,7 +32,6 @@ import password.pwm.config.value.data.ActionConfiguration;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.http.servlet.peoplesearch.bean.SearchAttributeBean;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -43,7 +42,7 @@ import java.util.Map;
 
 @Value
 @Builder
-public class HelpdeskClientDataBean implements Serializable
+public class HelpdeskClientDataBean
 {
     private Map<String, String> searchColumns;
     private boolean enablePhoto;
@@ -60,14 +59,14 @@ public class HelpdeskClientDataBean implements Serializable
 
 
     @Value
-    public static class ActionInformation implements Serializable
+    public static class ActionInformation
     {
         private String name;
         private String description;
     }
 
     @Value
-    public static class FormInformation implements Serializable
+    public static class FormInformation
     {
         private String name;
         private String label;

@@ -54,11 +54,12 @@ public interface SecureService
             throws IOException, PwmUnrecoverableException;
 
     String encryptObjectToString(
-            Object serializableObject
+            Object object
     )
             throws PwmUnrecoverableException;
 
-    String encryptObjectToString( Object serializableObject, PwmSecurityKey securityKey ) throws PwmUnrecoverableException;
+    String encryptObjectToString( Object object, PwmSecurityKey securityKey )
+            throws PwmUnrecoverableException;
 
     <T> T decryptObject(
             String value,

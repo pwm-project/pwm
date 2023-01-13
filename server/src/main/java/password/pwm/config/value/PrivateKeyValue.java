@@ -35,7 +35,6 @@ import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.X509CertInfo;
 import password.pwm.util.secure.X509Utils;
 
-import java.io.Serializable;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -241,8 +240,8 @@ public class PrivateKeyValue extends AbstractValue
     }
 
     @Override
-    public Serializable toDebugJsonObject( final Locale locale )
+    public Object toDebugJsonObject( final Locale locale )
     {
-        return ( Serializable ) toInfoMap( false );
+        return toInfoMap( false );
     }
 }

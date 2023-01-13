@@ -27,11 +27,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 
-public class StoredCertData implements Serializable
+public class StoredCertData
 {
     private final X509Certificate x509Certificate;
     private final String keypairb64;

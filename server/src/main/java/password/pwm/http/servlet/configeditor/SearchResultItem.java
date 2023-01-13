@@ -27,11 +27,10 @@ import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
 
-import java.io.Serializable;
 import java.util.Locale;
 
 @Value
-class SearchResultItem implements Serializable
+class SearchResultItem
 {
     private final String category;
     private final String value;

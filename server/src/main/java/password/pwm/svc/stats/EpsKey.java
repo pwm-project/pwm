@@ -20,17 +20,15 @@
 
 package password.pwm.svc.stats;
 
-import lombok.Value;
-
 import java.util.HashSet;
 import java.util.Set;
 
-@Value
-class EpsKey
+record EpsKey(
+        EpsStatistic epsStatistic,
+        Statistic.EpsDuration epsDuration
+)
 {
-    static final String DB_KEY_PREFIX = "EPS-";
-    private EpsStatistic epsStatistic;
-    private Statistic.EpsDuration epsDuration;
+    private static final String DB_KEY_PREFIX = "EPS-";
 
     static Set<EpsKey> allKeys()
     {
@@ -42,6 +40,6 @@ class EpsKey
                 returnSet.add( new EpsKey( epsStatistic, epsDuration ) );
             }
         }
-        return returnSet;
+        return Set.copyOf( returnSet );
     }
 }

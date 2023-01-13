@@ -34,7 +34,6 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -452,10 +451,10 @@ public class BerkeleyLocalDB
     }
 
     @Override
-    public Map<String, Serializable> debugInfo() {
+    public Map<String, Object> debugInfo() {
         final StatsConfig statsConfig = new StatsConfig();
         final EnvironmentStats environmentStats = environment.getStats(statsConfig);
-        final Map<String,Serializable> outputStats = new LinkedHashMap<>();
+        final Map<String,Object> outputStats = new LinkedHashMap<>();
         for (final StatGroup statGroup : environmentStats.getStatGroups()) {
             for (final StatDefinition stat : statGroup.getStats().keySet()) {
                 final String name = stat.getName();

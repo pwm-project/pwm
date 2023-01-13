@@ -22,10 +22,8 @@ package password.pwm.http.servlet.helpdesk;
 
 import lombok.Value;
 
-import java.io.Serializable;
-
 @Value
-public class HelpdeskVerificationResponseBean implements Serializable
+public class HelpdeskVerificationResponseBean
 {
     private boolean passed;
     private String verificationState;

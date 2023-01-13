@@ -22,14 +22,13 @@ package password.pwm.ldap.schema;
 
 import password.pwm.util.json.JsonFactory;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.TreeMap;
 
-public class SchemaDefinition implements Serializable
+public class SchemaDefinition
 {
     private SchemaType schemaType;
     private String name;

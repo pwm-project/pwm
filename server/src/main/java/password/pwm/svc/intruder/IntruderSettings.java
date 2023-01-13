@@ -30,7 +30,6 @@ import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.secure.PwmHashAlgorithm;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
@@ -103,7 +102,7 @@ public class IntruderSettings
 
     @Value
     @Builder
-    public static class TypeSettings implements Serializable
+    public static class TypeSettings
     {
         private TimeDuration checkDuration;
         private int checkCount;

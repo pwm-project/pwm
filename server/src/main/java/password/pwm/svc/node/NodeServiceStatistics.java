@@ -22,11 +22,10 @@ package password.pwm.svc.node;
 
 import lombok.Value;
 
-import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Value
-public class NodeServiceStatistics implements Serializable
+public class NodeServiceStatistics
 {
     private final AtomicInteger clusterWrites = new AtomicInteger( 0 );
     private final AtomicInteger clusterReads = new AtomicInteger( 0 );

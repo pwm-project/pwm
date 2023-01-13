@@ -22,10 +22,9 @@ package password.pwm.svc.event;
 
 import password.pwm.bean.DomainID;
 
-import java.io.Serializable;
 import java.time.Instant;
 
-public interface AuditRecord extends Serializable
+public interface AuditRecord
 {
     AuditEventType getType( );
 

@@ -20,13 +20,12 @@
 
 package password.pwm.util;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class FormMap implements Serializable, Map<String, String>
+public class FormMap implements Map<String, String>
 {
     private final HashMap<String, String> backingMap = new HashMap<>();
 

@@ -35,7 +35,6 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -111,16 +110,16 @@ public class CacheService extends AbstractPwmService implements PwmService
         return ServiceInfoBean.builder().debugProperties( debugInfo ).build();
     }
 
-    public Map<String, Serializable> debugInfo( )
+    public Map<String, Object> debugInfo( )
     {
-        final Map<String, Serializable> debugInfo = new LinkedHashMap<>( );
+        final Map<String, Object> debugInfo = new LinkedHashMap<>( );
         debugInfo.put( "memory-statistics", JsonFactory.get().serializeMap( memoryCacheStore.getCacheStoreInfo().debugStats( PwmConstants.DEFAULT_LOCALE ) ) );
-        debugInfo.put( "memory-items", new ArrayList<Serializable>( memoryCacheStore.getCacheDebugItems() ) );
+        debugInfo.put( "memory-items", new ArrayList<Object>( memoryCacheStore.getCacheDebugItems() ) );
         debugInfo.put( "memory-histogram", new HashMap<>( memoryCacheStore.storedClassHistogram( "" ) ) );
         return Collections.unmodifiableMap( debugInfo );
     }
 
-    public void put( final CacheKey cacheKey, final CachePolicy cachePolicy, final Serializable payload )
+    public void put( final CacheKey cacheKey, final CachePolicy cachePolicy, final Object payload )
             throws PwmUnrecoverableException
     {
         if ( status() != STATUS.OPEN )
@@ -138,7 +137,7 @@ public class CacheService extends AbstractPwmService implements PwmService
         traceDebugOutputter.conditionallyExecuteTask();
     }
 
-    public <T extends Serializable> T get( final CacheKey cacheKey, final Class<T> classOfT  )
+    public <T extends Object> T get( final CacheKey cacheKey, final Class<T> classOfT  )
     {
         Objects.requireNonNull( cacheKey );
         Objects.requireNonNull( classOfT );
@@ -159,7 +158,7 @@ public class CacheService extends AbstractPwmService implements PwmService
         return payload;
     }
 
-    public <T extends Serializable> T get( final CacheKey cacheKey, final CachePolicy cachePolicy, final Class<T> classOfT, final CacheLoader<T> cacheLoader )
+    public <T extends Object> T get( final CacheKey cacheKey, final CachePolicy cachePolicy, final Class<T> classOfT, final CacheLoader<T> cacheLoader )
             throws PwmUnrecoverableException
     {
         Objects.requireNonNull( cacheKey );

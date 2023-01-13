@@ -18,19 +18,16 @@
  * limitations under the License.
  */
 
-package password.pwm.bean;
+package password.pwm.svc.sms;
 
-
-import lombok.AllArgsConstructor;
-import lombok.Value;
-
-import java.io.Serializable;
-
-@Value
-@AllArgsConstructor
-public class SmsItemBean implements Serializable
+enum SmsDataEncoding
 {
-    private final String to;
-    private final String message;
-    private final SessionLabel sessionLabel;
+    NONE,
+    URL,
+    XML,
+    HTML,
+    CSV,
+    JAVA,
+    JAVASCRIPT,
+    SQL,
 }

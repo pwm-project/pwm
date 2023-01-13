@@ -28,7 +28,6 @@ import password.pwm.http.PwmRequest;
 import password.pwm.util.secure.X509CertInfo;
 import password.pwm.util.secure.X509Utils;
 
-import java.io.Serializable;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
 public class X509CertViewerFunction implements SettingUIFunction
 {
     @Override
-    public Serializable provideFunction(
+    public Object provideFunction(
             final PwmRequest pwmRequest,
             final StoredConfigurationModifier modifier,
             final StoredConfigKey key,
@@ -45,7 +44,7 @@ public class X509CertViewerFunction implements SettingUIFunction
     )
     {
         final List<Map<String, String>> certificateInfos = makeCertDebugMap( key, modifier );
-        return ( Serializable ) certificateInfos;
+        return certificateInfos;
     }
 
     /**

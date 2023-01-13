@@ -24,7 +24,6 @@ import lombok.Builder;
 import lombok.Value;
 import password.pwm.config.value.data.FormConfiguration;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -32,7 +31,7 @@ import java.util.stream.Collectors;
 
 @Value
 @Builder
-public class PresentableFormRow implements Serializable
+public class PresentableFormRow
 {
     private String name;
     private int minimumLength;

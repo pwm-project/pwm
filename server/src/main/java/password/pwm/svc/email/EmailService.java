@@ -310,27 +310,25 @@ public class EmailService extends AbstractPwmService implements PwmService
     private static void validateEmailItem( final EmailItemBean emailItem )
             throws PwmOperationalException
     {
-
-
-        if ( StringUtil.isEmpty( emailItem.getFrom() ) )
+        if ( StringUtil.isEmpty( emailItem.from() ) )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_EMAIL_SEND_FAILURE,
                     "missing from address in email item" ) );
         }
 
-        if ( StringUtil.isEmpty( emailItem.getTo() ) )
+        if ( StringUtil.isEmpty( emailItem.to() ) )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_EMAIL_SEND_FAILURE,
                     "missing to address in email item" ) );
         }
 
-        if ( StringUtil.isEmpty( emailItem.getSubject() ) )
+        if ( StringUtil.isEmpty( emailItem.subject() ) )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_EMAIL_SEND_FAILURE,
                     "missing subject in email item" ) );
         }
 
-        if ( StringUtil.isEmpty( emailItem.getBodyPlain() ) && StringUtil.isEmpty( emailItem.getBodyHtml() ) )
+        if ( StringUtil.isEmpty( emailItem.bodyPlain() ) && StringUtil.isEmpty( emailItem.bodyHtml() ) )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_EMAIL_SEND_FAILURE,
                     "missing body in email item" ) );
@@ -382,7 +380,7 @@ public class EmailService extends AbstractPwmService implements PwmService
             final EmailItemBean finalBean;
             {
                 EmailItemBean workingItemBean = emailItem;
-                if ( ( emailItem.getTo() == null || emailItem.getTo().isEmpty() ) && userInfo != null )
+                if ( StringUtil.isEmpty( emailItem.to() ) && userInfo != null )
                 {
                     final String toAddress = userInfo.getUserEmailAddress();
                     workingItemBean = EmailServerUtil.newEmailToAddress( workingItemBean, toAddress );
@@ -393,7 +391,7 @@ public class EmailService extends AbstractPwmService implements PwmService
                     workingItemBean = EmailServerUtil.applyMacrosToEmail( workingItemBean, macroRequest );
                 }
 
-                if ( StringUtil.isEmpty( workingItemBean.getTo() ) )
+                if ( StringUtil.isEmpty( workingItemBean.to() ) )
                 {
                     LOGGER.error( getSessionLabel(), () -> "no destination address available for email, skipping; email: " + emailItem.toDebugString() );
                 }

@@ -72,7 +72,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.net.URLConnection;
 import java.util.Collection;
 import java.util.Collections;
@@ -103,7 +102,7 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     }
 
     @Data
-    public static class ValidateResponse implements Serializable
+    public static class ValidateResponse
     {
         private String message;
         private boolean success;

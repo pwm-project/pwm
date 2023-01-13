@@ -31,13 +31,12 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.PwmDisplayBundle;
-import password.pwm.user.UserInfo;
+import password.pwm.svc.secure.DomainSecureService;
 import password.pwm.svc.token.TokenDestinationDisplayMasker;
+import password.pwm.user.UserInfo;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
-import password.pwm.svc.secure.DomainSecureService;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,7 +48,7 @@ import java.util.Optional;
 
 @Value
 @Builder
-public class TokenDestinationItem implements Serializable
+public class TokenDestinationItem
 {
     private static final Map<PwmSetting, TokenDestinationItem.Type> SETTING_TO_DEST_TYPE_MAP = Map.of(
         PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE, TokenDestinationItem.Type.email,

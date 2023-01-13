@@ -33,11 +33,11 @@ import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.svc.stats.AvgStatistic;
-import password.pwm.svc.stats.StatisticsBundleKey;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticType;
 import password.pwm.svc.stats.StatisticsBundle;
+import password.pwm.svc.stats.StatisticsBundleKey;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.java.EnumUtil;
@@ -52,7 +52,6 @@ import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.ZoneOffset;
@@ -81,7 +80,7 @@ public class RestStatisticsServer extends RestServlet
 
     @Value
     @Builder
-    public static class JsonOutput implements Serializable
+    public static class JsonOutput
     {
         public List<StatLabelData> labels;
         public List<StatValue> eventRates;
@@ -91,7 +90,7 @@ public class RestStatisticsServer extends RestServlet
     }
 
     @Builder
-    @Value static class HistoryData implements Serializable
+    @Value static class HistoryData
     {
         private String name;
         private String date;
@@ -103,14 +102,14 @@ public class RestStatisticsServer extends RestServlet
     }
 
     @Value
-    public static class StatValue implements Serializable
+    public static class StatValue
     {
         private String name;
         private String value;
     }
 
     @Value
-    public static class StatLabelData implements Serializable
+    public static class StatLabelData
     {
         final String name;
         final String label;
@@ -282,7 +281,7 @@ public class RestStatisticsServer extends RestServlet
     public static class OutputVersion1
     {
         @Data
-        public static class JsonOutput implements Serializable
+        public static class JsonOutput
         {
             @SuppressWarnings( "checkstyle:MemberName" )
             public Map<String, String> EPS;

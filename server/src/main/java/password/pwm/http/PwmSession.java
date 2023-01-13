@@ -20,7 +20,6 @@
 
 package password.pwm.http;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.EqualsAndHashCode;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -52,7 +51,6 @@ import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 
-import java.io.Serializable;
 import java.lang.ref.SoftReference;
 import java.time.Instant;
 import java.util.Date;
@@ -67,19 +65,14 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Jason D. Rivard
  */
 @EqualsAndHashCode
-public class PwmSession implements Serializable
+public class PwmSession
 {
-    private static final long serialVersionUID = 1L;
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSession.class );
 
-    @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
     private final transient LocalSessionStateBean sessionStateBean = new LocalSessionStateBean();
 
-    @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
     private final transient UserSessionDataCacheBean userSessionDataCacheBean = new UserSessionDataCacheBean();
 
-    @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
     private transient volatile SoftReference<ReportProcess> reportProcess = new SoftReference<>( null );
 
     private final DomainID domainID;

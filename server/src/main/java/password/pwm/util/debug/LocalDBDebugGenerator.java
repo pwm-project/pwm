@@ -28,7 +28,6 @@ import password.pwm.util.localdb.LocalDB;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.util.Map;
 
 class LocalDBDebugGenerator implements AppItemGenerator
@@ -45,7 +44,7 @@ class LocalDBDebugGenerator implements AppItemGenerator
     {
         final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
         final LocalDB localDB = pwmApplication.getLocalDB();
-        final Map<String, Serializable> serializableMap = localDB.debugInfo();
+        final Map<String, Object> serializableMap = localDB.debugInfo();
         outputStream.write( JsonFactory.get().serializeMap( serializableMap, JsonProvider.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }
 }

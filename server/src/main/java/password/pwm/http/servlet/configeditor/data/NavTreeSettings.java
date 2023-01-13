@@ -31,13 +31,12 @@ import password.pwm.http.servlet.configeditor.DomainManageMode;
 import password.pwm.http.servlet.configeditor.DomainStateReader;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Locale;
 import java.util.Map;
 
 @Value
 @Builder
-public class NavTreeSettings implements Serializable
+public class NavTreeSettings
 {
     private final boolean modifiedSettingsOnly;
 

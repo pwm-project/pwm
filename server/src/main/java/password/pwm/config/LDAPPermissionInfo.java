@@ -24,10 +24,9 @@ import password.pwm.i18n.Config;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.macro.MacroRequest;
 
-import java.io.Serializable;
 import java.util.Locale;
 
-public class LDAPPermissionInfo implements Serializable
+public class LDAPPermissionInfo
 {
     private final Access access;
     private final Actor actor;

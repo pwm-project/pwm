@@ -27,7 +27,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -246,7 +245,7 @@ class DatabaseUtil
 
     @Getter
     @AllArgsConstructor
-    static class DebugInfo implements Serializable
+    static class DebugInfo
     {
         private final Instant startTime = Instant.now();
         private final int opId = OP_COUNTER.incrementAndGet();

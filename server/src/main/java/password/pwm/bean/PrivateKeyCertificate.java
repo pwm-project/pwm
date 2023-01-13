@@ -26,7 +26,6 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.X509Utils;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -36,7 +35,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.List;
 
 @Value
-public class PrivateKeyCertificate implements Serializable
+public class PrivateKeyCertificate
 {
     private final List<String> b64certificates;
     private final String privateKey;

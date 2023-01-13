@@ -28,7 +28,6 @@ import password.pwm.util.json.JsonProvider;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystems;
 import java.util.ArrayList;
@@ -54,7 +53,7 @@ class RootFileSystemDebugItemGenerator implements AppItemGenerator
 
     @Value
     @Builder
-    private static class RootFileSystemInfo implements Serializable
+    private static class RootFileSystemInfo
     {
         private String name;
         private String type;
