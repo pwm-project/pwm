@@ -115,7 +115,7 @@ public class LocalDBBasicTest
         Assertions.assertEquals( BULK_COUNT, values.size() );
         Assertions.assertEquals( BULK_COUNT, localDB.size( TEST_DB ) );
 
-        try ( LocalDB.LocalDBIterator<Map.Entry<String, String>> iter = localDB.iterator( TEST_DB ) )
+        try ( LocalDB.LocalDBIterator iter = localDB.iterator( TEST_DB ) )
         {
             for ( int i = 0; i < BULK_COUNT; i++ )
             {

@@ -268,12 +268,12 @@ public class XodusLocalDB implements LocalDBProvider
     }
 
     @Override
-    public LocalDB.LocalDBIterator<Map.Entry<String, String>> iterator( final LocalDB.DB db )  throws LocalDBException
+    public LocalDB.LocalDBIterator iterator( final LocalDB.DB db )  throws LocalDBException
     {
         return new InnerIterator( db );
     }
 
-    public class InnerIterator implements LocalDB.LocalDBIterator<Map.Entry<String, String>>
+    public class InnerIterator implements LocalDB.LocalDBIterator
     {
         private final Transaction transaction;
         private final Cursor cursor;

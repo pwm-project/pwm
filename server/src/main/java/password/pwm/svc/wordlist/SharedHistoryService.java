@@ -366,11 +366,11 @@ public class SharedHistoryService extends AbstractPwmService implements PwmServi
                     + " words for entries older than " + settings.getMaxAge().asCompactString() );
 
 
-            try ( LocalDB.LocalDBIterator<Map.Entry<String, String>> keyIterator = localDB.iterator( WORDS_DB ) )
+            try ( LocalDB.LocalDBIterator dbIterator = localDB.iterator( WORDS_DB ) )
             {
-                while ( status() == STATUS.OPEN && keyIterator.hasNext() )
+                while ( status() == STATUS.OPEN && dbIterator.hasNext() )
                 {
-                    final Map.Entry<String, String> entry = keyIterator.next();
+                    final Map.Entry<String, String> entry = dbIterator.next();
                     final String key = entry.getKey();
                     final String value = entry.getValue();
                     final Instant entryTimestamp = Instant.ofEpochMilli( Long.parseLong( value ) );

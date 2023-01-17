@@ -120,7 +120,7 @@ public class LocalDBUtility
                 if ( loopDB.isBackup() )
                 {
                     csvPrinter.printComment( "Export of " + loopDB );
-                    try ( LocalDB.LocalDBIterator<Map.Entry<String, String>> localDBIterator = localDB.iterator( loopDB ) )
+                    try ( LocalDB.LocalDBIterator localDBIterator = localDB.iterator( loopDB ) )
                     {
                         while ( localDBIterator.hasNext() )
                         {
@@ -167,7 +167,7 @@ public class LocalDBUtility
         try ( ZipOutputStream zipOutputStream = new ZipOutputStream( outputStream, PwmConstants.DEFAULT_CHARSET ) )
         {
             zipOutputStream.putNextEntry( new ZipEntry( "wordlist.txt" ) );
-            try ( LocalDB.LocalDBIterator<Map.Entry<String, String>> localDBIterator = localDB.iterator( LocalDB.DB.WORDLIST_WORDS ) )
+            try ( LocalDB.LocalDBIterator localDBIterator = localDB.iterator( LocalDB.DB.WORDLIST_WORDS ) )
             {
                 while ( localDBIterator.hasNext() )
                 {
@@ -435,7 +435,7 @@ public class LocalDBUtility
         long storedChars = 0;
         final long totalChars = 0;
 
-        try ( LocalDB.LocalDBIterator<Map.Entry<String, String>> iter = localDB.iterator( db ) )
+        try ( LocalDB.LocalDBIterator iter = localDB.iterator( db ) )
         {
             while ( iter.hasNext() )
             {

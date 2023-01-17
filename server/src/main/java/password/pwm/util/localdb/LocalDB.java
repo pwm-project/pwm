@@ -62,7 +62,7 @@ public interface LocalDB
     Optional<String> get( DB db, String key )
             throws LocalDBException;
 
-    LocalDBIterator<Map.Entry<String, String>> iterator( DB db )
+    LocalDBIterator iterator( DB db )
             throws LocalDBException;
 
     @WriteOperation
@@ -189,7 +189,7 @@ public interface LocalDB
     }
 
 
-    interface LocalDBIterator<K> extends ClosableIterator<Map.Entry<String, String>>
+    interface LocalDBIterator extends ClosableIterator<Map.Entry<String, String>>
     {
     }
 }

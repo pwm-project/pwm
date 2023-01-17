@@ -60,7 +60,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     protected Path dbDirectory;
 
     // cache of dbIterators
-    private final Set<LocalDB.LocalDBIterator<Map.Entry<String, String>>> dbIterators = Collections.newSetFromMap(
+    private final Set<LocalDB.LocalDBIterator> dbIterators = Collections.newSetFromMap(
             new ConcurrentHashMap<>() );
 
     // sql db connection
@@ -296,7 +296,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     }
 
     @Override
-    public LocalDB.LocalDBIterator<Map.Entry<String, String>> iterator( final LocalDB.DB db )
+    public LocalDB.LocalDBIterator iterator( final LocalDB.DB db )
             throws LocalDBException
     {
         try
@@ -534,7 +534,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
             lock.writeLock().lock();
             try
             {
-                final Set<LocalDB.LocalDBIterator<Map.Entry<String, String>>> copiedIterators = new HashSet<>( dbIterators );
+                final Set<LocalDB.LocalDBIterator> copiedIterators = new HashSet<>( dbIterators );
 
                 for ( final LocalDB.LocalDBIterator dbIterator : copiedIterators )
                 {
@@ -608,7 +608,7 @@ public abstract class AbstractJDBCLocalDB implements LocalDBProvider
     ) throws LocalDBException;
 
 
-    private class DbIterator implements Closeable, LocalDB.LocalDBIterator<Map.Entry<String, String>>
+    private class DbIterator implements Closeable, LocalDB.LocalDBIterator
     {
         private Map.Entry<String, String> nextItem;
 

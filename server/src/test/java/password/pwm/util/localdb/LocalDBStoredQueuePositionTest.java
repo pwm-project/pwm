@@ -28,7 +28,7 @@ public class LocalDBStoredQueuePositionTest
     @Test
     public void positionTest()
     {
-        final LocalDBStoredQueue.Position initialPosition = new LocalDBStoredQueue.Position( "0" );
+        final LocalDBStoredQueue.Position initialPosition = LocalDBStoredQueue.Position.zero();
         Assertions.assertEquals( "000000", initialPosition.toString() );
 
         {
@@ -68,12 +68,12 @@ public class LocalDBStoredQueuePositionTest
         }
 
         {
-            final long distance = initialPosition.distanceToHead( new LocalDBStoredQueue.Position( "000003" ) );
+            final long distance = initialPosition.distanceToHead( LocalDBStoredQueue.Position.fromKey( "000003" ) );
             Assertions.assertEquals( 3, distance );
         }
 
         {
-            final long distance = initialPosition.distanceToHead( new LocalDBStoredQueue.Position( "ZZZZZX" ) );
+            final long distance = initialPosition.distanceToHead( LocalDBStoredQueue.Position.fromKey( "ZZZZZX" ) );
             Assertions.assertEquals( 2176782333L, distance );
         }
     }

@@ -93,7 +93,7 @@ public class LocalDBAdaptor implements LocalDB
         innerDB.init( dbDirectory, initParameters, parameters );
     }
 
-    public LocalDBIterator<Map.Entry<String, String>> iterator( final DB db ) throws LocalDBException
+    public LocalDBIterator iterator( final DB db ) throws LocalDBException
     {
         ParameterValidator.validateDBValue( db );
         return innerDB.iterator( db );

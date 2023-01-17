@@ -115,7 +115,7 @@ public class MemoryLocalDB implements LocalDBProvider
     }
 
     @Override
-    public LocalDB.LocalDBIterator<Map.Entry<String, String>> iterator( final LocalDB.DB db ) throws LocalDBException
+    public LocalDB.LocalDBIterator iterator( final LocalDB.DB db ) throws LocalDBException
     {
         return new MapIterator( db );
     }
@@ -213,7 +213,7 @@ public class MemoryLocalDB implements LocalDBProvider
     }
 
 
-    private class MapIterator implements LocalDB.LocalDBIterator<Map.Entry<String, String>>
+    private class MapIterator implements LocalDB.LocalDBIterator
     {
         private final Iterator<Map.Entry<String, String>> iterator;
 
