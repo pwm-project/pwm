@@ -982,7 +982,7 @@ public class LocalDBStoredQueue implements Queue<String>, Deque<String>
             {
                 debugOutput( "pre get() " + direction );
 
-                if ( internalSize() <= 1 )
+                if ( internalSize() <= 0 )
                 {
                     return Optional.empty();
                 }
