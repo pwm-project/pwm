@@ -25,4 +25,5 @@
   <JarScanner>
     <JarScanFilter tldSkip="*.*"/>
   </JarScanner>
+  <CookieProcessor sameSiteCookies="strict" />
 </Context>

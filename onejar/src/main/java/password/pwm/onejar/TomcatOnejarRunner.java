@@ -155,9 +155,11 @@ public class TomcatOnejarRunner
         {
             connector.setProperty( "address", onejarConfig.getLocalAddress() );
         }
+
+        final Http2Protocol http2Protocol = new Http2Protocol();
+
         connector.setSecure( true );
         connector.setScheme( "https" );
-        connector.addUpgradeProtocol( new Http2Protocol() );
         connector.setProperty( "SSLEnabled", "true" );
         connector.setProperty( "keystoreFile", onejarConfig.getKeystoreFile().toString() );
         connector.setProperty( "keystorePass", onejarConfig.getKeystorePass() );
@@ -169,21 +171,39 @@ public class TomcatOnejarRunner
 
         if ( tlsProperties != null )
         {
-            for ( final String key : tlsProperties.stringPropertyNames() )
+            tlsProperties.stringPropertyNames().forEach( key ->
             {
                 final String value = tlsProperties.getProperty( key );
-                connector.setProperty( key, value );
-            }
+                applyTlsProperty( key, value, connector, http2Protocol );
+            } );
         }
 
+        connector.addUpgradeProtocol( http2Protocol );
+
         return connector;
+    }
+
+    static void applyTlsProperty( final String key, final String value, final Connector connector, final Http2Protocol http2Protocol )
+    {
+        if ( "enableCompression".equals( key ) )
+        {
+            if ( Boolean.parseBoolean( value ) )
+            {
+                connector.setProperty( "compression", "on" );
+                http2Protocol.setCompression( "on" );
+            }
+        }
+        else
+        {
+            connector.setProperty( key, value );
+        }
     }
 
     static String getVersion( ) throws OnejarException
     {
         try
         {
-            final Class clazz = TomcatOnejarRunner.class;
+            final Class<?> clazz = TomcatOnejarRunner.class;
             final String className = clazz.getSimpleName() + ".class";
             final String classPath = clazz.getResource( className ).toString();
             if ( !classPath.startsWith( "jar" ) )

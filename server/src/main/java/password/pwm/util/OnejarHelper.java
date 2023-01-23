@@ -20,6 +20,7 @@
 
 package password.pwm.util;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
@@ -80,6 +81,7 @@ public class OnejarHelper
         final String sslProtocolSettingValue = ExportHttpsTomcatConfigCommand.TomcatConfigWriter.getTlsProtocolsValue( appConfig );
         final Properties newProps = new Properties();
         newProps.setProperty( "sslEnabledProtocols",  sslProtocolSettingValue );
+        newProps.setProperty( "enableCompression", appConfig.readAppProperty( AppProperty.HTTP_ENABLE_GZIP ) );
         final String ciphers = appConfig.readSettingAsString( PwmSetting.HTTPS_CIPHERS );
         if ( StringUtil.notEmpty( ciphers ) )
         {
