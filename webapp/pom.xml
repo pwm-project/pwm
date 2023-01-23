@@ -124,6 +124,7 @@
                         </goals>
                         <phase>compile</phase>
                         <configuration>
+                            <compilerVersion>1.8</compilerVersion>
                             <trimSpaces>true</trimSpaces>
                             <compilerVersion>${maven.compiler.source}</compilerVersion>
                             <keepSources>false</keepSources>

@@ -20,20 +20,21 @@
 
 package password.pwm.receiver;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import password.pwm.PwmConstants;
 import password.pwm.bean.TelemetryPublishBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ServletUtility;
 import password.pwm.i18n.Message;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.ws.server.RestResultBean;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebServlet(
@@ -57,7 +58,7 @@ public class TelemetryRestReceiver extends HttpServlet
             app.getStatisticCounterBundle().increment( PwmReceiverApp.CounterStatsKey.TelemetryPublishRequests );
             app.getStatisticEpsBundle().markEvent( PwmReceiverApp.EpsStatKey.TelemetryPublishRequests );
 
-            final String input = ServletUtility.readRequestBodyAsString( req, 1024 * 1024 );
+            final String input = readRequestBodyAsString( req, 1024 * 1024 );
             final TelemetryPublishBean telemetryPublishBean = JsonFactory.get().deserialize( input, TelemetryPublishBean.class );
             final Storage storage = app.getStorage();
             storage.store( telemetryPublishBean );
@@ -77,4 +78,19 @@ public class TelemetryRestReceiver extends HttpServlet
             ReceiverUtil.outputJsonResponse( req, resp, restResultBean );
         }
     }
+
+    public static String readRequestBodyAsString( final HttpServletRequest req, final int maxChars )
+            throws IOException, PwmUnrecoverableException
+    {
+        final String value = JavaHelper.copyToString( req.getInputStream(), PwmConstants.DEFAULT_CHARSET, maxChars + 1 )
+                .orElse( "" );
+
+        if ( value.length() > maxChars )
+        {
+            final String msg = "input request body is to big, size=" + value.length() + ", max=" + maxChars;
+            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
+        }
+        return value;
+    }
+
 }

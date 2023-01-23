@@ -20,6 +20,7 @@
 
 package password.pwm.util.localdb;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,12 @@ public class LocalDBBasicTest
         final Path localDbTestFolder = FileSystemUtility.createDirectory( temporaryFolder, "test-stored-queue-test" );
         final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( localDbTestFolder );
         localDB = LocalDBFactory.getInstance( localDbTestFolder, false, pwmApplication.getPwmEnvironment(), pwmApplication.getConfig() );
+    }
+
+    @AfterEach
+    public void shutdown() throws Exception
+    {
+        localDB.close();
     }
 
     @Test

@@ -83,6 +83,7 @@
     <allow pkg="java.awt"/>
     <allow pkg="javax.security"/>
     <allow pkg="javax.servlet"/>
+    <allow pkg="jakarta.servlet"/>
     <allow pkg="javax.net"/>
     <allow pkg="javax.crypto"/>
     <allow pkg="jakarta.mail"/>
@@ -105,12 +106,14 @@
     <!--servlet -->
     <subpackage name="http.servlet">
         <allow pkg="javax.servlet"/>
+        <allow pkg="jakarta.servlet"/>
     </subpackage>
 
     <!-- web services -->
     <subpackage name="ws.server">
         <allow pkg="javax.ws"/>
         <allow pkg="javax.servlet"/>
+        <allow pkg="jakarta.servlet"/>
         <allow pkg="org.glassfish.jersey"/>
     </subpackage>
 

@@ -20,11 +20,11 @@
 
 package password.pwm.receiver;
 
-import password.pwm.http.PwmHttpRequestWrapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import password.pwm.PwmConstants;
 import password.pwm.ws.server.RestResultBean;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class ReceiverUtil
@@ -37,7 +37,7 @@ public class ReceiverUtil
     )
             throws IOException
     {
-        final boolean jsonPrettyPrint = PwmHttpRequestWrapper.isPrettyPrintJsonParameterTrue( request );
+        final boolean jsonPrettyPrint = isPrettyPrintJsonParameterTrue( request );
         response.setHeader( "Content", "application/json" );
         response.getWriter().print( restResultBean.toJson( jsonPrettyPrint ) );
     }
@@ -52,5 +52,10 @@ public class ReceiverUtil
         {
             return 0;
         }
+    }
+
+    public static boolean isPrettyPrintJsonParameterTrue( final HttpServletRequest request )
+    {
+        return Boolean.parseBoolean( request.getParameter( PwmConstants.PARAM_FORMAT_JSON_PRETTY ) );
     }
 }
