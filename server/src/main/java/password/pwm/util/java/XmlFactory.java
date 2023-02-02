@@ -31,6 +31,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -217,7 +218,8 @@ public interface XmlFactory
             try
             {
                 final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-                dbFactory.setFeature( "http://apache.org/xml/features/disallow-doctype-decl", false );
+                dbFactory.setFeature( XMLConstants.FEATURE_SECURE_PROCESSING, true );
+                dbFactory.setFeature( "http://apache.org/xml/features/disallow-doctype-decl", true );
                 dbFactory.setExpandEntityReferences( false );
                 dbFactory.setValidating( false );
                 dbFactory.setXIncludeAware( false );
