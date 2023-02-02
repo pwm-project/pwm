@@ -762,7 +762,7 @@ class PeopleSearchDataReader
             final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
             builder.contexts( this.peopleSearchConfiguration.getLdapBase() );
             builder.enableContextValidation( false );
-            builder.enableValueEscaping( false );
+            builder.enableValueEscaping( true );
             builder.enableSplitWhitespace( true );
 
             if ( !useProxy() )
