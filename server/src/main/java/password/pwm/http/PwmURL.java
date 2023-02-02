@@ -423,6 +423,12 @@ public class PwmURL
         return "";
     }
 
+    public List<String> getPathSegments()
+    {
+        final String uriPath = uri.getPath();
+        return StringUtil.splitAndTrim( uriPath, "/" );
+    }
+
     public String determinePwmServletPath( )
     {
         final String requestPath = this.uri.getPath();

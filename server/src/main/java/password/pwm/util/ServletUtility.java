@@ -22,15 +22,20 @@ package password.pwm.util;
 
 import org.apache.commons.io.IOUtils;
 import password.pwm.PwmConstants;
+import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.bean.ImmutableByteArray;
+import password.pwm.util.java.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.net.URLConnection;
+import java.util.List;
 
 public final class ServletUtility
 {
@@ -68,5 +73,22 @@ public final class ServletUtility
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
         }
         return stringValue;
+    }
+
+    public static String mimeTypeForUserPhoto(
+            final Configuration configuration,
+            final ImmutableByteArray immutableByteArray
+    )
+            throws IOException, PwmUnrecoverableException
+    {
+        final List<String> permittedMimeTypes = configuration.permittedPhotoMimeTypes();
+
+        final String mimeType = URLConnection.guessContentTypeFromStream( immutableByteArray.newByteArrayInputStream() );
+        if ( !StringUtil.isEmpty( mimeType ) && permittedMimeTypes.contains( mimeType ) )
+        {
+            return mimeType;
+        }
+        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_FILE_TYPE_INCORRECT, "unsupported mime type" );
+        throw new PwmUnrecoverableException( errorInformation );
     }
 }

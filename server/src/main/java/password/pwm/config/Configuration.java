@@ -403,6 +403,11 @@ public class Configuration
         return getLdapProfiles().values().iterator().next();
     }
 
+    public List<String> permittedPhotoMimeTypes()
+    {
+        final String permittedMimeTypesStr = readAppProperty( AppProperty.SECURITY_HTTP_USER_PHOTO_MIME_TYPES );
+        return List.copyOf( StringUtil.splitAndTrim( permittedMimeTypesStr, "," ) );
+    }
 
     public List<Locale> getKnownLocales( )
     {

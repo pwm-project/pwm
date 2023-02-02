@@ -43,6 +43,7 @@ import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
+import password.pwm.http.bean.ImmutableByteArray;
 import password.pwm.http.bean.UpdateProfileBean;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.i18n.Message;
@@ -52,6 +53,7 @@ import password.pwm.svc.event.AuditRecordFactory;
 import password.pwm.svc.token.TokenService;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
+import password.pwm.util.ServletUtility;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
@@ -64,13 +66,11 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.net.URLConnection;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -522,22 +522,14 @@ public class UpdateProfileServlet extends ControlledPwmServlet
                     return ProcessStatus.Halt;
                 }
 
-                final String b64String = StringUtil.base64Encode( bytes );
-
-                if ( !JavaHelper.isEmpty( formConfiguration.getMimeTypes() ) )
+                if ( ServletUtility.mimeTypeForUserPhoto( pwmRequest.getConfig(), ImmutableByteArray.of( bytes ) ).isEmpty() )
                 {
-                    final String mimeType = URLConnection.guessContentTypeFromStream( new ByteArrayInputStream( bytes ) );
-                    if ( !formConfiguration.getMimeTypes().contains( mimeType ) )
-                    {
-                        final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_FILE_TYPE_INCORRECT, "incorrect file type of " + mimeType, new String[]
-                                {
-                                        mimeType,
-                                }
-                        );
-                        pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
-                        return ProcessStatus.Halt;
-                    }
+                    final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_FILE_TYPE_INCORRECT, "unsupported mime type" );
+                    pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
+                    return ProcessStatus.Halt;
                 }
+
+                final String b64String = StringUtil.base64Encode( bytes );
                 updateProfileBean.getFormData().put( fieldName, b64String );
             }
         }
@@ -560,7 +552,8 @@ public class UpdateProfileServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "readPhoto" )
-    public ProcessStatus readPhotoHandler( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
+    public ProcessStatus readPhotoHandler( final PwmRequest pwmRequest )
+            throws ServletException, PwmUnrecoverableException, IOException
     {
         final String fieldName = pwmRequest.readParameterAsString( "field" );
         final UpdateProfileBean updateProfileBean = getBean( pwmRequest );
@@ -570,10 +563,11 @@ public class UpdateProfileServlet extends ControlledPwmServlet
         {
             final byte[] bytes = StringUtil.base64Decode( b64value );
 
+            final String mimeType = ServletUtility.mimeTypeForUserPhoto( pwmRequest.getConfig(), ImmutableByteArray.of( bytes ) );
+
             try ( OutputStream outputStream = pwmRequest.getPwmResponse().getOutputStream() )
             {
                 final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
-                final String mimeType = URLConnection.guessContentTypeFromStream( new ByteArrayInputStream( bytes ) );
                 resp.setContentType( mimeType );
                 outputStream.write( bytes );
                 outputStream.flush();

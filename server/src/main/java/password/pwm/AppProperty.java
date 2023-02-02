@@ -325,6 +325,8 @@ public enum AppProperty
     SECURITY_HTTP_PERFORM_CSRF_HEADER_CHECKS        ( "security.http.performCsrfHeaderChecks" ),
     SECURITY_HTTP_PROMISCUOUS_ENABLE                ( "security.http.promiscuousEnable" ),
     SECURITY_HTTP_CONFIG_CSP_HEADER                 ( "security.http.config.cspHeader" ),
+    SECURITY_HTTP_USER_PHOTO_MIME_TYPES             ( "security.http.permittedUserPhotoMimeTypes" ),
+    SECURITY_HTTP_PERMITTED_URL_PATH_CHARS          ( "security.http.permittedUrlPathCharacters" ),
     SECURITY_HTTPSSERVER_SELF_FUTURESECONDS         ( "security.httpsServer.selfCert.futureSeconds" ),
     SECURITY_HTTPSSERVER_SELF_ALG                   ( "security.httpsServer.selfCert.alg" ),
     SECURITY_HTTPSSERVER_SELF_KEY_SIZE              ( "security.httpsServer.selfCert.keySize" ),
