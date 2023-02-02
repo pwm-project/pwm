@@ -57,6 +57,7 @@ import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.PasswordData;
+import password.pwm.util.ServletUtility;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -65,9 +66,7 @@ import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmTrustManager;
 
 import javax.net.ssl.X509TrustManager;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URLConnection;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Arrays;
@@ -940,7 +939,7 @@ public class LdapOperationsHelper
                 throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "user has no photo data stored in LDAP attribute" ) );
             }
             photoData = photoAttributeData[ 0 ];
-            mimeType = URLConnection.guessContentTypeFromStream( new ByteArrayInputStream( photoData ) );
+            mimeType = ServletUtility.mimeTypeForUserPhoto( configuration, ImmutableByteArray.of( photoData ) );
         }
         catch ( final IOException | ChaiOperationException e )
         {

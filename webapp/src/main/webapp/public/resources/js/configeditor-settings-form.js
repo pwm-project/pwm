@@ -33,7 +33,6 @@ FormTableHandler.newRowValue = {
     javascript:'',
     regex:'',
     source:'ldap',
-    mimeTypes:['image/gif','image/png','image/jpeg','image/bmp','image/webp'],
     maximumSize:65000
 };
 
@@ -288,7 +287,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         bodyText += '</tr><tr>';
     }
 
-    if ('select' in options) {
+    if (currentValue['type'] === 'select') {
         bodyText += '<td class="key">Select Options</td><td><button class="btn" id="' + inputID + 'editOptionsButton"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button></td>';
         bodyText += '</tr>';
     }
@@ -302,9 +301,6 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
     }
 
     if (currentValue['type'] === 'photo') {
-        bodyText += '<td class="key">MimeTypes</td><td><button class="btn" id="' + inputID + 'editMimeTypesButton"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button></td>';
-        bodyText += '</tr>';
-
         bodyText += '<td class="key">Maximum Size (bytes)</td><td><input min="0" pattern="[0-9]{1,10}" max="10000000" style="width: 90px" type="number" id="' + inputID + 'maximumSize' + '"/></td>';
         bodyText += '</tr><tr>';
     }
@@ -587,18 +583,6 @@ FormTableHandler.showMimeTypesDialog = function(keyName, iteration) {
     var bodyText = '';
     bodyText += '<table class="noborder" id="' + inputID + 'table"">';
     bodyText += '<tr>';
-    bodyText += '</tr><tr>';
-    for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes']) {
-        (function(optionName) {
-            var value = PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes'][optionName];
-            var optionID = inputID + optionName;
-            bodyText += '<td><div class="noWrapTextBox">' + value + '</div></td>';
-            bodyText += '<td class="noborder" style="">';
-            bodyText += '<span id="' + optionID + '-removeButton" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
-            bodyText += '</td>';
-            bodyText += '</tr><tr>';
-        }(optionName));
-    }
     bodyText += '</tr></table>';
     bodyText += '<br/><br/><br/>';
     bodyText += '<input class="configStringInput" pattern=".*/.*" style="width:200px" type="text" placeholder="Value" required id="addValue"/>';
@@ -610,29 +594,5 @@ FormTableHandler.showMimeTypesDialog = function(keyName, iteration) {
         okAction: function(){
             FormTableHandler.showOptionsDialog(keyName,iteration);
         }
-    });
-
-    for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes']) {
-        (function(optionName) {
-            var optionID = inputID + optionName;
-            PWM_MAIN.addEventHandler(optionID + '-removeButton','click',function(){
-                delete PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes'][optionName];
-                FormTableHandler.write(keyName);
-                FormTableHandler.showMimeTypesDialog(keyName, iteration);
-            });
-        }(optionName));
-    }
-
-    PWM_MAIN.addEventHandler('addItemButton','click',function(){
-        var value = PWM_MAIN.getObject('addValue').value;
-
-        if (value === null || value.length < 1) {
-            alert('Value field is required');
-            return;
-        }
-
-        PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes'].push(value);
-        FormTableHandler.write(keyName);
-        FormTableHandler.showMimeTypesDialog(keyName, iteration);
     });
 };
