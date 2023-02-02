@@ -104,7 +104,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
                     pwmRequest.sendRedirect( nextUrl );
                     return;
                 }
-                final String errorMsg = "oauth consumer reached, but oauth authentication has not yet been initiated.";
+                final String errorMsg = "oauth consumer reached, but oauth authentication has not yet been initiated";
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
                 pwmRequest.respondWithError( errorInformation );
                 LOGGER.error( pwmRequest, () -> errorMsg );
@@ -117,9 +117,9 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             final String oauthRequestError = pwmRequest.readParameterAsString( "error" );
             if ( oauthRequestError != null && !oauthRequestError.isEmpty() )
             {
-                final String errorMsg = "incoming request from remote oauth server is indicating an error: " + oauthRequestError;
-                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg, "Remote Error: " + oauthRequestError, null );
-                LOGGER.error( pwmRequest, () -> errorMsg );
+                final String errorMsg = "incoming request from remote oauth server is indicating an error";
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
+                LOGGER.error( pwmRequest, () -> errorMsg + ": " + oauthRequestError );
                 pwmRequest.respondWithError( errorInformation );
                 return;
             }
@@ -189,10 +189,10 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             }
             catch ( final PwmUnrecoverableException e )
             {
-                final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
+                final String errorMsg = "unexpected error redirecting user to oauth page";
+                LOGGER.error( pwmRequest, () -> errorMsg + ": " + e.getMessage() );
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
                 setLastError( pwmRequest, errorInformation );
-                LOGGER.error( () -> errorInformation.toDebugStr() );
             }
         }
 
@@ -206,10 +206,10 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         }
         catch ( final PwmException e )
         {
-            final String errorMsg = "unexpected error communicating with oauth server: " + e.toString();
-            final ErrorInformation errorInformation = new ErrorInformation( e.getError(), errorMsg );
+            final String errorMsg = "unexpected error communicating with oauth server";
+            LOGGER.error( pwmRequest, () -> errorMsg + ": " + e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
             setLastError( pwmRequest, errorInformation );
-            LOGGER.error( () -> errorInformation.toDebugStr() );
             return;
         }
 
@@ -271,9 +271,9 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             }
             catch ( final PwmOperationalException e )
             {
-                final String errorMsg = "error while examining incoming oauth code for already authenticated session: " + e.getMessage();
+                final String errorMsg = "error while examining incoming oauth code for already authenticated session";
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
-                LOGGER.error( pwmRequest, () -> errorMsg );
+                LOGGER.error( pwmRequest, () -> errorMsg + ": " + e.getMessage() );
                 pwmRequest.respondWithError( errorInformation );
                 return;
             }
@@ -297,8 +297,9 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( pwmRequest, () -> "error during OAuth authentication attempt: " + e.getMessage() );
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, e.getMessage() );
+            final String errorMsg = "error during OAuth authentication attempt";
+            LOGGER.error( pwmRequest, () ->  errorMsg + ": " + e.getMessage() );
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
             pwmRequest.respondWithError( errorInformation );
             return;
         }
