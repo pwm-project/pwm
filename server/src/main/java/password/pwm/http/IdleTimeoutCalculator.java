@@ -181,6 +181,12 @@ public class IdleTimeoutCalculator
             throws PwmUnrecoverableException
     {
         final PwmURL pwmURL = pwmRequest.getURL();
+        return idleTimeoutForRequest( pwmRequest, pwmURL );
+    }
+
+    public static TimeDuration idleTimeoutForRequest( final PwmRequest pwmRequest, final PwmURL pwmURL )
+            throws PwmUnrecoverableException
+    {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
