@@ -23,8 +23,8 @@ package password.pwm.config.value;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -184,13 +184,13 @@ public class FileValue extends AbstractValue implements StoredValue
         {
             final FileValue.FileInformation fileInformation = entry.getKey();
             final FileContent fileContent = entry.getValue();
-            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
 
-            final XmlElement fileInformationElement = XmlChai.getFactory().newElement( XML_ELEMENT_FILE_INFORMATION );
+            final XmlElement fileInformationElement = XmlFactory.getFactory().newElement( XML_ELEMENT_FILE_INFORMATION );
             fileInformationElement.setText( JsonFactory.get().serialize( fileInformation ) );
             valueElement.attachElement( fileInformationElement );
 
-            final XmlElement fileContentElement = XmlChai.getFactory().newElement( XML_ELEMENT_FILE_CONTENT );
+            final XmlElement fileContentElement = XmlFactory.getFactory().newElement( XML_ELEMENT_FILE_CONTENT );
 
             try
             {

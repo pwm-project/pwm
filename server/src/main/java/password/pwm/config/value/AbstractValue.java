@@ -20,9 +20,9 @@
 
 package password.pwm.config.value;
 
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.PwmConstants;
 import password.pwm.config.stored.StoredConfigXmlConstants;
 import password.pwm.config.stored.XmlOutputProcessData;
@@ -118,13 +118,13 @@ public abstract class AbstractValue implements StoredValue
                     .storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN )
                     .build();
             final List<XmlElement> xmlValues = storedValue.toXmlValues( StoredConfigXmlConstants.XML_ELEMENT_VALUE, xmlOutputProcessData );
-            final XmlDocument document = XmlChai.getFactory().newDocument( "root" );
+            final XmlDocument document = XmlFactory.getFactory().newDocument( "root" );
             document.getRootElement().attachElement( xmlValues );
 
             final DigestOutputStream digestOutputStream = new DigestOutputStream(
                     OutputStream.nullOutputStream(),
                     PwmHashAlgorithm.SHA512.newMessageDigest() );
-            XmlChai.getFactory().output( document, digestOutputStream );
+            XmlFactory.getFactory().output( document, digestOutputStream );
             return JavaHelper.binaryArrayToHex( digestOutputStream.getMessageDigest().digest() );
         }
         catch ( final IOException e )

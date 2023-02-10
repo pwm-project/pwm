@@ -20,8 +20,8 @@
 
 package password.pwm.config.value;
 
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.XmlOutputProcessData;
@@ -101,7 +101,7 @@ public class EmailValue extends AbstractValue implements StoredValue
         {
             final String localeValue = entry.getKey();
             final EmailItemBean emailItemBean = entry.getValue();
-            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
             if ( localeValue.length() > 0 )
             {
                 valueElement.setAttribute( "locale", localeValue );

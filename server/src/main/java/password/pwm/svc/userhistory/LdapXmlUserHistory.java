@@ -26,7 +26,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.ConfigObjectRecord;
 import lombok.Value;
 import org.jrivard.xmlchai.AccessMode;
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
 import org.jrivard.xmlchai.XmlFactory;
@@ -259,7 +258,7 @@ public class LdapXmlUserHistory implements UserHistoryStore
 
         public String toXml( )
         {
-            final XmlFactory xmlFactory = XmlChai.getFactory();
+            final XmlFactory xmlFactory = XmlFactory.getFactory();
             final XmlDocument doc = xmlFactory.newDocument( XML_NODE_ROOT );
 
             for ( final StoredEvent loopEvent : records )
@@ -307,7 +306,7 @@ public class LdapXmlUserHistory implements UserHistoryStore
 
             try ( InputStream inputStream = new ByteArrayInputStream( input.getBytes( PwmConstants.DEFAULT_CHARSET ) ) )
             {
-                final XmlFactory xmlFactory = XmlChai.getFactory();
+                final XmlFactory xmlFactory = XmlFactory.getFactory();
                 final XmlDocument xmlDocument = xmlFactory.parse( inputStream, AccessMode.IMMUTABLE );
                 final XmlElement rootElement = xmlDocument.getRootElement();
 

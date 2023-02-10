@@ -21,7 +21,6 @@
 package password.pwm.config.stored;
 
 import org.jrivard.xmlchai.AccessMode;
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
 import org.jrivard.xmlchai.XmlFactory;
@@ -86,7 +85,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
         try
         {
             final Instant startTime = Instant.now();
-            final XmlFactory xmlFactory = XmlChai.getFactory();
+            final XmlFactory xmlFactory = XmlFactory.getFactory();
             final XmlDocument xmlDocument = xmlFactory.parse( inputStream, AccessMode.IMMUTABLE );
             perfLog( "parseXml", startTime );
 
@@ -114,7 +113,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
     )
             throws PwmUnrecoverableException, IOException
     {
-        final XmlFactory xmlFactory = XmlChai.getFactory();
+        final XmlFactory xmlFactory = XmlFactory.getFactory();
         final XmlDocument xmlDocument = xmlFactory.newDocument( StoredConfigXmlConstants.XML_ELEMENT_ROOT );
 
         XmlOutputHandler.makeXmlOutput( storedConfiguration, xmlDocument.getRootElement(), outputSettings );
@@ -499,7 +498,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
         {
             final PwmSecurityKey pwmSecurityKey = storedConfiguration.getKey();
 
-            final XmlFactory xmlFactory = XmlChai.getFactory();
+            final XmlFactory xmlFactory = XmlFactory.getFactory();
             final XmlElement settingsElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_SETTINGS );
 
             final XmlOutputProcessData xmlOutputProcessData = XmlOutputProcessData.builder()
@@ -564,7 +563,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             final PwmSetting pwmSetting = key.toPwmSetting();
             final Optional<ProfileID> profileID = key.getProfileID();
 
-            final XmlFactory xmlFactory = XmlChai.getFactory();
+            final XmlFactory xmlFactory = XmlFactory.getFactory();
 
             final XmlElement settingElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_SETTING );
 
@@ -626,7 +625,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
             {
                 if ( valueMetaData.get().getUserIdentity() != null )
                 {
-                    final XmlElement metaElement = XmlChai.getFactory().newElement( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_USER );
+                    final XmlElement metaElement = XmlFactory.getFactory().newElement( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_USER );
                     metaElement.setText( valueMetaData.get().getUserIdentity().toDelimitedKey() );
                     xmlElement.attachElement( metaElement );
                 }
@@ -640,7 +639,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
         private static XmlElement makePropertiesElement( final StoredConfiguration storedConfiguration )
         {
-            final XmlFactory xmlFactory = XmlChai.getFactory();
+            final XmlFactory xmlFactory = XmlFactory.getFactory();
             final XmlElement propertiesElement = xmlFactory.newElement( StoredConfigXmlConstants.XML_ELEMENT_PROPERTIES );
             propertiesElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_TYPE, StoredConfigXmlConstants.XML_ATTRIBUTE_VALUE_CONFIG );
 
@@ -662,7 +661,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
         private static List<XmlElement> makeLocaleBundleXmlElements( final StoredConfiguration storedConfiguration )
         {
-            final XmlFactory xmlFactory = XmlChai.getFactory();
+            final XmlFactory xmlFactory = XmlFactory.getFactory();
             final List<XmlElement> returnList = new ArrayList<>();
             for ( final DomainID domainID : StoredConfigurationUtil.domainList( storedConfiguration ) )
             {
@@ -749,7 +748,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                         final Optional<String> textValue = settingElement.getText();
                         if ( textValue.isPresent() )
                         {
-                            final XmlElement newValueElement = XmlChai.getFactory().newElement( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+                            final XmlElement newValueElement = XmlFactory.getFactory().newElement( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
                             newValueElement.setText( textValue.get().trim() );
                             settingElement.attachElement( newValueElement );
                             final String key = settingElement.getAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY ).orElse( "" );

@@ -20,8 +20,8 @@
 
 package password.pwm.config.value;
 
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -165,7 +165,7 @@ public class NamedSecretValue implements StoredValue
     {
         if ( values == null )
         {
-            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
             return Collections.singletonList( valueElement );
         }
         final List<XmlElement> valuesElement = new ArrayList<>();
@@ -176,10 +176,10 @@ public class NamedSecretValue implements StoredValue
                 final String name = entry.getKey();
                 final PasswordData passwordData = entry.getValue().getPassword();
                 final String encodedValue = SecureEngine.encryptToString( passwordData.getStringValue(), xmlOutputProcessData.getPwmSecurityKey(), PwmBlockAlgorithm.CONFIG );
-                final XmlElement newValueElement = XmlChai.getFactory().newElement( "value" );
-                final XmlElement nameElement = XmlChai.getFactory().newElement( ELEMENT_NAME );
+                final XmlElement newValueElement = XmlFactory.getFactory().newElement( "value" );
+                final XmlElement nameElement = XmlFactory.getFactory().newElement( ELEMENT_NAME );
                 nameElement.setText( name );
-                final XmlElement encodedValueElement = XmlChai.getFactory().newElement( ELEMENT_PASSWORD );
+                final XmlElement encodedValueElement = XmlFactory.getFactory().newElement( ELEMENT_PASSWORD );
                 encodedValueElement.setText( encodedValue );
 
                 newValueElement.attachElement( nameElement );
@@ -187,7 +187,7 @@ public class NamedSecretValue implements StoredValue
 
                 for ( final String usages : values.get( name ).getUsage() )
                 {
-                    final XmlElement usageElement = XmlChai.getFactory().newElement( ELEMENT_USAGE );
+                    final XmlElement usageElement = XmlFactory.getFactory().newElement( ELEMENT_USAGE );
                     usageElement.setText( usages );
                     newValueElement.attachElement( usageElement );
                 }

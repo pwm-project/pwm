@@ -21,9 +21,9 @@
 package password.pwm.config;
 
 import org.jrivard.xmlchai.AccessMode;
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.LazySupplier;
@@ -83,7 +83,7 @@ public class PwmSettingXml
         try ( InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( SETTING_XML_FILENAME ) )
         {
             final Instant startTime = Instant.now();
-            final XmlDocument newDoc = XmlChai.getFactory().parse( inputStream, AccessMode.IMMUTABLE );
+            final XmlDocument newDoc = XmlFactory.getFactory().parse( inputStream, AccessMode.IMMUTABLE );
             final TimeDuration parseDuration = TimeDuration.fromCurrent( startTime );
             LOGGER.trace( () -> "parsed PwmSettingXml in " + parseDuration.asCompactString() + ", loads=" + LOAD_COUNTER.getAndIncrement() );
 

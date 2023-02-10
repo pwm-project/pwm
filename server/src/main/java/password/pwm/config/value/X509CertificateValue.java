@@ -20,8 +20,8 @@
 
 package password.pwm.config.value;
 
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -106,7 +106,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue
         final List<XmlElement> returnList = new ArrayList<>( b64certificates.size() );
         for ( final String b64value : b64certificates )
         {
-            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
             final String splitValue = StringUtil.insertRepeatedLineBreaks( b64value, PwmConstants.XML_OUTPUT_LINE_WRAP_LENGTH );
             valueElement.setText( splitValue );
 

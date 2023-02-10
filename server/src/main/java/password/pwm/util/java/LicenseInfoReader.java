@@ -22,7 +22,6 @@ package password.pwm.util.java;
 
 import lombok.Value;
 import org.jrivard.xmlchai.AccessMode;
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
 import org.jrivard.xmlchai.XmlFactory;
@@ -47,7 +46,7 @@ public class LicenseInfoReader
     {
         final List<String> attributionFiles = Collections.singletonList( "/attribution.xml" );
         final List<DependencyInfo> returnList = new ArrayList<>();
-        final XmlFactory factory = XmlChai.getFactory();
+        final XmlFactory factory = XmlFactory.getFactory();
 
         for ( final String attributionFile : attributionFiles )
         {

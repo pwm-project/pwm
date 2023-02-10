@@ -21,8 +21,8 @@
 package password.pwm.config.value;
 
 
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -157,10 +157,10 @@ public class PasswordValue implements StoredValue
     {
         if ( value == null )
         {
-            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
             return Collections.singletonList( valueElement );
         }
-        final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+        final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
         try
         {
             final String encodedValue = StoredValueEncoder.encode(

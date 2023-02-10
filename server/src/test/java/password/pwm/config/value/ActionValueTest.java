@@ -21,7 +21,6 @@
 package password.pwm.config.value;
 
 import org.jrivard.xmlchai.AccessMode;
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
 import org.jrivard.xmlchai.XmlFactory;
@@ -47,7 +46,7 @@ public class ActionValueTest
             throws Exception
     {
         final String settingValueValue = xmlTestValue( "jsonDataFull" );
-        final XmlDocument xmlDocument = XmlChai.getFactory().parseString( settingValueValue, AccessMode.IMMUTABLE );
+        final XmlDocument xmlDocument = XmlFactory.getFactory().parseString( settingValueValue, AccessMode.IMMUTABLE );
         final XmlElement settingsElement = xmlDocument.getRootElement();
         final XmlElement settingElement = settingsElement.getChild( "setting" ).orElseThrow();
         final ActionValue actionValue = ( ActionValue ) ActionValue.factory().fromXmlElement( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES, settingElement, null );
@@ -114,13 +113,13 @@ public class ActionValueTest
                 .storedValueEncoderMode( StoredValueEncoder.Mode.PLAIN )
                 .build();
         final List<XmlElement> valueElements = actionValue.toXmlValues( "value", xmlOutputProcessData );
-        final XmlElement settingElement = XmlChai.getFactory().newElement( "setting" );
+        final XmlElement settingElement = XmlFactory.getFactory().newElement( "setting" );
         settingElement.setAttribute( "syntaxVersion", "2" );
         settingElement.attachElement( valueElements );
 
-        final XmlDocument xmlDocument = XmlChai.getFactory().newDocument( "settings" );
+        final XmlDocument xmlDocument = XmlFactory.getFactory().newDocument( "settings" );
         xmlDocument.getRootElement().attachElement( settingElement );
-        final String xmlStringOutput = XmlChai.getFactory().outputString( xmlDocument, XmlFactory.OutputFlag.Compact );
+        final String xmlStringOutput = XmlFactory.getFactory().outputString( xmlDocument, XmlFactory.OutputFlag.Compact );
 
         Assertions.assertEquals( xmlTestValue( "jsonDataFull" ), xmlStringOutput );
     }
@@ -130,7 +129,7 @@ public class ActionValueTest
             throws Exception
     {
         final String settingValueValue = xmlTestValue( "jsonDataBasicWeb" );
-        final XmlDocument xmlDocument = XmlChai.getFactory().parseString( settingValueValue, AccessMode.IMMUTABLE );
+        final XmlDocument xmlDocument = XmlFactory.getFactory().parseString( settingValueValue, AccessMode.IMMUTABLE );
         final XmlElement settingsElement = xmlDocument.getRootElement();
         final XmlElement settingElement = settingsElement.getChild( "setting" ).orElseThrow();
         final ActionValue actionValue = ( ActionValue ) ActionValue.factory().fromXmlElement( PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES, settingElement, null );
@@ -175,13 +174,13 @@ public class ActionValueTest
                 .build();
 
         final List<XmlElement> valueElements = actionValue.toXmlValues( "value", xmlOutputProcessData );
-        final XmlElement settingElement = XmlChai.getFactory().newElement( "setting" );
+        final XmlElement settingElement = XmlFactory.getFactory().newElement( "setting" );
         settingElement.setAttribute( "syntaxVersion", "2" );
         settingElement.attachElement( valueElements );
 
-        final XmlDocument xmlDocument = XmlChai.getFactory().newDocument( "settings" );
+        final XmlDocument xmlDocument = XmlFactory.getFactory().newDocument( "settings" );
         xmlDocument.getRootElement().attachElement( settingElement );
-        final String xmlStringOutput = XmlChai.getFactory().outputString( xmlDocument, XmlFactory.OutputFlag.Compact );
+        final String xmlStringOutput = XmlFactory.getFactory().outputString( xmlDocument, XmlFactory.OutputFlag.Compact );
 
         Assertions.assertEquals( xmlTestValue( "jsonDataBasicWeb" ), xmlStringOutput );
     }

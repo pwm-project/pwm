@@ -20,8 +20,8 @@
 
 package password.pwm.config.value;
 
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.bean.PrivateKeyCertificate;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -174,7 +174,7 @@ public class PrivateKeyValue extends AbstractValue
     @Override
     public List<XmlElement> toXmlValues( final String valueElementName, final XmlOutputProcessData xmlOutputProcessData )
     {
-        final XmlElement valueElement = XmlChai.getFactory().newElement( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
+        final XmlElement valueElement = XmlFactory.getFactory().newElement( StoredConfigXmlConstants.XML_ELEMENT_VALUE );
         if ( privateKeyCertificate != null )
         {
             try
@@ -182,13 +182,13 @@ public class PrivateKeyValue extends AbstractValue
                 {
                     for ( final X509Certificate certificate : privateKeyCertificate.getCertificates() )
                     {
-                        final XmlElement certificateElement = XmlChai.getFactory().newElement( ELEMENT_NAME_CERTIFICATE );
+                        final XmlElement certificateElement = XmlFactory.getFactory().newElement( ELEMENT_NAME_CERTIFICATE );
                         certificateElement.setText( X509Utils.certificateToBase64( certificate ) );
                         valueElement.attachElement( certificateElement );
                     }
                 }
                 {
-                    final XmlElement keyElement = XmlChai.getFactory().newElement( ELEMENT_NAME_KEY );
+                    final XmlElement keyElement = XmlFactory.getFactory().newElement( ELEMENT_NAME_KEY );
                     final String b64EncodedKey = privateKeyCertificate.getPrivateKey();
                     final String encryptedKey = StoredValueEncoder.encode(
                             b64EncodedKey,

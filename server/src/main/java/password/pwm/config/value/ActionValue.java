@@ -20,8 +20,8 @@
 
 package password.pwm.config.value;
 
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
@@ -194,7 +194,7 @@ public class ActionValue extends AbstractValue implements StoredValue
                     .webActions( clonedWebActions )
                     .build();
 
-            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
 
             valueElement.setText( JsonFactory.get().serialize( clonedAction ) );
             returnList.add( valueElement );

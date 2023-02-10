@@ -21,9 +21,9 @@
 package password.pwm.config;
 
 import org.jrivard.xmlchai.AccessMode;
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -49,7 +49,7 @@ public class PwmSettingXmlTest
     {
         try ( InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream( PwmSettingXml.SETTING_XML_FILENAME ) )
         {
-            xmlDocument = XmlChai.getFactory().parse( inputStream, AccessMode.IMMUTABLE );
+            xmlDocument = XmlFactory.getFactory().parse( inputStream, AccessMode.IMMUTABLE );
         }
     }
 

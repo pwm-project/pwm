@@ -21,9 +21,9 @@
 package password.pwm.util.java;
 
 import org.jrivard.xmlchai.AccessMode;
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +38,7 @@ public class XmlFactoryTest
             throws Exception
     {
         final InputStream xmlFactoryTestXmlFile = this.getClass().getResourceAsStream( "XmlFactoryTest.xml" );
-        final XmlDocument xmlDocument = XmlChai.getFactory().parse( xmlFactoryTestXmlFile, AccessMode.IMMUTABLE );
+        final XmlDocument xmlDocument = XmlFactory.getFactory().parse( xmlFactoryTestXmlFile, AccessMode.IMMUTABLE );
         Assertions.assertEquals( "PwmConfiguration", xmlDocument.getRootElement().getName() );
         final Optional<XmlElement> configIsEditable = xmlDocument.evaluateXpathToElement( "//property[@key='configIsEditable']" );
         Assertions.assertTrue( configIsEditable.isPresent() );

@@ -20,8 +20,8 @@
 
 package password.pwm.config.value;
 
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -105,7 +105,7 @@ public class RemoteWebServiceValue extends AbstractValue implements StoredValue
         final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final RemoteWebServiceConfiguration value : values )
         {
-            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
 
             String encodedValue = value.getPassword();
             try

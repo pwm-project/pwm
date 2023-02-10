@@ -21,7 +21,6 @@
 package password.pwm.util.java;
 
 import org.jrivard.xmlchai.AccessMode;
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlDocument;
 import org.jrivard.xmlchai.XmlFactory;
 import org.junit.jupiter.api.Test;
@@ -69,7 +68,7 @@ public class XmlFactoryBenchmarkExtendedTest
     private void benchmarkImpl ()
             throws Exception
     {
-        final XmlFactory xmlFactory = XmlChai.getFactory();
+        final XmlFactory xmlFactory = XmlFactory.getFactory();
         final InputStream xmlFactoryTestXmlFile = XmlFactoryTest.class.getResourceAsStream( "XmlFactoryTest.xml" );
         final XmlDocument xmlDocument = xmlFactory.parse( xmlFactoryTestXmlFile, AccessMode.IMMUTABLE );
         xmlFactory.output( xmlDocument, OutputStream.nullOutputStream() );

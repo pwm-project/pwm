@@ -20,8 +20,8 @@
 
 package password.pwm.config.value;
 
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -159,7 +159,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue
             {
                 if ( value != null )
                 {
-                    final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+                    final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
                     valueElement.setText( JsonFactory.get().serialize( value ) );
                     if ( locale != null && locale.length() > 0 )
                     {

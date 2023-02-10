@@ -20,8 +20,8 @@
 
 package password.pwm.config.value;
 
-import org.jrivard.xmlchai.XmlChai;
 import org.jrivard.xmlchai.XmlElement;
+import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingFlag;
 import password.pwm.config.stored.StoredConfigXmlConstants;
@@ -98,7 +98,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue
         final List<XmlElement> returnList = new ArrayList<>( values.size() );
         for ( final String value : this.values )
         {
-            final XmlElement valueElement = XmlChai.getFactory().newElement( valueElementName );
+            final XmlElement valueElement = XmlFactory.getFactory().newElement( valueElementName );
             valueElement.setText( value );
             returnList.add( valueElement );
         }
