@@ -48,6 +48,10 @@
                         <descriptor>onejar-assembly.xml</descriptor>
                     </descriptors>
                     <archive>
+                        <manifest>
+                            <addDefaultEntries>false</addDefaultEntries>
+                            <addDefaultImplementationEntries>false</addDefaultImplementationEntries>
+                        </manifest>
                         <manifestEntries>
                             <Main-Class>password.pwm.onejar.OnejarMain</Main-Class>
                             <Implementation-Archive-Name>pwm.onejar</Implementation-Archive-Name>
@@ -55,16 +59,14 @@
                             <Implementation-Version>${project.version}</Implementation-Version>
                             <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
                             <Implementation-URL>${project.organization.url}</Implementation-URL>
-                            <Implementation-Build>${build.number}</Implementation-Build>
-                            <Implementation-Revision>${build.revision}</Implementation-Revision>
-                            <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
-                            <Implementation-Build-Java-Spec-Version>${java.specification.version}</Implementation-Build-Java-Spec-Version>
+                            <Implementation-Build-Java-Version>${maven.compiler.target}</Implementation-Build-Java-Version>
                             <SCM-Git-Branch>${git.branch}</SCM-Git-Branch>
                             <SCM-Git-Commit-ID>${git.commit.id}</SCM-Git-Commit-ID>
                             <SCM-Git-Commit-ID-Abbrev>${git.commit.id.abbrev}</SCM-Git-Commit-ID-Abbrev>
                             <SCM-Git-Commit-ID-Description>${git.commit.id.describe}</SCM-Git-Commit-ID-Description>
                             <SCM-Git-Commit-Timestamp>${git.commit.time}</SCM-Git-Commit-Timestamp>
                             <SCM-Git-Commit-Dirty>${git.dirty}</SCM-Git-Commit-Dirty>
+                            <SCM-Git-Remote-Origin-URL>${git.remote.origin.url}</SCM-Git-Remote-Origin-URL>
                         </manifestEntries>
                     </archive>
                 </configuration>

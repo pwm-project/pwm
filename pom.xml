@@ -132,9 +132,7 @@
                     <dateFormat>yyyy-MM-dd'T'HH:mm:ss'Z'</dateFormat>
                     <dateFormatTimeZone>Zulu</dateFormatTimeZone>
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
-                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>${project.build.outputDirectory}/classes/git.json</generateGitPropertiesFilename>
-                    <format>json</format>
+                    <generateGitPropertiesFile>false</generateGitPropertiesFile>
                     <gitDescribe>
                         <tags>true</tags>
                     </gitDescribe>
@@ -156,19 +154,25 @@
                         </goals>
                         <configuration>
                             <archive>
+                                <manifest>
+                                    <addDefaultEntries>false</addDefaultEntries>
+                                    <addDefaultImplementationEntries>false</addDefaultImplementationEntries>
+                                </manifest>
                                 <manifestEntries>
                                     <Implementation-Archive-Name>pwm.javadoc</Implementation-Archive-Name>
                                     <Implementation-Title>${project.name}</Implementation-Title>
                                     <Implementation-Version>${project.version}</Implementation-Version>
                                     <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
                                     <Implementation-URL>${project.organization.url}</Implementation-URL>
-                                    <Implementation-Build-Java-Spec-Version>${java.specification.version}</Implementation-Build-Java-Spec-Version>
+                                    <Implementation-Build-Java-Version>${maven.compiler.target}</Implementation-Build-Java-Version>
                                     <SCM-Git-Branch>${git.branch}</SCM-Git-Branch>
                                     <SCM-Git-Commit-ID>${git.commit.id}</SCM-Git-Commit-ID>
                                     <SCM-Git-Commit-ID-Abbrev>${git.commit.id.abbrev}</SCM-Git-Commit-ID-Abbrev>
                                     <SCM-Git-Commit-ID-Description>${git.commit.id.describe}</SCM-Git-Commit-ID-Description>
                                     <SCM-Git-Commit-Timestamp>${git.commit.time}</SCM-Git-Commit-Timestamp>
-                                    <SCM-Git-Commit-Dirty>${git.dirty}</SCM-Git-Commit-Dirty>                                </manifestEntries>
+                                    <SCM-Git-Commit-Dirty>${git.dirty}</SCM-Git-Commit-Dirty>
+                                    <SCM-Git-Remote-Origin-URL>${git.remote.origin.url}</SCM-Git-Remote-Origin-URL>
+                                </manifestEntries>
                             </archive>
                             <source>${maven.compiler.release}</source>
                         </configuration>
@@ -188,21 +192,24 @@
                             <includePom>true</includePom>
                             <attach>true</attach>
                             <archive>
+                                <manifest>
+                                    <addDefaultEntries>false</addDefaultEntries>
+                                    <addDefaultImplementationEntries>false</addDefaultImplementationEntries>
+                                </manifest>
                                 <manifestEntries>
                                     <Implementation-Archive-Name>pwm.source</Implementation-Archive-Name>
                                     <Implementation-Title>${project.name}</Implementation-Title>
                                     <Implementation-Version>${project.version}</Implementation-Version>
                                     <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
                                     <Implementation-URL>${project.organization.url}</Implementation-URL>
-                                    <Implementation-Build-Java-Spec-Version>${java.specification.version}</Implementation-Build-Java-Spec-Version>
-                                    <Implementation-Revision>${build.revision}</Implementation-Revision>
-                                    <Implementation-Version-Display>v${project.version} b${build.number} r${build.revision}</Implementation-Version-Display>
+                                    <Implementation-Build-Java-Version>${maven.compiler.target}</Implementation-Build-Java-Version>
                                     <SCM-Git-Branch>${git.branch}</SCM-Git-Branch>
                                     <SCM-Git-Commit-ID>${git.commit.id}</SCM-Git-Commit-ID>
                                     <SCM-Git-Commit-ID-Abbrev>${git.commit.id.abbrev}</SCM-Git-Commit-ID-Abbrev>
                                     <SCM-Git-Commit-ID-Description>${git.commit.id.describe}</SCM-Git-Commit-ID-Description>
                                     <SCM-Git-Commit-Timestamp>${git.commit.time}</SCM-Git-Commit-Timestamp>
                                     <SCM-Git-Commit-Dirty>${git.dirty}</SCM-Git-Commit-Dirty>
+                                    <SCM-Git-Remote-Origin-URL>${git.remote.origin.url}</SCM-Git-Remote-Origin-URL>
                                 </manifestEntries>
                             </archive>
                         </configuration>
