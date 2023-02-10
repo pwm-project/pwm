@@ -45,6 +45,7 @@ import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.PwmURL;
 import password.pwm.i18n.Display;
 import password.pwm.svc.sessiontrack.UserAgentUtils;
 import password.pwm.svc.stats.EpsStatistic;
@@ -68,6 +69,7 @@ import password.pwm.ws.server.rest.bean.PublicHealthData;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
+import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -333,7 +335,8 @@ public class ClientApiServlet extends ControlledPwmServlet
             {
                 try
                 {
-                    final TimeDuration maxIdleTime = IdleTimeoutCalculator.idleTimeoutForRequest( pwmRequest );
+                    final PwmURL pwmUrl = PwmURL.create( URI.create( pageUrl ), pwmRequest.getContextPath(), pwmRequest.getAppConfig() );
+                    final TimeDuration maxIdleTime = IdleTimeoutCalculator.idleTimeoutForRequest( pwmRequest, pwmUrl );
                     idleSeconds = maxIdleTime.as( TimeDuration.Unit.SECONDS );
                 }
                 catch ( final Exception e )
