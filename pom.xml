@@ -181,7 +181,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>enforce-maven</id>
@@ -217,12 +217,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.2.1</version>
                 <dependencies>
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>10.6.0</version>
+                        <version>10.7.0</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -364,7 +364,7 @@
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>7.4.4</version>
+                <version>8.0.2</version>
                 <executions>
                     <execution>
                         <goals>
@@ -418,7 +418,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M7</version>
+                    <version>3.0.0-M8</version>
                     <executions>
                         <execution>
                             <id>default-test</id>
@@ -462,7 +462,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.24</version>
+            <version>1.18.26</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -488,7 +488,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.0.0</version>
+            <version>5.1.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
