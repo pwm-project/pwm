@@ -33,7 +33,6 @@ FormTableHandler.newRowValue = {
     javascript:'',
     regex:'',
     source:'ldap',
-    mimeTypes:['image/gif','image/png','image/jpeg','image/bmp','image/webp'],
     maximumSize:65000
 };
 
@@ -289,7 +288,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         bodyText += '</tr><tr>';
     }
 
-    if ('select' in options) {
+    if (currentValue['type'] === 'select') {
         bodyText += '<td class="key">Select Options</td><td><button class="btn" id="' + inputID + 'editOptionsButton"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button></td>';
         bodyText += '</tr>';
     }
@@ -303,9 +302,6 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
     }
 
     if (currentValue['type'] === 'photo') {
-        bodyText += '<td class="key">MimeTypes</td><td><button class="btn" id="' + inputID + 'editMimeTypesButton"><span class="btn-icon pwm-icon pwm-icon-list-ul"/> Edit</button></td>';
-        bodyText += '</tr>';
-
         bodyText += '<td class="key">Maximum Size (bytes)</td><td><input min="0" pattern="[0-9]{1,10}" max="10000000" style="width: 90px" type="number" id="' + inputID + 'maximumSize' + '"/></td>';
         bodyText += '</tr><tr>';
     }
@@ -318,10 +314,6 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
 
         PWM_MAIN.addEventHandler(inputID + 'editOptionsButton', 'click', function(){
             FormTableHandler.showSelectOptionsDialog(keyName,iteration);
-        });
-
-        PWM_MAIN.addEventHandler(inputID + 'editMimeTypesButton', 'click', function(){
-            FormTableHandler.showMimeTypesDialog(keyName,iteration);
         });
 
         PWM_MAIN.addEventHandler(inputID + 'description','click',function(){
@@ -581,59 +573,4 @@ FormTableHandler.showDescriptionDialog = function(keyName, iteration) {
     const finishAction = function(){ FormTableHandler.showOptionsDialog(keyName, iteration); };
     const title = 'Description for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
     FormTableHandler.multiLocaleStringDialog(keyName, iteration, 'description', finishAction, title);
-};
-
-FormTableHandler.showMimeTypesDialog = function(keyName, iteration) {
-    const inputID = 'value_' + keyName + '_' + iteration + "_" + "selectOptions_";
-    let bodyText = '';
-    bodyText += '<table class="noborder" id="' + inputID + 'table"">';
-    bodyText += '<tr>';
-    bodyText += '</tr><tr>';
-    for (const optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes']) {
-        (function(optionName) {
-            const value = PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes'][optionName];
-            const optionID = inputID + optionName;
-            bodyText += '<td><div class="noWrapTextBox">' + value + '</div></td>';
-            bodyText += '<td class="noborder" style="">';
-            bodyText += '<span id="' + optionID + '-removeButton" class="delete-row-icon action-icon pwm-icon pwm-icon-times"></span>';
-            bodyText += '</td>';
-            bodyText += '</tr><tr>';
-        }(optionName));
-    }
-    bodyText += '</tr></table>';
-    bodyText += '<br/><br/><br/>';
-    bodyText += '<input class="configStringInput" pattern=".*/.*" style="width:200px" type="text" placeholder="Value" required id="addValue"/>';
-    bodyText += '<button id="addItemButton"><span class="btn-icon pwm-icon pwm-icon-plus-square"/> Add</button>';
-
-    PWM_MAIN.showDialog({
-        title: 'Mime Types - ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
-        text: bodyText,
-        okAction: function(){
-            FormTableHandler.showOptionsDialog(keyName,iteration);
-        }
-    });
-
-    for (const optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes']) {
-        (function(optionName) {
-            const optionID = inputID + optionName;
-            PWM_MAIN.addEventHandler(optionID + '-removeButton','click',function(){
-                delete PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes'][optionName];
-                FormTableHandler.write(keyName);
-                FormTableHandler.showMimeTypesDialog(keyName, iteration);
-            });
-        }(optionName));
-    }
-
-    PWM_MAIN.addEventHandler('addItemButton','click',function(){
-        const value = PWM_MAIN.getObject('addValue').value;
-
-        if (value === null || value.length < 1) {
-            alert('Value field is required');
-            return;
-        }
-
-        PWM_VAR['clientSettingCache'][keyName][iteration]['mimeTypes'].push(value);
-        FormTableHandler.write(keyName);
-        FormTableHandler.showMimeTypesDialog(keyName, iteration);
-    });
 };

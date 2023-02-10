@@ -125,7 +125,7 @@
                 <script type="application/javascript">
                     PWM_GLOBAL['startupFunctions'].push(function(){
                         PWM_MAIN.addEventHandler('button-uploadPhoto-<%=loopConfiguration.getName()%>',"click",function(){
-                            var accept = '<%=StringUtil.collectionToString(loopConfiguration.getMimeTypes())%>';
+                            var accept = '<%=StringUtil.collectionToString(formPwmRequest.getAppConfig().permittedPhotoMimeTypes())%>';
                             PWM_UPDATE.uploadPhoto('<%=loopConfiguration.getName()%>',{accept:accept});
                         });
                     });

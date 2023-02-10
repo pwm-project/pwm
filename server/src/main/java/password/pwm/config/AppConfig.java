@@ -315,6 +315,12 @@ public class AppConfig implements SettingReader
                 && readSettingAsPassword( PwmSetting.DATABASE_PASSWORD ) != null;
     }
 
+    public List<String> permittedPhotoMimeTypes()
+    {
+        final String permittedMimeTypesStr = readAppProperty( AppProperty.SECURITY_HTTP_USER_PHOTO_MIME_TYPES );
+        return List.copyOf( StringUtil.splitAndTrim( permittedMimeTypesStr, "," ) );
+    }
+
     @Override
     public PasswordData readSettingAsPassword( final PwmSetting setting )
     {

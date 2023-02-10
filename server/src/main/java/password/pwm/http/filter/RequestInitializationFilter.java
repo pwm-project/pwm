@@ -72,6 +72,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class RequestInitializationFilter implements Filter
@@ -488,6 +489,31 @@ public class RequestInitializationFilter implements Filter
         }
     }
 
+    private static void checkURlPathSegments( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        if ( pwmRequest.getURL().isResourceURL() )
+        {
+            return;
+        }
+
+        final String checkRegexPatternString = pwmRequest.getAppConfig().readAppProperty( AppProperty.SECURITY_HTTP_PERMITTED_URL_PATH_CHARS );
+        if ( StringUtil.isEmpty( checkRegexPatternString ) )
+        {
+            return;
+        }
+
+        final Pattern pattern = Pattern.compile( checkRegexPatternString );
+        for ( final String pathPart : pwmRequest.getURL().getPathSegments() )
+        {
+            if ( !pattern.matcher( pathPart ).matches() )
+            {
+                final String errorMsg = "request URL path segment contains illegal characters";
+                final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SECURITY_VIOLATION, errorMsg );
+                throw new PwmUnrecoverableException( errorInformation );
+            }
+        }
+    }
 
     private static void handleRequestInitialization(
             final PwmRequest pwmRequest
@@ -553,6 +579,9 @@ public class RequestInitializationFilter implements Filter
     {
         // check the user's IP address
         checkIfSourceAddressChanged( pwmRequest );
+
+        // check url path segments
+        checkURlPathSegments( pwmRequest );
 
         // check total time.
         checkTotalSessionTime( pwmRequest );

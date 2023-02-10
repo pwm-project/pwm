@@ -50,6 +50,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.ServletUtility;
 import password.pwm.svc.cache.CacheKey;
 import password.pwm.svc.cache.CachePolicy;
 import password.pwm.svc.stats.EpsStatistic;
@@ -64,9 +65,7 @@ import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmTrustManager;
 
 import javax.net.ssl.X509TrustManager;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URLConnection;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Arrays;
@@ -782,7 +781,7 @@ public class LdapOperationsHelper
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "ldap photo attribute is not configured" ) );
         }
 
-        final byte[] photoData;
+        final ImmutableByteArray photoData;
         final String mimeType;
         try
         {
@@ -792,8 +791,8 @@ public class LdapOperationsHelper
             {
                 throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, "user has no photo data stored in LDAP attribute" ) );
             }
-            photoData = photoAttributeData[ 0 ];
-            mimeType = URLConnection.guessContentTypeFromStream( new ByteArrayInputStream( photoData ) );
+            photoData = ImmutableByteArray.of( photoAttributeData[ 0 ] );
+            mimeType = ServletUtility.mimeTypeForUserPhoto( domainConfig.getAppConfig(), photoData );
         }
         catch ( final IOException | ChaiOperationException e )
         {
@@ -803,7 +802,7 @@ public class LdapOperationsHelper
         {
             throw PwmUnrecoverableException.fromChaiException( e );
         }
-        return Optional.of( new PhotoDataBean( mimeType, ImmutableByteArray.of( photoData ) ) );
+        return Optional.of( new PhotoDataBean( mimeType, photoData ) );
     }
 
 

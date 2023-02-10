@@ -185,7 +185,6 @@ public class FormValue extends AbstractValue implements StoredValue
             }
             if ( formRow.getType() == FormConfiguration.Type.photo )
             {
-                sb.append( " MimeTypes: " ).append( StringUtil.collectionToString( formRow.getMimeTypes() ) ).append( '\n' );
                 sb.append( " MaxSize: " ).append( formRow.getMaximumSize() ).append( '\n' );
             }
         }

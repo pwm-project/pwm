@@ -36,7 +36,6 @@ import password.pwm.util.java.StringUtil;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -120,15 +119,6 @@ public class FormConfiguration
 
     @Builder.Default
     private Map<String, String> selectOptions = Collections.emptyMap();
-
-    @Builder.Default
-    private List<String> mimeTypes = Arrays.asList(
-            "image/gif",
-            "image/png",
-            "image/jpeg",
-            "image/bmp",
-            "image/webp"
-    );
 
     @Builder.Default
     private int maximumSize = 65000;
