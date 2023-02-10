@@ -523,7 +523,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
             final SearchConfiguration.SearchConfigurationBuilder builder = SearchConfiguration.builder();
             builder.contexts( helpdeskProfile.readSettingAsStringArray( PwmSetting.HELPDESK_SEARCH_BASE ) );
             builder.enableContextValidation( false );
-            builder.enableValueEscaping( false );
+            builder.enableValueEscaping( true );
             builder.enableSplitWhitespace( true );
 
             if ( !useProxy )
