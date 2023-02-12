@@ -62,6 +62,8 @@
     <br/>
     Servers Shown: <%= summaryBean.getServerCount() %>
     <br/>
+    Published Current Version: <%= app.getSettings().getCurrentVersionInfo().prettyVersionString() %>
+    <br/>
     <h3>Counters</h3>
     <% final Map<String, String> counterStatMap = app.getStatisticCounterBundle().debugStats( request.getLocale() ); %>
     <% for ( final Map.Entry<String, String> entry : counterStatMap.entrySet() ) { %>
