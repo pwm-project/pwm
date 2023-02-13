@@ -127,8 +127,8 @@ EmailTableHandler.instrumentRow = function(settingKey, localeName) {
     PWM_MAIN.addEventHandler('panel-bodyPlain-' + idPrefix,'click',function(){ EmailTableHandler.editor(settingKey,localeName,true,'bodyPlain'); });
 
     UILibrary.addTextValueToElement('panel-bodyHtml-' + idPrefix,PWM_VAR['clientSettingCache'][settingKey][localeName]['bodyHtml']);
-    PWM_MAIN.addEventHandler('button-bodyHtml-' + idPrefix,'click',function(){ EmailTableHandler.htmlEditorChoice(settingKey,localeName,'bodyHtml'); });
-    PWM_MAIN.addEventHandler('panel-bodyHtml-' + idPrefix,'click',function(){ EmailTableHandler.htmlEditorChoice(settingKey,localeName,'bodyHtml'); });
+    PWM_MAIN.addEventHandler('button-bodyHtml-' + idPrefix,'click',function(){ EmailTableHandler.editor(settingKey,localeName,true,'bodyHtml'); });
+    PWM_MAIN.addEventHandler('panel-bodyHtml-' + idPrefix,'click',function(){ EmailTableHandler.editor(settingKey,localeName,true,'bodyHtml'); });
 
     PWM_MAIN.addEventHandler("button-deleteRow-" + idPrefix,"click",function(){
         PWM_MAIN.showConfirmDialog({okAction:function(){
@@ -137,27 +137,6 @@ EmailTableHandler.instrumentRow = function(settingKey, localeName) {
             }});
     });
 };
-
-EmailTableHandler.htmlEditorChoice = function(settingKey,localeName,type) {
-    let  dialogBody = '';
-    dialogBody += '<div>You can use either the HTML or plaintext editor to modify the HTML email body.</div>';
-    dialogBody += '<div class="buttonbar"><button class="btn" id="btn-editor-plain">Plain</button>';
-    dialogBody += '<button class="btn" id="btn-editor-html">HTML</button></div>';
-
-    const addEventHandlers = function(){
-        PWM_MAIN.addEventHandler('btn-editor-plain','click',function(){ EmailTableHandler.editor(settingKey,localeName,true,type); });
-        PWM_MAIN.addEventHandler('btn-editor-html','click',function(){ EmailTableHandler.htmlBodyEditor(settingKey,localeName); });
-    };
-
-    PWM_MAIN.showDialog({
-        title: "HTML Editor Choice",
-        text: dialogBody,
-        showClose: true,
-        showOk: false,
-        loadFunction: addEventHandlers
-    });
-};
-
 
 EmailTableHandler.editor = function(settingKey, localeName, drawTextArea, type, instructions){
     const settingData = PWM_SETTINGS['settings'][settingKey];
@@ -174,38 +153,6 @@ EmailTableHandler.editor = function(settingKey, localeName, drawTextArea, type, 
         }
     });
 };
-
-
-EmailTableHandler.htmlBodyEditor = function(keyName, localeName) {
-    // Grab the scope from the angular controller we created on the div element with ID: centerbody-config
-    const $scope = angular.element(document.getElementById("centerbody-config")).scope();
-    const idValue = keyName + "_" + localeName + "_htmlEditor";
-    const toolbarButtons =
-        "[" +
-        "['h1','h2','h3','h4','h5','h6','p','pre','quote']," +
-        "['bold','italics','underline','strikeThrough','ul','ol','undo','redo','clear']," +
-        "['justifyLeft','justifyCenter','justifyRight','justifyFull','indent','outdent']," +
-        "['html','insertImage','insertLink','insertVideo']" +
-        "]";
-
-    PWM_MAIN.showDialog({
-        title: "HTML Editor",
-        text: '<div id="' + idValue + '" text-angular ng-model="htmlText" ta-toolbar="' + toolbarButtons + '" class="html-editor"></div>',
-        showClose:true,
-        showCancel:true,
-        dialogClass: 'wide',
-        loadFunction: function(){
-            // Put the existing value into the scope, and tell the controller to process the element with ID: idValue
-            $scope.htmlText =  PWM_VAR['clientSettingCache'][keyName][localeName]['bodyHtml'];
-            $scope.$broadcast("content-added", idValue);
-        },
-        okAction:function(){
-            PWM_VAR['clientSettingCache'][keyName][localeName]['bodyHtml'] = $scope.htmlText;
-            EmailTableHandler.writeSetting(keyName,true);
-        }
-    });
-};
-
 
 EmailTableHandler.writeSetting = function(settingKey, redraw) {
     const currentValues = PWM_VAR['clientSettingCache'][settingKey];

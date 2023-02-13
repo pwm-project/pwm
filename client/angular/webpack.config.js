@@ -16,8 +16,7 @@ module.exports = function (env, argv) {
     const commonConfig = {
         devtool: 'source-map',
         entry: {
-            'changepassword.ng': './src/modules/changepassword/changepassword.module',
-            'configeditor.ng': './src/modules/configeditor/configeditor.module'
+            'changepassword.ng': './src/modules/changepassword/changepassword.module'
 
             // (see production and development specific sections below for more entries)
         },
@@ -63,13 +62,6 @@ module.exports = function (env, argv) {
                 {
                     test: /\.(png|jpg|jpeg|gif|svg)$/,
                     loaders: [ 'url-loader?limit=25000' ]
-                },
-                {
-                    test: [
-                        require.resolve("textangular"),
-                        require.resolve("textangular/dist/textAngular-sanitize")
-                    ],
-                    use: "imports-loader?angular"
                 }
             ]
         },
@@ -77,8 +69,7 @@ module.exports = function (env, argv) {
             new CopyWebpackPlugin([
                 { from: 'node_modules/@microfocus/ux-ias/dist/ux-ias.css', to: 'vendor/ux-ias/' },
                 { from: 'node_modules/@microfocus/ias-icons/dist/ias-icons.css', to: 'vendor/ux-ias/' },
-                { from: 'node_modules/@microfocus/ias-icons/dist/fonts', to: 'vendor/ux-ias/fonts' },
-                { from: 'node_modules/textangular/dist/textAngular.css', to: 'vendor/textangular' }
+                { from: 'node_modules/@microfocus/ias-icons/dist/fonts', to: 'vendor/ux-ias/fonts' }
             ])
         ],
         optimization: {

@@ -210,11 +210,6 @@
 <pwm:script-ref url="/public/resources/js/configeditor.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 
-<%--Provide the angular code we made specifically for this page:--%>
-<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/textangular/textAngular.css' addContext="true"/>"/>
-<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/html-editor.css' addContext="true"/>"/>
-<pwm:script-ref url="/public/resources/webjars/pwm-client/vendor.js" />
-<pwm:script-ref url="/public/resources/webjars/pwm-client/configeditor.ng.js" />
 <%--/ Provide the angular code we made specifically for this page:--%>
 
 <%@ include file="fragment/footer.jsp" %>
