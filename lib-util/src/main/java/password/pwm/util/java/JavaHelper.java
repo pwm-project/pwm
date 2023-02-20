@@ -339,30 +339,26 @@ public final class JavaHelper
         return returnValue;
     }
 
-    public static <T> Optional<T> extractNestedExceptionType( final Exception inputException, final Class<T> exceptionType )
+    public static <T> Optional<T> extractNestedExceptionType( final Throwable inputException, final Class<T> exceptionType )
     {
         if ( inputException == null )
         {
             return Optional.empty();
         }
 
-        if ( inputException.getClass().isAssignableFrom( exceptionType ) )
+        if ( inputException.getClass().isInstance( exceptionType ) )
         {
             return Optional.of( ( T ) inputException );
         }
 
-        Throwable nextException = inputException.getCause();
-        while ( nextException != null )
-        {
-            if ( nextException.getClass().isAssignableFrom( exceptionType ) )
-            {
-                return Optional.of( ( T ) inputException );
-            }
+        final Throwable nextException = inputException.getCause();
 
-            nextException = nextException.getCause();
+        if ( nextException == null )
+        {
+            return Optional.empty();
         }
 
-        return Optional.empty();
+        return extractNestedExceptionType( nextException, exceptionType );
     }
 
     public static Map<String, String> propertiesToStringMap( final Properties properties )
