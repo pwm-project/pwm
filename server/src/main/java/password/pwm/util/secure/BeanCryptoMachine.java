@@ -21,7 +21,7 @@
 package password.pwm.util.secure;
 
 import lombok.Value;
-import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -53,7 +53,7 @@ public class BeanCryptoMachine<T extends Object>
 
     private String newKey()
     {
-        final int length = Integer.parseInt( pwmRequestContext.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
+        final int length = Integer.parseInt( pwmRequestContext.getDomainConfig().readDomainProperty( DomainProperty.HTTP_COOKIE_NONCE_LENGTH ) );
 
         final String random = pwmRequestContext.getPwmDomain().getSecureService().pwmRandom().alphaNumericString( length );
 

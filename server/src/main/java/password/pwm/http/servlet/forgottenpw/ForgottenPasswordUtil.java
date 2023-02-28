@@ -31,7 +31,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
-import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
@@ -228,7 +228,7 @@ public class ForgottenPasswordUtil
 
         try
         {
-            final String cookieName = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_NAME );
+            final String cookieName = pwmDomain.getConfig().readDomainProperty( DomainProperty.HTTP_COOKIE_AUTHRECORD_NAME );
             if ( cookieName == null || cookieName.isEmpty() )
             {
                 LOGGER.trace( pwmRequest, () -> "skipping auth record cookie read, cookie name parameter is blank" );

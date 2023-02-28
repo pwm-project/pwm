@@ -21,6 +21,7 @@
 package password.pwm.http.filter;
 
 import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
@@ -396,7 +397,7 @@ public class SessionFilter extends AbstractPwmFilter
                 if ( pwmRequest.getPwmDomain().getResourceServletService().checkIfThemeExists( pwmRequest, themeReqParameter ) )
                 {
                     pwmRequest.getPwmSession().getSessionStateBean().setTheme( themeReqParameter );
-                    final String themeCookieName = config.readAppProperty( AppProperty.HTTP_COOKIE_THEME_NAME );
+                    final String themeCookieName = config.readDomainProperty( DomainProperty.HTTP_COOKIE_THEME_NAME );
                     if ( themeCookieName != null && themeCookieName.length() > 0 )
                     {
                         final String configuredTheme = config.readSettingAsString( PwmSetting.INTERFACE_THEME );
@@ -407,7 +408,7 @@ public class SessionFilter extends AbstractPwmFilter
                         }
                         else
                         {
-                            final int maxAge = Integer.parseInt( config.readAppProperty( AppProperty.HTTP_COOKIE_THEME_AGE ) );
+                            final int maxAge = Integer.parseInt( config.readDomainProperty( DomainProperty.HTTP_COOKIE_THEME_AGE ) );
                             pwmRequest.getPwmResponse().writeCookie( themeCookieName, themeReqParameter, maxAge, PwmCookiePath.Domain );
                         }
                     }

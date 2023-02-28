@@ -32,6 +32,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.provider.DirectoryVendor;
 import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -594,7 +595,7 @@ class LDAPAuthenticationRequest implements AuthenticationRequest
                     ORACLE_ATTR_PW_ALLOW_CHG_TIME );
             if ( oracleDSPostPasswordAllowChangeTime != null && !oracleDSPostPasswordAllowChangeTime.isEmpty() )
             {
-                final boolean postTempUseCurrentTime = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_ORACLE_POST_TEMPPW_USE_CURRENT_TIME ) );
+                final boolean postTempUseCurrentTime = Boolean.parseBoolean( pwmDomain.getConfig().readDomainProperty( DomainProperty.LDAP_ORACLE_POST_TEMPPW_USE_CURRENT_TIME ) );
                 if ( postTempUseCurrentTime )
                 {
                     log( PwmLogLevel.TRACE, () -> "a new value for passwordAllowChangeTime attribute to user "

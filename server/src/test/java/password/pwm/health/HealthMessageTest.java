@@ -20,17 +20,16 @@
 
 package password.pwm.health;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import password.pwm.PwmConstants;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.stored.StoredConfigurationFactory;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.localdb.TestHelper;
 
-import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 public class HealthMessageTest
 {
@@ -38,13 +37,10 @@ public class HealthMessageTest
     @Test
     public void testHealthMessageUniqueKeys()
     {
-        final Set<String> seenKeys = new HashSet<>();
-        for ( final HealthMessage healthMessage : HealthMessage.values() )
-        {
-            // duplicate key found
-            Assertions.assertFalse( seenKeys.contains( healthMessage.getKey() ) );
-            seenKeys.add( healthMessage.getKey() );
-        }
+        TestHelper.testEnumAttributeUniqueness(
+                HealthMessage.class,
+                healthMessage -> List.of( healthMessage.getKey() ),
+                "key" );
     }
 
     @Test

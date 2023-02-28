@@ -23,7 +23,7 @@ package password.pwm.ldap;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
@@ -240,7 +240,7 @@ class LdapGuidReaderUtil
     {
         final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmDomain.getPwmApplication(),
                 sessionLabel );
-        final String guidPattern = pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_GUID_PATTERN );
+        final String guidPattern = pwmDomain.getConfig().readDomainProperty( DomainProperty.LDAP_GUID_PATTERN );
         return macroRequest.expandMacros( guidPattern );
     }
 }

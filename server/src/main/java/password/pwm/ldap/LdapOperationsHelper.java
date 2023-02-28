@@ -35,6 +35,7 @@ import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.provider.SearchScope;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.PhotoDataBean;
@@ -208,7 +209,7 @@ public class LdapOperationsHelper
     )
             throws PwmUnrecoverableException
     {
-        final boolean enableCache = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_CACHE_USER_GUID_ENABLE ) );
+        final boolean enableCache = Boolean.parseBoolean( pwmDomain.getConfig().readDomainProperty( DomainProperty.LDAP_CACHE_USER_GUID_ENABLE ) );
         final CacheKey cacheKey = CacheKey.newKey( LdapOperationsHelper.class, userIdentity, "guidValue" );
 
         if ( enableCache )
@@ -250,7 +251,7 @@ public class LdapOperationsHelper
 
         if ( enableCache )
         {
-            final long cacheSeconds = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_CACHE_USER_GUID_SECONDS ) );
+            final long cacheSeconds = Long.parseLong( pwmDomain.getConfig().readDomainProperty( DomainProperty.LDAP_CACHE_USER_GUID_SECONDS ) );
             final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( TimeDuration.of( cacheSeconds, TimeDuration.Unit.SECONDS ) );
             final String cacheValue = existingValue.orElse( NULL_CACHE_GUID );
             pwmDomain.getCacheService().put( cacheKey, cachePolicy, cacheValue );
@@ -536,9 +537,9 @@ public class LdapOperationsHelper
                         : userPassword.getStringValue()
         );
 
-        configBuilder.setSetting( ChaiSetting.PROMISCUOUS_SSL, config.readAppProperty( AppProperty.LDAP_PROMISCUOUS_ENABLE ) );
+        configBuilder.setSetting( ChaiSetting.PROMISCUOUS_SSL, config.readDomainProperty( DomainProperty.LDAP_PROMISCUOUS_ENABLE ) );
         {
-            final boolean enableNmasExtensions = Boolean.parseBoolean( config.readAppProperty( AppProperty.LDAP_EXTENSIONS_NMAS_ENABLE ) );
+            final boolean enableNmasExtensions = Boolean.parseBoolean( config.readDomainProperty( DomainProperty.LDAP_EXTENSIONS_NMAS_ENABLE ) );
             configBuilder.setSetting( ChaiSetting.EDIRECTORY_ENABLE_NMAS, Boolean.toString( enableNmasExtensions ) );
         }
 
@@ -590,7 +591,7 @@ public class LdapOperationsHelper
             );
         }
 
-        final String idleTimeoutMsString = config.readAppProperty( AppProperty.LDAP_CONNECTION_TIMEOUT );
+        final String idleTimeoutMsString = config.readDomainProperty( DomainProperty.LDAP_CONNECTION_TIMEOUT );
         configBuilder.setSetting( ChaiSetting.LDAP_CONNECT_TIMEOUT, idleTimeoutMsString );
 
         // set the watchdog idle timeout.
@@ -605,8 +606,8 @@ public class LdapOperationsHelper
             configBuilder.setSetting( ChaiSetting.WATCHDOG_ENABLE, "false" );
         }
 
-        configBuilder.setSetting( ChaiSetting.LDAP_SEARCH_PAGING_ENABLE, config.readAppProperty( AppProperty.LDAP_SEARCH_PAGING_ENABLE ) );
-        configBuilder.setSetting( ChaiSetting.LDAP_SEARCH_PAGING_SIZE, config.readAppProperty( AppProperty.LDAP_SEARCH_PAGING_SIZE ) );
+        configBuilder.setSetting( ChaiSetting.LDAP_SEARCH_PAGING_ENABLE, config.readDomainProperty( DomainProperty.LDAP_SEARCH_PAGING_ENABLE ) );
+        configBuilder.setSetting( ChaiSetting.LDAP_SEARCH_PAGING_SIZE, config.readDomainProperty( DomainProperty.LDAP_SEARCH_PAGING_SIZE ) );
 
         if ( config.readSettingAsBoolean( PwmSetting.AD_ENFORCE_PW_HISTORY_ON_SET ) )
         {
@@ -614,7 +615,7 @@ public class LdapOperationsHelper
         }
 
         // write out any configured values;
-        final String rawValue = config.readAppProperty( AppProperty.LDAP_CHAI_SETTINGS );
+        final String rawValue = config.readDomainProperty( DomainProperty.LDAP_CHAI_SETTINGS );
         final String[] rawValues = rawValue != null ? rawValue.split( AppProperty.VALUE_SEPARATOR ) : new String[ 0 ];
         final Map<String, String> configuredSettings = StringUtil.convertStringListToNameValuePair( Arrays.asList( rawValues ), "=" );
         for ( final Map.Entry<String, String> entry : configuredSettings.entrySet() )

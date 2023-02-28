@@ -30,6 +30,7 @@ import password.pwm.PwmConstants;
 import password.pwm.http.ProcessStatus;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.java.JavaHelper;
+import password.pwm.util.localdb.TestHelper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -41,6 +42,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -130,6 +132,25 @@ public class ControlledPwmServletTest
             }
         }
     }
+
+    @Test
+    public void testDuplicateActionHandlers()
+    {
+        final Map<Class<? extends ControlledPwmServlet>, Map<String, Method>> dataMap = getClassAndMethods();
+
+        for ( final Class<? extends ControlledPwmServlet> controlledPwmServlet : dataMap.keySet() )
+        {
+            TestHelper.testAttributeUniqueness(
+                    List.of( controlledPwmServlet ),
+                    servlet -> JavaHelper.getAllMethodsForClass( controlledPwmServlet ).stream()
+                            .map( method -> method.getAnnotation( ControlledPwmServlet.ActionHandler.class ) )
+                            .filter( Objects::nonNull )
+                            .map( ControlledPwmServlet.ActionHandler::action )
+                            .toList(),
+                    "action handler attribution" );
+        }
+    }
+
 
     @Test
     public void testActionHandlerMethodNaming()

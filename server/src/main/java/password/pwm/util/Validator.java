@@ -25,6 +25,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.FormNonce;
 import password.pwm.config.AppConfig;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -152,7 +153,7 @@ public class Validator
     }
 
 
-    public static String sanitizeHeaderValue( final AppConfig domainConfig, final String input )
+    public static String sanitizeHeaderValue( final DomainConfig domainConfig, final String input )
     {
         if ( input == null )
         {

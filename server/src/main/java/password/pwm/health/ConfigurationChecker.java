@@ -21,7 +21,7 @@
 package password.pwm.health;
 
 import lombok.Value;
-import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
@@ -91,10 +91,10 @@ public class ConfigurationChecker implements HealthSupplier
             VerifyIfDeprecatedJsFormOptionUsed.class,
             VerifyNewUserLdapProfile.class,
             VerifyPasswordWaitTimes.class,
+            VerifyBasicSystemConfigs.class,
             VerifyUserPermissionSettings.class );
 
     private static final List<Class<? extends ConfigSystemHealthCheck>> SYSTEM_CHECKS = List.of(
-            VerifyBasicSystemConfigs.class,
             VerifyDbConfiguredIfNeededSystem.class );
 
     @Override
@@ -214,20 +214,20 @@ public class ConfigurationChecker implements HealthSupplier
         }
     }
 
-    static class VerifyBasicSystemConfigs implements ConfigSystemHealthCheck
+    static class VerifyBasicSystemConfigs implements ConfigDomainHealthCheck
     {
         @Override
-        public List<HealthRecord> healthCheck( final SystemHealthCheckRequest systemHealthCheckRequest )
+        public List<HealthRecord> healthCheck( final DomainHealthCheckRequest domainHealthCheckRequest )
         {
-            final AppConfig config = systemHealthCheckRequest.getDomainConfig();
-            final Locale locale = systemHealthCheckRequest.getLocale();
+            final DomainConfig config = domainHealthCheckRequest.getDomainConfig();
+            final Locale locale = domainHealthCheckRequest.getLocale();
 
             final String separator = LocaleHelper.getLocalizedMessage( locale, Config.Display_SettingNavigationSeparator, null );
             final List<HealthRecord> records = new ArrayList<>();
 
-            if ( Boolean.parseBoolean( config.readAppProperty( AppProperty.LDAP_PROMISCUOUS_ENABLE ) ) )
+            if ( Boolean.parseBoolean( config.readDomainProperty( DomainProperty.LDAP_PROMISCUOUS_ENABLE ) ) )
             {
-                final String appPropertyKey = "AppProperty" + separator + AppProperty.LDAP_PROMISCUOUS_ENABLE.getKey();
+                final String appPropertyKey = "AppProperty" + separator + DomainProperty.LDAP_PROMISCUOUS_ENABLE.getKey();
                 records.add( HealthRecord.forMessage(
                         DomainID.systemId(),
                         HealthMessage.Config_PromiscuousLDAP,

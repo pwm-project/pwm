@@ -21,7 +21,7 @@
 package password.pwm.ldap.search;
 
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
@@ -299,7 +299,7 @@ public class UserSearchService extends AbstractPwmService implements PwmService
 
         counters.increment( SearchStatistic.searchCounter );
         final int searchID = searchIdCounter.next();
-        final long profileRetryDelayMS = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROFILE_RETRY_DELAY ) );
+        final long profileRetryDelayMS = Long.parseLong( pwmDomain.getConfig().readDomainProperty( DomainProperty.LDAP_PROFILE_RETRY_DELAY ) );
         final AtomicLoopIntIncrementer jobIncrementer = AtomicLoopIntIncrementer.builder().build();
 
         final List<UserSearchJob> searchJobs = new ArrayList<>();
@@ -744,7 +744,7 @@ public class UserSearchService extends AbstractPwmService implements PwmService
     {
         final DomainConfig domainConfig = pwmDomain.getConfig();
 
-        final boolean enabled = Boolean.parseBoolean( domainConfig.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_ENABLE ) );
+        final boolean enabled = Boolean.parseBoolean( domainConfig.readDomainProperty( DomainProperty.LDAP_SEARCH_PARALLEL_ENABLE ) );
         if ( !enabled )
         {
             return null;
@@ -763,8 +763,8 @@ public class UserSearchService extends AbstractPwmService implements PwmService
 
         if ( endPoints > 1 )
         {
-            final int factor = Integer.parseInt( domainConfig.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_FACTOR ) );
-            final int maxThreads = Integer.parseInt( domainConfig.readAppProperty( AppProperty.LDAP_SEARCH_PARALLEL_THREAD_MAX ) );
+            final int factor = Integer.parseInt( domainConfig.readDomainProperty( DomainProperty.LDAP_SEARCH_PARALLEL_FACTOR ) );
+            final int maxThreads = Integer.parseInt( domainConfig.readDomainProperty( DomainProperty.LDAP_SEARCH_PARALLEL_THREAD_MAX ) );
             final int threads = Math.min( maxThreads, ( endPoints ) * factor );
             final int minThreads = JavaHelper.rangeCheck( 1, 10, endPoints );
 

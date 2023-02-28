@@ -35,6 +35,11 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogLevel;
 
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Function;
 
 public class TestHelper
 {
@@ -60,5 +65,37 @@ public class TestHelper
                 .build();
 
         return PwmApplication.createPwmApplication( pwmEnvironment );
+    }
+
+    public static <C, R> void testAttributeUniqueness(
+            final Collection<C> collection,
+            final Function<C, Collection<R>> attributeExtractor,
+            final String attributeDebugLabel
+    )
+    {
+        final Set<R> seenAttributes = new HashSet<>();
+        for ( final C item : collection )
+        {
+            final Collection<R> attributes = attributeExtractor.apply( item );
+            for ( final R attribute : attributes )
+            {
+                if ( seenAttributes.contains( attribute ) )
+                {
+                    throw new IllegalStateException( "item " + item
+                            + " contains duplicate " + attributeDebugLabel + " value "
+                            + attribute );
+                }
+                seenAttributes.add( attribute );
+            }
+        }
+    }
+
+    public static <E extends Enum<E>, R> void testEnumAttributeUniqueness(
+            final Class<E> enumClass,
+            final Function<E, Collection<R>> attributeExtractor,
+            final String attributeDebugLabel
+    )
+    {
+        testAttributeUniqueness( EnumSet.allOf( enumClass ), attributeExtractor, attributeDebugLabel );
     }
 }

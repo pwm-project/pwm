@@ -20,123 +20,90 @@
 
 package password.pwm.http.filter;
 
-import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
+import password.pwm.DomainProperty;
+import password.pwm.PwmApplicationMode;
+import password.pwm.config.DomainConfig;
+import password.pwm.error.PwmException;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.PwmURL;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Optional;
 
-public class CookieManagementFilter implements Filter
+public class CookieManagementFilter extends AbstractPwmFilter
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( CookieManagementFilter.class );
 
-    private String value;
-
     @Override
-    public void init( final FilterConfig filterConfig )
-            throws ServletException
+    void processFilter( final PwmApplicationMode mode, final PwmRequest pwmRequest, final PwmFilterChain filterChain )
+            throws PwmException, IOException, ServletException
     {
-        final PwmApplication pwmApplication;
-        try
+        filterChain.doFilter();
+
+        if ( !pwmRequest.hasSession() )
         {
-            pwmApplication = ContextManager.getPwmApplication( filterConfig.getServletContext() );
-            value = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_SAMESITE_VALUE );
+            return;
         }
-        catch ( final PwmUnrecoverableException e )
-        {
-            LOGGER.trace( () -> "unable to load application configuration while checking samesite cookie attribute config" );
-        }
+
+        markSessionForRecycle( pwmRequest );
+
+        addSameSiteCookieAttribute( pwmRequest );
     }
 
     @Override
-    public void destroy()
+    boolean isInterested( final PwmApplicationMode mode, final PwmURL pwmURL )
     {
-
-    }
-
-    @Override
-    public void doFilter( final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain )
-            throws IOException, ServletException
-    {
-        filterChain.doFilter( servletRequest, servletResponse );
-        addSameSiteCookieAttribute( ( HttpServletResponse ) servletResponse, value );
-        markSessionForRecycle( ( HttpServletRequest ) servletRequest, ( HttpServletResponse ) servletResponse  );
+        return true;
     }
 
     /**
      * Ensures that every session that modifies its samesite cookies also triggers a session ID
      * recycle, once per session.
      *
-     * @param httpServletRequest The request to be marked
+     * @param pwmRequest The request to be marked
      */
-    private void markSessionForRecycle( final HttpServletRequest httpServletRequest, final HttpServletResponse httpServletResponse )
+    private void markSessionForRecycle( final PwmRequest pwmRequest )
     {
-        if ( StringUtil.isEmpty( value ) )
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        if ( pwmSession != null )
         {
-            return;
-        }
-
-        final HttpSession httpSession = httpServletRequest.getSession( false );
-        if ( httpSession != null )
-        {
-            PwmSession pwmSession = null;
-            try
+            if ( !pwmSession.getSessionStateBean().isSameSiteCookieRecycleRequested() )
             {
-                final PwmRequest pwmRequest = PwmRequest.forRequest( httpServletRequest, httpServletResponse );
-                pwmSession = pwmRequest.getPwmSession();
-            }
-            catch ( final PwmUnrecoverableException e )
-            {
-                LOGGER.trace( () -> "unable to load session while checking samesite cookie attribute config" );
-            }
-
-            if ( pwmSession != null )
-            {
-                if ( !pwmSession.getSessionStateBean().isSameSiteCookieRecycleRequested() )
-                {
-                    pwmSession.getSessionStateBean().setSameSiteCookieRecycleRequested( true );
-                    pwmSession.getSessionStateBean().setSessionIdRecycleNeeded( true );
-                }
+                pwmSession.getSessionStateBean().setSameSiteCookieRecycleRequested( true );
+                pwmSession.getSessionStateBean().setSessionIdRecycleNeeded( true );
             }
         }
     }
 
-    public static void addSameSiteCookieAttribute( final HttpServletResponse response, final String value )
+    public static void addSameSiteCookieAttribute( final PwmRequest pwmRequest )
     {
-        if ( StringUtil.isEmpty( value ) )
+        final Optional<String> sameSiteValue = sameSiteCookieValue( pwmRequest );
+        if ( sameSiteValue.isEmpty() )
         {
             return;
         }
 
-        final Collection<String> headers = response.getHeaders( HttpHeader.SetCookie.getHttpName() );
+        final HttpServletResponse response = pwmRequest.getPwmResponse().getHttpServletResponse();
+        final Collection<String> rawCookieValues = response.getHeaders( HttpHeader.SetCookie.getHttpName() );
         boolean firstHeader = true;
 
-        for ( final String header : headers )
+        for ( final String rawCookieValue : rawCookieValues )
         {
             final String newHeader;
-            if ( !header.contains( "SameSite" ) )
+            if ( !rawCookieValue.contains( "SameSite" ) )
             {
-                newHeader = header + "; SameSite=" + value;
+                newHeader = rawCookieValue + "; SameSite=" + sameSiteValue.get();
             }
             else
             {
-                newHeader = header;
+                newHeader = rawCookieValue;
             }
 
             if ( firstHeader )
@@ -149,5 +116,17 @@ public class CookieManagementFilter implements Filter
                 response.addHeader( HttpHeader.SetCookie.getHttpName(), newHeader );
             }
         }
+    }
+
+    private static Optional<String> sameSiteCookieValue( final PwmRequest pwmRequest )
+    {
+        final DomainConfig domainConfig = pwmRequest.getDomainConfig();
+        final String value = domainConfig.readDomainProperty( DomainProperty.HTTP_COOKIE_SAMESITE_VALUE );
+        if ( StringUtil.isTrimEmpty( value ) )
+        {
+            return Optional.of( value );
+        }
+
+        return Optional.empty();
     }
 }

@@ -26,7 +26,7 @@ import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.provider.ProviderStatistics;
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
@@ -281,8 +281,8 @@ public class LdapDomainService extends AbstractPwmService implements PwmService
 
     private int maxSlotsPerProfile( final PwmDomain pwmDomain )
     {
-        final int maxConnections = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROXY_MAX_CONNECTIONS ) );
-        final int perProfile = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PROXY_CONNECTION_PER_PROFILE ) );
+        final int maxConnections = Integer.parseInt( pwmDomain.getConfig().readDomainProperty( DomainProperty.LDAP_PROXY_MAX_CONNECTIONS ) );
+        final int perProfile = Integer.parseInt( pwmDomain.getConfig().readDomainProperty( DomainProperty.LDAP_PROXY_CONNECTION_PER_PROFILE ) );
         final int profileCount = pwmDomain.getConfig().getLdapProfiles().size();
 
         if ( ( perProfile * profileCount ) >= maxConnections )

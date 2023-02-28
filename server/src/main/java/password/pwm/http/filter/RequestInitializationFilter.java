@@ -21,6 +21,7 @@
 package password.pwm.http.filter;
 
 import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
@@ -559,7 +560,7 @@ public class RequestInitializationFilter implements Filter
     )
             throws PwmUnrecoverableException
     {
-        final String themeCookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_THEME_NAME );
+        final String themeCookieName = pwmRequest.getDomainConfig().readDomainProperty( DomainProperty.HTTP_COOKIE_THEME_NAME );
         if ( StringUtil.notEmpty( themeCookieName ) )
         {
             final Optional<String> themeCookie = pwmRequest.readCookie( themeCookieName );

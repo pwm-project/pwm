@@ -22,6 +22,7 @@ package password.pwm.http;
 
 import lombok.Value;
 import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.AppConfig;
 import password.pwm.config.DomainConfig;
@@ -88,7 +89,7 @@ class PwmRequestLocaleResolver
 
     private static String readLocaleCookieName( final PwmRequest pwmRequest )
     {
-        return pwmRequest.getAppConfig().readAppProperty( AppProperty.HTTP_COOKIE_LOCALE_NAME );
+        return pwmRequest.getDomainConfig().readDomainProperty( DomainProperty.HTTP_COOKIE_LOCALE_NAME );
     }
 
     private static class RequestParamReader implements RequestLocaleReader

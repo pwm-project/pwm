@@ -20,7 +20,7 @@
 
 package password.pwm.http.state;
 
-import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.UserIdentity;
@@ -37,8 +37,9 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.util.json.JsonFactory;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
@@ -50,18 +51,24 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
     private static final PwmLogger LOGGER = PwmLogger.forClass( CryptoCookieLoginImpl.class );
 
     private static final PwmCookiePath COOKIE_PATH = PwmCookiePath.Domain;
-    private String cookieName = "SESSION";
 
     @Override
     public void init( final PwmApplication pwmApplication ) throws PwmException
     {
-        cookieName = pwmApplication.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_LOGIN_NAME );
+    }
+
+    private String cookieName( final PwmRequest pwmRequest )
+    {
+        final String cookieName = pwmRequest.getDomainConfig().readDomainProperty( DomainProperty.HTTP_COOKIE_LOGIN_NAME );
+        return StringUtil.isEmpty( cookieName )
+                ? "SESSION"
+                : cookieName;
     }
 
     @Override
     public void clearLoginSession( final PwmRequest pwmRequest ) throws PwmUnrecoverableException
     {
-        pwmRequest.getPwmResponse().removeCookie( cookieName, COOKIE_PATH );
+        pwmRequest.getPwmResponse().removeCookie( cookieName( pwmRequest ), COOKIE_PATH );
     }
 
     @Override
@@ -73,7 +80,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
             loginInfoBean.setReqTime( Instant.now() );
 
             pwmRequest.getPwmResponse().writeEncryptedCookie(
-                    cookieName,
+                    cookieName( pwmRequest ),
                     loginInfoBean,
                     COOKIE_PATH
             );
@@ -98,7 +105,7 @@ class CryptoCookieLoginImpl implements SessionLoginProvider
         final Optional<LoginInfoBean> optionalRemoteLoginCookie;
         try
         {
-            optionalRemoteLoginCookie = pwmRequest.readEncryptedCookie( cookieName, LoginInfoBean.class );
+            optionalRemoteLoginCookie = pwmRequest.readEncryptedCookie( cookieName( pwmRequest ), LoginInfoBean.class );
         }
         catch ( final PwmUnrecoverableException e )
         {

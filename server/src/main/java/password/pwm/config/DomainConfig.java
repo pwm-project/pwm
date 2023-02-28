@@ -21,6 +21,7 @@
 package password.pwm.config;
 
 import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PrivateKeyCertificate;
@@ -56,11 +57,12 @@ import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.CollectorUtil;
 import password.pwm.util.java.EnumUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -85,12 +87,16 @@ public class DomainConfig implements SettingReader
     private final StoredSettingReader settingReader;
     private final PwmSecurityKey domainSecurityKey;
 
+    private final Map<DomainProperty, String> domainProperties;
+
     public DomainConfig( final AppConfig appConfig, final DomainID domainID )
     {
         this.appConfig = Objects.requireNonNull( appConfig );
         this.storedConfiguration = appConfig.getStoredConfiguration();
         this.domainID = Objects.requireNonNull( domainID );
         this.settingReader = new StoredSettingReader( storedConfiguration, null, domainID );
+
+        this.domainProperties = makeDomainPropertyOverrides( domainID, appConfig );
 
         this.cachedPasswordPolicy = getPasswordProfileIDs().stream()
                 .map( profile -> PwmPasswordPolicy.createPwmPasswordPolicy( this, profile ) )
@@ -283,6 +289,11 @@ public class DomainConfig implements SettingReader
         return appConfig.readAppProperty( property );
     }
 
+    public String readDomainProperty( final DomainProperty property )
+    {
+        return domainProperties.getOrDefault( property, property.getDefaultValue() );
+    }
+
     public DomainID getDomainID()
     {
         return domainID;
@@ -395,7 +406,7 @@ public class DomainConfig implements SettingReader
         {
             methods.add( DataStorageMethod.NMAS );
         }
-        return Collections.unmodifiableList( methods );
+        return List.copyOf( methods );
     }
 
 
@@ -426,6 +437,35 @@ public class DomainConfig implements SettingReader
             throw PwmInternalException.fromPwmException( "error while generating domain-specific security key", e );
         }
     }
+
+    private static Map<DomainProperty, String> makeDomainPropertyOverrides( final DomainID domainID, final AppConfig appConfig )
+    {
+        final List<String> settingValues = appConfig.readSettingAsStringArray( PwmSetting.APP_PROPERTY_OVERRIDES );
+
+        final Map<String, String> stringMap = StringUtil.convertStringListToNameValuePair( settingValues, "=" );
+
+        final Map<DomainProperty, String> appPropertyMap = new EnumMap<>( DomainProperty.class );
+        for ( final Map.Entry<String, String> stringEntry : stringMap.entrySet() )
+        {
+            final String value = stringEntry.getValue();
+            final String domainPrefixedPropKey = domainID.stringValue() + "." + stringEntry.getKey();
+
+            final Optional<DomainProperty> domainProperty = DomainProperty.forKey( domainPrefixedPropKey )
+                    .or( () -> DomainProperty.forKey( stringEntry.getKey() ) );
+
+            domainProperty
+                    .ifPresent( domainPropertyKey ->
+                    {
+                        if ( !domainPropertyKey.isDefaultValue( value ) )
+                        {
+                            appPropertyMap.put( domainPropertyKey, value );
+                        }
+                    } );
+        }
+
+        return CollectionUtil.unmodifiableEnumMap( appPropertyMap, DomainProperty.class );
+    }
+
 
     @Override
     public String getValueHash()

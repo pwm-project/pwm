@@ -22,11 +22,17 @@ package password.pwm;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import password.pwm.util.localdb.TestHelper;
 
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class AppPropertyTest
 {
@@ -49,6 +55,15 @@ public class AppPropertyTest
             final String key = appProperty.getKey();
             Assertions.assertNotNull( "AppProperty " + appProperty + " does not have a key", key );
         }
+    }
+
+    @Test
+    public void testDuplicateKeys()
+    {
+        TestHelper.testEnumAttributeUniqueness(
+                AppProperty.class,
+                appProperty -> List.of( appProperty.getKey() ),
+                "enum key" );
     }
 
     @Test
@@ -83,5 +98,14 @@ public class AppPropertyTest
             Assertions.fail( "AppProperty enum contains key " + bundleKeysMissingEnum.iterator().next()
                     + " does not have a corresponding resource bundle value" );
         }
+    }
+
+    static Map<String, String> resourceBundleToStringMap( final ResourceBundle resourceBundle )
+    {
+        return Collections.list( resourceBundle.getKeys() ).stream()
+                .collect( Collectors.toUnmodifiableMap(
+                        Function.identity(),
+                        resourceBundle::getString
+                ) );
     }
 }

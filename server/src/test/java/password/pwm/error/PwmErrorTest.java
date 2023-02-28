@@ -22,25 +22,19 @@ package password.pwm.error;
 
 import org.junit.jupiter.api.Test;
 import password.pwm.PwmConstants;
+import password.pwm.util.localdb.TestHelper;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 public class PwmErrorTest
 {
-
     @Test
-    public void testPwmErrorNumbers() throws Exception
+    public void testPwmErrorNumbers()
     {
-        final Set<Integer> seenErrorNumbers = new HashSet<>();
-        for ( final PwmError loopError : PwmError.values() )
-        {
-            if ( seenErrorNumbers.contains( loopError.getErrorCode() ) )
-            {
-                throw new Exception( "duplicate error code: " + loopError.getErrorCode() + " " + loopError.toString() );
-            }
-            seenErrorNumbers.add( loopError.getErrorCode() );
-        }
+        TestHelper.testEnumAttributeUniqueness(
+                PwmError.class,
+                pwmError -> List.of( pwmError.getErrorCode() ),
+                "error number" );
     }
 
     @Test

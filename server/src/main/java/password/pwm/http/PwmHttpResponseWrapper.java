@@ -20,11 +20,7 @@
 
 package password.pwm.http;
 
-import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.config.AppConfig;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.filter.CookieManagementFilter;
 import password.pwm.util.Validator;
 import password.pwm.util.logging.PwmLogger;
 
@@ -98,22 +94,4 @@ public class PwmHttpResponseWrapper
     {
         return this.getHttpServletResponse().getOutputStream();
     }
-
-
-    void addSameSiteCookieAttribute( )
-    {
-        final PwmDomain pwmDomain;
-        try
-        {
-            pwmDomain = PwmRequest.forRequest( this.httpServletRequest, this.httpServletResponse ).getPwmDomain();
-            final String value = pwmDomain.getConfig().readAppProperty( AppProperty.HTTP_COOKIE_SAMESITE_VALUE );
-            CookieManagementFilter.addSameSiteCookieAttribute( httpServletResponse, value );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            LOGGER.trace( () -> "unable to load application configuration while checking samesite cookie attribute config", e );
-        }
-    }
-
-
 }

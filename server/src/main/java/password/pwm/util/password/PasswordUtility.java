@@ -36,6 +36,7 @@ import com.novell.ldapchai.util.ChaiUtility;
 import com.nulabinc.zxcvbn.Strength;
 import com.nulabinc.zxcvbn.Zxcvbn;
 import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmDomain;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.LocalSessionStateBean;
@@ -475,7 +476,7 @@ public class PasswordUtility
 
             LOGGER.trace( sessionLabel, () -> "preparing to setActorPassword for '" + theUser.getEntryDN() + "', using bind DN: " + bindDN );
 
-            final boolean settingEnableChange = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE ) );
+            final boolean settingEnableChange = Boolean.parseBoolean( pwmDomain.getConfig().readDomainProperty( DomainProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE ) );
             if ( settingEnableChange )
             {
                 if ( oldPassword == null )
@@ -490,7 +491,7 @@ public class PasswordUtility
             else
             {
                 LOGGER.debug( sessionLabel, () -> "skipping actual ldap password change operation due to app property "
-                        + AppProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE.getKey() + "=false" );
+                        + DomainProperty.LDAP_PASSWORD_CHANGE_SELF_ENABLE.getKey() + "=false" );
             }
         }
         catch ( final ChaiPasswordPolicyException e )

@@ -28,11 +28,15 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import password.pwm.PwmConstants;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.localdb.TestHelper;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class ServletTest
@@ -60,6 +64,31 @@ public class ServletTest
                 }
             }
         }
+    }
+
+    @Test
+    public void testDuplicateServletNames2()
+    {
+        TestHelper.testAttributeUniqueness(
+                getServletClasses(),
+                servletClass ->
+                        Optional.ofNullable( servletClass.getAnnotation( WebServlet.class ) )
+                                .map( WebServlet::name )
+                                .map( name -> StringUtil.isTrimEmpty( name ) ? List.of() : List.of( name ) )
+                                .orElse( List.of() ),
+                "servlet name" );
+    }
+
+    @Test
+    public void testDuplicatePatternsNames2()
+    {
+        TestHelper.testAttributeUniqueness(
+                getServletClasses(),
+                servletClass ->
+                        Optional.ofNullable( servletClass.getAnnotation( WebServlet.class ) )
+                                .map( annot -> Arrays.asList( annot.urlPatterns() ) )
+                                .orElse( List.of() ),
+                "servlet urlPatterns" );
     }
 
     @Test

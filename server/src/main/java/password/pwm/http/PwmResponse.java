@@ -22,13 +22,15 @@ package password.pwm.http;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.config.AppConfig;
+import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.filter.CookieManagementFilter;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.command.CommandServlet;
 import password.pwm.i18n.Message;
@@ -345,11 +347,11 @@ public class PwmResponse extends PwmHttpResponseWrapper
             LOGGER.warn( () -> "attempt to write cookie '" + cookieName + "' after response is committed" );
         }
 
-        final AppConfig appConfig = pwmRequest.getAppConfig();
+        final DomainConfig domainConfig = pwmRequest.getDomainConfig();
 
         final boolean secureFlag;
         {
-            final String configValue = appConfig.readAppProperty( AppProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG );
+            final String configValue = domainConfig.readDomainProperty( DomainProperty.HTTP_COOKIE_DEFAULT_SECURE_FLAG );
             if ( configValue == null || "auto".equalsIgnoreCase( configValue ) )
             {
                 secureFlag = pwmRequest.getHttpServletRequest().isSecure();
@@ -360,7 +362,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
             }
         }
 
-        final boolean httpOnlyEnabled = Boolean.parseBoolean( appConfig.readAppProperty( AppProperty.HTTP_COOKIE_HTTPONLY_ENABLE ) );
+        final boolean httpOnlyEnabled = Boolean.parseBoolean( domainConfig.readDomainProperty( DomainProperty.HTTP_COOKIE_HTTPONLY_ENABLE ) );
         final boolean httpOnly = httpOnlyEnabled && !EnumUtil.enumArrayContainsValue( flags, PwmHttpResponseWrapper.Flag.NonHttpOnly );
 
         final String value;
@@ -378,7 +380,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
                 else
                 {
                     value = StringUtil.urlEncode(
-                            Validator.sanitizeHeaderValue( appConfig, cookieValue )
+                            Validator.sanitizeHeaderValue( domainConfig, cookieValue )
                     );
                 }
             }
@@ -397,7 +399,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
             LOGGER.warn( () -> "writing large cookie to response: cookieName=" + cookieName + ", length=" + value.length() );
         }
         this.getHttpServletResponse().addCookie( theCookie );
-        addSameSiteCookieAttribute();
+        CookieManagementFilter.addSameSiteCookieAttribute( pwmRequest );
     }
 
     public void removeCookie( final String cookieName, final PwmCookiePath path )

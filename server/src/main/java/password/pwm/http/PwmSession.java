@@ -21,7 +21,7 @@
 package password.pwm.http;
 
 import lombok.EqualsAndHashCode;
-import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
@@ -243,7 +243,7 @@ public class PwmSession
         if ( pwmRequest != null )
         {
 
-            final String nonceCookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
+            final String nonceCookieName = pwmRequest.getDomainConfig().readDomainProperty( DomainProperty.HTTP_COOKIE_NONCE_NAME );
             pwmRequest.setAttribute( PwmRequestAttribute.CookieNonce, null );
             pwmRequest.getPwmResponse().removeCookie( nonceCookieName, PwmCookiePath.Domain );
 
@@ -318,8 +318,8 @@ public class PwmSession
         securityKeyLock.lock();
         try
         {
-            final int length = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_LENGTH ) );
-            final String cookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_NONCE_NAME );
+            final int length = Integer.parseInt( pwmRequest.getDomainConfig().readDomainProperty( DomainProperty.HTTP_COOKIE_NONCE_LENGTH ) );
+            final String cookieName = pwmRequest.getDomainConfig().readDomainProperty( DomainProperty.HTTP_COOKIE_NONCE_NAME );
 
             String nonce = ( String ) pwmRequest.getAttribute( PwmRequestAttribute.CookieNonce );
             if ( nonce == null || nonce.length() < length )

@@ -23,7 +23,7 @@ package password.pwm.ldap;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Value;
-import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
@@ -275,8 +275,8 @@ public class PasswordChangeProgressChecker
 
     private Optional<ProgressRecord> figureReplicationStatusCompletion( final ProgressTracker tracker )
     {
-        final long initDelayMs = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PASSWORD_REPLICA_CHECK_INIT_DELAY_MS ) );
-        final long cycleDelayMs = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_PASSWORD_REPLICA_CHECK_CYCLE_DELAY_MS ) );
+        final long initDelayMs = Long.parseLong( pwmDomain.getConfig().readDomainProperty( DomainProperty.LDAP_PASSWORD_REPLICA_CHECK_INIT_DELAY_MS ) );
+        final long cycleDelayMs = Long.parseLong( pwmDomain.getConfig().readDomainProperty( DomainProperty.LDAP_PASSWORD_REPLICA_CHECK_CYCLE_DELAY_MS ) );
         final TimeDuration initialReplicaDelay = TimeDuration.of( initDelayMs, TimeDuration.Unit.MILLISECONDS );
         final TimeDuration cycleReplicaDelay = TimeDuration.of( cycleDelayMs, TimeDuration.Unit.MILLISECONDS );
 

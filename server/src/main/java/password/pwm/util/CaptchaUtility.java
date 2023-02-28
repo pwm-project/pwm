@@ -24,6 +24,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.config.DomainConfig;
@@ -233,8 +234,8 @@ public class CaptchaUtility
             throws PwmUnrecoverableException
     {
         final String cookieValue = figureSkipCookieValue( pwmRequest );
-        final int captchaSkipCookieLifetimeSeconds = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_AGE ) );
-        final String captchaSkipCookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME );
+        final int captchaSkipCookieLifetimeSeconds = Integer.parseInt( pwmRequest.getDomainConfig().readDomainProperty( DomainProperty.HTTP_COOKIE_CAPTCHA_SKIP_AGE ) );
+        final String captchaSkipCookieName = pwmRequest.getDomainConfig().readDomainProperty( DomainProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME );
         if ( cookieValue != null )
         {
             pwmRequest.getPwmResponse().writeCookie(
@@ -269,7 +270,7 @@ public class CaptchaUtility
             throws PwmUnrecoverableException
     {
         final String allowedSkipValue = figureSkipCookieValue( pwmRequest );
-        final String captchaSkipCookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME );
+        final String captchaSkipCookieName = pwmRequest.getDomainConfig().readDomainProperty( DomainProperty.HTTP_COOKIE_CAPTCHA_SKIP_NAME );
         if ( allowedSkipValue != null )
         {
             final Optional<String> cookieValue = pwmRequest.readCookie( captchaSkipCookieName );

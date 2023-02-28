@@ -388,7 +388,7 @@ public class PwmHttpRequestWrapper
 
         return CollectionUtil.iteratorToStream( getHttpServletRequest().getParameterNames().asIterator() )
                 .map( s -> Validator.sanitizeInputValue( appConfig, s, maxChars ) )
-                .collect( Collectors.toUnmodifiableList() );
+                .toList();
 
     }
 

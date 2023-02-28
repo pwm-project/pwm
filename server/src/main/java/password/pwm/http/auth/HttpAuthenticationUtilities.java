@@ -20,7 +20,7 @@
 
 package password.pwm.http.auth;
 
-import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -141,14 +141,14 @@ public abstract class HttpAuthenticationUtilities
 
         pwmSession.getLoginInfoBean().setFlag( LoginInfoBean.LoginFlag.authRecordSet );
 
-        final String cookieName = pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_NAME );
+        final String cookieName = pwmRequest.getDomainConfig().readDomainProperty( DomainProperty.HTTP_COOKIE_AUTHRECORD_NAME );
         if ( cookieName == null || cookieName.isEmpty() )
         {
             LOGGER.debug( pwmRequest, () -> "skipping auth record cookie set, cookie name parameter is blank" );
             return;
         }
 
-        final int cookieAgeSeconds = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_COOKIE_AUTHRECORD_AGE ) );
+        final int cookieAgeSeconds = Integer.parseInt( pwmRequest.getDomainConfig().readDomainProperty( DomainProperty.HTTP_COOKIE_AUTHRECORD_AGE ) );
         if ( cookieAgeSeconds < 1 )
         {
             LOGGER.debug( pwmRequest, () -> "skipping auth record cookie set, cookie age parameter is less than 1" );

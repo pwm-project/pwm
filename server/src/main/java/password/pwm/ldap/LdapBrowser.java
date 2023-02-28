@@ -32,7 +32,7 @@ import com.novell.ldapchai.util.ChaiUtility;
 import com.novell.ldapchai.util.SearchHelper;
 import lombok.Builder;
 import lombok.Value;
-import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
@@ -188,10 +188,11 @@ public class LdapBrowser
         }
         result.navigableDNlist( navigableDNs );
         result.selectableDNlist( selectableDNs );
-        result.maxResults( childDNs.size() >= getMaxSizeLimit() );
+        result.maxResults( childDNs.size() >= getMaxSizeLimit( domainID, storedConfiguration ) );
     }
 
-    private ChaiProvider getChaiProvider( final DomainID domainID, final ProfileID profile ) throws PwmUnrecoverableException
+    private ChaiProvider getChaiProvider( final DomainID domainID, final ProfileID profile )
+            throws PwmUnrecoverableException
     {
         if ( !providerCache.containsKey( profile ) )
         {
@@ -203,10 +204,13 @@ public class LdapBrowser
         return providerCache.get( profile );
     }
 
-    private int getMaxSizeLimit( )
+    private static int getMaxSizeLimit(
+            final DomainID domainID,
+            final StoredConfiguration storedConfiguration
+    )
     {
-        final AppConfig appConfig = AppConfig.forStoredConfig( storedConfiguration );
-        return Integer.parseInt( appConfig.readAppProperty( AppProperty.LDAP_BROWSER_MAX_ENTRIES ) );
+        final DomainConfig domainConfig = AppConfig.forStoredConfig( storedConfiguration ).getDomainConfigs().get( domainID );
+        return Integer.parseInt( domainConfig.readDomainProperty( DomainProperty.LDAP_BROWSER_MAX_ENTRIES ) );
     }
 
     private Map<String, DnType> getChildEntries(
@@ -227,7 +231,7 @@ public class LdapBrowser
             ) ) );
         }
 
-        final Set<String> results = doLdapSearch( dn, chaiProvider );
+        final Set<String> results = doLdapSearch( domainID, dn, chaiProvider );
 
         final HashMap<String, DnType> returnMap = new LinkedHashMap<>( results.size() );
         for ( final String resultDN : results )
@@ -252,14 +256,16 @@ public class LdapBrowser
     }
 
     private Set<String> doLdapSearch(
-            final String dn, final ChaiProvider chaiProvider
+            final DomainID domainID,
+            final String dn,
+            final ChaiProvider chaiProvider
     )
             throws ChaiUnavailableException, ChaiOperationException
     {
         final SearchHelper searchHelper = new SearchHelper();
         searchHelper.setFilter( SearchHelper.DEFAULT_FILTER );
         searchHelper.setAttributes( Collections.emptyList() );
-        searchHelper.setMaxResults( getMaxSizeLimit() );
+        searchHelper.setMaxResults( getMaxSizeLimit( domainID, storedConfiguration ) );
         searchHelper.setSearchScope( SearchScope.ONE );
 
         return chaiProvider.search( dn, searchHelper ).keySet();

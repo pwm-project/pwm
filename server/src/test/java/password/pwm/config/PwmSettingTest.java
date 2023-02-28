@@ -35,11 +35,11 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
+import password.pwm.util.localdb.TestHelper;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.io.InputStream;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -203,14 +203,10 @@ public class PwmSettingTest
     @Test
     public void testKeyUniqueness()
     {
-        final Set<String> seenKeys = new HashSet<>();
-        for ( final PwmSetting pwmSetting : PwmSetting.values() )
-        {
-            // duplicate key found
-            Assertions.assertFalse( seenKeys.contains( pwmSetting.getKey() ) );
-            seenKeys.add( pwmSetting.getKey() );
-        }
-        Assertions.assertEquals( seenKeys.size(), PwmSetting.values().length );
+        TestHelper.testEnumAttributeUniqueness(
+                PwmSetting.class,
+                pwmSetting -> List.of( pwmSetting.getKey() ),
+                "enum key" );
     }
 
     @Test

@@ -24,7 +24,7 @@ import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.PwmDomain;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.ProfileID;
@@ -168,14 +168,14 @@ public class LdapProfile extends AbstractProfile implements Profile
         final Instant startTime = Instant.now();
 
         {
-            final boolean doCanonicalDnResolve = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_RESOLVE_CANONICAL_DN ) );
+            final boolean doCanonicalDnResolve = Boolean.parseBoolean( pwmDomain.getConfig().readDomainProperty( DomainProperty.LDAP_RESOLVE_CANONICAL_DN ) );
             if ( !doCanonicalDnResolve )
             {
                 return dnValue;
             }
         }
 
-        final boolean enableCanonicalCache = Boolean.parseBoolean( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_CACHE_CANONICAL_ENABLE ) );
+        final boolean enableCanonicalCache = Boolean.parseBoolean( pwmDomain.getConfig().readDomainProperty( DomainProperty.LDAP_CACHE_CANONICAL_ENABLE ) );
 
         String canonicalValue = null;
         final CacheKey cacheKey = CacheKey.newKey( LdapProfile.class, null, "canonicalDN-" + this.getId() + "-" + dnValue );
@@ -198,7 +198,7 @@ public class LdapProfile extends AbstractProfile implements Profile
 
                 if ( enableCanonicalCache )
                 {
-                    final long cacheSeconds = Long.parseLong( pwmDomain.getConfig().readAppProperty( AppProperty.LDAP_CACHE_CANONICAL_SECONDS ) );
+                    final long cacheSeconds = Long.parseLong( pwmDomain.getConfig().readDomainProperty( DomainProperty.LDAP_CACHE_CANONICAL_SECONDS ) );
                     final CachePolicy cachePolicy = CachePolicy.makePolicyWithExpiration( TimeDuration.of( cacheSeconds, TimeDuration.Unit.SECONDS ) );
                     pwmDomain.getCacheService().put( cacheKey, cachePolicy, canonicalValue );
                 }
