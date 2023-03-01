@@ -183,17 +183,11 @@ public class EmailServerUtil
         try
         {
             final SmtpServerType smtpServerType = profile.readSettingAsEnum( PwmSetting.EMAIL_SERVER_TYPE, SmtpServerType.class );
-            if ( smtpServerType == SmtpServerType.SMTP )
-            {
-                return properties;
-            }
-
-            final MailSSLSocketFactory mailSSLSocketFactory = new MailSSLSocketFactory();
-            mailSSLSocketFactory.setTrustManagers( trustManager );
-            properties.put( "mail.smtp.ssl.socketFactory", mailSSLSocketFactory );
-
             if ( smtpServerType == SmtpServerType.SMTPS )
             {
+                final MailSSLSocketFactory mailSSLSocketFactory = new MailSSLSocketFactory();
+                mailSSLSocketFactory.setTrustManagers( trustManager );
+                properties.put( "mail.smtp.ssl.socketFactory", mailSSLSocketFactory );
                 properties.put( "mail.smtp.ssl.enable", true );
                 properties.put( "mail.smtp.ssl.checkserveridentity", true );
                 properties.put( "mail.smtp.socketFactory.fallback", false );
