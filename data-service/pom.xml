@@ -86,7 +86,7 @@
             <plugin>
                 <groupId>io.leonard.maven.plugins</groupId>
                 <artifactId>jspc-maven-plugin</artifactId>
-                <version>4.1.0</version>
+                <version>4.1.1</version>
                 <executions>
                     <execution>
                         <goals>
