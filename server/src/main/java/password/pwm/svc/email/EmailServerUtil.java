@@ -71,10 +71,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class EmailServerUtil
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( EmailServerUtil.class );
+
+    private static final Pattern EMAIL_ADDRESS_MULTI_MATCH_PATTERN = Pattern.compile( "^.*<.*>$" );
+    private static final Pattern EMAIL_ADDRESS_SPLIT_PATTERN = Pattern.compile( "[<>]" );
 
     static List<EmailServer> makeEmailServersMap( final AppConfig appConfig )
             throws PwmUnrecoverableException
@@ -154,7 +158,6 @@ public class EmailServerUtil
                 };
     }
 
-
     private static Properties makeJavaMailProps(
             final AppConfig config,
             final EmailServerProfile profile,
@@ -174,48 +177,69 @@ public class EmailServerUtil
         properties.put( "mail.smtp.port", port );
         properties.put( "mail.smtp.socketFactory.port", port );
 
-        //set connection properties
-        properties.put( "mail.smtp.connectiontimeout", JavaHelper.silentParseInt( config.readAppProperty( AppProperty.SMTP_IO_CONNECT_TIMEOUT ), 10_000 ) );
-        properties.put( "mail.smtp.timeout", JavaHelper.silentParseInt( config.readAppProperty( AppProperty.SMTP_IO_CONNECT_TIMEOUT ), 30_000 ) );
-
         properties.put( "mail.smtp.sendpartial", true );
 
+        // add secure mail properties
+        properties.putAll( makeSecureMailProperties( profile, trustManager ) );
+
+        //Specify configured advanced settings.
+        final Map<String, String> advancedSettingValues = StringUtil.convertStringListToNameValuePair(
+                config.readSettingAsStringArray( PwmSetting.EMAIL_ADVANCED_SETTINGS ), "=" );
+
+        properties.putAll( advancedSettingValues );
+
+        return properties;
+    }
+
+    private static Properties makeSecureMailProperties(
+            final EmailServerProfile profile,
+            final TrustManager[] trustManager
+    )
+            throws PwmUnrecoverableException
+    {
+        final Properties properties = new Properties();
+
+        final SmtpServerType smtpServerType = profile.readSettingAsEnum( PwmSetting.EMAIL_SERVER_TYPE, SmtpServerType.class );
+
+        if ( smtpServerType == SmtpServerType.SMTPS )
+        {
+            final int port = (int) profile.readSettingAsLong( PwmSetting.EMAIL_SERVER_PORT );
+
+            properties.putAll( makeSocketFactoryMailProperties( trustManager ) );
+            properties.put( "mail.smtp.ssl.enable", true );
+            properties.put( "mail.smtp.ssl.checkserveridentity", true );
+            properties.put( "mail.smtp.socketFactory.fallback", false );
+            properties.put( "mail.smtp.ssl.socketFactory.port", port );
+        }
+
+        if ( smtpServerType == SmtpServerType.START_TLS )
+        {
+            properties.putAll( makeSocketFactoryMailProperties( trustManager ) );
+            properties.put( "mail.smtp.starttls.enable", true );
+            properties.put( "mail.smtp.starttls.required", true );
+        }
+
+        return properties;
+    }
+
+    private static Properties makeSocketFactoryMailProperties(
+            final TrustManager[] trustManager
+    )
+            throws PwmUnrecoverableException
+    {
         try
         {
-            final SmtpServerType smtpServerType = profile.readSettingAsEnum( PwmSetting.EMAIL_SERVER_TYPE, SmtpServerType.class );
-            if ( smtpServerType == SmtpServerType.SMTP )
-            {
-                return properties;
-            }
-
+            final Properties properties = new Properties();
             final MailSSLSocketFactory mailSSLSocketFactory = new MailSSLSocketFactory();
             mailSSLSocketFactory.setTrustManagers( trustManager );
             properties.put( "mail.smtp.ssl.socketFactory", mailSSLSocketFactory );
-
-            if ( smtpServerType == SmtpServerType.SMTPS )
-            {
-                properties.put( "mail.smtp.ssl.enable", true );
-                properties.put( "mail.smtp.ssl.checkserveridentity", true );
-                properties.put( "mail.smtp.socketFactory.fallback", false );
-                properties.put( "mail.smtp.ssl.socketFactory.port", port );
-            }
-            else if ( smtpServerType == SmtpServerType.START_TLS )
-            {
-                properties.put( "mail.smtp.starttls.enable", true );
-                properties.put( "mail.smtp.starttls.required", true );
-            }
+            return properties;
         }
         catch ( final Exception e )
         {
             final String msg = "unable to create message transport properties: " + e.getMessage();
             throw new PwmUnrecoverableException( PwmError.CONFIG_FORMAT_ERROR, msg );
         }
-
-        //Specify configured advanced settings.
-        final Map<String, String> advancedSettingValues = StringUtil.convertStringListToNameValuePair( config.readSettingAsStringArray( PwmSetting.EMAIL_ADVANCED_SETTINGS ), "=" );
-        properties.putAll( advancedSettingValues );
-
-        return properties;
     }
 
     private static Optional<InternetAddress> makeInternetAddress(
@@ -229,10 +253,10 @@ public class EmailServerUtil
             return Optional.empty();
         }
 
-        if ( input.matches( "^.*<.*>$" ) )
+        if ( EMAIL_ADDRESS_MULTI_MATCH_PATTERN.matcher( input ).matches() )
         {
             // check for format like: John Doe <jdoe@example.com>
-            final String[] splitString = input.split( "<|>" );
+            final String[] splitString = EMAIL_ADDRESS_SPLIT_PATTERN.split( input );
             if ( splitString.length < 2 )
             {
                 return Optional.of( new InternetAddress( input ) );
@@ -250,6 +274,7 @@ public class EmailServerUtil
             }
             return Optional.of( address );
         }
+
         return Optional.of( new InternetAddress( input ) );
     }
 
@@ -281,36 +306,39 @@ public class EmailServerUtil
             final SessionLabel sessionLabel
     )
     {
-        if ( e != null )
+        if ( e == null )
         {
+            return false;
+        }
+
+        {
+            final Optional<IOException> optionalIoException = JavaHelper.extractNestedExceptionType( e, IOException.class );
+            if ( optionalIoException.isPresent() )
             {
-                final Optional<IOException> optionalIoException = JavaHelper.extractNestedExceptionType( e, IOException.class );
-                if ( optionalIoException.isPresent() )
+                LOGGER.trace( sessionLabel, () -> "message send failure cause is due to an I/O error: " + optionalIoException.get().getMessage() );
+                return true;
+            }
+        }
+
+        {
+            final Optional<SMTPSendFailedException> optionalSmtpSendFailedException = JavaHelper.extractNestedExceptionType( e, SMTPSendFailedException.class );
+            if ( optionalSmtpSendFailedException.isPresent() )
+            {
+                final SMTPSendFailedException smtpSendFailedException = optionalSmtpSendFailedException.get();
+                final int returnCode = smtpSendFailedException.getReturnCode();
+                LOGGER.trace( sessionLabel, () -> "message send failure cause is due to server response code: " + returnCode );
+                if ( retyableStatusCodes.contains( returnCode ) )
                 {
-                    LOGGER.trace( sessionLabel, () -> "message send failure cause is due to an I/O error: " + optionalIoException.get().getMessage() );
                     return true;
                 }
             }
-
-            {
-                final Optional<SMTPSendFailedException> optionalSmtpSendFailedException = JavaHelper.extractNestedExceptionType( e, SMTPSendFailedException.class );
-                if ( optionalSmtpSendFailedException.isPresent() )
-                {
-                    final SMTPSendFailedException smtpSendFailedException = optionalSmtpSendFailedException.get();
-                    final int returnCode = smtpSendFailedException.getReturnCode();
-                    LOGGER.trace( sessionLabel, () -> "message send failure cause is due to server response code: " + returnCode );
-                    if ( retyableStatusCodes.contains( returnCode ) )
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            if ( e instanceof PwmUnrecoverableException )
-            {
-                return ( ( PwmUnrecoverableException ) e ).getError() == PwmError.ERROR_SERVICE_UNREACHABLE;
-            }
         }
+
+        if ( e instanceof PwmUnrecoverableException )
+        {
+            return ( ( PwmUnrecoverableException ) e ).getError() == PwmError.ERROR_SERVICE_UNREACHABLE;
+        }
+
         return false;
     }
 
