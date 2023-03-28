@@ -54,6 +54,16 @@
         </attribute>
     </tag>
     <tag>
+        <name>PasswordChangeMessageTag</name>
+        <tag-class>
+            password.pwm.http.tag.PasswordChangeMessageTag
+        </tag-class>
+        <body-content>empty</body-content>
+        <description>
+            Displays the configured password change message (if enabled)
+        </description>
+    </tag>
+    <tag>
         <name>DisplayPasswordRequirements</name>
         <tag-class>
             password.pwm.http.tag.PasswordRequirementsTag
@@ -247,6 +257,12 @@
         <tag-class>password.pwm.http.tag.CurrentUrlTag</tag-class>
         <body-content>empty</body-content>
         <description>output the current page url</description>
+    </tag>
+    <tag>
+        <name>tabindex</name>
+        <tag-class>password.pwm.http.tag.PwmTabIndexTag</tag-class>
+        <body-content>empty</body-content>
+        <description>output the next tabindex counter</description>
     </tag>
     <tag>
         <name>throwableHandler</name>

@@ -24,7 +24,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.PwmApplicationMode;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.resource.TextFileResource;
@@ -111,9 +110,9 @@ public class PwmIfTag extends BodyTagSupport
                         LOGGER.warn( pwmRequest, () -> errorMsg );
                     }
                 }
-                catch ( final PwmUnrecoverableException e )
+                catch ( final Exception e )
                 {
-                    LOGGER.error( () -> "error executing PwmIfTag for test '" + test + "', error: " + e.getMessage() );
+                    LOGGER.error( () -> "error executing PwmIfTag for test '" + test + "', error: " + e.getMessage(), e );
                 }
             }
         }

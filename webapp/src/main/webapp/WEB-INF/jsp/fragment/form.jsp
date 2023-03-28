@@ -66,30 +66,31 @@
 <div class="formFieldWrapper" id="formFieldWrapper-<%=loopConfiguration.getName()%>">
     <% if (loopConfiguration.getType().equals(FormConfiguration.Type.hidden)) { %>
     <input id="<%=loopConfiguration.getName()%>" type="hidden" class="inputfield"
-           name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/>
+           name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/> tabindex="<pwm:tabindex/>"
     <% } else if (loopConfiguration.getType().equals(FormConfiguration.Type.checkbox)) { %>
     <% final boolean checked = FormUtility.checkboxValueIsChecked(formDataMap.get(loopConfiguration)); %>
     <label class="checkboxWrapper">
-        <input id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" type="checkbox" <%=checked?"checked":""%> <pwm:autofocus/>/>
+        <input id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>"
+               type="checkbox" <%=checked?"checked":""%> <pwm:autofocus/>/>
         <%=loopConfiguration.getLabel(formLocale)%>
         <%if(loopConfiguration.isRequired()){%>
-        <span style="font-style: italic; font-size: smaller" id="label_required_<%=loopConfiguration.getName()%>">*&nbsp;</span>
+        <span class="formFieldRequiredAsterisk" id="label_required_<%=loopConfiguration.getName()%>">*</span>
         <%}%>
     </label>
     <% if (loopConfiguration.getDescription(formLocale) != null && loopConfiguration.getDescription(formLocale).length() > 0) { %>
-    <p><%=loopConfiguration.getDescription(formLocale)%></p>
+    <div class="formFieldDescription"><%=loopConfiguration.getDescription(formLocale)%></div>
     <% } %>
     <% } else { %>
-    <label for="<%=loopConfiguration.getName()%>">
-        <div class="formFieldLabel">
+    <div class="formFieldLabel">
+        <label for="<%=loopConfiguration.getName()%>">
             <%= loopConfiguration.getLabel(formLocale) %>
             <%if(loopConfiguration.isRequired()){%>
-            <span style="font-style: italic; font-size: smaller" id="label_required_<%=loopConfiguration.getName()%>">*&nbsp;</span>
+            <span class="formFieldRequiredAsterisk" id="label_required_<%=loopConfiguration.getName()%>">*</span>
             <%}%>
-        </div>
-    </label>
+        </label>
+    </div>
     <% if (loopConfiguration.getDescription(formLocale) != null && loopConfiguration.getDescription(formLocale).length() > 0) { %>
-    <p><%=loopConfiguration.getDescription(formLocale)%></p>
+    <div class="formFieldDescription"><%=loopConfiguration.getDescription(formLocale)%></div>
     <% } %>
     <% final boolean readonly = loopConfiguration.isReadonly() || forceReadOnly; %>
     <% if (readonly && loopConfiguration.getType() != FormConfiguration.Type.photo) { %>
@@ -98,7 +99,8 @@
         <%= currentValue %>
         </span>
     <% } else if (loopConfiguration.getType() == FormConfiguration.Type.select) { %>
-    <select id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" class="inputfield selectfield" <pwm:autofocus/> >
+    <select id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" class="inputfield selectfield"
+            <pwm:autofocus/> tabindex="<pwm:tabindex/>">
         <% for (final String optionName : loopConfiguration.getSelectOptions().keySet()) {%>
         <option value="<%=optionName%>" <%if(optionName.equals(currentValue)){%>selected="selected"<%}%>>
             <%=loopConfiguration.getSelectOptions().get(optionName)%>
@@ -154,7 +156,7 @@
     </div>
     <% } else { %>
     <input id="<%=loopConfiguration.getName()%>" type="<%=loopConfiguration.getType()%>" class="inputfield"
-           name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"
+           name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>" tabindex="<pwm:tabindex/>"
     <pwm:if test="<%=PwmIfTest.clientFormShowRegexEnabled%>">
             <%if (!StringUtil.isEmpty(loopConfiguration.getRegex())) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
     </pwm:if>
@@ -168,8 +170,8 @@
             <%if(loopConfiguration.isRequired()){%>*<%}%>
         </div>
     </label>
-    <input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
-           name="<%=loopConfiguration.getName()%>_confirm"
+    <input id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
+           name="<%=loopConfiguration.getName()%>_confirm" tabindex="<pwm:tabindex/>"
             <pwm:if test="<%=PwmIfTest.clientFormShowRegexEnabled%>">
                 <%if (!StringUtil.isEmpty(loopConfiguration.getRegex())) {%> pattern="<%=loopConfiguration.getRegex()%>"<%}%>
             </pwm:if>
@@ -229,83 +231,15 @@
     </pwm:script>
 </div>
 <% } %>
-
 <% if (showPasswordFields) { %>
-<h2>
-    <label for="password1"><pwm:display key="Field_NewPassword"/>
-        <span style="font-style: italic;font-size:smaller" id="label_required_password">*&nbsp;</span>
-        <pwm:script>
-            <script type="text/javascript">
-                PWM_GLOBAL['startupFunctions'].push(function(){
-                    PWM_MAIN.showTooltip({
-                        id: "label_required_password",
-                        text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmDomain.getConfig(),new String[]{JspUtility.getMessage(pageContext,Display.Field_NewPassword)})%>',
-                        position: ['above']
-                    });
-                });
-            </script>
-        </pwm:script>
-    </label>
-</h2>
 <div id="PasswordRequirements">
     <ul>
-        <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>" form="newuser"/>
+        <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>"/>
     </ul>
 </div>
-<table class="noborder nomargin nopadding">
-    <tr class="noborder nomargin nopadding">
-        <td class="noborder nomargin nopadding" style="width:60%">
-            <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" style="margin-left:5px"/>
-        </td>
-        <td class="noborder">
-            <pwm:if test="<%=PwmIfTest.showStrengthMeter%>">
-            <div id="strengthBox" style="visibility:hidden;">
-                <div id="strengthLabel">
-                    <pwm:display key="Display_StrengthMeter"/>
-                </div>
-                <div class="progress-container">
-                    <div id="strengthBar" style="width: 0">&nbsp;</div>
-                </div>
-            </div>
-            <pwm:script>
-                <script type="text/javascript">
-                    PWM_GLOBAL['startupFunctions'].push(function(){
-                        PWM_MAIN.showTooltip({
-                            id: ["strengthBox"],
-                            text: PWM_MAIN.showString('Tooltip_PasswordStrength'),
-                            width: 350
-                        });
-                    });
-                </script>
-            </pwm:script>
-            </pwm:if>
-        </td>
-        <td class="noborder" style="width:10%">&nbsp;</td>
-    </tr>
-    <tr class="noborder nomargin nopadding">
-        <td class="noborder nomargin nopadding">
-            <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password2" id="password2" class="changepasswordfield passwordfield" style="margin-left:5px"/>
-        </td>
-        <td class="noborder">
-            <%-- confirmation mark [not shown initially, enabled by javascript; see also changepassword.js:markConfirmationMark() --%>
-            <div style="padding-top:10px;">
-                <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15"
-                     src="<pwm:context/><pwm:url url='/public/resources/greenCheck.png'/>">
-                <img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15"
-                     src="<pwm:context/><pwm:url url='/public/resources/redX.png'/>">
-            </div>
-        </td>
-        <td class="noborder" style="width:10%">&nbsp;</td>
-    </tr>
-</table>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('password1','keypress',function(){
-                PWM_MAIN.getObject('password2').value='';
-            });
-        });
-    </script>
-</pwm:script>
+<div id="PasswordChangeMessage">
+    <p><pwm:PasswordChangeMessageTag/></p>
+</div>
+<jsp:include page="form-field-newpassword.jsp" />
 <% } %>
 <% } %>

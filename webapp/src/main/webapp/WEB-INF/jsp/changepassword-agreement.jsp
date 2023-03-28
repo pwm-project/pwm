@@ -46,7 +46,6 @@
         <h1><pwm:display key="Display_PasswordExpired"/></h1><br/>
         <% } %>
         <%@ include file="fragment/message.jsp" %>
-        <br/>
         <div id="agreementText" class="agreementText"><%= (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.AgreementText) %></div>
         <div class="buttonbar">
             <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" autocomplete="off">

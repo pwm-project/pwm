@@ -41,7 +41,6 @@
         <h1 id="page-content-title"><pwm:display key="Title_ForgottenUsername" displayIfMissing="true"/></h1>
         <%@ include file="fragment/message.jsp" %>
         <% final String expandedText = (String) JspUtility.getAttribute(pageContext, PwmRequestAttribute.CompleteText); %>
-        <br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div class="buttonbar">
             <form action="<pwm:url url='<%=PwmServletDefinition.PublicCommand.servletUrl()%>' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">

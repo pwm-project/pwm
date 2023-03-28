@@ -23,8 +23,36 @@ package password.pwm.util.java;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.stream.IntStream;
+
 public class JavaHelperTest
 {
+    @Test
+    public void binaryArrayToHexTest()
+    {
+        {
+            final byte[] bytes = {
+                    3,
+                    127,
+                    41,
+                    16,
+            };
+            Assertions.assertEquals( "037F2910", JavaHelper.binaryArrayToHex( bytes ) );
+        }
+
+        {
+
+            final byte[] bytes = new byte[128];
+            IntStream.range( 0, 127 ).forEach( value -> bytes[value] = (byte) value );
+            Assertions.assertEquals(
+                        """
+                        000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2\
+                        C2D2E2F303132333435363738393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F505152535455565758\
+                        595A5B5C5D5E5F606162636465666768696A6B6C6D6E6F707172737475767778797A7B7C7D7E00\
+                        """,
+                    JavaHelper.binaryArrayToHex( bytes ) );
+        }
+    }
 
     @Test
     public void concatByteArraysTwo()

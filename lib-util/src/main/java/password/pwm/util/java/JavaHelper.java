@@ -43,6 +43,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -56,7 +57,7 @@ import java.util.zip.GZIPOutputStream;
 
 public final class JavaHelper
 {
-    private static final char[] HEX_CHAR_ARRAY = "0123456789ABCDEF".toCharArray();
+    private static final HexFormat HEX_FORMAT = HexFormat.of().withUpperCase();
 
     private JavaHelper()
     {
@@ -64,13 +65,7 @@ public final class JavaHelper
 
     public static String binaryArrayToHex( final byte[] buf )
     {
-        final char[] chars = new char[2 * buf.length];
-        for ( int i = 0; i < buf.length; ++i )
-        {
-            chars[2 * i] = HEX_CHAR_ARRAY[( buf[i] & 0xF0 ) >>> 4];
-            chars[2 * i + 1] = HEX_CHAR_ARRAY[buf[i] & 0x0F];
-        }
-        return new String( chars );
+        return HEX_FORMAT.formatHex( buf );
     }
 
     public static String throwableToString( final Throwable throwable )

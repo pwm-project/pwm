@@ -118,7 +118,9 @@ public class RestFormDataClient
             LOGGER.trace( () -> "external rest call returned: " + httpResponse.getStatusPhrase() + ", body: " + responseBody );
             if ( httpResponse.getStatusCode() != 200 )
             {
-                final String errorMsg = "received non-200 response code (" + httpResponse.getStatusCode() + ") when executing web-service";
+                final String errorMsg = "received non-200 response code (" + httpResponse.getStatusCode()
+                        + ") when executing form data client web-service call to "
+                        + remoteWebServiceConfiguration.getUrl();
                 LOGGER.error( () -> errorMsg );
                 throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_SERVICE_UNREACHABLE, errorMsg ) );
             }

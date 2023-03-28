@@ -212,6 +212,10 @@ html[dir="rtl"] table td.key {
     display: none;
 }
 
+.noopacity {
+    opacity: 0;
+}
+
 /* disable ie password reveal */
 input[type=password]::-ms-reveal {
     display: none;
@@ -954,6 +958,10 @@ input[type=search] {
     font-size: 13px;
 }
 
+.formFieldDescription {
+    margin: 5px;
+}
+
 .formFieldLabel {
     font-size: 13px;
     font-weight: bold;
@@ -1007,6 +1015,11 @@ input[type=search] {
 
 .formFieldWrapper {
     padding-bottom: 10px;
+}
+
+.formFieldRequiredAsterisk {
+    font-style: italic;
+    font-size: smaller;
 }
 
 .headerProgressBar {
@@ -1563,8 +1576,62 @@ html[dir="rtl"] .message.message-error .errorDetail {
     display: inline-block;
 }
 
+.pwm-icon-button {
+    cursor: pointer;
+}
+
 #strengthLabel {
     white-space: nowrap;
+    margin: 0;
+}
+
+#strength-tooltip-icon {
+    display: inline-block;
+}
+
+#strengthLabelText {
+    display: inline-block;
+}
+
+#strengthBox {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 10px;
+    min-width: 140px;
+    transition: opacity 0.5s linear;
+}
+
+#passwordStrengthProgress {
+    display: block;
+    left: 0;
+    height: 12px;
+    width: 100px;
+    border: 1px solid #697374;
+}
+
+#passwordStrengthProgress::-webkit-progress-bar {
+    border-radius: 0;
+    background-color: white;
+}
+
+#passwordStrengthProgress::-webkit-progress-value {
+    border-radius: 0;
+    transition: all 1s;
+}
+#passwordStrengthProgress[data-strength="VeryLow"]::-webkit-progress-value{
+    background: linear-gradient(to right, rgba(200, 25, 62, .1), rgba(200, 25, 62, 1));
+}
+#passwordStrengthProgress[data-strength="Low"]::-webkit-progress-value{
+    background: linear-gradient(to right, rgba(177, 107, 62, .1), rgba(177, 107, 62, 1));
+}
+#passwordStrengthProgress[data-strength="Medium"]::-webkit-progress-value{
+    background: linear-gradient(to right, rgba(170, 124, 62, .1), rgba(170, 124, 62, 1));
+}
+#passwordStrengthProgress[data-strength="High"]::-webkit-progress-value{
+    background: linear-gradient(to right, rgba(163, 154, 62, .1), rgba(163, 154, 62, 1));
+}
+#passwordStrengthProgress[data-strength="VeryHigh"]::-webkit-progress-value{
+    background: linear-gradient(to right, rgba(140, 237, 63, .1), rgba(140, 237, 63, 1));
 }
 
 /*** TABS ****/
@@ -1787,4 +1854,27 @@ table.ias-table, table.ias-table td {
 
 .pre-whitespace {
     white-space: pre;
+}
+
+#confirmMarkBox {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 10px;
+    margin-top: 10px;
+    min-width: 140px;
+    transition: opacity 0.5s linear;
+}
+
+.confirmCheckMark {
+    background-image: url("greenCheck.png");
+    background-size: cover;
+    width: 15px;
+    height: 15px;
+}
+
+.confirmCrossMark {
+    background-image: url("redX.png");
+    background-size: cover;
+    width: 15px;
+    height: 15px;
 }

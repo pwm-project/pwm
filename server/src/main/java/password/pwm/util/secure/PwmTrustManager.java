@@ -36,7 +36,6 @@ import java.security.NoSuchProviderException;
 import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -50,7 +49,7 @@ public class PwmTrustManager implements X509TrustManager
 
     private PwmTrustManager( final TrustManagerSettings trustManagerSettings, final List<X509Certificate> trustedCertificates )
     {
-        this.trustedCertificates = new ArrayList<>( trustedCertificates );
+        this.trustedCertificates = CollectionUtil.stripNulls( trustedCertificates );
         this.settings = trustManagerSettings;
     }
 

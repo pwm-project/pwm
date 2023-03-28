@@ -556,8 +556,13 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws PwmUnrecoverableException
         {
-            final ChangePasswordProfile changePasswordProfile = pwmRequest.getChangePasswordProfile();
-            return changePasswordProfile.readSettingAsBoolean( PwmSetting.PASSWORD_SHOW_AUTOGEN );
+            if ( pwmRequest.getURL().isChangePasswordURL() )
+            {
+                final ChangePasswordProfile changePasswordProfile = pwmRequest.getChangePasswordProfile();
+                return changePasswordProfile.readSettingAsBoolean( PwmSetting.PASSWORD_SHOW_AUTOGEN );
+            }
+
+            return false;
         }
     }
 

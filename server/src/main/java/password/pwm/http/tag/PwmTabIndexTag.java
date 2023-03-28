@@ -22,15 +22,15 @@ package password.pwm.http.tag;
 
 import password.pwm.http.JspUtility;
 import password.pwm.http.PwmRequest;
-import password.pwm.util.java.StringUtil;
+import password.pwm.http.PwmRequestAttribute;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.jsp.tagext.TagSupport;
 import java.io.IOException;
 
-public class CurrentUrlTag extends TagSupport
+public class PwmTabIndexTag extends TagSupport
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( CurrentUrlTag.class );
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmTabIndexTag.class );
 
     @Override
     public int doEndTag( )
@@ -39,20 +39,22 @@ public class CurrentUrlTag extends TagSupport
         try
         {
             final PwmRequest pwmRequest = JspUtility.getPwmRequest( pageContext );
-            final String currentUrl = pwmRequest.getUrlWithoutQueryString();
-            pageContext.getOut().write( StringUtil.escapeHtml( currentUrl ) );
+            final Integer currentCounter = (Integer) pwmRequest.getAttribute( PwmRequestAttribute.JspIndexTabCounter );
+            final int nextCounter = currentCounter == null ? 1 : currentCounter + 1;
+            pageContext.getOut().write( String.valueOf( nextCounter ) );
+            pwmRequest.setAttribute( PwmRequestAttribute.JspIndexTabCounter, nextCounter );
         }
         catch ( final Exception e )
         {
             try
             {
-                pageContext.getOut().write( "errorGeneratingCurrentURL" );
+                pageContext.getOut().write( "" );
             }
             catch ( final IOException e1 )
             {
                 /* ignore */
             }
-            LOGGER.error( () -> "error during CurrentUrl output: " + e.getMessage(), e );
+            LOGGER.error( () -> "error during PwmTabIndexTag output: " + e.getMessage(), e );
         }
         return EVAL_PAGE;
     }

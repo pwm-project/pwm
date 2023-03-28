@@ -64,7 +64,7 @@ public final class CollectionUtil
 
         return input.stream()
                 .filter( Objects::nonNull )
-                .collect( Collectors.toUnmodifiableList() );
+                .toList();
     }
 
     public static <V> Set<V> stripNulls( final Set<V> input )

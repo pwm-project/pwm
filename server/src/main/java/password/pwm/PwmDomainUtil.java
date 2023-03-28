@@ -26,6 +26,7 @@ import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -39,6 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 class PwmDomainUtil
@@ -79,11 +81,15 @@ class PwmDomainUtil
         LOGGER.trace( pwmApplication.getSessionLabel(), () -> "beginning domain initializations" );
 
         final List<Callable<Optional<PwmUnrecoverableException>>> callables = domains.stream()
-                .map( DomainInitializingCallable::new )
-                .collect( Collectors.toUnmodifiableList() );
+                .map( PwmDomainUtil::makeCallableDomainInit )
+                .toList();
 
-        final  List<Optional<PwmUnrecoverableException>> domainStartException = pwmApplication.getPwmScheduler()
-                .executeImmediateThreadPerJobAndAwaitCompletion( PwmApplication.DOMAIN_STARTUP_THREADS, callables, pwmApplication.getSessionLabel(), PwmDomainUtil.class );
+        final List<Optional<PwmUnrecoverableException>> domainStartException = pwmApplication.getPwmScheduler()
+                .executeImmediateThreadPerJobAndAwaitCompletion(
+                        PwmApplication.DOMAIN_STARTUP_THREAD_COUNT,
+                        callables,
+                        pwmApplication.getSessionLabel(),
+                        PwmDomainUtil.class );
 
         final Optional<PwmUnrecoverableException> domainStartupException = domainStartException.stream()
                 .filter( Optional::isPresent )
@@ -99,17 +105,9 @@ class PwmDomainUtil
                 TimeDuration.fromCurrent( domainInitStartTime ) );
     }
 
-    private static class DomainInitializingCallable implements Callable<Optional<PwmUnrecoverableException>>
+    private static Callable<Optional<PwmUnrecoverableException>> makeCallableDomainInit( final PwmDomain pwmDomain )
     {
-        private final PwmDomain pwmDomain;
-
-        DomainInitializingCallable( final PwmDomain pwmDomain )
-        {
-            this.pwmDomain = pwmDomain;
-        }
-
-        @Override
-        public Optional<PwmUnrecoverableException> call()
+        return () ->
         {
             try
             {
@@ -120,7 +118,7 @@ class PwmDomainUtil
             {
                 return Optional.of( e );
             }
-        }
+        };
     }
 
     static void reInitDomains(
@@ -164,7 +162,8 @@ class PwmDomainUtil
 
         if ( newDomains.isEmpty() && deletedDomains.isEmpty() )
         {
-            LOGGER.debug( pwmApplication.getSessionLabel(), () -> "no domain-level settings have been changed, restart of domain services is not required" );
+            LOGGER.debug( pwmApplication.getSessionLabel(),
+                    () -> "no domain-level settings have been changed, restart of domain services is not required" );
         }
 
         if ( !newDomains.isEmpty() )
@@ -197,10 +196,22 @@ class PwmDomainUtil
 
     enum DomainModifyCategory
     {
-        removed,
-        unchanged,
-        modified,
-        created,
+        removed( new RemovalClassifier() ),
+        unchanged( new UnchangedClassifier() ),
+        modified( new ModifiedClassifier() ),
+        created( new CreationClassifier() ),;
+
+        private final DomainModificationClassifier classifier;
+
+        DomainModifyCategory( final DomainModificationClassifier classifier )
+        {
+            this.classifier = classifier;
+        }
+
+        public DomainModificationClassifier classifier()
+        {
+            return classifier;
+        }
     }
 
     public static Map<DomainModifyCategory, Set<DomainID>> categorizeDomainModifications(
@@ -208,24 +219,14 @@ class PwmDomainUtil
             final AppConfig oldConfig
     )
     {
-        {
-            final Instant newInstant = newConfig.getStoredConfiguration().modifyTime();
-            final Instant oldInstant = oldConfig.getStoredConfiguration().modifyTime();
-            if ( newInstant != null && oldInstant != null && newInstant.isBefore( oldInstant ) )
-            {
-                throw new IllegalStateException( "refusing request to categorize changes due to oldConfig "
-                        + "being newer than new config" );
-            }
-        }
-
         final Set<StoredConfigKey> modifiedValues = StoredConfigurationUtil.changedValues(
                 newConfig.getStoredConfiguration(),
                 oldConfig.getStoredConfiguration() );
 
-        return CLASSIFIERS.entrySet().stream()
+        return EnumUtil.enumStream( DomainModifyCategory.class )
                 .collect( Collectors.toUnmodifiableMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue().categorize( newConfig, oldConfig, modifiedValues )
+                        Function.identity(),
+                        entry -> entry.classifier().categorize( newConfig, oldConfig, modifiedValues )
                 ) );
     }
 
@@ -233,12 +234,6 @@ class PwmDomainUtil
     {
         Set<DomainID> categorize( AppConfig newConfig, AppConfig oldConfig, Set<StoredConfigKey> modifiedValues );
     }
-
-    private static final Map<DomainModifyCategory, DomainModificationClassifier> CLASSIFIERS = Map.of(
-            DomainModifyCategory.removed, new RemovalClassifier(),
-            DomainModifyCategory.created, new CreationClassifier(),
-            DomainModifyCategory.unchanged, new UnchangedClassifier(),
-            DomainModifyCategory.modified, new ModifiedClassifier() );
 
     private static class RemovalClassifier implements DomainModificationClassifier
     {

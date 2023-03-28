@@ -27,9 +27,12 @@ import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.profile.NewUserProfile;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.config.profile.PwmPasswordRule;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.http.servlet.newuser.NewUserServlet;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
@@ -577,16 +580,7 @@ public class PasswordRequirementsTag extends TagSupport
 
             pwmRequest.getMacroMachine( );
 
-            final PwmPasswordPolicy passwordPolicy;
-            if ( getForm() != null && "newuser".equalsIgnoreCase( getForm() ) )
-            {
-                final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
-                passwordPolicy = newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() );
-            }
-            else
-            {
-                passwordPolicy = pwmSession.getUserInfo().getPasswordPolicy();
-            }
+            final PwmPasswordPolicy passwordPolicy = readPasswordPolicy( pwmRequest );
 
             final Optional<String> configuredRuleText = passwordPolicy.getRuleText( pwmRequest.getLocale() );
             if ( configuredRuleText.isPresent() )
@@ -618,6 +612,23 @@ public class PasswordRequirementsTag extends TagSupport
             throw new JspTagException( e.getMessage() );
         }
         return EVAL_PAGE;
+    }
+
+    static PwmPasswordPolicy readPasswordPolicy( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        if ( pwmRequest.isAuthenticated() )
+        {
+            return pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy();
+        }
+
+        if ( pwmRequest.getURL().matches( PwmServletDefinition.NewUser ) )
+        {
+            final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
+            return newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() );
+        }
+
+        throw new PwmUnrecoverableException( PwmError.ERROR_INTERNAL, "password policy unavailable for requirements text generation" );
     }
 }
 

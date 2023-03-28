@@ -143,7 +143,7 @@ public class PwmRequestUtil
         {
             final String xForwardedForValue = request.getHeader( HttpHeader.XForwardedFor.getHttpName() );
             if ( StringUtil.notEmpty( xForwardedForValue ) )
-            {
+            {           
                 Collections.addAll( candidateAddresses, xForwardedForValue.split( "," ) );
             }
         }

@@ -90,9 +90,9 @@ public class PwmApplication
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmApplication.class );
 
-    static final int DOMAIN_STARTUP_THREADS = 10;
+    static final int DOMAIN_STARTUP_THREAD_COUNT = 10;
 
-    private volatile Map<DomainID, PwmDomain> domains = new HashMap<>();
+    private volatile Map<DomainID, PwmDomain> domains = Map.of();
     private String runtimeNonce = PwmApplicationUtil.makeRuntimeNonce();
 
     private final SessionLabel sessionLabel;
@@ -240,21 +240,38 @@ public class PwmApplication
         this.pwmEnvironment = pwmEnvironment;
         final AppConfig newConfig = this.pwmEnvironment.getConfig();
 
+        warnOnOlderNewConfig( oldConfig, newConfig );
+
         if ( !Objects.equals( oldConfig.getValueHash(), newConfig.getValueHash() ) )
         {
             processPwmAppRestart( );
         }
         else
         {
-            LOGGER.debug( sessionLabel, () -> "no system-level settings have been changed, restart of system services is not required" );
+            LOGGER.debug( sessionLabel, () -> "no system-level settings have been changed"
+                    + ", restart of system services is not required" );
         }
 
         PwmDomainUtil.reInitDomains( this, newConfig, oldConfig );
 
         runtimeNonce = PwmApplicationUtil.makeRuntimeNonce();
 
-        LOGGER.debug( sessionLabel, () -> "completed application restart with " + domains().size() + " domains", TimeDuration.fromCurrent( startTime ) );
+        LOGGER.debug( sessionLabel, () -> "completed application restart with " + domains().size()
+                + " domains", TimeDuration.fromCurrent( startTime ) );
     }
+
+    private void warnOnOlderNewConfig( final AppConfig oldConfig, final AppConfig newConfig )
+    {
+        final Instant newInstant = newConfig.getStoredConfiguration().modifyTime();
+        final Instant oldInstant = oldConfig.getStoredConfiguration().modifyTime();
+        if ( newInstant != null && oldInstant != null && newInstant.isBefore( oldInstant ) )
+        {
+            LOGGER.warn( sessionLabel, () -> " oldConfig (" + oldInstant + ") "
+                    + "is newer than new config (" + newInstant + ") by "
+                    + TimeDuration.between( oldInstant, newInstant ).asCompactString() );
+        }
+    }
+
 
     private void postInitTasks()
     {
@@ -382,7 +399,7 @@ public class PwmApplication
 
             final Instant startDomainShutdown = Instant.now();
             LOGGER.trace( sessionLabel, () -> "beginning shutdown of " + callables.size() + " running domains" );
-            pwmScheduler.executeImmediateThreadPerJobAndAwaitCompletion( DOMAIN_STARTUP_THREADS, callables, sessionLabel, PwmApplication.class );
+            pwmScheduler.executeImmediateThreadPerJobAndAwaitCompletion( DOMAIN_STARTUP_THREAD_COUNT, callables, sessionLabel, PwmApplication.class );
             LOGGER.trace( sessionLabel, () -> "shutdown of " + callables.size() + " running domains completed", TimeDuration.fromCurrent( startDomainShutdown ) );
         }
         catch ( final PwmUnrecoverableException e )

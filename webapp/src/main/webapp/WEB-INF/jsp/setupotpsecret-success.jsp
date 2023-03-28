@@ -47,7 +47,6 @@
         <h1 id="page-content-title"><pwm:display key="Title_SetupOtpSecret" displayIfMissing="true"/></h1>
         <p><pwm:display key="Success_OtpSetup" bundle="Message"/></p>
         <%@ include file="fragment/message.jsp" %>
-        <br/>
         <% if (otpBean.getRecoveryCodes() != null && !otpBean.getRecoveryCodes().isEmpty()) { %>
         <table style="text-align: center">
             <tr>

@@ -44,7 +44,6 @@
         <h1 id="page-content-title"><pwm:display key="Title_UpdateProfileConfirm" displayIfMissing="true"/></h1>
         <p><pwm:display key="Display_UpdateProfileConfirm"/></p>
         <%@ include file="fragment/message.jsp" %>
-        <br/>
         <% final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormData); %>
         <table id="ConfirmProfileTable">
             <% for (final Map.Entry<FormConfiguration, String> entry : formDataMap.entrySet()) { %>

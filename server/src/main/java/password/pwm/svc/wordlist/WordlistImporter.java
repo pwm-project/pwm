@@ -314,6 +314,8 @@ class WordlistImporter implements Runnable
         {
             final String normalizedWord = wordType.convertInputFromWordlist( this.rootWordlist.getConfiguration(), input );
             incrementCharBufferCounter( Collections.singleton( normalizedWord ) );
+            importStatistics.update( StatKey.averageWordLength, normalizedWord.length() );
+            importStatistics.update( StatKey.chunksPerWord, 1 );
             bufferedWords.add( normalizedWord );
         }
     }

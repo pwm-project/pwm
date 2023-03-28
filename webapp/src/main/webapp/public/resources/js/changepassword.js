@@ -24,9 +24,6 @@
 
 "use strict";
 
-var COLOR_BAR_TOP       = 0x8ced3f;
-var COLOR_BAR_BOTTOM    = 0xcc0e3e;
-
 var PWM_CHANGEPW = PWM_CHANGEPW || {};
 
 // takes password values in the password fields, sends an http request to the servlet
@@ -37,18 +34,19 @@ PWM_CHANGEPW.passwordConfirmField = "password2";
 
 PWM_CHANGEPW.validatePasswords = function(userDN, nextFunction)
 {
-    if (PWM_GLOBAL['previousP1'] !== PWM_MAIN.getObject(PWM_CHANGEPW.passwordField).value) {  // if p1 is changing, then clear out p2.
+    // if p1 is changing, then clear out p2.
+    if (PWM_GLOBAL['previousP1'] !== PWM_MAIN.getObject(PWM_CHANGEPW.passwordField).value) {
         PWM_MAIN.getObject(PWM_CHANGEPW.passwordConfirmField ).value = "";
         PWM_GLOBAL['previousP1'] = PWM_MAIN.getObject(PWM_CHANGEPW.passwordField).value;
     }
 
-    var validationProps = {};
+    const validationProps = {};
 
     validationProps['completeFunction'] = nextFunction ? nextFunction : function () {};
     validationProps['messageWorking'] = PWM_MAIN.showString('Display_CheckingPassword');
     validationProps['serviceURL'] = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','checkPassword');
     validationProps['readDataFunction'] = function(){
-        var returnObj = {};
+        const returnObj = {};
         returnObj[PWM_CHANGEPW.passwordField ] = PWM_MAIN.getObject(PWM_CHANGEPW.passwordField ).value;
         returnObj[PWM_CHANGEPW.passwordConfirmField ] = PWM_MAIN.getObject(PWM_CHANGEPW.passwordConfirmField ).value;
         if (userDN) {
@@ -76,7 +74,7 @@ PWM_CHANGEPW.updateDisplay = function(resultInfo) {
         return;
     }
 
-    var message = resultInfo["message"];
+    const message = resultInfo["message"];
 
     if (resultInfo["version"] !== 2) {
         PWM_MAIN.showError("[ unexpected version string from server ]");
@@ -110,60 +108,49 @@ PWM_CHANGEPW.updateDisplay = function(resultInfo) {
 PWM_CHANGEPW.markConfirmationCheck = function(matchStatus) {
     if (PWM_MAIN.getObject("confirmCheckMark") && PWM_MAIN.getObject("confirmCrossMark")) {
         if (matchStatus === "MATCH") {
-            PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'visible';
-            PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'hidden';
-            PWM_MAIN.getObject("confirmCheckMark").width = '15';
-            PWM_MAIN.getObject("confirmCrossMark").width = '0';
+            PWM_MAIN.removeCssClass("confirmCheckMark","nodisplay")
+            PWM_MAIN.addCssClass("confirmCrossMark","nodisplay")
         } else if (matchStatus === "NO_MATCH") {
-            PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'hidden';
-            PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'visible';
-            PWM_MAIN.getObject("confirmCheckMark").width = '0';
-            PWM_MAIN.getObject("confirmCrossMark").width = '15';
+            PWM_MAIN.addCssClass("confirmCheckMark","nodisplay")
+            PWM_MAIN.removeCssClass("confirmCrossMark","nodisplay")
         } else {
-            PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'hidden';
-            PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'hidden';
-            PWM_MAIN.getObject("confirmCheckMark").width = '0';
-            PWM_MAIN.getObject("confirmCrossMark").width = '0';
+            PWM_MAIN.addCssClass("confirmCheckMark","nodisplay")
+            PWM_MAIN.addCssClass("confirmCrossMark","nodisplay")
         }
     }
 };
 
 PWM_CHANGEPW.markStrength = function(strength) { //strength meter
-    if (PWM_MAIN.getObject("strengthBox") === null) {
+    const passwordStrengthProgressElement = PWM_MAIN.getObject("passwordStrengthProgress");
+
+    if (!passwordStrengthProgressElement) {
         return;
     }
 
     if (PWM_MAIN.getObject(PWM_CHANGEPW.passwordField).value.length > 0) {
-        PWM_MAIN.getObject("strengthBox").style.visibility = 'visible';
-    } else {
-        PWM_MAIN.getObject("strengthBox").style.visibility = 'hidden';
+        PWM_MAIN.removeCssClass("strengthBox","noopacity");
     }
 
-    var strengthLabel = "";
-    var barColor = "";
+    let strengthDescr;
 
-    if (strength == 100) {
-        strengthLabel = PWM_MAIN.showString('Display_PasswordStrengthVeryHigh');
+    if (strength >= 99) {
+        strengthDescr = "VeryHigh";
     } else if (strength >= 75) {
-        strengthLabel = PWM_MAIN.showString('Display_PasswordStrengthHigh');
+        strengthDescr = "High";
     } else if (strength >= 45) {
-        strengthLabel = PWM_MAIN.showString('Display_PasswordStrengthMedium');
+        strengthDescr = "Medium";
     } else if (strength >= 20) {
-        strengthLabel = PWM_MAIN.showString('Display_PasswordStrengthLow');
+        strengthDescr = "Low";
     } else {
-        strengthLabel = PWM_MAIN.showString('Display_PasswordStrengthVeryLow');
+        strengthDescr = "VeryLow";
     }
 
-    var colorFade = function(h1, h2, p) { return ((h1>>16)+((h2>>16)-(h1>>16))*p)<<16|(h1>>8&0xFF)+((h2>>8&0xFF)-(h1>>8&0xFF))*p<<8|(h1&0xFF)+((h2&0xFF)-(h1&0xFF))*p; }
-    var gradColor = colorFade(COLOR_BAR_BOTTOM, COLOR_BAR_TOP, strength / 100).toString(16) + '';
+    let strengthLabel = PWM_MAIN.showString('Display_PasswordStrength' + strengthDescr);
 
-    var barObject = PWM_MAIN.getObject("strengthBar");
-    if (barObject !== null) {
-        barObject.style.width = strength + '%';
-        barObject.style.backgroundColor = '#' + gradColor;
-    }
+    passwordStrengthProgressElement.value = strength;
+    passwordStrengthProgressElement.setAttribute("data-strength", strengthDescr);
 
-    var labelObject = PWM_MAIN.getObject("strengthLabel");
+    const labelObject = PWM_MAIN.getObject("strengthLabelText");
     if (labelObject !== null) {
         labelObject.innerHTML = strengthLabel === null ? "" : strengthLabel;
     }
@@ -199,18 +186,18 @@ PWM_CHANGEPW.handleChangePasswordSubmit=function(event) {
     console.log('intercepted change password submit');
     PWM_MAIN.cancelEvent(event);
 
-    var nextFunction = function(data) {
+    const nextFunction = function (data) {
         console.log('post change password submit handler');
         if (!data || data['data']['passed'] && 'MATCH' === data['data']['match']) {
             console.log('submitting password form');
             PWM_MAIN.getObject("changePasswordForm").submit();
         } else {
             PWM_MAIN.closeWaitDialog();
-            var match = data['data']['match'];
+            const match = data['data']['match'];
             if ('MATCH' !== match) {
                 PWM_MAIN.getObject(PWM_CHANGEPW.passwordConfirmField).value = '';
             }
-            var okFunction = function() {
+            const okFunction = function () {
                 if ('MATCH' === match || 'EMPTY' === match) {
                     PWM_MAIN.getObject(PWM_CHANGEPW.passwordField).focus();
                 } else {
@@ -218,9 +205,9 @@ PWM_CHANGEPW.handleChangePasswordSubmit=function(event) {
                 }
                 PWM_CHANGEPW.validatePasswords();
             };
-            var title = PWM_MAIN.showString('Title_ChangePassword');
-            var message = '<div style="height:20px">' + data['data']['message'] + '.</div>';
-            PWM_MAIN.showDialog({text:message,title:title,okAction:okFunction});
+            const title = PWM_MAIN.showString('Title_ChangePassword');
+            const message = '<div style="height:20px">' + data['data']['message'] + '.</div>';
+            PWM_MAIN.showDialog({text: message, title: title, okAction: okFunction});
         }
     };
 
@@ -236,12 +223,12 @@ PWM_CHANGEPW.handleChangePasswordSubmit=function(event) {
 
 PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
     randomConfig = randomConfig === undefined ? {} : randomConfig;
-    var finishAction = 'finishAction' in randomConfig ? randomConfig['finishAction'] : function(password) {
+    const finishAction = 'finishAction' in randomConfig ? randomConfig['finishAction'] : function (password) {
         PWM_CHANGEPW.copyToPasswordFields(password)
     };
 
-    var eventHandlers = [];
-    var dialogBody = "";
+    const eventHandlers = [];
+    let dialogBody = "";
     if (randomConfig['dialog'] && randomConfig['dialog'].length > 0) {
         dialogBody += randomConfig['dialog'];
     } else {
@@ -250,19 +237,19 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
     dialogBody += "<br/><br/>";
     dialogBody += '<table class="noborder">';
 
-    for (var i = 0; i < 20; i++) {
+    for (let i = 0; i < 20; i++) {
         dialogBody += '<tr class="noborder">';
-        for (var j = 0; j < 2; j++) {
+        for (let j = 0; j < 2; j++) {
             i = i + j;
             (function(index) {
-                var elementID = "randomGen" + index;
-                dialogBody += '<td class="noborder" style="padding-bottom: 5px;" width="20%"><div style="visibility:hidden" class="link-randomPasswordValue" href="#" id="' + elementID + '">&nbsp;</div></td>';
+                const elementID = "randomGen" + index;
+                dialogBody += '<td class="noborder"><div class="link-randomPasswordValue"  id="' + elementID + '"></div></td>';
                 eventHandlers.push(function(){
                     PWM_MAIN.addEventHandler(elementID,'click',function(){
-                        var value = PWM_MAIN.getObject(elementID).innerHTML;
-                        var parser = new DOMParser();
-                        var dom = parser.parseFromString(value, 'text/html');
-                        var domString = dom.body.textContent;
+                        const value = PWM_MAIN.getObject(elementID).innerHTML;
+                        const parser = new DOMParser();
+                        const dom = parser.parseFromString(value, 'text/html');
+                        const domString = dom.body.textContent;
                         finishAction(domString);
                     });
                 });
@@ -289,8 +276,7 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
     });
 
 
-
-    var titleString = randomConfig['title'] === null ? PWM_MAIN.showString('Title_RandomPasswords') : randomConfig['title'];
+    const titleString = randomConfig['title'] ? randomConfig['title'] : PWM_MAIN.showString('Title_RandomPasswords');
     PWM_MAIN.showDialog({
         title:titleString,
         dialogClass:'narrow',
@@ -299,7 +285,7 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
         showClose:true,
         loadFunction:function(){
             PWM_CHANGEPW.beginFetchRandoms(randomConfig);
-            for (var i = 0; i < eventHandlers.length; i++) {
+            for (let i = 0; i < eventHandlers.length; i++) {
                 eventHandlers[i]();
             }
         }
@@ -308,8 +294,8 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
 
 PWM_CHANGEPW.beginFetchRandoms=function(randomConfig) {
     PWM_MAIN.getObject('moreRandomsButton').disabled = true;
-    var fetchList = new Array();
-    for (var counter = 0; counter < 20; counter++) {
+    const fetchList = new Array();
+    for (let counter = 0; counter < 20; counter++) {
         fetchList[counter] = 'randomGen' + counter;
     }
     fetchList.sort(function() {return 0.5 - Math.random()});
@@ -320,7 +306,7 @@ PWM_CHANGEPW.beginFetchRandoms=function(randomConfig) {
 
 PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
     if (randomConfig['fetchList'].length < 1) {
-        var moreButton = PWM_MAIN.getObject('moreRandomsButton');
+        const moreButton = PWM_MAIN.getObject('moreRandomsButton');
         if (moreButton !== null) {
             moreButton.disabled = false;
             moreButton.focus();
@@ -329,18 +315,18 @@ PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
     }
 
     if (randomConfig['fetchList'].length > 0) {
-        var successFunction = function(resultInfo) {
-            var password = resultInfo['data']["password"];
-            var elementID = randomConfig['fetchList'].pop();
-            var element = PWM_MAIN.getObject(elementID);
+        const successFunction = function (resultInfo) {
+            const password = resultInfo['data']["password"];
+            const elementID = randomConfig['fetchList'].pop();
+            const element = PWM_MAIN.getObject(elementID);
             if (element !== null) {
                 element.innerHTML = password;
             }
             PWM_CHANGEPW.fetchRandoms(randomConfig);
         };
 
-        var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','randomPassword');
-        var content = randomConfig['dataInput'] === null ? { } : randomConfig['dataInput'];
+        const url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'randomPassword');
+        const content = randomConfig['dataInput'] === null ? {} : randomConfig['dataInput'];
 
         PWM_MAIN.ajaxRequest(url,successFunction,{content:content});
     }
@@ -352,7 +338,7 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
     PWM_CHANGEPW.markStrength(0);
 
     // add handlers for main form
-    var changePasswordForm = PWM_MAIN.getObject('changePasswordForm');
+    const changePasswordForm = PWM_MAIN.getObject('changePasswordForm');
     PWM_MAIN.addEventHandler(changePasswordForm,"keyup, change",function(){
         PWM_CHANGEPW.validatePasswords(null);
     });
@@ -368,12 +354,12 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
     });
 
     // show the auto generate password panel
-    var autoGenPasswordElement = PWM_MAIN.getObject("autogenerate-icon");
+    const autoGenPasswordElement = PWM_MAIN.getObject("autogenerate-icon");
     if (autoGenPasswordElement !== null) {
-        autoGenPasswordElement.style.visibility = 'visible';
-        // PWM_MAIN.addEventHandler(autoGenPasswordElement,'click',function(){
-        //     PWM_CHANGEPW.doRandomGeneration();
-        // });
+        PWM_MAIN.removeCssClass(autoGenPasswordElement, "nodisplay");
+        PWM_MAIN.addEventHandler(autoGenPasswordElement,'click',function(){
+            PWM_CHANGEPW.doRandomGeneration();
+        });
         PWM_MAIN.showTooltip({
             id: "autogenerate-icon",
             text: PWM_MAIN.showString('Display_AutoGeneratedPassword')
@@ -383,12 +369,12 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
     PWM_MAIN.addEventHandler('button-reset','click',function(event){
         console.log('intercepted reset button');
 
-        var p1Value = PWM_MAIN.getObject(PWM_CHANGEPW.passwordField).value;
-        var p2Value = PWM_MAIN.getObject(PWM_CHANGEPW.passwordConfirmField).value;
+        const p1Value = PWM_MAIN.getObject(PWM_CHANGEPW.passwordField).value;
+        const p2Value = PWM_MAIN.getObject(PWM_CHANGEPW.passwordConfirmField).value;
 
-        var submitForm = function(){
-            var resetForm = PWM_MAIN.getObject('form-reset');
-            PWM_MAIN.handleFormSubmit(resetForm );
+        const submitForm = function () {
+            const resetForm = PWM_MAIN.getObject('form-reset');
+            PWM_MAIN.handleFormSubmit(resetForm);
         };
 
         if ( p1Value.length > 0 || p2Value.length > 0 ) {
@@ -405,24 +391,17 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
         }
     });
 
-    var messageElement = PWM_MAIN.getObject("message");
+    const messageElement = PWM_MAIN.getObject("message");
     if (messageElement.firstChild.nodeValue.length < 2) {
         setTimeout(function(){
             PWM_MAIN.showInfo(PWM_MAIN.showString('Display_PasswordPrompt'));
         },100);
     }
 
-    PWM_MAIN.showDijitTooltip({
-        id: "strengthBox",
-        text: PWM_MAIN.showString('Tooltip_PasswordStrength'),
-        width: 350
-
-    });
-
     if (PWM_GLOBAL['passwordGuideText'] && PWM_GLOBAL['passwordGuideText'].length > 0) {
-        var iconElement = PWM_MAIN.getObject('password-guide-icon');
+        const iconElement = PWM_MAIN.getObject('password-guide-icon');
         if (iconElement) {
-            try {iconElement.style.visibility = 'visible';} catch (e) { /* noop */ }
+            PWM_MAIN.removeCssClass(iconElement,'nodisplay');
             PWM_MAIN.addEventHandler('password-guide-icon','click',function(){
                 PWM_CHANGEPW.showPasswordGuide();
             });
@@ -433,77 +412,83 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
         }
     }
 
+    const tooltipText = PWM_MAIN.showString('Tooltip_PasswordStrength');
+    if (tooltipText) {
+        const strengthHelpIcon = PWM_MAIN.getObject('strength-tooltip-icon');
+        if (strengthHelpIcon) {
+            PWM_MAIN.addEventHandler('strength-tooltip-icon','click',function(){
+                PWM_MAIN.showDialog({
+                    showClose:true,
+                    title: PWM_MAIN.showString('Title_PasswordGuide'),
+                    text: '<div id="passwordGuideTextContent">' + tooltipText + '</div>'
+                });
+            })
+        }
+    }
+
     setTimeout(function(){
         PWM_CHANGEPW.setInputFocus();
     },10);
 };
 
 PWM_CHANGEPW.setInputFocus=function() {
-    var currentPassword = PWM_MAIN.getObject('currentPassword');
+    const currentPassword = PWM_MAIN.getObject('currentPassword');
     if (currentPassword !== null) {
         setTimeout(function() { currentPassword.focus(); },10);
     } else {
-        var password1 = PWM_MAIN.getObject('password1');
+        const password1 = PWM_MAIN.getObject('password1');
         setTimeout(function() { password1.focus(); },10);
     }
 };
 
 PWM_CHANGEPW.refreshCreateStatus=function(refreshInterval) {
-    require(["dojo","dijit/registry"],function(dojo,registry){
-        var displayStringsUrl = PWM_MAIN.addParamToUrl(window.location.href, "processAction", "checkProgress");
-        var completedUrl = PWM_MAIN.addPwmFormIDtoURL(PWM_MAIN.addParamToUrl(window.location.href,  "processAction", "complete"));
-        var loadFunction = function(data) {
-            var supportsProgress = (document.createElement('progress').max !== undefined);
-            if (supportsProgress) {
-                console.log('beginning html5 progress refresh');
-                var html5passwordProgressBar = PWM_MAIN.getObject('html5ProgressBar');
-                dojo.setAttr(html5passwordProgressBar, "value", data['data']['percentComplete']);
-            } else {
-                console.log('beginning dojo progress refresh');
-                var progressBar = registry.byId('passwordProgressBar');
-                progressBar.set("value",data['data']['percentComplete']);
-            }
+    const displayStringsUrl = PWM_MAIN.addParamToUrl(window.location.href, "processAction", "checkProgress");
+    const completedUrl = PWM_MAIN.addPwmFormIDtoURL(PWM_MAIN.addParamToUrl(window.location.href, "processAction", "complete"));
+    const loadFunction = function (data) {
+        console.log('beginning html5 progress refresh');
+        const html5passwordProgressBar = PWM_MAIN.getObject('html5ProgressBar');
+        const percentComplete = data['data']['percentComplete'];
+        html5passwordProgressBar.setAttribute("value", percentComplete );
 
-            try {
-                var tableBody = '';
-                if (data['data']['messages']) {
-                    for (var msgItem in data['data']['messages']) {
-                        (function(message){
-                            if (message['show']) {
-                                tableBody += '<tr><td>' + message['label'] + '</td><td>';
-                                tableBody += message['complete'] ? PWM_MAIN.showString('Value_ProgressComplete') : PWM_MAIN.showString('Value_ProgressInProgress');
-                                tableBody += '</td></tr>';
-                            }
-                        }(data['data']['messages'][msgItem]));
-                    }
+        try {
+            let tableBody = '';
+            if (data['data']['messages']) {
+                for (let msgItem in data['data']['messages']) {
+                    (function (message) {
+                        if (message['show']) {
+                            tableBody += '<tr><td>' + message['label'] + '</td><td>';
+                            tableBody += message['complete'] ? PWM_MAIN.showString('Value_ProgressComplete') : PWM_MAIN.showString('Value_ProgressInProgress');
+                            tableBody += '</td></tr>';
+                        }
+                    }(data['data']['messages'][msgItem]));
                 }
-                if (PWM_MAIN.getObject('progressMessageTable')) {
-                    PWM_MAIN.getObject('progressMessageTable').innerHTML = tableBody;
-                }
-                if (PWM_MAIN.getObject('estimatedRemainingSeconds')) {
-                    PWM_MAIN.getObject('estimatedRemainingSeconds').innerHTML = data['data']['estimatedRemainingSeconds'];
-                }
-                if (PWM_MAIN.getObject('elapsedSeconds')) {
-                    PWM_MAIN.getObject('elapsedSeconds').innerHTML = data['data']['elapsedSeconds'];
-                }
-            } catch (e) {
-                console.log('unable to update progressMessageTable, error: ' + e);
             }
+            if (PWM_MAIN.getObject('progressMessageTable')) {
+                PWM_MAIN.getObject('progressMessageTable').innerHTML = tableBody;
+            }
+            if (PWM_MAIN.getObject('estimatedRemainingSeconds')) {
+                PWM_MAIN.getObject('estimatedRemainingSeconds').innerHTML = data['data']['estimatedRemainingSeconds'];
+            }
+            if (PWM_MAIN.getObject('elapsedSeconds')) {
+                PWM_MAIN.getObject('elapsedSeconds').innerHTML = data['data']['elapsedSeconds'];
+            }
+        } catch (e) {
+            console.log('unable to update progressMessageTable, error: ' + e);
+        }
 
-            if (data['data']['complete'] === true) {
-                PWM_MAIN.gotoUrl(completedUrl,{delay:1000})
-            } else {
-                setTimeout(function(){
-                    PWM_CHANGEPW.refreshCreateStatus(refreshInterval);
-                },refreshInterval);
-            }
-        };
-        var errorFunction = function(error) {
-            console.log('unable to read password change status: ' + error);
-            setTimeout(function(){
+        if (data['data']['complete'] === true) {
+            PWM_MAIN.gotoUrl(completedUrl, {delay: 1000})
+        } else {
+            setTimeout(function () {
                 PWM_CHANGEPW.refreshCreateStatus(refreshInterval);
-            },refreshInterval);
-        };
-        PWM_MAIN.ajaxRequest(displayStringsUrl, loadFunction, {errorFunction:errorFunction});
-    });
+            }, refreshInterval);
+        }
+    };
+    const errorFunction = function (error) {
+        console.log('unable to read password change status: ' + error);
+        setTimeout(function () {
+            PWM_CHANGEPW.refreshCreateStatus(refreshInterval);
+        }, refreshInterval);
+    };
+    PWM_MAIN.ajaxRequest(displayStringsUrl, loadFunction, {errorFunction:errorFunction});
 };

@@ -43,7 +43,6 @@
         <h1 id="page-content-title"><pwm:display key="Title_NewUser" displayIfMissing="true"/></h1>
         <p><pwm:display key="Display_NewUser"/></p>
         <%@ include file="fragment/message.jsp" %>
-        <br/>
         <form action="<pwm:current-url/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded" autocomplete="off"
               id="newUserForm" class="pwm-form pwm-form-captcha">
             <jsp:include page="fragment/form.jsp"/>
@@ -52,20 +51,20 @@
 
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="processForm"/>
-                <button type="submit" name="Create" class="btn pwm-btn-submit" id="submitBtn">
+                <button type="submit" name="Create" class="btn pwm-btn-submit" id="submitBtn" tabindex="<pwm:tabindex/>">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 
                 <% if ((Boolean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.NewUser_FormShowBackButton)) { %>
-                <button type="button" id="button-goBack" name="button-goBack" class="btn" >
+                <button type="button" id="button-goBack" name="button-goBack" class="btn" tabindex="<pwm:tabindex/>">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-backward"></span></pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <% } %>
                 <pwm:if test="<%=PwmIfTest.showCancel%>">
-                    <button  type="button" id="button-cancel" name="button-cancel" class="btn">
+                    <button type="button" id="button-cancel" name="button-cancel" class="btn" tabindex="<pwm:tabindex/>">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
                         <pwm:display key="Button_Cancel"/>
                     </button>
