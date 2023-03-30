@@ -396,7 +396,7 @@ PWM_CFGEDIT.setConfigurationPassword = function(password) {
             PWM_MAIN.closeWaitDialog();
             PWM_MAIN.showDialog ({title:PWM_MAIN.showString('Title_Error'),text:"error saving configuration password: " + errorObj});
         };
-        PWM_MAIN.clearDijitWidget('dialogPopup');
+        PWM_CFGEDIT.clearDijitWidget('dialogPopup');
         PWM_MAIN.showWaitDialog({loadFunction:function(){
                 PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,content:{password:password}});
             }});
@@ -593,7 +593,7 @@ PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
                         toolBody += '<br/>' + PWM_SETTINGS['settings'][settingKey]['description'] + '<br/><br/>';
                         toolBody += '<span style="font-weight: bold">Value</span>';
                         toolBody += '<br/>' + value.replace('\n', '<br/>') + '<br/>';
-                        PWM_MAIN.showDijitTooltip({
+                        PWM_MAIN.showTooltip({
                             id: settingID + '_popup',
                             text: toolBody,
                             width: 500
@@ -785,7 +785,6 @@ PWM_CFGEDIT.showMacroHelp = function() {
     options['title'] = 'Macro Help'
     options['id'] = 'id-dialog-macroHelp'
     options['dialogClass'] = 'wide';
-    options['dojoStyle'] = 'width: 750px';
     options['showClose'] = true;
     options['href'] = PWM_GLOBAL['url-resources'] + "/text/macroHelp.html"
     options['loadFunction'] = loadFunction;
@@ -797,7 +796,6 @@ PWM_CFGEDIT.showTimezoneList = function() {
     options['title'] = 'Timezones'
     options['id'] = 'id-dialog-timeZoneHelp'
     options['dialogClass'] = 'wide';
-    options['dojoStyle'] = 'width: 750px';
     options['showClose'] = true;
     options['href'] = PWM_GLOBAL['url-context'] + "/public/reference/timezones.jsp"
     PWM_MAIN.showDialog( options );
@@ -808,7 +806,6 @@ PWM_CFGEDIT.showDateTimeFormatHelp = function() {
     options['title'] = 'Date & Time Formatting'
     options['id'] = 'id-dialog-dateTimePopup'
     options['dialogClass'] = 'wide';
-    options['dojoStyle'] = 'width: 750px';
     options['showClose'] = true;
     options['href'] = PWM_GLOBAL['url-resources'] + "/text/datetimeFormatHelp.html"
     PWM_MAIN.showDialog( options );
@@ -1100,7 +1097,7 @@ PWM_CFGEDIT.drawNavigationMenu = function(nextFunction) {
         require(["dojo","dojo/_base/window", "dojo/store/Memory", "dijit/tree/ObjectStoreModel", "dijit/Tree","dijit","dojo/domReady!"],
             function(dojo, win, Memory, ObjectStoreModel, Tree)
             {
-                PWM_MAIN.clearDijitWidget('navigationTree');
+                PWM_CFGEDIT.clearDijitWidget('navigationTree');
                 // Create test store, adding the getChildren() method required by ObjectStoreModel
                 const myStore = new Memory({
                     data: menuTreeData,
@@ -1373,3 +1370,22 @@ PWM_CFGEDIT.drawInfoPage = function(settingInfo) {
 };
 
 
+PWM_CFGEDIT.clearDijitWidget = function (widgetName) {
+    require(["dojo","dijit/registry"],function(dojo, registry){
+
+        const oldDijitNode = registry.byId(widgetName);
+        if (oldDijitNode) {
+            try {
+                oldDijitNode.destroyRecursive();
+            } catch (error) {
+                PWM_MAIN.log('error destroying old widget: ' + error);
+            }
+
+            try {
+                oldDijitNode.destroy();
+            } catch (error) {
+                PWM_MAIN.log('error destroying old widget: ' + error);
+            }
+        }
+    });
+};

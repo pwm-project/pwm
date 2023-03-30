@@ -53,9 +53,8 @@
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p><pwm:display key="Display_PleaseWaitPassword"/></p>
         <div class="meteredProgressBar">
-          <progress id="html5ProgressBar" max="100" value="0">
-              <div data-dojo-type="dijit/ProgressBar" style="width:100%" data-dojo-id="passwordProgressBar" id="passwordProgressBar" data-dojo-props="maximum:100"></div>
-          </progress>
+            <progress id="html5ProgressBar" max="100" value="0">
+            </progress>
         </div>
         <div style="text-align: center; width: 100%; padding-top: 50px">
             <%--
@@ -70,14 +69,11 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parser", "dijit/ProgressBar","dojo/ready"], function(parser){
-            parser.parse();
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_CHANGEPW.refreshCreateStatus(<%=checkIntervalSeconds * 1000%>);
         });
-    });
-</script>
+    </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/changepassword.js"/>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

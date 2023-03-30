@@ -61,6 +61,7 @@
         String currentValue = formDataMap != null ? formDataMap.get(loopConfiguration) : "";
         currentValue = currentValue == null ? "" : currentValue;
         currentValue = StringUtil.escapeHtml(currentValue);
+        final String requiredLabel = PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmDomain.getConfig(),new String[]{loopConfiguration.getLabel(formLocale)});
 
 %>
 <div class="formFieldWrapper" id="formFieldWrapper-<%=loopConfiguration.getName()%>">
@@ -74,7 +75,8 @@
                type="checkbox" <%=checked?"checked":""%> <pwm:autofocus/>/>
         <%=loopConfiguration.getLabel(formLocale)%>
         <%if(loopConfiguration.isRequired()){%>
-        <span class="formFieldRequiredAsterisk" id="label_required_<%=loopConfiguration.getName()%>">*</span>
+        <span class="formFieldRequiredAsterisk" id="label_required_<%=loopConfiguration.getName()%>"
+              title="<%=requiredLabel%>3">*</span>
         <%}%>
     </label>
     <% if (loopConfiguration.getDescription(formLocale) != null && loopConfiguration.getDescription(formLocale).length() > 0) { %>
@@ -85,7 +87,8 @@
         <label for="<%=loopConfiguration.getName()%>">
             <%= loopConfiguration.getLabel(formLocale) %>
             <%if(loopConfiguration.isRequired()){%>
-            <span class="formFieldRequiredAsterisk" id="label_required_<%=loopConfiguration.getName()%>">*</span>
+            <span class="formFieldRequiredAsterisk" id="label_required_<%=loopConfiguration.getName()%>"
+                  title="<%=requiredLabel%>2">*</span>
             <%}%>
         </label>
     </div>
@@ -167,7 +170,10 @@
     <label for="<%=loopConfiguration.getName()%>_confirm">
         <div class="formFieldLabel">
             <pwm:display key="Field_Confirm_Prefix"/>&nbsp;<%=loopConfiguration.getLabel(formLocale) %>
-            <%if(loopConfiguration.isRequired()){%>*<%}%>
+            <%if(loopConfiguration.isRequired()){%>
+            <span class="formFieldRequiredAsterisk" id="label_required_<%=loopConfiguration.getName()%>"
+                  title="<%=requiredLabel%>2">*</span>
+            <%}%>
         </div>
     </label>
     <input id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
@@ -218,17 +224,6 @@
         </pwm:script>
         <% } %>
     </pwm:if>
-    <pwm:script>
-        <script type="text/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                PWM_MAIN.showTooltip({
-                    id: "label_required_<%=loopConfiguration.getName()%>",
-                    text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(formLocale,pwmDomain.getConfig(),new String[]{loopConfiguration.getLabel(formLocale)})%>',
-                    position: ['above']
-                });
-            });
-        </script>
-    </pwm:script>
 </div>
 <% } %>
 <% if (showPasswordFields) { %>

@@ -69,7 +69,7 @@
     </select>
 </div>
 <% } %>
-<div <%=showContextSelector?"":"class=\"display-none\" "%> id="contextSelectorWrapper">
+<div <%=showContextSelector?"":"class=\"nodisplay\" "%> id="contextSelectorWrapper">
     <h2 class="loginFieldLabel"><label for="<%=PwmConstants.PARAM_CONTEXT%>"><pwm:display key="Field_Location"/></label></h2>
     <div class="formFieldWrapper">
         <select name="<%=PwmConstants.PARAM_CONTEXT%>" id="<%=PwmConstants.PARAM_CONTEXT%>" class="selectfield" title="<pwm:display key="Field_Location"/>">

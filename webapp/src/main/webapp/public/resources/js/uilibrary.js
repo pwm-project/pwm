@@ -23,16 +23,18 @@
 var UILibrary = {};
 UILibrary.stringEditorDialog = function(options){
     options = options === undefined ? {} : options;
-    var title = 'title' in options ? options['title'] : 'Edit Value';
-    var instructions = 'instructions' in options ? options['instructions'] : null;
-    var completeFunction = 'completeFunction' in options ? options['completeFunction'] : function() {alert('no string editor dialog complete function')};
-    var regexString = 'regex' in options && options['regex'] ? options['regex'] : '.+';
-    var initialValue = 'value' in options ? options['value'] : '';
-    var placeholder = 'placeholder' in options ? options['placeholder'] : '';
-    var textarea = 'textarea' in options ? options['textarea'] : false;
+    const title = 'title' in options ? options['title'] : 'Edit Value';
+    const instructions = 'instructions' in options ? options['instructions'] : null;
+    const completeFunction = 'completeFunction' in options ? options['completeFunction'] : function () {
+        alert('no string editor dialog complete function')
+    };
+    const regexString = 'regex' in options && options['regex'] ? options['regex'] : '.+';
+    const initialValue = 'value' in options ? options['value'] : '';
+    const placeholder = 'placeholder' in options ? options['placeholder'] : '';
+    const textarea = 'textarea' in options ? options['textarea'] : false;
 
-    var regexObject = new RegExp(regexString);
-    var text = '';
+    const regexObject = new RegExp(regexString);
+    let text = '';
     text += '<div style="visibility: hidden;" id="panel-valueWarning"><span class="pwm-icon pwm-icon-warning message-error"></span>&nbsp;' + PWM_CONFIG.showString('Warning_ValueIncorrectFormat') + '</div>';
     text += '<br/>';
 
@@ -47,13 +49,13 @@ UILibrary.stringEditorDialog = function(options){
         text += '<input style="width: 480px" class="configStringInput" autofocus required id="addValueDialog_input"/>';
     }
 
-    var inputFunction = function() {
+    const inputFunction = function () {
         PWM_MAIN.getObject('dialog_ok_button').disabled = true;
         PWM_MAIN.getObject('panel-valueWarning').style.visibility = 'hidden';
 
-        var value = PWM_MAIN.getObject('addValueDialog_input').value;
+        const value = PWM_MAIN.getObject('addValueDialog_input').value;
         if (value.length > 0) {
-            var passedValidation = regexObject  !== null && regexObject.test(value);
+            const passedValidation = regexObject !== null && regexObject.test(value);
 
             if (passedValidation) {
                 PWM_MAIN.getObject('dialog_ok_button').disabled = false;
@@ -64,8 +66,8 @@ UILibrary.stringEditorDialog = function(options){
         }
     };
 
-    var okFunction = function() {
-        var value = PWM_VAR['temp-dialogInputValue'];
+    const okFunction = function () {
+        const value = PWM_VAR['temp-dialogInputValue'];
         completeFunction(value);
     };
 
@@ -95,16 +97,18 @@ UILibrary.stringEditorDialog = function(options){
 
 UILibrary.stringArrayEditorDialog = function(options){
     options = options === undefined ? {} : options;
-    var title = 'title' in options ? options['title'] : 'Edit Value';
-    var instructions = 'instructions' in options ? options['instructions'] : null;
-    var completeFunction = 'completeFunction' in options ? options['completeFunction'] : function() {alert('no string array editor dialog complete function')};
-    var regexString = 'regex' in options && options['regex'] ? options['regex'] : '.+';
-    var initialValues = 'value' in options ? options['value'] : [];
-    var placeholder = 'placeholder' in options ? options['placeholder'] : '';
-    var maxvalues = 'maxValues' in options ? options['maxValues'] : 10;
+    const title = 'title' in options ? options['title'] : 'Edit Value';
+    const instructions = 'instructions' in options ? options['instructions'] : null;
+    const completeFunction = 'completeFunction' in options ? options['completeFunction'] : function () {
+        alert('no string array editor dialog complete function')
+    };
+    const regexString = 'regex' in options && options['regex'] ? options['regex'] : '.+';
+    const initialValues = 'value' in options ? options['value'] : [];
+    const placeholder = 'placeholder' in options ? options['placeholder'] : '';
+    const maxvalues = 'maxValues' in options ? options['maxValues'] : 10;
 
-    var regexObject = new RegExp(regexString);
-    var text = '';
+    const regexObject = new RegExp(regexString);
+    let text = '';
     text += '<div style="visibility: hidden;" id="panel-valueWarning"><span class="pwm-icon pwm-icon-warning message-error"></span>&nbsp;' + PWM_CONFIG.showString('Warning_ValueIncorrectFormat') + '</div>';
     text += '<br/>';
 
@@ -129,16 +133,16 @@ UILibrary.stringArrayEditorDialog = function(options){
         text += '<button class="btn" id="button-addRow"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Row</button></td>';
     }
 
-    var readCurrentValues = function() {
-        var output = [];
-        for (var i in initialValues) {
-            var value = PWM_MAIN.getObject('value_' + i).value;
+    const readCurrentValues = function () {
+        const output = [];
+        for (let i in initialValues) {
+            const value = PWM_MAIN.getObject('value_' + i).value;
             output.push(value);
         }
         return output;
     };
 
-    var inputFunction = function() {
+    const inputFunction = function () {
         PWM_MAIN.getObject('dialog_ok_button').disabled = true;
         if (PWM_MAIN.JSLibrary.itemCount(initialValues) < maxvalues) {
             PWM_MAIN.getObject('button-addRow').disabled = true;
@@ -146,14 +150,14 @@ UILibrary.stringArrayEditorDialog = function(options){
 
         PWM_MAIN.getObject('panel-valueWarning').style.visibility = 'hidden';
 
-        var passed = true;
-        var allHaveValues = true;
+        let passed = true;
+        let allHaveValues = true;
 
-        for (var i in initialValues) {
-            (function(iter) {
-                var value = PWM_MAIN.getObject('value_'+ iter).value;
+        for (let i in initialValues) {
+            (function (iter) {
+                const value = PWM_MAIN.getObject('value_' + iter).value;
                 if (value.length > 0) {
-                    var passedRegex = regexObject  !== null && regexObject.test(value);
+                    const passedRegex = regexObject !== null && regexObject.test(value);
                     if (!passedRegex) {
                         passed = false;
                     }
@@ -175,14 +179,14 @@ UILibrary.stringArrayEditorDialog = function(options){
         PWM_VAR['temp-dialogInputValue'] = readCurrentValues();
     };
 
-    var okFunction = function() {
-        var value =  PWM_VAR['temp-dialogInputValue'];
+    const okFunction = function () {
+        const value = PWM_VAR['temp-dialogInputValue'];
         completeFunction(value);
     };
 
-    var deleteRow = function(i) {
-        var values = readCurrentValues();
-        values.splice(i,1);
+    const deleteRow = function (i) {
+        const values = readCurrentValues();
+        values.splice(i, 1);
         options['value'] = values;
         UILibrary.stringArrayEditorDialog(options);
     };
@@ -196,9 +200,9 @@ UILibrary.stringArrayEditorDialog = function(options){
         allowMove: true,
         dialogClass: 'auto',
         loadFunction:function(){
-            for (var i in initialValues) {
+            for (let i in initialValues) {
                 (function(iter) {
-                    var loopValue = initialValues[iter];
+                    const loopValue = initialValues[iter];
                     PWM_MAIN.getObject('value_' + i).value = loopValue;
 
                     if (regexString && regexString.length > 1) {
@@ -219,7 +223,7 @@ UILibrary.stringArrayEditorDialog = function(options){
 
             if (PWM_MAIN.JSLibrary.itemCount(initialValues) < maxvalues) {
                 PWM_MAIN.addEventHandler('button-addRow','click',function(){
-                    var values = readCurrentValues();
+                    const values = readCurrentValues();
                     values.push('');
                     options['value'] = values;
                     UILibrary.stringArrayEditorDialog(options);
@@ -232,7 +236,7 @@ UILibrary.stringArrayEditorDialog = function(options){
 };
 
 UILibrary.addTextValueToElement = function(elementID, input) {
-    var element = PWM_MAIN.getObject(elementID);
+    const element = PWM_MAIN.getObject(elementID);
     if (element) {
         element.innerHTML = '';
         element.appendChild(document.createTextNode(input));
@@ -243,17 +247,17 @@ UILibrary.addAddLocaleButtonRow = function(parentDiv, keyName, addFunction, exis
     existingLocales === undefined ? [] : existingLocales;
     existingLocales.push('en');
 
-    var totalLocales = PWM_MAIN.JSLibrary.itemCount(PWM_GLOBAL['localeInfo']);
-    var excludeLocales = PWM_MAIN.JSLibrary.itemCount(existingLocales);
+    const totalLocales = PWM_MAIN.JSLibrary.itemCount(PWM_GLOBAL['localeInfo']);
+    const excludeLocales = PWM_MAIN.JSLibrary.itemCount(existingLocales);
 
     if (totalLocales < excludeLocales) {
         return;
     }
 
-    var tableRowElement = document.createElement('tr');
+    const tableRowElement = document.createElement('tr');
     tableRowElement.setAttribute("style","border-width: 0");
 
-    var bodyHtml = '';
+    let bodyHtml = '';
     bodyHtml += '<td style="border-width: 0" colspan="5">';
     bodyHtml += '<button type="button" class="btn" id="' + keyName + '-addLocaleButton"><span class="btn-icon pwm-icon pwm-icon-plus-square"></span>Add Locale</button>'
 
@@ -269,11 +273,11 @@ UILibrary.addAddLocaleButtonRow = function(parentDiv, keyName, addFunction, exis
 };
 
 UILibrary.manageNumericInput = function(elementID, readFunction) {
-    var element = PWM_MAIN.getObject(elementID);
+    const element = PWM_MAIN.getObject(elementID);
     if (!element) {
         return;
     }
-    var validChecker = function(value) {
+    const validChecker = function (value) {
         if (!value) {
             return false;
         }
@@ -293,7 +297,7 @@ UILibrary.manageNumericInput = function(elementID, readFunction) {
         return true;
     };
     PWM_MAIN.addEventHandler(elementID,'input',function(){
-        var value = element.value;
+        const value = element.value;
         if (validChecker(value)) {
             console.log('valid numerical input value: ' + value);
             readFunction(value);
@@ -305,18 +309,20 @@ UILibrary.manageNumericInput = function(elementID, readFunction) {
 
 UILibrary.editLdapDN = function(nextFunction, options) {
     options = options === undefined ? {} : options;
-    var profile = 'profile' in options ? options['profile'] : '';
-    var currentDN = 'currentDN' in options ? options['currentDN'] : '';
-    var processResults = function(data) {
-        var body = '';
+    const profile = 'profile' in options ? options['profile'] : '';
+    const currentDN = 'currentDN' in options ? options['currentDN'] : '';
+    const processResults = function (data) {
+        let body = '';
         if (data['error']) {
             body += '<div>Unable to browse LDAP directory: ' + data['errorMessage'] + '</div>';
             if (data['errorDetail']) {
                 body += '<br/><div>' + data['errorDetail'] + '</div>';
             }
-            PWM_MAIN.showDialog({title:'Error',text:body,okAction:function(){
-                    UILibrary.stringEditorDialog({value:currentDN,completeFunction:nextFunction});
-                }});
+            PWM_MAIN.showDialog({
+                title: 'Error', text: body, okAction: function () {
+                    UILibrary.stringEditorDialog({value: currentDN, completeFunction: nextFunction});
+                }
+            });
             return;
         }
 
@@ -324,7 +330,7 @@ UILibrary.editLdapDN = function(nextFunction, options) {
             body += '<div style="text-align: center">LDAP Profile <select id="select-profileList"></select></div><br/>';
         }
         body += '<div style="text-align: center">';
-        if (currentDN && currentDN.length > 0 ) {
+        if (currentDN && currentDN.length > 0) {
             body += '<div class="selectableDN" data-dn="' + currentDN + '"><a><code>' + currentDN + '</code></a></div>';
         } else {
             body += '<code>[root]</code>';
@@ -334,17 +340,17 @@ UILibrary.editLdapDN = function(nextFunction, options) {
         body += '<div style="min-width:500px; max-height: 400px; overflow-y: auto; overflow-x:hidden; white-space: nowrap">';
         body += '<table class="noborder">';
         if ('parentDN' in data['data']) {
-            var parentDN = data['data']['parentDN'];
+            const parentDN = data['data']['parentDN'];
             body += '<tr><td style="width:10px" class="navigableDN" data-dn="' + parentDN + '"><span class="pwm-icon pwm-icon-level-up"></span></td>';
             body += '<td title="' + parentDN + '">[parent]</td>';
             body += '</td>';
             body += '</tr>';
         }
 
-        var makeEntryHtml = function(dnInformation,navigable) {
-            var loopDN = dnInformation['dn'];
-            var entryName = dnInformation['entryName'];
-            var out = '';
+        const makeEntryHtml = function (dnInformation, navigable) {
+            const loopDN = dnInformation['dn'];
+            const entryName = dnInformation['entryName'];
+            let out = '';
             if (navigable) {
                 out += '<tr><td class="navigableDN" data-dn="' + loopDN + '"><span class="pwm-icon pwm-icon-level-down"></span></td>';
             } else {
@@ -356,15 +362,15 @@ UILibrary.editLdapDN = function(nextFunction, options) {
         };
 
         if (data['data']['navigableDNlist'] && !PWM_MAIN.JSLibrary.isEmpty(data['data']['navigableDNlist'])) {
-            var navigableDNlist = data['data']['navigableDNlist'];
-            PWM_MAIN.JSLibrary.forEachInArray(navigableDNlist,function (item) {
-                body += makeEntryHtml(item,true);
+            const navigableDNlist = data['data']['navigableDNlist'];
+            PWM_MAIN.JSLibrary.forEachInArray(navigableDNlist, function (item) {
+                body += makeEntryHtml(item, true);
             });
         }
         if (data['data']['selectableDNlist'] && !PWM_MAIN.JSLibrary.isEmpty(data['data']['selectableDNlist'])) {
-            var selectableDNlist = data['data']['selectableDNlist'];
-            PWM_MAIN.JSLibrary.forEachInArray(selectableDNlist,function (item){
-                body += makeEntryHtml(item,false);
+            const selectableDNlist = data['data']['selectableDNlist'];
+            PWM_MAIN.JSLibrary.forEachInArray(selectableDNlist, function (item) {
+                body += makeEntryHtml(item, false);
             });
         }
         body += '</table></div>';
@@ -377,22 +383,23 @@ UILibrary.editLdapDN = function(nextFunction, options) {
         body += '<button class="btn" id="button-refresh"><span class="btn-icon pwm-icon pwm-icon-refresh"></span>Refresh</button>';
         body += '<button class="btn" id="button-clearDN"><span class="btn-icon pwm-icon pwm-icon-times"></span>Clear Value</button></div>';
 
-        PWM_MAIN.showDialog({title:'LDAP Browser',dialogClass:'auto',showOk:false,showClose:true,text:body,loadFunction:function(){
-                PWM_MAIN.addEventHandler('button-editDN','click',function(){
-                    UILibrary.stringEditorDialog({value:currentDN,completeFunction:nextFunction});
+        PWM_MAIN.showDialog({
+            title: 'LDAP Browser', dialogClass: 'auto', showOk: false, showClose: true, text: body, loadFunction: function () {
+                PWM_MAIN.addEventHandler('button-editDN', 'click', function () {
+                    UILibrary.stringEditorDialog({value: currentDN, completeFunction: nextFunction});
                 });
-                PWM_MAIN.addEventHandler('button-refresh','click',function(){
-                    UILibrary.editLdapDN(nextFunction,{profile:profile,currentDN:currentDN});
+                PWM_MAIN.addEventHandler('button-refresh', 'click', function () {
+                    UILibrary.editLdapDN(nextFunction, {profile: profile, currentDN: currentDN});
                 });
-                PWM_MAIN.addEventHandler('button-clearDN','click',function(){
+                PWM_MAIN.addEventHandler('button-clearDN', 'click', function () {
                     nextFunction('');
                     PWM_MAIN.closeWaitDialog();
                 });
 
-                PWM_MAIN.doQuery(".selectableDN",function(element){
-                    var dnValue = element.getAttribute("data-dn");
-                    PWM_MAIN.addEventHandler(element,'click',function(){
-                        var ldapProfileID = "default";
+                PWM_MAIN.doQuery(".selectableDN", function (element) {
+                    const dnValue = element.getAttribute("data-dn");
+                    PWM_MAIN.addEventHandler(element, 'click', function () {
+                        let ldapProfileID = "default";
                         if (document.getElementById("select-profileList")) {
                             ldapProfileID = document.getElementById("select-profileList").value;
                         }
@@ -402,19 +409,19 @@ UILibrary.editLdapDN = function(nextFunction, options) {
                     });
                 });
 
-                PWM_MAIN.doQuery(".navigableDN",function(element){
-                    var dnValue = element.getAttribute("data-dn");
-                    PWM_MAIN.addEventHandler(element,'click',function(){
-                        UILibrary.editLdapDN(nextFunction,{profile:profile,currentDN:dnValue});
+                PWM_MAIN.doQuery(".navigableDN", function (element) {
+                    const dnValue = element.getAttribute("data-dn");
+                    PWM_MAIN.addEventHandler(element, 'click', function () {
+                        UILibrary.editLdapDN(nextFunction, {profile: profile, currentDN: dnValue});
                     });
                 });
 
                 if (!PWM_MAIN.JSLibrary.isEmpty(data['data']['profileList'])) {
-                    var profileList = data['data']['profileList'];
-                    var profileSelect = PWM_MAIN.getObject('select-profileList');
-                    for (var i in profileList) {
-                        (function(loopProfile) {
-                            var optionElement = document.createElement('option');
+                    const profileList = data['data']['profileList'];
+                    const profileSelect = PWM_MAIN.getObject('select-profileList');
+                    for (let i in profileList) {
+                        (function (loopProfile) {
+                            const optionElement = document.createElement('option');
                             optionElement.innerHTML = loopProfile;
                             optionElement.value = loopProfile;
                             if (loopProfile === profile) {
@@ -423,26 +430,27 @@ UILibrary.editLdapDN = function(nextFunction, options) {
                             profileSelect.appendChild(optionElement);
                         })(profileList[i]);
                     }
-                    PWM_MAIN.addEventHandler('select-profileList','change',function(){
-                        var value = profileSelect.options[profileSelect.selectedIndex].value;
-                        UILibrary.editLdapDN(nextFunction,{profile:value,currentDN:''});
+                    PWM_MAIN.addEventHandler('select-profileList', 'change', function () {
+                        const value = profileSelect.options[profileSelect.selectedIndex].value;
+                        UILibrary.editLdapDN(nextFunction, {profile: value, currentDN: ''});
                     });
                 }
-            }});
+            }
+        });
     };
 
     PWM_MAIN.showWaitDialog({loadFunction:function(){
-            var content = {};
+            const content = {};
             content['profile'] = profile;
             content['dn'] = currentDN;
-            var url = window.location.pathname + "?processAction=browseLdap";
+            const url = window.location.pathname + "?processAction=browseLdap";
             PWM_MAIN.ajaxRequest(url,processResults,{content:content});
         }});
 };
 
 UILibrary.uploadFileDialog = function(options) {
     options = options === undefined ? {} : options;
-    var body = '';
+    let body = '';
 
     if ('text' in options) {
         body += options['text'];
@@ -455,45 +463,49 @@ UILibrary.uploadFileDialog = function(options) {
     body += '<button class="btn" type="button" id="uploadButton" name="Upload" disabled><span class="pwm-icon pwm-icon-upload"></span>';
     body +=  PWM_MAIN.showString('Button_Upload') + '</button></div></div>';
 
-    var currentUrl = window.location.pathname;
-    var uploadUrl = 'url' in options ? options['url'] : currentUrl;
-    var title = 'title' in options ? options['title'] : PWM_MAIN.showString('Title_Upload');
+    const currentUrl = window.location.pathname;
+    let uploadUrl = 'url' in options ? options['url'] : currentUrl;
+    const title = 'title' in options ? options['title'] : PWM_MAIN.showString('Title_Upload');
 
     uploadUrl = PWM_MAIN.addPwmFormIDtoURL(uploadUrl);
 
-    var nextFunction = 'nextFunction' in options ? options['nextFunction'] : function(data){
-        PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Success"), text: data['successMessage'],okAction:function(){
+    const nextFunction = 'nextFunction' in options ? options['nextFunction'] : function (data) {
+        PWM_MAIN.showDialog({
+            title: PWM_MAIN.showString("Title_Success"), text: data['successMessage'], okAction: function () {
                 PWM_MAIN.gotoUrl(currentUrl)
-            }});
+            }
+        });
     };
 
 
-    var completeFunction = function(data){
+    let completeFunction = function (data) {
         console.log('upload dialog completeFunction() starting');
         if (data['error'] === true) {
-            var errorText = PWM_MAIN.showString('Notice_UploadFailure');
-            PWM_MAIN.showErrorDialog(data,{text:errorText,okAction:function(){
+            const errorText = PWM_MAIN.showString('Notice_UploadFailure');
+            PWM_MAIN.showErrorDialog(data, {
+                text: errorText, okAction: function () {
                     location.reload();
-                }});
+                }
+            });
         } else {
             nextFunction(data);
         }
     };
 
-    var errorFunction = function(status,statusText) {
+    const errorFunction = function (status, statusText) {
         PWM_MAIN.closeWaitDialog();
-        var errorText = PWM_MAIN.showString('Notice_UploadFailure');
+        let errorText = PWM_MAIN.showString('Notice_UploadFailure');
         errorText += '<br/><br/>Status: ' + status;
         errorText += '<br/><br/>' + statusText;
-        PWM_MAIN.showErrorDialog('',{text:errorText});
+        PWM_MAIN.showErrorDialog('', {text: errorText});
         //PWM_MAIN.showErrorDialog(errorText);
     };
 
-    var progressFunction = function(data) {
+    const progressFunction = function (data) {
         if (data.lengthComputable) {
-            var decimal = data.loaded / data.total;
+            const decimal = data.loaded / data.total;
             console.log('upload progress: ' + decimal);
-            var waitProgressObject = PWM_MAIN.getObject('wait-progress');
+            const waitProgressObject = PWM_MAIN.getObject('wait-progress');
             if (waitProgressObject) {
                 waitProgressObject.setAttribute('value', decimal.toString());
             }
@@ -503,8 +515,8 @@ UILibrary.uploadFileDialog = function(options) {
         }
     };
 
-    var uploadFunction = function() {
-        var files = PWM_MAIN.getObject('uploadFile').files;
+    const uploadFunction = function () {
+        const files = PWM_MAIN.getObject('uploadFile').files;
         if (!files[0]) {
             alert('File is not selected.');
             return;
@@ -514,20 +526,20 @@ UILibrary.uploadFileDialog = function(options) {
             uploadUrl = options['urlUpdateFunction'](uploadUrl);
         }
 
-        var xhr = new XMLHttpRequest();
-        var fd = new FormData();
-        xhr.onreadystatechange = function() {
+        const xhr = new XMLHttpRequest();
+        const fd = new FormData();
+        xhr.onreadystatechange = function () {
             console.log('upload handler onreadystate change: ' + xhr.readyState);
             if (xhr.readyState === 4) {
                 xhr.upload.onprogress = null;
-                if( xhr.status === 200) {
+                if (xhr.status === 200) {
                     // Every thing ok, file uploaded
                     console.log(xhr.responseText); // handle response.
                     try {
-                        var response = JSON.parse(xhr.response);
-                        setTimeout(function(){
+                        const response = JSON.parse(xhr.response);
+                        setTimeout(function () {
                             completeFunction(response);
-                        },1000);
+                        }, 1000);
                     } catch (e) {
                         console.log('error parsing upload response log: ' + e)
                     }
@@ -537,33 +549,33 @@ UILibrary.uploadFileDialog = function(options) {
             }
         };
 
-        xhr.upload.addEventListener('progress',progressFunction,false);
+        xhr.upload.addEventListener('progress', progressFunction, false);
         xhr.upload.onprogress = progressFunction;
         xhr.open("POST", uploadUrl, true);
-        xhr.setRequestHeader('Accept',"application/json");
+        xhr.setRequestHeader('Accept', "application/json");
         fd.append("fileUpload", files[0]);
         xhr.send(fd);
         PWM_GLOBAL['inhibitHealthUpdate'] = true;
         PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
-        PWM_MAIN.showWaitDialog({title:PWM_MAIN.showString('Display_Uploading'),progressBar:true});
+        PWM_MAIN.showWaitDialog({title: PWM_MAIN.showString('Display_Uploading'), progressBar: true});
     };
 
     completeFunction = 'completeFunction' in options ? options['completeFunction'] : completeFunction;
 
-    var supportAjaxUploadWithProgress = function() {
-        var supportFileAPI = function () {
-            var fi = document.createElement('INPUT');
+    const supportAjaxUploadWithProgress = function () {
+        const supportFileAPI = function () {
+            const fi = document.createElement('INPUT');
             fi.type = 'file';
             return 'files' in fi;
         };
 
-        var supportAjaxUploadProgressEvents = function() {
-            var xhr = new XMLHttpRequest();
-            return !! (xhr && ('upload' in xhr) && ('onprogress' in xhr.upload));
+        const supportAjaxUploadProgressEvents = function () {
+            const xhr = new XMLHttpRequest();
+            return !!(xhr && ('upload' in xhr) && ('onprogress' in xhr.upload));
         };
 
-        var supportFormData = function() {
-            return !! window.FormData;
+        const supportFormData = function () {
+            return !!window.FormData;
         };
 
         return supportFileAPI() && supportAjaxUploadProgressEvents() && supportFormData();
@@ -582,7 +594,7 @@ UILibrary.uploadFileDialog = function(options) {
         loadFunction:function(){
             PWM_MAIN.addEventHandler('uploadButton','click',uploadFunction);
             PWM_MAIN.addEventHandler('uploadFile','change',function(){
-                var btn = PWM_MAIN.getObject('uploadButton');
+                const btn = PWM_MAIN.getObject('uploadButton');
                 console.log('value=' + btn.value);
                 btn.disabled = btn.value ? true : false;
             });
@@ -596,19 +608,21 @@ UILibrary.passwordDialogPopup = function(options, state) {
     options = options === undefined ? {} : options;
     state = state === undefined ? {} : state;
 
-    var option_title = 'title' in options ? options['title'] : 'Set Password';
-    var option_writeFunction = 'writeFunction' in options ? options['writeFunction'] : function() {alert('No Password Write Function')};
-    var option_minLength = 'minimumLength' in options ? options['minimumLength'] : 1;
-    var option_showRandomGenerator = 'showRandomGenerator' in options ? options['showRandomGenerator'] : false;
-    var option_showValues = 'showValues' in options ? options['showValues'] : false;
-    var option_randomLength = 'randomLength' in options ? options['randomLength'] : 25;
+    const option_title = 'title' in options ? options['title'] : 'Set Password';
+    const option_writeFunction = 'writeFunction' in options ? options['writeFunction'] : function () {
+        alert('No Password Write Function')
+    };
+    const option_minLength = 'minimumLength' in options ? options['minimumLength'] : 1;
+    const option_showRandomGenerator = 'showRandomGenerator' in options ? options['showRandomGenerator'] : false;
+    const option_showValues = 'showValues' in options ? options['showValues'] : false;
+    let option_randomLength = 'randomLength' in options ? options['randomLength'] : 25;
     option_randomLength = option_randomLength < option_minLength ? option_minLength : option_randomLength;
 
     state['p1'] = 'p1' in state ? state['p1'] : '';
     state['p2'] = 'p2' in state ? state['p2'] : '';
     state['randomLength'] = 'randomLength' in state ? state['randomLength'] : option_randomLength;
 
-    var markConfirmationCheckFunction = function(matchStatus) {
+    const markConfirmationCheckFunction = function (matchStatus) {
         if (matchStatus === "MATCH") {
             PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'visible';
             PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'hidden';
@@ -627,51 +641,53 @@ UILibrary.passwordDialogPopup = function(options, state) {
         }
     };
 
-    var generateRandomFunction = function() {
-        var length = state['randomLength'];
-        var special = state['showSpecial'];
+    const generateRandomFunction = function () {
+        const length = state['randomLength'];
+        const special = state['showSpecial'];
 
         if (!state['showFields']) {
             state['showFields'] = true;
         }
 
-        var charMap = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let charMap = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         if (special) {
             charMap += '~`!@#$%^&*()_-+=;:,.[]{}';
         }
-        var postData = { };
+        const postData = {};
         postData.maxLength = length;
         postData.minLength = length;
         postData.chars = charMap;
         postData.noUser = true;
         PWM_MAIN.getObject('button-storePassword').disabled = true;
 
-        var url = PWM_GLOBAL['url-restservice'] + "/randompassword";
-        var loadFunction = function(data) {
+        const url = PWM_GLOBAL['url-restservice'] + "/randompassword";
+        const loadFunction = function (data) {
             state['p1'] = data['data']['password'];
             state['p2'] = '';
-            UILibrary.passwordDialogPopup(options,state);
+            UILibrary.passwordDialogPopup(options, state);
         };
 
-        PWM_MAIN.showWaitDialog({loadFunction:function(){
-                PWM_MAIN.ajaxRequest(url,loadFunction,{content:postData});
-            }});
+        PWM_MAIN.showWaitDialog({
+            loadFunction: function () {
+                PWM_MAIN.ajaxRequest(url, loadFunction, {content: postData});
+            }
+        });
     };
 
 
-    var validateFunction = function() {
-        var password1 = state['p1'];
-        var password2 = state['p2'];
+    const validateFunction = function () {
+        const password1 = state['p1'];
+        const password2 = state['p2'];
 
-        var matchStatus = "";
+        let matchStatus = "";
 
         PWM_MAIN.getObject('field-password-length').innerHTML = password1.length;
         PWM_MAIN.getObject('button-storePassword').disabled = true;
 
         if (option_minLength > 1 && password1.length < option_minLength) {
-            PWM_MAIN.addCssClass('field-password-length','invalid-value');
+            PWM_MAIN.addCssClass('field-password-length', 'invalid-value');
         } else {
-            PWM_MAIN.removeCssClass('field-password-length','invalid-value');
+            PWM_MAIN.removeCssClass('field-password-length', 'invalid-value');
             if (password2.length > 0) {
                 if (password1 === password2) {
                     matchStatus = "MATCH";
@@ -685,7 +701,7 @@ UILibrary.passwordDialogPopup = function(options, state) {
         markConfirmationCheckFunction(matchStatus);
     };
 
-    var bodyText = '';
+    let bodyText = '';
     if (option_minLength > 1) {
         bodyText += 'Minimum Length: ' + option_minLength + '</span><br/><br/>'
     }
@@ -746,7 +762,7 @@ UILibrary.passwordDialogPopup = function(options, state) {
             ShowHidePasswordHandler.init('password2');
 
             PWM_MAIN.addEventHandler('button-storePassword','click',function() {
-                var passwordValue = PWM_MAIN.getObject('password1').value;
+                const passwordValue = PWM_MAIN.getObject('password1').value;
                 PWM_MAIN.closeWaitDialog();
                 option_writeFunction(passwordValue);
             });
@@ -781,19 +797,19 @@ UILibrary.passwordDialogPopup = function(options, state) {
 };
 
 UILibrary.displayElementsToTableContents = function(fields) {
-    var htmlTable = '';
-    for (var field in fields) {(function(field){
-        var fieldData = fields[field];
-        var classValue = fieldData['type'] === 'timestamp' ? 'timestamp' : '';
+    let htmlTable = '';
+    for (let field in fields) {(function(field){
+        const fieldData = fields[field];
+        const classValue = fieldData['type'] === 'timestamp' ? 'timestamp' : '';
         htmlTable += '<tr><td class="key">' + fieldData['label'] + '</td><td><span class="' + classValue + '" id="' + fieldData['key']  + '"</tr>';
     }(field)); }
     return htmlTable;
 };
 
 UILibrary.initElementsToTableContents = function(fields) {
-    for (var field in fields) {(function(field) {
-        var fieldData = fields[field];
-        var value = fieldData['value'];
+    for (let field in fields) {(function(field) {
+        const fieldData = fields[field];
+        let value = fieldData['value'];
         if (fieldData['type'] === 'number') {
             value = PWM_MAIN.numberFormat(value);
         }

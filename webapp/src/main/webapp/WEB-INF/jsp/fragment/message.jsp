@@ -40,5 +40,4 @@
 <% } else { %>
     <span id="message" class="message nodisplay">&nbsp;</span>
 <% } %>
-    <div id="capslockwarning" class="display-none"><pwm:display key="Display_CapsLockIsOn"/></div>
 </div>

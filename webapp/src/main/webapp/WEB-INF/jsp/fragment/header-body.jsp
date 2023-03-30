@@ -52,7 +52,7 @@
             <div id="header-menu-wrapper">
                 <div id="header-menu">
                     <pwm:if test="<%=PwmIfTest.permission%>" permission="<%=Permission.PWMADMIN%>">
-                        <div id="header-menu-alert" class="pwm-icon pwm-icon-warning display-none" title="<pwm:display key="Header_HealthWarningsPresent" bundle="Admin"/>"></div>
+                        <div id="header-menu-alert" class="pwm-icon pwm-icon-warning nodisplay" title="<pwm:display key="Header_HealthWarningsPresent" bundle="Admin"/>"></div>
                     </pwm:if>
                     <div id="header-username-group">
                         <pwm:if test="<%=PwmIfTest.authenticated%>">

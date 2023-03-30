@@ -59,7 +59,6 @@
         <%@ include file="fragment/message.jsp" %>
         <div class="meteredProgressBar">
           <progress id="html5ProgressBar" max="100" value="0">
-            <div data-dojo-type="dijit/ProgressBar" style="width:100%" data-dojo-id="passwordProgressBar" id="passwordProgressBar" data-dojo-props="maximum:100"></div>
           </progress>
         </div>
         <div style="text-align: center; width: 100%; padding-top: 50px">
@@ -76,10 +75,7 @@
 <pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parser", "dijit/ProgressBar","dojo/ready"], function(parser,registry){
-            parser.parse();
             PWM_NEWUSER.refreshCreateStatus(<%=checkIntervalSeconds * 1000%>);
-        });
     });
 </script>
 </pwm:script>

@@ -33,10 +33,10 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_DOJO);%>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_FOOTER_TEXT); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS); %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.NO_MOBILE_CSS); %>
-<link href="<pwm:url url='/public/resources/webjars/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <style nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" type="text/css">

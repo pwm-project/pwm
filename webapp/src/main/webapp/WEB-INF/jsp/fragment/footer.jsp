@@ -61,6 +61,7 @@
             </pwm:if>
         </div>
     </div>
+    <div id="capslockwarning" class="nodisplay"><pwm:display key="Display_CapsLockIsOn"/></div>
 </pwm:if>
 <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.NO_IDLE_TIMEOUT%>">
     <pwm:script>
@@ -69,11 +70,15 @@
         </script>
     </pwm:script>
 </pwm:if>
-<pwm:script>
-    <script type="text/javascript">
-        var dojoConfig = { has: { "csp-restrictions":true }, async:true}
-    </script>
-</pwm:script>
+<pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.INCLUDE_DOJO%>">
+    <link href="<pwm:url url='/public/resources/webjars/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
+    <pwm:script>
+        <script type="text/javascript">
+            var dojoConfig = { has: { "csp-restrictions":true }, async:true}
+        </script>
+    </pwm:script>
+    <script nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" dojo-sync-loader="false" type="text/javascript" src="<pwm:url addContext="true" url='/public/resources/webjars/dojo/dojo.js'/>"></script><noscript></noscript>
+</pwm:if>
 <pwm:if test="<%=PwmIfTest.hasCustomJavascript%>">
     <pwm:script>
         <script type="text/javascript">
@@ -83,5 +88,4 @@
         </script>
     </pwm:script>
 </pwm:if>
-<script nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" dojo-sync-loader="false" type="text/javascript" src="<pwm:url addContext="true" url='/public/resources/webjars/dojo/dojo.js'/>"></script><noscript></noscript>
 <pwm:script-ref url="/public/resources/js/main.js"/>

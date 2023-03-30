@@ -47,7 +47,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.i18n.Display;
-import password.pwm.svc.sessiontrack.UserAgentUtils;
+import password.pwm.i18n.PwmDisplayBundle;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsService;
@@ -310,7 +310,6 @@ public class ClientApiServlet extends ControlledPwmServlet
         settingMap.put( "client.ajaxTypingTimeout", Integer.parseInt( config.readAppProperty( AppProperty.CLIENT_AJAX_TYPING_TIMEOUT ) ) );
         settingMap.put( "client.ajaxTypingWait", Integer.parseInt( config.readAppProperty( AppProperty.CLIENT_AJAX_TYPING_WAIT ) ) );
         settingMap.put( "client.activityMaxEpsRate", Integer.parseInt( config.readAppProperty( AppProperty.CLIENT_ACTIVITY_MAX_EPS_RATE ) ) );
-        settingMap.put( "client.js.enableHtml5Dialog", Boolean.parseBoolean( config.readAppProperty( AppProperty.CLIENT_JS_ENABLE_HTML5DIALOG ) ) );
         settingMap.put( "client.locale", LocaleHelper.getBrowserLocaleString( pwmSession.getSessionStateBean().getLocale() ) );
         settingMap.put( "client.pwShowRevertTimeout", Integer.parseInt( config.readAppProperty( AppProperty.CLIENT_PW_SHOW_REVERT_TIMEOUT ) ) );
         settingMap.put( "enableIdleTimeout", config.readSettingAsBoolean( PwmSetting.DISPLAY_IDLE_TIMEOUT ) );
@@ -318,37 +317,11 @@ public class ClientApiServlet extends ControlledPwmServlet
         settingMap.put( "setting-showHidePasswordFields", pwmDomain.getConfig().readSettingAsBoolean( password.pwm.config.PwmSetting.DISPLAY_SHOW_HIDE_PASSWORD_FIELDS ) );
         settingMap.put( "setting-displayEula", PwmConstants.ENABLE_EULA_DISPLAY );
         settingMap.put( "setting-showStrengthMeter", config.readSettingAsBoolean( PwmSetting.PASSWORD_SHOW_STRENGTH_METER ) );
-
-        {
-            final Optional<UserAgentUtils.BrowserType> optionalBrowserType = UserAgentUtils.getBrowserType( pwmRequest );
-            final String browserTypeString = optionalBrowserType.isPresent() ? optionalBrowserType.get().toString() : "other";
-            settingMap.put( "browserType", browserTypeString );
-        }
-
-        {
-            long idleSeconds = config.readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
-            if ( pageUrl == null || pageUrl.isEmpty() )
-            {
-                LOGGER.warn( pwmRequest, () -> "request to /client data did not include pageUrl" );
-            }
-            else
-            {
-                try
-                {
-                    final PwmURL pwmUrl = PwmURL.create( URI.create( pageUrl ), pwmRequest.getContextPath(), pwmRequest.getAppConfig() );
-                    final TimeDuration maxIdleTime = IdleTimeoutCalculator.idleTimeoutForRequest( pwmRequest, pwmUrl );
-                    idleSeconds = maxIdleTime.as( TimeDuration.Unit.SECONDS );
-                }
-                catch ( final Exception e )
-                {
-                    LOGGER.error( pwmRequest, () -> "error determining idle timeout time for request: " + e.getMessage() );
-                }
-            }
-            settingMap.put( "MaxInactiveInterval", idleSeconds );
-        }
         settingMap.put( "paramName.locale", config.readAppProperty( AppProperty.HTTP_PARAM_NAME_LOCALE ) );
         settingMap.put( "runtimeNonce", pwmDomain.getPwmApplication().getRuntimeNonce() );
         settingMap.put( "applicationMode", pwmDomain.getApplicationMode() );
+
+        settingMap.putAll( makeIdleTimeoutClientData( pwmRequest, config, pageUrl ) );
 
         {
             final String contextPath = pwmRequest.getBasePath();
@@ -433,7 +406,7 @@ public class ClientApiServlet extends ControlledPwmServlet
     )
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final Class displayClass = LocaleHelper.classForShortName( bundleName ).orElse( Display.class );
+        final Class<? extends PwmDisplayBundle> displayClass = LocaleHelper.classForShortName( bundleName ).orElse( Display.class );
 
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final DomainConfig config = pwmDomain.getConfig();
@@ -529,6 +502,34 @@ public class ClientApiServlet extends ControlledPwmServlet
                 throw new PwmUnrecoverableException( errorInformation );
             }
         }
+    }
+
+
+    private static Map<String, Object> makeIdleTimeoutClientData(
+            final PwmRequest pwmRequest,
+            final DomainConfig config,
+            final String pageUrl )
+    {
+        long idleSeconds = config.readSettingAsLong( PwmSetting.IDLE_TIMEOUT_SECONDS );
+        if ( StringUtil.isEmpty( pageUrl ) )
+        {
+            LOGGER.warn( pwmRequest, () -> "request to /client data did not include pageUrl" );
+        }
+        else
+        {
+            try
+            {
+                final PwmURL pwmUrl = PwmURL.create( URI.create( pageUrl ), pwmRequest.getContextPath(), pwmRequest.getAppConfig() );
+                final TimeDuration maxIdleTime = IdleTimeoutCalculator.idleTimeoutForRequest( pwmRequest, pwmUrl );
+                idleSeconds = maxIdleTime.as( TimeDuration.Unit.SECONDS );
+            }
+            catch ( final Exception e )
+            {
+                LOGGER.error( pwmRequest, () -> "error determining idle timeout time for request: " + e.getMessage() );
+            }
+        }
+
+        return Collections.singletonMap( "MaxInactiveInterval", idleSeconds );
     }
 }
 

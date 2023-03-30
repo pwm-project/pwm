@@ -27,13 +27,13 @@ var PWM_VAR = PWM_VAR || {};
 var PWM_UPDATE = PWM_UPDATE || {};
 
 PWM_UPDATE.validateForm = function() {
-    var validationProps = [];
+    const validationProps = [];
     validationProps['serviceURL'] = PWM_MAIN.addParamToUrl(window.location.href,"processAction","validate");
     validationProps['readDataFunction'] = function(){
-        var paramData = { };
-        for (var j = 0; j < document.forms.length; j++) {
-            for (var i = 0; i < document.forms[j].length; i++) {
-                var current = document.forms[j].elements[i];
+        const paramData = {};
+        for (let j = 0; j < document.forms.length; j++) {
+            for (let i = 0; i < document.forms[j].length; i++) {
+                const current = document.forms[j].elements[i];
                 paramData[current.name] = current.value;
             }
         }
@@ -55,11 +55,11 @@ PWM_UPDATE.validateForm = function() {
 
 
 PWM_UPDATE.uploadPhoto=function(fieldName,options) {
-    var url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'uploadPhoto');
+    let url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction', 'uploadPhoto');
     url = PWM_MAIN.addParamToUrl(url, 'field', fieldName);
 
 
-    var uploadOptions = options === undefined ? {} : options;
+    const uploadOptions = options === undefined ? {} : options;
     uploadOptions['url'] = url;
 
     uploadOptions['title'] = PWM_MAIN.showString('Title_UploadPhoto');

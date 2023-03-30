@@ -24,23 +24,3 @@
 var PWM_GUEST = PWM_GUEST || {};
 var PWM_VAR = PWM_VAR || {};
 
-
-PWM_GUEST.initDatePicker = function(maxValidDate,selectedDate) {
-    require(["dijit/form/DateTextBox"],function(DateTextBox){
-        new DateTextBox({
-            constraints: {
-                min: new Date(),
-                max: maxValidDate
-            },
-            value: selectedDate,
-            onChange: function(){
-                var selectedDate = new Date(Date.parse(this.value));
-                var isoDate = selectedDate.toISOString();
-                PWM_MAIN.getObject('_expirationDateFormInput').value = isoDate;
-            }
-        }, "expiredate-stub");
-    });
-
-};
-
-

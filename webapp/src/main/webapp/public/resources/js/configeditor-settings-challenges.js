@@ -170,7 +170,7 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
             dialogBody += '<td colspan="200" style="border-width: 0;">';
 
             const inputID = "value-" + keyName + "-" + localeName + "-" + rowKey;
-            PWM_MAIN.clearDijitWidget(inputID);
+            PWM_CFGEDIT.clearDijitWidget(inputID);
 
             dialogBody += '<input class="configStringInput" id="' + inputID + '" style="width: 700px" required="required" disabled value="Loading"/>';
 

@@ -184,11 +184,11 @@ PWM_CONFIG.showHeaderHealth = function() {
             if (data['data'] && data['data']['overall']) {
                 const hasWarnTopics = data['data']['overall'] === 'WARN';
                 if (hasWarnTopics) {
-                    PWM_MAIN.removeCssClass('header-menu-alert', 'display-none');
-                    PWM_MAIN.removeCssClass('panel-header-healthData', 'display-none');
+                    PWM_MAIN.removeCssClass('header-menu-alert', 'nodisplay');
+                    PWM_MAIN.removeCssClass('panel-header-healthData', 'nodisplay');
                 } else {
-                    PWM_MAIN.addCssClass('header-menu-alert', 'display-none');
-                    PWM_MAIN.addCssClass('panel-header-healthData', 'display-none');
+                    PWM_MAIN.addCssClass('header-menu-alert', 'nodisplay');
+                    PWM_MAIN.addCssClass('panel-header-healthData', 'nodisplay');
                 }
                 setTimeout(function () {
                     PWM_CONFIG.showHeaderHealth();

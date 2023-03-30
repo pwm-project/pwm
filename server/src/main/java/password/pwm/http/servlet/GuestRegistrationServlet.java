@@ -686,6 +686,8 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
         final long maxValidDays = pwmRequest.getDomainConfig().readSettingAsLong( PwmSetting.GUEST_MAX_VALID_DAYS );
         pwmRequest.setAttribute( PwmRequestAttribute.GuestMaximumValidDays, String.valueOf( maxValidDays ) );
 
+        pwmRequest.setAttribute( PwmRequestAttribute.GuestMinimumExpirationDate, dateFormat.format( Instant.now() ) );
+
 
         final String maxExpirationDate;
         {

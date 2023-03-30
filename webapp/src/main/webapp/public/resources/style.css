@@ -785,6 +785,7 @@ html[dir="rtl"] #header-center-right {
     overflow: auto;
     font-family: monospace;
     white-space: pre-wrap;
+    height: 400px;
 }
 
 /* hide recaptcha iframe near footer */
@@ -881,6 +882,14 @@ select {
 .icon-likeUserSearch {
     cursor: pointer;
     float: right;
+}
+
+.locale-select-table {
+    width: auto;
+    margin-right: auto;
+    margin-left: auto;
+    overflow-x: scroll;
+    cursor: pointer;
 }
 
 #localeSelectionMenu {
@@ -1035,12 +1044,17 @@ input[type=search] {
 progress:not([value]) {
     width: 100%;
     height: 20px;
+    transition: all 1s;
 }
 
 progress[value] {
     height: 20px;
     width: 100%;
     color: orange;
+}
+
+progress::-webkit-progress-value {
+    transition: all 1s;
 }
 
 .blink {
@@ -1401,10 +1415,6 @@ dialog .closeIcon {
     text-align: center;
 }
 
-.display-none {
-    display: none;
-}
-
 #header-menu-icon::after {
     content: "\f141";
     font: 12px FontAwesome;
@@ -1490,14 +1500,6 @@ dialog .closeIcon {
     z-index: 1002;
 }
 
-html[dir="rtl"] .nihilo .dijitTabContainerTop-tabs {
-    text-align: right;
-}
-
-html[dir="rtl"] .nihilo .dijitTabContainerTop-tabs > .dijitTabContent:first-child {
-    margin-right: 10px;
-}
-
 @keyframes wait-fadein {
     0% {
         opacity: 0
@@ -1570,10 +1572,14 @@ html[dir="rtl"] .errorDetail {
     direction: ltr;
     text-align: right;
     unicode-bidi: bidi-override;
+    max-height: 250px;
+    overflow-y: auto
 }
 
 html[dir="rtl"] .message.message-error .errorDetail {
     display: inline-block;
+    max-height: 250px;
+    overflow-y: auto
 }
 
 .pwm-icon-button {

@@ -88,6 +88,7 @@ public enum PwmRequestAttribute
 
     GuestCurrentExpirationDate,
     GuestMaximumExpirationDate,
+    GuestMinimumExpirationDate,
     GuestMaximumValidDays,
 
     NewUser_FormShowBackButton,

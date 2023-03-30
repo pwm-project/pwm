@@ -28,7 +28,7 @@ PWM_OTP.checkExistingCode = function() {
     PWM_MAIN.pwmFormValidator({
         serviceURL: PWM_MAIN.addParamToUrl(window.location.href,"processAction","restValidateCode"),
         readDataFunction:function(){
-            var paramData = { };
+            const paramData = {};
             paramData['code'] = PWM_MAIN.getObject('verifyCodeInput').value;
             return paramData;
         },
@@ -52,7 +52,7 @@ PWM_OTP.checkExistingCode = function() {
 };
 
 PWM_OTP.openCheckCodeDialog = function() {
-    var templateHtml = '<div>'
+    const templateHtml = '<div>'
         + '<p>' + PWM_MAIN.showString("Display_RecoverOTP") + '</p>'
         + '<table class="noborder" style="width: 300px; table-layout: fixed">'
         + '<tr><td style="width:115px">'

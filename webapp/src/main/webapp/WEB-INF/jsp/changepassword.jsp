@@ -52,13 +52,14 @@
         </div>
         <br/>
         <%@ include file="fragment/message.jsp" %>
+        <br/>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" id="changePasswordForm" autocomplete="off">
             <jsp:include page="fragment/form-field-newpassword.jsp" />
 
             <input type="hidden" name="processAction" value="change"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 
-            <div class="buttonbar" style="width:100%">
+            <div class="buttonbar">
                 <button type="submit" name="password_button" class="btn" id="password_button" tabindex="<pwm:tabindex/>">
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_ChangePassword"/>

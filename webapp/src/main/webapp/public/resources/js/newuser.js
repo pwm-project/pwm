@@ -80,29 +80,20 @@ PWM_NEWUSER.updateDisplay=function(data) {
 
 
 PWM_NEWUSER.refreshCreateStatus=function(refreshInterval) {
-    require(["dojo","dijit/registry"],function(dojo,registry){
-        const checkStatusUrl = PWM_MAIN.addParamToUrl(window.location.pathname, "processAction", "checkProgress");
-        const completedUrl = PWM_MAIN.addParamToUrl(window.location.pathname, "processAction", "complete");
-        const loadFunction = function (data) {
-            const supportsProgress = (document.createElement('progress').max !== undefined);
-            if (supportsProgress) {
-                console.log('beginning html5 progress refresh');
-                const html5passwordProgressBar = PWM_MAIN.getObject('html5ProgressBar');
-                dojo.setAttr(html5passwordProgressBar, "value", data['data']['percentComplete']);
-            } else {
-                console.log('beginning dojo progress refresh');
-                const progressBar = registry.byId('passwordProgressBar');
-                progressBar.set("value", data['data']['percentComplete']);
-            }
+    const checkStatusUrl = PWM_MAIN.addParamToUrl(window.location.pathname, "processAction", "checkProgress");
+    const completedUrl = PWM_MAIN.addParamToUrl(window.location.pathname, "processAction", "complete");
+    const loadFunction = function (data) {
+        console.log('beginning html5 progress refresh');
+        const html5passwordProgressBar = PWM_MAIN.getObject('html5ProgressBar');
+        html5passwordProgressBar.value = data['data']['percentComplete'];
 
-            if (data['data']['complete'] === true) {
-                PWM_MAIN.gotoUrl(completedUrl, {delay: 1000})
-            } else {
-                setTimeout(function () {
-                    PWM_NEWUSER.refreshCreateStatus(refreshInterval);
-                }, refreshInterval);
-            }
-        };
-        PWM_MAIN.ajaxRequest(checkStatusUrl, loadFunction, {method:'GET'});
-    });
+        if (data['data']['complete'] === true) {
+            PWM_MAIN.gotoUrl(completedUrl, {delay: 1000})
+        } else {
+            setTimeout(function () {
+                PWM_NEWUSER.refreshCreateStatus(refreshInterval);
+            }, refreshInterval);
+        }
+    };
+    PWM_MAIN.ajaxRequest(checkStatusUrl, loadFunction, {method:'GET'});
 };

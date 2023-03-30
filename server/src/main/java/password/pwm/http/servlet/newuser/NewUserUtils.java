@@ -497,7 +497,15 @@ class NewUserUtils
 
         final String usernameAttribute = newUserProfile.getLdapProfile( pwmDomain.getConfig() ).readSettingAsString( PwmSetting.LDAP_USERNAME_ATTRIBUTE );
 
+        final String username = formValues.getOrDefault( usernameAttribute, "_NewUser_" );
+
+        final UserIdentity userIdentity = UserIdentity.create(
+                username,
+                newUserProfile.getLdapProfile( pwmDomain.getConfig() ).getId(),
+                pwmDomain.getDomainID() );
+
         return UserInfoBean.builder()
+                .userIdentity( userIdentity )
                 .userEmailAddress( formValues.get( emailAddressAttribute ) )
                 .username( formValues.get( usernameAttribute ) )
                 .attributes( formValues )
@@ -768,7 +776,7 @@ class NewUserUtils
                     TokenUtil.initializeAndSendToken(
                             pwmRequest.getPwmRequestContext(),
                             TokenUtil.TokenInitAndSendRequest.builder()
-                                    .userInfo(  null )
+                                    .userInfo(  macroRequest.getUserInfo() )
                                     .tokenDestinationItem( tokenDestinationItem )
                                     .emailToSend( PwmSetting.EMAIL_NEWUSER_VERIFICATION )
                                     .tokenType( TokenType.NEWUSER )

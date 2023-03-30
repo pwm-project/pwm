@@ -175,7 +175,7 @@ LocalizedStringValueHandler.addLocaleSetting = function(settingKey, localeKey) {
 
 // -------------------------- multi locale table handler ------------------------------------
 
-var MultiLocaleTableHandler = {};
+const MultiLocaleTableHandler = {};
 
 MultiLocaleTableHandler.initMultiLocaleTable = function(keyName) {
     console.log('MultiLocaleTableHandler init for ' + keyName);
@@ -337,7 +337,7 @@ MultiLocaleTableHandler.writeMultiLocaleSetting = function(settingKey, locale, i
 
 // -------------------------- change password handler ------------------------------------
 
-var ChangePasswordHandler = {};
+const ChangePasswordHandler = {};
 
 ChangePasswordHandler.init = function(settingKey) {
     const parentDiv = 'table_setting_' + settingKey;
@@ -585,7 +585,7 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
 
 // -------------------------- boolean handler ------------------------------------
 
-var BooleanHandler = {};
+const BooleanHandler = {};
 
 BooleanHandler.init = function(keyName) {
     console.log('BooleanHandler init for ' + keyName);
@@ -615,7 +615,7 @@ BooleanHandler.toggle = function(keyName,widget) {
 
 // -------------------------- option list handler ------------------------------------
 
-var OptionListHandler = {};
+const OptionListHandler = {};
 OptionListHandler.defaultItem = [];
 
 OptionListHandler.init = function(keyName) {
@@ -672,7 +672,7 @@ OptionListHandler.toggle = function(keyName,optionKey) {
 
 // -------------------------- numeric value handler ------------------------------------
 
-var NumericValueHandler = {};
+const NumericValueHandler = {};
 NumericValueHandler.init = function(settingKey) {
     NumericValueHandler.impl(settingKey, 'number', 0, 100);
 };
@@ -721,14 +721,14 @@ NumericValueHandler.updateDurationDisplay = function(settingKey, numberValue) {
 
 // -------------------------- duration value ---------------------------
 
-var DurationValueHandler = {};
+const DurationValueHandler = {};
 DurationValueHandler.init = function(settingKey) {
     NumericValueHandler.impl(settingKey, 'duration', -1, 365 * 24 * 60 * 60, 1 );
 };
 
 // -------------------------- numeric array value handler ------------------------------------
 
-var NumericArrayValueHandler = {};
+const NumericArrayValueHandler = {};
 NumericArrayValueHandler.init = function(settingKey) {
     NumericArrayValueHandler.impl(settingKey, 'number', 0, 100);
 };
@@ -824,7 +824,7 @@ NumericArrayValueHandler.draw = function(settingKey, type) {
 
 // -------------------------- duration array value ---------------------------
 
-var DurationArrayValueHandler = {};
+const DurationArrayValueHandler = {};
 DurationArrayValueHandler.init = function(settingKey) {
     NumericArrayValueHandler.impl(settingKey, 'duration');
 };
@@ -832,7 +832,7 @@ DurationArrayValueHandler.init = function(settingKey) {
 
 // -------------------------- string value handler ------------------------------------
 
-var StringValueHandler = {};
+const StringValueHandler = {};
 
 StringValueHandler.init = function(settingKey) {
     const parentDiv = 'table_setting_' + settingKey;
@@ -905,7 +905,7 @@ StringValueHandler.init = function(settingKey) {
 
 // -------------------------- text area handler ------------------------------------
 
-var TextAreaValueHandler = {};
+const TextAreaValueHandler = {};
 TextAreaValueHandler.init = function(settingKey) {
     StringValueHandler.init(settingKey);
 };
@@ -913,7 +913,7 @@ TextAreaValueHandler.init = function(settingKey) {
 
 // -------------------------- select value handler ------------------------------------
 
-var SelectValueHandler = {};
+const SelectValueHandler = {};
 SelectValueHandler.init = function(settingKey) {
     const parentDiv = 'table_setting_' + settingKey;
     const parentDivElement = PWM_MAIN.getObject(parentDiv);
@@ -990,7 +990,7 @@ SelectValueHandler.init = function(settingKey) {
 
 // -------------------------- x509 setting handler ------------------------------------
 
-var X509CertificateHandler = {};
+const X509CertificateHandler = {};
 
 X509CertificateHandler.init = function(keyName) {
     PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
@@ -1071,7 +1071,7 @@ X509CertificateHandler.draw = function(keyName) {
 
 // -------------------------- verification method handler ------------------------------------
 
-var VerificationMethodHandler = {};
+const VerificationMethodHandler = {};
 VerificationMethodHandler.init = function(settingKey) {
     PWM_CFGEDIT.readSetting(settingKey, function(resultValue) {
         PWM_VAR['clientSettingCache'][settingKey] = resultValue;
@@ -1205,7 +1205,7 @@ VerificationMethodHandler.updateLabels = function(settingKey) {
 
 // -------------------------- file setting handler ------------------------------------
 
-var FileValueHandler = {};
+const FileValueHandler = {};
 
 FileValueHandler.init = function(keyName) {
     PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
@@ -1280,7 +1280,7 @@ FileValueHandler.uploadFile = function(keyName) {
 
 // -------------------------- x509 setting handler ------------------------------------
 
-var PrivateKeyHandler = {};
+const PrivateKeyHandler = {};
 
 PrivateKeyHandler.init = function(keyName) {
     PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
@@ -1368,7 +1368,7 @@ PrivateKeyHandler.draw = function(keyName) {
 
 
 //--------- named secret handler ---
-var NamedSecretHandler = {};
+const NamedSecretHandler = {};
 
 NamedSecretHandler.init = function(settingKey) {
     const parentDiv = 'table_setting_' + settingKey;

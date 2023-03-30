@@ -67,7 +67,6 @@ public enum AppProperty
     CLIENT_FORM_CLIENT_REGEX_ENABLED                ( "client.form.clientRegexEnable" ),
     CLIENT_WARNING_HEADER_SHOW                      ( "client.warningHeader.show" ),
     CLIENT_PW_SHOW_REVERT_TIMEOUT                   ( "client.pwShowRevertTimeout" ),
-    CLIENT_JS_ENABLE_HTML5DIALOG                    ( "client.js.enableHtml5Dialog" ),
     CLIENT_JSP_SHOW_ICONS                           ( "client.jsp.showIcons" ),
     CONFIG_MAX_FILEVALUE_SIZE                       ( "config.max.fileValue.size" ),
     CONFIG_RELOAD_ON_CHANGE                         ( "config.reloadOnChange" ),

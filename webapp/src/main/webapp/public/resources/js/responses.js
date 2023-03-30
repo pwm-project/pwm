@@ -30,11 +30,11 @@ PWM_VAR['simpleRandomOptions'] = [];
 // takes response values in the fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
 PWM_RESPONSES.validateResponses=function() {
-    var serviceUrl = PWM_MAIN.addParamToUrl(window.location.href,"processAction","validateResponses");
+    let serviceUrl = PWM_MAIN.addParamToUrl(window.location.href, "processAction", "validateResponses");
     if (PWM_GLOBAL['responseMode']) {
         serviceUrl += "&responseMode=" + PWM_GLOBAL['responseMode'];
     }
-    var validationProps = {};
+    const validationProps = {};
     validationProps['messageWorking'] = PWM_MAIN.showString('Display_CheckingResponses');
     validationProps['serviceURL'] = serviceUrl;
     validationProps['readDataFunction'] = function(){
@@ -58,7 +58,7 @@ PWM_RESPONSES.updateDisplay=function(resultInfo) {
         return;
     }
 
-    var result = resultInfo["message"];
+    const result = resultInfo["message"];
 
     if (resultInfo["success"] === true) {
         PWM_MAIN.getObject("button-setResponses").disabled = false;
@@ -70,25 +70,25 @@ PWM_RESPONSES.updateDisplay=function(resultInfo) {
 };
 
 PWM_RESPONSES.makeSelectOptionsDistinct=function() {
-    var startTime = (new Date()).getTime();
+    const startTime = (new Date()).getTime();
     console.log('entering makeSelectOptionsDistinct()');
 
     // all possible random questions (populated by the jsp)
-    var allPossibleTexts = PWM_VAR['simpleRandomOptions'];
+    const allPossibleTexts = PWM_VAR['simpleRandomOptions'];
 
     // string that is used at the top of unconfigured select list
-    var initialChoiceText = PWM_MAIN.showString('Display_SelectionIndicator');
+    const initialChoiceText = PWM_MAIN.showString('Display_SelectionIndicator');
 
     // the HTML select elements (populated by the jsp)
-    var simpleRandomSelectElements = PWM_VAR['simpleRandomSelectElements'];
+    const simpleRandomSelectElements = PWM_VAR['simpleRandomSelectElements'];
 
     // texts that are in use
-    var currentlySelectedTexts = [];
+    const currentlySelectedTexts = [];
 
     PWM_MAIN.JSLibrary.forEachInArray(simpleRandomSelectElements,function(questionID){
-        var selectedElement = PWM_MAIN.getObject(questionID);
-        var selectedIndex = selectedElement.selectedIndex;
-        var selectedValue = selectedElement.options[selectedIndex].value;
+        const selectedElement = PWM_MAIN.getObject(questionID);
+        const selectedIndex = selectedElement.selectedIndex;
+        const selectedValue = selectedElement.options[selectedIndex].value;
         if ('UNSELECTED' !== selectedValue) {
             currentlySelectedTexts.push(selectedValue);
         }
@@ -96,13 +96,13 @@ PWM_RESPONSES.makeSelectOptionsDistinct=function() {
 
     // repopulate the select elements
     PWM_MAIN.JSLibrary.forEachInArray(simpleRandomSelectElements,function(questionID){
-        var selectedElement = PWM_MAIN.getObject(questionID);
-        var selectedIndex = selectedElement.selectedIndex;
-        var selectedValue = selectedElement.options[selectedIndex].value;
-        var responseID = selectedElement.getAttribute('data-response-id');
+        const selectedElement = PWM_MAIN.getObject(questionID);
+        const selectedIndex = selectedElement.selectedIndex;
+        const selectedValue = selectedElement.options[selectedIndex].value;
+        const responseID = selectedElement.getAttribute('data-response-id');
         selectedElement.innerHTML = '<optgroup></optgroup>';
         if (selectedValue === 'UNSELECTED') {
-            var unselectedOption = document.createElement('option');
+            const unselectedOption = document.createElement('option');
             unselectedOption.value = 'UNSELECTED';
             unselectedOption.innerHTML = '&nbsp;&mdash;&nbsp;' + initialChoiceText + '&nbsp;&mdash;&nbsp;';
             unselectedOption.selected = true;
@@ -110,7 +110,7 @@ PWM_RESPONSES.makeSelectOptionsDistinct=function() {
         }
 
         PWM_MAIN.JSLibrary.forEachInArray(allPossibleTexts,function(loopText){
-            var optionElement = document.createElement('option');
+            const optionElement = document.createElement('option');
             optionElement.value = loopText;
             optionElement.innerHTML = loopText;
 
@@ -128,9 +128,9 @@ PWM_RESPONSES.makeSelectOptionsDistinct=function() {
 
 PWM_RESPONSES.startupResponsesPage=function() {
     PWM_MAIN.doIfQueryHasResults('#pwm-setupResponsesDiv',function(){
-        var initialPrompt = PWM_MAIN.showString('Display_ResponsesPrompt');
+        const initialPrompt = PWM_MAIN.showString('Display_ResponsesPrompt');
         if (initialPrompt !== null && initialPrompt.length > 1) {
-            var messageElement = PWM_MAIN.getObject("message");
+            const messageElement = PWM_MAIN.getObject("message");
             if (messageElement.firstChild.nodeValue.length < 2) {
                 PWM_MAIN.showInfo(initialPrompt);
             }
@@ -152,8 +152,8 @@ PWM_RESPONSES.initSimpleRandomElements = function() {
     PWM_VAR['simpleRandomSelectElements'] = [];
     PWM_VAR['focusInValues'] = {};
 
-    var updateResponseInputField = function(element) {
-        var responseID = element.getAttribute('data-response-id');
+    const updateResponseInputField = function (element) {
+        const responseID = element.getAttribute('data-response-id');
         if (element.value === 'UNSELECTED') {
             PWM_MAIN.getObject(responseID).disabled = true;
             PWM_MAIN.getObject(responseID).readonly = true;
@@ -175,23 +175,15 @@ PWM_RESPONSES.initSimpleRandomElements = function() {
         });
         PWM_MAIN.addEventHandler(element.id,"click,blur",function(){
             if (PWM_VAR['focusInValues'][element.id] !== element.selectedIndex) {
-                var selectedIndex = element.selectedIndex;
-                var selectedValue = element.options[selectedIndex].value;
+                const selectedIndex = element.selectedIndex;
+                const selectedValue = element.options[selectedIndex].value;
                 if (selectedValue !== 'UNSELECTED') {
-                    var responseID = element.getAttribute('data-response-id');
-                    var responseElement = PWM_MAIN.getObject(responseID);
+                    const responseID = element.getAttribute('data-response-id');
+                    const responseElement = PWM_MAIN.getObject(responseID);
                     responseElement.value = '';
                     responseElement.disabled = false;
                     responseElement.readonly = false;
                     PWM_RESPONSES.makeSelectOptionsDistinct();
-
-                    require(["dojo/has"], function(has){
-                        // ios safari seems to behave poorly when moving the focus away from an open drop down list
-                        if(!has("ios") && !has("safari")){
-                            responseElement.focus();
-                        }
-                    });
-
                 }
             }
         });

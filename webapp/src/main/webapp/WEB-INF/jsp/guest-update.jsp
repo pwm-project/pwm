@@ -31,6 +31,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final String maxValidDate = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.GuestMaximumExpirationDate); %>
 <% final String selectedDate = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.GuestCurrentExpirationDate); %>
+<% final String minValidDate = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.GuestMinimumExpirationDate); %>
 <% final String maxValidDays = (String)JspUtility.getAttribute(pageContext, PwmRequestAttribute.GuestMaximumValidDays); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
@@ -49,10 +50,10 @@
             <p>
                 <label>
                     <pwm:display key="Display_ExpirationDate" value1="<%=String.valueOf(maxValidDays)%>"/>
-                    <input name="<%=GuestRegistrationServlet.HTTP_PARAM_EXPIRATION_DATE%>" id="<%=GuestRegistrationServlet.HTTP_PARAM_EXPIRATION_DATE%>" type="hidden" required="true" value="<%=selectedDate%>"/>
-                    <input name="expiredate-stub" id="expiredate-stub" type="date" required="true" value="<%=selectedDate%>"/>
                 </label>
             </p>
+            <input name="<%=GuestRegistrationServlet.HTTP_PARAM_EXPIRATION_DATE%>" id="<%=GuestRegistrationServlet.HTTP_PARAM_EXPIRATION_DATE%>"
+                   type="date" required="true" max="<%=maxValidDate%>" min="<%=minValidDate%>" value="<%=selectedDate%>"/>
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="update"/>
                 <button type="submit" name="Update" class="btn" id="submitBtn">

@@ -115,7 +115,7 @@ public class UserMacros
                 throw new MacroParseException( "too many parameters" );
             }
 
-           final String ldapValue = readLdapValue( macroRequest, ldapAttr, matchValue );
+            final String ldapValue = readLdapValue( macroRequest, ldapAttr, matchValue );
 
             final StringBuilder returnValue = new StringBuilder();
             returnValue.append( ldapValue == null
@@ -747,23 +747,30 @@ public class UserMacros
                 throws MacroParseException
         {
             final UserInfo userInfo = request.getUserInfo();
-            if ( userInfo != null )
+            if ( userInfo == null )
             {
-                final UserIdentity userIdentity = userInfo.getUserIdentity();
-                if ( userIdentity != null )
-                {
-                    final DomainID domainID = userIdentity.getDomainID();
-                    if ( domainID != null )
-                    {
-                        final PwmDomain pwmDomain = request.getPwmApplication().domains().get( domainID );
-                        if ( pwmDomain != null )
-                        {
-                            return pwmDomain.getConfig().readSettingAsString( PwmSetting.EMAIL_DOMAIN_FROM_ADDRESS );
-                        }
-                    }
-                }
+                throw new MacroParseException( "[DefaultEmailFromAddress]: userInfo unspecified on macro request" );
             }
-            throw new MacroParseException( "@DefaultEmailFromAddress@: domain unspecified on macro request" );
+
+            final UserIdentity userIdentity = userInfo.getUserIdentity();
+            if ( userIdentity == null )
+            {
+                throw new MacroParseException( "[DefaultEmailFromAddress]: userIdentity unspecified on macro request" );
+            }
+
+            final DomainID domainID = userIdentity.getDomainID();
+            if ( domainID == null )
+            {
+                throw new MacroParseException( "[DefaultEmailFromAddress]: domain unspecified on macro request" );
+            }
+
+            final PwmDomain pwmDomain = request.getPwmApplication().domains().get( domainID );
+            if ( pwmDomain == null )
+            {
+                throw new MacroParseException( "[DefaultEmailFromAddress]: domain invalid on macro request" );
+            }
+
+            return pwmDomain.getConfig().readSettingAsString( PwmSetting.EMAIL_DOMAIN_FROM_ADDRESS );
         }
     }
 
