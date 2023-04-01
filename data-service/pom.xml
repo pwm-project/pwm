@@ -36,6 +36,7 @@
                 <!-- This plugin will set properties values using dependency information -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -75,7 +76,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.3.1</version>
                 <executions>
                     <execution>
                         <id>copy-resources</id>
@@ -155,7 +156,7 @@
         <dependency>
             <groupId>ch.qos.reload4j</groupId>
             <artifactId>reload4j</artifactId>
-            <version>1.2.24</version>
+            <version>1.2.25</version>
         </dependency>
         <dependency>
             <groupId>org.jdom</groupId>

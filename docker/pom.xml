@@ -45,7 +45,7 @@
                         <configuration>
                             <skip>${skipDocker}</skip>
                             <from>
-                                <image>adoptopenjdk/openjdk11:jre</image>
+                                <image>eclipse-temurin:11-jre@sha256:67b421638b378b1dab8cbf8111c9da1a148b2488f5d88654b6804fcaa80802ba</image>
                             </from>
                             <to>
                                 <image>${dockerImageTag}</image>
