@@ -228,7 +228,7 @@ public class LdapUserInfoReader implements UserInfo
         LOGGER.trace( sessionLabel, () -> "beginning password status check process for " + userDN );
 
         // check if password meets existing policy.
-        if ( passwordPolicy.getRuleHelper().readBooleanValue( PwmPasswordRule.EnforceAtLogin ) )
+        if ( passwordPolicy.ruleHelper().readBooleanValue( PwmPasswordRule.EnforceAtLogin ) )
         {
             if ( currentPassword != null )
             {
@@ -678,9 +678,9 @@ public class LdapUserInfoReader implements UserInfo
     )
             throws PwmUnrecoverableException
     {
-        final Set<String> interestingUserAttributes = new HashSet<>( uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes() );
-        if ( uiBean.getPasswordPolicy().getRuleHelper().getADComplexityLevel() == ADPolicyComplexity.AD2003
-                || uiBean.getPasswordPolicy().getRuleHelper().getADComplexityLevel() == ADPolicyComplexity.AD2008 )
+        final Set<String> interestingUserAttributes = new HashSet<>( uiBean.getPasswordPolicy().ruleHelper().getDisallowedAttributes() );
+        if ( uiBean.getPasswordPolicy().ruleHelper().getADComplexityLevel() == ADPolicyComplexity.AD2003
+                || uiBean.getPasswordPolicy().ruleHelper().getADComplexityLevel() == ADPolicyComplexity.AD2008 )
         {
             interestingUserAttributes.add( "sAMAccountName" );
             interestingUserAttributes.add( "displayName" );

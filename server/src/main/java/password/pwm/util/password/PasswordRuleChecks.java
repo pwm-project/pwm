@@ -137,7 +137,7 @@ public class PasswordRuleChecks
                 .pwmDomain( pwmDomain )
                 .policy( policy )
                 .userInfo( userInfo )
-                .ruleHelper( policy.getRuleHelper() )
+                .ruleHelper( policy.ruleHelper() )
                 .macroRequest( macroRequest )
                 .charCounter( new PasswordCharCounter( password ) )
                 .build();
@@ -570,9 +570,9 @@ public class PasswordRuleChecks
             final PwmPasswordPolicy policy = ruleCheckData.getPolicy();
 
             // check disallowed attributes.
-            if ( !policy.getRuleHelper().getDisallowedAttributes().isEmpty() )
+            if ( !policy.ruleHelper().getDisallowedAttributes().isEmpty() )
             {
-                final List<String> paramConfigs = policy.getRuleHelper().getDisallowedAttributes( PasswordRuleReaderHelper.Flag.KeepThresholds );
+                final List<String> paramConfigs = policy.ruleHelper().getDisallowedAttributes( PasswordRuleReaderHelper.Flag.KeepThresholds );
                 if ( userInfo != null )
                 {
                     final Map<String, String> userValues = userInfo.getCachedPasswordRuleAttributes();

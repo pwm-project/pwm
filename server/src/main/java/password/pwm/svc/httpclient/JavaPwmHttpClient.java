@@ -35,6 +35,7 @@ import password.pwm.http.HttpEntityDataType;
 import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.data.ImmutableByteArray;
+import password.pwm.http.PwmURL;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
@@ -51,7 +52,6 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
@@ -306,13 +306,9 @@ public class JavaPwmHttpClient implements PwmHttpClientProvider
     public InputStream streamForUrl( final String inputUrl )
             throws IOException, PwmUnrecoverableException
     {
-        final URL url = new URL( inputUrl );
-        if ( "file".equals( url.getProtocol() ) )
-        {
-            return url.openStream();
-        }
+        final URI uri = URI.create( inputUrl );
 
-        if ( "http".equals( url.getProtocol() ) || "https".equals( url.getProtocol() ) )
+        if ( PwmURL.uriSchemeMatches( uri, PwmURL.Scheme.http, PwmURL.Scheme.https ) )
         {
             try
             {
@@ -322,7 +318,7 @@ public class JavaPwmHttpClient implements PwmHttpClientProvider
                 {
                     final String errorMsg = "error retrieving stream for url '" + inputUrl + "', remote response: " + response.statusCode();
                     final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_HTTP_CLIENT, errorMsg );
-                    LOGGER.error( errorInformation );
+                    LOGGER.error( sessionLabel, errorInformation );
                     throw new PwmUnrecoverableException( errorInformation );
                 }
                 return response.body();
@@ -334,7 +330,7 @@ public class JavaPwmHttpClient implements PwmHttpClientProvider
             }
         }
 
-        throw new IllegalArgumentException( "unknown protocol type: " + url.getProtocol() );
+        throw new IllegalArgumentException( "unknown protocol type: " + uri.getScheme() );
     }
 
     @Override

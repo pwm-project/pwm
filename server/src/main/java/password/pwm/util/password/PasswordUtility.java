@@ -1065,7 +1065,7 @@ public class PasswordUtility
         int errorCode = 0;
 
         final boolean passwordIsCaseSensitive = userInfo.getPasswordPolicy() == null
-                || userInfo.getPasswordPolicy().getRuleHelper().readBooleanValue( PwmPasswordRule.CaseSensitive );
+                || userInfo.getPasswordPolicy().ruleHelper().readBooleanValue( PwmPasswordRule.CaseSensitive );
 
         final CachePolicy cachePolicy;
         {
@@ -1334,7 +1334,7 @@ public class PasswordUtility
         final Instant lastModified = userInfo.getPasswordLastModifiedTime();
         final TimeDuration minimumLifetime;
         {
-            final int minimumLifetimeSeconds = userInfo.getPasswordPolicy().getRuleHelper().readIntValue( PwmPasswordRule.MinimumLifetime );
+            final int minimumLifetimeSeconds = userInfo.getPasswordPolicy().ruleHelper().readIntValue( PwmPasswordRule.MinimumLifetime );
             if ( minimumLifetimeSeconds < 1 )
             {
                 return;
@@ -1398,7 +1398,7 @@ public class PasswordUtility
 
         final TimeDuration minimumLifetime;
         {
-            final int minimumLifetimeSeconds = passwordPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MinimumLifetime );
+            final int minimumLifetimeSeconds = passwordPolicy.ruleHelper().readIntValue( PwmPasswordRule.MinimumLifetime );
             if ( minimumLifetimeSeconds < 1 )
             {
                 return false;

@@ -553,7 +553,7 @@ public class EmailService extends AbstractPwmService implements PwmService
                 emailConnection.getEmailServer().getConnectionStats().increment( EmailServer.ServerStat.sendFailures );
 
             }
-            LOGGER.error( errorInformation );
+            LOGGER.error( getSessionLabel(), errorInformation );
             throw e;
         }
         finally

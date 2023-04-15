@@ -190,7 +190,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "error clearing wordlist " + wordlistType + ", error: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "error clearing wordlist " + wordlistType + ", error: " + e.getMessage() );
         }
 
         pwmRequest.outputJsonResult( RestResultBean.forSuccessMessage( pwmRequest, Message.Success_Unknown ) );

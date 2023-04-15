@@ -183,7 +183,7 @@ public class UserMatchViewerFunction implements SettingUIFunction
             }
             catch ( final Exception e )
             {
-                LOGGER.error( () -> "error while testing entry DN for profile '" + profileID + "', error:" + profileID );
+                LOGGER.error( sessionLabel, () -> "error while testing entry DN for profile '" + profileID + "', error:" + profileID );
             }
             try
             {

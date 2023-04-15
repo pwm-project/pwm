@@ -171,15 +171,15 @@ public class RandomPasswordGenerator
         final Map<String, String> newPolicyMap = new HashMap<>( defaultPolicy.getPolicyMap() );
 
         newPolicyMap.put( PwmPasswordRule.MaximumLength.getKey(), String.valueOf( effectiveConfig.getMaximumLength() ) );
-        if ( effectiveConfig.getMinimumLength() > defaultPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MinimumLength ) )
+        if ( effectiveConfig.getMinimumLength() > defaultPolicy.ruleHelper().readIntValue( PwmPasswordRule.MinimumLength ) )
         {
             newPolicyMap.put( PwmPasswordRule.MinimumLength.getKey(), String.valueOf( effectiveConfig.getMinimumLength() ) );
         }
-        if ( effectiveConfig.getMaximumLength() < defaultPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MaximumLength ) )
+        if ( effectiveConfig.getMaximumLength() < defaultPolicy.ruleHelper().readIntValue( PwmPasswordRule.MaximumLength ) )
         {
             newPolicyMap.put( PwmPasswordRule.MaximumLength.getKey(), String.valueOf( effectiveConfig.getMaximumLength() ) );
         }
-        if ( effectiveConfig.getMinimumStrength() > defaultPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MinimumStrength ) )
+        if ( effectiveConfig.getMinimumStrength() > defaultPolicy.ruleHelper().readIntValue( PwmPasswordRule.MinimumStrength ) )
         {
             newPolicyMap.put( PwmPasswordRule.MinimumStrength.getKey(), String.valueOf( effectiveConfig.getMinimumStrength() ) );
         }

@@ -21,23 +21,23 @@
 package password.pwm.http.tag.url;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.LocalSessionStateBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestFlag;
 import password.pwm.http.servlet.resource.ResourceFileServlet;
-import password.pwm.http.tag.PwmAbstractTag;
 import password.pwm.util.java.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.PageContext;
+import javax.servlet.jsp.tagext.TagSupport;
 
-public class PwmUrlTag extends PwmAbstractTag
+public class PwmUrlTag extends TagSupport
 {
 
     private String url;

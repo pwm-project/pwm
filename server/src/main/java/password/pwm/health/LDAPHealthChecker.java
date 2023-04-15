@@ -318,7 +318,7 @@ public class LDAPHealthChecker implements HealthSupplier
                             pwmDomain, sessionLabel, userIdentity, theUser );
 
                     boolean doPasswordChange = true;
-                    final int minLifetimeSeconds = passwordPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MinimumLifetime );
+                    final int minLifetimeSeconds = passwordPolicy.ruleHelper().readIntValue( PwmPasswordRule.MinimumLifetime );
                     if ( minLifetimeSeconds > 0 )
                     {
                         final Instant pwdLastModified = PasswordUtility.determinePwdLastModified(

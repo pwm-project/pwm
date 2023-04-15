@@ -41,7 +41,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.DisplayElement;
 import password.pwm.http.servlet.accountinfo.AccountInformationBean;
-import password.pwm.http.tag.PasswordRequirementsTag;
+import password.pwm.util.password.PasswordRequirementViewableRuleGenerator;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.ViewableUserInfoDisplayReader;
@@ -154,7 +154,7 @@ public class HelpdeskDetailInfoBean
         builder.passwordPolicyRules( makePasswordPolicyRules( userInfo, pwmRequest.getLocale(), pwmRequest.getDomainConfig() ) );
 
         {
-            final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(
+            final List<String> requirementLines = PasswordRequirementViewableRuleGenerator.generate(
                     userInfo.getPasswordPolicy(),
                     pwmRequest.getDomainConfig(),
                     pwmRequest.getLocale(),

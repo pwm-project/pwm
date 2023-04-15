@@ -20,57 +20,45 @@
 
 package password.pwm.http.tag;
 
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.i18n.Message;
+import password.pwm.util.java.StringUtil;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspTagException;
 
 /**
  * @author Jason D. Rivard
  */
 public class SuccessMessageTag extends PwmAbstractTag
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( SuccessMessageTag.class );
 
     @Override
-    public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+    protected PwmLogger getLogger()
     {
-        try
+        return LOGGER;
+    }
+
+    @Override
+    protected String generateTagBodyContents( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        final String successMsg = ( String ) pwmRequest.getAttribute( PwmRequestAttribute.SuccessMessage );
+
+        if ( StringUtil.isEmpty( successMsg ) )
         {
-            final HttpServletRequest req = ( HttpServletRequest ) pageContext.getRequest();
-            final PwmRequest pwmRequest = PwmRequest.forRequest( req, ( HttpServletResponse ) pageContext.getResponse() );
-
-            final String successMsg = ( String ) pwmRequest.getAttribute( PwmRequestAttribute.SuccessMessage );
-
-            final String outputMsg;
-            if ( successMsg == null || successMsg.isEmpty() )
-            {
-                outputMsg = Message.getLocalizedMessage( pwmRequest.getLocale(), Message.Success_Unknown, pwmRequest.getDomainConfig() );
-            }
-            else
-            {
-                if ( pwmRequest.isAuthenticated() )
-                {
-                    final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
-                    outputMsg = macroRequest.expandMacros( successMsg );
-                }
-                else
-                {
-                    outputMsg = successMsg;
-                }
-            }
-
-            pageContext.getOut().write( outputMsg );
+            return Message.getLocalizedMessage( pwmRequest.getLocale(), Message.Success_Unknown, pwmRequest.getDomainConfig() );
         }
-        catch ( final Exception e )
+
+        if ( pwmRequest.isAuthenticated() )
         {
-            throw new JspTagException( e.getMessage() );
+            final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
+            return macroRequest.expandMacros( successMsg );
         }
-        return EVAL_PAGE;
+
+        return successMsg;
     }
 }
 

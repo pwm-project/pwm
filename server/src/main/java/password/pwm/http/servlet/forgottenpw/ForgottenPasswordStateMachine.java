@@ -52,7 +52,7 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmRequestContext;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.bean.ForgottenPasswordStage;
-import password.pwm.http.tag.PasswordRequirementsTag;
+import password.pwm.util.password.PasswordRequirementViewableRuleGenerator;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserInfoFactory;
@@ -242,7 +242,7 @@ public class ForgottenPasswordStateMachine
             final PasswordData password2 = PasswordData.forStringValue( formValues.get( PARAM_PASSWORD_CONFIRM ) );
 
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy( pwmRequestContext, forgottenPasswordStateMachine.getForgottenPasswordBean().getUserIdentity() );
-            final boolean caseSensitive = userInfo.getPasswordPolicy().getRuleHelper().readBooleanValue(
+            final boolean caseSensitive = userInfo.getPasswordPolicy().ruleHelper().readBooleanValue(
                     PwmPasswordRule.CaseSensitive );
             if ( PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH != PasswordUtility.figureMatchStatus( caseSensitive,
                     password1, password2 ) )
@@ -325,7 +325,7 @@ public class ForgottenPasswordStateMachine
                     .required( true )
                     .build() );
 
-            final List<String> passwordRequirementsList = PasswordRequirementsTag.getPasswordRequirementsStrings(
+            final List<String> passwordRequirementsList = PasswordRequirementViewableRuleGenerator.generate(
                     pwmPasswordPolicy,
                     pwmRequestContext.getDomainConfig(),
                     pwmRequestContext.getLocale(),

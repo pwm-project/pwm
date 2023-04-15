@@ -20,14 +20,12 @@
 
 package password.pwm.http.tag;
 
-import password.pwm.http.JspUtility;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.tag.url.PwmUrlTag;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.jsp.tagext.TagSupport;
-
-public class PwmScriptRefTag extends TagSupport
+public class PwmScriptRefTag extends PwmAbstractTag
 {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmScriptRefTag.class );
@@ -45,27 +43,26 @@ public class PwmScriptRefTag extends TagSupport
     }
 
     @Override
-    public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+    protected PwmLogger getLogger()
     {
-        try
-        {
-            final PwmRequest pwmRequest = JspUtility.getPwmRequest( pageContext );
-            final String cspNonce = pwmRequest.getCspNonce();
-
-            String url = getUrl();
-            url = PwmUrlTag.convertUrl( url );
-            url = PwmUrlTag.insertContext( pageContext, url );
-            url = PwmUrlTag.insertResourceNonce( pwmRequest.getPwmDomain(), url );
-
-            final String output = "<script type=\"text/javascript\" nonce=\"" + cspNonce + "\" src=\"" + url + "\"></script><noscript></noscript>";
-            pageContext.getOut().write( output );
-        }
-        catch ( final Exception e )
-        {
-            LOGGER.error( () -> "error during scriptRef output of pwmFormID: " + e.getMessage() );
-        }
-        return EVAL_PAGE;
+        return LOGGER;
     }
 
+    @Override
+    protected String generateTagBodyContents( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        final String cspNonce = pwmRequest.getCspNonce();
+
+        String url = getUrl();
+        url = PwmUrlTag.convertUrl( url );
+        url = PwmUrlTag.insertContext( pageContext, url );
+        url = PwmUrlTag.insertResourceNonce( pwmRequest.getPwmDomain(), url );
+
+        return "<script type=\"text/javascript\" nonce=\""
+                + cspNonce
+                + "\" src=\""
+                + url
+                + "\"></script><noscript></noscript>";
+    }
 }

@@ -132,7 +132,7 @@ public class LdapOtpOperator extends AbstractOtpOperator
                     ? pwmDomain.getProxiedChaiUser( null, userIdentity )
                     : pwmRequest.getClientConnectionHolder().getActor( userIdentity );
             theUser.writeStringAttribute( ldapStorageAttribute, value );
-            LOGGER.info( () -> "saved OTP secret for user to chai-ldap format" );
+            LOGGER.info( pwmRequest, () -> "saved OTP secret for user to chai-ldap format" );
         }
         catch ( final ChaiException ex )
         {
@@ -175,7 +175,7 @@ public class LdapOtpOperator extends AbstractOtpOperator
         try
         {
             chaiUser.deleteAttribute( ldapStorageAttribute, null );
-            LOGGER.info( () -> "cleared OTP secret for user to chai-ldap format" );
+            LOGGER.info( pwmRequest, () -> "cleared OTP secret for user to chai-ldap format" );
         }
         catch ( final ChaiOperationException e )
         {

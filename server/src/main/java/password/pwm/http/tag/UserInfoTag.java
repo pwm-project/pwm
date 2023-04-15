@@ -20,19 +20,18 @@
 
 package password.pwm.http.tag;
 
-import password.pwm.http.JspUtility;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
 import password.pwm.util.java.StringUtil;
-
-import javax.servlet.jsp.JspTagException;
-import javax.servlet.jsp.tagext.TagSupport;
+import password.pwm.util.logging.PwmLogger;
 
 /**
  * @author Jason D. Rivard
  */
-public class UserInfoTag extends TagSupport
+public class UserInfoTag extends PwmAbstractTag
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( UserInfoTag.class );
+
     private String attribute;
 
     public void setAttribute( final String attribute )
@@ -41,24 +40,25 @@ public class UserInfoTag extends TagSupport
     }
 
     @Override
-    public int doEndTag( )
-            throws JspTagException
+    protected PwmLogger getLogger()
     {
-        try
-        {
-            final PwmRequest pwmRequest = JspUtility.getPwmRequest( pageContext );
-            final PwmSession pwmSession = pwmRequest.getPwmSession();
-            if ( pwmSession.isAuthenticated() )
-            {
-                final String ldapValue = pwmSession.getUserInfo().readStringAttribute( attribute );
-                pageContext.getOut().write( StringUtil.escapeHtml( ldapValue == null ? "" : ldapValue ) );
-            }
-        }
-        catch ( final Exception e )
-        {
-            throw new JspTagException( e.getMessage() );
-        }
-        return EVAL_PAGE;
+        return LOGGER;
     }
+
+    @Override
+    protected String generateTagBodyContents( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        if ( pwmRequest.isAuthenticated() )
+        {
+            final String ldapValue = pwmRequest.getPwmSession().getUserInfo()
+                    .readStringAttribute( attribute );
+
+            return StringUtil.escapeHtml( ldapValue == null ? "" : ldapValue );
+        }
+
+        return "";
+    }
+
 }
 

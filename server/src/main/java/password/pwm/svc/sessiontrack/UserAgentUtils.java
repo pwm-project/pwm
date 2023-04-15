@@ -25,6 +25,7 @@ import com.blueconic.browscap.ParseException;
 import com.blueconic.browscap.UserAgentParser;
 import com.blueconic.browscap.UserAgentService;
 import lombok.Value;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -83,11 +84,11 @@ public class UserAgentUtils
         return null;
     }
 
-    public static void initializeCache()
+    public static void initializeCache( final SessionLabel sessionLabel )
     {
         final Instant startTime = Instant.now();
         CACHED_PARSER.get();
-        LOGGER.trace( () -> "loaded useragent parser", TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( sessionLabel, () -> "loaded useragent parser", TimeDuration.fromCurrent( startTime ) );
     }
 
     public static void checkIfPreIE11( final PwmRequest pwmRequest ) throws PwmUnrecoverableException

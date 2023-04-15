@@ -108,7 +108,7 @@ public class RandomGeneratorConfig
         }
         if ( pwmPasswordPolicy != null )
         {
-            policyMax = Math.min( policyMax, pwmPasswordPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MaximumLength ) );
+            policyMax = Math.min( policyMax, pwmPasswordPolicy.ruleHelper().readIntValue( PwmPasswordRule.MaximumLength ) );
         }
         return policyMax;
     }
@@ -122,10 +122,10 @@ public class RandomGeneratorConfig
         }
         if ( pwmPasswordPolicy != null )
         {
-            final int policyMin = pwmPasswordPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MinimumLength );
+            final int policyMin = pwmPasswordPolicy.ruleHelper().readIntValue( PwmPasswordRule.MinimumLength );
             if ( policyMin > 0 )
             {
-                returnVal = Math.min( returnVal, pwmPasswordPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MinimumLength ) );
+                returnVal = Math.min( returnVal, pwmPasswordPolicy.ruleHelper().readIntValue( PwmPasswordRule.MinimumLength ) );
             }
         }
         return returnVal;
@@ -141,7 +141,7 @@ public class RandomGeneratorConfig
 
         if ( pwmPasswordPolicy != null )
         {
-            policyMin = Math.max( policyMin, pwmPasswordPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MinimumStrength ) );
+            policyMin = Math.max( policyMin, pwmPasswordPolicy.ruleHelper().readIntValue( PwmPasswordRule.MinimumStrength ) );
         }
         return policyMin;
     }

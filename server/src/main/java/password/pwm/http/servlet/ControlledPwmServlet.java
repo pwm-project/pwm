@@ -130,7 +130,7 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
         }
 
         final String msg = "missing action handler for '" + action + "'";
-        LOGGER.error( () -> msg );
+        LOGGER.error( pwmRequest, () -> msg );
         throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INTERNAL, msg ) );
     }
 

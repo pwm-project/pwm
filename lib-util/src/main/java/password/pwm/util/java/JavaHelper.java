@@ -36,21 +36,26 @@ import java.io.Writer;
 import java.lang.management.LockInfo;
 import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.atomic.LongAccumulator;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -495,5 +500,34 @@ public final class JavaHelper
     {
         final long next = input + 1;
         return next > 0 ? next : 0;
+    }
+    
+    public static <T> List<T> instancesOfSealedInterface( final Class<T> sealedInterface )
+    {
+        if ( !Objects.requireNonNull( sealedInterface ).isSealed() )
+        {
+            throw new IllegalArgumentException( "sealedInterface argument is required to be marked as sealed" );
+        }
+
+        final Function<Class<T>, T> f = theClass ->
+        {
+            try
+            {
+                final Constructor<T> constructor = theClass.getDeclaredConstructor();
+                constructor.setAccessible( true );
+                return ( T ) constructor.newInstance();
+            }
+            catch ( final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
+            {
+                throw new RuntimeException( e );
+            }
+        };
+
+        final List<T> list = new ArrayList<>();
+        for ( final Class<?> loopClass : sealedInterface.getPermittedSubclasses() )
+        {
+            list.add( f.apply( (Class<T> ) loopClass ) );
+        }
+        return List.copyOf( list );
     }
 }

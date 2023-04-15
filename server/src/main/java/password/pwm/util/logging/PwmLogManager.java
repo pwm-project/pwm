@@ -36,6 +36,7 @@ import ch.qos.logback.core.joran.util.ConfigurationWatchListUtil;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy;
 import ch.qos.logback.core.util.FileSize;
+import ch.qos.logback.core.util.StatusPrinter;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.LoggerFactory;
 import password.pwm.AppProperty;
@@ -49,6 +50,7 @@ import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
@@ -62,6 +64,10 @@ public class PwmLogManager
     private static final String LOGGER_NAME_LOCALDB = "pwmLocalDBLogger";
     private static final String LOGGER_NAME_FILE = "pwmFileLogger";
     private static final String LOGGER_NAME_CONSOLE = "pwmConsoleLogger";
+
+    private static final String CONTEXT_NAME_PWM_CONFIGURED = PwmConstants.PWM_APP_NAME + "-PwmLogManagerConfigured";
+    static final String CONTEXT_NAME_FILE_CONFIGURED = PwmConstants.PWM_APP_NAME
+            + "-applicationPath-" + PwmConstants.LOGBACK_APP_PATH_FILENAME;
 
     private static final ThreadLocal<SessionLabel> THREAD_SESSION_DATA = new ThreadLocal<>();
 
@@ -90,8 +96,8 @@ public class PwmLogManager
             appender.stop();
         }
 
-        logCtx.reset();
         logCtx.stop();
+        logCtx.reset();
 
         PwmLogManager.localDBLogger = null;
         PwmLogManager.pwmApplication = null;
@@ -109,7 +115,7 @@ public class PwmLogManager
     {
         if ( pwmApplicationPath != null )
         {
-            final Path logbackXmlInAppPath = pwmApplicationPath.resolve( "logback.xml" );
+            final Path logbackXmlInAppPath = pwmApplicationPath.resolve( PwmConstants.LOGBACK_APP_PATH_FILENAME );
             if ( Files.exists( logbackXmlInAppPath ) )
             {
                 if ( PwmLogUtil.initLogbackFromXmlFile( logbackXmlInAppPath ) )
@@ -140,7 +146,8 @@ public class PwmLogManager
         initFileLogger( config, pwmLogSettings.getFileLevel(), pwmApplicationPath );
 
         // for debugging
-        // StatusPrinter.print( getLoggerContext() );
+        getLoggerContext().setName( CONTEXT_NAME_PWM_CONFIGURED );
+        StatusPrinter.print( getLoggerContext() );
     }
 
     static PwmLogLevel getLowestLogLevelConfigured()
@@ -184,9 +191,14 @@ public class PwmLogManager
     {
         final LoggerContext context = getLoggerContext();
         final ConfigurationWatchList configurationWatchList = ConfigurationWatchListUtil.getConfigurationWatchList( context );
+        final URL watchListURL = ConfigurationWatchListUtil.getMainWatchURL( context );
 
-        return configurationWatchList != null
-                && ConfigurationWatchListUtil.getConfigurationWatchList( context ).getCopyOfFileWatchList().isEmpty();
+        return watchListURL != null
+                ||
+                (
+                        configurationWatchList != null
+                                && ConfigurationWatchListUtil.getConfigurationWatchList( context ).getCopyOfFileWatchList().isEmpty()
+                );
     }
 
     static LoggerContext getLoggerContext()

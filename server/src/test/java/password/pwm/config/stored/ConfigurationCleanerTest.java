@@ -114,7 +114,7 @@ public class ConfigurationCleanerTest
         for ( final ProfileID profile : domainConfig.getPasswordProfileIDs() )
         {
             final PwmPasswordPolicy pwmPasswordPolicy = domainConfig.getPasswordPolicy( profile );
-            final ADPolicyComplexity adPolicyComplexity = pwmPasswordPolicy.getRuleHelper().getADComplexityLevel();
+            final ADPolicyComplexity adPolicyComplexity = pwmPasswordPolicy.ruleHelper().getADComplexityLevel();
 
             Assertions.assertEquals( ADPolicyComplexity.AD2003, adPolicyComplexity );
         }

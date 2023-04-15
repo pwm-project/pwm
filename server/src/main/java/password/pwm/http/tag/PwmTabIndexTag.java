@@ -20,42 +20,28 @@
 
 package password.pwm.http.tag;
 
-import password.pwm.http.JspUtility;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.jsp.tagext.TagSupport;
-import java.io.IOException;
-
-public class PwmTabIndexTag extends TagSupport
+public class PwmTabIndexTag extends PwmAbstractTag
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmTabIndexTag.class );
 
     @Override
-    public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+    protected PwmLogger getLogger()
     {
-        try
-        {
-            final PwmRequest pwmRequest = JspUtility.getPwmRequest( pageContext );
-            final Integer currentCounter = (Integer) pwmRequest.getAttribute( PwmRequestAttribute.JspIndexTabCounter );
-            final int nextCounter = currentCounter == null ? 1 : currentCounter + 1;
-            pageContext.getOut().write( String.valueOf( nextCounter ) );
-            pwmRequest.setAttribute( PwmRequestAttribute.JspIndexTabCounter, nextCounter );
-        }
-        catch ( final Exception e )
-        {
-            try
-            {
-                pageContext.getOut().write( "" );
-            }
-            catch ( final IOException e1 )
-            {
-                /* ignore */
-            }
-            LOGGER.error( () -> "error during PwmTabIndexTag output: " + e.getMessage(), e );
-        }
-        return EVAL_PAGE;
+        return LOGGER;
+    }
+
+    @Override
+    protected String generateTagBodyContents( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        final Integer currentCounter = (Integer) pwmRequest.getAttribute( PwmRequestAttribute.JspIndexTabCounter );
+        final int nextCounter = currentCounter == null ? 1 : currentCounter + 1;
+        pwmRequest.setAttribute( PwmRequestAttribute.JspIndexTabCounter, nextCounter );
+        return String.valueOf( nextCounter );
     }
 }

@@ -210,7 +210,7 @@ public class AppDashboardData
         builder.sessionCount( pwmDomain.getSessionTrackService().sessionCount() );
         builder.requestsInProgress( pwmDomain.getPwmApplication().getTotalActiveServletRequests() );
 
-        LOGGER.trace( () -> "AppDashboardData bean created", TimeDuration.fromCurrent( startTime ) );
+        LOGGER.trace( pwmDomain.getSessionLabel(), () -> "AppDashboardData bean created", TimeDuration.fromCurrent( startTime ) );
         return builder.build();
     }
 

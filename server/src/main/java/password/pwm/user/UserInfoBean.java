@@ -34,7 +34,7 @@ import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.tag.PasswordRequirementsTag;
+import password.pwm.util.password.PasswordRequirementViewableRuleGenerator;
 import password.pwm.svc.otp.OTPUserRecord;
 import password.pwm.util.macro.MacroRequest;
 
@@ -140,7 +140,7 @@ public class UserInfoBean implements UserInfo
 
         publicUserInfoBean.passwordPolicy( Collections.unmodifiableMap( userInfoBean.getPasswordPolicy().getPolicyMap() ) );
 
-        publicUserInfoBean.passwordRules( PasswordRequirementsTag.getPasswordRequirementsStrings(
+        publicUserInfoBean.passwordRules( PasswordRequirementViewableRuleGenerator.generate(
                 userInfoBean.getPasswordPolicy(),
                 config,
                 locale,

@@ -207,11 +207,11 @@ public class TelemetryService extends AbstractPwmService implements PwmService
             }
             catch ( final PwmException e )
             {
-                LOGGER.error( e.getErrorInformation() );
+                LOGGER.error( getSessionLabel(), e.getErrorInformation() );
             }
             catch ( final Exception e )
             {
-                LOGGER.error( () -> "unexpected error during telemetry publish job: " + e.getMessage() );
+                LOGGER.error( getSessionLabel(), () -> "unexpected error during telemetry publish job: " + e.getMessage() );
             }
         }
     }

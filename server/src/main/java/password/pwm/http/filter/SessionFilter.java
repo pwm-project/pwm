@@ -568,14 +568,11 @@ public class SessionFilter extends AbstractPwmFilter
             throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_REDIRECT_ILLEGAL, errorMsg ) );
         }
 
+        // check to make sure we were not handed a non-http uri.
+        if ( !PwmURL.uriSchemeMatches( inputURI, PwmURL.Scheme.http, PwmURL.Scheme.https ) )
         {
-            // check to make sure we werent handed a non-http uri.
-            final String scheme = inputURI.getScheme();
-            if ( scheme != null && !scheme.isEmpty() && !"http".equalsIgnoreCase( scheme ) && !"https".equals( scheme ) )
-            {
-                final String errorMsg = "unsupported url scheme";
-                throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_REDIRECT_ILLEGAL, errorMsg ) );
-            }
+            final String errorMsg = "unsupported url scheme";
+            throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_REDIRECT_ILLEGAL, errorMsg ) );
         }
 
         if ( inputURI.getHost() != null && !inputURI.getHost().isEmpty() )
@@ -596,31 +593,10 @@ public class SessionFilter extends AbstractPwmFilter
             }
         }
 
-        final StringBuilder sb = new StringBuilder();
-        if ( inputURI.getScheme() != null )
-        {
-            sb.append( inputURI.getScheme() );
-            sb.append( "://" );
-        }
-        if ( inputURI.getHost() != null )
-        {
-            sb.append( inputURI.getHost() );
-        }
-        if ( inputURI.getPort() != -1 )
-        {
-            sb.append( ":" );
-            sb.append( inputURI.getPort() );
-        }
-        if ( inputURI.getPath() != null )
-        {
-            sb.append( inputURI.getPath() );
-        }
-
-        final String testURI = sb.toString();
+        final String testURI = copyUriWithoutParams( inputURI );
         LOGGER.trace( sessionLabel, () -> "preparing to whitelist test parsed and decoded URL: " + testURI );
 
         final List<String> whiteList = pwmDomain.getConfig().readSettingAsStringArray( PwmSetting.SECURITY_REDIRECT_WHITELIST );
-
         if ( PwmURL.testIfUrlMatchesAllowedPattern( testURI, whiteList, sessionLabel ) )
         {
             return;
@@ -629,5 +605,39 @@ public class SessionFilter extends AbstractPwmFilter
         final String errorMsg = testURI + " is not a match for any configured redirect whitelist, see setting: "
                 + PwmSetting.SECURITY_REDIRECT_WHITELIST.toMenuLocationDebug( null, PwmConstants.DEFAULT_LOCALE );
         throw new PwmOperationalException( new ErrorInformation( PwmError.ERROR_REDIRECT_ILLEGAL, errorMsg ) );
+    }
+
+    private static String copyUriWithoutParams( final URI inputURI )
+    {
+        final StringBuilder sb = new StringBuilder();
+
+        final String scheme = inputURI.getScheme();
+        final String host = inputURI.getHost();
+        final int port = inputURI.getPort();
+        final String path = inputURI.getPath();
+
+        if ( scheme != null )
+        {
+            sb.append( scheme );
+            sb.append( "://" );
+        }
+
+        if ( host != null )
+        {
+            sb.append( host );
+        }
+
+        if ( port != -1 )
+        {
+            sb.append( ":" );
+            sb.append( port );
+        }
+
+        if ( path != null )
+        {
+            sb.append( path );
+        }
+
+        return sb.toString();
     }
 }

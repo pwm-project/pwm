@@ -205,13 +205,15 @@ public class LdapProfile extends AbstractProfile implements Profile
 
                 {
                     final String finalCanonical = canonicalValue;
-                    LOGGER.trace( () -> "read and cached canonical ldap DN value for input '" + dnValue + "' as '" + finalCanonical + "'",
+                    LOGGER.trace( sessionLabel, () -> "read and cached canonical ldap DN value for input '"
+                                    + dnValue + "' as '" + finalCanonical + "'",
                             TimeDuration.fromCurrent( startTime ) );
                 }
             }
             catch ( final ChaiUnavailableException | ChaiOperationException e )
             {
-                LOGGER.error( () -> "error while reading canonicalDN for dn value '" + dnValue + "', error: " + e.getMessage() );
+                LOGGER.error( sessionLabel, () -> "error while reading canonicalDN for dn value '"
+                        + dnValue + "', error: " + e.getMessage() );
                 return dnValue;
             }
         }

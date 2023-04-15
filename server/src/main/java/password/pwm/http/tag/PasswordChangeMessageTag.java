@@ -21,51 +21,40 @@
 package password.pwm.http.tag;
 
 import password.pwm.config.profile.PwmPasswordPolicy;
-import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspTagException;
-import javax.servlet.jsp.tagext.TagSupport;
-import java.io.IOException;
 import java.util.Optional;
 
 /**
  * @author Jason D. Rivard
  */
-public class PasswordChangeMessageTag extends TagSupport
+public class PasswordChangeMessageTag extends PwmAbstractTag
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PasswordChangeMessageTag.class );
 
+    @Override
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
 
     @Override
-    public int doEndTag( )
-            throws JspTagException
+    protected String generateTagBodyContents( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
     {
-        try
+        final PwmPasswordPolicy pwmPasswordPolicy = PasswordRequirementsTag.readPasswordPolicy( pwmRequest );
+        final Optional<String> passwordPolicyChangeMessage = pwmPasswordPolicy.getChangeMessage( pwmRequest.getLocale() );
+
+        if ( passwordPolicyChangeMessage.isPresent() )
         {
-            final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
-
-            final PwmPasswordPolicy pwmPasswordPolicy = PasswordRequirementsTag.readPasswordPolicy( pwmRequest );
-
-            final Optional<String> passwordPolicyChangeMessage = pwmPasswordPolicy.getChangeMessage( pwmRequest.getLocale() );
-
-            if ( passwordPolicyChangeMessage.isPresent() )
-            {
-                final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
-                final String expandedMessage = macroRequest.expandMacros( passwordPolicyChangeMessage.get() );
-                pageContext.getOut().write( expandedMessage );
-            }
+            final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
+            return macroRequest.expandMacros( passwordPolicyChangeMessage.get() );
         }
-        catch ( final IOException | PwmException e )
-        {
-            LOGGER.error( () -> "unexpected error during password change message generation: " + e.getMessage(), e );
-            throw new JspTagException( e.getMessage() );
-        }
-        return EVAL_PAGE;
+
+        return "";
     }
 }
 

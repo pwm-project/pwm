@@ -47,7 +47,6 @@ import password.pwm.http.bean.SetupResponsesBean;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.i18n.Message;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.svc.event.AuditEvent;
 import password.pwm.svc.event.AuditRecordFactory;
@@ -55,6 +54,7 @@ import password.pwm.svc.event.AuditServiceClient;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.user.UserInfo;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
@@ -298,7 +298,11 @@ public class SetupResponsesServlet extends ControlledPwmServlet
             final Map<Challenge, String> responseMap = readResponsesFromJsonRequest( pwmRequest, setupData );
             final int minRandomRequiredSetup = setupData.getMinRandomSetup();
             pwmRequest.getPwmDomain().getCrService().validateResponses( challengeSet, responseMap, minRandomRequiredSetup );
+
+            final Instant startMakeResponseSet = Instant.now();
             SetupResponsesUtil.generateResponseInfoBean( pwmRequest, challengeSet, responseMap, Collections.emptyMap() );
+            LOGGER.error( pwmRequest, () -> "generated hashed response set in "
+                    + TimeDuration.fromCurrent( startMakeResponseSet ).asCompactString() );
             success = true;
         }
         catch ( final PwmDataValidationException e )

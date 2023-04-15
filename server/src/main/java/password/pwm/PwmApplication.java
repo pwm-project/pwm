@@ -301,7 +301,7 @@ public class PwmApplication
 
         MBeanUtility.registerMBean( this );
 
-        UserAgentUtils.initializeCache();
+        UserAgentUtils.initializeCache( sessionLabel );
 
         LOGGER.trace( sessionLabel, () -> "completed post init tasks", TimeDuration.fromCurrent( startTime ) );
     }

@@ -177,11 +177,6 @@ public class PwmLogger
         doLogEvent( PwmLogLevel.DEBUG, sessionLabel, convertErrorInformation( errorInformation ), null, null );
     }
 
-    public void debug( final Supplier<? extends CharSequence> message, final Throwable exception )
-    {
-        doPwmRequestLogEvent( PwmLogLevel.DEBUG, null, message, exception, null );
-    }
-
     public void info( final Supplier<? extends CharSequence> message )
     {
         doLogEvent( PwmLogLevel.INFO, null, message, null, null );
@@ -235,11 +230,6 @@ public class PwmLogger
     public void error( final PwmRequest pwmRequest, final ErrorInformation errorInformation )
     {
         doPwmRequestLogEvent( PwmLogLevel.ERROR, pwmRequest, convertErrorInformation( errorInformation ), null, null );
-    }
-
-    public void error( final ErrorInformation errorInformation )
-    {
-        doPwmRequestLogEvent( PwmLogLevel.ERROR, null, convertErrorInformation( errorInformation ), null, null );
     }
 
     public void error( final SessionLabel sessionLabel, final Supplier<? extends CharSequence> message )

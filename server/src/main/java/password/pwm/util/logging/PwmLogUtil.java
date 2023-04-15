@@ -44,8 +44,6 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -126,21 +124,15 @@ class PwmLogUtil
             configurator.setContext( context );
 
             context.reset();
-            try ( InputStream inputStream = Files.newInputStream( file ) )
-            {
-                configurator.doConfigure( inputStream );
-            }
+            configurator.doConfigure( file.toFile() );
+            context.setName( PwmLogManager.CONTEXT_NAME_FILE_CONFIGURED );
 
             return true;
-        }
-        catch ( final IOException e  )
-        {
-            /* can't be logged... */
         }
         catch ( final JoranException je )
         {
             context.reset();
-            // StatusPrinter will handle this
+            System.err.println( "error during logback configuration using file: " + je.getMessage() );
         }
 
         StatusPrinter.printInCaseOfErrorsOrWarnings( context );

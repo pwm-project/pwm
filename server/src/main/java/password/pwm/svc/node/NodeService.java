@@ -94,7 +94,7 @@ public class NodeService extends AbstractPwmService implements PwmService
 
                 }
 
-                nodeMachine = new NodeMachine( pwmApplication, clusterDataServiceProvider, nodeServiceSettings );
+                nodeMachine = new NodeMachine( this, clusterDataServiceProvider, nodeServiceSettings );
                 scheduleFixedRateJob( nodeMachine.getHeartbeatProcess(), nodeServiceSettings.getHeartbeatInterval(), nodeServiceSettings.getHeartbeatInterval() );
             }
         }
@@ -107,7 +107,7 @@ public class NodeService extends AbstractPwmService implements PwmService
         catch ( final Exception e )
         {
             setStartupError( new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, "error starting up node service: " + e.getMessage() ) );
-            LOGGER.error( getStartupError() );
+            LOGGER.error( getSessionLabel(), getStartupError() );
             return STATUS.CLOSED;
         }
 
@@ -206,5 +206,10 @@ public class NodeService extends AbstractPwmService implements PwmService
                 setStartupError( new ErrorInformation( PwmError.ERROR_NODE_SERVICE_ERROR, msg ) );
             }
         }
+    }
+
+    public PwmApplication getPwmApp()
+    {
+        return getPwmApplication();
     }
 }

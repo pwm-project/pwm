@@ -228,7 +228,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
         }
 
         //make sure the two passwords match
-        final boolean caseSensitive = userInfo.getPasswordPolicy().getRuleHelper().readBooleanValue(
+        final boolean caseSensitive = userInfo.getPasswordPolicy().ruleHelper().readBooleanValue(
                 PwmPasswordRule.CaseSensitive );
         if ( PasswordUtility.PasswordCheckInfo.MatchStatus.MATCH != PasswordUtility.figureMatchStatus( caseSensitive,
                 password1, password2 ) )

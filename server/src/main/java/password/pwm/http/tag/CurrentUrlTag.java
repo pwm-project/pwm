@@ -20,40 +20,24 @@
 
 package password.pwm.http.tag;
 
-import password.pwm.http.JspUtility;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.jsp.tagext.TagSupport;
-import java.io.IOException;
-
-public class CurrentUrlTag extends TagSupport
+public class CurrentUrlTag extends PwmAbstractTag
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( CurrentUrlTag.class );
 
     @Override
-    public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+    protected PwmLogger getLogger()
     {
-        try
-        {
-            final PwmRequest pwmRequest = JspUtility.getPwmRequest( pageContext );
-            final String currentUrl = pwmRequest.getUrlWithoutQueryString();
-            pageContext.getOut().write( StringUtil.escapeHtml( currentUrl ) );
-        }
-        catch ( final Exception e )
-        {
-            try
-            {
-                pageContext.getOut().write( "errorGeneratingCurrentURL" );
-            }
-            catch ( final IOException e1 )
-            {
-                /* ignore */
-            }
-            LOGGER.error( () -> "error during CurrentUrl output: " + e.getMessage(), e );
-        }
-        return EVAL_PAGE;
+        return LOGGER;
+    }
+
+    @Override
+    protected String generateTagBodyContents( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        return pwmRequest.getUrlWithoutQueryString();
     }
 }

@@ -82,7 +82,7 @@ public class SimpleLdapAuthenticator
                 PwmError.ERROR_INTERNAL,
                 "auth with unexpected auth type: " + authResult.getAuthenticationType()
         );
-        LOGGER.error( errorInformation );
+        LOGGER.error( sessionLabel, errorInformation );
         throw new PwmUnrecoverableException( errorInformation );
     }
 }

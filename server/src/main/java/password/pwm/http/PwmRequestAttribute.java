@@ -108,6 +108,7 @@ public enum PwmRequestAttribute
     ExternalResponseInstructions,
 
     JspIndexTabCounter,
+    JspAutofocusStatus,
 
     GoBackAction,;
 }

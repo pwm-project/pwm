@@ -21,88 +21,66 @@
 package password.pwm.http.tag;
 
 import password.pwm.AppProperty;
-import password.pwm.PwmApplication;
 import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmRequestAttribute;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspTagException;
-
 /**
  * @author Jason D. Rivard
  */
 public class ErrorMessageTag extends PwmAbstractTag
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( ErrorMessageTag.class );
 
     @Override
-    public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+    protected PwmLogger getLogger()
     {
-        try
+        return LOGGER;
+    }
+
+    @Override
+    protected String generateTagBodyContents( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        final ErrorInformation error = ( ErrorInformation ) pwmRequest.getAttribute( PwmRequestAttribute.PwmErrorInfo );
+
+        if ( error == null )
         {
-            final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
-            PwmApplication pwmApplication = null;
-            try
-            {
-                pwmApplication = ContextManager.getPwmApplication( pageContext.getRequest() );
-            }
-            catch ( final PwmException e )
-            {
-                /* noop */
-            }
-
-            if ( pwmRequest == null || pwmApplication == null )
-            {
-                return EVAL_PAGE;
-            }
-
-            final ErrorInformation error = ( ErrorInformation ) pwmRequest.getAttribute( PwmRequestAttribute.PwmErrorInfo );
-
-            if ( error != null )
-            {
-                final boolean allowHtml = Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_ERRORS_ALLOW_HTML ) );
-                final boolean showErrorDetail = pwmRequest.getPwmDomain().determineIfDetailErrorMsgShown();
-
-                String outputMsg = error.toUserStr( pwmRequest.getLocale(), pwmRequest.getDomainConfig() );
-                if ( !allowHtml )
-                {
-                    outputMsg = StringUtil.escapeHtml( outputMsg );
-                }
-
-                if ( showErrorDetail )
-                {
-                    final String errorDetail = error.toDebugStr() == null ? "" : " { " + error.toDebugStr() + " }";
-                    // detail should always be escaped - it may contain untrusted data
-                    outputMsg += "<span class='errorDetail'>" + StringUtil.escapeHtml( errorDetail ) + "</span>";
-                }
-
-                outputMsg = outputMsg.replace( "\n", "<br/>" );
-
-                final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
-                outputMsg = macroRequest.expandMacros( outputMsg );
-
-                pageContext.getOut().write( outputMsg );
-            }
+            return "";
         }
-        catch ( final PwmUnrecoverableException e )
+
+        final boolean allowHtml = Boolean.parseBoolean(
+                pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_ERRORS_ALLOW_HTML ) );
+
+        final boolean showErrorDetail = pwmRequest.getPwmDomain().determineIfDetailErrorMsgShown();
+
+        String outputMsg = error.toUserStr( pwmRequest.getLocale(), pwmRequest.getDomainConfig() );
+        if ( !allowHtml )
         {
-            /* app not running */
+            outputMsg = StringUtil.escapeHtml( outputMsg );
         }
-        catch ( final Exception e )
+
+        if ( showErrorDetail )
         {
-            LOGGER.error( () -> "error executing error message tag: " + e.getMessage(), e );
-            throw new JspTagException( e.getMessage() );
+            final String errorDetail = error.toDebugStr() == null
+                    ? ""
+                    : " { " + error.toDebugStr() + " }";
+
+            // detail should always be escaped - it may contain untrusted data
+            outputMsg += "<span class='errorDetail'>"
+                    + StringUtil.escapeHtml( errorDetail )
+                    + "</span>";
         }
-        return EVAL_PAGE;
+
+        outputMsg = outputMsg.replace( "\n", "<br/>" );
+
+        final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
+        outputMsg = macroRequest.expandMacros( outputMsg );
+
+        return outputMsg;
     }
 }

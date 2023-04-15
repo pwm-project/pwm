@@ -168,7 +168,7 @@ public class SessionLabel
                 }
                 catch ( final PwmUnrecoverableException e )
                 {
-                    LOGGER.error( () -> "unexpected error reading username: " + e.getMessage(), e );
+                    LOGGER.error( () -> "unexpected error reading username while building SessionLabel: " + e.getMessage(), e );
                 }
             }
         }

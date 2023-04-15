@@ -100,12 +100,14 @@ public class DataStoreTokenMachine implements TokenMachine
         }
         catch ( final Exception e )
         {
-            LOGGER.error( () -> "unexpected error while cleaning expired stored tokens: " + e.getMessage() );
+            LOGGER.error( tokenService.getSessionLabel(),
+                    () -> "unexpected error while cleaning expired stored tokens: " + e.getMessage() );
         }
-        {
-            final long finalSize = size();
-            LOGGER.trace( () -> "completed record purge cycle; database size = " + finalSize, TimeDuration.fromCurrent( startTime ) );
-        }
+
+        final long finalSize = size();
+        LOGGER.trace( tokenService.getSessionLabel(),
+                () -> "completed record purge cycle; database size = "
+                        + finalSize, TimeDuration.fromCurrent( startTime ) );
     }
 
     private boolean testIfTokenNeedsPurging( final TokenPayload theToken )

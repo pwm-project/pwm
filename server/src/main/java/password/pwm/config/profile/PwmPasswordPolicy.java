@@ -239,7 +239,7 @@ public class PwmPasswordPolicy implements Profile
         return chaiPasswordPolicy;
     }
 
-    public PasswordRuleReaderHelper getRuleHelper( )
+    public PasswordRuleReaderHelper ruleHelper( )
     {
         return new PasswordRuleReaderHelper( this );
     }
@@ -341,7 +341,7 @@ public class PwmPasswordPolicy implements Profile
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
         final PolicyMetaData policyMetaData = pwmPasswordPolicy.getPolicyMetaData();
 
-        final PasswordRuleReaderHelper ruleHelper = pwmPasswordPolicy.getRuleHelper();
+        final PasswordRuleReaderHelper ruleHelper = pwmPasswordPolicy.ruleHelper();
         final List<HealthRecord> returnList = new ArrayList<>();
         final Map<PwmPasswordRule, PwmPasswordRule> rulePairs = new LinkedHashMap<>();
         rulePairs.put( PwmPasswordRule.MinimumLength, PwmPasswordRule.MaximumLength );

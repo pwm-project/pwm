@@ -160,11 +160,8 @@ public enum PwmAboutProperty
         {
             return date.toString();
         }
-        else
-        {
-            return LocaleHelper.getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, Display.Value_NotApplicable, null );
-        }
 
+        return LocaleHelper.getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, Display.Value_NotApplicable, null );
     }
 
     public String getLabel( )

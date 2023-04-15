@@ -32,7 +32,7 @@ import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.bean.DisplayElement;
-import password.pwm.http.tag.PasswordRequirementsTag;
+import password.pwm.util.password.PasswordRequirementViewableRuleGenerator;
 import password.pwm.ldap.ViewableUserInfoDisplayReader;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.user.UserInfo;
@@ -106,8 +106,8 @@ public class AccountInformationBean
     {
         final PwmPasswordPolicy pwmPasswordPolicy = pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy();
         final MacroRequest macroRequest = pwmRequest.getMacroMachine();
-        final List<String> rules = PasswordRequirementsTag.getPasswordRequirementsStrings( pwmPasswordPolicy, pwmRequest.getDomainConfig(), pwmRequest.getLocale(), macroRequest );
-        return Collections.unmodifiableList( rules );
+        return PasswordRequirementViewableRuleGenerator
+                .generate( pwmPasswordPolicy, pwmRequest.getDomainConfig(), pwmRequest.getLocale(), macroRequest );
     }
 
     public static List<ActivityRecord> makeAuditInfo(

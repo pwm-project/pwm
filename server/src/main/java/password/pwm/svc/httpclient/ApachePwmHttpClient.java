@@ -87,7 +87,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
@@ -404,13 +403,9 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClientProvider
     public InputStream streamForUrl( final String inputUrl )
             throws IOException, PwmUnrecoverableException
     {
-        final URL url = new URL( inputUrl );
-        if ( "file".equals( url.getProtocol() ) )
-        {
-            return url.openStream();
-        }
+        final URI uri = URI.create( inputUrl );
 
-        if ( "http".equals( url.getProtocol() ) || "https".equals( url.getProtocol() ) )
+        if ( PwmURL.uriSchemeMatches( uri, PwmURL.Scheme.http, PwmURL.Scheme.https ) )
         {
 
             final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder()
@@ -423,13 +418,13 @@ public class ApachePwmHttpClient implements AutoCloseable, PwmHttpClientProvider
             {
                 final String errorMsg = "error retrieving stream for url '" + inputUrl + "', remote response: " + httpResponse.getStatusLine().toString();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REMOTE_ERROR_VALUE, errorMsg );
-                LOGGER.error( errorInformation );
+                LOGGER.error( sessionLabel, errorInformation );
                 throw new PwmUnrecoverableException( errorInformation );
             }
             return httpResponse.getEntity().getContent();
         }
 
-        throw new IllegalArgumentException( "unknown protocol type: " + url.getProtocol() );
+        throw new IllegalArgumentException( "unknown protocol type: " + uri.getScheme() );
     }
 
     private static class ProxyRoutePlanner implements HttpRoutePlanner

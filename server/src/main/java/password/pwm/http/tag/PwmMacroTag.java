@@ -25,18 +25,13 @@ import password.pwm.http.PwmRequest;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspTagException;
-import javax.servlet.jsp.tagext.TagSupport;
-
-public class PwmMacroTag extends TagSupport
+public class PwmMacroTag extends PwmAbstractTag
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmMacroTag.class );
 
     private String value;
 
-    public String getValue( )
+    public String getValue()
     {
         return value;
     }
@@ -47,24 +42,16 @@ public class PwmMacroTag extends TagSupport
     }
 
     @Override
-    public int doEndTag( )
-            throws JspTagException
+    protected PwmLogger getLogger()
     {
-        try
-        {
-            final PwmRequest pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
-            final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
-            final String outputValue = macroRequest.expandMacros( value );
-            pageContext.getOut().write( outputValue );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            LOGGER.error( () -> "error while processing PwmMacroTag: " + e.getMessage() );
-        }
-        catch ( final Exception e )
-        {
-            throw new JspTagException( e.getMessage(), e );
-        }
-        return EVAL_PAGE;
+        return LOGGER;
+    }
+
+    @Override
+    protected String generateTagBodyContents( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        final MacroRequest macroRequest = pwmRequest.getMacroMachine();
+        return macroRequest.expandMacros( value );
     }
 }

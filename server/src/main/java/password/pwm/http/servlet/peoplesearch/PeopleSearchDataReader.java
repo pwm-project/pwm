@@ -738,7 +738,7 @@ class PeopleSearchDataReader
         }
         catch ( final ChaiException e )
         {
-            LOGGER.error( () -> "unexpected error during detail lookup of '" + userIdentity + "', error: " + e.getMessage() );
+            LOGGER.error( pwmRequest, () -> "unexpected error during detail lookup of '" + userIdentity + "', error: " + e.getMessage() );
             throw PwmUnrecoverableException.fromChaiException( e );
         }
     }

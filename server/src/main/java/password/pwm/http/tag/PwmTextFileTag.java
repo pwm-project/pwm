@@ -20,17 +20,15 @@
 
 package password.pwm.http.tag;
 
-import password.pwm.http.JspUtility;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.resource.TextFileResource;
 import password.pwm.http.tag.value.PwmValueTag;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.jsp.tagext.TagSupport;
-import java.io.IOException;
 import java.util.Optional;
 
-public class PwmTextFileTag extends TagSupport
+public class PwmTextFileTag extends PwmAbstractTag
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmValueTag.class );
 
@@ -47,37 +45,22 @@ public class PwmTextFileTag extends TagSupport
     }
 
     @Override
-    public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+    protected PwmLogger getLogger()
+    {
+        return LOGGER;
+    }
+
+    @Override
+    protected String generateTagBodyContents( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
     {
         if ( textFileResource == null )
         {
-            return EVAL_PAGE;
+            return "";
         }
 
-        try
-        {
-            final PwmRequest pwmRequest = JspUtility.getPwmRequest( pageContext );
-            final Optional<String> output = TextFileResource.readTextFileResource( pwmRequest, getTextFileResource() );
+        final Optional<String> output = TextFileResource.readTextFileResource( pwmRequest, getTextFileResource() );
 
-            if ( output.isPresent() )
-            {
-                pageContext.getOut().write( output.get() );
-            }
-        }
-        catch ( final Exception e )
-        {
-            try
-            {
-                pageContext.getOut().write( "errorGeneratingPwmFormID" );
-            }
-            catch ( final IOException e1 )
-            {
-                /* ignore */
-            }
-            LOGGER.error( () -> "error during PwmTextFileTag output of PwmTextFileTag: " + e.getMessage(), e );
-        }
-
-        return EVAL_PAGE;
+        return output.orElse( "" );
     }
 }

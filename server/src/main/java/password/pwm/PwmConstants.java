@@ -151,6 +151,7 @@ public abstract class PwmConstants
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
 
+    public static final String LOGBACK_APP_PATH_FILENAME = "logback.xml";
     public static final String RESOURCE_FILE_EULA_TXT = "eula.txt";
     public static final String RESOURCE_FILE_PRIVACY_TXT = "privacy.txt";
     public static final String RESOURCE_FILE_WELCOME_TXT = "welcome.txt";

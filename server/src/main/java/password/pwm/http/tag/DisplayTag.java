@@ -20,22 +20,12 @@
 
 package password.pwm.http.tag;
 
-import password.pwm.PwmConstants;
-import password.pwm.config.DomainConfig;
-import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.i18n.Display;
-import password.pwm.i18n.PwmDisplayBundle;
+import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspTagException;
-import java.util.Locale;
-import java.util.MissingResourceException;
 
 /**
  * @author Jason D. Rivard
@@ -112,101 +102,34 @@ public class DisplayTag extends PwmAbstractTag
     }
 
     @Override
-    public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+    protected PwmLogger getLogger()
     {
-        PwmRequest pwmRequest = null;
-        try
-        {
-            try
-            {
-                pwmRequest = PwmRequest.forRequest( ( HttpServletRequest ) pageContext.getRequest(), ( HttpServletResponse ) pageContext.getResponse() );
-            }
-            catch ( final PwmException e )
-            {
-                /* noop */
-            }
-
-            final Locale locale = pwmRequest == null ? PwmConstants.DEFAULT_LOCALE : pwmRequest.getLocale();
-
-            final Class bundle = readBundle();
-            String displayMessage = figureDisplayMessage( locale, pwmRequest == null ? null : pwmRequest.getDomainConfig(), bundle );
-
-            if ( pwmRequest != null )
-            {
-                final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
-                displayMessage = macroRequest.expandMacros( displayMessage );
-            }
-
-            pageContext.getOut().write( displayMessage );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            LOGGER.error( pwmRequest, () -> "error while executing jsp display tag: " + e.getMessage() );
-            return EVAL_PAGE;
-        }
-        catch ( final Exception e )
-        {
-            LOGGER.error( pwmRequest, () -> "error while executing jsp display tag: " + e.getMessage(), e );
-            throw new JspTagException( e.getMessage(), e );
-        }
-        return EVAL_PAGE;
+        return LOGGER;
     }
 
-    private Class<?> readBundle( )
+    @Override
+    protected String generateTagBodyContents( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
     {
-        if ( bundle == null || bundle.length() < 1 )
-        {
-            return Display.class;
-        }
 
-        try
-        {
-            return Class.forName( bundle );
-        }
-        catch ( final ClassNotFoundException e )
-        {
-            /* no op */
-        }
+        final PwmLocaleBundle pwmBundle = PwmLocaleBundle.forKey( bundle ).orElse( PwmLocaleBundle.DISPLAY );
 
-        try
-        {
-            return Class.forName( Display.class.getPackage().getName() + "." + bundle );
-        }
-        catch ( final ClassNotFoundException e )
-        {
-            /* no op */
-        }
+        final String[] valueArray = new String[]
+                {
+                        value1,
+                        value2,
+                        value3,
+                };
 
-        return Display.class;
-    }
+        final String rawMessage = LocaleHelper.getLocalizedMessage(
+                pwmRequest.getLocale(),
+                key,
+                pwmRequest.getDomainConfig(),
+                pwmBundle.getTheClass(),
+                valueArray );
 
-    private String figureDisplayMessage( final Locale locale, final DomainConfig config, final Class<? extends PwmDisplayBundle> bundleClass )
-    {
-        try
-        {
-            return LocaleHelper.getLocalizedMessage(
-                    locale == null ? PwmConstants.DEFAULT_LOCALE : locale,
-                    key,
-                    config,
-                    bundleClass,
-                    new String[]
-                            {
-                                    value1,
-                                    value2,
-                                    value3,
-                            }
-            );
-        }
-        catch ( final MissingResourceException e )
-        {
-            if ( !displayIfMissing )
-            {
-                LOGGER.info( () -> "error while executing jsp display tag: " + e.getMessage() );
-            }
-        }
-
-        return displayIfMissing ? key : "";
+        final MacroRequest macroRequest = pwmRequest.getMacroMachine( );
+        return macroRequest.expandMacros( rawMessage  );
     }
 }
 

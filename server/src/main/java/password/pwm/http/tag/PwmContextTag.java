@@ -20,33 +20,24 @@
 
 package password.pwm.http.tag;
 
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspTagException;
-import javax.servlet.jsp.tagext.TagSupport;
-
-public class PwmContextTag extends TagSupport
+public class PwmContextTag extends PwmAbstractTag
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmContextTag.class );
 
     @Override
-    public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+    protected PwmLogger getLogger()
     {
-        try
-        {
-            final HttpServletRequest req = ( HttpServletRequest ) pageContext.getRequest();
-            final HttpServletResponse resp = ( HttpServletResponse ) pageContext.getResponse();
+        return LOGGER;
+    }
 
-            final PwmRequest pwmRequest = PwmRequest.forRequest( req, resp );
-            final String path = pwmRequest.getBasePath();
-            pageContext.getOut().write( path );
-        }
-        catch ( final Exception e )
-        {
-            throw new JspTagException( e.getMessage() );
-        }
-        return EVAL_PAGE;
+    @Override
+    protected String generateTagBodyContents( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        return pwmRequest.getBasePath();
     }
 }

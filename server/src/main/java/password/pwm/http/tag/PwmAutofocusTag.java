@@ -20,30 +20,31 @@
 
 package password.pwm.http.tag;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.jsp.JspTagException;
-import javax.servlet.jsp.tagext.TagSupport;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmRequestAttribute;
+import password.pwm.util.logging.PwmLogger;
 
-public class PwmAutofocusTag extends TagSupport
+public class PwmAutofocusTag extends PwmAbstractTag
 {
+    private static final PwmLogger LOGGER = PwmLogger.forClass( PwmAutofocusTag.class );
 
     @Override
-    public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+    protected PwmLogger getLogger()
     {
-        try
+        return LOGGER;
+    }
+
+    @Override
+    protected String generateTagBodyContents( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        if ( pwmRequest.getAttribute( PwmRequestAttribute.JspAutofocusStatus ) == null )
         {
-            final HttpServletRequest req = ( HttpServletRequest ) pageContext.getRequest();
-            if ( req.getAttribute( "autoFocusHasBeenSet" ) == null )
-            {
-                pageContext.getOut().write( "autofocus=\"autofocus\" " );
-                req.setAttribute( "autoFocusHasBeenSet", true );
-            }
+            pwmRequest.setAttribute( PwmRequestAttribute.JspAutofocusStatus, true );
+            return "autofocus=\"autofocus\" ";
         }
-        catch ( final Exception e )
-        {
-            throw new JspTagException( e.getMessage() );
-        }
-        return EVAL_PAGE;
+
+        return "";
     }
 }

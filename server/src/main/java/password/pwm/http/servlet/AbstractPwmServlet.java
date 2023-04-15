@@ -240,7 +240,7 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
                 }
                 catch ( final Throwable e1 )
                 {
-                    LOGGER.error( () -> "error while marking pre-login url:" + e1.getMessage() );
+                    LOGGER.error( pwmRequest, () -> "error while marking pre-login url:" + e1.getMessage() );
                 }
                 break;
 

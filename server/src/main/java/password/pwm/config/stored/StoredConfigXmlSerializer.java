@@ -752,7 +752,7 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                             newValueElement.setText( textValue.get().trim() );
                             settingElement.attachElement( newValueElement );
                             final String key = settingElement.getAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_KEY ).orElse( "" );
-                            LOGGER.info( () -> "migrating pre-xml 'value' tag format to use value element for key: " + key );
+                            LOGGER.info( SESSION_LABEL, () -> "migrating pre-xml 'value' tag format to use value element for key: " + key );
                         }
                     }
                 }
@@ -882,7 +882,8 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                         final Optional<String> value = property.getText();
                         if ( key.isPresent() && value.isPresent() )
                         {
-                            LOGGER.info( () -> "migrating app-property config element '" + key.get() + "' to setting " + PwmSetting.APP_PROPERTY_OVERRIDES.getKey() );
+                            LOGGER.info( SESSION_LABEL, () -> "migrating app-property config element '" + key.get()
+                                    + "' to setting " + PwmSetting.APP_PROPERTY_OVERRIDES.getKey() );
                             final String newValue = key.get() + "=" + value.get();
 
                             final List<String> existingValues = new ArrayList<>();

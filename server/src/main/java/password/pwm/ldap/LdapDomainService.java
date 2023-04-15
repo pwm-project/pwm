@@ -253,7 +253,7 @@ public class LdapDomainService extends AbstractPwmService implements PwmService
         {
             final String errorMsg = "unexpected error creating new proxy ldap connection: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
-            LOGGER.error( errorInformation );
+            LOGGER.error( sessionLabel, errorInformation );
             throw new PwmUnrecoverableException( errorInformation );
         }
     }

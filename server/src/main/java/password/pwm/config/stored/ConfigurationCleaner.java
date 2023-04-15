@@ -101,7 +101,7 @@ public class ConfigurationCleaner
 
             final Optional<ProfileID> profileID = key.getProfileID();
 
-            LOGGER.info( () -> "converting deprecated non-default setting "
+            LOGGER.info( SESSION_LABEL, () -> "converting deprecated non-default setting "
                     + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY.getKey() + "/" + profileID
                     + " to replacement setting "
                     + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL + ", value="
@@ -215,7 +215,8 @@ public class ConfigurationCleaner
 
             for ( final ProfileID destProfile : targetProfiles )
             {
-                LOGGER.info( () -> "moving setting " + key + " without profile attribute to profile \"" + destProfile + "\"." );
+                LOGGER.info( SESSION_LABEL, () -> "moving setting " + key
+                        + " without profile attribute to profile \"" + destProfile + "\"." );
                 {
                     try
                     {
