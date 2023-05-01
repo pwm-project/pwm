@@ -32,9 +32,7 @@ import password.pwm.util.java.JsonUtil;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 
 
@@ -72,7 +70,7 @@ public class LoginInfoBean implements Serializable
     private AuthenticationType type = AuthenticationType.UNAUTHENTICATED;
 
     @SerializedName( "af" )
-    private List<AuthenticationType> authFlags = new ArrayList<>();
+    private Set<AuthenticationType> authFlags = EnumSet.noneOf( AuthenticationType.class );
 
     @SerializedName( "as" )
     private PwmAuthenticationSource authSource;
