@@ -286,6 +286,11 @@ public class ContextManager implements Serializable
             handleStartupError( "unable to initialize application: ", e );
         }
 
+        if ( taskMaster != null )
+        {
+            taskMaster.shutdownNow();
+        }
+
         taskMaster = Executors.newSingleThreadScheduledExecutor(
                 PwmScheduler.makePwmThreadFactory(
                         PwmScheduler.makeThreadName( pwmApplication, this.getClass() ) + "-",
@@ -389,8 +394,9 @@ public class ContextManager implements Serializable
                 LOGGER.error( () -> "unexpected error attempting to close application: " + e.getMessage() );
             }
         }
-        taskMaster.shutdown();
 
+        taskMaster.shutdownNow();
+        taskMaster = null;
 
         this.pwmApplication = null;
         startupErrorInformation = null;

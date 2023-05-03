@@ -177,14 +177,12 @@ public class EmailServerUtil
         try
         {
             final SmtpServerType smtpServerType = profile.readSettingAsEnum( PwmSetting.EMAIL_SERVER_TYPE, SmtpServerType.class );
-            if ( smtpServerType == SmtpServerType.SMTP )
+            if ( smtpServerType == SmtpServerType.SMTPS || smtpServerType == SmtpServerType.START_TLS )
             {
-                return properties;
+                final MailSSLSocketFactory mailSSLSocketFactory = new MailSSLSocketFactory();
+                mailSSLSocketFactory.setTrustManagers( trustManager );
+                properties.put( "mail.smtp.ssl.socketFactory", mailSSLSocketFactory );
             }
-
-            final MailSSLSocketFactory mailSSLSocketFactory = new MailSSLSocketFactory();
-            mailSSLSocketFactory.setTrustManagers( trustManager );
-            properties.put( "mail.smtp.ssl.socketFactory", mailSSLSocketFactory );
 
             if ( smtpServerType == SmtpServerType.SMTPS )
             {

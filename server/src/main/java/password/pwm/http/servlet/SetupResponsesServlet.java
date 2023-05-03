@@ -558,12 +558,15 @@ public class SetupResponsesServlet extends ControlledPwmServlet
                     null
             );
 
+            final Instant startMakeResponseSet = Instant.now();
             final ChaiResponseSet responseSet = ChaiCrFactory.newChaiResponseSet(
                     readResponses,
                     challengeSet.getLocale(),
                     challengeSet.getMinRandomRequired(),
                     provider.getChaiConfiguration(),
                     challengeSet.getIdentifier() );
+            LOGGER.trace( pwmRequest, () -> "generated hashed response set in "
+                    + TimeDuration.fromCurrent( startMakeResponseSet ).asCompactString() );
 
             responseSet.meetsChallengeSetRequirements( challengeSet );
 

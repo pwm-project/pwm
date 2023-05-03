@@ -65,7 +65,7 @@ public class PwmScheduler
 
     public void shutdown()
     {
-        applicationExecutorService.shutdown();
+        applicationExecutorService.shutdownNow();
     }
 
     public Future immediateExecuteInNewThread(

@@ -143,7 +143,7 @@ public class PwmApplication
 
         try
         {
-            initialize();
+            initialize( false );
         }
         catch ( final PwmUnrecoverableException e )
         {
@@ -157,7 +157,7 @@ public class PwmApplication
         return new PwmApplication( pwmEnvironment );
     }
 
-    private void initialize( )
+    private void initialize( final boolean isReInit )
             throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
@@ -209,18 +209,21 @@ public class PwmApplication
         }
 
         // clear temp dir
-        if ( !pwmEnvironment.isInternalRuntimeInstance() )
+        if ( !isReInit )
         {
-            final File tempFileDirectory = getTempDirectory();
-            try
+            if ( !pwmEnvironment.isInternalRuntimeInstance() )
             {
-                FileSystemUtility.deleteDirectoryContents( tempFileDirectory );
-            }
-            catch ( final Exception e )
-            {
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR,
-                        "unable to clear temp file directory '" + tempFileDirectory.getAbsolutePath() + "', error: " + e.getMessage()
-                ) );
+                final File tempFileDirectory = getTempDirectory();
+                try
+                {
+                    FileSystemUtility.deleteDirectoryContents( tempFileDirectory );
+                }
+                catch ( final Exception e )
+                {
+                    throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR,
+                            "unable to clear temp file directory '" + tempFileDirectory.getAbsolutePath() + "', error: " + e.getMessage()
+                    ) );
+                }
             }
         }
 
@@ -288,7 +291,7 @@ public class PwmApplication
         LOGGER.debug( () -> "beginning application restart" );
         shutdown( true );
         this.pwmEnvironment = pwmEnvironment;
-        initialize();
+        initialize( true );
         runtimeNonce = PwmRandom.getInstance().randomUUID().toString();
         LOGGER.debug( () -> "completed application restart", () -> TimeDuration.fromCurrent( startTime ) );
     }
