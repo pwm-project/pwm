@@ -239,7 +239,7 @@ public class PwmLogger
     private void pushMessageToLog4j( final PwmLogEvent logEvent )
     {
         final String wrappedMessage = logEvent.getEnhancedMessage();
-        final Throwable throwable = logEvent.getThrowable();
+        final Throwable throwable = logEvent.getLoggedThrowable() == null ? null : logEvent.getLoggedThrowable().toThrowable();
         final PwmLogLevel level = logEvent.getLevel();
 
         if ( initialized )

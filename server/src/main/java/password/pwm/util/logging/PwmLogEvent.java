@@ -20,6 +20,7 @@
 
 package password.pwm.util.logging;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Value;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmConstants;
@@ -39,6 +40,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Value
+@SuppressFBWarnings( "SE_BAD_FIELD" )
 public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
 {
     private static final int MAX_MESSAGE_LENGTH = 50_000;
@@ -49,7 +51,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
     private final PwmLogLevel level;
     private final String topic;
     private final String message;
-    private final Throwable throwable;
+    private final LoggedThrowable loggedThrowable;
     private final String username;
     private final String sourceAddress;
 
@@ -78,7 +80,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
             final String topic,
             final String message,
             final SessionLabel sessionLabel,
-            final Throwable throwable,
+            final LoggedThrowable loggedThrowable,
             final PwmLogLevel level
     )
     {
@@ -98,7 +100,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
         this.timestamp = timestamp;
         this.topic = StringUtil.truncate( topic, maxFieldLength );
         this.message = StringUtil.truncate( message, MAX_MESSAGE_LENGTH, " [truncated message]" );
-        this.throwable = throwable;
+        this.loggedThrowable = loggedThrowable;
         this.level = level;
 
         this.sessionID = sessionLabel == null ? "" : StringUtil.truncate( sessionLabel.getSessionID(), 256 );
@@ -116,7 +118,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
             final PwmLogLevel level
     )
     {
-        return new PwmLogEvent( date, topic, message, sessionLabel, throwable, level );
+        return new PwmLogEvent( date, topic, message, sessionLabel, LoggedThrowable.fromThrowable( throwable ), level );
     }
 
     String getEnhancedMessage( )
@@ -141,12 +143,12 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
             }
         }
 
-        if ( this.getThrowable() != null )
+        if ( this.getLoggedThrowable() != null )
         {
             output.append( " (stacktrace follows)\n" );
             final StringWriter sw = new StringWriter();
             final PrintWriter pw = new PrintWriter( sw );
-            this.getThrowable().printStackTrace( pw );
+            output.append( JavaHelper.throwableToString( this.getLoggedThrowable().toThrowable() ) );
             pw.flush();
             output.append( sw.toString() );
         }
@@ -204,6 +206,10 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         final CSVPrinter csvPrinter = JavaHelper.makeCsvPrinter( byteArrayOutputStream );
         final List<String> dataRow = new ArrayList<>();
+
+        final String throwableMessage = ( getLoggedThrowable() == null || getLoggedThrowable().getMessage() == null ) ? "" : getLoggedThrowable().getMessage();
+
+
         dataRow.add( JavaHelper.toIsoDate( getTimestamp() ) );
         dataRow.add( getLevel().name() );
         dataRow.add( getSourceAddress( ) == null ? "" : getSourceAddress() );
@@ -211,7 +217,7 @@ public class PwmLogEvent implements Serializable, Comparable<PwmLogEvent>
         dataRow.add( getUsername( ) );
         dataRow.add( getTopic() );
         dataRow.add( getMessage() );
-        dataRow.add( getThrowable() == null ? "" : JavaHelper.readHostileExceptionMessage( getThrowable() ) );
+        dataRow.add( throwableMessage );
         csvPrinter.printRecord( dataRow );
         csvPrinter.flush();
         return byteArrayOutputStream.toString( PwmConstants.DEFAULT_CHARSET.name() );

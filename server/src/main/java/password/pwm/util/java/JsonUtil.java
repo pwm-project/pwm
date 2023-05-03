@@ -377,7 +377,7 @@ public class JsonUtil
     {
         gsonBuilder.registerTypeAdapter( Date.class, new DateTypeAdapter() );
         gsonBuilder.registerTypeAdapter( Instant.class, new InstantTypeAdapter() );
-        gsonBuilder.registerTypeAdapter( X509Certificate.class, new X509CertificateAdapter() );
+        gsonBuilder.registerTypeHierarchyAdapter( X509Certificate.class, new X509CertificateAdapter() );
         gsonBuilder.registerTypeAdapter( byte[].class, new ByteArrayToBase64TypeAdapter() );
         gsonBuilder.registerTypeAdapter( PasswordData.class, new PasswordDataTypeAdapter() );
         gsonBuilder.registerTypeAdapter( PwmLdapVendorTypeAdaptor.class, new PwmLdapVendorTypeAdaptor() );
