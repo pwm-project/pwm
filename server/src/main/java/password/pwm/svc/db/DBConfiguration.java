@@ -29,11 +29,8 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.value.FileValue;
 import password.pwm.data.ImmutableByteArray;
 import password.pwm.util.PasswordData;
-import password.pwm.util.java.CollectionUtil;
 
-import java.util.Arrays;
 import java.util.Map;
-import java.util.Set;
 
 @Value
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
@@ -46,7 +43,6 @@ public class DBConfiguration
     private final String columnTypeKey;
     private final String columnTypeValue;
     private final ImmutableByteArray jdbcDriver;
-    private final Set<JDBCDriverLoader.ClassLoaderStrategy> classLoaderStrategies;
     private final int maxConnections;
     private final int connectionTimeout;
     private final int keyColumnLength;
@@ -72,12 +68,6 @@ public class DBConfiguration
             jdbcDriverBytes = null;
         }
 
-        final String strategyList = config.readAppProperty( AppProperty.DB_JDBC_LOAD_STRATEGY );
-        final Set<JDBCDriverLoader.ClassLoaderStrategy> strategies = CollectionUtil.readEnumSetFromStringCollection(
-                JDBCDriverLoader.ClassLoaderStrategy.class,
-                Arrays.asList( strategyList.split( "," ) )
-        );
-
         final int maxConnections = Integer.parseInt( config.readAppProperty( AppProperty.DB_CONNECTIONS_MAX ) );
         final int connectionTimeout = Integer.parseInt( config.readAppProperty( AppProperty.DB_CONNECTIONS_TIMEOUT_MS ) );
 
@@ -93,7 +83,6 @@ public class DBConfiguration
                 config.readSettingAsString( PwmSetting.DATABASE_COLUMN_TYPE_KEY ),
                 config.readSettingAsString( PwmSetting.DATABASE_COLUMN_TYPE_VALUE ),
                 jdbcDriverBytes,
-                strategies,
                 maxConnections,
                 connectionTimeout,
                 keyColumnLength,

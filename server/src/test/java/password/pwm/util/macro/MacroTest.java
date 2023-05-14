@@ -23,23 +23,28 @@ package password.pwm.util.macro;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.SampleDataGenerator;
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 public class MacroTest
 {
+    @TempDir
+    public Path temporaryFolder;
+
     private MacroRequest macroRequest;
 
     @BeforeEach
     public void setUp() throws PwmUnrecoverableException
     {
-        macroRequest = SampleDataGenerator.sampleMacroRequest( null );
+        macroRequest = SampleDataGenerator.sampleMacroRequest( temporaryFolder );
     }
 
 

@@ -51,9 +51,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
-public class PwmScheduler
+public final class PwmScheduler
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmScheduler.class );
 
@@ -83,7 +82,7 @@ public class PwmScheduler
         executor.submit( runnable );
     }
 
-    public void scheduleDailyZuluZeroStartJob(
+    public static void scheduleDailyZuluZeroStartJob(
             final Runnable runnable,
             final ScheduledExecutorService executorService,
             final TimeDuration zuluOffset
@@ -123,7 +122,7 @@ public class PwmScheduler
 
         final List<Future<T>> futures = callables.stream()
                 .map( executor::submit )
-                .collect( Collectors.toUnmodifiableList() );
+                .toList();
 
 
         final List<T> results = new ArrayList<>();
@@ -162,15 +161,13 @@ public class PwmScheduler
     }
 
 
-    public void scheduleFixedRateJob(
+    public static void scheduleFixedRateJob(
             final Runnable runnable,
             final ScheduledExecutorService executor,
             final TimeDuration initialDelay,
             final TimeDuration frequency
     )
     {
-        checkIfSchedulerClosed();
-
         executor.scheduleAtFixedRate( runnable, initialDelay.asMillis(), frequency.asMillis(), TimeUnit.MILLISECONDS );
     }
 

@@ -231,23 +231,6 @@
                         </tr>
                         <tr>
                             <td class="key">
-                                Dojo API Version
-                            </td>
-                            <td>
-                                <span id="dojoVersionSpan"></span>
-                                <pwm:script>
-                                    <script type="text/javascript">
-                                        PWM_GLOBAL['startupFunctions'].push(function(){
-                                            require(["dojo"],function(dojo){
-                                                dojo.byId('dojoVersionSpan').innerHTML = dojo.version;
-                                            });
-                                        });
-                                    </script>
-                                </pwm:script>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="key">
                                 License Information
                             </td>
                             <td>

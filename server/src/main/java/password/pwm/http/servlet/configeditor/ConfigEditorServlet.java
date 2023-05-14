@@ -672,7 +672,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             final Optional<EmailServer> emailServer = EmailServerUtil.makeEmailServer( testDomainConfig, emailServerProfile, null );
             if ( emailServer.isPresent() )
             {
-                final MacroRequest macroRequest = SampleDataGenerator.sampleMacroRequest( pwmRequest.getPwmDomain() );
+                final MacroRequest macroRequest = SampleDataGenerator.sampleMacroRequest( pwmRequest.getPwmApplication().getTempDirectory().orElseThrow() );
 
                 try
                 {
@@ -800,7 +800,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 return ProcessStatus.Halt;
             }
 
-            final MacroRequest macroRequest = SampleDataGenerator.sampleMacroRequest( pwmRequest.getPwmDomain() );
+            final MacroRequest macroRequest = SampleDataGenerator.sampleMacroRequest( pwmRequest.getPwmApplication().getTempDirectory().orElseThrow() );
             final String input = inputMap.get( "input" );
             final String output = macroRequest.expandMacros( input );
             pwmRequest.outputJsonResult( RestResultBean.withData( output, String.class ) );

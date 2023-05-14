@@ -301,7 +301,7 @@ public class SetupResponsesServlet extends ControlledPwmServlet
 
             final Instant startMakeResponseSet = Instant.now();
             SetupResponsesUtil.generateResponseInfoBean( pwmRequest, challengeSet, responseMap, Collections.emptyMap() );
-            LOGGER.error( pwmRequest, () -> "generated hashed response set in "
+            LOGGER.trace( pwmRequest, () -> "generated hashed response set in "
                     + TimeDuration.fromCurrent( startMakeResponseSet ).asCompactString() );
             success = true;
         }

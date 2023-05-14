@@ -174,7 +174,7 @@ public abstract class AbstractPwmService implements PwmService
 
     protected void scheduleFixedRateJob( final Runnable runnable, final TimeDuration initialDelay, final TimeDuration repeatInterval )
     {
-        pwmApplication.getPwmScheduler().scheduleFixedRateJob( new WrappedRunnable( runnable ),
+        PwmScheduler.scheduleFixedRateJob( new WrappedRunnable( runnable ),
                 executorService.get(),
                 initialDelay,
                 repeatInterval );
@@ -194,7 +194,7 @@ public abstract class AbstractPwmService implements PwmService
 
     protected void scheduleDailyZuluZeroStartJob( final Runnable runnable, final TimeDuration zuluOffset )
     {
-        pwmApplication.getPwmScheduler().scheduleDailyZuluZeroStartJob( new WrappedRunnable( runnable ),
+        PwmScheduler.scheduleDailyZuluZeroStartJob( new WrappedRunnable( runnable ),
                 executorService.get(),
                 zuluOffset );
     }

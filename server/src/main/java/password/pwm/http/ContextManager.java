@@ -257,6 +257,11 @@ public class ContextManager
             handleStartupError( "unable to initialize application: ", e );
         }
 
+        if ( taskMaster != null )
+        {
+            taskMaster.shutdownNow();
+        }
+
         taskMaster = Executors.newSingleThreadScheduledExecutor(
                 PwmScheduler.makePwmThreadFactory(
                         PwmScheduler.makeThreadName( SESSION_LABEL, pwmApplication, this.getClass() ) + "-"

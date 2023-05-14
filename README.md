@@ -144,8 +144,7 @@ log, and runtime files.  Once PWM is configured, the initial web UI will prompt 
 
 ### Java Executable
 The 'onejar' artifact released with PWM has an embedded tomcat instance, so you don't need to install tomcat to use this
-version.  You will be responsible for getting it to run as a service, and you won't be able to do any advanced tomcat
-configuration.  
+version.  It's ideal for testing and evaluating PWM.  You will be responsible for getting it to run as a service (if desired).  
 
 Requirements:
 * Java 11 JDK or better
@@ -158,7 +157,7 @@ Example for running onejar executable (with /pwm-applicationPath being the locat
 ```
 java -jar pwm-onejar-2.0.0.jar -applicationPath /pwm-applicationPath 
 ```
-By default the executable will remain attached to the console and listen for HTTPS connections on port 8443.
+By default, the executable will remain attached to the console and listen for HTTPS connections on port 8443.
 
 
 ### WAR
@@ -256,7 +255,7 @@ git clone https://github.com/pwm-project/pwm
 cd pwm
 mvnw.cmd clean verify
 ```
-On Windows we recommend using paths without spaces (including for the JDK directory).
+On Windows we recommend using paths without spaces for both PWM and JDK directory.
 
 Artifacts created:
 

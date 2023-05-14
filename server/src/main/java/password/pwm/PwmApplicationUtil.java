@@ -21,6 +21,7 @@
 package password.pwm;
 
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.stored.StoredConfigurationUtil;
@@ -45,6 +46,7 @@ import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.X509Utils;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -353,5 +355,56 @@ class PwmApplicationUtil
     static String makeRuntimeNonce()
     {
         return PwmRandom.getInstance().randomUUID().toString();
+    }
+
+    static Path initTempDirectory( final SessionLabel sessionLabel, final PwmEnvironment pwmEnvironment )
+            throws PwmUnrecoverableException
+    {
+        if ( pwmEnvironment.getApplicationPath() == null )
+        {
+            final ErrorInformation errorInformation = new ErrorInformation(
+                    PwmError.ERROR_STARTUP_ERROR,
+                    "unable to establish temp work directory: application path unavailable"
+            );
+            throw new PwmUnrecoverableException( errorInformation );
+        }
+
+        final Path tempDirectory = pwmEnvironment.getApplicationPath().resolve( "temp" );
+
+        if ( !Files.exists( tempDirectory ) )
+        {
+            LOGGER.trace( sessionLabel, () -> "preparing to create temporary directory " + tempDirectory );
+            try
+            {
+                Files.createDirectories( tempDirectory );
+                LOGGER.debug( sessionLabel, () -> "created " + tempDirectory );
+            }
+            catch ( final IOException e )
+            {
+                LOGGER.debug( sessionLabel, () -> "unable to create temporary directory " + tempDirectory );
+                final ErrorInformation errorInformation = new ErrorInformation(
+                        PwmError.ERROR_STARTUP_ERROR,
+                        "unable to establish create temp work directory " + tempDirectory );
+                throw new PwmUnrecoverableException( errorInformation );
+            }
+        }
+
+        // clear temp dir
+        if ( !pwmEnvironment.isInternalRuntimeInstance() )
+        {
+            try
+            {
+                LOGGER.debug( sessionLabel, () -> "deleting directory (and sub-directory) contents in " + tempDirectory );
+                FileSystemUtility.deleteDirectoryContentsRecursively( tempDirectory );
+            }
+            catch ( final Exception e )
+            {
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR,
+                        "unable to clear temp file directory '" + tempDirectory + "', error: " + e.getMessage()
+                ) );
+            }
+        }
+
+        return tempDirectory;
     }
 }

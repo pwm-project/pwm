@@ -31,6 +31,7 @@ import password.pwm.svc.db.DatabaseException;
 import password.pwm.svc.db.DatabaseService;
 import password.pwm.svc.db.DatabaseTable;
 import password.pwm.svc.event.AuditEventType;
+import password.pwm.svc.event.AuditRecordData;
 import password.pwm.svc.event.HelpdeskAuditRecord;
 import password.pwm.svc.event.UserAuditRecord;
 import password.pwm.user.UserInfo;
@@ -38,8 +39,10 @@ import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 class DatabaseUserHistory implements UserHistoryStore
 {
@@ -78,8 +81,9 @@ class DatabaseUserHistory implements UserHistoryStore
         {
             final StoredHistory storedHistory;
             storedHistory = readStoredHistory( guid );
-            storedHistory.records().add( auditRecord );
-            writeStoredHistory( guid, storedHistory );
+            final List<AuditRecordData> mutableRecordList = new ArrayList<>( storedHistory.records() );
+            mutableRecordList.add( ( AuditRecordData ) auditRecord );
+            writeStoredHistory( guid, new StoredHistory( mutableRecordList ) );
         }
         catch ( final DatabaseException e )
         {
@@ -93,7 +97,9 @@ class DatabaseUserHistory implements UserHistoryStore
         final String userGuid = userInfo.getUserGuid();
         try
         {
-            return readStoredHistory( userGuid ).records();
+            return readStoredHistory( userGuid ).records().stream()
+                    .map( auditRecordData -> ( UserAuditRecord ) auditRecordData )
+                    .collect( Collectors.toList() );
         }
         catch ( final DatabaseException e )
         {
@@ -122,7 +128,7 @@ class DatabaseUserHistory implements UserHistoryStore
     }
 
     record StoredHistory(
-            List<UserAuditRecord> records
+            List<AuditRecordData> records
     )
     {
         StoredHistory

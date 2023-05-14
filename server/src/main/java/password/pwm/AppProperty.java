@@ -90,7 +90,6 @@ public enum AppProperty
     CLUSTER_LDAP_HEARTBEAT_SECONDS                  ( "cluster.ldap.heartbeatSeconds" ),
     CLUSTER_LDAP_NODE_TIMEOUT_SECONDS               ( "cluster.ldap.nodeTimeoutSeconds" ),
     CLUSTER_LDAP_NODE_PURGE_SECONDS                 ( "cluster.ldap.nodePurgeSeconds" ),
-    DB_JDBC_LOAD_STRATEGY                           ( "db.jdbcLoadStrategy" ),
     DB_CONNECTIONS_MAX                              ( "db.connections.max" ),
     DB_CONNECTIONS_TIMEOUT_MS                       ( "db.connections.timeoutMs" ),
     DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS       ( "db.connections.watchdogFrequencySeconds" ),

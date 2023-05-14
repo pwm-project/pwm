@@ -222,10 +222,12 @@ public class LdapXmlUserHistory implements UserHistoryStore
                 return StoredHistory.fromXml( theCor.getPayload() );
             }
         }
-        catch ( final ChaiOperationException e )
+        catch ( final Exception e )
         {
-            LOGGER.error( sessionLabel, () -> "ldap error reading user event log: " + e.getMessage() );
+            LOGGER.error( sessionLabel, () -> "error reading user history for "
+                    + userIdentity.toString() + ", error: " + e.getMessage() );
         }
+
         return new StoredHistory();
     }
 
@@ -295,7 +297,10 @@ public class LdapXmlUserHistory implements UserHistoryStore
             }
         }
 
-        public static StoredHistory fromXml( final String input )
+        public static StoredHistory fromXml(
+                final String input
+        )
+                throws IOException
         {
             final StoredHistory returnHistory = new StoredHistory();
 
@@ -327,10 +332,6 @@ public class LdapXmlUserHistory implements UserHistoryStore
                         } );
                     } ) );
                 }
-            }
-            catch ( final IOException e )
-            {
-                LOGGER.error( () -> "error parsing user event history record: " + e.getMessage() );
             }
             return returnHistory;
         }

@@ -20,7 +20,6 @@
 
 package password.pwm;
 
-import lombok.Value;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
@@ -28,7 +27,6 @@ import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingScope;
 import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthService;
@@ -58,7 +56,7 @@ import password.pwm.svc.wordlist.SharedHistoryService;
 import password.pwm.svc.wordlist.WordlistService;
 import password.pwm.util.MBeanUtility;
 import password.pwm.util.PwmScheduler;
-import password.pwm.util.java.FileSystemUtility;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -67,8 +65,6 @@ import password.pwm.util.logging.LocalDBLogger;
 import password.pwm.util.logging.PwmLogManager;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -108,6 +104,7 @@ public class PwmApplication
     private String instanceID = PwmApplicationUtil.DEFAULT_INSTANCE_ID;
     private LocalDB localDB;
     private LocalDBLogger localDBLogger;
+    private Path tempDirectory;
 
     public PwmApplication( final PwmEnvironment pwmEnvironment )
             throws PwmUnrecoverableException
@@ -156,22 +153,8 @@ public class PwmApplication
             fileLocker.waitForFileLock();
         }
 
-        // clear temp dir
-        if ( !pwmEnvironment.isInternalRuntimeInstance() )
-        {
-            final Path tempFileDirectory = getTempDirectory();
-            try
-            {
-                LOGGER.debug( sessionLabel, () -> "deleting directory (and sub-directory) contents in " + tempFileDirectory );
-                FileSystemUtility.deleteDirectoryContentsRecursively( tempFileDirectory );
-            }
-            catch ( final Exception e )
-            {
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_STARTUP_ERROR,
-                        "unable to clear temp file directory '" + tempFileDirectory + "', error: " + e.getMessage()
-                ) );
-            }
-        }
+        // init temp dir
+        tempDirectory = PwmApplicationUtil.initTempDirectory( sessionLabel, pwmEnvironment );
 
         if ( getApplicationMode() != PwmApplicationMode.READ_ONLY )
         {
@@ -509,7 +492,7 @@ public class PwmApplication
 
     public Map<ProfileID, ErrorInformation> readLastLdapFailure( final DomainID domainID )
     {
-        return readLastLdapFailure().getRecords().getOrDefault( domainID, Collections.emptyMap() );
+        return readLastLdapFailure().records().getOrDefault( domainID, Collections.emptyMap() );
     }
 
     private StoredErrorRecords readLastLdapFailure()
@@ -534,34 +517,27 @@ public class PwmApplication
         return new StoredErrorRecords( Collections.emptyMap() );
     }
 
-    @Value
-    private static class StoredErrorRecords
+    private record StoredErrorRecords(
+            Map<DomainID, Map<ProfileID, ErrorInformation>> records
+    )
     {
-        private final Map<DomainID, Map<ProfileID, ErrorInformation>> records;
-
-        StoredErrorRecords( final Map<DomainID, Map<ProfileID, ErrorInformation>> records )
+        private StoredErrorRecords( final Map<DomainID, Map<ProfileID, ErrorInformation>> records )
         {
-            this.records = records == null ? Collections.emptyMap() : Map.copyOf( records );
-        }
-
-        public Map<DomainID, Map<ProfileID, ErrorInformation>> getRecords()
-        {
-            // required because json deserialization can still set records == null
-            return records == null ? Collections.emptyMap() : records;
+            this.records = CollectionUtil.stripNulls( records );
         }
 
         StoredErrorRecords addDomainErrorMap(
                 final DomainID domainID,
                 final Map<ProfileID, ErrorInformation> errorInformationMap )
         {
-            final Map<DomainID, Map<ProfileID, ErrorInformation>> newRecords = new HashMap<>( getRecords() );
+            final Map<DomainID, Map<ProfileID, ErrorInformation>> newRecords = new HashMap<>( records );
             newRecords.put( domainID, Map.copyOf( errorInformationMap ) );
             return new StoredErrorRecords( newRecords );
         }
 
         StoredErrorRecords stripOutdatedLdapErrors( final TimeDuration maxAge )
         {
-            return new StoredErrorRecords( getRecords().entrySet().stream()
+            return new StoredErrorRecords( records.entrySet().stream()
                     // outer map
                     .collect( Collectors.toUnmodifiableMap(
                             Map.Entry::getKey,
@@ -787,38 +763,11 @@ public class PwmApplication
         return this.getConfig().isMultiDomain();
     }
 
-    public Path getTempDirectory( )
+    public Optional<Path> getTempDirectory( )
             throws PwmUnrecoverableException
     {
-        if ( pwmEnvironment.getApplicationPath() == null )
-        {
-            final ErrorInformation errorInformation = new ErrorInformation(
-                    PwmError.ERROR_STARTUP_ERROR,
-                    "unable to establish temp work directory: application path unavailable"
-            );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
-        final Path tempDirectory = pwmEnvironment.getApplicationPath().resolve( "temp" );
-        if ( !Files.exists( tempDirectory ) )
-        {
-            LOGGER.trace( () -> "preparing to create temporary directory " + tempDirectory );
-            try
-            {
-                Files.createDirectories( tempDirectory );
-                LOGGER.debug( () -> "created " + tempDirectory );
-            }
-            catch ( final IOException e )
-            {
-                LOGGER.debug( () -> "unable to create temporary directory " + tempDirectory );
-                final ErrorInformation errorInformation = new ErrorInformation(
-                        PwmError.ERROR_STARTUP_ERROR,
-                        "unable to establish create temp work directory " + tempDirectory );
-                throw new PwmUnrecoverableException( errorInformation );
-            }
-        }
-        return tempDirectory;
+        return Optional.ofNullable( tempDirectory );
     }
-
 
     public PwmScheduler getPwmScheduler()
     {

@@ -124,7 +124,7 @@ abstract class AbstractWordlist extends AbstractPwmService implements Wordlist, 
 
         if ( !pwmApplication.getPwmEnvironment().isInternalRuntimeInstance() )
         {
-            pwmApplication.getPwmScheduler().scheduleFixedRateJob(
+            PwmScheduler.scheduleFixedRateJob(
                     new InspectorJob(), executorService, TimeDuration.SECOND, wordlistConfiguration.getInspectorFrequency() );
         }
 

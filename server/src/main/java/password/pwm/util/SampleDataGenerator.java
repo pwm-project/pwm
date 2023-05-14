@@ -24,7 +24,6 @@ import com.novell.ldapchai.cr.Answer;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
-import password.pwm.PwmDomain;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.LoginInfoBean;
@@ -47,6 +46,7 @@ import password.pwm.user.UserInfoBean;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.macro.MacroRequest;
 
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
@@ -158,7 +158,7 @@ public class SampleDataGenerator
                 .build();
     }
 
-    public static MacroRequest sampleMacroRequest( final PwmDomain pwmDomain )
+    public static MacroRequest sampleMacroRequest( final Path applicationPath )
             throws PwmUnrecoverableException
     {
         final UserInfo targetUserInfoBean = sampleTargetUserInfo();
@@ -172,7 +172,7 @@ public class SampleDataGenerator
         loginInfoBean.setUserCurrentPassword( PasswordData.forStringValue( "PaSSw0rd" ) );
 
         return MacroRequest.builder()
-                .pwmApplication( makeSamplePwmApp( ) )
+                .pwmApplication( makeSamplePwmApp( applicationPath ) )
                 .userInfo( userInfoBean )
                 .targetUserInfo( targetUserInfoBean )
                 .loginInfoBean( loginInfoBean )
@@ -196,18 +196,18 @@ public class SampleDataGenerator
         return AppConfig.forStoredConfig( modifier.newStoredConfiguration() );
     }
 
-    private static PwmApplication makeSamplePwmApp()
+    private static PwmApplication makeSamplePwmApp( final Path applicationPath )
             throws PwmUnrecoverableException
     {
-        return makeSamplePwmApp( makeConfig() );
+        return makeSamplePwmApp( makeConfig(), applicationPath );
     }
 
-    private static PwmApplication makeSamplePwmApp( final AppConfig appConfig )
+    private static PwmApplication makeSamplePwmApp( final AppConfig appConfig, final Path applicationPath )
             throws PwmUnrecoverableException
     {
         final PwmEnvironment pwmEnvironment = PwmEnvironment.builder()
                 .config( appConfig )
-                .applicationPath( null )
+                .applicationPath( applicationPath )
                 .applicationMode( PwmApplicationMode.READ_ONLY )
                 .internalRuntimeInstance( true )
                 .build();

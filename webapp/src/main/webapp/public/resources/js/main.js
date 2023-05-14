@@ -190,7 +190,7 @@ PWM_MAIN.initPage = function() {
             try {
                 startupFunction();
             } catch(e) {
-                console.error('error executing startup function: ' + e);
+                console.error('error executing startup function: ' + e,e);
             }
         })
     });

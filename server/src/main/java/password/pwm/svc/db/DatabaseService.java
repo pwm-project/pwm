@@ -45,7 +45,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.Driver;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -69,9 +69,6 @@ public class DatabaseService extends AbstractPwmService implements PwmService
     private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseService.class );
 
     private DBConfiguration dbConfiguration;
-
-    private Driver driver;
-    private JDBCDriverLoader.DriverLoader jdbcDriverLoader;
 
     private ErrorInformation lastError;
 
@@ -199,21 +196,6 @@ public class DatabaseService extends AbstractPwmService implements PwmService
         setStatus( STATUS.CLOSED );
 
         clearCurrentAccessors();
-
-        try
-        {
-            driver = null;
-        }
-        catch ( final Exception e )
-        {
-            LOGGER.debug( getSessionLabel(), () -> "error while de-registering driver: " + e.getMessage() );
-        }
-
-        if ( jdbcDriverLoader != null )
-        {
-            jdbcDriverLoader.unloadDriver();
-            jdbcDriverLoader = null;
-        }
     }
 
     private void clearCurrentAccessors( )
@@ -358,13 +340,10 @@ public class DatabaseService extends AbstractPwmService implements PwmService
     {
         final String connectionURL = dbConfiguration.getConnectionString();
 
-        final JDBCDriverLoader.DriverWrapper wrapper = JDBCDriverLoader.loadDriver( getPwmApplication(), dbConfiguration );
-        driver = wrapper.getDriver();
-        jdbcDriverLoader = wrapper.getDriverLoader();
-
         try
         {
             LOGGER.debug( getSessionLabel(), () -> "initiating connecting to database " + connectionURL );
+            JDBCDriverLoader.loadDriver( getPwmApplication(), dbConfiguration );
             final Properties connectionProperties = new Properties();
             if ( dbConfiguration.getUsername() != null && !dbConfiguration.getUsername().isEmpty() )
             {
@@ -375,7 +354,7 @@ public class DatabaseService extends AbstractPwmService implements PwmService
                 connectionProperties.setProperty( "password", dbConfiguration.getPassword().getStringValue() );
             }
 
-            final Connection connection = driver.connect( connectionURL, connectionProperties );
+            final Connection connection = DriverManager.getConnection( connectionURL, connectionProperties );
             LOGGER.debug( getSessionLabel(), () -> "connected to database " + connectionURL );
 
             connection.setAutoCommit( false );

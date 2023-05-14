@@ -54,7 +54,8 @@ public class LdapXmlUserHistoryTest
         final PwmDomain pwmDomain = pwmApplication.domains().get( DomainID.DOMAIN_ID_DEFAULT );
         final ResourceBundle bundle = ResourceBundle.getBundle( LdapXmlUserHistoryTest.class.getName() );
         final String xmlValue1 =  bundle.getString( "xmlValue1" );
-        final LdapXmlUserHistory.StoredHistory storedHistory = LdapXmlUserHistory.StoredHistory.fromXml( xmlValue1 );
+        final LdapXmlUserHistory.StoredHistory storedHistory = LdapXmlUserHistory.StoredHistory
+                .fromXml( xmlValue1 );
 
         final List<UserAuditRecord> auditEventList = storedHistory.asAuditRecords(
                 AuditRecordFactory.make( SessionLabel.TEST_SESSION_LABEL,  pwmDomain ), SampleDataGenerator.sampleUserData() );
