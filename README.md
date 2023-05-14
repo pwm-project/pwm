@@ -4,6 +4,8 @@ PWM is an open source password self-service application for LDAP directories.
 
 Official project page is at [https://github.com/pwm-project/pwm/](https://github.com/pwm-project/pwm/).
 
+PWM is a Java Servlet based application, and is packaged as a Java executable single JAR file, traditional Servlet "WAR" file, and docker image. 
+
 # Links
 * [PWM-General Google Group](https://groups.google.com/group/pwm-general) - please ask for assistance here first.
 * [PWM Documentation Wiki](https://github.com/pwm-project/pwm/wiki) - Home for PWM documentation
@@ -117,9 +119,9 @@ Minimum requirements for PWM application.
 
 | PWM Version | Java [^1] | Servlet | Tomcat [^2] |
 | --- | --- | --- | --- |
-| v2.1 | 17 | 3.0 | 9 |
-| v2.0 | 11-17 | 3.0 | 8-9 |
-| v1.9 | 8-11 | 3.0 | 7-9 |
+| v2.1.x | 17+ | 3.0 | 9 |
+| v2.0.x | 11+ | 3.0 | 8-9 |
+| v1.9.x (EOL) | 8-11 | 3.0 | 7-9 |
 
 [^1] There is no requirement for a specific Java implementation, PWM builds use [Adoptium](https://adoptium.net/). 
 
@@ -128,32 +130,22 @@ Minimum requirements for PWM application.
 
 
 
-## Deploy
+## Deploy / Install
 PWM is distributed in the following artifacts, you can use whichever one is most convenient.
 
 | Artifact | Description |
 | --- | --- |
+| Java Executable | Command line executable Java JAR application, includes tomcat. |
 | WAR | Standard Java WAR (Web Archive) application deployment model, you need to have a working java & tomcat configuration on your server. |
-| Executable | Command line executable Java JAR application, includes tomcat. |
 | Docker | Docker image includes Java and Tomcat. |
 
 For all deployment types, each PWM instance will need an _applicationPath_ directory defined on your local server for PWM's configuration,
 log, and runtime files.  Once PWM is configured, the initial web UI will prompt the administrator for LDAP and other configuration settings.  
 
-### WAR
-
-Steps:
-1) Get Apache tomcat working to the point you can access the tomcat landing page with your browser.  See tomcat documentation/help sites for 
-   assistance with installing and configuring tomcat.
-2) Set the _PWM_APPLICATIONPATH_ environment variable in your tomcat instance to a local location of your _applicationPath_ directory. See tomcat and/or your 
-   operating system documentation/help sites for assistance with configuring environment variables as the method for doing this depends on OS and deployment type.
-2) Place the pwm.war file in tomcat 'webapps' directory (rename from pwm-x.x.x.war with version naming)
-3) Access with /pwm url and configure
-
-### Executable
+### Java Executable
 The 'onejar' artifact released with PWM has an embedded tomcat instance, so you don't need to install tomcat to use this
 version.  You will be responsible for getting it to run as a service, and you won't be able to do any advanced tomcat
-configuration.
+configuration.  
 
 Requirements:
 * Java 11 JDK or better
@@ -167,6 +159,17 @@ Example for running onejar executable (with /pwm-applicationPath being the locat
 java -jar pwm-onejar-2.0.0.jar -applicationPath /pwm-applicationPath 
 ```
 By default the executable will remain attached to the console and listen for HTTPS connections on port 8443.
+
+
+### WAR
+
+Steps:
+1) Get Apache tomcat working to the point you can access the tomcat landing page with your browser.  See tomcat documentation/help sites for
+   assistance with installing and configuring tomcat.
+2) Set the _PWM_APPLICATIONPATH_ environment variable in your tomcat instance to a local location of your _applicationPath_ directory. See tomcat and/or your
+   operating system documentation/help sites for assistance with configuring environment variables as the method for doing this depends on OS and deployment type.
+2) Place the pwm.war file in tomcat 'webapps' directory (rename from pwm-x.x.x.war with version naming)
+3) Access with /pwm url and configure
 
 
 ### Docker
@@ -185,7 +188,7 @@ docker load --input=pwm-docker-image-v2.0.0.tar
 ```
    
 1. Create docker image named _mypwm_, map to the server's 8443 port, and set the config volume to use the server's
-local file system _/home/user/pwm-config_ folder:
+local file system _/home/user/pwm-config_ folder (this will be the PWM application path for the container): 
 ```
 docker create --name mypwm -p '8443:8443' --mount 'type=bind,source=/home/user/pwm-config,destination=/config' pwm/pwm-webapp
 ```
@@ -194,6 +197,37 @@ docker create --name mypwm -p '8443:8443' --mount 'type=bind,source=/home/user/p
 ```
 docker start mypwm
 ```
+
+## Configuration
+
+Before configuring PWM you should use an LDAP browser/editor to ensure expected functionality of your LDAP environment. 
+Most difficulties encountered configuring PWM are due to LDAP setup issues or unfamiliarity with LDAP. 
+There are many LDAP browsers available, a common one is [Apache Directrory Studio](https://directory.apache.org/studio/). 
+Use the browser to navigate your LDAP environment, familiarize yourself with the directory structure, and verify expected behavior.
+
+In particular, Active Directory LDAP can be problematic because it is often mis-configured and behaves in unusual ways compared to other LDAP directories.
+Specifically, AD LDAP uses referrals to redirect the LDAP client (PWM in this case) to servers of its choosing, thus PWM must be able to contact all domain controller server instances in the AD environment using the AD-configured DNS name. 
+AD LDAP must also be configured to use SSL certificates for password modifications to work.  However, if the AD environment is well configured, PWM will work fine with it.
+
+PWM includes a web-based configuration editor.
+When PWM starts with no configuration, a web-based configuration guide will prompt the administrator for basic configuration information.
+All configuration information is stored in the _PwmConfiguration.xml_ file, which will be created in the application path directory.
+The application path is also used for other files, including a local database (_LocalDB_) (used primarily as a cache or for test environments), log files, and temporary files.
+If multiple PWM servers are used in parallel, each server must have identical _PwmConfiguration.xml_ files.
+
+PWM uses a configuration password to protect any modifications to the configuration.
+Authentication to PWM requires an LDAP-backed login to a configured administrative account. 
+In early setup or in cases of problems with the LDAP directory, it may be necessary to access the configuration when LDAP functionally is not available.
+For this purpose, PWM has a "configuration-mode" which allows editing the config with the configuration password, but disables all other end-user functionality.
+Configuration mode can be enabled/disabled by editing the _PwmConfiguration.xml_ file and change the`configIsEditable`property near the top of the file, and can also be changed in the web UI.
+
+### Database Usage
+
+PWM can optionally be configured with an RDBMS (also known as a SQL database server).
+When configured to use a database, PWM user meta-data such as challenge/response answers, TOTP tokens, usage records, and other data will be stored in the database.
+When not configured to use a database, PWM user meta-data will be stored to the LDAP directory.  Neither is better or worse, which one you use depends on your enviornment.
+
+Any SQL server that has a Java supported JDBC driver should work, PWM will create its own schema on the first connection.
 
 ## Build
 

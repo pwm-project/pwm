@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.0.6] - Release May 5, 2023
+- update embedded tomcat to v9.0.74 for onejar/docker artifacts
+- update docker image to eclipse-based Java v11.0.19
+- add post Java v14 support for build and execution of pwm webapp
+- update java and js dependencies
+- fix illegal url error during email token validation
+- fix thread/memory leak during configuration restart
+- fix database connection breaking during configuration restart
+- add multi-cpu support for response-set hash generation
+ 
 ## [2.0.5] - Release Feb 10, 2023
 - update java and javascript dependencies
 - update tomcat to 9.0.71 for onejar/docker images
