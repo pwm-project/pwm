@@ -42,7 +42,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.1.2</version>
                 <executions>
                     <execution>
                         <id>default-test</id>
@@ -319,7 +319,7 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-core</artifactId>
-            <version>0.52</version>
+            <version>0.53</version>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>

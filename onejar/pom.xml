@@ -17,7 +17,7 @@
     <name>PWM Password Self Service: Executable Server JAR</name>
 
     <properties>
-        <tomcat.version>9.0.74</tomcat.version>
+        <tomcat.version>9.0.76</tomcat.version>
     </properties>
 
     <build>
@@ -41,7 +41,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.6.0</version>
                 <configuration>
                     <appendAssemblyId>false</appendAssemblyId>
                     <descriptors>
