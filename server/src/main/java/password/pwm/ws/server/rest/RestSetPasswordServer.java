@@ -40,7 +40,6 @@ import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordUtility;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
@@ -172,9 +171,10 @@ public class RestSetPasswordServer extends RestServlet
                         restRequest.getSessionLabel(),
                         targetUserIdentity.getUserIdentity(),
                         targetUserIdentity.getChaiUser() );
-                newPassword = RandomPasswordGenerator.createRandomPassword(
+                newPassword = PasswordUtility.generateRandom(
                         restRequest.getSessionLabel(),
-                        passwordPolicy, restRequest.getDomain()
+                        passwordPolicy,
+                        restRequest.getDomain()
                 );
             }
             else

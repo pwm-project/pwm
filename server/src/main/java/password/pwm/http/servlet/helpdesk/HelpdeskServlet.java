@@ -92,7 +92,6 @@ import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomGeneratorConfig;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
 import password.pwm.ws.server.rest.RestRandomPasswordServer;
@@ -1276,7 +1275,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
                     pwmRequest.getLabel(),
                     userIdentity,
                     chaiUser );
-            newPassword = RandomPasswordGenerator.createRandomPassword(
+            newPassword = PasswordUtility.generateRandom(
                     pwmRequest.getLabel(),
                     passwordPolicy,
                     pwmRequest.getPwmDomain()
@@ -1336,7 +1335,7 @@ public class HelpdeskServlet extends ControlledPwmServlet
         );
 
         final RandomGeneratorConfig randomConfig = RandomGeneratorConfig.make( pwmRequest.getPwmDomain(), userInfo.getPasswordPolicy() );
-        final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), randomConfig, pwmRequest.getPwmDomain() );
+        final PasswordData randomPassword = PasswordUtility.generateRandom( pwmRequest.getLabel(), randomConfig, pwmRequest.getPwmDomain() );
         final RestRandomPasswordServer.JsonOutput jsonOutput = new RestRandomPasswordServer.JsonOutput();
         jsonOutput.setPassword( randomPassword.getStringValue() );
 

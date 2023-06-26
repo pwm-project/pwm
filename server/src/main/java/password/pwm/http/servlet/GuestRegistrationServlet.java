@@ -48,22 +48,21 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.GuestRegistrationBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.UserInfoFactory;
 import password.pwm.ldap.search.SearchConfiguration;
 import password.pwm.ldap.search.UserSearchService;
 import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
+import password.pwm.user.UserInfo;
 import password.pwm.util.FormMap;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
-import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmDateFormat;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.password.PasswordUtility;
-import password.pwm.util.password.RandomPasswordGenerator;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -478,7 +477,7 @@ public class GuestRegistrationServlet extends ControlledPwmServlet
                     userIdentity,
                     theUser );
 
-            final PasswordData newPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), passwordPolicy, pwmDomain );
+            final PasswordData newPassword = PasswordUtility.generateRandom( pwmRequest.getLabel(), passwordPolicy, pwmDomain );
             theUser.setPassword( newPassword.getStringValue() );
 
 

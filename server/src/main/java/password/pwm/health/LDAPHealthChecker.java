@@ -66,7 +66,6 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.server.rest.bean.PublicHealthData;
 
 import java.net.InetAddress;
@@ -357,7 +356,7 @@ public class LDAPHealthChecker implements HealthSupplier
                     }
                     if ( doPasswordChange )
                     {
-                        final PasswordData newPassword = RandomPasswordGenerator.createRandomPassword( null, passwordPolicy, pwmDomain );
+                        final PasswordData newPassword = PasswordUtility.generateRandom( sessionLabel, passwordPolicy, pwmDomain );
                         try
                         {
                             theUser.setPassword( newPassword.getStringValue() );

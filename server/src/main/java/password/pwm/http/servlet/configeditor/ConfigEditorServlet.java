@@ -62,12 +62,12 @@ import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.ControlledPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
+import password.pwm.http.servlet.admin.system.ConfigManagerServlet;
 import password.pwm.http.servlet.configeditor.data.NavTreeDataMaker;
 import password.pwm.http.servlet.configeditor.data.NavTreeItem;
 import password.pwm.http.servlet.configeditor.data.NavTreeSettings;
 import password.pwm.http.servlet.configeditor.data.SettingData;
 import password.pwm.http.servlet.configeditor.data.SettingDataMaker;
-import password.pwm.http.servlet.admin.system.ConfigManagerServlet;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
@@ -85,8 +85,8 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
+import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomGeneratorConfig;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestRandomPasswordServer;
 import password.pwm.ws.server.rest.bean.PublicHealthData;
@@ -934,7 +934,10 @@ public class ConfigEditorServlet extends ControlledPwmServlet
     {
         final RestRandomPasswordServer.JsonInput jsonInput = pwmRequest.readBodyAsJsonObject( RestRandomPasswordServer.JsonInput.class );
         final RandomGeneratorConfig randomConfig = RestRandomPasswordServer.jsonInputToRandomConfig( jsonInput, pwmRequest.getPwmDomain(), PwmPasswordPolicy.defaultPolicy() );
-        final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), randomConfig, pwmRequest.getPwmDomain() );
+        final PasswordData randomPassword = PasswordUtility.generateRandom(
+                pwmRequest.getLabel(),
+                randomConfig,
+                pwmRequest.getPwmDomain() );
         final RestRandomPasswordServer.JsonOutput outputMap = new RestRandomPasswordServer.JsonOutput();
         outputMap.setPassword( randomPassword.getStringValue() );
 

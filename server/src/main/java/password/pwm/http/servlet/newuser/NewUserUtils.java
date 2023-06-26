@@ -55,8 +55,6 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.NewUserBean;
 import password.pwm.http.servlet.forgottenpw.RemoteVerificationMethod;
-import password.pwm.user.UserInfo;
-import password.pwm.user.UserInfoBean;
 import password.pwm.ldap.auth.PwmAuthenticationSource;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.ldap.search.SearchConfiguration;
@@ -67,20 +65,21 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.svc.token.TokenType;
 import password.pwm.svc.token.TokenUtil;
+import password.pwm.user.UserInfo;
+import password.pwm.user.UserInfoBean;
 import password.pwm.util.PasswordData;
 import password.pwm.util.form.FormUtility;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.PwmUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroReplacer;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomGeneratorConfig;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.client.rest.form.FormDataRequestBean;
 import password.pwm.ws.client.rest.form.FormDataResponseBean;
 import password.pwm.ws.client.rest.form.RestFormDataClient;
@@ -161,7 +160,7 @@ class NewUserUtils
         else
         {
             final PwmPasswordPolicy pwmPasswordPolicy = newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() );
-            userPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), pwmPasswordPolicy, pwmRequest.getPwmDomain() );
+            userPassword = PasswordUtility.generateRandom( pwmRequest.getLabel(), pwmPasswordPolicy, pwmRequest.getPwmDomain() );
         }
 
         // set up the user creation attributes
@@ -216,7 +215,7 @@ class NewUserUtils
                 final RandomGeneratorConfig randomGeneratorConfig = RandomGeneratorConfig.make( pwmRequest.getPwmDomain(),
                          newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() ) );
 
-                temporaryPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), randomGeneratorConfig, pwmDomain );
+                temporaryPassword = PasswordUtility.generateRandom( pwmRequest.getLabel(), randomGeneratorConfig, pwmDomain );
             }
             final ChaiUser proxiedUser = chaiProvider.getEntryFactory().newChaiUser( newUserDN );
             try

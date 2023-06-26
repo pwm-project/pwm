@@ -128,23 +128,23 @@ class PwmPasswordAdRuleUtil
             final List<ErrorInformation> errorList = new ArrayList<>();
 
             // add errors complexity violations
-            if ( charCounter.getUpperCharCount() < 1 )
+            if ( !charCounter.hasCharsOfType( PasswordCharType.UPPERCASE ) )
             {
                 errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_UPPER ) );
             }
-            if ( charCounter.getLowerCharCount() < 1 )
+            if ( !charCounter.hasCharsOfType( PasswordCharType.LOWERCASE ) )
             {
                 errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_LOWER ) );
             }
-            if ( charCounter.getNumericCharCount() < 1 )
+            if ( !charCounter.hasCharsOfType( PasswordCharType.NUMBER ) )
             {
                 errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_NUM ) );
             }
-            if ( charCounter.getSpecialCharsCount() < 1 )
+            if ( !charCounter.hasCharsOfType( PasswordCharType.SPECIAL ) )
             {
                 errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_SPECIAL ) );
             }
-            if ( charCounter.getOtherLetterCharCount() < 1 )
+            if ( !charCounter.hasCharsOfType( PasswordCharType.OTHER_LETTER ) )
             {
                 errorList.add( new ErrorInformation( PwmError.PASSWORD_UNKNOWN_VALIDATION ) );
             }
@@ -194,33 +194,34 @@ class PwmPasswordAdRuleUtil
         )
         {
             int complexityPoints = 0;
-            if ( charCounter.getUpperCharCount() > 0 )
+            if ( charCounter.hasCharsOfType( PasswordCharType.UPPERCASE ) )
             {
                 complexityPoints++;
             }
-            if ( charCounter.getLowerCharCount() > 0 )
+            if ( charCounter.hasCharsOfType( PasswordCharType.LOWERCASE ) )
             {
                 complexityPoints++;
             }
-            if ( charCounter.getNumericCharCount() > 0 )
+            if ( charCounter.hasCharsOfType( PasswordCharType.NUMBER ) )
             {
                 complexityPoints++;
             }
             switch ( complexityLevel )
             {
                 case AD2003:
-                    if ( charCounter.getSpecialCharsCount() > 0 || charCounter.getOtherLetterCharCount() > 0 )
+                    if ( charCounter.hasCharsOfType( PasswordCharType.SPECIAL )
+                            || charCounter.hasCharsOfType( PasswordCharType.OTHER_LETTER ) )
                     {
                         complexityPoints++;
                     }
                     break;
 
                 case AD2008:
-                    if ( charCounter.getSpecialCharsCount() > 0 )
+                    if ( charCounter.hasCharsOfType( PasswordCharType.SPECIAL ) )
                     {
                         complexityPoints++;
                     }
-                    if ( charCounter.getOtherLetterCharCount() > 0 )
+                    if ( charCounter.hasCharsOfType( PasswordCharType.OTHER_LETTER ) )
                     {
                         complexityPoints++;
                     }

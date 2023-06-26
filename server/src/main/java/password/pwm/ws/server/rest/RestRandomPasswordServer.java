@@ -40,7 +40,6 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomGeneratorConfig;
 import password.pwm.util.password.RandomGeneratorConfigRequest;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.server.RestMethodHandler;
 import password.pwm.ws.server.RestRequest;
 import password.pwm.ws.server.RestResultBean;
@@ -213,7 +212,10 @@ public class RestRandomPasswordServer extends RestServlet
         }
 
         final RandomGeneratorConfig randomConfig = jsonInputToRandomConfig( jsonInput, restRequest.getDomain(), pwmPasswordPolicy );
-        final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( restRequest.getSessionLabel(), randomConfig, restRequest.getDomain() );
+        final PasswordData randomPassword = PasswordUtility.generateRandom(
+                restRequest.getSessionLabel(),
+                randomConfig,
+                restRequest.getDomain() );
         final JsonOutput outputMap = new JsonOutput();
         outputMap.password = randomPassword.getStringValue();
 

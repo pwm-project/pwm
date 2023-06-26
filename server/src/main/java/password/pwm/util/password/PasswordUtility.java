@@ -26,6 +26,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import com.novell.ldapchai.impl.oracleds.entry.OracleDSEntries;
 import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -215,6 +216,41 @@ public class PasswordUtility
 
         LOGGER.debug( () -> "new password email to " + userInfo.getUserIdentity() + " added to send queue for " + toAddress );
         return null;
+    }
+
+    /**
+     * <p>Creates a new password that satisfies the password rules.  All rules are checked for.  If for some
+     * reason the pwmRandom algorithm can not generate a valid password, null will be returned.</p>
+     *
+     * <p>If there is an identifiable reason the password can not be created (such as mis-configured rules) then
+     * an {@link com.novell.ldapchai.exception.ImpossiblePasswordPolicyException} will be thrown.</p>
+     *
+     * @param sessionLabel          A valid pwmSession
+     * @param randomGeneratorConfig Policy to be used during generation
+     * @param pwmDomain        Used to read configuration, seedmanager and other services.
+     * @return A randomly generated password value that meets the requirements of this {@code PasswordPolicy}
+     * @throws ImpossiblePasswordPolicyException If there is no way to create a password using the configured rules and
+     *                                        default seed phrase
+     * @throws PwmUnrecoverableException if the operation can not be completed
+     */
+    public static PasswordData generateRandom(
+            final SessionLabel sessionLabel,
+            final RandomGeneratorConfig randomGeneratorConfig,
+            final PwmDomain pwmDomain
+    )
+            throws PwmUnrecoverableException
+    {
+        return RandomPasswordGenerator.generate( RandomGeneratorRequest.create( sessionLabel, randomGeneratorConfig, pwmDomain ) );
+    }
+
+    public static PasswordData generateRandom(
+            final SessionLabel sessionLabel,
+            final PwmPasswordPolicy passwordPolicy,
+            final PwmDomain pwmDomain
+    )
+            throws PwmUnrecoverableException
+    {
+        return RandomPasswordGenerator.generate( RandomGeneratorRequest.create( sessionLabel, passwordPolicy, pwmDomain ) );
     }
 
 
@@ -853,19 +889,14 @@ public class PasswordUtility
         final int zxcvbnScore = strength.getScore();
 
         // zxcvbn returns a score of 0-4 (see: https://github.com/nulab/zxcvbn4j)
-        switch ( zxcvbnScore )
-        {
-            case 4:
-                return Integer.parseInt( domainConfig.readAppProperty( AppProperty.PASSWORD_STRENGTH_THRESHOLD_VERY_STRONG ) );
-            case 3:
-                return Integer.parseInt( domainConfig.readAppProperty( AppProperty.PASSWORD_STRENGTH_THRESHOLD_STRONG ) );
-            case 2:
-                return Integer.parseInt( domainConfig.readAppProperty( AppProperty.PASSWORD_STRENGTH_THRESHOLD_GOOD ) );
-            case 1:
-                return Integer.parseInt( domainConfig.readAppProperty( AppProperty.PASSWORD_STRENGTH_THRESHOLD_WEAK ) );
-            default:
-                return Integer.parseInt( domainConfig.readAppProperty( AppProperty.PASSWORD_STRENGTH_THRESHOLD_VERY_WEAK ) );
-        }
+        return switch ( zxcvbnScore )
+                {
+                    case 4 -> Integer.parseInt( domainConfig.readAppProperty( AppProperty.PASSWORD_STRENGTH_THRESHOLD_VERY_STRONG ) );
+                    case 3 -> Integer.parseInt( domainConfig.readAppProperty( AppProperty.PASSWORD_STRENGTH_THRESHOLD_STRONG ) );
+                    case 2 -> Integer.parseInt( domainConfig.readAppProperty( AppProperty.PASSWORD_STRENGTH_THRESHOLD_GOOD ) );
+                    case 1 -> Integer.parseInt( domainConfig.readAppProperty( AppProperty.PASSWORD_STRENGTH_THRESHOLD_WEAK ) );
+                    default -> Integer.parseInt( domainConfig.readAppProperty( AppProperty.PASSWORD_STRENGTH_THRESHOLD_VERY_WEAK ) );
+                };
     }
 
     public static int judgePasswordStrengthUsingTraditionalAlgorithm(
@@ -882,29 +913,29 @@ public class PasswordUtility
 
         // -- Additions --
         // amount of unique chars
-        if ( charCounter.getUniqueChars() > 7 )
+        if ( charCounter.uniqueCharCount() > 7 )
         {
             score = score + 10;
         }
-        score = score + ( ( charCounter.getUniqueChars() ) * 3 );
+        score = score + ( ( charCounter.uniqueCharCount() ) * 3 );
 
         // Numbers
-        if ( charCounter.getNumericCharCount() > 0 )
+        if ( charCounter.hasCharsOfType( PasswordCharType.NUMBER ) )
         {
             score = score + 8;
-            score = score + ( charCounter.getNumericCharCount() ) * 4;
+            score = score + ( charCounter.charTypeCount( PasswordCharType.NUMBER ) ) * 4;
         }
 
         // specials
-        if ( charCounter.getSpecialCharsCount() > 0 )
+        if ( charCounter.hasCharsOfType( PasswordCharType.SPECIAL ) )
         {
             score = score + 14;
-            score = score + ( charCounter.getSpecialCharsCount() ) * 5;
+            score = score + ( charCounter.charTypeCount( PasswordCharType.SPECIAL ) ) * 5;
         }
 
         // mixed case
-        if ( ( charCounter.getAlphaChars().length() != charCounter.getUpperChars().length() )
-                && ( charCounter.getAlphaChars().length() != charCounter.getLowerChars().length() ) )
+        if ( ( charCounter.charTypeCount( PasswordCharType.LETTER ) != charCounter.charTypeCount( PasswordCharType.UPPERCASE ) )
+                && ( charCounter.charTypeCount( PasswordCharType.LETTER ) != charCounter.charTypeCount( PasswordCharType.LOWERCASE ) ) )
         {
             score = score + 10;
         }
@@ -912,9 +943,9 @@ public class PasswordUtility
         // -- Deductions --
 
         // sequential numbers
-        if ( charCounter.getSequentialNumericChars() > 2 )
+        if ( charCounter.sequentialCharCountOfType( PasswordCharType.NUMBER ) > 2 )
         {
-            score = score - ( charCounter.getSequentialNumericChars() - 1 ) * 4;
+            score = score - ( charCounter.sequentialCharCountOfType( PasswordCharType.NUMBER ) - 1 ) * 4;
         }
 
         // sequential chars
@@ -923,7 +954,7 @@ public class PasswordUtility
             score = score - ( charCounter.getSequentialRepeatedChars() ) * 5;
         }
 
-        return score > 100 ? 100 : score < 0 ? 0 : score;
+        return score > 100 ? 100 : Math.max( score, 0 );
     }
 
 

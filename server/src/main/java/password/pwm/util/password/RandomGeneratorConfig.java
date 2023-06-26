@@ -20,9 +20,6 @@
 
 package password.pwm.util.password;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
 import password.pwm.config.profile.PwmPasswordPolicy;
@@ -30,42 +27,54 @@ import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.CollectionUtil;
 
-import java.util.Collection;
-import java.util.Collections;
-
-@Value
-@Builder( toBuilder = true, access = AccessLevel.PRIVATE )
-public class RandomGeneratorConfig
+public record RandomGeneratorConfig(
+        SeedMachine seedMachine,
+        int minimumLength,
+        int maximumLength,
+        int minimumStrength,
+        int maximumAttempts
+)
 {
+    private static final int MINIMUM_LENGTH = 0;
+    private static final int MAXIMUM_LENGTH = 1_000_000;
     private static final int MINIMUM_STRENGTH = 0;
     private static final int MAXIMUM_STRENGTH = 100;
 
-    /**
-     * A set of phrases (Strings) used to generate the pwmRandom passwords.  There must be enough
-     * values in the phrases to build a random password that meets rule requirements
-     */
-    @Builder.Default
-    private Collection<String> seedlistPhrases = Collections.emptySet();
+    public RandomGeneratorConfig(
+            final SeedMachine seedMachine,
+            final int minimumLength,
+            final int maximumLength,
+            final int minimumStrength,
+            final int maximumAttempts
+    )
+    {
+        this.seedMachine = seedMachine;
+        this.minimumLength = minimumLength;
+        this.maximumLength = maximumLength;
+        this.minimumStrength = minimumStrength;
+        this.maximumAttempts = maximumAttempts;
 
-    /**
-     * The minimum length desired for the password.  The algorithm will attempt to make
-     * the returned value at least this long, but it is not guaranteed.
-     */
-    private int minimumLength;
+        if ( minimumLength < MINIMUM_LENGTH )
+        {
+            throw new IllegalArgumentException( "minimumLength too low" );
+        }
 
-    private int maximumLength;
+        if ( maximumLength > MAXIMUM_LENGTH )
+        {
+            throw new IllegalArgumentException( "maximumLength too large" );
+        }
 
-    /**
-     * The minimum length desired strength.  The algorithm will attempt to make
-     * the returned value at least this strong, but it is not guaranteed.
-     */
-    private int minimumStrength;
+        if ( minimumStrength < MINIMUM_STRENGTH )
+        {
+            throw new IllegalArgumentException( "minimumStrength too low" );
+        }
 
-    private int jitter;
-
-    private int maximumAttempts;
+        if ( minimumStrength > MAXIMUM_STRENGTH )
+        {
+            throw new IllegalArgumentException( "minimumStrength too large" );
+        }
+    }
 
     public static RandomGeneratorConfig make(
             final PwmDomain pwmDomain,
@@ -73,7 +82,6 @@ public class RandomGeneratorConfig
     )
             throws PwmUnrecoverableException
     {
-
         return make( pwmDomain, pwmPasswordPolicy, RandomGeneratorConfigRequest.builder().build() );
     }
 
@@ -84,66 +92,102 @@ public class RandomGeneratorConfig
     )
             throws PwmUnrecoverableException
     {
-        final RandomGeneratorConfig config = RandomGeneratorConfig.builder()
-                .maximumAttempts( Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_ATTEMPTS ) ) )
-                .jitter( Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_JITTER_COUNT ) ) )
-                .maximumLength( figureMaximumLength( pwmDomain, pwmPasswordPolicy, request.getMaximumLength() ) )
-                .minimumLength( figureMinimumLength( pwmDomain, pwmPasswordPolicy, request.getMinimumLength() ) )
-                .minimumStrength( figureMinimumStrength( pwmDomain, pwmPasswordPolicy, request.getMinimumStrength() ) )
-                .seedlistPhrases( CollectionUtil.isEmpty( request.getSeedlistPhrases() )
-                        ? RandomPasswordGenerator.DEFAULT_SEED_PHRASES : request.getSeedlistPhrases() )
-                .build();
+        final RandomGeneratorConfig config = new RandomGeneratorConfig(
+                SeedMachine.create( pwmDomain.getSecureService().pwmRandom(), request.getSeedlistPhrases() ),
+                figureMinimumLength( pwmDomain, pwmPasswordPolicy, request ),
+                figureMaximumLength( pwmDomain, pwmPasswordPolicy, request ),
+                figureMinimumStrength( pwmDomain, pwmPasswordPolicy, request.getMinimumStrength() ),
+                Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_ATTEMPTS ) ) );
 
         config.validateSettings( pwmDomain );
 
         return config;
     }
 
-    private static int figureMaximumLength( final PwmDomain pwmDomain, final PwmPasswordPolicy pwmPasswordPolicy, final int requestedValue )
+    private static int figureMaximumLength(
+            final PwmDomain pwmDomain,
+            final PwmPasswordPolicy pwmPasswordPolicy,
+            final RandomGeneratorConfigRequest request
+    )
     {
-        int policyMax = requestedValue;
-        if ( requestedValue <= 0 )
-        {
-            policyMax = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_LENGTH ) );
-        }
+        final int requestedValue = request.getMaximumLength();
+        final int maxRandomGenLength = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_LENGTH ) );
+
+        int policyValue = -1;
         if ( pwmPasswordPolicy != null )
         {
-            policyMax = Math.min( policyMax, pwmPasswordPolicy.ruleHelper().readIntValue( PwmPasswordRule.MaximumLength ) );
+            policyValue = pwmPasswordPolicy.ruleHelper().readIntValue( PwmPasswordRule.MaximumLength );
         }
-        return policyMax;
+
+        if ( requestedValue > 0 && requestedValue < policyValue )
+        {
+            return Math.min( maxRandomGenLength, requestedValue );
+        }
+
+        if ( policyValue > 0 )
+        {
+            return Math.min( maxRandomGenLength, policyValue );
+        }
+
+        return 50;
     }
 
-    private static int figureMinimumLength( final PwmDomain pwmDomain, final PwmPasswordPolicy pwmPasswordPolicy, final int requestedValue )
+    private static int figureMinimumLength(
+            final PwmDomain pwmDomain,
+            final PwmPasswordPolicy pwmPasswordPolicy,
+            final RandomGeneratorConfigRequest request
+    )
     {
+        final int requestedValue = request.getMinimumLength();
         int returnVal = requestedValue;
+
         if ( requestedValue <= 0 )
         {
             returnVal = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MIN_LENGTH ) );
         }
+
         if ( pwmPasswordPolicy != null )
         {
-            final int policyMin = pwmPasswordPolicy.ruleHelper().readIntValue( PwmPasswordRule.MinimumLength );
+            final PasswordRuleReaderHelper ruleHelper = pwmPasswordPolicy.ruleHelper();
+            final int policyMin = ruleHelper.readIntValue( PwmPasswordRule.MinimumLength );
             if ( policyMin > 0 )
             {
-                returnVal = Math.min( returnVal, pwmPasswordPolicy.ruleHelper().readIntValue( PwmPasswordRule.MinimumLength ) );
+                returnVal = Math.max( returnVal, ruleHelper.readIntValue( PwmPasswordRule.MinimumLength ) );
+            }
+
+            final int policyMaxLength = ruleHelper.readIntValue( PwmPasswordRule.MaximumLength );
+            if ( policyMaxLength > 0 && returnVal > policyMaxLength )
+            {
+                returnVal = policyMaxLength;
             }
         }
+
+        final int requestMaxLength = request.getMaximumLength();
+        if ( requestMaxLength > 0 && returnVal > requestMaxLength )
+        {
+            returnVal = requestMaxLength;
+        }
+
         return returnVal;
     }
 
     private static int figureMinimumStrength( final PwmDomain pwmDomain, final PwmPasswordPolicy pwmPasswordPolicy, final int requestedValue )
     {
-        int policyMin = requestedValue;
+        int returnValue = requestedValue;
         if ( requestedValue <= 0 )
         {
-            policyMin = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_DEFAULT_STRENGTH ) );
+            returnValue = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_DEFAULT_STRENGTH ) );
         }
 
         if ( pwmPasswordPolicy != null )
         {
-            policyMin = Math.max( policyMin, pwmPasswordPolicy.ruleHelper().readIntValue( PwmPasswordRule.MinimumStrength ) );
+            final int policyValue = pwmPasswordPolicy.ruleHelper().readIntValue( PwmPasswordRule.MinimumStrength );
+            if ( policyValue > 0 )
+            {
+                returnValue = Math.max( MAXIMUM_STRENGTH, policyValue );
+            }
         }
-        return policyMin;
+        return returnValue;
     }
 
     void validateSettings( final PwmDomain pwmDomain )
@@ -151,7 +195,7 @@ public class RandomGeneratorConfig
     {
         final int maxLength = Integer.parseInt(
                 pwmDomain.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_LENGTH ) );
-        if ( this.getMinimumLength() > maxLength )
+        if ( this.minimumLength() > maxLength )
         {
             throw new PwmUnrecoverableException( new ErrorInformation(
                     PwmError.ERROR_INTERNAL,
@@ -159,7 +203,15 @@ public class RandomGeneratorConfig
             ) );
         }
 
-        if ( this.getMaximumLength() > maxLength )
+        if ( this.minimumLength() > this.maximumLength() )
+        {
+            throw new PwmUnrecoverableException( new ErrorInformation(
+                    PwmError.ERROR_INTERNAL,
+                    "random generated password minimum length exceeds maximum length value"
+            ) );
+        }
+
+        if ( this.maximumLength() > maxLength )
         {
             throw new PwmUnrecoverableException( new ErrorInformation(
                     PwmError.ERROR_INTERNAL,
@@ -167,7 +219,7 @@ public class RandomGeneratorConfig
             ) );
         }
 
-        if ( this.getMinimumStrength() > RandomGeneratorConfig.MAXIMUM_STRENGTH )
+        if ( this.minimumStrength() > RandomGeneratorConfig.MAXIMUM_STRENGTH )
         {
             throw new PwmUnrecoverableException( new ErrorInformation(
                     PwmError.ERROR_INTERNAL,
@@ -175,4 +227,5 @@ public class RandomGeneratorConfig
             ) );
         }
     }
+
 }

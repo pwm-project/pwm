@@ -23,8 +23,7 @@ package password.pwm.util.password;
 import lombok.Builder;
 import lombok.Value;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 @Builder
 @Value
@@ -35,7 +34,7 @@ public class RandomGeneratorConfigRequest
      * values in the phrases to build a random password that meets rule requirements
      */
     @Builder.Default
-    private Collection<String> seedlistPhrases = Collections.emptySet();
+    private List<String> seedlistPhrases = List.of();
 
     /**
      * The minimum length desired for the password.  The algorithm will attempt to make
@@ -53,4 +52,5 @@ public class RandomGeneratorConfigRequest
      */
     @Builder.Default
     private int minimumStrength = -1;
+
 }

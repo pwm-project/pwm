@@ -245,7 +245,7 @@ public class PasswordRuleChecks
             final PasswordRuleReaderHelper ruleHelper = ruleCheckData.getRuleHelper();
             final PasswordCharCounter charCounter = ruleCheckData.getCharCounter();
             {
-                final int numberOfNumericChars = charCounter.getNumericCharCount();
+                final int numberOfNumericChars = charCounter.charTypeCount( PasswordCharType.NUMBER );
                 if ( ruleHelper.readBooleanValue( PwmPasswordRule.AllowNumeric ) )
                 {
                     if ( numberOfNumericChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumNumeric ) )
@@ -260,13 +260,13 @@ public class PasswordRuleChecks
                     }
 
                     if ( !ruleHelper.readBooleanValue(
-                            PwmPasswordRule.AllowFirstCharNumeric ) && charCounter.isFirstNumeric() )
+                            PwmPasswordRule.AllowFirstCharNumeric ) && charCounter.isFirstCharType( PasswordCharType.NUMBER ) )
                     {
                         errorList.add( new ErrorInformation( PwmError.PASSWORD_FIRST_IS_NUMERIC ) );
                     }
 
                     if ( !ruleHelper.readBooleanValue(
-                            PwmPasswordRule.AllowLastCharNumeric ) && charCounter.isLastNumeric() )
+                            PwmPasswordRule.AllowLastCharNumeric ) && charCounter.isLastCharType( PasswordCharType.NUMBER ) )
                     {
                         errorList.add( new ErrorInformation( PwmError.PASSWORD_LAST_IS_NUMERIC ) );
                     }
@@ -295,7 +295,7 @@ public class PasswordRuleChecks
 
             //check number of upper characters
             {
-                final int numberOfUpperChars = charCounter.getUpperCharCount();
+                final int numberOfUpperChars = charCounter.charTypeCount( PasswordCharType.UPPERCASE );
                 if ( numberOfUpperChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumUpperCase ) )
                 {
                     errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_UPPER ) );
@@ -310,7 +310,7 @@ public class PasswordRuleChecks
 
             //check number of lower characters
             {
-                final int numberOfLowerChars = charCounter.getLowerCharCount();
+                final int numberOfLowerChars = charCounter.charTypeCount( PasswordCharType.LOWERCASE );
                 if ( numberOfLowerChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumLowerCase ) )
                 {
                     errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_LOWER ) );
@@ -338,7 +338,7 @@ public class PasswordRuleChecks
 
             //check number of alpha characters
             {
-                final int numberOfAlphaChars = charCounter.getAlphaCharCount();
+                final int numberOfAlphaChars = charCounter.charTypeCount( PasswordCharType.LETTER );
                 if ( numberOfAlphaChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumAlpha ) )
                 {
                     errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_ALPHA ) );
@@ -353,7 +353,7 @@ public class PasswordRuleChecks
 
             //check number of non-alpha characters
             {
-                final int numberOfNonAlphaChars = charCounter.getNonAlphaCharCount();
+                final int numberOfNonAlphaChars = charCounter.charTypeCount( PasswordCharType.NON_LETTER );
 
                 if ( ruleHelper.readBooleanValue( PwmPasswordRule.AllowNonAlpha ) )
                 {
@@ -392,7 +392,7 @@ public class PasswordRuleChecks
 
             //check number of special characters
             {
-                final int numberOfSpecialChars = charCounter.getSpecialCharsCount();
+                final int numberOfSpecialChars = charCounter.charTypeCount( PasswordCharType.SPECIAL );
                 if ( ruleHelper.readBooleanValue( PwmPasswordRule.AllowSpecial ) )
                 {
                     if ( numberOfSpecialChars < ruleHelper.readIntValue( PwmPasswordRule.MinimumSpecial ) )
@@ -407,13 +407,13 @@ public class PasswordRuleChecks
                     }
 
                     if ( !ruleHelper.readBooleanValue(
-                            PwmPasswordRule.AllowFirstCharSpecial ) && charCounter.isFirstSpecial() )
+                            PwmPasswordRule.AllowFirstCharSpecial ) && charCounter.isFirstCharType( PasswordCharType.SPECIAL ) )
                     {
                         errorList.add( new ErrorInformation( PwmError.PASSWORD_FIRST_IS_SPECIAL ) );
                     }
 
                     if ( !ruleHelper.readBooleanValue(
-                            PwmPasswordRule.AllowLastCharSpecial ) && charCounter.isLastSpecial() )
+                            PwmPasswordRule.AllowLastCharSpecial ) && charCounter.isLastCharType( PasswordCharType.SPECIAL ) )
                     {
                         errorList.add( new ErrorInformation( PwmError.PASSWORD_LAST_IS_SPECIAL ) );
                     }
@@ -483,7 +483,7 @@ public class PasswordRuleChecks
             //Check minimum unique character
             {
                 final int minUnique = ruleHelper.readIntValue( PwmPasswordRule.MinimumUnique );
-                if ( minUnique > 0 && charCounter.getUniqueChars() < minUnique )
+                if ( minUnique > 0 && charCounter.uniqueCharCount() < minUnique )
                 {
                     errorList.add( new ErrorInformation( PwmError.PASSWORD_NOT_ENOUGH_UNIQUE ) );
                 }

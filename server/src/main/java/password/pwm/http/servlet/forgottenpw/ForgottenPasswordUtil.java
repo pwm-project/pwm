@@ -76,7 +76,6 @@ import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
-import password.pwm.util.password.RandomPasswordGenerator;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -465,11 +464,10 @@ public class ForgottenPasswordUtil
                     + theUser.getEntryDN() );
 
             // create new password
-            final PasswordData newPassword = RandomPasswordGenerator.createRandomPassword(
+            final PasswordData newPassword = PasswordUtility.generateRandom(
                     pwmRequest.getLabel(),
                     userInfo.getPasswordPolicy(),
-                    pwmDomain
-            );
+                    pwmDomain );
             LOGGER.trace( pwmRequest, () -> "generated random password value based on password policy for "
                     + userIdentity.toDisplayString() );
 

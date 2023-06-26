@@ -237,25 +237,22 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
     dialogBody += "<br/><br/>";
     dialogBody += '<table class="noborder">';
 
-    for (let i = 0; i < 20; i++) {
-        dialogBody += '<tr class="noborder">';
-        for (let j = 0; j < 2; j++) {
-            i = i + j;
-            (function(index) {
-                const elementID = "randomGen" + index;
-                dialogBody += '<td class="noborder"><div class="link-randomPasswordValue"  id="' + elementID + '"></div></td>';
-                eventHandlers.push(function(){
-                    PWM_MAIN.addEventHandler(elementID,'click',function(){
-                        const value = PWM_MAIN.getObject(elementID).innerHTML;
-                        const parser = new DOMParser();
-                        const dom = parser.parseFromString(value, 'text/html');
-                        const domString = dom.body.textContent;
-                        finishAction(domString);
-                    });
+    for (let i = 0; i < 10; i++) {
+        (function(index) {
+            const elementID = "randomGen" + index;
+            dialogBody += '<tr class="noborder">';
+            dialogBody += '<td class="noborder"><div class="link-randomPasswordValue"  id="' + elementID + '"></div></td>';
+            eventHandlers.push(function(){
+                PWM_MAIN.addEventHandler(elementID,'click',function(){
+                    const value = PWM_MAIN.getObject(elementID).innerHTML;
+                    const parser = new DOMParser();
+                    const dom = parser.parseFromString(value, 'text/html');
+                    const domString = dom.body.textContent;
+                    finishAction(domString);
                 });
-            })(i);
-        }
-        dialogBody += '</tr>';
+            });
+            dialogBody += '</tr>';
+        })(i);
     }
     dialogBody += "</table><br/><br/>";
 
@@ -279,7 +276,6 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
     const titleString = randomConfig['title'] ? randomConfig['title'] : PWM_MAIN.showString('Title_RandomPasswords');
     PWM_MAIN.showDialog({
         title:titleString,
-        dialogClass:'narrow',
         text:dialogBody,
         showOk:false,
         showClose:true,

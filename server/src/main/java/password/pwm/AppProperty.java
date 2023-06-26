@@ -290,7 +290,6 @@ public enum AppProperty
     PASSWORD_RANDOMGEN_MAX_LENGTH                   ( "password.randomGenerator.maxLength" ),
     PASSWORD_RANDOMGEN_MIN_LENGTH                   ( "password.randomGenerator.minLength" ),
     PASSWORD_RANDOMGEN_DEFAULT_STRENGTH             ( "password.randomGenerator.defaultStrength" ),
-    PASSWORD_RANDOMGEN_JITTER_COUNT                 ( "password.randomGenerator.jitter.count" ),
 
     /* Strength thresholds, introduced by the addition of the zxcvbn strength meter library (since it has 5 levels) */
     PASSWORD_STRENGTH_THRESHOLD_VERY_STRONG         ( "password.strength.threshold.veryStrong" ),

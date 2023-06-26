@@ -64,7 +64,6 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.PwmPasswordRuleValidator;
-import password.pwm.util.password.RandomPasswordGenerator;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
 import password.pwm.ws.server.rest.RestRandomPasswordServer;
@@ -458,7 +457,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     @ActionHandler( action = "randomPassword" )
     public ProcessStatus processRandomPasswordAction( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PasswordData passwordData = RandomPasswordGenerator.createRandomPassword(
+        final PasswordData passwordData = PasswordUtility.generateRandom(
                 pwmRequest.getLabel(),
                 pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy(),
                 pwmRequest.getPwmDomain() );
