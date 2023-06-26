@@ -464,7 +464,7 @@ public class DebugItemGenerator
             final List<LdapDebugDataGenerator.LdapDebugInfo> ldapDebugInfos = LdapDebugDataGenerator.makeLdapDebugInfos(
                     debugItemInput.getPwmApplication(),
                     debugItemInput.getSessionLabel(),
-                    debugItemInput.getObfuscatedConfiguration(),
+                    debugItemInput.getPwmApplication().getConfig(),
                     LOCALE
             );
             final Writer writer = new OutputStreamWriter( outputStream, PwmConstants.DEFAULT_CHARSET );
