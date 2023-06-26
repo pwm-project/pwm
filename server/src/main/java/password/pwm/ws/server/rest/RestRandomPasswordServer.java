@@ -49,6 +49,7 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @WebServlet(
@@ -90,7 +91,7 @@ public class RestRandomPasswordServer extends RestServlet
     {
         /* Check for parameter conflicts. */
         if ( restRequest.hasParameter( "username" )
-             && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
+                && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
         {
             LOGGER.error( restRequest.getSessionLabel(),
                     () -> "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified." );
@@ -133,7 +134,7 @@ public class RestRandomPasswordServer extends RestServlet
     {
         /* Check for parameter conflicts. */
         if ( restRequest.hasParameter( "username" )
-             && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
+                && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
         {
             LOGGER.error( restRequest.getSessionLabel(),
                     () -> "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified." );
@@ -229,21 +230,19 @@ public class RestRandomPasswordServer extends RestServlet
             final PwmPasswordPolicy pwmPasswordPolicy
     )
     {
-        final RandomPasswordGenerator.RandomGeneratorConfig.RandomGeneratorConfigBuilder randomConfigBuilder
-                = RandomPasswordGenerator.RandomGeneratorConfig.builder();
+        final int strength = ( jsonInput.getStrength() > 0 && jsonInput.getStrength() <= 100 )
+                ? jsonInput.getStrength()
+                : 0;
 
-        if ( jsonInput.getStrength() > 0 && jsonInput.getStrength() <= 100 )
-        {
-            randomConfigBuilder.minimumStrength( jsonInput.getStrength() );
-        }
-        if ( jsonInput.getMinLength() > 0 && jsonInput.getMinLength() <= 100 * 1024 )
-        {
-            randomConfigBuilder.minimumLength( jsonInput.getMinLength() );
-        }
-        if ( jsonInput.getMaxLength() > 0 && jsonInput.getMaxLength() <= 100 * 1024 )
-        {
-            randomConfigBuilder.maximumLength( jsonInput.getMaxLength() );
-        }
+        final int minimumLength = ( jsonInput.getMinLength() > 0 && jsonInput.getMinLength() <= 100 * 1024 )
+                ?  jsonInput.getMinLength()
+                : 0;
+
+        final int maximumLength = ( jsonInput.getMaxLength() > 0 && jsonInput.getMaxLength() <= 100 * 1024 )
+                ?  jsonInput.getMaxLength()
+                : 0;
+
+        final List<String> seedList;
         if ( jsonInput.getChars() != null )
         {
             final List<String> charValues = new ArrayList<>();
@@ -251,12 +250,15 @@ public class RestRandomPasswordServer extends RestServlet
             {
                 charValues.add( String.valueOf( jsonInput.getChars().charAt( i ) ) );
             }
-            randomConfigBuilder.seedlistPhrases( charValues );
+            seedList = Collections.unmodifiableList( charValues );
+        }
+        else
+        {
+            seedList = null;
         }
 
-        randomConfigBuilder.passwordPolicy( pwmPasswordPolicy );
 
-        return randomConfigBuilder.build();
+        return new RandomPasswordGenerator.RandomGeneratorConfig( seedList, minimumLength, maximumLength, strength, pwmPasswordPolicy );
     }
 }
 

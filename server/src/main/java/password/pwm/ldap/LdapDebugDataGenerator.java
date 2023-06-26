@@ -120,6 +120,8 @@ public class LdapDebugDataGenerator
         final LdapDebugServerInfo.LdapDebugServerInfoBuilder builder = LdapDebugServerInfo.builder();
 
         builder.ldapServerlUrl( chaiConfiguration.getSetting( ChaiSetting.BIND_URLS ) );
+        builder.vendorName( chaiProvider.getDirectoryVendor().name() );
+
         final ChaiProvider loopProvider = chaiProvider.getProviderFactory().newProvider( chaiConfiguration );
 
         {
@@ -188,6 +190,7 @@ public class LdapDebugDataGenerator
     public static class LdapDebugServerInfo implements Serializable
     {
         private String ldapServerlUrl;
+        private String vendorName;
         private String testUserDN;
         private Map<String, List<String>> testUserAttributes;
         private String proxyDN;

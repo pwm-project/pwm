@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
@@ -133,7 +134,7 @@ public class PwmPasswordPolicy implements Profile, Serializable
             final PolicyMetaData policyMetaData
     )
     {
-        final Map<String, String> effectivePolicyMap = new HashMap<>();
+        final Map<String, String> effectivePolicyMap = new TreeMap<>();
         if ( policyMap != null )
         {
             effectivePolicyMap.putAll( policyMap );

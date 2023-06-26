@@ -1333,12 +1333,10 @@ public class HelpdeskServlet extends ControlledPwmServlet
                 chaiUser.getChaiProvider()
         );
 
-        final RandomPasswordGenerator.RandomGeneratorConfig.RandomGeneratorConfigBuilder randomConfigBuilder
-                = RandomPasswordGenerator.RandomGeneratorConfig.builder();
+        final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = RandomPasswordGenerator.RandomGeneratorConfig.fromPolicy(
+                pwmRequest.getConfig(),
+                userInfo.getPasswordPolicy() );
 
-        randomConfigBuilder.passwordPolicy( userInfo.getPasswordPolicy() );
-
-        final RandomPasswordGenerator.RandomGeneratorConfig randomConfig = randomConfigBuilder.build();
         final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword( pwmRequest.getLabel(), randomConfig, pwmRequest.getPwmApplication() );
         final RestRandomPasswordServer.JsonOutput jsonOutput = new RestRandomPasswordServer.JsonOutput();
         jsonOutput.setPassword( randomPassword.getStringValue() );

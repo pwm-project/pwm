@@ -21,8 +21,9 @@
 package password.pwm.util.password;
 
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
-import lombok.Builder;
-import lombok.Value;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
@@ -38,6 +39,7 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.svc.wordlist.SeedlistService;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
@@ -48,11 +50,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.Supplier;
 
 /**
  * Random password generator.
@@ -83,9 +87,8 @@ public class RandomPasswordGenerator
     )
             throws PwmUnrecoverableException
     {
-        final RandomGeneratorConfig randomGeneratorConfig = RandomGeneratorConfig.builder()
-                .passwordPolicy( passwordPolicy )
-                .build();
+        final RandomGeneratorConfig randomGeneratorConfig = RandomGeneratorConfig
+                .fromPolicy( pwmApplication.getConfig(), passwordPolicy );
 
         return createRandomPassword(
                 sessionLabel,
@@ -94,6 +97,30 @@ public class RandomPasswordGenerator
         );
     }
 
+    private static Set<String> generateSeedsFromManager( final PwmApplication pwmApplication )
+            throws PwmUnrecoverableException
+    {
+        final SeedlistService seedlistManager = pwmApplication.getSeedlistManager();
+
+        if ( seedlistManager == null || seedlistManager.status() != PwmService.STATUS.OPEN || seedlistManager.size() <= 0 )
+        {
+            return DEFAULT_SEED_PHRASES;
+        }
+
+        final Set<String> seeds = new HashSet<>();
+        int safetyCounter = 0;
+        while ( seeds.size() < 10 && safetyCounter < 100 )
+        {
+            safetyCounter++;
+            final String randomWord = seedlistManager.randomSeed();
+            if ( randomWord != null )
+            {
+                seeds.add( randomWord );
+            }
+        }
+
+        return Collections.unmodifiableSet( seeds );
+    }
 
     /**
      * <p>Creates a new password that satisfies the password rules.  All rules are checked for.  If for some
@@ -120,32 +147,18 @@ public class RandomPasswordGenerator
         final Instant startTime = Instant.now();
         final PwmRandom pwmRandom = pwmApplication.getSecureService().pwmRandom();
 
-        randomGeneratorConfig.validateSettings( pwmApplication );
+        randomGeneratorConfig.validateSettings( pwmApplication.getConfig() );
 
         final RandomGeneratorConfig effectiveConfig;
         {
             if ( randomGeneratorConfig.getSeedlistPhrases() == null || randomGeneratorConfig.getSeedlistPhrases().isEmpty() )
             {
-                Set<String> seeds = DEFAULT_SEED_PHRASES;
-
-                final SeedlistService seedlistManager = pwmApplication.getSeedlistManager();
-                if ( seedlistManager != null && seedlistManager.status() == PwmService.STATUS.OPEN && seedlistManager.size() > 0 )
-                {
-                    seeds = new HashSet<>();
-                    int safetyCounter = 0;
-                    while ( seeds.size() < 10 && safetyCounter < 100 )
-                    {
-                        safetyCounter++;
-                        final String randomWord = seedlistManager.randomSeed();
-                        if ( randomWord != null )
-                        {
-                            seeds.add( randomWord );
-                        }
-                    }
-                }
-                effectiveConfig = randomGeneratorConfig.toBuilder()
-                        .seedlistPhrases( seeds )
-                        .build();
+                effectiveConfig = new RandomGeneratorConfig(
+                        generateSeedsFromManager( pwmApplication ),
+                        randomGeneratorConfig.getMinimumLength(),
+                        randomGeneratorConfig.getMaximumLength(),
+                        randomGeneratorConfig.getMinimumStrength(),
+                        randomGeneratorConfig.getPasswordPolicy() );
             }
             else
             {
@@ -161,8 +174,7 @@ public class RandomPasswordGenerator
         // determine the password policy to use for random generation
         final PwmPasswordPolicy randomGenPolicy;
         {
-            final Map<String, String> newPolicyMap = new HashMap<>();
-            newPolicyMap.putAll( effectiveConfig.getPasswordPolicy().getPolicyMap() );
+            final Map<String, String> newPolicyMap = new TreeMap<>( effectiveConfig.getPasswordPolicy().getPolicyMap() );
 
             final String max = newPolicyMap.put( PwmPasswordRule.MaximumLength.getKey(), String.valueOf( effectiveConfig.getMaximumLength() ) );
 
@@ -182,7 +194,7 @@ public class RandomPasswordGenerator
         }
 
         // initial creation
-        password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig.getMinimumLength() ) );
+        password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig ) );
 
         // read a rule validator
 
@@ -190,6 +202,7 @@ public class RandomPasswordGenerator
         // modify until it passes all the rules
         final int maxTryCount = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_ATTEMPTS ) );
         final int jitterCount = Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_JITTER_COUNT ) );
+
         boolean validPassword = false;
         while ( !validPassword && tryCount < maxTryCount )
         {
@@ -199,7 +212,7 @@ public class RandomPasswordGenerator
             if ( tryCount % jitterCount == 0 )
             {
                 password.delete( 0, password.length() );
-                password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig.getMinimumLength() ) );
+                password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig ) );
             }
 
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmApplication, randomGenPolicy, PwmPasswordRuleValidator.Flag.FailFast );
@@ -214,7 +227,7 @@ public class RandomPasswordGenerator
             {
                 validPassword = false;
                 password.delete( 0, password.length() );
-                password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig.getMinimumLength() ) );
+                password.append( generateNewPassword( pwmRandom, seedMachine, effectiveConfig ) );
             }
         }
 
@@ -222,20 +235,20 @@ public class RandomPasswordGenerator
         {
             final TimeDuration td = TimeDuration.fromCurrent( startTime );
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator( pwmApplication, randomGenPolicy );
+            final int finalTryCount = tryCount;
             if ( validPassword )
             {
-                final int finalTryCount = tryCount;
-                LOGGER.trace( sessionLabel, () -> "finished random password generation in "
-                        + td.asCompactString() + " after " + finalTryCount + " tries." );
+                final Supplier<CharSequence> logMsg = () -> "finished random password generation in "
+                        + td.asCompactString() + " after " + finalTryCount + " tries.";
+                LOGGER.trace( sessionLabel, logMsg );
             }
             else
             {
                 final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator( password.toString(), null, null );
                 final int judgeLevel = PasswordUtility.judgePasswordStrength( pwmApplication.getConfig(), password.toString() );
-                final StringBuilder sb = new StringBuilder();
-                sb.append( "failed random password generation after " ).append( td.asCompactString() ).append( " after " ).append( tryCount ).append( " tries. " );
-                sb.append( "(errors=" ).append( errors.size() ).append( ", judgeLevel=" ).append( judgeLevel );
-                LOGGER.error( sessionLabel, () -> sb.toString() );
+                final Supplier<CharSequence> logMsg = () -> "failed random password generation after " + td.asCompactString() + " after "
+                        + finalTryCount + " tries. " + "(errors=" + errors.size() + ", judgeLevel=" + judgeLevel;
+                LOGGER.error( sessionLabel, logMsg );
             }
         }
 
@@ -432,13 +445,8 @@ public class RandomPasswordGenerator
     private static void addRandChar( final PwmRandom pwmRandom, final StringBuilder password, final String allowedChars )
             throws ImpossiblePasswordPolicyException
     {
-        final int insertPosition = pwmRandom.nextInt( password.length() );
-        addRandChar( pwmRandom, password, allowedChars, insertPosition );
-    }
+        final int insertPosition = password.length() < 1 ? 0 : pwmRandom.nextInt( password.length() );
 
-    private static void addRandChar( final PwmRandom pwmRandom, final StringBuilder password, final String allowedChars, final int insertPosition )
-            throws ImpossiblePasswordPolicyException
-    {
         if ( allowedChars.length() < 1 )
         {
             throw new ImpossiblePasswordPolicyException( ImpossiblePasswordPolicyException.ErrorEnum.REQUIRED_CHAR_NOT_ALLOWED );
@@ -586,25 +594,24 @@ public class RandomPasswordGenerator
         }
     }
 
-    private static String generateNewPassword( final PwmRandom pwmRandom, final SeedMachine seedMachine, final int desiredLength )
+    private static String generateNewPassword(
+            final PwmRandom pwmRandom,
+            final SeedMachine seedMachine,
+            final RandomGeneratorConfig randomGeneratorConfig
+    )
     {
+        final int effectiveLengthRange = randomGeneratorConfig.getMaximumLength() - randomGeneratorConfig.getMinimumLength();
+        final int desiredLength = effectiveLengthRange > 1
+                ? randomGeneratorConfig.getMinimumLength() + pwmRandom.nextInt( effectiveLengthRange )
+                : randomGeneratorConfig.getMaximumLength();
+
+
         final StringBuilder password = new StringBuilder();
 
-        while ( password.length() < ( desiredLength - 1 ) )
+        while ( password.length() < desiredLength )
         {
             //loop around until we're long enough
             password.append( seedMachine.getRandomSeed() );
-        }
-
-        if ( pwmRandom.nextInt( 3 ) == 0 )
-        {
-            final SeedMachine defaultSeedMachine = new SeedMachine( pwmRandom, DEFAULT_SEED_PHRASES );
-            addRandChar( pwmRandom, password, defaultSeedMachine.getNumChars(), pwmRandom.nextInt( password.length() ) );
-        }
-
-        if ( pwmRandom.nextBoolean() )
-        {
-            switchRandomCase( pwmRandom, password );
         }
 
         return password.toString();
@@ -618,19 +625,22 @@ public class RandomPasswordGenerator
         }
 
         final Collection<String> newSeeds = new HashSet<>( inputSeeds );
-        newSeeds.removeIf( s -> s == null || s.length() < 1 );
+        newSeeds.removeIf( StringUtil::isEmpty );
 
         return newSeeds.isEmpty() ? DEFAULT_SEED_PHRASES : newSeeds;
     }
 
-    @Value
-    @Builder( toBuilder = true )
+    @Getter
+    @ToString
+    @EqualsAndHashCode
     public static class RandomGeneratorConfig
     {
         private static final int DEFAULT_MINIMUM_LENGTH = 6;
         private static final int DEFAULT_MAXIMUM_LENGTH = 16;
-        private static final int DEFAULT_DESIRED_STRENGTH = 45;
+        private static final int DEFAULT_DESIRED_STRENGTH = 0;
 
+        private static final int MINIMUM_LENGTH = 0;
+        private static final int MAXIMUM_LENGTH = 1_000_000;
         private static final int MINIMUM_STRENGTH = 0;
         private static final int MAXIMUM_STRENGTH = 100;
 
@@ -638,55 +648,153 @@ public class RandomPasswordGenerator
          * A set of phrases (Strings) used to generate the pwmRandom passwords.  There must be enough
          * values in the phrases to build a random password that meets rule requirements
          */
-        @Builder.Default
-        private Collection<String> seedlistPhrases = Collections.emptySet();
+        private final Collection<String> seedlistPhrases;
 
         /**
          * The minimum length desired for the password.  The algorithm will attempt to make
          * the returned value at least this long, but it is not guaranteed.
          */
-        @Builder.Default
-        private int minimumLength = DEFAULT_MINIMUM_LENGTH;
+        private final int minimumLength;
 
-        @Builder.Default
-        private int maximumLength = DEFAULT_MAXIMUM_LENGTH;
+        private final int maximumLength;
 
         /**
          * The minimum length desired strength.  The algorithm will attempt to make
          * the returned value at least this strong, but it is not guaranteed.
          */
-        @Builder.Default
-        private int minimumStrength = DEFAULT_DESIRED_STRENGTH;
+        private final int minimumStrength;
 
-        @Builder.Default
-        private PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.defaultPolicy();
+        private final PwmPasswordPolicy passwordPolicy;
 
+        private static final RandomGeneratorConfig DEFAULT_CONFIG = new RandomGeneratorConfig(
+                DEFAULT_SEED_PHRASES,
+                DEFAULT_MINIMUM_LENGTH,
+                DEFAULT_MAXIMUM_LENGTH,
+                DEFAULT_DESIRED_STRENGTH,
+                PwmPasswordPolicy.defaultPolicy() );
 
-        public int getMaximumLength( )
+        public static RandomGeneratorConfig defaultConfig()
         {
-            int policyMax = this.maximumLength;
-            if ( this.getPasswordPolicy() != null )
-            {
-                policyMax = this.getPasswordPolicy().getRuleHelper().readIntValue( PwmPasswordRule.MaximumLength );
-            }
-            return Math.min( this.maximumLength, policyMax );
+            return DEFAULT_CONFIG;
         }
 
-        public int getMinimumStrength( )
+        public RandomGeneratorConfig(
+                final Collection<String> seedlistPhrases,
+                final int minimumLength,
+                final int maximumLength,
+                final int minimumStrength,
+                final PwmPasswordPolicy passwordPolicy
+        )
         {
-            int policyMin = this.minimumStrength;
-            if ( this.getPasswordPolicy() != null )
+            this.seedlistPhrases = null;
+            this.minimumLength = minimumLength;
+            this.maximumLength = maximumLength;
+            this.minimumStrength = minimumStrength;
+            this.passwordPolicy = Objects.requireNonNull( passwordPolicy );
+
+
+            if ( minimumLength < MINIMUM_LENGTH )
             {
-                policyMin = this.getPasswordPolicy().getRuleHelper().readIntValue( PwmPasswordRule.MinimumStrength );
+                throw new IllegalArgumentException( "minimumLength too low" );
             }
-            return Math.max( this.minimumStrength, policyMin );
+
+            if ( maximumLength > MAXIMUM_LENGTH )
+            {
+                throw new IllegalArgumentException( "maximumLength too large" );
+            }
+
+            if ( minimumStrength < MINIMUM_STRENGTH )
+            {
+                throw new IllegalArgumentException( "minimumStrength too low" );
+            }
+
+            if ( minimumStrength > MAXIMUM_STRENGTH )
+            {
+                throw new IllegalArgumentException( "minimumStrength too large" );
+            }
         }
 
-        void validateSettings( final PwmApplication pwmApplication )
+        public static RandomGeneratorConfig fromPolicy(
+                final Configuration configuration,
+                final PwmPasswordPolicy pwmPasswordPolicy
+        )
+                throws PwmUnrecoverableException
+        {
+            final RandomGeneratorConfig config = new RandomGeneratorConfig(
+                    DEFAULT_SEED_PHRASES,
+                    figureMinimumLength( configuration, pwmPasswordPolicy ),
+                    figureMaximumLength( configuration, pwmPasswordPolicy ),
+                    figureMinimumStrength( configuration, pwmPasswordPolicy ),
+                    pwmPasswordPolicy );
+
+            config.validateSettings( configuration );
+
+            return config;
+        }
+
+
+        private static int figureMaximumLength( final Configuration configuration, final PwmPasswordPolicy pwmPasswordPolicy )
+        {
+            final int maxRandomGenLength = Integer.parseInt( configuration.readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_LENGTH ) );
+
+            int policyValue = -1;
+            if ( pwmPasswordPolicy != null )
+            {
+                policyValue = pwmPasswordPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MaximumLength );
+            }
+
+            if ( policyValue > 0 )
+            {
+                return Math.min( maxRandomGenLength, policyValue );
+            }
+
+            return 50;
+        }
+
+        private static int figureMinimumLength( final Configuration configuration, final PwmPasswordPolicy pwmPasswordPolicy )
+        {
+            int returnVal = Integer.parseInt( configuration.readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MIN_LENGTH ) );
+
+
+            if ( pwmPasswordPolicy != null )
+            {
+                final PasswordRuleReaderHelper ruleHelper = pwmPasswordPolicy.getRuleHelper();
+                final int policyMin = ruleHelper.readIntValue( PwmPasswordRule.MinimumLength );
+                if ( policyMin > 0 )
+                {
+                    returnVal = Math.max( returnVal, ruleHelper.readIntValue( PwmPasswordRule.MinimumLength ) );
+                }
+
+                final int policyMaxLength = ruleHelper.readIntValue( PwmPasswordRule.MaximumLength );
+                if ( policyMaxLength > 0 && returnVal > policyMaxLength )
+                {
+                    returnVal = policyMaxLength;
+                }
+            }
+            return returnVal;
+        }
+
+        private static int figureMinimumStrength( final Configuration configuration, final PwmPasswordPolicy pwmPasswordPolicy )
+        {
+            int returnValue = 0;
+
+            if ( pwmPasswordPolicy != null )
+            {
+                final int policyValue = pwmPasswordPolicy.getRuleHelper().readIntValue( PwmPasswordRule.MinimumStrength );
+                if ( policyValue > 0 )
+                {
+                    returnValue = Math.max( MAXIMUM_STRENGTH, policyValue );
+                }
+            }
+
+            return returnValue;
+        }
+
+        void validateSettings( final Configuration configuration )
                 throws PwmUnrecoverableException
         {
             final int maxLength = Integer.parseInt(
-                    pwmApplication.getConfig().readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_LENGTH ) );
+                    configuration.readAppProperty( AppProperty.PASSWORD_RANDOMGEN_MAX_LENGTH ) );
             if ( this.getMinimumLength() > maxLength )
             {
                 throw new PwmUnrecoverableException( new ErrorInformation(

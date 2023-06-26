@@ -58,6 +58,7 @@
     <allow pkg="org.apache.log4j"/>
 
     <!-- testing -->
+    <allow pkg="org.assertj.core.api"/>
     <allow pkg="org.junit"/>
     <allow pkg="org.mockito"/>
     <allow pkg="com.github.tomakehurst.wiremock"/>
