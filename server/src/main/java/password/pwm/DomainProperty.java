@@ -44,6 +44,18 @@ public enum DomainProperty
     HTTP_COOKIE_NONCE_NAME                          ( "http.cookie.nonce.name" ),
     HTTP_COOKIE_NONCE_LENGTH                        ( "http.cookie.nonce.length" ),
     HTTP_COOKIE_SAMESITE_VALUE                      ( "http.cookie.sameSite.value" ),
+    HTTP_PARAM_OAUTH_ACCESS_TOKEN                   ( "http.parameter.oauth.accessToken" ),
+    HTTP_PARAM_OAUTH_ATTRIBUTES                     ( "http.parameter.oauth.attributes" ),
+    HTTP_PARAM_OAUTH_CLIENT_ID                      ( "http.parameter.oauth.clientID" ),
+    HTTP_PARAM_OAUTH_CLIENT_SECRET                  ( "http.parameter.oauth.clientSecret" ),
+    HTTP_PARAM_OAUTH_CODE                           ( "http.parameter.oauth.code" ),
+    HTTP_PARAM_OAUTH_EXPIRES                        ( "http.parameter.oauth.expires" ),
+    HTTP_PARAM_OAUTH_RESPONSE_TYPE                  ( "http.parameter.oauth.responseType" ),
+    HTTP_PARAM_OAUTH_REDIRECT_URI                   ( "http.parameter.oauth.redirectUri" ),
+    HTTP_PARAM_OAUTH_REFRESH_TOKEN                  ( "http.parameter.oauth.refreshToken" ),
+    HTTP_PARAM_OAUTH_SCOPE                          ( "http.parameter.oauth.scope" ),
+    HTTP_PARAM_OAUTH_STATE                          ( "http.parameter.oauth.state" ),
+    HTTP_PARAM_OAUTH_GRANT_TYPE                     ( "http.parameter.oauth.grantType" ),
     LDAP_RESOLVE_CANONICAL_DN                       ( "ldap.resolveCanonicalDN" ),
     LDAP_CACHE_CANONICAL_ENABLE                     ( "ldap.cache.canonical.enable" ),
     LDAP_CACHE_CANONICAL_SECONDS                    ( "ldap.cache.canonical.seconds" ),
@@ -68,7 +80,12 @@ public enum DomainProperty
     LDAP_SEARCH_PARALLEL_ENABLE                     ( "ldap.search.parallel.enable" ),
     LDAP_SEARCH_PARALLEL_FACTOR                     ( "ldap.search.parallel.factor" ),
     LDAP_SEARCH_PARALLEL_THREAD_MAX                 ( "ldap.search.parallel.threadMax" ),
-    LDAP_ORACLE_POST_TEMPPW_USE_CURRENT_TIME        ( "ldap.oracle.postTempPasswordUseCurrentTime" ),;
+    LDAP_ORACLE_POST_TEMPPW_USE_CURRENT_TIME        ( "ldap.oracle.postTempPasswordUseCurrentTime" ),
+    OAUTH_ID_REQUEST_TYPE                           ( "oauth.id.requestType" ),
+    OAUTH_ID_ACCESS_GRANT_TYPE                      ( "oauth.id.accessGrantType" ),
+    OAUTH_ID_REFRESH_GRANT_TYPE                     ( "oauth.id.refreshGrantType" ),
+    OAUTH_ENABLE_TOKEN_REFRESH                      ( "oauth.enableTokenRefresh" ),
+    OAUTH_RETURN_URL_OVERRIDE                       ( "oauth.returnUrlOverride" ),;
 
     private final String key;
     private final String defaultValue;

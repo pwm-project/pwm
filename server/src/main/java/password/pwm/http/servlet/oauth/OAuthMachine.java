@@ -21,7 +21,7 @@
 package password.pwm.http.servlet.oauth;
 
 import org.apache.http.HttpStatus;
-import password.pwm.AppProperty;
+import password.pwm.DomainProperty;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.ProfileID;
 import password.pwm.bean.SessionLabel;
@@ -37,16 +37,16 @@ import password.pwm.http.HttpHeader;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
+import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.svc.httpclient.PwmHttpClient;
 import password.pwm.svc.httpclient.PwmHttpClientConfiguration;
 import password.pwm.svc.httpclient.PwmHttpClientRequest;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
-import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
@@ -84,7 +84,7 @@ public class OAuthMachine
     )
             throws PwmUnrecoverableException
     {
-        final String requestStateStr = pwmRequest.readParameterAsString( pwmRequest.getDomainConfig().readAppProperty( AppProperty.HTTP_PARAM_OAUTH_STATE ) );
+        final String requestStateStr = pwmRequest.readParameterAsString( pwmRequest.getDomainConfig().readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_STATE ) );
         if ( requestStateStr != null )
         {
             final OAuthState oAuthState = pwmRequest.decryptObject( requestStateStr, OAuthState.class );
@@ -116,17 +116,17 @@ public class OAuthMachine
         final DomainConfig config = pwmRequest.getDomainConfig();
         final String state = makeStateStringForRequest( pwmRequest, nextUrl, forgottenPasswordProfile );
         final String redirectUri = figureOauthSelfEndPointUrl( pwmRequest );
-        final String code = config.readAppProperty( AppProperty.OAUTH_ID_REQUEST_TYPE );
+        final String code = config.readDomainProperty( DomainProperty.OAUTH_ID_REQUEST_TYPE );
 
         final Map<String, String> urlParams = new LinkedHashMap<>();
-        urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_ID ), settings.getClientID() );
-        urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_RESPONSE_TYPE ), code );
-        urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_STATE ), state );
-        urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
+        urlParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_CLIENT_ID ), settings.getClientID() );
+        urlParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_RESPONSE_TYPE ), code );
+        urlParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_STATE ), state );
+        urlParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
 
         if ( StringUtil.notEmpty( settings.getScope() ) )
         {
-            urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_SCOPE ), settings.getScope() );
+            urlParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_SCOPE ), settings.getScope() );
         }
 
         if ( userIdentity != null )
@@ -150,16 +150,16 @@ public class OAuthMachine
     {
         final DomainConfig config = pwmRequest.getDomainConfig();
         final String requestUrl = settings.getCodeResolveUrl();
-        final String grantType = config.readAppProperty( AppProperty.OAUTH_ID_ACCESS_GRANT_TYPE );
+        final String grantType = config.readDomainProperty( DomainProperty.OAUTH_ID_ACCESS_GRANT_TYPE );
         final String redirectUri = figureOauthSelfEndPointUrl( pwmRequest );
         final String clientID = settings.getClientID();
 
         final Map<String, String> requestParams = new HashMap<>();
-        requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CODE ), requestCode );
-        requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_GRANT_TYPE ), grantType );
-        requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
-        requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_ID ), clientID );
-        requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_SECRET ), settings.getSecret().getStringValue() );
+        requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_CODE ), requestCode );
+        requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_GRANT_TYPE ), grantType );
+        requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
+        requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_CLIENT_ID ), clientID );
+        requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_CLIENT_SECRET ), settings.getSecret().getStringValue() );
 
         final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "oauth code resolver", settings, requestUrl, requestParams, null );
 
@@ -176,9 +176,9 @@ public class OAuthMachine
     )
     {
         final DomainConfig config = pwmRequest.getDomainConfig();
-        final String oauthExpiresParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_EXPIRES );
-        final String oauthAccessTokenParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN );
-        final String refreshTokenParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN );
+        final String oauthExpiresParam = config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_EXPIRES );
+        final String oauthAccessTokenParam = config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN );
+        final String refreshTokenParam = config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN );
 
         final long expireSeconds = JavaHelper.silentParseLong( readAttributeFromBodyMap( resolveResponseBodyStr, oauthExpiresParam ), 0 );
         final String accessToken = readAttributeFromBodyMap( resolveResponseBodyStr, oauthAccessTokenParam );
@@ -199,11 +199,11 @@ public class OAuthMachine
     {
         final DomainConfig config = pwmRequest.getDomainConfig();
         final String requestUrl = settings.getCodeResolveUrl();
-        final String grantType = config.readAppProperty( AppProperty.OAUTH_ID_REFRESH_GRANT_TYPE );
+        final String grantType = config.readDomainProperty( DomainProperty.OAUTH_ID_REFRESH_GRANT_TYPE );
 
         final Map<String, String> requestParams = new HashMap<>();
-        requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN ), refreshCode );
-        requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_GRANT_TYPE ), grantType );
+        requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN ), refreshCode );
+        requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_GRANT_TYPE ), grantType );
 
         final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth refresh resolver", settings, requestUrl, requestParams, null );
 
@@ -221,8 +221,8 @@ public class OAuthMachine
             final DomainConfig config = pwmRequest.getDomainConfig();
             final String requestUrl = settings.getAttributesUrl();
             final Map<String, String> requestParams = new HashMap<>();
-            requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
-            requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ATTRIBUTES ), settings.getDnAttributeName() );
+            requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
+            requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_ATTRIBUTES ), settings.getDnAttributeName() );
             restResults = makeHttpRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, accessToken );
         }
 
@@ -316,11 +316,11 @@ public class OAuthMachine
         final String redirectUri;
 
         {
-            final String returnUrlOverride = pwmRequest.getDomainConfig().readAppProperty( AppProperty.OAUTH_RETURN_URL_OVERRIDE );
+            final String returnUrlOverride = pwmRequest.getDomainConfig().readDomainProperty( DomainProperty.OAUTH_RETURN_URL_OVERRIDE );
             final String siteURL = pwmRequest.getDomainConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
             if ( returnUrlOverride != null && !returnUrlOverride.trim().isEmpty() )
             {
-                debugSource = "AppProperty(\"" + AppProperty.OAUTH_RETURN_URL_OVERRIDE.getKey() + "\")";
+                debugSource = "DomainProperty(\"" + DomainProperty.OAUTH_RETURN_URL_OVERRIDE.getKey() + "\")";
                 redirectUri = returnUrlOverride
                         + PwmServletDefinition.OAuthConsumer.servletUrl();
             }
@@ -358,7 +358,7 @@ public class OAuthMachine
             final PwmRequest pwmRequest
     ) throws PwmUnrecoverableException
     {
-        if ( !Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.OAUTH_ENABLE_TOKEN_REFRESH ) ) )
+        if ( !Boolean.parseBoolean( pwmRequest.getDomainConfig().readDomainProperty( DomainProperty.OAUTH_ENABLE_TOKEN_REFRESH ) ) )
         {
             return false;
         }

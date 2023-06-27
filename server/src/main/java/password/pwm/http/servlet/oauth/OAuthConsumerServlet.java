@@ -20,9 +20,9 @@
 
 package password.pwm.http.servlet.oauth;
 
-import password.pwm.AppProperty;
-import password.pwm.PwmDomain;
+import password.pwm.DomainProperty;
 import password.pwm.PwmConstants;
+import password.pwm.PwmDomain;
 import password.pwm.bean.ProfileID;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
@@ -197,7 +197,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             }
         }
 
-        final String requestCodeStr = pwmRequest.readParameterAsString( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CODE ) );
+        final String requestCodeStr = pwmRequest.readParameterAsString( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_CODE ) );
         LOGGER.trace( pwmRequest, () -> "received code from oauth server: " + requestCodeStr );
 
         final OAuthResolveResults resolveResults;
