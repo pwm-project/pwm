@@ -160,15 +160,15 @@
         <filter-class>password.pwm.http.filter.DomainRouterFilter</filter-class>
     </filter>
     <filter-mapping>
-        <filter-name>CookieUpdateFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
         <filter-name>DomainInitFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>RequestInitializationFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>CookieUpdateFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
     <filter-mapping>

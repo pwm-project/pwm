@@ -25,7 +25,6 @@ import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.FormNonce;
 import password.pwm.config.AppConfig;
-import password.pwm.config.DomainConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -153,14 +152,14 @@ public class Validator
     }
 
 
-    public static String sanitizeHeaderValue( final DomainConfig domainConfig, final String input )
+    public static String sanitizeHeaderValue( final AppConfig appConfig, final String input )
     {
         if ( input == null )
         {
             return null;
         }
 
-        final String regexStripPatternStr = domainConfig.readAppProperty( AppProperty.SECURITY_HTTP_STRIP_HEADER_REGEX );
+        final String regexStripPatternStr = appConfig.readAppProperty( AppProperty.SECURITY_HTTP_STRIP_HEADER_REGEX );
         if ( regexStripPatternStr != null && !regexStripPatternStr.isEmpty() )
         {
             final Pattern pattern = Pattern.compile( regexStripPatternStr );

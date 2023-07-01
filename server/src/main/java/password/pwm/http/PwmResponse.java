@@ -380,7 +380,7 @@ public class PwmResponse extends PwmHttpResponseWrapper
                 else
                 {
                     value = StringUtil.urlEncode(
-                            Validator.sanitizeHeaderValue( domainConfig, cookieValue )
+                            Validator.sanitizeHeaderValue( domainConfig.getAppConfig(), cookieValue )
                     );
                 }
             }

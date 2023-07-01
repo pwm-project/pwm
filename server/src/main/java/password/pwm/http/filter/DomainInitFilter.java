@@ -141,7 +141,7 @@ public class DomainInitFilter implements Filter
         return ProcessStatus.Continue;
     }
 
-    private static Optional<DomainID> readDomainFromRequest( final PwmApplication pwmApplication, final HttpServletRequest req )
+    public static Optional<DomainID> readDomainFromRequest( final PwmApplication pwmApplication, final HttpServletRequest req )
     {
         final boolean pathMode = pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.DOMAIN_DOMAIN_PATHS );
         if ( pathMode )

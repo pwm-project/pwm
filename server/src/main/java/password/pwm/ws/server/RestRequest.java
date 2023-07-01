@@ -66,6 +66,7 @@ public class RestRequest extends PwmHttpRequestWrapper
             final SessionLabel sessionLabel,
             final HttpServletRequest httpServletRequest
     )
+            throws PwmUnrecoverableException
     {
         super( httpServletRequest, pwmDomain.getConfig().getAppConfig() );
         this.pwmDomain = pwmDomain;

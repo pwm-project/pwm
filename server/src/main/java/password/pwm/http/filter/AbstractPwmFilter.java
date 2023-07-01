@@ -78,11 +78,12 @@ public abstract class AbstractPwmFilter implements Filter
             try
             {
                 pwmRequest = PwmRequest.forRequest( req, resp );
-                final PwmURL pwmURL = PwmURL.create( req );
             }
             catch ( final PwmException e )
             {
                 LOGGER.error( pwmRequest, () -> "unexpected error processing filter chain: " + e.getMessage(), e );
+                resp.sendError( 500 );
+                return;
             }
 
             try
