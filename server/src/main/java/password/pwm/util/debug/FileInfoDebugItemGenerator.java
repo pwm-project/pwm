@@ -22,22 +22,31 @@ package password.pwm.util.debug;
 
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.PwmApplication;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
-class FileInfoDebugItemGenerator implements AppItemGenerator
+final class FileInfoDebugItemGenerator implements AppItemGenerator
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( FileInfoDebugItemGenerator.class );
+    enum CsvHeaders
+    {
+        Filepath,
+        Filename,
+        ModifiedTimestamp,
+        Size,
+        Sha512Hash,
+    }
 
     @Override
     public String getFilename()
@@ -46,10 +55,10 @@ class FileInfoDebugItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
     {
-        final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
+        final PwmApplication pwmApplication = debugItemInput.pwmApplication();
         final Path applicationPath = pwmApplication.getPwmEnvironment().getApplicationPath();
         final List<Path> interestedFiles = new ArrayList<>();
 
@@ -70,7 +79,7 @@ class FileInfoDebugItemGenerator implements AppItemGenerator
             }
             catch ( final Exception e )
             {
-                LOGGER.error( debugItemInput.getSessionLabel(), () -> "unable to generate webInfPath fileMd5sums during zip debug building: " + e.getMessage() );
+                debugItemInput.logger().error( this, () -> "unable to generate webInfPath fileMd5sums during zip debug building: " + e.getMessage()  );
             }
         }
 
@@ -82,40 +91,41 @@ class FileInfoDebugItemGenerator implements AppItemGenerator
             }
             catch ( final Exception e )
             {
-                LOGGER.error( debugItemInput.getSessionLabel(), () -> "unable to generate appPath fileMd5sums during zip debug building: " + e.getMessage() );
+                debugItemInput.logger().error( this, () -> "unable to generate appPath fileMd5sums during zip debug building: " + e.getMessage() );
             }
         }
 
         final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
         {
-            final List<String> headerRow = new ArrayList<>();
-            headerRow.add( "Filepath" );
-            headerRow.add( "Filename" );
-            headerRow.add( "Last Modified" );
-            headerRow.add( "Size" );
-            headerRow.add( "Sha512Hash" );
+            final List<String> headerRow = CollectionUtil.enumSetToStringList( EnumSet.allOf( CsvHeaders.class ) );
             csvPrinter.printComment( StringUtil.join( headerRow, "," ) );
         }
 
-        final List<FileSystemUtility.FileSummaryInformation> fileSummaries = FileSystemUtility.readFileInformation( interestedFiles );
-        for ( final FileSystemUtility.FileSummaryInformation fileSummaryInformation : fileSummaries )
+        final Consumer<FileSystemUtility.FileSummaryInformation> consumer = new Consumer<FileSystemUtility.FileSummaryInformation>()
         {
-            try
+            @Override
+            public void accept( final FileSystemUtility.FileSummaryInformation fileSummaryInformation )
             {
-                final List<String> dataRow = List.of(
-                        fileSummaryInformation.getFilepath(),
-                        fileSummaryInformation.getFilename(),
-                        StringUtil.toIsoDate( fileSummaryInformation.getModified() ),
-                        String.valueOf( fileSummaryInformation.getSize() ),
-                        fileSummaryInformation.getSha512Hash() );
+                try
+                {
+                    final List<String> dataRow = List.of(
+                            fileSummaryInformation.filepath(),
+                            fileSummaryInformation.filename(),
+                            StringUtil.toIsoDate( fileSummaryInformation.modified() ),
+                            String.valueOf( fileSummaryInformation.size() ),
+                            fileSummaryInformation.sha512Hash() );
 
-                csvPrinter.printRecord( dataRow );
+                    csvPrinter.printRecord( dataRow );
+                }
+                catch ( final Exception e )
+                {
+                    debugItemInput.logger().error( FileInfoDebugItemGenerator.this,
+                            () -> "error generating file summary info: " + e.getMessage() );
+                }
             }
-            catch ( final Exception e )
-            {
-                LOGGER.trace( () -> "error generating file summary info: " + e.getMessage() );
-            }
-        }
+        };
+
+        FileSystemUtility.readFileInformation( interestedFiles ).forEach( consumer );
         csvPrinter.flush();
     }
 }

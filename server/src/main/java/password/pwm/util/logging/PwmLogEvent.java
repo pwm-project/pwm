@@ -63,8 +63,8 @@ public class PwmLogEvent implements Comparable<PwmLogEvent>
     private final String threadName;
 
     private static final Comparator<PwmLogEvent> COMPARATOR = Comparator.comparing(
-            PwmLogEvent::getTimestamp,
-            Comparator.nullsLast( Comparator.naturalOrder() ) )
+                    PwmLogEvent::getTimestamp,
+                    Comparator.nullsLast( Comparator.naturalOrder() ) )
             .thenComparing(
                     PwmLogEvent::getSessionID,
                     Comparator.nullsLast( Comparator.naturalOrder() ) )
@@ -164,15 +164,14 @@ public class PwmLogEvent implements Comparable<PwmLogEvent>
     {
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( byteArrayOutputStream );
-
         final String throwableMessage = ( getLoggedThrowable() == null || getLoggedThrowable().getMessage() == null ) ? "" : getLoggedThrowable().getMessage();
 
         final List<String> dataRow = new ArrayList<>();
         dataRow.add( StringUtil.toIsoDate( getTimestamp() ) );
         dataRow.add( getLevel().name() );
-        dataRow.add( getSourceAddress( ) == null ? "" : getSourceAddress() );
+        dataRow.add( getSourceAddress() == null ? "" : getSourceAddress() );
         dataRow.add( getSessionID() == null ? "" : getSessionID() );
-        dataRow.add( getUsername( ) );
+        dataRow.add( getUsername() );
         dataRow.add( getTopic() );
         dataRow.add( getMessage() );
         dataRow.add( throwableMessage );

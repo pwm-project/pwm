@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-class HealthDebugItemGenerator implements AppItemGenerator
+final class HealthDebugItemGenerator implements AppItemGenerator
 {
     @Value
     private static class HealthDebugInfo
@@ -50,16 +50,16 @@ class HealthDebugItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
     {
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
-        final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
+        final PwmApplication pwmApplication = debugItemInput.pwmApplication();
         final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords();
 
         final List<HealthDebugInfo> outputInfos = new ArrayList<>();
         records.forEach( healthRecord -> outputInfos.add( new HealthDebugInfo( healthRecord, healthRecord.getDetail( locale,
-                debugItemInput.getObfuscatedAppConfig() ) ) ) );
+                debugItemInput.obfuscatedAppConfig() ) ) ) );
         final String recordJson = JsonFactory.get().serializeCollection( outputInfos, JsonProvider.Flag.PrettyPrint );
         outputStream.write( recordJson.getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }

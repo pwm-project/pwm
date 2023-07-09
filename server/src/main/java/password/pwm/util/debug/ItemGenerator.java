@@ -18,24 +18,9 @@
  * limitations under the License.
  */
 
-package password.pwm.util.java;
+package password.pwm.util.debug;
 
-import java.time.Instant;
-
-public class DebugOutputBuilder
+public interface ItemGenerator
 {
-    private final StringBuilder stringBuilder = new StringBuilder();
-
-    public void appendLine( final CharSequence charSequence )
-    {
-        stringBuilder.append( StringUtil.toIsoDate( Instant.now() ) );
-        stringBuilder.append( ' ' );
-        stringBuilder.append( charSequence );
-        stringBuilder.append( '\n' );
-    }
-
-    public String toString()
-    {
-        return stringBuilder.toString();
-    }
+    String getFilename();
 }

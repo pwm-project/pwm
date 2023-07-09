@@ -99,7 +99,7 @@ public final class CollectionUtil
     {
         if ( CollectionUtil.isEmpty( source ) )
         {
-            return new EnumMap<K, V>( classOfT );
+            return new EnumMap<>( classOfT );
         }
 
         return source.entrySet().stream()
@@ -157,6 +157,27 @@ public final class CollectionUtil
         return enumMapToStringMap( inputMap, Enum::name );
     }
 
+    public static <E extends Enum<E>> List<String> enumSetToStringList( final Set<E> inputSet )
+    {
+        return enumSetToStringList( inputSet, Enum::name );
+    }
+
+    public static <E extends Enum<E>> List<String> enumSetToStringList(
+            final Set<E> inputSet,
+            final Function<E, String> keyToStringFunction
+    )
+    {
+        if ( CollectionUtil.isEmpty( inputSet ) )
+        {
+            return List.of();
+        }
+
+        return inputSet.stream()
+                .filter( Objects::nonNull )
+                .map( keyToStringFunction )
+                .toList();
+    }
+
     public static <K> boolean isEmpty( final Collection<K> collection )
     {
         return collection == null || collection.isEmpty();
@@ -183,8 +204,7 @@ public final class CollectionUtil
 
     public static <E> List<E> iteratorToList( final Iterator<E> iterator )
     {
-        return iteratorToStream( iterator )
-                .collect( Collectors.toUnmodifiableList() );
+        return iteratorToStream( iterator ).toList();
     }
 
     /**
@@ -217,7 +237,7 @@ public final class CollectionUtil
     public static <T, R> List<R> convertListType( final List<T> input, final Function<T, R> convertFunction )
 
     {
-        return stripNulls( input ).stream().map( convertFunction ).collect( Collectors.toUnmodifiableList() );
+        return stripNulls( input ).stream().map( convertFunction ).toList();
     }
 
     private static <K, V> boolean testMapEntryForNotNull( final Map.Entry<K, V> entry )

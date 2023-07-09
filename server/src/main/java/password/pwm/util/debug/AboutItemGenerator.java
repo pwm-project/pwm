@@ -27,7 +27,7 @@ import password.pwm.util.json.JsonProvider;
 import java.io.OutputStream;
 import java.util.Map;
 
-class AboutItemGenerator implements AppItemGenerator
+final class AboutItemGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
@@ -36,10 +36,10 @@ class AboutItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
     {
-        final Map<PwmAboutProperty, String> infoBeanMap = PwmAboutProperty.makeInfoBean( debugItemInput.getPwmApplication() );
+        final Map<PwmAboutProperty, String> infoBeanMap = PwmAboutProperty.makeInfoBean( debugItemInput.pwmApplication() );
         final String jsonValue = JsonFactory.get().serializeMap( infoBeanMap, JsonProvider.Flag.PrettyPrint );
-        DebugItemGenerator.writeString( outputStream, jsonValue );
+        DebugGenerator.writeString( outputStream, jsonValue );
     }
 }

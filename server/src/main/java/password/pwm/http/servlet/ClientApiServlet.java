@@ -444,9 +444,13 @@ public class ClientApiServlet extends ControlledPwmServlet
         final RestStatisticsServer.OutputVersion1.JsonOutput jsonOutput = new RestStatisticsServer.OutputVersion1.JsonOutput();
         jsonOutput.EPS = RestStatisticsServer.OutputVersion1.addEpsStats( statisticsManager );
 
-        if ( statName != null && statName.length() > 0 )
+        if ( !StringUtil.isEmpty( statName ) )
         {
-            jsonOutput.nameData = RestStatisticsServer.OutputVersion1.doNameStat( statisticsManager, statName, days );
+            jsonOutput.nameData = RestStatisticsServer.OutputVersion1.doNameStat(
+                    pwmRequest.getPwmRequestContext(),
+                    statisticsManager,
+                    statName,
+                    days );
         }
         else
         {

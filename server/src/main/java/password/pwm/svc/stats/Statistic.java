@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -213,6 +214,7 @@ public enum Statistic
 
     public static Optional<Statistic> forKey( final String key )
     {
-        return EnumUtil.readEnumFromPredicate( Statistic.class, loopValue -> loopValue.getKey().equals( key ) );
+        return EnumUtil.readEnumFromPredicate( Statistic.class, loopValue ->
+                Objects.equals( loopValue.getKey(), key ) || Objects.equals( loopValue.name(), key ) );
     }
 }

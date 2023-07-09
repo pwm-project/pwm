@@ -45,6 +45,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_DOJO); %>
 <% final AppDashboardData appDashboardData = (AppDashboardData)JspUtility.getAttribute(pageContext, PwmRequestAttribute.AppDashboardData); %>
 <% final PwmRequest dashboard_pwmRequest = JspUtility.getPwmRequest(pageContext); %>
 <% final PwmDomain dashboard_pwmDomain = dashboard_pwmRequest.getPwmDomain(); %>

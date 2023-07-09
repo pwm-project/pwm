@@ -55,7 +55,7 @@ import password.pwm.i18n.Admin;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapPermissionCalculator;
-import password.pwm.util.debug.DebugItemGenerator;
+import password.pwm.util.debug.DebugGenerator;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.EnumUtil;
@@ -360,7 +360,7 @@ public class ConfigManagerServlet extends AbstractPwmServlet
     private void doGenerateSupportZip( final PwmRequest pwmRequest )
             throws IOException, PwmUnrecoverableException
     {
-        final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmRequest.getPwmApplication(), pwmRequest.getLabel() );
+        final DebugGenerator debugItemGenerator = new DebugGenerator( pwmRequest.getPwmApplication(), pwmRequest.getLabel() );
         final PwmResponse resp = pwmRequest.getPwmResponse();
         resp.markAsDownload( HttpContentType.zip, PwmConstants.PWM_APP_NAME + "-Support.zip" );
         try ( ZipOutputStream zipOutput = new ZipOutputStream( resp.getOutputStream(), PwmConstants.DEFAULT_CHARSET ) )

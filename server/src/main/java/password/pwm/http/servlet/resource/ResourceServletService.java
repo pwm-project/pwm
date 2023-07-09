@@ -59,6 +59,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -304,6 +305,19 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
             return;
         }
 
+        final Consumer<FileSystemUtility.FileSummaryInformation> consumer = fileSummaryInformation ->
+        {
+            try
+            {
+                checksumStream.write( fileSummaryInformation.sha512Hash().getBytes( StandardCharsets.UTF_8 ) );
+            }
+            catch ( final Exception e )
+            {
+                LOGGER.error( () -> "unable to generate resource path nonce: " + e.getMessage() );
+            }
+
+        };
+
         pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager().locateWebInfFilePath().ifPresent( webInfPath ->
         {
             final Path basePath = webInfPath.getParent();
@@ -312,21 +326,8 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
                 final Path resourcePath = basePath.resolve( "public" ).resolve( "resources" );
                 if ( Files.exists( resourcePath ) )
                 {
-                    final List<FileSystemUtility.FileSummaryInformation> fileSummaryInformations =
-                            FileSystemUtility.readFileInformation( Collections.singletonList( resourcePath ) );
-                    {
-                        for ( final FileSystemUtility.FileSummaryInformation fileSummaryInformation : fileSummaryInformations  )
-                        {
-                            try
-                            {
-                                checksumStream.write( fileSummaryInformation.getSha512Hash().getBytes( StandardCharsets.UTF_8 ) );
-                            }
-                            catch ( final Exception e )
-                            {
-                                LOGGER.error( () -> "unable to generate resource path nonce: " + e.getMessage() );
-                            }
-                        }
-                    }
+                    FileSystemUtility.readFileInformation( Collections.singletonList( resourcePath ) )
+                            .forEach( consumer::accept );
                 }
             }
         } );

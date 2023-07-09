@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.TreeMap;
 
-class ConfigurationDebugJsonItemGenerator implements AppItemGenerator
+final class ConfigurationDebugJsonItemGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
@@ -41,10 +41,10 @@ class ConfigurationDebugJsonItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
     {
-        final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedAppConfig().getStoredConfiguration();
+        final StoredConfiguration storedConfiguration = debugItemInput.obfuscatedAppConfig().getStoredConfiguration();
         final TreeMap<String, Object> outputObject = new TreeMap<>();
 
         CollectionUtil.iteratorToStream( storedConfiguration.keys() )

@@ -27,7 +27,7 @@ import password.pwm.util.json.JsonProvider;
 import java.io.IOException;
 import java.io.OutputStream;
 
-class BuildManifestDebugItemGenerator implements AppItemGenerator
+final class BuildManifestDebugItemGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
@@ -36,10 +36,10 @@ class BuildManifestDebugItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
     {
         final String json = JsonFactory.get().serializeMap( PwmConstants.BUILD_MANIFEST, JsonProvider.Flag.PrettyPrint );
-        DebugItemGenerator.writeString( outputStream, json );
+        DebugGenerator.writeString( outputStream, json );
     }
 }

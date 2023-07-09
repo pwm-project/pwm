@@ -27,7 +27,7 @@ import password.pwm.svc.stats.StatisticsUtils;
 import java.io.IOException;
 import java.io.OutputStream;
 
-class StatisticsDataDebugItemGenerator implements AppItemGenerator
+final class StatisticsDataDebugItemGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
@@ -36,16 +36,16 @@ class StatisticsDataDebugItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
     {
-        final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
+        final PwmApplication pwmApplication = debugItemInput.pwmApplication();
         final StatisticsService statsManager = pwmApplication.getStatisticsService();
         StatisticsUtils.outputStatsToCsv(
-                debugItemInput.getSessionLabel(),
+                debugItemInput.sessionLabel(),
                 statsManager,
                 outputStream,
-                debugItemInput.getLocale(),
+                debugItemInput.locale(),
                 StatisticsUtils.CsvOutputFlag.includeHeader );
     }
 }

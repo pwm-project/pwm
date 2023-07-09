@@ -32,6 +32,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpContentType;
 import password.pwm.http.HttpMethod;
 import password.pwm.http.PwmHttpRequestWrapper;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.svc.stats.AvgStatistic;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.Statistic;
@@ -61,6 +62,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -304,7 +306,7 @@ public class RestStatisticsServer extends RestServlet
 
                 if ( statName != null && statName.length() > 0 )
                 {
-                    jsonOutput.nameData = doNameStat( statisticsManager, statName, days );
+                    jsonOutput.nameData = doNameStat( restRequest.getPwmRestRequest(), statisticsManager, statName, days );
                 }
                 else
                 {
@@ -323,9 +325,19 @@ public class RestStatisticsServer extends RestServlet
             }
         }
 
-        public static Map<String, Object> doNameStat( final StatisticsService statisticsManager, final String statName, final String days )
+        public static Map<String, Object> doNameStat(
+                final PwmRequestContext pwmRequestContext,
+                final StatisticsService statisticsManager,
+                final String statName,
+                final String days
+        )
         {
-            final Statistic statistic = Statistic.forKey( statName ).orElseThrow();
+            final Statistic statistic = Statistic.forKey( statName ).orElseThrow( () ->
+            {
+                LOGGER.debug( pwmRequestContext.getSessionLabel(), () -> "request unknown statName '" + statName + "'" );
+                return new NoSuchElementException( "request for unknown statName" );
+            } );
+
             final int historyDays = StringUtil.convertStrToInt( days, 30 );
 
             return statisticsManager.getStatHistory( statistic, historyDays )

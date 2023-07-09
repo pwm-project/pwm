@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-class LdapDebugItemGenerator implements DomainItemGenerator
+final class LdapDebugItemGenerator implements DomainItemGenerator
 {
     @Override
     public String getFilename()
@@ -37,16 +37,16 @@ class LdapDebugItemGenerator implements DomainItemGenerator
     }
 
     @Override
-    public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final DomainDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
     {
         final List<LdapDebugDataGenerator.LdapDebugInfo> ldapDebugInfos = LdapDebugDataGenerator.makeLdapDebugInfos(
-                debugItemInput.getPwmDomain(),
-                debugItemInput.getSessionLabel(),
-                debugItemInput.getObfuscatedDomainConfig(),
-                debugItemInput.getLocale()
+                debugItemInput.pwmDomain(),
+                debugItemInput.sessionLabel(),
+                debugItemInput.obfuscatedDomainConfig(),
+                debugItemInput.locale()
         );
         final String jsonData = JsonFactory.get().serializeCollection( ldapDebugInfos, JsonProvider.Flag.PrettyPrint );
-        DebugItemGenerator.writeString( outputStream, jsonData );
+        DebugGenerator.writeString( outputStream, jsonData );
     }
 }

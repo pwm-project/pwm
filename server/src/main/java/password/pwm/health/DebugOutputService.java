@@ -28,7 +28,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
-import password.pwm.util.debug.DebugItemGenerator;
+import password.pwm.util.debug.DebugGenerator;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.FileSystemUtility;
 import password.pwm.util.java.JavaHelper;
@@ -143,7 +143,7 @@ public class DebugOutputService extends AbstractPwmService implements PwmService
             }
 
             final int rotationCount = JavaHelper.silentParseInt( pwmApplication.getConfig().readAppProperty( AppProperty.HEALTH_SUPPORT_BUNDLE_FILE_WRITE_COUNT ), 10 );
-            final DebugItemGenerator debugItemGenerator = new DebugItemGenerator( pwmApplication, getSessionLabel() );
+            final DebugGenerator debugItemGenerator = new DebugGenerator( pwmApplication, getSessionLabel() );
 
             final Path supportPath = appPath.resolve( "support" );
 

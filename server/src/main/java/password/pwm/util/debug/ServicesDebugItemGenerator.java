@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-class ServicesDebugItemGenerator implements AppItemGenerator
+final class ServicesDebugItemGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
@@ -40,10 +40,10 @@ class ServicesDebugItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
+        final PwmApplication pwmApplication = debugItemInput.pwmApplication();
         final List<AppDashboardData.ServiceData> serviceDataList = AppDashboardData.makeServiceData( pwmApplication );
         final String recordJson = JsonFactory.get().serializeCollection( serviceDataList, JsonProvider.Flag.PrettyPrint );
         outputStream.write( recordJson.getBytes( PwmConstants.DEFAULT_CHARSET ) );

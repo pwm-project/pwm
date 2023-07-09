@@ -20,10 +20,12 @@
 
 package password.pwm.svc.db;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.HikariPoolMXBean;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.DomainID;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -35,9 +37,8 @@ import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.stats.EpsStatistic;
 import password.pwm.svc.stats.StatisticsClient;
-import password.pwm.util.java.AtomicLoopIntIncrementer;
-import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.PwmTimeUtil;
+import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -45,18 +46,16 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 public class DatabaseService extends AbstractPwmService implements PwmService
@@ -70,21 +69,28 @@ public class DatabaseService extends AbstractPwmService implements PwmService
 
     private DBConfiguration dbConfiguration;
 
-    private ErrorInformation lastError;
-
-    private AtomicLoopIntIncrementer slotIncrementer;
-    private final Map<Integer, DatabaseAccessorImpl> accessors = new ConcurrentHashMap<>();
-
-    private final Map<DatabaseAboutProperty, String> debugInfo = new LinkedHashMap<>();
-
+    private Map<DatabaseDebugProperty, String> initializedDebugData = Map.of();
     private volatile boolean initialized = false;
 
-    public enum DatabaseAboutProperty
+    private HikariDataSource hikariDataSource;
+
+    private final StatisticCounterBundle<DebugStat> statsBundle = new StatisticCounterBundle<>( DebugStat.class );
+
+    enum DebugStat
+    {
+        issuedAccessors,
+    }
+
+    public enum DatabaseDebugProperty
     {
         driverName,
         driverVersion,
         databaseProductName,
         databaseProductVersion,
+
+        idleConnections,
+        activeConnections,
+        totalConnections, maxConnections,
     }
 
     @Override
@@ -99,19 +105,15 @@ public class DatabaseService extends AbstractPwmService implements PwmService
     {
         this.dbConfiguration = DBConfiguration.fromConfiguration( getPwmApplication().getConfig() );
 
-        final TimeDuration watchdogFrequency = TimeDuration.of(
-                Integer.parseInt( pwmApplication.getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) ),
-                TimeDuration.Unit.SECONDS );
-
         if ( !dbShouldOpen() )
         {
             initialized = true;
             return STATUS.CLOSED;
         }
 
-        scheduleFixedRateJob( new ConnectionMonitor(), watchdogFrequency, watchdogFrequency );
+        scheduleJob( new PwmDbInitializer() );
 
-        return dbInit();
+        return STATUS.OPEN;
     }
 
     private boolean dbShouldOpen()
@@ -131,81 +133,107 @@ public class DatabaseService extends AbstractPwmService implements PwmService
         return true;
     }
 
-    private STATUS dbInit( )
+    private void dbInit( )
     {
         if ( initialized )
         {
-            return STATUS.OPEN;
+            return;
         }
 
         final Instant startTime = Instant.now();
 
         try
         {
-            LOGGER.debug( getSessionLabel(), () -> "opening connection to database " + this.dbConfiguration.getConnectionString() );
-            slotIncrementer = AtomicLoopIntIncrementer.builder().ceiling( dbConfiguration.getMaxConnections() ).build();
+            JDBCDriverLoader.loadDriver( getPwmApplication(), dbConfiguration );
 
+            final String poolName = makePoolName( getPwmApplication() );
+
+            hikariDataSource = new HikariDataSource( makeHikariConfig( dbConfiguration, poolName ) );
+
+            LOGGER.debug( getSessionLabel(), () -> "opening connection to database "
+                    + this.dbConfiguration.connectionString() );
+
+            try ( Connection connection = getConnection() )
             {
-                // make initial connection and establish schema
-                clearCurrentAccessors();
+                initTables( connection );
 
-                final Connection connection = openConnection( dbConfiguration );
-                updateDebugProperties( connection );
-                LOGGER.debug( getSessionLabel(), () -> "established initial connection to " + dbConfiguration.getConnectionString() + ", properties: "
-                        + JsonFactory.get().serializeMap( this.debugInfo ) );
-
-                for ( final DatabaseTable table : DatabaseTable.values() )
-                {
-                    DatabaseUtil.initTable( connection, table, dbConfiguration );
-                }
-
-                connection.close();
+                initializedDebugData = initConnectionDebugData( connection );
             }
 
-            accessors.clear();
-            {
-                // set up connection pool
-                final boolean traceLogging = getPwmApplication().getConfig().readSettingAsBoolean( PwmSetting.DATABASE_DEBUG_TRACE );
-                for ( int i = 0; i < dbConfiguration.getMaxConnections(); i++ )
-                {
-                    final Connection connection = openConnection( dbConfiguration );
-                    final DatabaseAccessorImpl accessor = new DatabaseAccessorImpl( this, this.dbConfiguration, connection, traceLogging );
-                    accessors.put( i, accessor );
-                }
-            }
+            postDbInitLogging();
 
-            LOGGER.debug( getSessionLabel(), () -> "successfully connected to remote database (" + TimeDuration.compactFromCurrent( startTime ) + ")" );
+            LOGGER.debug( getSessionLabel(), () -> "successfully connected to remote database ("
+                    + TimeDuration.compactFromCurrent( startTime ) + ")" );
 
+            initialized = true;
+            setStartupError( null );
         }
         catch ( final Throwable t )
         {
             final String errorMsg = "exception initializing database service: " + t.getMessage();
             LOGGER.warn( getSessionLabel(), () -> errorMsg );
             initialized = false;
-            lastError = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
-            return STATUS.CLOSED;
+            setStartupError( new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg ) );
+        }
+    }
+
+    private void postDbInitLogging()
+            throws DatabaseException
+
+    {
+        final DatabaseAccessor databaseAccessor = new DatabaseAccessorImpl(
+                this,
+                dbConfiguration );
+
+        for ( final DatabaseTable databaseTable : DatabaseTable.values() )
+        {
+            final int size = databaseAccessor.size( databaseTable );
+            LOGGER.trace( getSessionLabel(), () -> "opened table " + databaseTable.name() + " with "
+                    + size + " records" );
+        }
+    }
+
+    private void initTables( final Connection connection )
+            throws DatabaseException
+    {
+        final Instant startTime = Instant.now();
+
+        LOGGER.trace( getSessionLabel(), () -> "beginning check for database table schema" );
+
+        for ( final DatabaseTable table : DatabaseTable.values() )
+        {
+            DatabaseUtil.initTable( getSessionLabel(), connection, table, dbConfiguration );
         }
 
-        initialized = true;
-        return STATUS.OPEN;
+        LOGGER.trace( getSessionLabel(), () -> "completed check for database table schema", TimeDuration.fromCurrent( startTime ) );
+    }
+
+    private Map<DatabaseDebugProperty, String> initConnectionDebugData( final Connection connection )
+    {
+        try
+        {
+            final Map<DatabaseDebugProperty, String> returnObj = new EnumMap<>( DatabaseDebugProperty.class );
+            final DatabaseMetaData databaseMetaData = connection.getMetaData();
+            returnObj.put( DatabaseDebugProperty.driverName, databaseMetaData.getDriverName() );
+            returnObj.put( DatabaseDebugProperty.driverVersion, databaseMetaData.getDriverVersion() );
+            returnObj.put( DatabaseDebugProperty.databaseProductName, databaseMetaData.getDatabaseProductName() );
+            returnObj.put( DatabaseDebugProperty.databaseProductVersion, databaseMetaData.getDatabaseProductVersion() );
+            return returnObj;
+        }
+        catch ( final SQLException e )
+        {
+            LOGGER.error( getSessionLabel(), () -> "error reading jdbc meta data: " + e.getMessage() );
+        }
+
+        return Map.of();
     }
 
     @Override
     public void shutdownImpl( )
     {
         setStatus( STATUS.CLOSED );
-
-        clearCurrentAccessors();
     }
 
-    private void clearCurrentAccessors( )
-    {
-        for ( final DatabaseAccessorImpl accessor : accessors.values() )
-        {
-            accessor.close();
-        }
-        accessors.clear();
-    }
 
     @Override
     public List<HealthRecord> serviceHealthCheck( )
@@ -244,32 +272,14 @@ public class DatabaseService extends AbstractPwmService implements PwmService
             return returnRecords;
         }
 
-        if ( lastError != null )
-        {
-            final TimeDuration errorAge = TimeDuration.fromCurrent( lastError.getDate() );
-            final long cautionDurationMS = Long.parseLong( getPwmApplication().getConfig().readAppProperty( AppProperty.HEALTH_DB_CAUTION_DURATION_MS ) );
-
-            if ( errorAge.isShorterThan( cautionDurationMS ) )
-            {
-                final String ageString = PwmTimeUtil.asLongString( errorAge );
-                final String errorDate = StringUtil.toIsoDate( lastError.getDate() );
-                final String errorMsg = lastError.toDebugStr();
-                returnRecords.add( HealthRecord.forMessage(
-                        DomainID.systemId(),
-                        HealthMessage.Database_RecentlyUnreachable,
-                        ageString,
-                        errorDate,
-                        errorMsg
-                ) );
-            }
-        }
+        // final long cautionDurationMS = Long.parseLong( getPwmApplication().getConfig().readAppProperty( AppProperty.HEALTH_DB_CAUTION_DURATION_MS ) );
 
         if ( returnRecords.isEmpty() )
         {
             returnRecords.add( HealthRecord.forMessage(
                     DomainID.systemId(),
                     HealthMessage.Database_OK,
-                    this.dbConfiguration.getConnectionString() ) );
+                    this.dbConfiguration.connectionString() ) );
         }
 
         return returnRecords;
@@ -285,9 +295,10 @@ public class DatabaseService extends AbstractPwmService implements PwmService
         }
         else
         {
-            if ( lastError != null )
+            final ErrorInformation startupError = getStartupError();
+            if ( startupError != null )
             {
-                errorMsg = "unable to initialize database: " + lastError.getDetailedErrorMsg();
+                errorMsg = "unable to initialize database: " + startupError.getDetailedErrorMsg();
             }
             else
             {
@@ -301,12 +312,9 @@ public class DatabaseService extends AbstractPwmService implements PwmService
     @Override
     public ServiceInfoBean serviceInfo( )
     {
-        final Map<String, String> debugProperties = new LinkedHashMap<>( debugInfo.size() );
-        for ( final Map.Entry<DatabaseAboutProperty, String> entry : debugInfo.entrySet() )
-        {
-            final DatabaseAboutProperty databaseAboutProperty = entry.getKey();
-            debugProperties.put( databaseAboutProperty.name(), entry.getValue() );
-        }
+        final Map<String, String> debugProperties = new LinkedHashMap<>(
+                CollectionUtil.enumMapToStringMap( makeDebugProperties() )
+        );
 
         if ( status() == STATUS.OPEN )
         {
@@ -317,6 +325,12 @@ public class DatabaseService extends AbstractPwmService implements PwmService
         }
 
         return ServiceInfoBean.builder().debugProperties( debugProperties ).build();
+    }
+
+    Connection getConnection()
+            throws SQLException
+    {
+        return hikariDataSource.getConnection();
     }
 
     public DatabaseAccessor getAccessor( )
@@ -332,43 +346,9 @@ public class DatabaseService extends AbstractPwmService implements PwmService
             throw new PwmUnrecoverableException( makeUninitializedError() );
         }
 
-        return accessors.get( slotIncrementer.next() );
+        statsBundle.increment( DebugStat.issuedAccessors );
+        return new DatabaseAccessorImpl( this, dbConfiguration );
     }
-
-    private Connection openConnection( final DBConfiguration dbConfiguration )
-            throws DatabaseException
-    {
-        final String connectionURL = dbConfiguration.getConnectionString();
-
-        try
-        {
-            LOGGER.debug( getSessionLabel(), () -> "initiating connecting to database " + connectionURL );
-            JDBCDriverLoader.loadDriver( getPwmApplication(), dbConfiguration );
-            final Properties connectionProperties = new Properties();
-            if ( dbConfiguration.getUsername() != null && !dbConfiguration.getUsername().isEmpty() )
-            {
-                connectionProperties.setProperty( "user", dbConfiguration.getUsername() );
-            }
-            if ( dbConfiguration.getPassword() != null )
-            {
-                connectionProperties.setProperty( "password", dbConfiguration.getPassword().getStringValue() );
-            }
-
-            final Connection connection = DriverManager.getConnection( connectionURL, connectionProperties );
-            LOGGER.debug( getSessionLabel(), () -> "connected to database " + connectionURL );
-
-            connection.setAutoCommit( false );
-            return connection;
-        }
-        catch ( final Throwable e )
-        {
-            final String errorMsg = "error connecting to database: " + JavaHelper.readHostileExceptionMessage( e );
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
-            LOGGER.error( getSessionLabel(),  errorInformation );
-            throw new DatabaseException( errorInformation );
-        }
-    }
-
 
     enum OperationType
     {
@@ -388,66 +368,98 @@ public class DatabaseService extends AbstractPwmService implements PwmService
         }
     }
 
-    public Map<DatabaseAboutProperty, String> getConnectionDebugProperties( )
+    public Map<DatabaseDebugProperty, String> getConnectionDebugProperties( )
     {
-        return Collections.unmodifiableMap( debugInfo );
+        return makeDebugProperties();
     }
 
-    private void updateDebugProperties( final Connection connection )
+    private Map<DatabaseDebugProperty, String> makeDebugProperties()
     {
-        if ( connection != null )
+        final Map<DatabaseDebugProperty, String> returnObj = new EnumMap<>( DatabaseDebugProperty.class );
+
+        try
         {
-            try
+            if ( hikariDataSource != null )
             {
-                final Map<DatabaseAboutProperty, String> returnObj = new LinkedHashMap<>();
-                final DatabaseMetaData databaseMetaData = connection.getMetaData();
-                returnObj.put( DatabaseAboutProperty.driverName, databaseMetaData.getDriverName() );
-                returnObj.put( DatabaseAboutProperty.driverVersion, databaseMetaData.getDriverVersion() );
-                returnObj.put( DatabaseAboutProperty.databaseProductName, databaseMetaData.getDatabaseProductName() );
-                returnObj.put( DatabaseAboutProperty.databaseProductVersion, databaseMetaData.getDatabaseProductVersion() );
-                debugInfo.clear();
-                debugInfo.putAll( Collections.unmodifiableMap( returnObj ) );
-            }
-            catch ( final SQLException e )
-            {
-                LOGGER.error( getSessionLabel(), () -> "error reading jdbc meta data: " + e.getMessage() );
+                final HikariPoolMXBean poolProxy = hikariDataSource.getHikariPoolMXBean();
+                if ( poolProxy != null )
+                {
+                    returnObj.put(
+                            DatabaseDebugProperty.idleConnections,
+                            String.valueOf( poolProxy.getIdleConnections() ) );
+                    returnObj.put(
+                            DatabaseDebugProperty.activeConnections,
+                            String.valueOf( poolProxy.getActiveConnections() ) );
+                    returnObj.put(
+                            DatabaseDebugProperty.totalConnections,
+                            String.valueOf( poolProxy.getTotalConnections() ) );
+                    returnObj.put(
+                            DatabaseDebugProperty.maxConnections,
+                            String.valueOf( hikariDataSource.getMaximumPoolSize() ) );
+                }
             }
         }
+        catch ( final Throwable t )
+        {
+            LOGGER.error( getSessionLabel(), () -> "error reading hikari mxBean during debug property generation: "
+                    + t.getMessage() );
+        }
+
+        returnObj.putAll( initializedDebugData );
+
+        return Map.copyOf( returnObj );
     }
 
-    void setLastError( final ErrorInformation lastError )
-    {
-        this.lastError = lastError;
-    }
-
-    private class ConnectionMonitor implements Runnable
+    private class PwmDbInitializer implements Runnable
     {
         @Override
         public void run( )
         {
             if ( initialized )
             {
-                boolean valid = true;
-                for ( final DatabaseAccessorImpl databaseAccessor : accessors.values() )
-                {
-                    if ( !databaseAccessor.isValid() )
-                    {
-                        valid = false;
-                        break;
-                    }
-                }
-                if ( !valid )
-                {
-                    LOGGER.warn( getSessionLabel(), () -> "database connection lost; will retry connect periodically" );
-                    initialized = false;
-                }
+                return;
+            }
 
+            try
+            {
+                dbInit();
+            }
+            catch ( final Throwable t )
+            {
+                LOGGER.error( getSessionLabel(), () -> "error during database initialization: " + t.getMessage() );
             }
 
             if ( !initialized )
             {
-                dbInit();
+                final TimeDuration watchdogFrequency = TimeDuration.of(
+                        Integer.parseInt( getPwmApplication().getConfig().readAppProperty( AppProperty.DB_CONNECTIONS_WATCHDOG_FREQUENCY_SECONDS ) ),
+                        TimeDuration.Unit.SECONDS );
+                scheduleJob( this, watchdogFrequency );
             }
         }
+    }
+
+    private static String makePoolName( final PwmApplication pwmApplication )
+    {
+        return "pwm-" + pwmApplication.getInstanceID() + "-hikari-pool";
+    }
+
+
+    private static HikariConfig makeHikariConfig( final DBConfiguration dbConfiguration, final String poolName )
+            throws PwmUnrecoverableException
+    {
+        final HikariConfig config = new HikariConfig();
+        config.setJdbcUrl( dbConfiguration.connectionString() );
+        config.setUsername( dbConfiguration.username() );
+        config.setPassword( dbConfiguration.password().getStringValue() );
+        config.addDataSourceProperty( "registerMbeans", "true" );
+        config.setPoolName( poolName );
+
+        if ( dbConfiguration.maxConnections() > 0 )
+        {
+            config.setMaximumPoolSize( dbConfiguration.maxConnections() );
+        }
+
+        return config;
     }
 }

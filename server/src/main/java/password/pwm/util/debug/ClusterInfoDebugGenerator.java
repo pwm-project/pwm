@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-class ClusterInfoDebugGenerator implements AppItemGenerator
+final class ClusterInfoDebugGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
@@ -43,10 +43,10 @@ class ClusterInfoDebugGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
+        final PwmApplication pwmApplication = debugItemInput.pwmApplication();
         final NodeService nodeService = pwmApplication.getNodeService();
 
         final Map<String, Object> debugOutput = new LinkedHashMap<>();

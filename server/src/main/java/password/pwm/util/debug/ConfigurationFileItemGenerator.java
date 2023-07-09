@@ -29,7 +29,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-class ConfigurationFileItemGenerator implements AppItemGenerator
+final class ConfigurationFileItemGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
@@ -38,10 +38,10 @@ class ConfigurationFileItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException, PwmUnrecoverableException
     {
-        final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedAppConfig().getStoredConfiguration();
+        final StoredConfiguration storedConfiguration = debugItemInput.obfuscatedAppConfig().getStoredConfiguration();
 
         // temporary output stream required because .toXml closes stream.
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();

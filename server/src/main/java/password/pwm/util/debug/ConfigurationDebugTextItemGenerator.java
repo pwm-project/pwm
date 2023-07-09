@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Locale;
 
-class ConfigurationDebugTextItemGenerator implements AppItemGenerator
+final class ConfigurationDebugTextItemGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
@@ -39,11 +39,11 @@ class ConfigurationDebugTextItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
     {
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
-        final StoredConfiguration storedConfiguration = debugItemInput.getObfuscatedAppConfig().getStoredConfiguration();
+        final StoredConfiguration storedConfiguration = debugItemInput.obfuscatedAppConfig().getStoredConfiguration();
 
         final String headerString = "Configuration Debug Output for "
                 + PwmConstants.PWM_APP_NAME + " "
@@ -51,12 +51,12 @@ class ConfigurationDebugTextItemGenerator implements AppItemGenerator
                 +  "Timestamp: " + StringUtil.toIsoDate( storedConfiguration.modifyTime() ) + "\n"
                 +  "This file is " + PwmConstants.DEFAULT_CHARSET.displayName() + " encoded\n"
                 + '\n';
-        DebugItemGenerator.writeString( outputStream, headerString );
+        DebugGenerator.writeString( outputStream, headerString );
 
         CollectionUtil.iteratorToStream( storedConfiguration.keys() )
                 .filter( k -> k.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                 .map( storedConfigKey -> settingDebugOutput( locale, storedConfiguration, storedConfigKey ) )
-                .forEach( line -> DebugItemGenerator.writeString( outputStream, line ) );
+                .forEach( line -> DebugGenerator.writeString( outputStream, line ) );
 
     }
 

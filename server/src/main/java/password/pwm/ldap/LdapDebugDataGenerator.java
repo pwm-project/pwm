@@ -59,14 +59,15 @@ public class LdapDebugDataGenerator
     )
 
     {
+        final DomainConfig nonObfuscatedDomainConf = pwmDomain.getConfig();
+
         final List<LdapDebugInfo> returnList = new ArrayList<>();
-        for ( final LdapProfile ldapProfile : domainConfig.getLdapProfiles().values() )
+        for ( final LdapProfile ldapProfile : nonObfuscatedDomainConf.getLdapProfiles().values() )
         {
             final List<LdapDebugServerInfo> ldapDebugServerInfos = new ArrayList<>();
 
             try
             {
-                final DomainConfig nonObfuscatedDomainConf = pwmDomain.getConfig();
                 final ChaiConfiguration profileChaiConf = LdapOperationsHelper.createChaiConfiguration(
                         nonObfuscatedDomainConf,
                         ldapProfile );
@@ -80,7 +81,7 @@ public class LdapDebugDataGenerator
                                 pwmDomain,
                                 sessionLabel,
                                 ldapProfile,
-                                domainConfig,
+                                nonObfuscatedDomainConf,
                                 ldapProfile.readSettingAsString( PwmSetting.LDAP_PROXY_USER_DN ),
                                 ldapProfile.readSettingAsPassword( PwmSetting.LDAP_PROXY_USER_PASSWORD )
                         );

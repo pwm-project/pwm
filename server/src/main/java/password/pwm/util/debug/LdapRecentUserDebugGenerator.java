@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-class LdapRecentUserDebugGenerator implements DomainItemGenerator
+final class LdapRecentUserDebugGenerator implements DomainItemGenerator
 {
     @Override
     public String getFilename()
@@ -44,10 +44,10 @@ class LdapRecentUserDebugGenerator implements DomainItemGenerator
     }
 
     @Override
-    public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final DomainDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException, PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
+        final PwmDomain pwmDomain = debugItemInput.pwmDomain();
         final List<UserIdentity> recentUsers = pwmDomain.getPwmApplication().getSessionTrackService().getRecentLogins();
         final List<UserDebugDataBean> recentDebugBeans = new ArrayList<>();
 
@@ -57,8 +57,8 @@ class LdapRecentUserDebugGenerator implements DomainItemGenerator
             {
                 final UserDebugDataBean dataBean = UserDebugDataReader.readUserDebugData(
                         pwmDomain,
-                        debugItemInput.getLocale(),
-                        debugItemInput.getSessionLabel(),
+                        debugItemInput.locale(),
+                        debugItemInput.sessionLabel(),
                         userIdentity
                 );
                 recentDebugBeans.add( dataBean );

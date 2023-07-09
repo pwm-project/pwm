@@ -23,6 +23,7 @@ package password.pwm.svc.db;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.logging.PwmLogger;
@@ -105,6 +106,7 @@ class DatabaseUtil
     }
 
     static void initTable(
+            final SessionLabel sessionLabel,
             final Connection connection,
             final DatabaseTable table,
             final DBConfiguration dbConfiguration
@@ -115,13 +117,13 @@ class DatabaseUtil
         try
         {
             checkIfTableExists( connection, table );
-            LOGGER.trace( () -> "table " + table + " appears to exist" );
+            LOGGER.trace( sessionLabel, () -> "table " + table + " appears to exist" );
             tableExists = true;
         }
         catch ( final DatabaseException e )
         {
             // assume error was due to table missing;
-            LOGGER.trace( () -> "error while checking for table: " + e.getMessage() + ", assuming due to table non-existence" );
+            LOGGER.trace( sessionLabel, () -> "error while checking for table: " + e.getMessage() + ", assuming due to table non-existence" );
         }
 
         if ( !tableExists )
@@ -139,9 +141,9 @@ class DatabaseUtil
     {
         {
             final String sqlString = "CREATE table " + table.toString() + " (" + "\n"
-                    + "  " + DatabaseService.KEY_COLUMN + " " + dbConfiguration.getColumnTypeKey() + "("
-                    + dbConfiguration.getKeyColumnLength() + ") NOT NULL PRIMARY KEY," + "\n"
-                    + "  " + DatabaseService.VALUE_COLUMN + " " + dbConfiguration.getColumnTypeValue() + " " + "\n"
+                    + "  " + DatabaseService.KEY_COLUMN + " " + dbConfiguration.columnTypeKey() + "("
+                    + dbConfiguration.keyColumnLength() + ") NOT NULL PRIMARY KEY," + "\n"
+                    + "  " + DatabaseService.VALUE_COLUMN + " " + dbConfiguration.columnTypeValue() + " " + "\n"
                     + ")" + "\n";
 
             LOGGER.trace( () -> "attempting to execute the following sql statement:\n " + sqlString );
@@ -187,7 +189,7 @@ class DatabaseUtil
             {
                 final String errorMsg = "error creating new index " + indexName + ": " + ex.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_DB_UNAVAILABLE, errorMsg );
-                if ( dbConfiguration.isFailOnIndexCreation() )
+                if ( dbConfiguration.failOnIndexCreation() )
                 {
                     throw new DatabaseException ( errorInformation );
                 }

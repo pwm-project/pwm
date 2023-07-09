@@ -22,6 +22,7 @@ package password.pwm.util.debug;
 
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
+import password.pwm.util.json.JsonProvider;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogger;
 
@@ -30,7 +31,7 @@ import java.io.OutputStream;
 import java.time.Instant;
 import java.util.function.Function;
 
-class LogJsonItemGenerator implements AppItemGenerator
+final class LogJsonItemGenerator implements AppItemGenerator
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LogJsonItemGenerator.class );
 
@@ -41,13 +42,14 @@ class LogJsonItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
     {
         final Instant startTime = Instant.now();
-        final Function<PwmLogEvent, String> logEventFormatter = JsonFactory.get()::serialize;
+        final JsonProvider jsonFactory = JsonFactory.get();
+        final Function<PwmLogEvent, String> logEventFormatter = pwmLogEvent -> jsonFactory.serialize( pwmLogEvent ) + "\n";
 
-        LogDebugItemGenerator.outputLogs( debugItemInput.getPwmApplication(), outputStream, logEventFormatter );
+        LogDebugItemGenerator.outputLogs( debugItemInput.pwmApplication(), outputStream, logEventFormatter );
         LOGGER.trace( () -> "debug json output completed in ", TimeDuration.fromCurrent( startTime ) );
     }
 }

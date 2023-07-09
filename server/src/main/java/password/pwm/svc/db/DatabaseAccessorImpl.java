@@ -20,10 +20,11 @@
 
 package password.pwm.svc.db;
 
+import password.pwm.util.java.AtomicLoopIntIncrementer;
 import password.pwm.util.java.ClosableIterator;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.sql.Connection;
@@ -31,14 +32,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.AbstractMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Jason D. Rivard
@@ -48,46 +46,25 @@ class DatabaseAccessorImpl implements DatabaseAccessor
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseAccessorImpl.class, true );
 
-    private final Connection connection;
     private final DatabaseService databaseService;
-    private final DBConfiguration dbConfiguration;
 
     private final boolean traceLogEnabled;
 
-    private static final AtomicInteger ACCESSOR_COUNTER = new AtomicInteger( 0 );
-    private final int accessorNumber = ACCESSOR_COUNTER.getAndIncrement();
+    private static final AtomicLoopIntIncrementer ACCESSOR_COUNTER = new AtomicLoopIntIncrementer();
+    private static final AtomicLoopIntIncrementer ITERATOR_COUNTER = new AtomicLoopIntIncrementer();
 
-    private static final AtomicInteger ITERATOR_COUNTER = new AtomicInteger( 0 );
+    private final int accessorNumber = ACCESSOR_COUNTER.next();
+
     private final Set<DBIterator> outstandingIterators = ConcurrentHashMap.newKeySet();
-
     private final AtomicBoolean closed = new AtomicBoolean( false );
-
-    private final ReentrantLock lock = new ReentrantLock();
 
     DatabaseAccessorImpl(
             final DatabaseService databaseService,
-            final DBConfiguration dbConfiguration,
-            final Connection connection,
-            final boolean traceLogEnabled
+            final DBConfiguration dbConfiguration
     )
     {
-        this.connection = connection;
-        this.dbConfiguration = dbConfiguration;
-        this.traceLogEnabled = traceLogEnabled;
+        this.traceLogEnabled = dbConfiguration.traceLogging();
         this.databaseService = databaseService;
-    }
-
-
-    private void processSqlException(
-            final DatabaseUtil.DebugInfo debugInfo,
-            final SQLException e
-    )
-            throws DatabaseException
-    {
-        DatabaseUtil.rollbackTransaction( connection );
-        final DatabaseException databaseException = DatabaseUtil.convertSqlException( debugInfo, e );
-        databaseService.setLastError( databaseException.getErrorInformation() );
-        throw databaseException;
     }
 
     @Override
@@ -102,17 +79,9 @@ class DatabaseAccessorImpl implements DatabaseAccessor
 
         final DatabaseUtil.DebugInfo debugInfo = DatabaseUtil.DebugInfo.create( "put", table, key, value );
 
-        return execute( debugInfo, ( ) ->
+        final Boolean result = execute( debugInfo, connection ->
         {
-            boolean exists = false;
-            try
-            {
-                exists = containsImpl( table, key );
-            }
-            catch ( final SQLException e )
-            {
-                processSqlException( debugInfo, e );
-            }
+            final boolean exists = containsImpl( table, key, connection );
 
             if ( exists )
             {
@@ -121,18 +90,20 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                         + DatabaseService.KEY_COLUMN + "=?";
 
                 // note the value/key are reversed for this statement
-                executeUpdate( sqlText, debugInfo, value, key );
+                executeStatementWithParams( sqlText, connection, value, key );
             }
             else
             {
                 final String sqlText = "INSERT INTO " + table
                         + "(" + DatabaseService.KEY_COLUMN + ", "
                         + DatabaseService.VALUE_COLUMN + ") VALUES(?,?)";
-                executeUpdate( sqlText, debugInfo, key, value );
+                executeStatementWithParams( sqlText, connection, key, value );
             }
 
             return !exists;
         } );
+
+        return result != null && result;
     }
 
     @Override
@@ -147,26 +118,20 @@ class DatabaseAccessorImpl implements DatabaseAccessor
 
         final DatabaseUtil.DebugInfo debugInfo = DatabaseUtil.DebugInfo.create( "putIfAbsent", table, key, value );
 
-        return execute( debugInfo, ( ) ->
+        final Boolean result = execute( debugInfo, connection ->
         {
-            boolean valueExists = false;
-            try
-            {
-                valueExists = DatabaseAccessorImpl.this.containsImpl( table, key );
-            }
-            catch ( final SQLException e )
-            {
-                DatabaseAccessorImpl.this.processSqlException( debugInfo, e );
-            }
+            final boolean valueExists = DatabaseAccessorImpl.this.containsImpl( table, key, connection );
 
             if ( !valueExists )
             {
                 final String insertSql = "INSERT INTO " + table.name() + "(" + DatabaseService.KEY_COLUMN + ", " + DatabaseService.VALUE_COLUMN + ") VALUES(?,?)";
-                DatabaseAccessorImpl.this.executeUpdate( insertSql, debugInfo, key, value );
+                executeStatementWithParams( insertSql, connection, key, value );
             }
 
             return !valueExists;
         } );
+
+        return result != null && result;
     }
 
 
@@ -181,19 +146,13 @@ class DatabaseAccessorImpl implements DatabaseAccessor
 
         final DatabaseUtil.DebugInfo debugInfo = DatabaseUtil.DebugInfo.create( "contains", table, key, null );
 
-        return execute( debugInfo, ( ) ->
+        final Boolean result = execute( debugInfo, connection ->
         {
-            boolean valueExists = false;
-            try
-            {
-                valueExists = containsImpl( table, key );
-            }
-            catch ( final SQLException e )
-            {
-                processSqlException( debugInfo, e );
-            }
-            return valueExists;
+            return containsImpl( table, key, connection );
         } );
+
+        return result != null && result;
+
     }
 
     @Override
@@ -207,7 +166,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
 
         final DatabaseUtil.DebugInfo debugInfo = DatabaseUtil.DebugInfo.create( "get", table, key, null );
 
-        return execute( debugInfo, ( ) ->
+        return execute( debugInfo, connection ->
         {
             final String sqlStatement = "SELECT * FROM " + table.name() + " WHERE " + DatabaseService.KEY_COLUMN + " = ?";
 
@@ -224,10 +183,6 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     }
                 }
             }
-            catch ( final SQLException e )
-            {
-                processSqlException( debugInfo, e );
-            }
             return Optional.empty();
         } );
     }
@@ -236,15 +191,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
     public ClosableIterator<Map.Entry<String, String>> iterator( final DatabaseTable table )
             throws DatabaseException
     {
-        try
-        {
-            lock.lock();
-            return new DBIterator( table );
-        }
-        finally
-        {
-            lock.unlock();
-        }
+        return new DBIterator( table );
     }
 
     @Override
@@ -258,12 +205,10 @@ class DatabaseAccessorImpl implements DatabaseAccessor
 
         final DatabaseUtil.DebugInfo debugInfo = DatabaseUtil.DebugInfo.create( "remove", table, key, null );
 
-        execute( debugInfo, ( ) ->
+        execute( debugInfo, connection ->
         {
-
-
             final String sqlText = "DELETE FROM " + table.name() + " WHERE " + DatabaseService.KEY_COLUMN + "=?";
-            executeUpdate( sqlText, debugInfo, key );
+            executeStatementWithParams( sqlText, connection, key );
 
             return null;
         } );
@@ -277,7 +222,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
 
         final DatabaseUtil.DebugInfo debugInfo = DatabaseUtil.DebugInfo.create( "size", table, null, null );
 
-        return execute( debugInfo, ( ) ->
+        final Integer result = execute( debugInfo, connection ->
         {
             final String sqlStatement = "SELECT COUNT(" + DatabaseService.KEY_COLUMN + ") FROM " + table.name();
 
@@ -291,47 +236,12 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     }
                 }
             }
-            catch ( final SQLException e )
-            {
-                processSqlException( debugInfo, e );
-            }
 
             return 0;
         } );
+
+        return result == null ? 0 : result;
     }
-
-    boolean isValid( )
-    {
-        preCheck();
-
-        if ( connection == null )
-        {
-            return false;
-        }
-
-        try
-        {
-            if ( connection.isClosed() )
-            {
-                return false;
-            }
-
-            final int connectionTimeout = dbConfiguration.getConnectionTimeout();
-
-            if ( !connection.isValid( connectionTimeout ) )
-            {
-                return false;
-            }
-
-        }
-        catch ( final SQLException e )
-        {
-            LOGGER.debug( () -> "error while checking connection validity: " + e.getMessage() );
-        }
-
-        return true;
-    }
-
 
     public class DBIterator implements ClosableIterator<Map.Entry<String, String>>
     {
@@ -340,7 +250,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         private PreparedStatement statement;
         private Map.Entry<String, String> nextValue;
         private boolean finished;
-        private final int counter = ITERATOR_COUNTER.getAndIncrement();
+        private final int counter = ITERATOR_COUNTER.next();
 
         DBIterator( final DatabaseTable table )
                 throws DatabaseException
@@ -350,14 +260,15 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             getNextItem();
         }
 
-        private void init( ) throws DatabaseException
+        private void init( )
+                throws DatabaseException
         {
             final DatabaseUtil.DebugInfo debugInfo = DatabaseUtil.DebugInfo.create(
                     "iterator #" + counter + " open", table, null, null );
             traceBegin( debugInfo );
 
             final String sqlText = "SELECT * FROM " + table.name();
-            try
+            try ( Connection connection = databaseService.getConnection() )
             {
                 outstandingIterators.add( this );
                 statement = connection.prepareStatement( sqlText );
@@ -366,7 +277,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             }
             catch ( final SQLException e )
             {
-                processSqlException( null, e );
+                throw DatabaseUtil.convertSqlException( debugInfo, e );
             }
 
             traceResult( debugInfo, null );
@@ -426,43 +337,35 @@ class DatabaseAccessorImpl implements DatabaseAccessor
                     "iterator #" + counter + " close", table, null, null );
             traceBegin( debugInfo );
 
-            lock.lock();
-            try
+            outstandingIterators.remove( this );
+
+            if ( resultSet != null )
             {
-                outstandingIterators.remove( this );
-
-                if ( resultSet != null )
+                try
                 {
-                    try
-                    {
-                        resultSet.close();
-                        resultSet = null;
-                    }
-                    catch ( final SQLException e )
-                    {
-                        LOGGER.error( () -> "error closing inner resultSet in iterator: " + e.getMessage() );
-                    }
+                    resultSet.close();
+                    resultSet = null;
                 }
-
-                if ( statement != null )
+                catch ( final SQLException e )
                 {
-                    try
-                    {
-                        statement.close();
-                        statement = null;
-                    }
-                    catch ( final SQLException e )
-                    {
-                        LOGGER.error( () -> "error closing inner statement in iterator: " + e.getMessage() );
-                    }
+                    LOGGER.error( () -> "error closing inner resultSet in iterator: " + e.getMessage() );
                 }
-
-                finished = true;
             }
-            finally
+
+            if ( statement != null )
             {
-                lock.unlock();
+                try
+                {
+                    statement.close();
+                    statement = null;
+                }
+                catch ( final SQLException e )
+                {
+                    LOGGER.error( () -> "error closing inner statement in iterator: " + e.getMessage() );
+                }
             }
+
+            finished = true;
 
             traceResult( debugInfo, "outstandingIterators=" + outstandingIterators.size() );
         }
@@ -499,7 +402,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
 
     private interface SqlFunction<T>
     {
-        T execute( ) throws DatabaseException;
+        T execute( Connection connection ) throws SQLException;
     }
 
     private <T> T execute( final DatabaseUtil.DebugInfo debugInfo, final SqlFunction<T> sqlFunction )
@@ -507,16 +410,18 @@ class DatabaseAccessorImpl implements DatabaseAccessor
     {
         traceBegin( debugInfo );
 
-        try
+        try ( Connection connection = databaseService.getConnection() )
         {
-            lock.lock();
-
             try
             {
-                final T result = sqlFunction.execute();
+                final T result = sqlFunction.execute( connection );
                 traceResult( debugInfo, result );
                 databaseService.updateStats( DatabaseService.OperationType.WRITE );
                 return result;
+            }
+            catch ( final SQLException sqlException )
+            {
+                throw DatabaseUtil.convertSqlException( debugInfo, sqlException );
             }
             finally
             {
@@ -524,61 +429,16 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             }
 
         }
-        finally
+        catch ( final SQLException e )
         {
-            lock.unlock();
+            throw DatabaseUtil.convertSqlException( debugInfo, e );
         }
-
     }
 
-    Connection getConnection( )
-    {
-        return connection;
-    }
-
-    void close( )
-    {
-        closed.set( true );
-
-        try
-        {
-            lock.lock();
-            try
-            {
-                if ( !outstandingIterators.isEmpty() )
-                {
-                    LOGGER.warn( () -> "closing outstanding " + outstandingIterators.size() + " iterators" );
-                }
-                for ( final DBIterator iterator : new HashSet<>( outstandingIterators ) )
-                {
-                    iterator.close();
-                }
-            }
-            catch ( final Exception e )
-            {
-                LOGGER.warn( () -> "error while closing connection: " + e.getMessage() );
-            }
-
-            try
-            {
-                connection.close();
-            }
-            catch ( final SQLException e )
-            {
-                LOGGER.warn( () -> "error while closing connection: " + e.getMessage() );
-            }
-        }
-        finally
-        {
-            lock.unlock();
-        }
-
-        LOGGER.trace( () -> "closed accessor #" + accessorNumber );
-    }
-
-    private boolean containsImpl( final DatabaseTable table, final String key )
+    private boolean containsImpl( final DatabaseTable table, final String key, final Connection connection )
             throws SQLException
     {
+
         final String sqlStatement = "SELECT COUNT(" + DatabaseService.KEY_COLUMN + ") FROM " + table.name()
                 + " WHERE " + DatabaseService.KEY_COLUMN + " = ?";
 
@@ -599,8 +459,8 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         return false;
     }
 
-    private void executeUpdate( final String sqlStatement, final DatabaseUtil.DebugInfo debugInfo, final String... params )
-            throws DatabaseException
+    private void executeStatementWithParams( final String sqlStatement, final Connection connection, final String... params )
+            throws SQLException
     {
         try ( PreparedStatement statement = connection.prepareStatement( sqlStatement ) )
         {
@@ -610,10 +470,6 @@ class DatabaseAccessorImpl implements DatabaseAccessor
             }
             statement.executeUpdate();
         }
-        catch ( final SQLException e )
-        {
-            processSqlException( debugInfo, e );
-        }
     }
 
     private void preCheck( )
@@ -622,20 +478,5 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         {
             throw new IllegalStateException( "call to perform database operation but accessor has been closed" );
         }
-    }
-
-    @Override
-    public boolean isConnected()
-    {
-        try
-        {
-            return connection.isValid( 5000 );
-        }
-        catch ( final SQLException e )
-        {
-            LOGGER.error( () -> "error while checking database connection: " + e.getMessage() );
-        }
-
-        return false;
     }
 }

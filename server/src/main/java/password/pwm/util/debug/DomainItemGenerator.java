@@ -25,13 +25,17 @@ import password.pwm.error.PwmUnrecoverableException;
 import java.io.IOException;
 import java.io.OutputStream;
 
-interface DomainItemGenerator
+sealed interface DomainItemGenerator extends ItemGenerator permits
+        LDAPPermissionItemGenerator,
+        CacheServiceDebugItemGenerator,
+        LdapDebugItemGenerator,
+        LdapRecentUserDebugGenerator,
+        DashboardDataDebugItemGenerator,
+        LdapConnectionsDebugItemGenerator
 {
-
-    String getFilename();
-
     void outputItem(
-            DomainDebugItemInput debugItemInput,
+            DomainDebugItemRequest debugItemInput,
             OutputStream outputStream
-    ) throws IOException, PwmUnrecoverableException;
+    )
+            throws IOException, PwmUnrecoverableException;
 }

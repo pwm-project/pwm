@@ -27,7 +27,7 @@ import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 
-class ThreadDumpDebugItemGenerator implements AppItemGenerator
+final class ThreadDumpDebugItemGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
@@ -36,13 +36,13 @@ class ThreadDumpDebugItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
     {
         final ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads( true, true );
         for ( final ThreadInfo threadInfo : threads )
         {
-            DebugItemGenerator.writeString( outputStream,  JavaHelper.threadInfoToString( threadInfo ) + '\n' );
+            DebugGenerator.writeString( outputStream,  JavaHelper.threadInfoToString( threadInfo ) + '\n' );
         }
     }
 }

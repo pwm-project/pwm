@@ -31,7 +31,7 @@ import password.pwm.util.json.JsonFactory;
 import java.io.IOException;
 import java.io.OutputStream;
 
-class IntruderDataGenerator implements AppItemGenerator
+final class IntruderDataGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
@@ -40,10 +40,10 @@ class IntruderDataGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = debugItemInput.getPwmApplication();
+        final PwmApplication pwmApplication = debugItemInput.pwmApplication();
         final IntruderSystemService service = pwmApplication.getIntruderSystemService();
 
         try ( ClosableIterator<PublicIntruderRecord> record = service.allRecordIterator() )

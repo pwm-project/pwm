@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
-class AppPropertiesItemGenerator implements AppItemGenerator
+final class AppPropertiesItemGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
@@ -39,13 +39,13 @@ class AppPropertiesItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
     {
-        final AppConfig config = debugItemInput.getObfuscatedAppConfig();
+        final AppConfig config = debugItemInput.obfuscatedAppConfig();
         final Map<AppProperty, String> appPropertyMap = config.readAllAppProperties();
         final Map<String, String> stringMap = CollectionUtil.enumMapToStringMap( appPropertyMap, AppProperty::getKey );
         final String json = JsonFactory.get().serializeMap( stringMap, JsonProvider.Flag.PrettyPrint );
-        DebugItemGenerator.writeString( outputStream, json );
+        DebugGenerator.writeString( outputStream, json );
     }
 }

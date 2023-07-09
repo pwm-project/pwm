@@ -20,8 +20,6 @@
 
 package password.pwm.util.debug;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.json.JsonProvider;
@@ -35,7 +33,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-class RootFileSystemDebugItemGenerator implements AppItemGenerator
+final class RootFileSystemDebugItemGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
@@ -44,49 +42,53 @@ class RootFileSystemDebugItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
     {
-        final Collection<RootFileSystemInfo> rootInfos = RootFileSystemInfo.forAllRootFileSystems();
+        final Collection<RootFileSystemInfo> rootInfos = forAllRootFileSystems( debugItemInput );
         outputStream.write( JsonFactory.get().serializeCollection( rootInfos, JsonProvider.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );
     }
 
-    @Value
-    @Builder
-    private static class RootFileSystemInfo
+    private List<RootFileSystemInfo> forAllRootFileSystems( final AppDebugItemRequest appDebugItemInput )
     {
-        private String name;
-        private String type;
-        private long totalSpace;
-        private long freeSpace;
-        private long usableSpace;
+        final Iterator<FileStore> fileStoreIterator = FileSystems.getDefault().getFileStores().iterator();
 
-        static Collection<RootFileSystemInfo> forAllRootFileSystems()
-                throws IOException
+        final List<RootFileSystemInfo> returnList = new ArrayList<>();
+        while ( fileStoreIterator.hasNext() )
         {
-            final Iterator<FileStore> fileStoreIterator = FileSystems.getDefault().getFileStores().iterator();
-
-            final List<RootFileSystemInfo> returnList = new ArrayList<>();
-            while ( fileStoreIterator.hasNext() )
+            final FileStore fileStore = fileStoreIterator.next();
+            try
             {
-                final FileStore fileStore = fileStoreIterator.next();
                 final RootFileSystemInfo rootFileSystemInfo = RootFileSystemInfo.forRoot( fileStore );
                 returnList.add( rootFileSystemInfo );
             }
-
-            return List.copyOf( returnList );
+            catch ( final Throwable t )
+            {
+                final String errorMsg = "error during root filesystem debug reading: " + t.getMessage();
+                appDebugItemInput.logger().error( this, () -> errorMsg );
+            }
         }
 
+        return List.copyOf( returnList );
+    }
+
+    private record RootFileSystemInfo(
+            String name,
+            String type,
+            long totalSpace,
+            long freeSpace,
+            long usableSpace
+    )
+    {
         static RootFileSystemInfo forRoot( final FileStore fileRoot )
                 throws IOException
         {
-            return RootFileSystemInfo.builder()
-                    .name( fileRoot.name() )
-                    .type( fileRoot.type() )
-                    .totalSpace( fileRoot.getTotalSpace() )
-                    .freeSpace( fileRoot.getUnallocatedSpace() )
-                    .usableSpace( fileRoot.getUsableSpace() )
-                    .build();
+            return new RootFileSystemInfo(
+                     fileRoot.name(),
+                     fileRoot.type(),
+                     fileRoot.getTotalSpace(),
+                     fileRoot.getUnallocatedSpace(),
+                     fileRoot.getUsableSpace() );
         }
     }
 }

@@ -71,6 +71,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -234,14 +235,14 @@ public class ConfigurationChecker implements HealthSupplier
                         appPropertyKey ) );
             }
 
-            if ( config.readSettingAsBoolean( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS ) )
+            if ( config.getAppConfig().readSettingAsBoolean( PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS ) )
             {
                 records.add( HealthRecord.forMessage(
                         DomainID.systemId(),
                         HealthMessage.Config_ShowDetailedErrors,
                         PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.toMenuLocationDebug( null, locale ) ) );
             }
-            return Collections.unmodifiableList( records );
+            return List.copyOf( records );
         }
     }
 
@@ -255,9 +256,9 @@ public class ConfigurationChecker implements HealthSupplier
 
             final List<HealthRecord> records = new ArrayList<>();
             final String siteUrl = config.getAppConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
+            final String defaultSiteUrl = ( String) PwmSetting.PWM_SITE_URL.getDefaultValue( config.getTemplate() ).toNativeObject();
 
-            if ( siteUrl == null || siteUrl.isEmpty() || siteUrl.equals(
-                    PwmSetting.PWM_SITE_URL.getDefaultValue( config.getTemplate() ).toNativeObject() ) )
+            if ( StringUtil.isEmpty( siteUrl ) || Objects.equals( siteUrl, defaultSiteUrl ) )
             {
                 records.add( HealthRecord.forMessage(
                         config.getDomainID(),

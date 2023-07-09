@@ -20,7 +20,6 @@
 
 package password.pwm;
 
-import com.novell.ldapchai.ChaiConstant;
 import org.apache.commons.csv.CSVFormat;
 import password.pwm.util.java.StringUtil;
 
@@ -229,7 +228,7 @@ public abstract class PwmConstants
         final Map<String, String> returnMap = new TreeMap<>();
         try
         {
-            final Enumeration<URL> resources = ChaiConstant.class.getClassLoader().getResources( manifestFileName );
+            final Enumeration<URL> resources = PwmConstants.class.getClassLoader().getResources( manifestFileName );
             while ( resources.hasMoreElements() )
             {
                 try ( InputStream inputStream = resources.nextElement().openStream() )

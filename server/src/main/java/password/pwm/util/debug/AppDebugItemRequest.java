@@ -20,18 +20,18 @@
 
 package password.pwm.util.debug;
 
-import lombok.Value;
-import password.pwm.PwmDomain;
+import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
-import password.pwm.config.DomainConfig;
+import password.pwm.config.AppConfig;
 
 import java.util.Locale;
 
-@Value
-class DomainDebugItemInput
+record AppDebugItemRequest(
+        PwmApplication pwmApplication,
+        SessionLabel sessionLabel,
+        AppConfig obfuscatedAppConfig,
+        Locale locale,
+        DebugGeneratorLogger logger
+)
 {
-    private final PwmDomain pwmDomain;
-    private final SessionLabel sessionLabel;
-    private final DomainConfig obfuscatedDomainConfig;
-    private final Locale locale;
 }

@@ -102,13 +102,13 @@ public enum PwmAboutProperty
     java_gcName( "Java GC Name", pwmApplication -> readGcName() ),
 
     database_driverName( null,
-            pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseAboutProperty.driverName ) ),
+            pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseDebugProperty.driverName ) ),
     database_driverVersion( null,
-            pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseAboutProperty.driverVersion ) ),
+            pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseDebugProperty.driverVersion ) ),
     database_databaseProductName( null,
-            pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseAboutProperty.databaseProductName ) ),
+            pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseDebugProperty.databaseProductName ) ),
     database_databaseProductVersion( null,
-            pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseAboutProperty.databaseProductVersion ) ),;
+            pwmApplication -> pwmApplication.getDatabaseService().getConnectionDebugProperties().get( DatabaseService.DatabaseDebugProperty.databaseProductVersion ) ),;
 
     private final String label;
     private final transient Function<PwmApplication, String> value;

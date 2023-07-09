@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -80,37 +81,36 @@ public class StatisticsUtils
         for ( final StatisticsBundleKey loopKey : allKeys( statisticsService ) )
         {
             counter++;
-            final StatisticsBundle bundle = statisticsService.getStatBundleForKey( loopKey )
-                    .orElseThrow();
-
-            final List<String> lineOutput = new ArrayList<>( Statistic.asSet().size() );
-
-            lineOutput.add( loopKey.toString() );
-
-            if ( loopKey.getKeyType() == StatisticsBundleKey.KeyType.DAILY )
+            final Optional<StatisticsBundle> bundle = statisticsService.getStatBundleForKey( loopKey );
+            if ( bundle.isPresent() )
             {
-                lineOutput.add( Integer.toString( loopKey.getYear() ) );
-                lineOutput.add( Integer.toString( loopKey.getDay() ) );
-            }
-            else
-            {
-                lineOutput.add( "" );
-                lineOutput.add( "" );
-            }
+                final List<String> lineOutput = new ArrayList<>( Statistic.asSet().size() );
 
-            lineOutput.addAll( EnumUtil.enumStream( Statistic.class )
-                    .map( bundle::getStatistic )
-                    .collect( Collectors.toList() ) );
+                lineOutput.add( loopKey.toString() );
 
-            csvPrinter.printRecord( lineOutput );
+                if ( loopKey.getKeyType() == StatisticsBundleKey.KeyType.DAILY )
+                {
+                    lineOutput.add( Integer.toString( loopKey.getYear() ) );
+                    lineOutput.add( Integer.toString( loopKey.getDay() ) );
+                }
+                else
+                {
+                    lineOutput.add( "" );
+                    lineOutput.add( "" );
+                }
+
+                lineOutput.addAll( EnumUtil.enumStream( Statistic.class )
+                        .map( stat -> bundle.get().getStatistic( stat ) )
+                        .collect( Collectors.toList() ) );
+
+                csvPrinter.printRecord( lineOutput );
+            }
         }
 
-        {
-            final int finalCounter = counter;
-            LOGGER.trace( sessionLabel, () -> "completed output stats to csv process; output "
-                    + finalCounter + " records in "
-                    + TimeDuration.compactFromCurrent( startTime ) );
-        }
+        final int finalCounter = counter;
+        LOGGER.trace( sessionLabel, () -> "completed output stats to csv process; output "
+                + finalCounter + " records in "
+                + TimeDuration.compactFromCurrent( startTime ) );
 
         return counter;
     }

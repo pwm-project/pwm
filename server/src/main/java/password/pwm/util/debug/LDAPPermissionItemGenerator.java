@@ -32,7 +32,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-class LDAPPermissionItemGenerator implements DomainItemGenerator
+final class LDAPPermissionItemGenerator implements DomainItemGenerator
 {
     @Override
     public String getFilename()
@@ -41,11 +41,11 @@ class LDAPPermissionItemGenerator implements DomainItemGenerator
     }
 
     @Override
-    public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final DomainDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException, PwmUnrecoverableException
     {
 
-        final DomainConfig domainConfig = debugItemInput.getObfuscatedDomainConfig();
+        final DomainConfig domainConfig = debugItemInput.obfuscatedDomainConfig();
         final LdapPermissionCalculator ldapPermissionCalculator = new LdapPermissionCalculator( domainConfig );
 
         final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( outputStream );

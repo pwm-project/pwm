@@ -27,7 +27,6 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsService;
 import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
-import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -35,10 +34,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-class StatisticsEpsDataDebugItemGenerator implements AppItemGenerator
+final class StatisticsEpsDataDebugItemGenerator implements AppItemGenerator
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( StatisticsDataDebugItemGenerator.class );
-
     @Override
     public String getFilename()
     {
@@ -46,11 +43,11 @@ class StatisticsEpsDataDebugItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
 
     {
-        final PwmApplication pwmDomain = debugItemInput.getPwmApplication();
+        final PwmApplication pwmDomain = debugItemInput.pwmApplication();
         final StatisticsService statsManager = pwmDomain.getStatisticsService();
         final CSVPrinter csvPrinter = PwmUtil.makeCsvPrinter( outputStream );
         {
@@ -69,14 +66,14 @@ class StatisticsEpsDataDebugItemGenerator implements AppItemGenerator
                     final List<String> dataRow = new ArrayList<>();
                     final BigDecimal value = statsManager.readEps( epsStatistic, epsDuration );
                     final String sValue = value.toPlainString();
-                    dataRow.add( epsStatistic.getLabel( debugItemInput.getLocale() ) );
+                    dataRow.add( epsStatistic.getLabel( debugItemInput.locale() ) );
                     dataRow.add( epsDuration.getTimeDuration().asCompactString() );
                     dataRow.add( sValue );
                     csvPrinter.printRecord( dataRow );
                 }
                 catch ( final Exception e )
                 {
-                    LOGGER.trace( () -> "error generating csv-stats summary info: " + e.getMessage() );
+                    debugItemInput.logger().error( this, () -> "error generating csv-stats summary info: " + e.getMessage() );
                 }
             }
         }

@@ -25,7 +25,7 @@ import password.pwm.PwmApplication;
 import java.io.IOException;
 import java.io.OutputStream;
 
-class SessionDataGenerator implements AppItemGenerator
+final class SessionDataGenerator implements AppItemGenerator
 {
     @Override
     public String getFilename()
@@ -34,10 +34,10 @@ class SessionDataGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
     {
-        final PwmApplication pwmDomain = debugItemInput.getPwmApplication();
-        pwmDomain.getSessionTrackService().outputToCsv( debugItemInput.getLocale(), pwmDomain.getConfig(), outputStream );
+        final PwmApplication pwmDomain = debugItemInput.pwmApplication();
+        pwmDomain.getSessionTrackService().outputToCsv( debugItemInput.locale(), pwmDomain.getConfig(), outputStream );
     }
 }

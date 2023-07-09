@@ -30,17 +30,13 @@ import password.pwm.util.logging.LocalDBSearchQuery;
 import password.pwm.util.logging.LocalDBSearchResults;
 import password.pwm.util.logging.PwmLogEvent;
 import password.pwm.util.logging.PwmLogLevel;
-import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.time.Instant;
 import java.util.function.Function;
 
-class LogDebugItemGenerator implements AppItemGenerator
+final class LogDebugItemGenerator implements AppItemGenerator
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( LogDebugItemGenerator.class );
-
     static void outputLogs(
             final PwmApplication pwmApplication,
             final OutputStream outputStream,
@@ -75,13 +71,11 @@ class LogDebugItemGenerator implements AppItemGenerator
     }
 
     @Override
-    public void outputItem( final AppDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
     {
-        final Instant startTime = Instant.now();
         final Function<PwmLogEvent, String> logEventFormatter = PwmLogEvent::toLogString;
 
-        outputLogs( debugItemInput.getPwmApplication(), outputStream, logEventFormatter );
-        LOGGER.trace( () -> "debug log output completed in ", TimeDuration.fromCurrent( startTime ) );
+        outputLogs( debugItemInput.pwmApplication(), outputStream, logEventFormatter );
     }
 }

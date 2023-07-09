@@ -20,9 +20,6 @@
 
 package password.pwm.svc.db;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -32,23 +29,22 @@ import password.pwm.util.PasswordData;
 
 import java.util.Map;
 
-@Value
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class DBConfiguration
+public record DBConfiguration(
+        String driverClassname,
+        String connectionString,
+        String username,
+        PasswordData password,
+        String columnTypeKey,
+        String columnTypeValue,
+        ImmutableByteArray jdbcDriver,
+        int maxConnections,
+        int connectionTimeout,
+        int keyColumnLength,
+        boolean failOnIndexCreation,
+        boolean traceLogging
+)
 {
-    private final String driverClassname;
-    private final String connectionString;
-    private final String username;
-    private final PasswordData password;
-    private final String columnTypeKey;
-    private final String columnTypeValue;
-    private final ImmutableByteArray jdbcDriver;
-    private final int maxConnections;
-    private final int connectionTimeout;
-    private final int keyColumnLength;
-    private final boolean failOnIndexCreation;
-
-    public ImmutableByteArray getJdbcDriver( )
+    public ImmutableByteArray getJdbcDriver()
     {
         return jdbcDriver;
     }
@@ -86,7 +82,8 @@ public class DBConfiguration
                 maxConnections,
                 connectionTimeout,
                 keyColumnLength,
-                haltOnIndexCreateError
+                haltOnIndexCreateError,
+                config.readSettingAsBoolean( PwmSetting.DATABASE_DEBUG_TRACE )
         );
     }
 }

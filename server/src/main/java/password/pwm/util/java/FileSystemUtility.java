@@ -20,7 +20,6 @@
 
 package password.pwm.util.java;
 
-import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmException;
 import password.pwm.util.i18n.LocaleHelper;
@@ -32,50 +31,52 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FileSystemUtility
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( FileSystemUtility.class );
 
-    public static List<FileSummaryInformation> readFileInformation( final List<Path> rootFiles )
+    public static Stream<FileSummaryInformation> readFileInformation( final List<Path> rootFiles )
     {
-        final List<FileSummaryInformation> returnList = new ArrayList<>();
-        for ( final Path path : rootFiles )
-        {
-            returnList.addAll( readFileInformationHierarchy( path ) );
-        }
-        return List.copyOf( returnList );
+        return rootFiles.stream().flatMap( FileSystemUtility::readFileInformationHierarchy );
     }
 
-    public static List<FileSummaryInformation> readFileInformationHierarchy( final Path rootFile )
+    public static Stream<FileSummaryInformation> readFileInformationHierarchy( final Path rootFile )
     {
+        final Function<Path, Optional<FileSummaryInformation>> converter = path ->
+        {
+            try
+            {
+                return Optional.of( FileSummaryInformation.fromFile( path ) );
+            }
+            catch ( final IOException e )
+            {
+                LOGGER.trace( () -> "error during file summary load: " + e.getMessage() );
+                return Optional.empty();
+            }
+        };
+
         try
         {
-            final List<Path> paths =  Files.walk( rootFile )
+            return Files.walk( rootFile )
                     .filter( Files::isRegularFile )
-                    .collect( Collectors.toList() );
-
-            final List<FileSummaryInformation> returnList = new ArrayList<>();
-            for ( final Path path : paths )
-            {
-                returnList.add( FileSummaryInformation.fromFile( path ) );
-            }
-            return List.copyOf( returnList );
-
+                    .map( converter )
+                    .flatMap( Optional::stream );
         }
         catch ( final IOException e )
         {
             LOGGER.trace( () -> "error during file summary load: " + e.getMessage() );
         }
 
-        return Collections.emptyList();
+        return Stream.empty();
     }
 
     public static long getFileDirectorySize( final Path dir )
@@ -160,15 +161,14 @@ public class FileSystemUtility
         }
     }
 
-    @Value
-    public static class FileSummaryInformation
+    public record FileSummaryInformation(
+            String filename,
+            String filepath,
+            Instant modified,
+            long size,
+            String sha512Hash
+    )
     {
-        private final String filename;
-        private final String filepath;
-        private final Instant modified;
-        private final long size;
-        private final String sha512Hash;
-
         public static FileSummaryInformation fromFile( final Path file )
                 throws IOException
         {

@@ -31,7 +31,7 @@ import password.pwm.util.json.JsonProvider;
 import java.io.IOException;
 import java.io.OutputStream;
 
-class DashboardDataDebugItemGenerator implements DomainItemGenerator
+final class DashboardDataDebugItemGenerator implements DomainItemGenerator
 {
     @Override
     public String getFilename()
@@ -40,15 +40,15 @@ class DashboardDataDebugItemGenerator implements DomainItemGenerator
     }
 
     @Override
-    public void outputItem( final DomainDebugItemInput debugItemInput, final OutputStream outputStream )
+    public void outputItem( final DomainDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException, PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = debugItemInput.getPwmDomain();
+        final PwmDomain pwmDomain = debugItemInput.pwmDomain();
         final ContextManager contextManager = pwmDomain.getPwmApplication().getPwmEnvironment().getContextManager();
         final AppDashboardData appDashboardData = AppDashboardData.makeDashboardData(
                 pwmDomain,
                 contextManager,
-                debugItemInput.getLocale()
+                debugItemInput.locale()
         );
 
         outputStream.write( JsonFactory.get().serialize( appDashboardData, JsonProvider.Flag.PrettyPrint ).getBytes( PwmConstants.DEFAULT_CHARSET ) );

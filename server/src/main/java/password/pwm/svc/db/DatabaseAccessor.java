@@ -45,7 +45,6 @@ public interface DatabaseAccessor
     {
     }
 
-
     @DbOperation
     @DbModifyOperation
     boolean put(
@@ -92,6 +91,4 @@ public interface DatabaseAccessor
     @DbOperation
     int size( DatabaseTable table ) throws
             DatabaseException;
-
-    boolean isConnected( );
 }

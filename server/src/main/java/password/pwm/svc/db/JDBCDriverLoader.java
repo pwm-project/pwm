@@ -127,12 +127,12 @@ public class JDBCDriverLoader
         public Driver loadDriver( final PwmApplication pwmApplication, final DBConfiguration dbConfiguration )
                 throws DatabaseException
         {
-            final String jdbcClassName = dbConfiguration.getDriverClassname();
+            final String jdbcClassName = dbConfiguration.driverClassname();
 
             try
             {
                 LOGGER.debug( () -> "loading JDBC database driver from classpath: " + jdbcClassName );
-                final Driver driver = DriverManager.getDriver( dbConfiguration.getConnectionString() );
+                final Driver driver = DriverManager.getDriver( dbConfiguration.connectionString() );
 
                 LOGGER.debug( () -> "successfully loaded JDBC database driver from classpath: " + jdbcClassName );
                 return driver;
@@ -179,7 +179,7 @@ public class JDBCDriverLoader
 
             try
             {
-                return DriverManager.getDriver( dbConfiguration.getConnectionString() );
+                return DriverManager.getDriver( dbConfiguration.connectionString() );
             }
             catch ( final Throwable e )
             {
@@ -226,9 +226,9 @@ public class JDBCDriverLoader
                     this.getClass().getClassLoader() );
 
             //Create object of loaded class
-            final Class<?> jdbcDriverClass = urlClassLoader.loadClass( dbConfiguration.getDriverClassname() );
+            final Class<?> jdbcDriverClass = urlClassLoader.loadClass( dbConfiguration.driverClassname() );
             final Driver driver = new DriverShim( ( Driver ) jdbcDriverClass.getDeclaredConstructor().newInstance() );
-            LOGGER.debug( () -> "successfully loaded JDBC database driver '" + dbConfiguration.getDriverClassname() + "' from application configuration" );
+            LOGGER.debug( () -> "successfully loaded JDBC database driver '" + dbConfiguration.driverClassname() + "' from application configuration" );
             DriverManager.registerDriver( driver );
             return true;
 

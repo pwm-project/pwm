@@ -25,13 +25,30 @@ import password.pwm.error.PwmUnrecoverableException;
 import java.io.IOException;
 import java.io.OutputStream;
 
-interface AppItemGenerator
+sealed interface AppItemGenerator extends ItemGenerator permits
+        ConfigurationFileItemGenerator,
+        ConfigurationDebugJsonItemGenerator,
+        ConfigurationDebugTextItemGenerator,
+        AboutItemGenerator,
+        SystemEnvironmentItemGenerator,
+        AppPropertiesItemGenerator,
+        ServicesDebugItemGenerator,
+        HealthDebugItemGenerator,
+        ThreadDumpDebugItemGenerator,
+        FileInfoDebugItemGenerator,
+        IntruderDataGenerator,
+        LogDebugItemGenerator,
+        LogJsonItemGenerator,
+        LocalDBDebugGenerator,
+        SessionDataGenerator,
+        ClusterInfoDebugGenerator,
+        RootFileSystemDebugItemGenerator,
+        StatisticsDataDebugItemGenerator,
+        StatisticsEpsDataDebugItemGenerator,
+        BuildManifestDebugItemGenerator
 {
-
-    String getFilename();
-
     void outputItem(
-            AppDebugItemInput debugItemInput,
+            AppDebugItemRequest debugItemInput,
             OutputStream outputStream
     ) throws IOException, PwmUnrecoverableException;
 }

@@ -135,6 +135,7 @@
 
     <!-- database -->
     <subpackage name="svc.db">
+        <allow pkg="com.zaxxer.hikari"/>
         <allow pkg="java.sql"/>
     </subpackage>
 
