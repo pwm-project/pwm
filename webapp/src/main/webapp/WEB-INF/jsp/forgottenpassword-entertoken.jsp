@@ -52,35 +52,6 @@
             </button>
         </p>
         <br/>
-        <pwm:script>
-            <script type="text/javascript">
-                PWM_GLOBAL['startupFunctions'].push(function() {
-                    PWM_MAIN.addEventHandler('button-resend-token','click',function(){
-                        PWM_MAIN.showWaitDialog({loadFunction:function(){
-                            var loadFunction = function(data){
-                                if (data['error']) {
-                                    PWM_MAIN.showErrorDialog(data);
-                                } else {
-                                    var resultText = data['successMessage'];
-                                    PWM_MAIN.showDialog({
-                                        title: PWM_MAIN.showString('Title_Success'),
-                                        text: resultText,
-                                        okAction: function () {
-                                            var inputField = PWM_MAIN.getObject('<%=PwmConstants.PARAM_TOKEN%>');
-                                            if (inputField) {
-                                                inputField.value = '';
-                                                inputField.focus();
-                                            }
-                                        }
-                                    });
-                                }
-                            };
-                            PWM_MAIN.ajaxRequest('forgottenpassword?processAction=resendToken',loadFunction);
-                        }});
-                    })
-                });
-            </script>
-        </pwm:script>
         <% } %>
         <form action="<pwm:current-url/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" autocomplete="off">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
@@ -120,6 +91,10 @@
     <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 </form>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_FORGOTTENPW} from "<pwm:url url="/public/resources/js/forgottenpassword.js" addContext="true"/>";
+    PWM_FORGOTTENPW.initForgottenPwEnterTokenPage();
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

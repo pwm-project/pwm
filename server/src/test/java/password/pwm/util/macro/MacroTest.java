@@ -244,7 +244,7 @@ public class MacroTest
     public void testUserDaysUntilPwExpireMacro()
             throws PwmUnrecoverableException
     {
-        final Duration duration = Duration.between( macroRequest.getUserInfo().getPasswordExpirationTime(), Instant.now() );
+        final Duration duration = Duration.between( macroRequest.userInfo().getPasswordExpirationTime(), Instant.now() );
         final long days = TimeUnit.DAYS.convert( duration.toMillis(), TimeUnit.MILLISECONDS );
         final String goal = "UserDaysUntilPwExpire " + days + " test";
         final String expanded = macroRequest.expandMacros( "UserDaysUntilPwExpire @User:DaysUntilPwExpire@ test" );
@@ -256,7 +256,7 @@ public class MacroTest
     public void testTargetUserDaysUntilPwExpireMacro()
             throws PwmUnrecoverableException
     {
-        final Duration duration = Duration.between( macroRequest.getTargetUserInfo().getPasswordExpirationTime(), Instant.now() );
+        final Duration duration = Duration.between( macroRequest.targetUserInfo().getPasswordExpirationTime(), Instant.now() );
         final long days = TimeUnit.DAYS.convert( duration.toMillis(), TimeUnit.MILLISECONDS );
 
         final String goal = "TargetUserDaysUntilPwExpire " + days + " test";

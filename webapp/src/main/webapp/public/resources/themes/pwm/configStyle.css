@@ -86,6 +86,12 @@ html {
     cursor: pointer;
 }
 
+.setting_form_column {
+    background: #f6f9f8;
+    border:1px solid #dae1e1 !important;
+    width:180px;
+}
+
 .pwm-icon-question-circle {
     border-bottom-right-radius: 3px;
     box-shadow: 2px 2px 2px 2px #bfbfbf;

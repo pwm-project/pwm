@@ -20,32 +20,25 @@
 
 package password.pwm.http.servlet.admin.domain;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.Permission;
 import password.pwm.bean.ProfileID;
+import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.pub.PublicUserInfoBean;
 import password.pwm.config.profile.ProfileDefinition;
 import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.svc.pwnotify.PwNotifyUserStatus;
-import password.pwm.user.UserInfo;
 
 import java.util.Map;
 
-@Value
-@Builder
-public class UserDebugDataBean
+public record UserDebugDataBean(
+        PublicUserInfoBean publicUserInfoBean,
+        boolean passwordReadable,
+        boolean passwordWithinMinimumLifetime,
+        Map<Permission, String> permissions,
+        PwmPasswordPolicy ldapPasswordPolicy,
+        PwmPasswordPolicy configuredPasswordPolicy,
+        Map<ProfileDefinition, ProfileID> profiles,
+        PwNotifyUserStatus pwNotifyUserStatus,
+        ResponseInfoBean responseInfoBean )
 {
-    private transient UserInfo userInfo;
-
-    private final PublicUserInfoBean publicUserInfoBean;
-    private final boolean passwordReadable;
-    private final boolean passwordWithinMinimumLifetime;
-    private final Map<Permission, String> permissions;
-
-    private final PwmPasswordPolicy ldapPasswordPolicy;
-    private final PwmPasswordPolicy configuredPasswordPolicy;
-    private final Map<ProfileDefinition, ProfileID> profiles;
-
-    private final PwNotifyUserStatus pwNotifyUserStatus;
 }

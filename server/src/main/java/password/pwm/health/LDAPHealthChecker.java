@@ -86,15 +86,15 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class LDAPHealthChecker implements HealthSupplier
+public final class LDAPHealthChecker implements HealthSupplier
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( LDAPHealthChecker.class );
 
     public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplier.HealthSupplierRequest request )
     {
-        final PwmApplication pwmApplication = request.getPwmApplication();
+        final PwmApplication pwmApplication = request.pwmApplication();
         return pwmApplication.domains().values().stream()
-                .map( domain -> ( Supplier<List<HealthRecord>> ) () -> doHealthCheck( request.getSessionLabel(), domain ) )
+                .map( domain -> ( Supplier<List<HealthRecord>> ) () -> doHealthCheck( request.sessionLabel(), domain ) )
                 .collect( Collectors.toList() );
     }
 
@@ -128,7 +128,7 @@ public class LDAPHealthChecker implements HealthSupplier
         {
             final ErrorInformation errorInfo = entry.getValue();
             final LdapProfile ldapProfile = pwmDomain.getConfig().getLdapProfiles().get( entry.getKey() );
-            if ( errorInfo != null )
+            if ( errorInfo != null && ldapProfile != null )
             {
                 final TimeDuration errorAge = TimeDuration.fromCurrent( errorInfo.getDate() );
 
@@ -1082,7 +1082,7 @@ public class LDAPHealthChecker implements HealthSupplier
         final DomainConfig config = pwmDomain.getConfig();
         final List<ProfileID> ldapProfilesToCheck = new ArrayList<>();
         {
-            final ProfileID configuredLdapProfileID = userPermission.getLdapProfileID();
+            final ProfileID configuredLdapProfileID = userPermission.ldapProfileID();
             if ( configuredLdapProfileID == null
                     || ProfileID.PROFILE_ID_ALL.equals( configuredLdapProfileID ) )
             {
@@ -1109,14 +1109,14 @@ public class LDAPHealthChecker implements HealthSupplier
 
         for ( final ProfileID ldapProfileID : ldapProfilesToCheck )
         {
-            switch ( userPermission.getType() )
+            switch ( userPermission.type() )
             {
                 case ldapAllUsers:
                     break;
 
                 case ldapUser:
                 {
-                    final String userDN = userPermission.getLdapBase();
+                    final String userDN = userPermission.ldapBase();
                     if ( userDN != null && !isExampleDN( userDN ) )
                     {
                         final Optional<String> errorMsg = validateDN( sessionLabel, pwmDomain, userDN, ldapProfileID );
@@ -1130,7 +1130,7 @@ public class LDAPHealthChecker implements HealthSupplier
 
                 case ldapGroup:
                 {
-                    final String groupDN = userPermission.getLdapBase();
+                    final String groupDN = userPermission.ldapBase();
                     if ( groupDN != null && !isExampleDN( groupDN ) )
                     {
                         final Optional<String> errorMsg = validateDN( sessionLabel, pwmDomain, groupDN, ldapProfileID );
@@ -1145,7 +1145,7 @@ public class LDAPHealthChecker implements HealthSupplier
 
                 case ldapQuery:
                 {
-                    final String baseDN = userPermission.getLdapBase();
+                    final String baseDN = userPermission.ldapBase();
                     if ( baseDN != null && !isExampleDN( baseDN ) )
                     {
                         final Optional<String> errorMsg = validateDN( sessionLabel, pwmDomain, baseDN, ldapProfileID );
@@ -1159,7 +1159,7 @@ public class LDAPHealthChecker implements HealthSupplier
                 break;
 
                 default:
-                    PwmUtil.unhandledSwitchStatement( userPermission.getType() );
+                    PwmUtil.unhandledSwitchStatement( userPermission.type() );
             }
         }
         return returnList;

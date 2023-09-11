@@ -1819,7 +1819,7 @@
     <setting hidden="false" key="security.cspHeader" level="2">
         <default>
             <value>
-                <![CDATA[default-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src https://www.recaptcha.net/recaptcha/ https://www.gstatic.cn/recaptcha/  https://www.gstatic.com/recaptcha/ https://www.google.com/recaptcha/ 'self' 'unsafe-eval' 'nonce-%NONCE%'; frame-src https://www.recaptcha.net/recaptcha/ https://www.gstatic.cn/recaptcha/ https://www.gstatic.com/recaptcha/ https://www.google.com/recaptcha/ ; report-uri @PwmContextPath@/public/api?processAction=cspReport]]></value>
+                <![CDATA[default-src 'self'; object-src 'none'; base-uri 'self'; img-src 'self' data:; style-src 'self'; script-src https://www.recaptcha.net/recaptcha/ https://www.gstatic.cn/recaptcha/  https://www.gstatic.com/recaptcha/ https://www.google.com/recaptcha/ 'self' 'nonce-%NONCE%'; frame-src https://www.recaptcha.net/recaptcha/ https://www.gstatic.cn/recaptcha/ https://www.gstatic.com/recaptcha/ https://www.google.com/recaptcha/]]></value>
         </default>
     </setting>
     <setting hidden="false" key="email.adminAlert.toAddress" level="1">
@@ -4071,6 +4071,7 @@
     <setting hidden="false" key="helpdesk.search.form" level="1" required="true">
         <flags>
             <flag>Form_HideStandardOptions</flag>
+            <flag>Form_HideOptions</flag>
         </flags>
         <default>
             <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>

@@ -30,7 +30,6 @@ import com.novell.ldapchai.ChaiUser;
 import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -40,6 +39,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.svc.db.DatabaseAccessor;
 import password.pwm.svc.db.DatabaseException;
 import password.pwm.svc.db.DatabaseTable;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Optional;
@@ -54,7 +54,7 @@ public class DbOtpOperator extends AbstractOtpOperator
 
     public DbOtpOperator( final PwmDomain pwmDomain )
     {
-        super.setPwmApplication( pwmDomain );
+        super.setPwmDomain( pwmDomain );
     }
 
     @Override
@@ -62,7 +62,7 @@ public class DbOtpOperator extends AbstractOtpOperator
             throws PwmUnrecoverableException
     {
         LOGGER.trace( () -> String.format( "Enter: readOtpUserConfiguration(%s, %s)", theUser, userGUID ) );
-        if ( userGUID == null || userGUID.length() < 1 )
+        if ( StringUtil.isEmpty( userGUID ) )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_GUID, "cannot save otp to db, user does not have a GUID" ) );
         }
@@ -73,18 +73,11 @@ public class DbOtpOperator extends AbstractOtpOperator
             final Optional<String> strValue = databaseAccessor.get( DatabaseTable.OTP, userGUID );
             if ( strValue.isPresent() )
             {
-                if ( getPwmApplication().getConfig().readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
+                final Optional<OTPUserRecord> otpConfig = OtpServiceUtil.parseStoredOtpRecordValue( sessionLabel, pwmDomain, strValue.get() );
+                if ( otpConfig.isPresent() )
                 {
-                    final String decryptAttributeValue = decryptAttributeValue( strValue.get() );
-                    if ( decryptAttributeValue != null )
-                    {
-                        final OTPUserRecord otpConfig = decomposeOtpAttribute( decryptAttributeValue );
-                        if ( otpConfig != null )
-                        {
-                            LOGGER.debug( sessionLabel, () -> "found user OTP secret in db: " + otpConfig );
-                            return Optional.of( otpConfig );
-                        }
-                    }
+                    LOGGER.debug( sessionLabel, () -> "found user OTP secret in db: " + otpConfig.get() );
+                    return otpConfig;
                 }
             }
         }
@@ -115,12 +108,7 @@ public class DbOtpOperator extends AbstractOtpOperator
 
         try
         {
-            String value = composeOtpAttribute( otpConfig );
-            if ( getPwmApplication().getConfig().readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
-            {
-                LOGGER.debug( pwmRequest, () -> "encrypting OTP secret for storage" );
-                value = encryptAttributeValue( value );
-            }
+            final String value = OtpServiceUtil.stringifyOtpRecord( pwmDomain, otpConfig );
             final DatabaseAccessor databaseAccessor = pwmDomain.getPwmApplication().getDatabaseAccessor();
             databaseAccessor.put( DatabaseTable.OTP, userGUID, value );
             LOGGER.debug( pwmRequest, () -> "saved OTP secret for " + theUser + " in remote database (key=" + userGUID + ")" );
@@ -169,10 +157,4 @@ public class DbOtpOperator extends AbstractOtpOperator
             throw pwmOE;
         }
     }
-
-    @Override
-    public void close( )
-    {
-    }
-
 }

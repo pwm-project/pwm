@@ -42,7 +42,7 @@
     </jsp:include>
     <div id="centerbody">
         <h1 id="page-content-title"><pwm:display key="Title_ChangePassword" displayIfMissing="true"/></h1>
-        <% if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy()) { %>
+        <% if (passwordStatus.expired() || passwordStatus.preExpired() || passwordStatus.violatesPolicy()) { %>
         <h1><pwm:display key="Display_PasswordExpired"/></h1><br/>
         <% } %>
         <p><pwm:display key="Display_ChangePasswordForm"/></p>
@@ -63,7 +63,7 @@
                     <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
-                <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
+                <% if (!passwordStatus.expired() && !passwordStatus.preExpired() && !passwordStatus.violatesPolicy()) { %>
                 <%@ include file="/WEB-INF/jsp/fragment/cancel-button.jsp" %>
                 <% } %>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>

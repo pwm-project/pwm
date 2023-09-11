@@ -80,7 +80,6 @@
 
         function initPage() {
             PWM_CFGEDIT.initConfigSettingsDefinition(function(){
-                PWM_VAR['outstandingOperations'] = 0;
                 ChallengeSettingHandler.init('<%=PwmSetting.CHALLENGE_RANDOM_CHALLENGES.getKey()%>');
             });
         }

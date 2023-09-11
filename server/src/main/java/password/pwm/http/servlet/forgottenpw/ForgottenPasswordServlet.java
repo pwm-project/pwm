@@ -541,7 +541,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
                 // clean session, user supplied token (clicked email, etc) and this is first request
                 ForgottenPasswordUtil.initForgottenPasswordBean(
                         pwmRequestContext,
-                        tokenPayload.getUserIdentity(),
+                        tokenPayload.userIdentity(),
                         forgottenPasswordBean
                 );
             }
@@ -550,7 +550,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
 
             if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
             {
-                pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenPayload.getDestination() );
+                pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenPayload.destination() );
                 pwmRequest.forwardToJsp( JspUrl.RECOVER_PASSWORD_TOKEN_SUCCESS );
                 return ProcessStatus.Halt;
             }
@@ -689,7 +689,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         final OAuthForgottenPasswordResults results = pwmRequest.getPwmDomain().getSecureService().decryptObject( encryptedResult, OAuthForgottenPasswordResults.class );
         LOGGER.trace( pwmRequest, () -> "received" );
 
-        final String userDNfromOAuth = results.getUsername();
+        final String userDNfromOAuth = results.username();
         if ( userDNfromOAuth == null || userDNfromOAuth.isEmpty() )
         {
             final String errorMsg = "oauth server coderesolver endpoint did not return a username value";
@@ -1162,7 +1162,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         {
             final PasswordStatus passwordStatus = userInfo.getPasswordStatus();
 
-            if ( !passwordStatus.isExpired() && !passwordStatus.isPreExpired() )
+            if ( !passwordStatus.expired() && !passwordStatus.preExpired() )
             {
                 if ( userInfo.isPasswordLocked() )
                 {

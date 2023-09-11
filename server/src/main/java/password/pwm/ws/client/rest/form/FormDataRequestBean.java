@@ -20,34 +20,28 @@
 
 package password.pwm.ws.client.rest.form;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.bean.ProfileID;
 import password.pwm.config.value.data.FormConfiguration;
 
 import java.util.List;
 import java.util.Map;
 
-@Value
-@Builder
-public class FormDataRequestBean
+public record FormDataRequestBean(
+        Map<String, String> formValues,
+        List<FormConfiguration> formConfigurations,
+        FormInfo formInfo,
+        String userDN,
+        ProfileID ldapProfileID
+)
 {
-    private Map<String, String> formValues;
-    private List<FormConfiguration> formConfigurations;
-
-    @Value
-    @Builder
-    public static class FormInfo
+    public record FormInfo(
+            FormType module,
+            ProfileID moduleProfileID,
+            Mode mode,
+            String sessionID
+    )
     {
-        private FormType module;
-        private ProfileID moduleProfileID;
-        private Mode mode;
-        private String sessionID;
     }
-
-    private FormInfo formInfo;
-    private String userDN;
-    private ProfileID ldapProfileID;
 
     public enum FormType
     {

@@ -96,7 +96,7 @@
                     Name
                 </td>
                 <td>
-                    <%= tokenPayload.getName() %>
+                    <%= tokenPayload.name() %>
                 </td>
             </tr>
             <tr>
@@ -104,7 +104,7 @@
                     UserDN
                 </td>
                 <td>
-                    <%= tokenPayload.getUserIdentity() %>
+                    <%= tokenPayload.userIdentity() %>
                 </td>
             </tr>
             <tr>
@@ -112,7 +112,7 @@
                     Issue Date
                 </td>
                 <td>
-                    <span class="timestamp"><%= StringUtil.toIsoDate(tokenPayload.getIssueTime()) %></span>
+                    <span class="timestamp"><%= StringUtil.toIsoDate(tokenPayload.issueTime()) %></span>
                 </td>
             </tr>
             <tr>
@@ -120,7 +120,7 @@
                     Expiration Date
                 </td>
                 <td>
-                    <span class="timestamp"><%= StringUtil.toIsoDate(tokenPayload.getExpiration()) %></span>
+                    <span class="timestamp"><%= StringUtil.toIsoDate(tokenPayload.expiration()) %></span>
                 </td>
             </tr>
             <tr>
@@ -128,7 +128,7 @@
                     Destination(s)
                 </td>
                 <td>
-                    <% TokenDestinationItem tokenDestinationItem = tokenPayload.getDestination(); %>
+                    <% TokenDestinationItem tokenDestinationItem = tokenPayload.destination(); %>
                     <% if ( tokenDestinationItem != null ) { %>
                     <table>
                         <tr>
@@ -147,13 +147,13 @@
                 </td>
                 <td>
                     <table>
-                        <%for (final String key : tokenPayload.getData().keySet()) { %>
+                        <%for (final String key : tokenPayload.data().keySet()) { %>
                         <tr>
                             <td>
                                 <%=key%>
                             </td>
                             <td>
-                                <%=tokenPayload.getData().get(key)%>
+                                <%=tokenPayload.data().get(key)%>
                             </td>
                         </tr>
                         <% } %>

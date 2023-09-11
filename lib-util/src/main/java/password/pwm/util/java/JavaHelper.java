@@ -44,11 +44,8 @@ import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -211,9 +208,9 @@ public final class JavaHelper
         return Instant.parse( input );
     }
 
-    public static Collection<Method> getAllMethodsForClass( final Class<?> clazz )
+    public static List<Method> getAllMethodsForClass( final Class<?> clazz )
     {
-        final LinkedHashSet<Method> methods = new LinkedHashSet<>( Arrays.asList( clazz.getDeclaredMethods() ) );
+        final ArrayList<Method> methods = new ArrayList<>( Arrays.asList( clazz.getDeclaredMethods() ) );
 
         final Class<?> superClass = clazz.getSuperclass();
         if ( superClass != null )
@@ -221,7 +218,7 @@ public final class JavaHelper
             methods.addAll( getAllMethodsForClass( superClass ) );
         }
 
-        return Collections.unmodifiableSet( methods );
+        return List.copyOf( methods );
     }
 
     /**
@@ -501,33 +498,51 @@ public final class JavaHelper
         final long next = input + 1;
         return next > 0 ? next : 0;
     }
-    
+
+    /**
+     * Creates all instances of all implementing classes using each classes no-argument constructor.
+     *
+     * @param sealedInterface An interface marked as {@link Class#isSealed()}.
+     * @return List of new object instances.
+     */
     public static <T> List<T> instancesOfSealedInterface( final Class<T> sealedInterface )
     {
+        return instancesOfSealedInterface( sealedInterface, new NoArgumentInstanceCreator<>() );
+    }
+
+    private static <T> List<T> instancesOfSealedInterface(
+            final Class<T> sealedInterface,
+            final Function<Class<T>, T> instanceCreator
+    )
+    {
+        Objects.requireNonNull( sealedInterface );
+        Objects.requireNonNull( instanceCreator );
+
         if ( !Objects.requireNonNull( sealedInterface ).isSealed() )
         {
             throw new IllegalArgumentException( "sealedInterface argument is required to be marked as sealed" );
         }
 
-        final Function<Class<T>, T> f = theClass ->
+        return Arrays.stream( sealedInterface.getPermittedSubclasses() )
+                .map( clazz -> instanceCreator.apply( (Class<T>) clazz ) )
+                .toList();
+    }
+
+    private static class NoArgumentInstanceCreator<T> implements Function<Class<T>, T>
+    {
+        @Override
+        public T apply( final Class<T> theClass )
         {
             try
             {
                 final Constructor<T> constructor = theClass.getDeclaredConstructor();
                 constructor.setAccessible( true );
-                return ( T ) constructor.newInstance();
+                return constructor.newInstance();
             }
             catch ( final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e )
             {
                 throw new RuntimeException( e );
             }
-        };
-
-        final List<T> list = new ArrayList<>();
-        for ( final Class<?> loopClass : sealedInterface.getPermittedSubclasses() )
-        {
-            list.add( f.apply( (Class<T> ) loopClass ) );
         }
-        return List.copyOf( list );
     }
 }

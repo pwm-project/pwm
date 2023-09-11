@@ -140,7 +140,7 @@ public class LocalDbAuditVault implements AuditVault
     public String sizeToDebugString( )
     {
         final long storedEvents = this.size();
-        final long maxEvents = settings.getMaxRecords();
+        final long maxEvents = settings.maxRecords();
         final Percent percent = Percent.of( storedEvents, maxEvents );
 
         return storedEvents + " / " + maxEvents + " (" + percent.pretty( 2 ) + ")";
@@ -172,7 +172,7 @@ public class LocalDbAuditVault implements AuditVault
         final String jsonRecord = JsonFactory.get().serialize( record );
         auditDB.addLast( jsonRecord );
 
-        if ( auditDB.size() > settings.getMaxRecords() )
+        if ( auditDB.size() > settings.maxRecords() )
         {
             removeRecords( 1 );
         }
@@ -184,7 +184,7 @@ public class LocalDbAuditVault implements AuditVault
         {
             final String stringFirstRecord = auditDB.getFirst();
             final AuditRecordData firstRecord = JsonFactory.get().deserialize( stringFirstRecord, AuditRecordData.class );
-            oldestRecord = firstRecord.getTimestamp();
+            oldestRecord = firstRecord.timestamp();
         }
     }
 
@@ -227,7 +227,7 @@ public class LocalDbAuditVault implements AuditVault
                 return false;
             }
 
-            if ( auditDB.size() > settings.getMaxRecords() + maxRemovals )
+            if ( auditDB.size() > settings.maxRecords() + maxRemovals )
             {
                 removeRecords( maxRemovals );
                 return true;
@@ -240,7 +240,7 @@ public class LocalDbAuditVault implements AuditVault
                     && status == PwmService.STATUS.OPEN
                     )
             {
-                if ( TimeDuration.fromCurrent( oldestRecord ).isLongerThan( settings.getMaxRecordAge() ) )
+                if ( TimeDuration.fromCurrent( oldestRecord ).isLongerThan( settings.maxRecordAge() ) )
                 {
                     removeRecords( 1 );
                     workActions++;

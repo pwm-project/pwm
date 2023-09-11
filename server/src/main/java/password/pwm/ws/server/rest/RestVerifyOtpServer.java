@@ -20,8 +20,6 @@
 
 package password.pwm.ws.server.rest;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
-import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.error.ErrorInformation;
@@ -54,11 +52,11 @@ import java.io.IOException;
 public class RestVerifyOtpServer extends RestServlet
 {
 
-    @Value
-    public static class JsonPutOtpInput
+    public record JsonPutOtpInput(
+            String token,
+            String username
+    )
     {
-        public String token;
-        public String username;
     }
 
     @Override
@@ -79,39 +77,37 @@ public class RestVerifyOtpServer extends RestServlet
 
             jsonInput = new RestVerifyOtpServer.JsonPutOtpInput(
                     RestUtility.readValueFromJsonAndParam(
-                            jsonBody == null ? null : jsonBody.getToken(),
+                            jsonBody == null ? null : jsonBody.token(),
                             restRequest.readParameterAsString( "token" ),
                             "token"
                     ).orElse( null ),
                     RestUtility.readValueFromJsonAndParam(
-                            jsonBody == null ? null : jsonBody.getUsername(),
+                            jsonBody == null ? null : jsonBody.username(),
                             restRequest.readParameterAsString( "username" ),
                             "username"
                     ).orElse( null )
             );
         }
 
-        final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.getUsername() );
+        final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.username() );
 
         try
         {
             final OtpService otpService = restRequest.getDomain().getOtpService();
-            final OTPUserRecord otpUserRecord = otpService.readOTPUserConfiguration( restRequest.getSessionLabel(), targetUserIdentity.getUserIdentity() );
+            final OTPUserRecord otpUserRecord = otpService.readOTPUserConfiguration(
+                    restRequest.getSessionLabel(),
+                    targetUserIdentity.userIdentity() );
 
             final boolean verified = otpUserRecord != null && otpService.validateToken(
                     restRequest.getSessionLabel(),
-                    targetUserIdentity.getUserIdentity(),
+                    targetUserIdentity.userIdentity(),
                     otpUserRecord,
-                    jsonInput.getToken(),
+                    jsonInput.token(),
                     false
             );
 
             StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_VERIFYOTP );
             return RestResultBean.forSuccessMessage( verified, restRequest, Message.Success_Unknown );
-        }
-        catch ( final ChaiUnavailableException e )
-        {
-            throw PwmUnrecoverableException.fromChaiException( e );
         }
         catch ( final PwmOperationalException e )
         {

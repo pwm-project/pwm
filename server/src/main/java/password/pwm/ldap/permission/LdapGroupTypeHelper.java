@@ -49,7 +49,7 @@ class LdapGroupTypeHelper implements PermissionTypeHelper
             throws PwmUnrecoverableException
     {
         final Instant startTime = Instant.now();
-        final String groupDN = userPermission.getLdapBase();
+        final String groupDN = userPermission.ldapBase();
 
         if ( userIdentity == null )
         {
@@ -88,7 +88,7 @@ class LdapGroupTypeHelper implements PermissionTypeHelper
             throws PwmUnrecoverableException
     {
         return SearchConfiguration.builder()
-                .groupDN( userPermission.getLdapBase() )
+                .groupDN( userPermission.ldapBase() )
                 .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ).orElse( null ) )
                 .build();
     }
@@ -96,7 +96,7 @@ class LdapGroupTypeHelper implements PermissionTypeHelper
     @Override
     public void validatePermission( final UserPermission userPermission ) throws PwmUnrecoverableException
     {
-        if ( StringUtil.isEmpty( userPermission.getLdapBase() ) )
+        if ( StringUtil.isEmpty( userPermission.ldapBase() ) )
         {
             throw PwmUnrecoverableException.newException(
                     PwmError.CONFIG_FORMAT_ERROR,

@@ -141,25 +141,25 @@ public final class ViewableUserInfoDisplayReader
         maker.add(
                 ViewStatusFields.PasswordExpired,
                 Display.Field_PasswordExpired,
-                userInfo.getPasswordStatus().isExpired()
+                userInfo.getPasswordStatus().expired()
         );
 
         maker.add(
                 ViewStatusFields.PasswordPreExpired,
                 Display.Field_PasswordPreExpired,
-                userInfo.getPasswordStatus().isPreExpired()
+                userInfo.getPasswordStatus().preExpired()
         );
 
         maker.add(
                 ViewStatusFields.PasswordWarnPeriod,
                 Display.Field_PasswordWithinWarningPeriod,
-                userInfo.getPasswordStatus().isWarnPeriod()
+                userInfo.getPasswordStatus().warnPeriod()
         );
 
         maker.add(
                 ViewStatusFields.PasswordViolatesPolicy,
                 Display.Field_PasswordViolatesPolicy,
-                userInfo.getPasswordStatus().isViolatesPolicy()
+                userInfo.getPasswordStatus().violatesPolicy()
         );
 
         maker.add(
@@ -303,7 +303,7 @@ public final class ViewableUserInfoDisplayReader
                     ? LocaleHelper.getLocalizedMessage( locale, Display.Value_NotApplicable, config )
                     : StringUtil.toIsoDate( instant );
 
-            list.add( new DisplayElement(
+            list.add( DisplayElement.create(
                     display.name(),
                     DisplayElement.Type.timestamp,
                     LocaleHelper.getLocalizedMessage( locale, display, config ),
@@ -332,7 +332,7 @@ public final class ViewableUserInfoDisplayReader
                     ? LocaleHelper.getLocalizedMessage( locale, Display.Value_NotApplicable, config )
                     : value;
 
-            list.add( new DisplayElement(
+            list.add( DisplayElement.create(
                     display.name(),
                     DisplayElement.Type.string,
                     LocaleHelper.getLocalizedMessage( locale, display, config ),

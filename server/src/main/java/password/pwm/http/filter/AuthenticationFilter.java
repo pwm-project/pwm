@@ -41,8 +41,8 @@ import password.pwm.http.servlet.oauth.OAuthMachine;
 import password.pwm.http.servlet.oauth.OAuthSettings;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.PasswordChangeProgressChecker;
-import password.pwm.user.UserInfo;
 import password.pwm.ldap.auth.AuthenticationType;
+import password.pwm.user.UserInfo;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.logging.PwmLogger;
@@ -131,59 +131,66 @@ public class AuthenticationFilter extends AbstractPwmFilter
             pwmRequest.respondWithError( e.getErrorInformation(), true );
         }
     }
-    
+
+    private static void verifyBasicAuthHeaderUnchanged( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        // read the basic auth info out of the header (if it exists);
+        if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.BASIC_AUTH_ENABLED ) )
+        {
+            final Optional<BasicAuthInfo> basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmRequest.getPwmDomain(), pwmRequest );
+
+            final BasicAuthInfo originalBasicAuthInfo = pwmRequest.getPwmSession().getLoginInfoBean().getBasicAuth();
+
+            //check to make sure basic auth info is same as currently known user in session.
+            if ( basicAuthInfo.isPresent()
+                    && !Objects.equals( basicAuthInfo.get(), originalBasicAuthInfo ) )
+            {
+                // if we read here then user is using basic auth, and header has changed since last request
+                // this means something is screwy, so log out the session
+                LOGGER.debug( pwmRequest, () -> "basic auth header user '" + basicAuthInfo.get().username()
+                        + "' does not match currently logged in user '" + pwmRequest.getUserInfoIfLoggedIn().getUserDN()
+                        + "', session will be logged out" );
+
+                final ErrorInformation errorInformation = new ErrorInformation(
+                        PwmError.ERROR_BAD_SESSION,
+                        "basic auth header user does not match currently logged in user, session will be logged out"
+                );
+
+                LOGGER.info( pwmRequest, errorInformation );
+
+                // log out their user
+                pwmRequest.getPwmSession().unAuthenticateUser( pwmRequest );
+
+                throw new PwmUnrecoverableException( errorInformation );
+            }
+        }
+    }
+
+    private static void checkOAuthExpiration( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException
+    {
+        // check status of oauth expiration
+        if ( pwmRequest.getPwmSession().getLoginInfoBean().getOauthExp() != null )
+        {
+            final OAuthSettings oauthSettings = OAuthSettings.forSSOAuthentication( pwmRequest.getDomainConfig() );
+            final OAuthMachine oAuthMachine = new OAuthMachine( pwmRequest.getLabel(), oauthSettings );
+            if ( oAuthMachine.checkOAuthExpiration( pwmRequest ) )
+            {
+                throw new PwmUnrecoverableException( PwmError.ERROR_OAUTH_ERROR, "oauth access token has expired" );
+            }
+        }
+    }
+
     private void processAuthenticatedSession(
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmDomain pwmDomain = pwmRequest.getPwmDomain();
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        verifyBasicAuthHeaderUnchanged( pwmRequest );
 
-        // read the basic auth info out of the header (if it exists);
-        if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.BASIC_AUTH_ENABLED ) )
-        {
-            final Optional<BasicAuthInfo> basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmDomain, pwmRequest );
-
-            final BasicAuthInfo originalBasicAuthInfo = pwmSession.getLoginInfoBean().getBasicAuth();
-
-            //check to make sure basic auth info is same as currently known user in session.
-            if ( basicAuthInfo.isPresent() && Objects.equals( basicAuthInfo.get(), originalBasicAuthInfo ) )
-            {
-                // if we read here then user is using basic auth, and header has changed since last request
-                // this means something is screwy, so log out the session
-
-                // read the current user info for logging
-                final UserInfo userInfo = pwmSession.getUserInfo();
-                final ErrorInformation errorInformation = new ErrorInformation(
-                        PwmError.ERROR_BAD_SESSION,
-                        "basic auth header user '" + basicAuthInfo.get().getUsername()
-                                + "' does not match currently logged in user '" + userInfo.getUserIdentity()
-                                + "', session will be logged out"
-                );
-                LOGGER.info( pwmRequest, errorInformation );
-
-                // log out their user
-                pwmSession.unAuthenticateUser( pwmRequest );
-
-                // send en error to user.
-                pwmRequest.respondWithError( errorInformation, true );
-                return;
-            }
-        }
-
-        // check status of oauth expiration
-        if ( pwmSession.getLoginInfoBean().getOauthExp() != null )
-        {
-            final OAuthSettings oauthSettings = OAuthSettings.forSSOAuthentication( pwmRequest.getDomainConfig() );
-            final OAuthMachine oAuthMachine = new OAuthMachine( pwmRequest.getLabel(), oauthSettings );
-            if ( oAuthMachine.checkOAuthExpiration( pwmRequest ) )
-            {
-                pwmRequest.respondWithError( new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, "oauth access token has expired" ) );
-                return;
-            }
-        }
+        checkOAuthExpiration( pwmRequest );
 
         HttpAuthenticationUtilities.handleAuthenticationCookie( pwmRequest );
 

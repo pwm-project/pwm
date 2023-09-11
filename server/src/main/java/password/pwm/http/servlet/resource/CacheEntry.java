@@ -20,22 +20,20 @@
 
 package password.pwm.http.servlet.resource;
 
-import lombok.Value;
 import password.pwm.data.ImmutableByteArray;
+import password.pwm.util.java.CollectionUtil;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
-@Value
-final class CacheEntry
+record CacheEntry(
+         ImmutableByteArray entity,
+         Map<String, String> headerStrings
+)
 {
-    private final ImmutableByteArray entity;
-    private final Map<String, String> headerStrings;
-
     CacheEntry( final ImmutableByteArray entity, final Map<String, String> headerStrings )
     {
         this.entity = Objects.requireNonNull( entity );
-        this.headerStrings = headerStrings == null ? Collections.emptyMap() : Map.copyOf( headerStrings );
+        this.headerStrings = CollectionUtil.stripNulls( headerStrings );
     }
 }

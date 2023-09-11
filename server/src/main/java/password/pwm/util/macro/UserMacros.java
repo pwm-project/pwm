@@ -30,6 +30,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.user.UserInfo;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -47,26 +48,11 @@ public class UserMacros
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( UserMacros.class );
 
-    static final List<Macro> USER_MACROS = List.of(
-            new UserIDMacro(),
-            new DomainIdMacro(),
-            new UserLdapProfileIDMacro(),
-            new UserLdapProfileNameMacro(),
-            new UserLdapMacro(),
-            new UserPwExpirationTimeMacro(),
-            new UserDaysUntilPwExpireMacro(),
-            new UserEmailMacro(),
-            new UserPasswordMacro(),
-            new OtpSetupTimeMacro(),
-            new ResponseSetupTimeMacro(),
-            new DefaultDomainEmailFromAddressMacro(),
+    static final List<UserMacro> USER_MACROS = JavaHelper.instancesOfSealedInterface( UserMacro.class );
 
-
-            new TargetUserIDMacro(),
-            new TargetUserLdapMacro(),
-            new TargetUserPwExpirationTimeMacro(),
-            new TargetUserDaysUntilPwExpireMacro(),
-            new TargetUserEmailMacro() );
+    sealed interface UserMacro extends Macro
+    {
+    }
 
     abstract static class AbstractUserMacro extends AbstractMacro
     {
@@ -168,13 +154,13 @@ public class UserMacros
                 }
                 catch ( final PwmUnrecoverableException e )
                 {
-                    LOGGER.trace( macroRequest.getSessionLabel(), () -> "could not replace value for '" + matchValue + "', ldap error: " + e.getMessage() );
+                    LOGGER.trace( macroRequest.sessionLabel(), () -> "could not replace value for '" + matchValue + "', ldap error: " + e.getMessage() );
                     return "";
                 }
 
                 if ( ldapValue == null || ldapValue.length() < 1 )
                 {
-                    LOGGER.trace( macroRequest.getSessionLabel(), () -> "could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'" );
+                    LOGGER.trace( macroRequest.sessionLabel(), () -> "could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'" );
                     return "";
                 }
             }
@@ -200,8 +186,8 @@ public class UserMacros
                 }
 
                 final int maxLengthPermitted = Integer.parseInt(
-                        macroRequest.getPwmApplication() != null
-                                ?  macroRequest.getPwmApplication().getConfig().readAppProperty( AppProperty.MACRO_LDAP_ATTR_CHAR_MAX_LENGTH )
+                        macroRequest.pwmApplication() != null
+                                ?  macroRequest.pwmApplication().getConfig().readAppProperty( AppProperty.MACRO_LDAP_ATTR_CHAR_MAX_LENGTH )
                                 :  AppProperty.MACRO_LDAP_ATTR_CHAR_MAX_LENGTH.getDefaultValue()
                 );
 
@@ -223,7 +209,7 @@ public class UserMacros
         abstract List<String> ignoreWords();
     }
 
-    public static class UserLdapMacro extends AbstractUserLdapMacro
+    public static final class UserLdapMacro extends AbstractUserLdapMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@(User:LDAP|LDAP)" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
@@ -236,7 +222,7 @@ public class UserMacros
         @Override
         Optional<UserInfo> loadUserInfo( final MacroRequest macroRequest )
         {
-            return Optional.ofNullable( macroRequest.getUserInfo() );
+            return Optional.ofNullable( macroRequest.userInfo() );
         }
 
         @Override
@@ -246,7 +232,7 @@ public class UserMacros
         }
     }
 
-    public static class TargetUserLdapMacro extends AbstractUserLdapMacro
+    public static final class TargetUserLdapMacro extends AbstractUserLdapMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@TargetUser:LDAP" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
@@ -265,7 +251,7 @@ public class UserMacros
         @Override
         Optional<UserInfo> loadUserInfo( final MacroRequest macroRequest )
         {
-            return Optional.ofNullable( macroRequest.getTargetUserInfo() );
+            return Optional.ofNullable( macroRequest.targetUserInfo() );
         }
 
         @Override
@@ -300,7 +286,7 @@ public class UserMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( macroRequest.getSessionLabel(), () -> "error reading username during macro replacement: " + e.getMessage() );
+                LOGGER.error( macroRequest.sessionLabel(), () -> "error reading username during macro replacement: " + e.getMessage() );
                 return "";
             }
         }
@@ -332,7 +318,7 @@ public class UserMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( macroRequest.getSessionLabel(), () -> "error reading pwdExpirationTime during macro replacement: " + e.getMessage() );
+                LOGGER.error( macroRequest.sessionLabel(), () -> "error reading pwdExpirationTime during macro replacement: " + e.getMessage() );
                 return "";
             }
 
@@ -344,7 +330,7 @@ public class UserMacros
         abstract List<String> ignoreWords();
     }
 
-    public static class UserIDMacro extends AbstractUserIDMacro
+    public static final class UserIDMacro extends AbstractUserIDMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:ID@" );
 
@@ -358,11 +344,11 @@ public class UserMacros
         @Override
         Optional<UserInfo> loadUserInfo( final MacroRequest macroRequest )
         {
-            return Optional.ofNullable( macroRequest.getUserInfo() );
+            return Optional.ofNullable( macroRequest.userInfo() );
         }
     }
 
-    public static class UserLdapProfileIDMacro extends AbstractUserMacro
+    public static final class UserLdapProfileIDMacro extends AbstractUserMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:LdapProfile:ID@" );
 
@@ -379,7 +365,7 @@ public class UserMacros
 
         )
         {
-            final UserInfo userInfo = macroRequest.getUserInfo();
+            final UserInfo userInfo = macroRequest.userInfo();
 
             if ( userInfo != null )
             {
@@ -394,7 +380,7 @@ public class UserMacros
         }
     }
 
-    public static class DomainIdMacro extends AbstractUserMacro
+    public static final class DomainIdMacro extends AbstractUserMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:Domain:ID@" );
 
@@ -411,7 +397,7 @@ public class UserMacros
 
         )
         {
-            final UserInfo userInfo = macroRequest.getUserInfo();
+            final UserInfo userInfo = macroRequest.userInfo();
 
             if ( userInfo != null )
             {
@@ -426,7 +412,7 @@ public class UserMacros
         }
     }
 
-    public static class UserLdapProfileNameMacro extends AbstractUserMacro
+    public static final class UserLdapProfileNameMacro extends AbstractUserMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:LdapProfile:Name@" );
 
@@ -443,17 +429,17 @@ public class UserMacros
 
         )
         {
-            final UserInfo userInfo = macroRequest.getUserInfo();
+            final UserInfo userInfo = macroRequest.userInfo();
 
             if ( userInfo != null )
             {
                 final UserIdentity userIdentity = userInfo.getUserIdentity();
                 if ( userIdentity != null )
                 {
-                    final LdapProfile ldapProfile = userIdentity.getLdapProfile( macroRequest.getPwmApplication().getConfig() );
+                    final LdapProfile ldapProfile = userIdentity.getLdapProfile( macroRequest.pwmApplication().getConfig() );
                     if ( ldapProfile != null )
                     {
-                        final Locale userLocale = macroRequest.getUserLocale() == null ? PwmConstants.DEFAULT_LOCALE : macroRequest.getUserLocale();
+                        final Locale userLocale = macroRequest.userLocale() == null ? PwmConstants.DEFAULT_LOCALE : macroRequest.userLocale();
                         return ldapProfile.getDisplayName( userLocale );
                     }
                 }
@@ -463,7 +449,7 @@ public class UserMacros
         }
     }
 
-    public static class TargetUserIDMacro extends AbstractUserIDMacro
+    public static final class TargetUserIDMacro extends AbstractUserIDMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@TargetUser:ID@" );
 
@@ -482,11 +468,11 @@ public class UserMacros
         @Override
         Optional<UserInfo> loadUserInfo( final MacroRequest macroRequest )
         {
-            return Optional.ofNullable( macroRequest.getTargetUserInfo() );
+            return Optional.ofNullable( macroRequest.targetUserInfo() );
         }
     }
 
-    public static class UserPwExpirationTimeMacro extends AbstractUserPwExpirationTimeMacro
+    public static final class UserPwExpirationTimeMacro extends AbstractUserPwExpirationTimeMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:PwExpireTime" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
@@ -499,7 +485,7 @@ public class UserMacros
         @Override
         Optional<UserInfo> loadUserInfo( final MacroRequest macroRequest )
         {
-            return Optional.ofNullable( macroRequest.getUserInfo() );
+            return Optional.ofNullable( macroRequest.userInfo() );
         }
 
         @Override
@@ -509,7 +495,7 @@ public class UserMacros
         }
     }
 
-    public static class TargetUserPwExpirationTimeMacro extends AbstractUserPwExpirationTimeMacro
+    public static final class TargetUserPwExpirationTimeMacro extends AbstractUserPwExpirationTimeMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@TargetUser:PwExpireTime" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
@@ -528,7 +514,7 @@ public class UserMacros
         @Override
         Optional<UserInfo> loadUserInfo( final MacroRequest macroRequest )
         {
-            return Optional.ofNullable( macroRequest.getTargetUserInfo() );
+            return Optional.ofNullable( macroRequest.targetUserInfo() );
         }
 
         @Override
@@ -538,7 +524,7 @@ public class UserMacros
         }
     }
 
-    public static class UserDaysUntilPwExpireMacro extends AbstractUserDaysUntilPwExpireMacro
+    public static final class UserDaysUntilPwExpireMacro extends AbstractUserDaysUntilPwExpireMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:DaysUntilPwExpire@" );
 
@@ -551,11 +537,11 @@ public class UserMacros
         @Override
         Optional<UserInfo> loadUserInfo( final MacroRequest macroRequest )
         {
-            return Optional.ofNullable( macroRequest.getUserInfo() );
+            return Optional.ofNullable( macroRequest.userInfo() );
         }
     }
 
-    public static class TargetUserDaysUntilPwExpireMacro extends AbstractUserDaysUntilPwExpireMacro
+    public static final class TargetUserDaysUntilPwExpireMacro extends AbstractUserDaysUntilPwExpireMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@TargetUser:DaysUntilPwExpire@" );
 
@@ -574,7 +560,7 @@ public class UserMacros
         @Override
         Optional<UserInfo> loadUserInfo( final MacroRequest macroRequest )
         {
-            return Optional.ofNullable( macroRequest.getTargetUserInfo() );
+            return Optional.ofNullable( macroRequest.targetUserInfo() );
         }
     }
 
@@ -602,7 +588,7 @@ public class UserMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( macroRequest.getSessionLabel(), () -> "error reading pwdExpirationTime during macro replacement: " + e.getMessage() );
+                LOGGER.error( macroRequest.sessionLabel(), () -> "error reading pwdExpirationTime during macro replacement: " + e.getMessage() );
                 return "";
             }
         }
@@ -637,7 +623,7 @@ public class UserMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( macroRequest.getSessionLabel(), () -> "error reading user email address during macro replacement: " + e.getMessage() );
+                LOGGER.error( macroRequest.sessionLabel(), () -> "error reading user email address during macro replacement: " + e.getMessage() );
                 return "";
             }
 
@@ -647,7 +633,7 @@ public class UserMacros
         abstract Optional<UserInfo> loadUserInfo( MacroRequest macroRequest );
     }
 
-    public static class UserEmailMacro extends AbstractUserEmailMacro
+    public static final class UserEmailMacro extends AbstractUserEmailMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:Email@" );
 
@@ -660,11 +646,11 @@ public class UserMacros
         @Override
         Optional<UserInfo> loadUserInfo( final MacroRequest macroRequest )
         {
-            return Optional.ofNullable( macroRequest.getUserInfo() );
+            return Optional.ofNullable( macroRequest.userInfo() );
         }
     }
 
-    public static class TargetUserEmailMacro extends AbstractUserEmailMacro
+    public static final class TargetUserEmailMacro extends AbstractUserEmailMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@TargetUser:Email@" );
 
@@ -683,11 +669,11 @@ public class UserMacros
         @Override
         Optional<UserInfo> loadUserInfo( final MacroRequest macroRequest )
         {
-            return Optional.ofNullable( macroRequest.getTargetUserInfo() );
+            return Optional.ofNullable( macroRequest.targetUserInfo() );
         }
     }
 
-    public static class UserPasswordMacro extends AbstractUserMacro
+    public static final class UserPasswordMacro extends AbstractUserMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@User:Password@" );
         private static final Set<MacroDefinitionFlag> FLAGS = Collections.singleton( MacroDefinitionFlag.SensitiveValue );
@@ -704,7 +690,7 @@ public class UserMacros
                 final MacroRequest request
         )
         {
-            final LoginInfoBean loginInfoBean = request.getLoginInfoBean();
+            final LoginInfoBean loginInfoBean = request.loginInfoBean();
 
             try
             {
@@ -717,7 +703,7 @@ public class UserMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( request.getSessionLabel(), () -> "error decrypting in memory password during macro replacement: " + e.getMessage() );
+                LOGGER.error( request.sessionLabel(), () -> "error decrypting in memory password during macro replacement: " + e.getMessage() );
                 return "";
             }
         }
@@ -729,7 +715,7 @@ public class UserMacros
         }
     }
 
-    public static class DefaultDomainEmailFromAddressMacro extends AbstractUserMacro
+    public static final class DefaultDomainEmailFromAddressMacro extends AbstractUserMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@DefaultEmailFromAddress@" );
 
@@ -746,7 +732,7 @@ public class UserMacros
         )
                 throws MacroParseException
         {
-            final UserInfo userInfo = request.getUserInfo();
+            final UserInfo userInfo = request.userInfo();
             if ( userInfo == null )
             {
                 throw new MacroParseException( "[DefaultEmailFromAddress]: userInfo unspecified on macro request" );
@@ -764,7 +750,7 @@ public class UserMacros
                 throw new MacroParseException( "[DefaultEmailFromAddress]: domain unspecified on macro request" );
             }
 
-            final PwmDomain pwmDomain = request.getPwmApplication().domains().get( domainID );
+            final PwmDomain pwmDomain = request.pwmApplication().domains().get( domainID );
             if ( pwmDomain == null )
             {
                 throw new MacroParseException( "[DefaultEmailFromAddress]: domain invalid on macro request" );
@@ -774,7 +760,7 @@ public class UserMacros
         }
     }
 
-    public static class OtpSetupTimeMacro extends AbstractUserMacro
+    public static final class OtpSetupTimeMacro extends AbstractUserMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@OtpSetupTime" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
@@ -791,7 +777,7 @@ public class UserMacros
             Instant otpSetupTime = null;
             try
             {
-                final UserInfo userInfo = request.getUserInfo();
+                final UserInfo userInfo = request.userInfo();
                 if ( userInfo != null && userInfo.getOtpUserRecord() != null && userInfo.getOtpUserRecord().getTimestamp() != null )
                 {
                     otpSetupTime = userInfo.getOtpUserRecord().getTimestamp();
@@ -799,14 +785,14 @@ public class UserMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( request.getSessionLabel(),  () -> "error reading otp setup time during macro replacement: " + e.getMessage() );
+                LOGGER.error( request.sessionLabel(),  () -> "error reading otp setup time during macro replacement: " + e.getMessage() );
             }
 
             return processTimeOutputMacro( otpSetupTime, matchValue, Collections.singletonList( "OtpSetupTime" ) );
         }
     }
 
-    public static class ResponseSetupTimeMacro extends AbstractUserMacro
+    public static final class ResponseSetupTimeMacro extends AbstractUserMacro implements UserMacro
     {
         private static final Pattern PATTERN = Pattern.compile( "@ResponseSetupTime" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@" );
 
@@ -823,7 +809,7 @@ public class UserMacros
             Instant responseSetupTime = null;
             try
             {
-                final UserInfo userInfo = request.getUserInfo();
+                final UserInfo userInfo = request.userInfo();
                 if ( userInfo != null && userInfo.getResponseInfoBean() != null && userInfo.getResponseInfoBean().getTimestamp() != null )
                 {
                     responseSetupTime = userInfo.getResponseInfoBean().getTimestamp();
@@ -831,7 +817,7 @@ public class UserMacros
             }
             catch ( final PwmUnrecoverableException e )
             {
-                LOGGER.error( request.getSessionLabel(), () -> "error reading response setup time macro replacement: " + e.getMessage() );
+                LOGGER.error( request.sessionLabel(), () -> "error reading response setup time macro replacement: " + e.getMessage() );
             }
 
             return processTimeOutputMacro( responseSetupTime, matchValue, Collections.singletonList( "ResponseSetupTime" ) );

@@ -38,7 +38,6 @@
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body>
-<pwm:script-ref url="/public/resources/js/responses.js"/>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>

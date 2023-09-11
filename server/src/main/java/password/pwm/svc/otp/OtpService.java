@@ -130,35 +130,47 @@ public class OtpService extends AbstractPwmService implements PwmService
             LOGGER.error( sessionLabel, () -> "error checking otp secret: " + e.getMessage() );
         }
 
+        final List<OTPUserRecord.RecoveryCode> remainingCodes = new ArrayList<>();
         if ( !otpCorrect && allowRecoveryCodes && otpUserRecord.getRecoveryCodes() != null && otpUserRecord.getRecoveryInfo() != null )
         {
             final OTPUserRecord.RecoveryInfo recoveryInfo = otpUserRecord.getRecoveryInfo();
             final String userHashedInput = doRecoveryHash( userInput, recoveryInfo );
             for ( final OTPUserRecord.RecoveryCode code : otpUserRecord.getRecoveryCodes() )
             {
-                if ( code.getHashCode().equals( userInput ) || code.getHashCode().equals( userHashedInput ) )
+                if ( code.hash().equals( userInput ) || code.hash().equals( userHashedInput ) )
                 {
-                    if ( code.isUsed() )
+                    if ( code.used() )
                     {
                         throw new PwmOperationalException( PwmError.ERROR_OTP_RECOVERY_USED,
                                 "recovery code has been previously used" );
                     }
 
-                    code.setUsed( true );
-                    try
-                    {
-                        pwmDomain.getOtpService().writeOTPUserConfiguration( null, userIdentity, otpUserRecord );
-                    }
-                    catch ( final ChaiUnavailableException e )
-                    {
-                        throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, e.getMessage() ) );
-                    }
+                    remainingCodes.add( new OTPUserRecord.RecoveryCode( code.hash(), true ) );
                     otpCorrect = true;
+                }
+                else
+                {
+                    remainingCodes.add( code );
                 }
             }
         }
 
-        return otpCorrect;
+        if ( otpCorrect )
+        {
+            try
+            {
+                otpUserRecord.setRecoveryCodes( remainingCodes );
+                pwmDomain.getOtpService().writeOTPUserConfiguration( null, userIdentity, otpUserRecord );
+                return true;
+            }
+            catch ( final ChaiUnavailableException e )
+            {
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_WRITING_OTP_SECRET, e.getMessage() ) );
+            }
+
+        }
+
+        return false;
     }
 
     private List<String> createRawRecoveryCodes( final int numRecoveryCodes, final SessionLabel sessionLabel )
@@ -210,21 +222,23 @@ public class OtpService extends AbstractPwmService implements PwmService
         {
             final int recoveryCodesCount = ( int ) otpProfile.readSettingAsLong( PwmSetting.OTP_RECOVERY_CODES );
             rawRecoveryCodes = createRawRecoveryCodes( recoveryCodesCount, sessionLabel );
-            final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
+            final OTPUserRecord.RecoveryInfo recoveryInfo;
             if ( settings.getOtpStorageFormat().supportsHashedRecoveryCodes() )
             {
                 LOGGER.trace( sessionLabel, () -> "hashing the recovery codes" );
                 final int saltCharLength = Integer.parseInt( pwmDomain.getConfig().readAppProperty( AppProperty.OTP_SALT_CHARLENGTH ) );
-                recoveryInfo.setSalt( pwmRandom.alphaNumericString( saltCharLength ) );
-                recoveryInfo.setHashCount( settings.getRecoveryHashIterations() );
-                recoveryInfo.setHashMethod( settings.getRecoveryHashMethod() );
+                recoveryInfo = new OTPUserRecord.RecoveryInfo(
+                        pwmRandom.alphaNumericString( saltCharLength ),
+                        settings.getRecoveryHashMethod(),
+                        settings.getRecoveryHashIterations() );
             }
             else
             {
                 LOGGER.trace( sessionLabel, () -> "not hashing the recovery codes" );
-                recoveryInfo.setSalt( null );
-                recoveryInfo.setHashCount( 0 );
-                recoveryInfo.setHashMethod( null );
+                recoveryInfo = new OTPUserRecord.RecoveryInfo(
+                        null,
+                        null,
+                        0 );
             }
             otpUserRecord.setRecoveryInfo( recoveryInfo );
 
@@ -241,9 +255,9 @@ public class OtpService extends AbstractPwmService implements PwmService
                 {
                     hashedCode = rawCode;
                 }
-                final OTPUserRecord.RecoveryCode recoveryCode = new OTPUserRecord.RecoveryCode();
-                recoveryCode.setHashCode( hashedCode );
-                recoveryCode.setUsed( false );
+                final OTPUserRecord.RecoveryCode recoveryCode = new OTPUserRecord.RecoveryCode(
+                        hashedCode,
+                        false );
                 recoveryCodeList.add( recoveryCode );
             }
             otpUserRecord.setRecoveryCodes( recoveryCodeList );
@@ -280,11 +294,11 @@ public class OtpService extends AbstractPwmService implements PwmService
             throw new IllegalStateException( "unable to load " + algorithm + " message digest algorithm: " + e.getMessage() );
         }
 
-        final String raw = recoveryInfo.getSalt() == null
+        final String raw = recoveryInfo.salt() == null
                 ? input.trim()
-                : recoveryInfo.getSalt().trim() + input.trim();
+                : recoveryInfo.salt().trim() + input.trim();
 
-        final int hashCount = recoveryInfo.getHashCount();
+        final int hashCount = recoveryInfo.hashCount();
         byte[] hashedBytes = raw.getBytes( PwmConstants.DEFAULT_CHARSET );
         for ( int i = 0; i < hashCount; i++ )
         {
@@ -296,10 +310,6 @@ public class OtpService extends AbstractPwmService implements PwmService
     @Override
     public void shutdownImpl( )
     {
-        for ( final OtpOperator operator : operatorMap.values() )
-        {
-            operator.close();
-        }
         operatorMap.clear();
     }
 
@@ -313,7 +323,7 @@ public class OtpService extends AbstractPwmService implements PwmService
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         OTPUserRecord otpConfig = null;
         final DomainConfig config = pwmDomain.getConfig();
@@ -354,8 +364,8 @@ public class OtpService extends AbstractPwmService implements PwmService
             final Supplier<String> msg = () -> finalOtpConfig == null
                     ? "no otp record found for user " + userIdentity.toDisplayString()
                     : "loaded otp record for user " + userIdentity.toDisplayString()
-                    + " [recordType=" + finalOtpConfig.getType() + ", identifier=" + finalOtpConfig.getIdentifier() + ", timestamp="
-                    + StringUtil.toIsoDate( finalOtpConfig.getTimestamp() ) + "]";
+                            + " [recordType=" + finalOtpConfig.getType() + ", identifier=" + finalOtpConfig.getIdentifier() + ", timestamp="
+                            + StringUtil.toIsoDate( finalOtpConfig.getTimestamp() ) + "]";
             LOGGER.trace( sessionLabel, msg, TimeDuration.fromCurrent(  methodStartTime ) );
         }
 

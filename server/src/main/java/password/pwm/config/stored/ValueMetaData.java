@@ -20,16 +20,13 @@
 
 package password.pwm.config.stored;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.bean.UserIdentity;
 
 import java.time.Instant;
 
-@Value
-@Builder( toBuilder = true )
-public class ValueMetaData
+public record ValueMetaData(
+        Instant modifyDate,
+        UserIdentity userIdentity
+)
 {
-    private Instant modifyDate;
-    private UserIdentity userIdentity;
 }

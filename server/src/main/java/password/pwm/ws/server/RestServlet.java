@@ -24,7 +24,6 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import lombok.Data;
-import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.PwmApplicationMode;
 import password.pwm.PwmConstants;
@@ -497,13 +496,13 @@ public abstract class RestServlet extends HttpServlet
         }
     }
 
-    @Value
-    public static class TargetUserIdentity
-    {
-        private RestRequest restRequest;
-        private UserIdentity userIdentity;
-        private boolean self;
+    public record TargetUserIdentity(
+             RestRequest restRequest,
+             UserIdentity userIdentity,
+             boolean self
 
+    )
+    {
         public ChaiProvider getChaiProvider( ) throws PwmUnrecoverableException
         {
             return restRequest.getChaiProvider( userIdentity.getLdapProfileID() );

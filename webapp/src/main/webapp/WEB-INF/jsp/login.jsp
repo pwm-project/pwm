@@ -170,28 +170,13 @@
 <pwm:if test="<%=PwmIfTest.forwardUrlDefined%>">
     <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 </pwm:if>
-<% if (CaptchaUtility.captchaEnabledForRequest(JspUtility.getPwmRequest(pageContext))) { %>
-<% if (CaptchaUtility.readCaptchaMode( JspUtility.getPwmRequest( pageContext ) ) == CaptchaUtility.CaptchaMode.V3 ) { %>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('login','submit',function(event){
-                PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('login'),event);
-            });
-        });
-    </script>
-</pwm:script>
-<% } %>
-<% } else { %>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('login','submit',function(event){
-                PWM_MAIN.handleLoginFormSubmit(PWM_MAIN.getObject('login'),event);
-            });
-        });
-    </script>
-</pwm:script>
+<% if (!CaptchaUtility.captchaEnabledForRequest(JspUtility.getPwmRequest(pageContext))) { %>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_MAIN} from "<pwm:url url="/public/resources/js/main.js" addContext="true"/>";
+    PWM_MAIN.addEventHandler('login','submit',function(event){
+        PWM_MAIN.handleLoginFormSubmit('login',event);
+    });
+</script>
 <% } %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

@@ -68,15 +68,10 @@
     <input type="hidden" name="<%=PwmConstants.PARAM_ACTION_REQUEST%>" value="skip"/>
     <input type="hidden" name="<%=PwmConstants.PARAM_FORM_ID%>" value="<pwm:FormID/>"/>
 </form>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['responseMode'] = "<%=ResponseMode.user%>";
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_RESPONSES.startupResponsesPage();
-        });
-    </script>
-</pwm:script>
-<pwm:script-ref url="/public/resources/js/responses.js"/>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_RESPONSES} from "<pwm:url url="/public/resources/js/responses.js" addContext="true"/>";
+    PWM_RESPONSES.startupResponsesPage("<%=ResponseMode.user%>");
+</script>
 <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

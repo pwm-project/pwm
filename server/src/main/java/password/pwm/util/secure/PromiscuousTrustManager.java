@@ -64,7 +64,8 @@ public class PromiscuousTrustManager implements X509TrustManager
             {
                 try
                 {
-                    LOGGER.debug( () -> "promiscuous trusting certificate during authType=" + authType + ", subject=" + cert.getSubjectDN().toString() );
+                    LOGGER.debug( () -> "promiscuous trusting certificate during authType="
+                            + authType + ", cert=" + X509Utils.makeDebugText( cert ) );
                 }
                 catch ( final Exception e )
                 {

@@ -74,15 +74,10 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['responseMode'] = "<%=ResponseMode.helpdesk%>";
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_RESPONSES.startupResponsesPage();
-        });
-    </script>
-</pwm:script>
-<pwm:script-ref url="/public/resources/js/responses.js"/>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_RESPONSES} from "<pwm:url url="/public/resources/js/responses.js" addContext="true"/>";
+    PWM_RESPONSES.startupResponsesPage("<%=ResponseMode.helpdesk%>");
+</script>
 <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

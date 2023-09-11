@@ -24,6 +24,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.PwmDomain;
 import password.pwm.bean.ProfileID;
+import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
@@ -76,8 +77,7 @@ public class UserDebugDataReader
         final PwmPasswordPolicy configPasswordPolicy = PasswordUtility.determineConfiguredPolicyProfileForUser(
                 pwmDomain,
                 sessionLabel,
-                userIdentity
-        );
+                userIdentity );
 
         boolean readablePassword = false;
         try
@@ -93,17 +93,18 @@ public class UserDebugDataReader
 
         final PwNotifyUserStatus pwNotifyUserStatus = readPwNotifyUserStatus( pwmDomain, userIdentity, sessionLabel );
 
-        return UserDebugDataBean.builder()
-                .userInfo( userInfo )
-                .publicUserInfoBean( UserInfoBean.toPublicUserInfoBean( userInfo, pwmDomain.getConfig(), locale, macroRequest ) )
-                .permissions( permissions )
-                .profiles( profiles )
-                .ldapPasswordPolicy( ldapPasswordPolicy )
-                .configuredPasswordPolicy( configPasswordPolicy )
-                .passwordReadable( readablePassword )
-                .passwordWithinMinimumLifetime( userInfo.isWithinPasswordMinimumLifetime() )
-                .pwNotifyUserStatus( pwNotifyUserStatus )
-                .build();
+        final ResponseInfoBean responseInfoBean = userInfo.getResponseInfoBean();
+
+        return new UserDebugDataBean(
+                UserInfoBean.toPublicUserInfoBean( userInfo, pwmDomain.getConfig(), locale, macroRequest ),
+                readablePassword,
+                userInfo.isWithinPasswordMinimumLifetime(),
+                permissions,
+                ldapPasswordPolicy,
+                configPasswordPolicy,
+                profiles,
+                pwNotifyUserStatus,
+                responseInfoBean );
     }
 
 
@@ -140,7 +141,7 @@ public class UserDebugDataReader
             final SessionLabel sessionLabel,
             final UserIdentity userIdentity
     )
-        throws PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final Map<ProfileDefinition, ProfileID> results = new TreeMap<>( Comparator.comparing( Enum::name ) );
         for ( final ProfileDefinition profileDefinition : ProfileDefinition.values() )

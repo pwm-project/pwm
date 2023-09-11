@@ -20,25 +20,21 @@
 
 package password.pwm.svc.intruder;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.bean.DomainID;
 
 import java.time.Instant;
 
-@Value
-@Builder
-public class PublicIntruderRecord
+public record PublicIntruderRecord(
+        IntruderRecordType type,
+        DomainID domainID,
+        String subject,
+        Instant timeStamp,
+        int attemptCount,
+        boolean alerted,
+        LockStatus status
+)
 {
-    private final IntruderRecordType type;
-    private final DomainID domainID;
-    private final String subject;
-    private final Instant timeStamp;
-    private final int attemptCount;
-    private final boolean alerted;
-    private final LockStatus status;
-
     enum LockStatus
     {
         watching,
@@ -47,14 +43,14 @@ public class PublicIntruderRecord
 
     static PublicIntruderRecord fromIntruderRecord( final PwmApplication pwmApplication, final IntruderRecord intruderRecord )
     {
-        return PublicIntruderRecord.builder()
-                .type( intruderRecord.getType() )
-                .subject( intruderRecord.getSubject() )
-                .timeStamp( intruderRecord.getTimeStamp() )
-                .attemptCount( intruderRecord.getAttemptCount() )
-                .status( IntruderSystemService.lockStatus( pwmApplication, intruderRecord ) )
-                .domainID( intruderRecord.getDomainID() )
-                .alerted( intruderRecord.isAlerted() )
-                .build();
+        return new PublicIntruderRecord(
+                intruderRecord.getType(),
+                 intruderRecord.getDomainID(),
+                 intruderRecord.getSubject(),
+                 intruderRecord.getTimeStamp(),
+                 intruderRecord.getAttemptCount(),
+                 intruderRecord.isAlerted(),
+                 IntruderSystemService.lockStatus( pwmApplication, intruderRecord ) );
+
     }
 }

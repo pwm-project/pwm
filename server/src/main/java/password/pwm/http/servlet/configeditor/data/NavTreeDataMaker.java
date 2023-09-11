@@ -106,7 +106,7 @@ public class NavTreeDataMaker
             final NavTreeSettings navTreeSettings
     )
     {
-        final DomainID domainID = navTreeSettings.getDomainManageMode() == DomainManageMode.domain
+        final DomainID domainID = navTreeSettings.domainManageMode() == DomainManageMode.domain
                 ? domainId
                 : DomainID.systemId();
 
@@ -121,8 +121,8 @@ public class NavTreeDataMaker
     {
         final ArrayList<NavTreeItem> navigationData = new ArrayList<>();
 
-        final int level = navTreeSettings.getLevel();
-        final boolean modifiedSettingsOnly = navTreeSettings.isModifiedSettingsOnly();
+        final int level = navTreeSettings.filterState().level();
+        final boolean modifiedSettingsOnly = navTreeSettings.filterState().modifiedSettingsOnly();
 
         boolean includeDisplayText = false;
         if ( level >= 1 )
@@ -225,7 +225,7 @@ public class NavTreeDataMaker
             final NavTreeSettings navTreeSettings
     )
     {
-        final Locale locale = navTreeSettings.getLocale();
+        final Locale locale = navTreeSettings.locale();
 
         if ( !loopCategory.hasProfiles() )
         {
@@ -261,13 +261,28 @@ public class NavTreeDataMaker
                         ? NavTreeItem.NavItemType.category
                         : NavTreeItem.NavItemType.navigation;
 
-                final NavTreeItem profileInfo = navTreeItemForCategory( loopCategory, locale, profileId ).toBuilder()
+
+                // add profile data
+                final NavTreeItem profileInfo = new NavTreeItem(
+                        "profile-" + loopCategory.getKey() + "-" + profileId,
+                        profileId == null ? "Default" : profileId.stringValue(),
+                        parentKeyForCategory( loopCategory, profileId ),
+                        loopCategory.getKey(),
+                        profileId == null ? null : profileId.stringValue(),
+                        type,
+                        null,
+                        loopCategory.toMenuLocationDebug( profileId, locale ),
+                        null );
+
+
+                /*
+                        navTreeItemForCategory( loopCategory, locale, profileId ).toBuilder()
                         .name( profileId == null ? "Default" : profileId.stringValue() )
                         .id( "profile-" + loopCategory.getKey() + "-" + profileId )
                         .parent( loopCategory.getKey() )
                         .type( type )
                         .build();
-
+*/
                 navigationData.add( profileInfo );
             }
 
@@ -285,6 +300,14 @@ public class NavTreeDataMaker
         return Collections.unmodifiableList( navigationData );
     }
 
+    private static String parentKeyForCategory( final PwmSettingCategory category, final ProfileID profileId )
+    {
+        return category.getParent() != null
+                ? ( profileId != null ? "profile-" + category.getParent().getKey() + "-" + profileId : category.getParent().getKey() )
+                : ROOT_NODE_ID;
+
+    }
+
 
     private static NavTreeItem navTreeItemForCategory(
             final PwmSettingCategory category,
@@ -292,9 +315,8 @@ public class NavTreeDataMaker
             final ProfileID profileId
     )
     {
-        final String parent = category.getParent() != null
-                ? ( profileId != null ? "profile-" + category.getParent().getKey() + "-" + profileId : category.getParent().getKey() )
-                : ROOT_NODE_ID;
+
+        final String parent = parentKeyForCategory( category, profileId );
 
         final NavTreeItem.NavItemType type = !category.hasChildren() && !category.isTopLevelProfile()
                 ? NavTreeItem.NavItemType.category
@@ -321,7 +343,7 @@ public class NavTreeDataMaker
     {
         if ( category == PwmSettingCategory.HTTPS_SERVER )
         {
-            if ( !navTreeSettings.isMangeHttps() )
+            if ( !navTreeSettings.mangeHttps() )
             {
                 return false;
             }
@@ -373,23 +395,23 @@ public class NavTreeDataMaker
         }
 
         final PwmSettingCategory settingCategory = setting.getCategory();
-        if ( navTreeSettings.getDomainManageMode() == DomainManageMode.system
+        if ( navTreeSettings.domainManageMode() == DomainManageMode.system
                 && settingCategory.getScope() != PwmSettingScope.SYSTEM )
         {
             return false;
         }
-        else if ( navTreeSettings.getDomainManageMode() == DomainManageMode.domain
+        else if ( navTreeSettings.domainManageMode() == DomainManageMode.domain
                 && settingCategory.getScope() != PwmSettingScope.DOMAIN )
         {
             return false;
         }
 
-        if ( navTreeSettings.isModifiedSettingsOnly() && valueIsDefault )
+        if ( navTreeSettings.filterState().modifiedSettingsOnly() && valueIsDefault )
         {
             return false;
         }
 
-        final int level = navTreeSettings.getLevel();
+        final int level = navTreeSettings.filterState().level();
         if ( setting.getLevel() > level )
         {
             return false;
@@ -401,14 +423,14 @@ public class NavTreeDataMaker
             return false;
         }
 
-        if ( StringUtil.isEmpty( navTreeSettings.getFilterText() ) )
+        if ( StringUtil.isEmpty( navTreeSettings.filterState().text() ) )
         {
             return true;
         }
         else
         {
             final StoredValue storedValue = storedConfiguration.readStoredValue( storedConfigKey ).orElseThrow();
-            for ( final String term : StringUtil.whitespaceSplit( navTreeSettings.getFilterText() ) )
+            for ( final String term : StringUtil.whitespaceSplit( navTreeSettings.filterState().text() ) )
             {
                 if ( ConfigSearchMachine.matchSetting( storedConfiguration, setting, storedValue, term, PwmConstants.DEFAULT_LOCALE ) )
                 {
@@ -424,7 +446,7 @@ public class NavTreeDataMaker
     {
         // put templates on top
         final Optional<NavTreeItem> templateEntry = navigationData.stream()
-                .filter( entry -> categoryID.equals( entry.getId() ) )
+                .filter( entry -> categoryID.equals( entry.id() ) )
                 .findFirst();
 
         if ( templateEntry.isPresent() )

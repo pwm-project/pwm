@@ -163,11 +163,12 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
     }
 
     @ActionHandler( action = "warnResponse" )
-    public ProcessStatus processWarnResponse( final PwmRequest pwmRequest ) throws ServletException, PwmUnrecoverableException, IOException
+    public ProcessStatus processWarnResponse( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException
     {
         final ChangePasswordBean changePasswordBean = getBean( pwmRequest );
 
-        if ( pwmRequest.getPwmSession().getUserInfo().getPasswordStatus().isWarnPeriod() )
+        if ( pwmRequest.getPwmSession().getUserInfo().getPasswordStatus().warnPeriod() )
         {
             final String warnResponseStr = pwmRequest.readParameterAsString( "warnResponse" );
             final Optional<WarnResponseValue> warnResponse = EnumUtil.readEnumFromString( WarnResponseValue.class, warnResponseStr );
@@ -441,8 +442,8 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                 pwmRequest.getClientConnectionHolder().getActor(),
                 userInfo,
                 pwmSession.getLoginInfoBean(),
-                PasswordData.forStringValue( jsonInput.getPassword1() ),
-                PasswordData.forStringValue( jsonInput.getPassword2() )
+                PasswordData.forStringValue( jsonInput.password1() ),
+                PasswordData.forStringValue( jsonInput.password2() )
         );
 
 
@@ -462,8 +463,7 @@ public abstract class ChangePasswordServlet extends ControlledPwmServlet
                 pwmRequest.getPwmSession().getUserInfo().getPasswordPolicy(),
                 pwmRequest.getPwmDomain() );
 
-        final RestRandomPasswordServer.JsonOutput jsonOutput = new RestRandomPasswordServer.JsonOutput();
-        jsonOutput.setPassword( passwordData.getStringValue() );
+        final RestRandomPasswordServer.JsonOutput jsonOutput = new RestRandomPasswordServer.JsonOutput( passwordData.getStringValue() );
         final RestResultBean<RestRandomPasswordServer.JsonOutput> restResultBean = RestResultBean.withData( jsonOutput, RestRandomPasswordServer.JsonOutput.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;

@@ -20,34 +20,30 @@
 
 package password.pwm.util.macro;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmRequestContext;
 import password.pwm.http.PwmRequest;
-import password.pwm.user.UserInfo;
+import password.pwm.http.PwmRequestContext;
 import password.pwm.ldap.UserInfoFactory;
+import password.pwm.user.UserInfo;
 
 import java.util.Locale;
 
-@Value
-@Builder( toBuilder = true )
-public class MacroRequest
+public record MacroRequest(
+        PwmApplication pwmApplication,
+        SessionLabel sessionLabel,
+        UserInfo userInfo,
+        LoginInfoBean loginInfoBean,
+        MacroReplacer macroReplacer,
+        UserInfo targetUserInfo,
+        Locale userLocale
+)
 {
-    private final PwmApplication pwmApplication;
-    private final SessionLabel sessionLabel;
-    private final UserInfo userInfo;
-    private final LoginInfoBean loginInfoBean;
-    private final MacroReplacer macroReplacer;
-    private final UserInfo targetUserInfo;
-    private final Locale userLocale;
-
-    private MacroRequest(
+    public MacroRequest(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
             final UserInfo userInfo,
@@ -109,6 +105,17 @@ public class MacroRequest
         return new MacroRequest( pwmApplication, sessionLabel, userInfo, loginInfoBean, null, null, null );
     }
 
+    public static MacroRequest forTargetUser(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final UserInfo userInfo,
+            final LoginInfoBean loginInfoBean,
+            final UserInfo targetUserInfo
+    )
+    {
+        return new MacroRequest( pwmApplication, sessionLabel, userInfo, loginInfoBean, null, targetUserInfo, null );
+    }
+
     public static MacroRequest forUser(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
@@ -131,6 +138,7 @@ public class MacroRequest
         final UserInfo userInfoBean = UserInfoFactory.newUserInfoUsingProxy( pwmApplication, sessionLabel, userIdentity, userLocale );
         return new MacroRequest( pwmApplication, sessionLabel, userInfoBean, null, null, null, userLocale );
     }
+
 
     public static MacroRequest forUser(
             final PwmApplication pwmApplication,
@@ -157,5 +165,4 @@ public class MacroRequest
     {
         return MacroMachine.expandMacros( this, input );
     }
-
 }

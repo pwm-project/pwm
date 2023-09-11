@@ -21,23 +21,25 @@
 package password.pwm.http.servlet.configeditor.data;
 
 import lombok.Builder;
-import lombok.Value;
 
 import java.util.List;
 
-@Value
-@Builder( toBuilder = true )
-public class NavTreeItem
+public record NavTreeItem(
+        String id,
+        String name,
+        String parent,
+        String category,
+        String profile,
+        NavItemType type,
+        String profileSetting,
+        String menuLocation,
+        List<String> keys
+)
 {
-    private final String id;
-    private final String name;
-    private final String parent;
-    private final String category;
-    private final String profile;
-    private final NavItemType type;
-    private final String profileSetting;
-    private final String menuLocation;
-    private final List<String> keys;
+    @Builder( toBuilder = false )
+    public NavTreeItem
+    {
+    }
 
     public enum NavItemType
     {

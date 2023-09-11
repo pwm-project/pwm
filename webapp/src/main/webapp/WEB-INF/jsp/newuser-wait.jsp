@@ -72,14 +72,10 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_NEWUSER.refreshCreateStatus(<%=checkIntervalSeconds * 1000%>);
-    });
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_NEWUSER} from "<pwm:url url="/public/resources/js/newuser.js" addContext="true"/>";
+    PWM_NEWUSER.refreshCreateStatus(<%=checkIntervalSeconds * 1000%>);
 </script>
-</pwm:script>
-<pwm:script-ref url="/public/resources/js/newuser.js"/>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

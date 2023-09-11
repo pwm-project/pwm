@@ -113,7 +113,7 @@
             PWM_MAIN.addEventHandler('healthBody','click',function(){loadHealth()});
 
             PWM_MAIN.addEventHandler('button-browse-adminDN','click',function(){
-                UILibrary.editLdapDN(function(value){
+                PWM_UILibrary.editLdapDN(function(value){
                     PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_PROXY_DN%>').value = value;
                     handleFormActivity();
                 })

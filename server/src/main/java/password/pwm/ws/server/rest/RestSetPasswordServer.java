@@ -20,7 +20,6 @@
 
 package password.pwm.ws.server.rest;
 
-import lombok.Value;
 import password.pwm.PwmConstants;
 import password.pwm.config.option.WebServiceUsage;
 import password.pwm.config.profile.PwmPasswordPolicy;
@@ -48,7 +47,6 @@ import password.pwm.ws.server.RestUtility;
 import password.pwm.ws.server.RestWebServer;
 
 import javax.servlet.annotation.WebServlet;
-import java.io.IOException;
 import java.util.Optional;
 
 @WebServlet(
@@ -66,12 +64,12 @@ public class RestSetPasswordServer extends RestServlet
     private static final String FIELD_USERNAME = "username";
     private static final String FIELD_PASSWORD = "password";
 
-    @Value
-    public static class JsonInputData
+    public record JsonInputData(
+            String username,
+            String password,
+            boolean random
+    )
     {
-        private String username;
-        private String password;
-        private boolean random;
     }
 
     @Override
@@ -81,7 +79,7 @@ public class RestSetPasswordServer extends RestServlet
     }
 
     @RestMethodHandler( method = HttpMethod.POST, consumes = HttpContentType.form, produces = HttpContentType.json )
-    public RestResultBean doPostSetPasswordForm(
+    public RestResultBean<?> doPostSetPasswordForm(
             final RestRequest restRequest
     )
             throws PwmUnrecoverableException
@@ -96,8 +94,8 @@ public class RestSetPasswordServer extends RestServlet
     }
 
     @RestMethodHandler( method = HttpMethod.POST, consumes = HttpContentType.json, produces = HttpContentType.json )
-    public RestResultBean doPostSetPasswordJson( final RestRequest restRequest )
-            throws IOException, PwmUnrecoverableException
+    public RestResultBean<?> doPostSetPasswordJson( final RestRequest restRequest )
+            throws PwmUnrecoverableException
     {
         final JsonInputData jsonInput;
         {
@@ -105,19 +103,19 @@ public class RestSetPasswordServer extends RestServlet
 
             jsonInput = new JsonInputData(
                     RestUtility.readValueFromJsonAndParam(
-                            jsonBody == null ? null : jsonBody.getUsername(),
+                            jsonBody == null ? null : jsonBody.username(),
                             restRequest.readParameterAsString( FIELD_USERNAME ),
                             FIELD_USERNAME,
                             RestUtility.ReadValueFlag.optional
                     ).orElse( null ),
                     RestUtility.readValueFromJsonAndParam(
-                            jsonBody == null ? null : jsonBody.getPassword(),
+                            jsonBody == null ? null : jsonBody.password(),
                             restRequest.readParameterAsString( FIELD_PASSWORD ),
                             FIELD_PASSWORD,
                             RestUtility.ReadValueFlag.optional
                     ).orElse( null ),
                     Boolean.parseBoolean( RestUtility.readValueFromJsonAndParam(
-                            jsonBody == null ? "" : String.valueOf( jsonBody.isRandom() ),
+                            jsonBody == null ? "" : String.valueOf( jsonBody.random() ),
                             restRequest.readParameterAsString( FIELD_RANDOM ),
                             FIELD_RANDOM,
                             RestUtility.ReadValueFlag.optional
@@ -134,8 +132,8 @@ public class RestSetPasswordServer extends RestServlet
 
     )
     {
-        final String password = jsonInputData.getPassword();
-        final boolean random = jsonInputData.isRandom();
+        final String password = jsonInputData.password();
+        final boolean random = jsonInputData.random();
 
         if ( ( password == null || password.length() < 1 ) && !random )
         {
@@ -169,7 +167,7 @@ public class RestSetPasswordServer extends RestServlet
                 final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
                         restRequest.getDomain(),
                         restRequest.getSessionLabel(),
-                        targetUserIdentity.getUserIdentity(),
+                        targetUserIdentity.userIdentity(),
                         targetUserIdentity.getChaiUser() );
                 newPassword = PasswordUtility.generateRandom(
                         restRequest.getSessionLabel(),
@@ -183,10 +181,10 @@ public class RestSetPasswordServer extends RestServlet
             }
 
             final PasswordData oldPassword;
-            if ( targetUserIdentity.isSelf() )
+            if ( targetUserIdentity.self() )
             {
                 final Optional<BasicAuthInfo> basicAuthInfo = BasicAuthInfo.parseAuthHeader( restRequest.getDomain(), restRequest.getHttpServletRequest() );
-                oldPassword = basicAuthInfo.map( BasicAuthInfo::getPassword ).orElse( null );
+                oldPassword = basicAuthInfo.map( BasicAuthInfo::password ).orElse( null );
             }
             else
             {
@@ -196,7 +194,7 @@ public class RestSetPasswordServer extends RestServlet
             final UserInfo userInfo = UserInfoFactory.newUserInfoUsingProxy(
                     restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
-                    targetUserIdentity.getUserIdentity(),
+                    targetUserIdentity.userIdentity(),
                     restRequest.getLocale()
             );
 
@@ -210,7 +208,7 @@ public class RestSetPasswordServer extends RestServlet
             );
 
             StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_SETPASSWORD );
-            final JsonInputData jsonResultData = new JsonInputData( targetUserIdentity.getUserIdentity().toDelimitedKey(), null, random );
+            final JsonInputData jsonResultData = new JsonInputData( targetUserIdentity.userIdentity().toDelimitedKey(), null, random );
             return RestResultBean.forSuccessMessage( jsonResultData, restRequest, Message.Success_PasswordChange );
         }
         catch ( final PwmException e )

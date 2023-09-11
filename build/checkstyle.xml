@@ -251,6 +251,7 @@
         </module>
         -->
 
+        <module name="UnnecessarySemicolonInEnumeration"/>
 
         <!-- future enabled checks -->
         <!--

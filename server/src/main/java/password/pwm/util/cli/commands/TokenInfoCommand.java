@@ -70,13 +70,13 @@ public class TokenInfoCommand extends AbstractCliCommand
         }
         else
         {
-            out( "  name: " + tokenPayload.getName() );
-            out( "  user: " + tokenPayload.getUserIdentity() );
-            out( "issued: " + StringUtil.toIsoDate( tokenPayload.getIssueTime() ) );
-            out( "expire: " + StringUtil.toIsoDate( tokenPayload.getExpiration() ) );
-            for ( final String key : tokenPayload.getData().keySet() )
+            out( "  name: " + tokenPayload.name() );
+            out( "  user: " + tokenPayload.userIdentity() );
+            out( "issued: " + StringUtil.toIsoDate( tokenPayload.issueTime() ) );
+            out( "expire: " + StringUtil.toIsoDate( tokenPayload.expiration() ) );
+            for ( final String key : tokenPayload.data().keySet() )
             {
-                final String value = tokenPayload.getData().get( key );
+                final String value = tokenPayload.data().get( key );
                 out( "  payload key: " + key );
                 out( "        value: " + value );
             }

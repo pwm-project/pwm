@@ -75,7 +75,7 @@ public class UserInfoBean implements UserInfo
     private final Map<ProfileDefinition, ProfileID> profileIDs;
 
     @Builder.Default
-    private final PasswordStatus passwordStatus = PasswordStatus.builder().build();
+    private final PasswordStatus passwordStatus = new PasswordStatus( false, false, false, false );
 
     @Builder.Default
     private final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.defaultPolicy();

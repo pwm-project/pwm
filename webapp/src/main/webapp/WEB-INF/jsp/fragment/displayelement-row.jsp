@@ -29,15 +29,15 @@
 <% final DisplayElement displayElement = (DisplayElement)request.getAttribute("displayElement"); %>
 <tr>
     <td class="key">
-        <%= displayElement.getLabel() %>
+        <%= displayElement.label() %>
     </td>
-    <% if (displayElement.getType() == DisplayElement.Type.timestamp) { %>
-    <td class="timestamp" id="<%=StringUtil.escapeHtml(displayElement.getKey())%>">
-        <%= StringUtil.escapeHtml(displayElement.getValue()) %>
+    <% if (displayElement.type() == DisplayElement.Type.timestamp) { %>
+    <td class="timestamp" id="<%=StringUtil.escapeHtml(displayElement.key())%>">
+        <%= StringUtil.escapeHtml(displayElement.value()) %>
     </td>
     <% } else { %>
-    <td  id="<%=StringUtil.escapeHtml(displayElement.getKey())%>">
-        <%= StringUtil.escapeHtml(displayElement.getValue()) %>
+    <td  id="<%=StringUtil.escapeHtml(displayElement.key())%>">
+        <%= StringUtil.escapeHtml(displayElement.value()) %>
     </td>
     <% } %>
 </tr>

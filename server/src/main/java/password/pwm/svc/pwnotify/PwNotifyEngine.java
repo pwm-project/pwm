@@ -154,8 +154,8 @@ public class PwNotifyEngine
             log( "starting job, beginning ldap search" );
             final List<UserIdentity> matchingUsers = UserPermissionUtility.discoverMatchingUsers(
                     pwmDomain,
-                    permissionList, pwNotifyService.getSessionLabel(), settings.getMaxLdapSearchSize(),
-                    settings.getSearchTimeout()
+                    permissionList, pwNotifyService.getSessionLabel(), settings.maxLdapSearchSize(),
+                    settings.searchTimeout()
             );
 
             log( "ldap search complete, examining users..." );
@@ -272,7 +272,7 @@ public class PwNotifyEngine
     {
         final long maxSecondsAfterExpiration = TimeDuration.DAY.as( TimeDuration.Unit.SECONDS );
         int nextDayInterval = -1;
-        for ( final int configuredDayInterval : settings.getNotificationIntervals() )
+        for ( final int configuredDayInterval : settings.notificationIntervals() )
         {
             final Instant futureConfiguredDayInterval = Instant.now().plus( configuredDayInterval, ChronoUnit.DAYS );
             final long secondsUntilConfiguredInterval = Duration.between( Instant.now(), futureConfiguredDayInterval ).abs().getSeconds();

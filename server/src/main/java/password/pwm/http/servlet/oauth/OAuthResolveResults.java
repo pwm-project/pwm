@@ -20,14 +20,10 @@
 
 package password.pwm.http.servlet.oauth;
 
-import lombok.Builder;
-import lombok.Value;
-
-@Value
-@Builder( toBuilder = true )
-class OAuthResolveResults
+record OAuthResolveResults(
+        String accessToken,
+        long expiresSeconds,
+        String refreshToken
+)
 {
-    private String accessToken;
-    private long expiresSeconds;
-    private String refreshToken;
 }

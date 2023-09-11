@@ -21,18 +21,20 @@
 package password.pwm.svc.pwnotify;
 
 import lombok.Builder;
-import lombok.Value;
 import password.pwm.error.ErrorInformation;
 
 import java.time.Instant;
 
-@Value
-@Builder
-public class PwNotifyStoredJobState
+public record PwNotifyStoredJobState(
+         Instant lastStart,
+         Instant lastCompletion,
+         String serverInstance,
+         ErrorInformation lastError,
+         boolean jobSuccess
+)
 {
-    private Instant lastStart;
-    private Instant lastCompletion;
-    private String serverInstance;
-    private ErrorInformation lastError;
-    private boolean jobSuccess;
+    @Builder
+    public PwNotifyStoredJobState
+    {
+    }
 }

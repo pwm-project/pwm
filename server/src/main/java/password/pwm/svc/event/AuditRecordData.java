@@ -22,32 +22,35 @@ package password.pwm.svc.event;
 
 import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Value;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.ProfileID;
 
 import java.time.Instant;
 
-@Value
-@Builder( access = AccessLevel.PACKAGE, toBuilder = true )
-public class AuditRecordData implements AuditRecord, SystemAuditRecord, UserAuditRecord, HelpdeskAuditRecord
+public record AuditRecordData(
+        AuditEventType type,
+        AuditEvent eventCode,
+        String guid,
+        Instant timestamp,
+        String message,
+        String narrative,
+        String xdasTaxonomy,
+        String xdasOutcome,
+        String instance,
+        String perpetratorID,
+        String perpetratorDN,
+        ProfileID perpetratorLdapProfile,
+        String sourceAddress,
+        String sourceHost,
+        String targetID,
+        String targetDN,
+        ProfileID targetLdapProfile,
+        DomainID domain
+)
+        implements AuditRecord, SystemAuditRecord, UserAuditRecord, HelpdeskAuditRecord
 {
-    private final AuditEventType type;
-    private final AuditEvent eventCode;
-    private final String guid;
-    private final Instant timestamp;
-    private final String message;
-    private final String narrative;
-    private final String xdasTaxonomy;
-    private final String xdasOutcome;
-    private final String instance;
-    private final String perpetratorID;
-    private final String perpetratorDN;
-    private final ProfileID perpetratorLdapProfile;
-    private final String sourceAddress;
-    private final String sourceHost;
-    private final String targetID;
-    private final String targetDN;
-    private final ProfileID targetLdapProfile;
-    private final DomainID domain;
+    @Builder( access = AccessLevel.PACKAGE, toBuilder = true )
+    public AuditRecordData
+    {
+    }
 }

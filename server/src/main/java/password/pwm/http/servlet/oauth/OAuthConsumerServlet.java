@@ -49,6 +49,7 @@ import password.pwm.util.logging.PwmLogger;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -214,7 +215,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             return;
         }
 
-        if ( resolveResults == null || resolveResults.getAccessToken() == null || resolveResults.getAccessToken().isEmpty() )
+        if ( resolveResults == null || resolveResults.accessToken() == null || resolveResults.accessToken().isEmpty() )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR,
                     "browser redirect from oauth server did not include an access token" );
@@ -237,7 +238,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         }
         */
 
-        final String oauthSuppliedUsername = oAuthMachine.makeOAuthGetUserInfoRequest( pwmRequest, resolveResults.getAccessToken() );
+        final String oauthSuppliedUsername = oAuthMachine.makeOAuthGetUserInfoRequest( pwmRequest, resolveResults.accessToken() );
 
         if ( oAuthUseCaseCase == OAuthUseCase.ForgottenPassword )
         {
@@ -338,7 +339,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
     private void redirectToForgottenPasswordServlet( final PwmRequest pwmRequest, final String oauthSuppliedUsername )
             throws IOException, PwmUnrecoverableException
     {
-        final OAuthForgottenPasswordResults results = new OAuthForgottenPasswordResults( true, oauthSuppliedUsername );
+        final OAuthForgottenPasswordResults results = new OAuthForgottenPasswordResults( true, oauthSuppliedUsername, Instant.now() );
         final String encryptedResults = pwmRequest.getPwmDomain().getSecureService().encryptObjectToString( results );
 
         final Map<String, String> httpParams = new HashMap<>();

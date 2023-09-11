@@ -84,7 +84,7 @@ public class PwmHttpClientTest
                 ".jks" );
 
         final KeyStore keyStore = SelfCertFactory.generateNewCert(
-                SelfCertSettings.builder().subjectAlternateName( CERT_HOSTNAME ).build(),
+                SelfCertSettings.example(),
                 null,
                 new PasswordData( CERT_PASSWORD ),
                 CERT_ALIAS );

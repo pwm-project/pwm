@@ -220,13 +220,13 @@ public class LdapUserInfoReader implements UserInfo
     @Override
     public PasswordStatus getPasswordStatus( ) throws PwmUnrecoverableException
     {
-        final PasswordStatus.PasswordStatusBuilder passwordStatusBuilder = PasswordStatus.builder();
         final String userDN = chaiUser.getEntryDN();
         final PwmPasswordPolicy passwordPolicy = selfCachedReference.getPasswordPolicy();
 
         final long startTime = System.currentTimeMillis();
         LOGGER.trace( sessionLabel, () -> "beginning password status check process for " + userDN );
 
+        boolean violatesPolicy = false;
         // check if password meets existing policy.
         if ( passwordPolicy.ruleHelper().readBooleanValue( PwmPasswordRule.EnforceAtLogin ) )
         {
@@ -241,7 +241,7 @@ public class LdapUserInfoReader implements UserInfo
                 {
                     LOGGER.debug( sessionLabel, () -> "user " + userDN + " password does not conform to current password policy ("
                             + e.getMessage() + "), marking as requiring change." );
-                    passwordStatusBuilder.violatesPolicy( true );
+                    violatesPolicy = true;
                 }
                 catch ( final ChaiUnavailableException e )
                 {
@@ -251,31 +251,34 @@ public class LdapUserInfoReader implements UserInfo
         }
 
         boolean ldapPasswordExpired = false;
-        try
         {
-            ldapPasswordExpired = chaiUser.isPasswordExpired();
+            try
+            {
+                ldapPasswordExpired = chaiUser.isPasswordExpired();
 
-            if ( ldapPasswordExpired )
-            {
-                LOGGER.trace( sessionLabel, () -> "password for " + userDN + " appears to be expired" );
+                if ( ldapPasswordExpired )
+                {
+                    LOGGER.trace( sessionLabel, () -> "password for " + userDN + " appears to be expired" );
+                }
+                else
+                {
+                    LOGGER.trace( sessionLabel, () -> "password for " + userDN + " does not appear to be expired" );
+                }
             }
-            else
+            catch ( final ChaiOperationException e )
             {
-                LOGGER.trace( sessionLabel, () -> "password for " + userDN + " does not appear to be expired" );
+                LOGGER.info( sessionLabel, () -> "error reading LDAP attributes for " + userDN + " while reading isPasswordExpired(): " + e.getMessage() );
             }
-        }
-        catch ( final ChaiOperationException e )
-        {
-            LOGGER.info( sessionLabel, () -> "error reading LDAP attributes for " + userDN + " while reading isPasswordExpired(): " + e.getMessage() );
-        }
-        catch ( final ChaiUnavailableException e )
-        {
-            throw PwmUnrecoverableException.fromChaiException( e );
+            catch ( final ChaiUnavailableException e )
+            {
+                throw PwmUnrecoverableException.fromChaiException( e );
+            }
         }
 
         final Instant ldapPasswordExpirationTime = selfCachedReference.getPasswordExpirationTime();
 
         boolean preExpired = false;
+        boolean warnPeriod = false;
         if ( ldapPasswordExpirationTime != null )
         {
             final TimeDuration expirationInterval = TimeDuration.fromCurrent( ldapPasswordExpirationTime );
@@ -317,23 +320,24 @@ public class LdapUserInfoReader implements UserInfo
                                     () -> "user " + userDN + " password will expire within "
                                             + diff.asCompactString()
                                             + ", marking as within warn period" );
-                            passwordStatusBuilder.warnPeriod( true );
+                            warnPeriod = true;
                         }
                     }
                 }
             }
-
-            passwordStatusBuilder.preExpired( preExpired );
         }
 
-        LOGGER.debug( sessionLabel, () -> "completed user password status check for " + userDN + " " + passwordStatusBuilder
+        final PasswordStatus passwordStatus = new PasswordStatus( ldapPasswordExpired, preExpired, violatesPolicy, warnPeriod );
+
+        LOGGER.debug( sessionLabel, () -> "completed user password status check for " + userDN + " " + passwordStatus
                 + " (" + TimeDuration.fromCurrent( startTime ).asCompactString() + ")" );
-        passwordStatusBuilder.expired( ldapPasswordExpired );
-        return passwordStatusBuilder.build();
+
+        return passwordStatus;
     }
 
     @Override
-    public boolean isRequiresNewPassword( ) throws PwmUnrecoverableException
+    public boolean isRequiresNewPassword( )
+            throws PwmUnrecoverableException
     {
         final Optional<ChangePasswordProfile> changePasswordProfile = readChangePasswordProfile();
         if ( !changePasswordProfile.isPresent() )
@@ -343,25 +347,25 @@ public class LdapUserInfoReader implements UserInfo
         }
 
         final PasswordStatus passwordStatus = selfCachedReference.getPasswordStatus();
-        if ( passwordStatus.isExpired() )
+        if ( passwordStatus.expired() )
         {
             LOGGER.debug( sessionLabel, () -> "checkPassword: password is expired, marking new password as required" );
             return true;
         }
 
-        if ( passwordStatus.isPreExpired() )
+        if ( passwordStatus.preExpired() )
         {
             LOGGER.debug( sessionLabel, () -> "checkPassword: password is pre-expired, marking new password as required" );
             return true;
         }
 
-        if ( passwordStatus.isWarnPeriod() )
+        if ( passwordStatus.warnPeriod() )
         {
             LOGGER.debug( sessionLabel, () -> "checkPassword: password is within warn period, marking new password as required" );
             return true;
         }
 
-        if ( passwordStatus.isViolatesPolicy() )
+        if ( passwordStatus.violatesPolicy() )
         {
             LOGGER.debug( sessionLabel, () -> "checkPassword: current password violates password policy, marking new password as required" );
             return true;
@@ -620,14 +624,7 @@ public class LdapUserInfoReader implements UserInfo
         final OtpService otpService = pwmDomain.getOtpService();
         if ( otpService != null && otpService.status() == PwmService.STATUS.OPEN )
         {
-            try
-            {
-                return otpService.readOTPUserConfiguration( sessionLabel, userIdentity );
-            }
-            catch ( final ChaiUnavailableException e )
-            {
-                throw PwmUnrecoverableException.fromChaiException( e );
-            }
+            return otpService.readOTPUserConfiguration( sessionLabel, userIdentity );
         }
         return null;
     }
@@ -849,7 +846,7 @@ public class LdapUserInfoReader implements UserInfo
                 || selfCachedReference.isRequiresResponseConfig()
                 || selfCachedReference.isRequiresUpdateProfile()
                 || selfCachedReference.isRequiresOtpConfig()
-                || selfCachedReference.getPasswordStatus().isWarnPeriod();
+                || selfCachedReference.getPasswordStatus().warnPeriod();
     }
 
     @Override

@@ -40,12 +40,12 @@ public class OTPUserRecord
     private Type type = Type.TOTP;
     private String version = CURRENT_VERSION;
 
-    @Data
-    public static class RecoveryInfo
+    public record RecoveryInfo(
+            String salt,
+            String hashMethod,
+            int hashCount
+    )
     {
-        private String salt;
-        private String hashMethod;
-        private int hashCount;
     }
 
     public enum Type
@@ -56,10 +56,10 @@ public class OTPUserRecord
         TOTP,
     }
 
-    @Data
-    public static class RecoveryCode
+    public record RecoveryCode(
+            String hash,
+            boolean used
+    )
     {
-        private String hashCode;
-        private boolean used;
-   }
+    }
 }

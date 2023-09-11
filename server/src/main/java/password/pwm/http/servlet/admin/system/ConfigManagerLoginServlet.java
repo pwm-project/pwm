@@ -22,7 +22,6 @@ package password.pwm.http.servlet.admin.system;
 
 import com.google.gson.annotations.SerializedName;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import lombok.Value;
 import password.pwm.AppAttribute;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplicationMode;
@@ -49,6 +48,7 @@ import password.pwm.http.servlet.AbstractPwmServlet;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.svc.intruder.IntruderRecordType;
 import password.pwm.svc.intruder.IntruderServiceClient;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.PwmTimeUtil;
@@ -64,11 +64,11 @@ import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @WebServlet(
         urlPatterns = {
@@ -189,8 +189,8 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
 
     private static ConfigLoginHistory readConfigLoginHistory( final PwmRequest pwmRequest )
     {
-       return pwmRequest.getPwmApplication().readAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class )
-               .orElseGet( ConfigLoginHistory::new );
+        return pwmRequest.getPwmApplication().readAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, ConfigLoginHistory.class )
+                .orElseGet( () -> new ConfigLoginHistory( List.of(), List.of() ) );
     }
 
     private static void updateLoginHistory( final PwmRequest pwmRequest, final UserIdentity userIdentity, final boolean successful )
@@ -207,27 +207,41 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
                 pwmRequest.getPwmSession().getSessionStateBean().getSrcAddress() );
 
         final int maxEvents = Integer.parseInt( pwmRequest.getPwmDomain().getConfig().readAppProperty( AppProperty.CONFIG_HISTORY_MAX_ITEMS ) );
-        configLoginHistory.addEvent( event, maxEvents, successful );
-        pwmRequest.getPwmApplication().writeAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, configLoginHistory );
+        final ConfigLoginHistory newHistory = successful
+                ? configLoginHistory.addSuccessEvent( event, maxEvents )
+                : configLoginHistory.addFailedEvent( event, maxEvents );
+        pwmRequest.getPwmApplication().writeAppAttribute( AppAttribute.CONFIG_LOGIN_HISTORY, newHistory );
     }
 
-    @Value
-    public static class ConfigLoginHistory
+    public record ConfigLoginHistory(
+            List<ConfigLoginEvent> successEvents,
+            List<ConfigLoginEvent> failedEvents
+    )
     {
-        private List<ConfigLoginEvent> successEvents = new ArrayList<>();
-        private List<ConfigLoginEvent> failedEvents = new ArrayList<>();
-
-        void addEvent( final ConfigLoginEvent event, final int maxEvents, final boolean successful )
+        public ConfigLoginHistory(
+                final List<ConfigLoginEvent> successEvents,
+                final List<ConfigLoginEvent> failedEvents
+        )
         {
-            final List<ConfigLoginEvent> events = successful ? successEvents : failedEvents;
-            events.add( event );
-            if ( maxEvents > 0 )
-            {
-                while ( events.size() > maxEvents )
-                {
-                    events.remove( 0 );
-                }
-            }
+            this.successEvents = CollectionUtil.stripNulls( successEvents );
+            this.failedEvents = CollectionUtil.stripNulls( failedEvents );
+        }
+
+        ConfigLoginHistory addSuccessEvent( final ConfigLoginEvent event, final int maxEvents )
+        {
+            return new ConfigLoginHistory( addImpl( successEvents, event, maxEvents ), failedEvents );
+        }
+
+        ConfigLoginHistory addFailedEvent( final ConfigLoginEvent event, final int maxEvents )
+        {
+            return new ConfigLoginHistory( successEvents, addImpl( failedEvents, event, maxEvents ) );
+        }
+
+        private static List<ConfigLoginEvent> addImpl( final List<ConfigLoginEvent> list, final ConfigLoginEvent newEvent, final int maxEvents )
+        {
+            final List<ConfigLoginEvent> workList = list.stream().limit( maxEvents - 1 ).collect( Collectors.toList() );
+            workList.add( newEvent );
+            return List.copyOf( workList );
         }
 
         public List<ConfigLoginEvent> successEvents( )
@@ -241,12 +255,12 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         }
     }
 
-    @Value
-    public static class ConfigLoginEvent
+    public record ConfigLoginEvent(
+            String userIdentity,
+            Instant date,
+            String networkAddress
+    )
     {
-        private final String userIdentity;
-        private final Instant date;
-        private final String networkAddress;
     }
 
     private static ProcessStatus processLoginSuccess( final PwmRequest pwmRequest, final boolean persistentLoginEnabled )
@@ -334,15 +348,15 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
             if ( cookieValue.isPresent() )
             {
                 final PersistentLoginInfo persistentLoginInfo = pwmRequest.getPwmDomain().getSecureService().decryptObject( cookieValue.get(), PersistentLoginInfo.class );
-                if ( persistentLoginInfo != null && persistentLoginInfo.getIssueTimestamp() != null )
+                if ( persistentLoginInfo != null && persistentLoginInfo.issueTimestamp() != null )
                 {
                     final int maxLoginSeconds = figureMaxLoginSeconds( pwmRequest );
-                    final TimeDuration cookieAge = TimeDuration.fromCurrent( persistentLoginInfo.getIssueTimestamp() );
+                    final TimeDuration cookieAge = TimeDuration.fromCurrent( persistentLoginInfo.issueTimestamp() );
 
                     if ( cookieAge.isShorterThan( TimeDuration.of( maxLoginSeconds, TimeDuration.Unit.SECONDS ) ) )
                     {
                         final String persistentLoginPassword = makePersistentLoginPassword( pwmRequest, storedConfig );
-                        if ( StringUtil.nullSafeEquals( persistentLoginPassword, persistentLoginInfo.getPassword() ) )
+                        if ( StringUtil.nullSafeEquals( persistentLoginPassword, persistentLoginInfo.password() ) )
                         {
                             final Instant expireTime = Instant.now().plus( maxLoginSeconds, ChronoUnit.SECONDS );
                             LOGGER.debug( pwmRequest, () -> "accepting persistent config login from cookie (expires at "
@@ -374,19 +388,18 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         }
         catch ( final Exception e )
         {
-            LOGGER.error( pwmRequest, () -> "error examining persistent config login cookie: " + e.getMessage() );
+            LOGGER.debug( pwmRequest, () -> "error examining persistent config login cookie: " + e.getMessage() );
         }
     }
 
+    private record PersistentLoginInfo(
+            @SerializedName( "i" )
+            Instant issueTimestamp,
 
-    @Value
-    private static class PersistentLoginInfo
+            @SerializedName( "p" )
+            String password
+    )
     {
-        @SerializedName( "i" )
-        private Instant issueTimestamp;
-
-        @SerializedName( "p" )
-        private String password;
     }
 
     public static int figureMaxLoginSeconds( final PwmRequest pwmRequest )

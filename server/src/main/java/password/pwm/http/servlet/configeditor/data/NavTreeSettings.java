@@ -20,61 +20,58 @@
 
 package password.pwm.http.servlet.configeditor.data;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.EnvironmentProperty;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.PwmHttpRequestWrapper;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.servlet.configeditor.DomainManageMode;
 import password.pwm.http.servlet.configeditor.DomainStateReader;
 
 import java.io.IOException;
 import java.util.Locale;
-import java.util.Map;
 
-@Value
-@Builder
-public class NavTreeSettings
+public record NavTreeSettings(
+        EditorFilterState filterState,
+        Locale locale,
+        DomainManageMode domainManageMode,
+        boolean mangeHttps
+)
 {
-    private final boolean modifiedSettingsOnly;
+    public NavTreeSettings(
+            final EditorFilterState filterState,
+            final Locale locale,
+            final DomainManageMode domainManageMode, final boolean mangeHttps
+    )
+    {
+        this.filterState = filterState == null ? EditorFilterState.DEFAULT : filterState;
+        this.locale = locale == null ? PwmConstants.DEFAULT_LOCALE : locale;
+        this.domainManageMode = domainManageMode == null ? DomainManageMode.system : domainManageMode;
+        this.mangeHttps = mangeHttps;
+    }
 
-    @Builder.Default
-    private final int level = 2;
-
-    private final String filterText;
-
-    @Builder.Default
-    private final Locale locale = PwmConstants.DEFAULT_LOCALE;
-
-    private final DomainManageMode domainManageMode;
-
-    private final boolean mangeHttps;
+    private static final NavTreeSettings BASIC = new NavTreeSettings(
+            EditorFilterState.DEFAULT,
+            PwmConstants.DEFAULT_LOCALE,
+            DomainManageMode.system,
+            false );
 
     public static NavTreeSettings forBasic()
     {
-        return NavTreeSettings.builder()
-                .domainManageMode( DomainManageMode.system )
-                .build();
+        return BASIC;
     }
 
-    public static NavTreeSettings readFromRequest( final PwmRequest pwmRequest ) throws PwmUnrecoverableException, IOException
+    public static NavTreeSettings forMode( final DomainManageMode domainManageMode )
     {
-        final Map<String, Object> inputParameters = pwmRequest.readBodyAsJsonMap( PwmHttpRequestWrapper.Flag.BypassValidation );
-        final boolean modifiedSettingsOnly = ( boolean ) inputParameters.get( "modifiedSettingsOnly" );
-        final int level = ( int ) ( ( double ) inputParameters.get( "level" ) );
-        final String filterText = ( String ) inputParameters.get( "text" );
+        return new NavTreeSettings( EditorFilterState.DEFAULT, PwmConstants.DEFAULT_LOCALE, domainManageMode, false );
+    }
+
+    public static NavTreeSettings readFromRequest( final PwmRequest pwmRequest )
+            throws PwmUnrecoverableException, IOException
+    {
+        final EditorFilterState filterState = pwmRequest.readBodyAsJsonObject( EditorFilterState.class );
         final DomainStateReader domainStateReader = DomainStateReader.forRequest( pwmRequest );
         final boolean manageHttps = pwmRequest.getPwmApplication().getPwmEnvironment().readPropertyAsBoolean( EnvironmentProperty.ManageHttps );
 
-        return NavTreeSettings.builder()
-                .modifiedSettingsOnly( modifiedSettingsOnly )
-                .domainManageMode( domainStateReader.getMode() )
-                .mangeHttps( manageHttps )
-                .level( level )
-                .filterText( filterText )
-                .locale( pwmRequest.getLocale() )
-                .build();
+        return new NavTreeSettings( filterState, pwmRequest.getLocale(), domainStateReader.getMode(), manageHttps );
     }
 }

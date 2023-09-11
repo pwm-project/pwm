@@ -96,11 +96,10 @@ public class RestHealthServer extends RestServlet
         final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList<>( healthService.getHealthRecords() );
         final List<PublicHealthRecord> healthRecordBeans = PublicHealthRecord.fromHealthRecords( healthRecords, locale,
                 pwmDomain.getConfig() );
-        return PublicHealthData.builder()
-                .timestamp( healthService.getLastHealthCheckTime() )
-                .overall( healthService.getMostSevereHealthStatus().toString() )
-                .records( healthRecordBeans )
-                .build();
+        return new PublicHealthData(
+                healthService.getLastHealthCheckTime(),
+                healthService.getMostSevereHealthStatus().toString(),
+                healthRecordBeans );
 
     }
 }

@@ -177,9 +177,9 @@ public class UserHistoryService extends AbstractPwmService implements PwmService
             throws PwmUnrecoverableException
     {
         // add to user history record
-        if ( settings.getUserStoredEvents().contains( auditRecord.getEventCode() ) )
+        if ( settings.getUserStoredEvents().contains( auditRecord.eventCode() ) )
         {
-            final String perpetratorDN = auditRecord.getPerpetratorDN();
+            final String perpetratorDN = auditRecord.perpetratorDN();
             if ( StringUtil.notEmpty( perpetratorDN ) )
             {
                 userHistoryStore.updateUserHistory( sessionLabel, auditRecord );

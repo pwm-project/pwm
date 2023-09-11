@@ -29,6 +29,7 @@ import password.pwm.bean.DomainID;
 import password.pwm.bean.LoginInfoBean;
 import password.pwm.bean.ProfileID;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -171,12 +172,12 @@ public class SampleDataGenerator
         loginInfoBean.setUserIdentity( userInfoBean.getUserIdentity() );
         loginInfoBean.setUserCurrentPassword( PasswordData.forStringValue( "PaSSw0rd" ) );
 
-        return MacroRequest.builder()
-                .pwmApplication( makeSamplePwmApp( applicationPath ) )
-                .userInfo( userInfoBean )
-                .targetUserInfo( targetUserInfoBean )
-                .loginInfoBean( loginInfoBean )
-                .build();
+        return MacroRequest.forTargetUser(
+                makeSamplePwmApp( applicationPath ),
+                SessionLabel.TEST_SESSION_LABEL,
+                userInfoBean,
+                loginInfoBean,
+                targetUserInfoBean );
 
     }
 

@@ -20,34 +20,48 @@
 
 package password.pwm.config.value.data;
 
-import lombok.EqualsAndHashCode;
-import lombok.Value;
 import password.pwm.util.i18n.LocaleHelper;
-import password.pwm.util.json.JsonFactory;
+import password.pwm.util.java.CollectionUtil;
 
-import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 
 /**
  * @author Richard A. Keil
  */
-@Value
-@EqualsAndHashCode( callSuper = false )
-public class CustomLinkConfiguration
+public record CustomLinkConfiguration(
+        String name,
+        Type type,
+        Map<String, String> labels,
+        Map<String, String> description,
+        String customLinkUrl,
+        boolean customLinkNewWindow,
+        Map<String, String> selectOptions
+)
 {
+    public CustomLinkConfiguration(
+            final String name,
+            final Type type,
+            final Map<String, String> labels,
+            final Map<String, String> description,
+            final String customLinkUrl,
+            final boolean customLinkNewWindow,
+            final Map<String, String> selectOptions
+    )
+    {
+        this.name = name;
+        this.type = type == null ? Type.customLink : type;
+        this.labels = CollectionUtil.stripNulls( labels );
+        this.description = CollectionUtil.stripNulls( description );
+        this.customLinkUrl = customLinkUrl == null ? "" : customLinkUrl;
+        this.customLinkNewWindow = customLinkNewWindow;
+        this.selectOptions = CollectionUtil.stripNulls( selectOptions );
+    }
+
     public enum Type
     {
         text, url, select, checkbox, customLink
     }
-
-    private final String name;
-    private final Type type = Type.customLink;
-    private final Map<String, String> labels = Collections.singletonMap( "", "" );
-    private final Map<String, String> description = Collections.singletonMap( "", "" );
-    private final String customLinkUrl = "";
-    private final boolean customLinkNewWindow;
-    private final Map<String, String> selectOptions = Collections.emptyMap();
 
     public String getLabel( final Locale locale )
     {
@@ -57,15 +71,5 @@ public class CustomLinkConfiguration
     public String getDescription( final Locale locale )
     {
         return LocaleHelper.resolveStringKeyLocaleMap( locale, description );
-    }
-
-    public String toString( )
-    {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append( "CustomLink: " );
-        sb.append( JsonFactory.get().serialize( this ) );
-
-        return sb.toString();
     }
 }

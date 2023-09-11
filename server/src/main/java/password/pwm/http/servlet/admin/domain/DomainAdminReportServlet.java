@@ -115,7 +115,7 @@ public class DomainAdminReportServlet extends ControlledPwmServlet
     {
         final ReportProcessStatus reportProcessStatus = pwmRequest.getPwmSession().getReportProcess()
                 .map( process -> process.getStatus( pwmRequest.getLocale() ) )
-                .orElse( ReportProcessStatus.builder().build() );
+                .orElse( ReportProcessStatus.getIdle() );
 
         final RestResultBean<ReportProcessStatus> restResultBean = RestResultBean.withData( reportProcessStatus, ReportProcessStatus.class );
 

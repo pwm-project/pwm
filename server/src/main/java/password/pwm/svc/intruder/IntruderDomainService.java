@@ -111,7 +111,7 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
 
         try
         {
-            final DataStore dataStore = initDataStore( pwmApplication, getSessionLabel(), intruderSettings.getIntruderStorageMethod() );
+            final DataStore dataStore = initDataStore( pwmApplication, getSessionLabel(), intruderSettings.intruderStorageMethod() );
             serviceInfo = ServiceInfoBean.builder().storageMethod( dataStore.getDataStorageMethod() ).build();
 
             initializeRecordManagers();
@@ -178,8 +178,8 @@ public class IntruderDomainService extends AbstractPwmService implements PwmServ
 
         for ( final IntruderRecordType type : IntruderRecordType.values() )
         {
-            final IntruderSettings.TypeSettings typeSettings = intruderSettings.getTargetSettings().get( type );
-            if ( typeSettings.isConfigured() )
+            final IntruderSettings.TypeSettings typeSettings = intruderSettings.targetSettings().get( type );
+            if ( typeSettings.configured() )
             {
                 LOGGER.trace( getSessionLabel(), () -> "starting record manager for type '" + type + "' with settings: " + typeSettings );
                 recordManagers.put( type, new IntruderRecordManagerImpl( pwmDomain, type, recordStore, intruderSettings ) );

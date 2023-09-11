@@ -77,7 +77,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class ConfigurationChecker implements HealthSupplier
+public final class ConfigurationChecker implements HealthSupplier
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ConfigurationChecker.class );
 
@@ -101,8 +101,8 @@ public class ConfigurationChecker implements HealthSupplier
     @Override
     public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplier.HealthSupplierRequest request )
     {
-        final PwmApplication pwmApplication = request.getPwmApplication();
-        final SessionLabel sessionLabel = request.getSessionLabel();
+        final PwmApplication pwmApplication = request.pwmApplication();
+        final SessionLabel sessionLabel = request.sessionLabel();
 
         if ( pwmApplication.getConfig().readSettingAsBoolean( PwmSetting.HIDE_CONFIGURATION_HEALTH_WARNINGS ) )
         {
@@ -793,9 +793,9 @@ public class ConfigurationChecker implements HealthSupplier
                 final UserPermission permission
         )
         {
-            if ( permission.getLdapProfileID() != null )
+            if ( permission.ldapProfileID() != null )
             {
-                final List<LdapProfile> ldapProfiles = ldapProfilesForLdapProfileSetting( domainConfig, permission.getLdapProfileID() );
+                final List<LdapProfile> ldapProfiles = ldapProfilesForLdapProfileSetting( domainConfig, permission.ldapProfileID() );
                 if ( ldapProfiles.isEmpty() )
                 {
                     final PwmSetting pwmSetting = storedConfigKey.toPwmSetting();
@@ -803,7 +803,7 @@ public class ConfigurationChecker implements HealthSupplier
                             domainConfig.getDomainID(),
                             HealthMessage.Config_ProfileValueValidity,
                             pwmSetting.toMenuLocationDebug( storedConfigKey.getProfileID().orElse( null ), locale ),
-                            permission.getLdapProfileID().stringValue() ) );
+                            permission.ldapProfileID().stringValue() ) );
                 }
             }
 

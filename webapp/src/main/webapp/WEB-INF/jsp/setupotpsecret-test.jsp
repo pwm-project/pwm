@@ -27,13 +27,11 @@
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.util.i18n.LocaleHelper" %>
-<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SetupOtpBean otpBean = JspUtility.getSessionBean(pageContext,SetupOtpBean.class); %>
-<% final int otpTokenLength = PwmRequest.forRequest(request,response).getPwmDomain().getOtpService().getSettings().getOtpTokenLength(); %>
+<% final int otpTokenLength = (int)JspUtility.getAttribute( pageContext, PwmRequestAttribute.SetupOtp_TokenLength ); %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body>
@@ -48,9 +46,9 @@
         <form action="<pwm:current-url/>" method="post" name="setupOtpSecret"
               enctype="application/x-www-form-urlencoded" id="setupOtpSecret" class="pwm-form">
             <div style="width:100%; text-align: center">
-                <input type="text" pattern="^[0-9]*$" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield passwordfield" maxlength="<%=otpTokenLength%>" type="text"
-                       id="<%= PwmConstants.PARAM_OTP_TOKEN%>" required="required" style="max-width: 100px"
-                       autofocus title="0-9"/>
+                <input type="text" pattern="^[0-9]*$" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield passwordfield" maxlength="<%=otpTokenLength%>"
+                       id="<%= PwmConstants.PARAM_OTP_TOKEN%>" style="max-width: 100px"
+                        <pwm:autofocus/> title="0-9"/>
             </div>
             <div class="buttonbar">
                 <input type="hidden" name="processAction" value="testOtpSecret"/>
@@ -73,24 +71,10 @@
     </form>
     <div class="push"></div>
 </div>
-<pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['responseMode'] = "user";
-    PWM_GLOBAL['startupFunctions'].push(function() {
-        PWM_MAIN.addEventHandler('button-goback','click',function(){PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('goBackForm'))});
-        document.getElementById("<%= PwmConstants.PARAM_OTP_TOKEN%>").focus();
-
-        <%--Calling setCustomValidity allows us to set a custom error message on the input field--%>
-        PWM_MAIN.addEventHandler('<%= PwmConstants.PARAM_OTP_TOKEN%>', 'input', function (event) {
-            event.target.setCustomValidity("");
-        });
-        PWM_MAIN.addEventHandler('<%= PwmConstants.PARAM_OTP_TOKEN%>', 'invalid', function (event) {
-            event.target.setCustomValidity("<%=StringEscapeUtils.escapeEcmaScript(LocaleHelper.getLocalizedMessage(Display.Display_SetupOtp_VerificationCodeFormat, JspUtility.getPwmRequest(pageContext)))%>");
-        });
-    });
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_OTP} from "<pwm:url url="/public/resources/js/otpsecret.js" addContext="true"/>";
+    PWM_OTP.initTestPage();
 </script>
-</pwm:script>
-<pwm:script-ref url="/public/resources/js/otpsecret.js"/>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

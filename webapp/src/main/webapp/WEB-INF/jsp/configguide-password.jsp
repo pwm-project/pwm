@@ -83,7 +83,7 @@
                     checkIfNextEnabled();
                 };
 
-                UILibrary.passwordDialogPopup({writeFunction:writeFunction})
+                PWM_UILibrary.passwordDialogPopup({writeFunction:writeFunction})
             });
 
             checkIfNextEnabled();

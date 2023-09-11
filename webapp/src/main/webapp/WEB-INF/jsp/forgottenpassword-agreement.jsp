@@ -69,25 +69,10 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="text/javascript">
-        function updateContinueButton() {
-            var checkBox = PWM_MAIN.getObject("agreeCheckBox");
-            var continueButton = PWM_MAIN.getObject("submitBtn");
-            if (checkBox != null && continueButton != null) {
-                if (checkBox.checked) {
-                    continueButton.removeAttribute('disabled');
-                } else {
-                    continueButton.disabled = "disabled";
-                }
-            }
-        }
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('agreeCheckBox','click, change',function(){ updateContinueButton() });
-            updateContinueButton();
-        });
-    </script>
-</pwm:script>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_MAIN} from "<pwm:url url="/public/resources/js/main.js" addContext="true"/>";
+    PWM_MAIN.initAgreementPage();
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

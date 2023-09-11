@@ -312,7 +312,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
             case LDAP_TESTUSER:
             {
                 final String testUserValue = configGuideBean.getFormData().get( ConfigGuideFormField.PARAM_LDAP_TEST_USER );
-                if ( testUserValue != null && !testUserValue.isEmpty() )
+                if ( !StringUtil.isEmpty( testUserValue ) )
                 {
                     records.addAll( ldapHealthChecker.checkBasicLdapConnectivity( sessionLabel, tempDomain, tempDomain.getConfig(), ldapProfile, false ) );
                     records.addAll( ldapHealthChecker.doLdapTestUserCheck( sessionLabel, tempDomain.getConfig(), ldapProfile, tempDomain ) );
@@ -330,7 +330,10 @@ public class ConfigGuideServlet extends ControlledPwmServlet
 
             case DATABASE:
             {
-                records.addAll( DatabaseStatusChecker.checkNewDatabaseStatus( pwmRequest.getPwmApplication(), tempAppConfig ) );
+                records.addAll( DatabaseStatusChecker.checkNewDatabaseStatus(
+                        pwmRequest.getLabel(),
+                        pwmRequest.getPwmApplication().getPwmEnvironment(),
+                        tempAppConfig ) );
             }
             break;
 
@@ -338,12 +341,12 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 PwmUtil.unhandledSwitchStatement( configGuideBean.getStep() );
         }
 
-        final PublicHealthData jsonOutput = PublicHealthData.builder()
-                .records( PublicHealthRecord.fromHealthRecords( records, pwmRequest.getLocale(), tempDomain.getConfig() ) )
-                .timestamp( Instant.now() )
-                .overall( HealthUtils.getMostSevereHealthStatus( records ).toString() )
-                .build();
-        final RestResultBean restResultBean = RestResultBean.withData( jsonOutput, PublicHealthData.class );
+        final PublicHealthData jsonOutput = new PublicHealthData(
+                 Instant.now(),
+                 HealthUtils.getMostSevereHealthStatus( records ).toString(),
+                 PublicHealthRecord.fromHealthRecords( records, pwmRequest.getLocale(), tempDomain.getConfig() ) );
+
+        final RestResultBean<PublicHealthData> restResultBean = RestResultBean.withData( jsonOutput, PublicHealthData.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -373,7 +376,8 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         final LdapBrowser ldapBrowser = new LdapBrowser(
                 pwmRequest.getLabel(),
                 pwmRequest.getPwmDomain().getLdapService().getChaiProviderFactory(),
-                storedConfiguration
+                storedConfiguration,
+                pwmRequest.getPwmApplication().getPwmScheduler()
         );
         final LdapBrowser.LdapBrowseResult result = ldapBrowser.doBrowse( domainID, ConfigGuideForm.LDAP_PROFILE_NAME, dn );
         ldapBrowser.close();
@@ -437,7 +441,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
         {
             final SchemaOperationResult schemaOperationResult = ConfigGuideUtils.extendSchema( pwmRequest.getPwmDomain(), configGuideBean, true );
             pwmRequest.outputJsonResult( RestResultBean.withData(
-                    schemaOperationResult.getOperationLog(),
+                    schemaOperationResult.operationLog(),
                     String.class ) );
         }
         catch ( final Exception e )
@@ -583,7 +587,7 @@ public class ConfigGuideServlet extends ControlledPwmServlet
                 storedConfiguration,
                 pwmRequest.getLabel(),
                 pwmRequest.getLocale(),
-                NavTreeSettings.builder().domainManageMode( DomainManageMode.single ).build()
+                NavTreeSettings.forMode( DomainManageMode.single )
         );
 
         final RestResultBean<SettingData> restResultBean = RestResultBean.withData( settingData, SettingData.class );

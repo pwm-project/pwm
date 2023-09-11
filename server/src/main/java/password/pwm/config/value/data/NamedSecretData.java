@@ -20,14 +20,22 @@
 
 package password.pwm.config.value.data;
 
-import lombok.Value;
 import password.pwm.util.PasswordData;
+import password.pwm.util.java.CollectionUtil;
 
 import java.util.List;
 
-@Value
-public class NamedSecretData
+public record NamedSecretData(
+        PasswordData password,
+        List<String> usage
+)
 {
-    private PasswordData password;
-    private List<String> usage;
+    public NamedSecretData(
+            final PasswordData password,
+            final List<String> usage
+    )
+    {
+        this.password = password;
+        this.usage = CollectionUtil.stripNulls( usage );
+    }
 }

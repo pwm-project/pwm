@@ -61,6 +61,4 @@ public interface OtpOperator
             String userGuid
     )
             throws PwmUnrecoverableException;
-
-    void close( );
 }

@@ -20,6 +20,7 @@
 
 package password.pwm.svc.node;
 
+import password.pwm.config.AppConfig;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.TimeDuration;
 
@@ -33,4 +34,6 @@ interface NodeDataServiceProvider
 
     int purgeOutdatedNodes( TimeDuration maxNodeAge )
             throws PwmUnrecoverableException;
+
+    NodeServiceSettings settings( AppConfig appConfig );
 }

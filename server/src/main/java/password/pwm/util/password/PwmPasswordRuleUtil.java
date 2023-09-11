@@ -23,6 +23,8 @@ package password.pwm.util.password;
 import org.apache.commons.lang3.StringUtils;
 import password.pwm.util.java.StringUtil;
 
+import java.util.List;
+
 class PwmPasswordRuleUtil
 {
     private PwmPasswordRuleUtil()
@@ -69,7 +71,7 @@ class PwmPasswordRuleUtil
             {
                 if ( disallowedValue.length() >= threshold )
                 {
-                    final String[] disallowedValueChunks = StringUtil.createStringChunks( disallowedValue, threshold );
+                    final List<String> disallowedValueChunks = StringUtil.createStringChunks( disallowedValue, threshold );
                     for ( final String chunk : disallowedValueChunks )
                     {
                         if ( StringUtils.containsIgnoreCase( password, chunk ) )

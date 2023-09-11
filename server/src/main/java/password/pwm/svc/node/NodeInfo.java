@@ -20,26 +20,14 @@
 
 package password.pwm.svc.node;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Value;
-
 import java.time.Instant;
 
-@Value
-@AllArgsConstructor( access = AccessLevel.PACKAGE )
-public class NodeInfo
+public record NodeInfo(
+        String instanceID,
+        Instant lastSeen,
+        Instant startupTime,
+        NodeState nodeState,
+        boolean configMatch
+)
 {
-    private String instanceID;
-    private Instant lastSeen;
-    private Instant startupTime;
-    private NodeState nodeState;
-    private boolean configMatch;
-
-    public enum NodeState
-    {
-        master,
-        online,
-        offline
-    }
 }

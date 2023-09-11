@@ -116,18 +116,18 @@ public class DataStoreTokenMachine implements TokenMachine
         {
             return false;
         }
-        final Instant issueDate = theToken.getIssueTime();
+        final Instant issueDate = theToken.issueTime();
         if ( issueDate == null )
         {
             LOGGER.error( () -> "retrieved token has no issueDate, marking as purgable: " + JsonFactory.get().serialize( theToken ) );
             return true;
         }
-        if ( theToken.getExpiration() == null )
+        if ( theToken.expiration() == null )
         {
             LOGGER.error( () -> "retrieved token has no expiration, marking as purgable: " + JsonFactory.get().serialize( theToken ) );
             return true;
         }
-        return theToken.getExpiration().isBefore( Instant.now() );
+        return theToken.expiration().isBefore( Instant.now() );
     }
 
     @Override

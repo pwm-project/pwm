@@ -31,13 +31,13 @@ import password.pwm.PwmDomain;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.DomainConfig;
-import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
@@ -56,7 +56,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
     public LocalDbOtpOperator( final PwmDomain pwmDomain )
     {
         this.localDB = pwmDomain.getPwmApplication().getLocalDB();
-        setPwmApplication( pwmDomain );
+        setPwmDomain( pwmDomain );
     }
 
     @Override
@@ -82,22 +82,15 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
 
         try
         {
-            final DomainConfig config = this.getPwmApplication().getConfig();
+            final DomainConfig config = this.getPwmDomain().getConfig();
             final Optional<String> value = localDB.get( LocalDB.DB.OTP_SECRET, userGUID );
             if ( value.isPresent() )
             {
-                if ( config.readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
+                final Optional<OTPUserRecord> otpConfig = OtpServiceUtil.parseStoredOtpRecordValue( sessionLabel, pwmDomain, value.get() );
+                if ( otpConfig.isPresent() )
                 {
-                    final String decryptAttributeValue = decryptAttributeValue( value.get() );
-                    if ( decryptAttributeValue != null )
-                    {
-                        final OTPUserRecord otpConfig = decomposeOtpAttribute( decryptAttributeValue );
-                        if ( otpConfig != null )
-                        {
-                            LOGGER.debug( sessionLabel, () -> "found user OTP secret in LocalDB: " + otpConfig );
-                            return Optional.of( otpConfig );
-                        }
-                    }
+                    LOGGER.debug( sessionLabel, () -> "found user OTP secret in LocalDB: " + otpConfig.get() );
+                    return  otpConfig;
                 }
             }
         }
@@ -121,7 +114,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
             throws PwmUnrecoverableException
     {
         LOGGER.trace( pwmRequest, () -> String.format( "Enter: writeOtpUserConfiguration(%s, %s, %s)", theUser, userGUID, otpConfig ) );
-        if ( userGUID == null || userGUID.length() < 1 )
+        if ( StringUtil.isEmpty( userGUID ) )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_GUID, "cannot save otp to localDB, user does not have a pwmGUID" ) );
         }
@@ -135,14 +128,8 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
 
         try
         {
-            final DomainConfig config = this.getPwmApplication().getConfig();
-            String value = composeOtpAttribute( otpConfig );
-            if ( config.readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
-            {
-                LOGGER.debug( pwmRequest, () -> "Encrypting OTP secret for storage" );
-                value = encryptAttributeValue( value );
-            }
-
+            final DomainConfig config = this.getPwmDomain().getConfig();
+            final String value = OtpServiceUtil.stringifyOtpRecord( pwmDomain, otpConfig );
             localDB.put( LocalDB.DB.OTP_SECRET, userGUID, value );
             LOGGER.info( pwmRequest, () -> "saved OTP secret for user in LocalDB" );
         }
@@ -188,11 +175,4 @@ public class LocalDbOtpOperator extends AbstractOtpOperator
             throw pwmOE;
         }
     }
-
-    @Override
-    public void close( )
-    {
-        // No operation
-    }
-
 }

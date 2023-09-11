@@ -79,16 +79,10 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_CHANGEPW.startupChangePasswordPage();
-        });
-    </script>
-</pwm:script>
-
-<pwm:script-ref url="/public/resources/js/changepassword.js"/>
-
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_CHANGEPW} from "<pwm:url url="/public/resources/js/changepassword.js" addContext="true"/>";
+    PWM_CHANGEPW.startupChangePasswordPage();
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

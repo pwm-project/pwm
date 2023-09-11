@@ -59,8 +59,8 @@ class IntruderRecordManagerImpl implements IntruderRecordManager
         this.secureService = pwmDomain.getSecureService();
         this.recordType = recordType;
         this.recordStore = recordStore;
-        this.settings = settings.getTargetSettings().get( recordType );
-        this.storageHashAlgorithm = settings.getStorageHashAlgorithm();
+        this.settings = settings.targetSettings().get( recordType );
+        this.storageHashAlgorithm = settings.storageHashAlgorithm();
     }
 
     @Override
@@ -77,12 +77,12 @@ class IntruderRecordManagerImpl implements IntruderRecordManager
             return false;
         }
 
-        if ( TimeDuration.fromCurrent( record.get().getTimeStamp() ).isLongerThan( settings.getCheckDuration() ) )
+        if ( TimeDuration.fromCurrent( record.get().getTimeStamp() ).isLongerThan( settings.checkDuration() ) )
         {
             return false;
         }
 
-        if ( record.get().getAttemptCount() >= settings.getCheckCount() )
+        if ( record.get().getAttemptCount() >= settings.checkCount() )
         {
             return true;
         }
@@ -100,7 +100,7 @@ class IntruderRecordManagerImpl implements IntruderRecordManager
         IntruderRecord record = readIntruderRecord( subject ).orElseGet( () -> new IntruderRecord( domainID, recordType, subject ) );
 
         final TimeDuration age = TimeDuration.fromCurrent( record.getTimeStamp() );
-        if ( age.isLongerThan( settings.getCheckDuration() ) )
+        if ( age.isLongerThan( settings.checkDuration() ) )
         {
             final IntruderRecord finalRecord = record;
             LOGGER.debug( () -> "re-setting existing outdated record=" + JsonFactory.get().serialize( finalRecord ) + " (" + age.asCompactString() + ")" );

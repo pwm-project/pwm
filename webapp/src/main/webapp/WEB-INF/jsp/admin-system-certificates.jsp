@@ -33,6 +33,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_CONFIG_CSS);%>
+<% JspUtility.setFlag(pageContext, PwmRequestFlag.INCLUDE_DOJO); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
@@ -55,70 +56,65 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="text/javascript">
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_MAIN} from "<pwm:url url="/public/resources/js/main.js" addContext="true"/>";
 
-        PWM_GLOBAL['startupFunctions'].push(function () {
-            var PWM_CERT_FUNCTION = {};
-            PWM_CERT_FUNCTION.certDebugHeaders = function() {
-                return {
-                    "subject":"Subject",
-                    "menuLocation":"Configuration Setting",
-                    "algorithm":"Algorithm",
-                    "serial":"Serial",
-                    "issueDate":"Issue Date",
-                    "expirationDate":"Expiration Date"
-                };
-            };
+    let certDebugGrid = null;
+    var PWM_CERT_FUNCTION = {};
+    PWM_CERT_FUNCTION.certDebugHeaders = function() {
+        return {
+            "subject":"Subject",
+            "menuLocation":"Configuration Setting",
+            "algorithm":"Algorithm",
+            "serial":"Serial",
+            "issueDate":"Issue Date",
+            "expirationDate":"Expiration Date"
+        };
+    };
 
-            PWM_CERT_FUNCTION.initCertDebugGrid=function() {
-                var headers = PWM_CERT_FUNCTION.certDebugHeaders();
+    PWM_CERT_FUNCTION.initCertDebugGrid=function() {
+        var headers = PWM_CERT_FUNCTION.certDebugHeaders();
 
-                require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dgrid/extensions/DijitRegistry"],
-                    function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry){
-                        var columnHeaders = headers;
+        require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dgrid/extensions/DijitRegistry"],
+            function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry){
+                var columnHeaders = headers;
 
-                        // Create a new constructor by mixing in the components
-                        var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry ]);
+                // Create a new constructor by mixing in the components
+                var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry ]);
 
-                        // Now, create an instance of our custom grid
-                        PWM_VAR['certDebugGrid'] = new CustomGrid({
-                            columns: columnHeaders
-                        }, "certDebugGrid");
+                // Now, create an instance of our custom grid
+                certDebugGrid = new CustomGrid({
+                    columns: columnHeaders
+                }, "certDebugGrid");
 
 
-                        PWM_CERT_FUNCTION.refreshCertDebugGrid();
+                PWM_CERT_FUNCTION.refreshCertDebugGrid();
 
-                        PWM_VAR['certDebugGrid'].on(".dgrid-row:click", function(evt){
-                            var row = PWM_VAR['certDebugGrid'].row(evt);
-                            var text = '<pre>' + row.data.detail + '</pre>';
-                            PWM_MAIN.showDialog({title:'Certificate Detail',text:text,showClose:true,showOk:false,dialogClass:'wide'});
-                        });
-                    });
-            };
-
-            PWM_CERT_FUNCTION.refreshCertDebugGrid=function() {
-                require(["dojo"],function(dojo){
-                    var grid = PWM_VAR['certDebugGrid'];
-                    grid.refresh();
-
-                    var url = 'certificates?processAction=certificateData';
-                    var loadFunction = function(data) {
-                        grid.renderArray(data['data']);
-                        grid.set("sort", { attribute : 'expirationTime', ascending: true, descending: false });
-                    };
-                    PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
+                certDebugGrid.on(".dgrid-row:click", function(evt){
+                    var row = certDebugGrid.row(evt);
+                    var text = '<pre>' + row.data.detail + '</pre>';
+                    PWM_MAIN.showDialog({title:'Certificate Detail',text:text,showClose:true,showOk:false,dialogClass:'wide'});
                 });
+            });
+    };
+
+    PWM_CERT_FUNCTION.refreshCertDebugGrid=function() {
+        require(["dojo"],function(dojo){
+            var grid = certDebugGrid;
+            grid.refresh();
+
+            var url = 'certificates?processAction=certificateData';
+            var loadFunction = function(data) {
+                grid.renderArray(data['data']);
+                grid.set("sort", { attribute : 'expirationTime', ascending: true, descending: false });
             };
-
-            PWM_CERT_FUNCTION.initCertDebugGrid();
+            PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
         });
+    };
 
-    </script>
-</pwm:script>
-<pwm:script-ref url="/public/resources/js/configmanager.js"/>
-<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
-<pwm:script-ref url="/public/resources/js/admin.js"/>
+    PWM_CERT_FUNCTION.initCertDebugGrid();
+
+</script>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>
 </html>

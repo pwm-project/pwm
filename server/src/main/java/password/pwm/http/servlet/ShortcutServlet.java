@@ -157,8 +157,8 @@ public class ShortcutServlet extends ControlledPwmServlet
             final ShortcutItem item = visibleItems.get( link );
 
             StatisticsClient.incrementStat( pwmRequest, Statistic.SHORTCUTS_SELECTED );
-            LOGGER.trace( pwmRequest, () -> "shortcut link selected: " + link + ", setting link for 'forwardURL' to " + item.getShortcutURI() );
-            pwmSession.getSessionStateBean().setForwardURL( item.getShortcutURI().toString() );
+            LOGGER.trace( pwmRequest, () -> "shortcut link selected: " + link + ", setting link for 'forwardURL' to " + item.shortcutURI() );
+            pwmSession.getSessionStateBean().setForwardURL( item.shortcutURI().toString() );
 
             pwmRequest.getPwmResponse().sendRedirectToContinue();
             return ProcessStatus.Halt;
@@ -207,7 +207,7 @@ public class ShortcutServlet extends ControlledPwmServlet
         final Map<String, ShortcutItem> visibleItems = Collections.unmodifiableMap( configuredItems.stream()
                 .filter( item -> checkItemMatch( pwmRequest, labelsFromHeader, item ) )
                 .collect( CollectorUtil.toLinkedMap(
-                        ShortcutItem::getLabel,
+                        ShortcutItem::label,
                         Function.identity() ) ) );
 
         LOGGER.debug( pwmRequest, () -> "built visible shortcut list for user: '" + StringUtil.collectionToString( visibleItems.keySet() ) + "'" );
@@ -221,19 +221,19 @@ public class ShortcutServlet extends ControlledPwmServlet
             final ShortcutItem item
     )
     {
-        if ( StringUtil.caseIgnoreContains( labelsFromHeader, item.getLabel() ) )
+        if ( StringUtil.caseIgnoreContains( labelsFromHeader, item.label() ) )
         {
-            LOGGER.trace( pwmRequest, () -> "adding the shortcut item '" + item.getLabel() + "' due to presence of configured headers in request" );
+            LOGGER.trace( pwmRequest, () -> "adding the shortcut item '" + item.label() + "' due to presence of configured headers in request" );
             return true;
         }
 
         final UserIdentity userIdentity = pwmRequest.getPwmSession().getUserInfo().getUserIdentity();
 
-        final UserPermission userPermission = UserPermission.builder()
-                .type( UserPermissionType.ldapQuery )
-                .ldapQuery( item.getLdapQuery() )
-                .ldapBase( userIdentity.getUserDN() )
-                .build();
+        final UserPermission userPermission = new  UserPermission(
+                UserPermissionType.ldapQuery,
+                null,
+                item.ldapQuery(),
+                userIdentity.getUserDN() );
 
         try
         {
@@ -245,14 +245,14 @@ public class ShortcutServlet extends ControlledPwmServlet
 
             if ( match )
             {
-                LOGGER.trace( pwmRequest, () -> "adding the shortcut item '" + item.getLabel() + "' due to ldap query match" );
+                LOGGER.trace( pwmRequest, () -> "adding the shortcut item '" + item.label() + "' due to ldap query match" );
             }
 
             return match;
         }
         catch ( final PwmUnrecoverableException e )
         {
-            LOGGER.trace( pwmRequest, () -> "error during ldap user permission test of shortcut label '" + item.getLabel() + "', error: " + e.getMessage() );
+            LOGGER.trace( pwmRequest, () -> "error during ldap user permission test of shortcut label '" + item.label() + "', error: " + e.getMessage() );
         }
 
         return false;

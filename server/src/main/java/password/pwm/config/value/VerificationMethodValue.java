@@ -31,7 +31,6 @@ import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.json.JsonFactory;
-import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 
 import java.util.ArrayList;
@@ -43,8 +42,6 @@ import java.util.Optional;
 
 public class VerificationMethodValue extends AbstractValue implements StoredValue
 {
-    private static final PwmLogger LOGGER = PwmLogger.forClass( VerificationMethodValue.class );
-
     private final VerificationMethodSettings value;
 
     public enum EnabledState

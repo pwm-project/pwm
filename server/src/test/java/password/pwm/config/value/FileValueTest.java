@@ -80,8 +80,8 @@ public class FileValueTest
                 fileContent = map.values().iterator().next();
             }
 
-            Assertions.assertEquals( "filename", fileInformation.getFilename() );
-            Assertions.assertEquals( "fileType", fileInformation.getFiletype() );
+            Assertions.assertEquals( "filename", fileInformation.filename() );
+            Assertions.assertEquals( "fileType", fileInformation.filetype() );
             Assertions.assertEquals( inputFile.length, fileContent.getContents().size() );
             Assertions.assertArrayEquals( inputFile, fileContent.getContents().copyOf() );
             Assertions.assertEquals( inputHash, fileContent.sha512sum() );

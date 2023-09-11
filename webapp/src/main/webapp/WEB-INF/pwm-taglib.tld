@@ -182,6 +182,12 @@
         <description>Displays the context url path</description>
     </tag>
     <tag>
+        <name>domain</name>
+        <tag-class>password.pwm.http.tag.PwmDomainTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Displays the domain ID</description>
+    </tag>
+    <tag>
         <name>textFile</name>
         <tag-class>password.pwm.http.tag.PwmTextFileTag</tag-class>
         <body-content>empty</body-content>

@@ -23,33 +23,12 @@ package password.pwm.http.servlet.oauth;
 import java.time.Instant;
 
 /**
- * This Json object gets sent as a redirect from the oauth consumer servlet to the ForgttenPasswordServlet.
+ * This Json object gets sent as a redirect from the oauth consumer servlet to the {@link password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet}.
  */
-public class OAuthForgottenPasswordResults
+public record OAuthForgottenPasswordResults(
+        boolean authenticated,
+        String username,
+        Instant timestamp
+)
 {
-    private final boolean authenticated;
-    private final String username;
-    private final Instant timestamp;
-
-    public OAuthForgottenPasswordResults( final boolean authenticated, final String username )
-    {
-        this.authenticated = authenticated;
-        this.username = username;
-        this.timestamp = Instant.now();
-    }
-
-    public boolean isAuthenticated( )
-    {
-        return authenticated;
-    }
-
-    public String getUsername( )
-    {
-        return username;
-    }
-
-    public Instant getTimestamp( )
-    {
-        return timestamp;
-    }
 }

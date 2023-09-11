@@ -50,7 +50,7 @@
         <div class="tab-container" style="width: 100%; height: 100%;">
             <input name="tabs" type="radio" id="tab-1" checked="checked" class="input" <pwm:autofocus/> tabindex="5"/>
             <label for="tab-1" class="label"><pwm:display key="Title_UserInformation"/></label>
-            <div class="tab-content-pane" id="UserInformation" title="<pwm:display key="Title_UserInformation"/>" class="tabContent">
+            <div class="tab-content-pane" id="UserInformation" title="<pwm:display key="Title_UserInformation"/>">
                 <table class="nomargin">
                     <% for (final DisplayElement displayElement : accountInformationBean.getAccountInfo()) { %>
                     <% request.setAttribute("displayElement", displayElement); %>
@@ -61,7 +61,7 @@
             <% if (!CollectionUtil.isEmpty(accountInformationBean.getFormData())) { %>
             <input name="tabs" type="radio" id="tab-2" class="input"/>
             <label for="tab-2" class="label"><pwm:display key="Title_UserData"/></label>
-            <div class="tab-content-pane" id="UserData" title="<pwm:display key="<%=Display.Title_UserData.toString()%>"/>" class="tabContent">
+            <div class="tab-content-pane" id="UserData" title="<pwm:display key="<%=Display.Title_UserData.toString()%>"/>">
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
                         <% for (final DisplayElement displayElement : accountInformationBean.getFormData()) { %>
@@ -75,7 +75,7 @@
             <% if (!CollectionUtil.isEmpty(accountInformationBean.getPasswordRules())) { %>
             <input name="tabs" type="radio" id="tab-3" class="input"/>
             <label for="tab-3" class="label"><pwm:display key="Title_PasswordPolicy"/></label>
-            <div class="tab-content-pane" id="PasswordPolicy" title="<pwm:display key="Title_PasswordPolicy"/>" class="tabContent">
+            <div class="tab-content-pane" id="PasswordPolicy" title="<pwm:display key="Title_PasswordPolicy"/>">
                 <div style="max-height: 400px; overflow: auto;">
                     <table class="nomargin">
                         <tr>
@@ -97,8 +97,8 @@
             <% if (!CollectionUtil.isEmpty(accountInformationBean.getAuditData())) {%>
             <input name="tabs" type="radio" id="tab-4" class="input"/>
             <label for="tab-4" class="label"><pwm:display key="Title_UserEventHistory"/></label>
-            <div class="tab-content-pane" id="UserEventHistory" title="<pwm:display key="Title_UserEventHistory"/>" class="tabContent">
-                <div style="max-height: 400px; overflow: auto;">
+            <div class="tab-content-pane" id="UserEventHistory" title="<pwm:display key="Title_UserEventHistory"/>">
+                <div>
                     <table class="nomargin">
                         <% for (final AccountInformationBean.ActivityRecord record : accountInformationBean.getAuditData()) { %>
                         <tr>

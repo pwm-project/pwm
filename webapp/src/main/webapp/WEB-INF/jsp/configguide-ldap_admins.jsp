@@ -113,7 +113,7 @@
             });
 
             PWM_MAIN.addEventHandler('button-browse-adminGroup','click',function(){
-                UILibrary.editLdapDN(function(value){
+                PWM_UILibrary.editLdapDN(function(value){
                     PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_ADMIN_USER%>').value = value;
                     handleFormActivity();
                 })

@@ -46,7 +46,7 @@ public class StatisticsUtils
 
     public enum CsvOutputFlag
     {
-        includeHeader;
+        includeHeader
     }
 
     public static int outputStatsToCsv(
@@ -141,7 +141,7 @@ public class StatisticsUtils
     )
     {
         return Statistic.sortedValues( locale ).stream()
-                .map( stat -> new DisplayElement(
+                .map( stat -> DisplayElement.create(
                         keyPrefix + stat.getKey(),
                         DisplayElement.Type.number,
                         stat.getLabel( locale ),
@@ -156,7 +156,7 @@ public class StatisticsUtils
     )
     {
         return EnumUtil.enumStream( AvgStatistic.class )
-                .map( stat -> new DisplayElement(
+                .map( stat -> DisplayElement.create(
                         keyPrefix + stat.getKey(),
                         DisplayElement.Type.string,
                         stat.getLabel( locale ),

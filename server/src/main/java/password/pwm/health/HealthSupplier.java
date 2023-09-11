@@ -20,21 +20,26 @@
 
 package password.pwm.health;
 
-import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 
 import java.util.List;
 import java.util.function.Supplier;
 
-public interface HealthSupplier
+sealed interface HealthSupplier permits
+        LDAPHealthChecker,
+        JavaChecker,
+        ConfigurationChecker,
+        LocalDBHealthChecker,
+        CertificateChecker,
+        DatabaseStatusChecker
 {
     List<Supplier<List<HealthRecord>>> jobs( HealthSupplierRequest request );
 
-    @Value
-    class HealthSupplierRequest
+    record HealthSupplierRequest(
+            PwmApplication pwmApplication,
+            SessionLabel sessionLabel
+    )
     {
-        private final PwmApplication pwmApplication;
-        private final SessionLabel sessionLabel;
     }
 }

@@ -36,82 +36,59 @@ import java.util.function.BooleanSupplier;
  * reliance, the conditional is only evaluated during execution of {@code conditionallyExecuteTask()} so the conditional on its own is not
  * a strictly reliable indicator of how frequently the task will execute.</p>
  */
-public final class ConditionalTaskExecutor
+public interface ConditionalTaskExecutor
 {
-    private final Runnable task;
-    private final BooleanSupplier predicate;
-    private final Lock lock = new ReentrantLock();
-
     /**
      * Execute the task if the conditional has been met.  Exceptions when running the task will be logged but not returned.
      */
-    public void conditionallyExecuteTask( )
-    {
-        lock.lock();
-        try
-        {
-            if ( predicate.getAsBoolean() )
-            {
-                task.run();
-            }
-        }
-        finally
-        {
-            lock.unlock();
-        }
-    }
+    void conditionallyExecuteTask( );
 
-    private ConditionalTaskExecutor( final Runnable task, final BooleanSupplier predicate )
-    {
-        this.task = Objects.requireNonNull( task );
-        this.predicate = Objects.requireNonNull( predicate );
-    }
-
-    public static ConditionalTaskExecutor forPeriodicTask( final Runnable task, final Duration timeDuration )
-    {
-        return new ConditionalTaskExecutor( task, new TimeDurationPredicate( timeDuration ) );
-    }
-
-    public static ConditionalTaskExecutor forPeriodicTask(
+    static ConditionalTaskExecutor forPeriodicTask(
             final Runnable task,
-            final Duration timeDuration,
-            final Duration firstExecutionDelay
+            final Duration timeDuration
     )
     {
-        return new ConditionalTaskExecutor( task, new TimeDurationPredicate( timeDuration, firstExecutionDelay ) );
+        return makeThreadSafeExecutor( task, makeTimeDurationPredicate( timeDuration ) );
     }
 
-    private static class TimeDurationPredicate implements BooleanSupplier
+    private static ConditionalTaskExecutor makeThreadSafeExecutor( final Runnable task, final BooleanSupplier predicate )
     {
-        private final Duration timeDuration;
-        private final AtomicReference<Instant> nextExecuteTimestamp = new AtomicReference<>();
+        Objects.requireNonNull( task );
+        Objects.requireNonNull( predicate );
 
-        TimeDurationPredicate( final Duration timeDuration )
+        final Lock lock = new ReentrantLock();
+        return () ->
         {
-            this.timeDuration = timeDuration;
-            setNextTimeFromNow( timeDuration );
-        }
-
-        TimeDurationPredicate( final Duration timeDuration, final Duration firstExecutionDelay )
-        {
-            this.timeDuration = timeDuration;
-            setNextTimeFromNow( firstExecutionDelay );
-        }
-
-        private void setNextTimeFromNow( final Duration duration )
-        {
-            nextExecuteTimestamp.set( Instant.now().plus( duration ) );
-        }
-
-        @Override
-        public boolean getAsBoolean()
-        {
-            if ( Instant.now().isAfter( nextExecuteTimestamp.get() ) )
+            lock.lock();
+            try
             {
-                setNextTimeFromNow( timeDuration );
+                if ( predicate.getAsBoolean() )
+                {
+                    task.run();
+                }
+            }
+            finally
+            {
+                lock.unlock();
+            }
+        };
+    }
+
+    private static BooleanSupplier makeTimeDurationPredicate( final Duration timeDuration )
+    {
+        Objects.requireNonNull( timeDuration );
+        final Instant firstTimestamp = Instant.now().plus( timeDuration );
+        final AtomicReference<Instant> nextExecuteTimestamp = new AtomicReference<>( firstTimestamp );
+
+        return () ->
+        {
+            final Instant now = Instant.now();
+            if ( now.isAfter( nextExecuteTimestamp.get() ) )
+            {
+                nextExecuteTimestamp.set( now.plus( timeDuration ) );
                 return true;
             }
             return false;
-        }
+        };
     }
 }

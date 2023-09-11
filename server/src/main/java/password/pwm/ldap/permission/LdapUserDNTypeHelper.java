@@ -47,7 +47,7 @@ class LdapUserDNTypeHelper implements PermissionTypeHelper
     )
             throws PwmUnrecoverableException
     {
-        final String groupDN = userPermission.getLdapQuery();
+        final String groupDN = userPermission.ldapQuery();
 
         if ( userIdentity == null )
         {
@@ -62,7 +62,7 @@ class LdapUserDNTypeHelper implements PermissionTypeHelper
 
         final LdapProfile ldapProfile = userIdentity.getLdapProfile( pwmDomain.getPwmApplication().getConfig() );
         final String userCanonicalDN = ldapProfile.readCanonicalDN( sessionLabel, pwmDomain, userIdentity.getUserDN() );
-        final String configuredCanonicalDN = ldapProfile.readCanonicalDN( sessionLabel, pwmDomain, userPermission.getLdapBase() );
+        final String configuredCanonicalDN = ldapProfile.readCanonicalDN( sessionLabel, pwmDomain, userPermission.ldapBase() );
         return Objects.equals( userCanonicalDN, configuredCanonicalDN );
     }
 
@@ -74,7 +74,7 @@ class LdapUserDNTypeHelper implements PermissionTypeHelper
                 .enableContextValidation( false )
                 .enableValueEscaping( false )
                 .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ).orElse( null ) )
-                .contexts( Collections.singletonList( userPermission.getLdapBase() ) )
+                .contexts( Collections.singletonList( userPermission.ldapBase() ) )
                 .searchScope( SearchConfiguration.SearchScope.base )
                 .build();
     }
@@ -82,7 +82,7 @@ class LdapUserDNTypeHelper implements PermissionTypeHelper
     @Override
     public void validatePermission( final UserPermission userPermission ) throws PwmUnrecoverableException
     {
-        if ( StringUtil.isEmpty( userPermission.getLdapBase() ) )
+        if ( StringUtil.isEmpty( userPermission.ldapBase() ) )
         {
             throw PwmUnrecoverableException.newException(
                     PwmError.CONFIG_FORMAT_ERROR,

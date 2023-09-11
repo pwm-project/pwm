@@ -20,30 +20,25 @@
 
 package password.pwm.health;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.config.AppConfig;
 import password.pwm.util.java.TimeDuration;
 
-@Value
-@Builder
-class HealthMonitorSettings
+record HealthMonitorSettings(
+        boolean healthCheckEnabled,
+        TimeDuration nominalCheckInterval,
+        TimeDuration minimumCheckInterval,
+        TimeDuration maximumRecordAge,
+        TimeDuration maximumForceCheckWait
+        )
 {
-    private boolean healthCheckEnabled;
-    private TimeDuration nominalCheckInterval;
-    private TimeDuration minimumCheckInterval;
-    private TimeDuration maximumRecordAge;
-    private TimeDuration maximumForceCheckWait;
-
     static HealthMonitorSettings fromConfiguration( final AppConfig config )
     {
-        return HealthMonitorSettings.builder()
-                .healthCheckEnabled( Boolean.parseBoolean( config.readAppProperty( AppProperty.HEALTHCHECK_ENABLED ) ) )
-                .nominalCheckInterval( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_NOMINAL_CHECK_INTERVAL ) ), TimeDuration.Unit.SECONDS ) )
-                .minimumCheckInterval( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MIN_CHECK_INTERVAL ) ), TimeDuration.Unit.SECONDS ) )
-                .maximumRecordAge( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MAX_RECORD_AGE ) ), TimeDuration.Unit.SECONDS ) )
-                .maximumForceCheckWait( TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MAX_FORCE_WAIT ) ), TimeDuration.Unit.SECONDS ) )
-                .build();
+        return new HealthMonitorSettings(
+                Boolean.parseBoolean( config.readAppProperty( AppProperty.HEALTHCHECK_ENABLED ) ),
+                TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_NOMINAL_CHECK_INTERVAL ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MIN_CHECK_INTERVAL ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MAX_RECORD_AGE ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Long.parseLong( config.readAppProperty( AppProperty.HEALTHCHECK_MAX_FORCE_WAIT ) ), TimeDuration.Unit.SECONDS ) );
     }
 }

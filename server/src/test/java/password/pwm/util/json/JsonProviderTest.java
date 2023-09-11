@@ -142,7 +142,7 @@ public class JsonProviderTest
             final String json = "[{\"type\":\"ldapQuery\",\"ldapProfileID\":\"all\",\"ldapQuery\":\"(cn=asmith)\"}]";
             final List<UserPermission> userPermission = instance.deserializeList( json, UserPermission.class );
 
-            Assertions.assertEquals( UserPermissionType.ldapQuery, userPermission.get( 0 ).getType() );
+            Assertions.assertEquals( UserPermissionType.ldapQuery, userPermission.get( 0 ).type() );
         }
 
         {
@@ -197,7 +197,7 @@ public class JsonProviderTest
         final List<NavTreeItem> navTreeItems = NavTreeDataMaker.makeNavTreeItems(
                 DomainID.DOMAIN_ID_DEFAULT,
                 StoredConfigurationFactory.newConfig(),
-                NavTreeSettings.builder().build() );
+                NavTreeSettings.forBasic() );
 
         instance.serializeCollection( navTreeItems );
     }

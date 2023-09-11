@@ -41,7 +41,7 @@ public final class DomainID implements Comparable<DomainID>
 
     private static final List<DomainID> BUILT_IN = List.of( SYSTEM_DOMAIN_ID, DOMAIN_ID_DEFAULT );
 
-    // sort placing 'system' first then alphabetically.
+    // sortw placing 'system' first then alphabetically.
     private static final Comparator<DomainID> COMPARATOR = Comparator.comparing( DomainID::isSystem )
             .reversed()
             .thenComparing( DomainID::stringValue );

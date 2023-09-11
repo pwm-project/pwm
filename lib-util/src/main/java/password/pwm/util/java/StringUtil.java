@@ -39,7 +39,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,7 +46,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -422,36 +420,38 @@ public final class StringUtil
                 .collect( Collectors.toList() );
     }
 
-    public static Collection<String> whitespaceSplit( final String input )
+    public static List<String> whitespaceSplit( final String input )
     {
         if ( input == null )
         {
-            return Collections.emptyList();
+            return List.of();
         }
 
         final String[] splitValues = input.trim().split( "\\s+" );
-        return Arrays.asList( splitValues );
+        return CollectionUtil.arrayToList( splitValues );
     }
 
-    public static String[] createStringChunks( final String str, final int size )
+    public static List<String> createStringChunks( final String str, final int size )
     {
-        if ( size <= 0 || str == null || str.length() <= size )
+        if ( str == null )
         {
-            return new String[]
-                    {
-                            str,
-                    };
+            return List.of();
+        }
+
+        if ( size <= 0 || str.length() <= size )
+        {
+            return List.of( str );
         }
 
         final int numOfChunks = str.length() - size + 1;
-        final Set<String> chunks = new HashSet<>( numOfChunks );
+        final List<String> chunks = new ArrayList<>( numOfChunks );
 
         for ( int i = 0; i < numOfChunks; i++ )
         {
             chunks.add( StringUtils.substring( str, i, i + size ) );
         }
 
-        return chunks.toArray( new String[ numOfChunks ] );
+        return List.copyOf( chunks );
     }
 
     public static <V> String collectionToString( final Collection<V> collection )
@@ -804,28 +804,42 @@ public final class StringUtil
      */
     public static String stripEdgeChars( final String input, final char charToStrip )
     {
+        return stripEdgeChars( input, character -> character == charToStrip );
+    }
+
+    public static String stripEdgeChars( final String input, final Predicate<Character> stripCharPredicate )
+    {
         if ( StringUtil.isEmpty( input ) )
         {
             return "";
         }
 
-        if ( input.charAt( 0 ) != charToStrip && input.charAt( input.length() - 1 ) != charToStrip )
+        if ( stripCharPredicate == null )
+        {
+            return input;
+        }
+
+        if ( !stripCharPredicate.test( input.charAt( 0 ) )
+                && !stripCharPredicate.test( input.charAt( input.length() - 1 ) ) )
         {
             return input;
         }
 
         final StringBuilder stringBuilder = new StringBuilder( input );
 
-        while ( stringBuilder.length() > 0 && stringBuilder.charAt( 0 ) == charToStrip )
+        while ( stringBuilder.length() > 0
+                && stripCharPredicate.test( stringBuilder.charAt( 0 ) ) )
         {
             stringBuilder.deleteCharAt( 0 );
         }
 
-        while ( stringBuilder.length() > 0 && stringBuilder.charAt( stringBuilder.length() - 1 ) == charToStrip )
+        while ( stringBuilder.length() > 0
+                && stripCharPredicate.test( stringBuilder.charAt( stringBuilder.length() - 1 ) ) )
         {
             stringBuilder.deleteCharAt( stringBuilder.length() - 1 );
         }
 
         return stringBuilder.toString();
     }
+
 }

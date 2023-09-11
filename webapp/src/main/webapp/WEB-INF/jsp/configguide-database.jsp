@@ -58,16 +58,16 @@
                             <% final FileValue.FileInfo fileInfo = configGuideBean.getDatabaseDriver().toInfoMap().iterator().next(); %>
                             <table style="max-width: 400px">
                                 <tr>
-                                    <td class="key">Name</td><td><%=fileInfo.getName()%></td>
+                                    <td class="key">Name</td><td><%=fileInfo.name()%></td>
                                 </tr>
                                 <tr>
-                                    <td class="key">Type</td><td><%=fileInfo.getType()%></td>
+                                    <td class="key">Type</td><td><%=fileInfo.type()%></td>
                                 </tr>
                                 <tr>
-                                    <td class="key">Size</td><td><%=fileInfo.getSize()%></td>
+                                    <td class="key">Size</td><td><%=fileInfo.size()%></td>
                                 </tr>
                                 <tr>
-                                    <td class="key">sha512</td><td><%=fileInfo.getSha512sum()%></td>
+                                    <td class="key">sha512</td><td><%=fileInfo.sha512sum()%></td>
                                 </tr>
                             </table>
                             <% }  %>
@@ -217,8 +217,8 @@
             uploadOptions['nextFunction'] = function() {
                 PWM_MAIN.gotoUrl('config-guide');
             };
-            PWM_MAIN.IdleTimeoutHandler.cancelCountDownTimer();
-            UILibrary.uploadFileDialog(uploadOptions);
+            PWM_MAIN.cancelCountDownTimer();
+            PWM_UILibrary.uploadFileDialog(uploadOptions);
         }
 
 

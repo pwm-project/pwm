@@ -95,9 +95,9 @@ public class UserPermissionUtility
             final UserPermission userPermission
     )
     {
-        return userPermission.getLdapProfileID() == null
-                || ProfileID.PROFILE_ID_ALL.equals( userPermission.getLdapProfileID() )
-                || userIdentity.getLdapProfileID().equals( userPermission.getLdapProfileID() );
+        return userPermission.ldapProfileID() == null
+                || ProfileID.PROFILE_ID_ALL.equals( userPermission.ldapProfileID() )
+                || userIdentity.getLdapProfileID().equals( userPermission.ldapProfileID() );
     }
 
     private static boolean testUserPermission(
@@ -118,7 +118,7 @@ public class UserPermissionUtility
             return false;
         }
 
-        final PermissionTypeHelper permissionTypeHelper = userPermission.getType().getPermissionTypeTester();
+        final PermissionTypeHelper permissionTypeHelper = userPermission.type().getPermissionTypeTester();
         final Instant startTime = Instant.now();
         final boolean match = permissionTypeHelper.testMatch( pwmDomain, sessionLabel, userIdentity, userPermission );
         LOGGER.debug( sessionLabel, () -> "user " + userIdentity.toDisplayString() + " is "
@@ -152,7 +152,7 @@ public class UserPermissionUtility
         {
             if ( ( maxResultSize ) - resultSet.size() > 0 )
             {
-                final PermissionTypeHelper permissionTypeHelper = userPermission.getType().getPermissionTypeTester();
+                final PermissionTypeHelper permissionTypeHelper = userPermission.type().getPermissionTypeTester();
                 final SearchConfiguration searchConfiguration = permissionTypeHelper.searchConfigurationFromPermission( userPermission )
                         .toBuilder()
                         .searchTimeout( maxSearchTime )
@@ -186,10 +186,10 @@ public class UserPermissionUtility
 
     static Optional<ProfileID> profileIdForPermission( final UserPermission userPermission )
     {
-        if ( userPermission.getLdapProfileID() != null
-                && !ProfileID.PROFILE_ID_ALL.equals( userPermission.getLdapProfileID() ) )
+        if ( userPermission.ldapProfileID() != null
+                && !ProfileID.PROFILE_ID_ALL.equals( userPermission.ldapProfileID() ) )
         {
-            return Optional.of( userPermission.getLdapProfileID() );
+            return Optional.of( userPermission.ldapProfileID() );
         }
 
         return Optional.empty();
@@ -200,12 +200,12 @@ public class UserPermissionUtility
     {
         Objects.requireNonNull( userPermission );
 
-        if ( userPermission.getType() == null )
+        if ( userPermission.type() == null )
         {
             throw PwmUnrecoverableException.newException( PwmError.CONFIG_FORMAT_ERROR, "userPermission must have a type value" );
         }
 
-        final PermissionTypeHelper permissionTypeHelper = userPermission.getType().getPermissionTypeTester();
+        final PermissionTypeHelper permissionTypeHelper = userPermission.type().getPermissionTypeTester();
         permissionTypeHelper.validatePermission( userPermission );
     }
 

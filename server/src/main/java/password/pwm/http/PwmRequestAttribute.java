@@ -34,7 +34,6 @@ public enum PwmRequestAttribute
     PageTitle,
     ModuleBean,
     ModuleBean_String,
-    CspNonce,
     BrowserInfo,
 
     FormConfiguration,
@@ -55,9 +54,11 @@ public enum PwmRequestAttribute
     SetupOtp_QrCodeValue,
     SetupOtp_AllowSkip,
     SetupOtp_UserRecord,
+    SetupOtp_TokenLength,
 
-    HelpdeskDetail,
-    HelpdeskObfuscatedDN,
+    HelpdeskClientData,
+    HelpdeskDetailInfo,
+    HelpdeskUserKey,
     HelpdeskVerificationEnabled,
 
     ConfigFilename,
@@ -101,6 +102,7 @@ public enum PwmRequestAttribute
     NextUrl,
 
     UserDebugData,
+    UserDebugInfo,
     AppDashboardData,
 
     TokenDestItems,
@@ -110,5 +112,5 @@ public enum PwmRequestAttribute
     JspIndexTabCounter,
     JspAutofocusStatus,
 
-    GoBackAction,;
+    GoBackAction,
 }

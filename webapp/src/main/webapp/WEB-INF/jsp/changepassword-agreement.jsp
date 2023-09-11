@@ -42,7 +42,7 @@
     <div id="centerbody">
         <h1 id="page-content-title"><pwm:display key="Title_ChangePassword" displayIfMissing="true"/></h1>
         <% final PasswordStatus passwordStatus = JspUtility.getPwmSession(pageContext).getUserInfo().getPasswordStatus(); %>
-        <% if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy()) { %>
+        <% if (passwordStatus.expired() || passwordStatus.preExpired() || passwordStatus.violatesPolicy()) { %>
         <h1><pwm:display key="Display_PasswordExpired"/></h1><br/>
         <% } %>
         <%@ include file="fragment/message.jsp" %>
@@ -80,26 +80,10 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="text/javascript">
-        function updateContinueButton() {
-            var checkBox = PWM_MAIN.getObject("agreeCheckBox");
-            var continueButton = PWM_MAIN.getObject("button_continue");
-            if (checkBox != null && continueButton != null) {
-                if (checkBox.checked) {
-                    continueButton.removeAttribute('disabled');
-                } else {
-                    continueButton.disabled = "disabled";
-                }
-            }
-        }
-
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('agreeCheckBox','click, change',function(){ updateContinueButton() });
-            updateContinueButton();
-        });
-    </script>
-</pwm:script>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_MAIN} from "<pwm:url url="/public/resources/js/main.js" addContext="true"/>";
+    PWM_MAIN.initAgreementPage();
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

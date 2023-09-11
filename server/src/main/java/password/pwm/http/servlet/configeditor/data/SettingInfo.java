@@ -20,8 +20,8 @@
 
 package password.pwm.http.servlet.configeditor.data;
 
+import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Value;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.PwmSettingFlag;
@@ -35,23 +35,26 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-@Value
-@Builder
-public class SettingInfo
+public record SettingInfo(
+        String key,
+        String label,
+        String description,
+        PwmSettingCategory category,
+        PwmSettingSyntax syntax,
+        boolean hidden,
+        boolean required,
+        Map<String, String> options,
+        Map<PwmSettingProperty, String> properties,
+        String pattern,
+        String placeholder, int level,
+        Set<PwmSettingFlag> flags
+)
 {
-    private String key;
-    private String label;
-    private String description;
-    private PwmSettingCategory category;
-    private PwmSettingSyntax syntax;
-    private boolean hidden;
-    private boolean required;
-    private Map<String, String> options;
-    private Map<PwmSettingProperty, String> properties;
-    private String pattern;
-    private String placeholder;
-    private int level;
-    private Set<PwmSettingFlag> flags;
+    @Builder( access = AccessLevel.PRIVATE )
+    public SettingInfo
+    {
+    }
+
 
     static SettingInfo forSetting(
             final PwmSetting setting,
@@ -61,17 +64,17 @@ public class SettingInfo
     {
         return SettingInfo.builder()
                 .key( setting.getKey() )
-                .description( setting.getDescription( locale ) )
-                .level( setting.getLevel() )
                 .label( setting.getLabel( locale ) )
-                .syntax( setting.getSyntax() )
+                .description( setting.getDescription( locale ) )
                 .category( setting.getCategory() )
-                .properties( setting.getProperties() )
-                .required( setting.isRequired() )
+                .syntax( setting.getSyntax() )
                 .hidden( setting.isHidden() )
+                .required( setting.isRequired() )
                 .options( setting.getOptions() )
+                .properties( setting.getProperties() )
                 .pattern( setting.getRegExPattern().toString() )
                 .placeholder( setting.getExample( template ) )
+                .level( setting.getLevel() )
                 .flags( Collections.unmodifiableSet( CollectionUtil.copyToEnumSet( setting.getFlags(), PwmSettingFlag.class ) ) )
                 .build();
     }

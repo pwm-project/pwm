@@ -30,7 +30,6 @@ import java.util.Locale;
  */
 public enum Display implements PwmDisplayBundle
 {
-
     Button_Activate,
     Button_Agree,
     Button_Cancel,

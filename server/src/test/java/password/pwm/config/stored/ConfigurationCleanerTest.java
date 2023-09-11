@@ -81,7 +81,7 @@ public class ConfigurationCleanerTest
         final PeopleSearchProfile peopleSearchProfile = domainConfig.getPeopleSearchProfiles().get( ProfileID.PROFILE_ID_DEFAULT );
         final List<UserPermission> userPermissionList = peopleSearchProfile.readSettingAsUserPermission( PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER );
         final UserPermission userPermission = userPermissionList.iterator().next();
-        Assertions.assertEquals( "(|(cn=*smith*)(cn=*blake*)(givenName=*Margo*))", userPermission.getLdapQuery() );
+        Assertions.assertEquals( "(|(cn=*smith*)(cn=*blake*)(givenName=*Margo*))", userPermission.ldapQuery() );
     }
 
     @Test

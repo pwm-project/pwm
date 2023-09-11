@@ -20,7 +20,17 @@
 
 // -------------------------- Custom link handler ------------------------------------
 
-var CustomLinkHandler = {};
+const CustomLinkHandler = {};
+
+import {PWM_CFGEDIT} from "./configeditor.js";
+import {PWM_MAIN} from "./main.js";
+import {PWM_UILibrary} from "./uilibrary.js";
+
+export {CustomLinkHandler};
+
+const ClientSettingCache = {};
+
+
 CustomLinkHandler.newRowValue = {
     name:'',
     labels:{'':''},
@@ -32,22 +42,22 @@ CustomLinkHandler.init = function(keyName) {
     const parentDiv = 'table_setting_' + keyName;
     PWM_CFGEDIT.clearDivElements(parentDiv, true);
     PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
-        PWM_VAR['clientSettingCache'][keyName] = resultValue;
+        ClientSettingCache[keyName] = resultValue;
         CustomLinkHandler.redraw(keyName);
     });
 };
 
 CustomLinkHandler.redraw = function(keyName) {
-    const resultValue = PWM_VAR['clientSettingCache'][keyName];
+    const resultValue = ClientSettingCache[keyName];
     {
         const parentDiv = 'table_setting_' + keyName;
-        const parentDivElement = PWM_MAIN.getObject(parentDiv);
+        const parentDivElement = PWM_JSLibrary.getElement(parentDiv);
         parentDivElement.innerHTML = '<table class="noborder" style="margin-left: 0; width:auto" id="table-top-' + keyName + '"></table>';
     }
     const parentDiv = 'table-top-' + keyName;
-    const parentDivElement = PWM_MAIN.getObject(parentDiv);
+    const parentDivElement = PWM_JSLibrary.getElement(parentDiv);
 
-    if (!PWM_MAIN.JSLibrary.isEmpty(resultValue)) {
+    if (!PWM_JSLibrary.isEmpty(resultValue)) {
         const headerRow = document.createElement("tr");
         const rowHtml = '<td>Name</td><td></td><td>Label</td>';
         headerRow.innerHTML = rowHtml;
@@ -70,11 +80,13 @@ CustomLinkHandler.redraw = function(keyName) {
 
 };
 
-CustomLinkHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
-        const itemCount = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][settingKey]);
+CustomLinkHandler.drawRow = async function(parentDiv, settingKey, iteration, value) {
+    const settingData = await PWM_CFGEDIT.getConfigSettingData();
+
+    const itemCount = PWM_JSLibrary.itemCount(ClientSettingCache[settingKey]);
         const inputID = 'value_' + settingKey + '_' + iteration + "_";
-        const options = PWM_SETTINGS['settings'][settingKey]['options'];
-        const properties = PWM_SETTINGS['settings'][settingKey]['properties'];
+        const options = settingData['settings'][settingKey]['options'];
+        const properties = settingData['settings'][settingKey]['properties'];
 
         const newTableRow = document.createElement("tr");
         newTableRow.setAttribute("style", "border-width: 0");
@@ -100,10 +112,10 @@ CustomLinkHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         htmlRow += '<td style="width:10px"><span class="delete-row-icon action-icon pwm-icon pwm-icon-times" id="' + inputID + '-deleteRowButton"></span></td>';
 
         newTableRow.innerHTML = htmlRow;
-        const parentDivElement = PWM_MAIN.getObject(parentDiv);
+        const parentDivElement = PWM_JSLibrary.getElement(parentDiv);
         parentDivElement.appendChild(newTableRow);
 
-        UILibrary.addTextValueToElement("panel-name-" + inputID,value['name']);
+        PWM_UILibrary.addTextValueToElement("panel-name-" + inputID,value['name']);
 
         PWM_MAIN.addEventHandler(inputID + "-moveUp", 'click', function () {
             CustomLinkHandler.move(settingKey, true, iteration);
@@ -124,17 +136,17 @@ CustomLinkHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
             CustomLinkHandler.showOptionsDialog(settingKey, iteration);
         });
         PWM_MAIN.addEventHandler(inputID + "name", 'input', function () {
-            PWM_VAR['clientSettingCache'][settingKey][iteration]['name'] = PWM_MAIN.getObject(inputID + "name").value;
+            ClientSettingCache[settingKey][iteration]['name'] = PWM_JSLibrary.getElement(inputID + "name").value;
             CustomLinkHandler.write(settingKey);
         });
         PWM_MAIN.addEventHandler(inputID + "type", 'click', function () {
-            PWM_VAR['clientSettingCache'][settingKey][iteration]['type'] = PWM_MAIN.getObject(inputID + "type").value;
+            ClientSettingCache[settingKey][iteration]['type'] = PWM_JSLibrary.getElement(inputID + "type").value;
             CustomLinkHandler.write(settingKey);
         });
 };
 
 CustomLinkHandler.write = function(settingKey, finishFunction) {
-    const cachedSetting = PWM_VAR['clientSettingCache'][settingKey];
+    const cachedSetting = ClientSettingCache[settingKey];
     PWM_CFGEDIT.writeSetting(settingKey, cachedSetting, finishFunction);
 };
 
@@ -142,7 +154,7 @@ CustomLinkHandler.removeRow = function(keyName, iteration) {
     PWM_MAIN.showConfirmDialog({
         text:'Are you sure you wish to delete this item?',
         okAction:function(){
-            const currentValues = PWM_VAR['clientSettingCache'][keyName];
+            const currentValues = ClientSettingCache[keyName];
             currentValues.splice(iteration,1);
             CustomLinkHandler.write(keyName,function(){
                 CustomLinkHandler.init(keyName);
@@ -152,7 +164,7 @@ CustomLinkHandler.removeRow = function(keyName, iteration) {
 };
 
 CustomLinkHandler.move = function(settingKey, moveUp, iteration) {
-    const currentValues = PWM_VAR['clientSettingCache'][settingKey];
+    const currentValues = ClientSettingCache[settingKey];
     if (moveUp) {
         CustomLinkHandler.arrayMoveUtil(currentValues, iteration, iteration - 1);
     } else {
@@ -169,23 +181,25 @@ CustomLinkHandler.arrayMoveUtil = function(arr, fromIndex, toIndex) {
 };
 
 
-CustomLinkHandler.addRow = function(keyName) {
-    UILibrary.stringEditorDialog({
-        title:PWM_SETTINGS['settings'][keyName]['label'] + ' - New Custom Link Key Name',
+CustomLinkHandler.addRow = async function(keyName) {
+    const settingData = await PWM_CFGEDIT.getConfigSettingData();
+
+    PWM_UILibrary.stringEditorDialog({
+        title:settingData['settings'][keyName]['label'] + ' - New Custom Link Key Name',
         instructions: 'Acceptable characters, a-z,A-Z,0-9',
         regex:'^[a-zA-Z][a-zA-Z0-9-]*$',
         placeholder:'KeyName',
         completeFunction:function(value){
-            for (const i in PWM_VAR['clientSettingCache'][keyName]) {
-                if (PWM_VAR['clientSettingCache'][keyName][i]['name'] === value) {
+            for (const i in ClientSettingCache[keyName]) {
+                if (ClientSettingCache[keyName][i]['name'] === value) {
                     alert('key name already exists');
                     return;
                 }
             }
-            const currentSize = PWM_MAIN.JSLibrary.itemCount(PWM_VAR['clientSettingCache'][keyName]);
-            PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = CustomLinkHandler.newRowValue;
-            PWM_VAR['clientSettingCache'][keyName][currentSize + 1].name = value;
-            PWM_VAR['clientSettingCache'][keyName][currentSize + 1].labels = {'':value};
+            const currentSize = PWM_JSLibrary.itemCount(ClientSettingCache[keyName]);
+            ClientSettingCache[keyName][currentSize + 1] = CustomLinkHandler.newRowValue;
+            ClientSettingCache[keyName][currentSize + 1].name = value;
+            ClientSettingCache[keyName][currentSize + 1].labels = {'':value};
             CustomLinkHandler.write(keyName,function(){
                 CustomLinkHandler.init(keyName);
             });
@@ -193,29 +207,31 @@ CustomLinkHandler.addRow = function(keyName) {
     });
 };
 
-CustomLinkHandler.showOptionsDialog = function(keyName, iteration) {
-    const type = PWM_VAR['clientSettingCache'][keyName][iteration]['type'];
-    const settings = PWM_SETTINGS['settings'][keyName];
-    const options = 'options' in PWM_SETTINGS['settings'][keyName] ? PWM_SETTINGS['settings'][keyName]['options'] : {};
+CustomLinkHandler.showOptionsDialog = async function(keyName, iteration) {
+    const settingData = await PWM_CFGEDIT.getConfigSettingData();
+
+    const type = ClientSettingCache[keyName][iteration]['type'];
+    const settings = settingData['settings'][keyName];
+    const options = 'options' in settingData['settings'][keyName] ? settingData['settings'][keyName]['options'] : {};
 
     const inputID = 'value_' + keyName + '_' + iteration + '_';
     let bodyText = '<div style="max-height: 500px; overflow-x: auto"><table class="noborder">';
 
     bodyText += '<tr>';
-    const descriptionValue = PWM_VAR['clientSettingCache'][keyName][iteration]['description'][''];
+    const descriptionValue = ClientSettingCache[keyName][iteration]['description'][''];
     bodyText += '<td id="' + inputID + '-label-description" class="key" >Description</td><td>';
     bodyText += '<div class="noWrapTextBox" id="' + inputID + 'DescriptionValue"><span class="btn-icon pwm-icon pwm-icon-edit"></span><span>' + descriptionValue + '...</span></div>';
     bodyText += '</td>';
 
     bodyText += '</tr><tr>';
 
-    const customLinkUrl = PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkUrl'];
+    const customLinkUrl = ClientSettingCache[keyName][iteration]['customLinkUrl'];
     bodyText += '<td id="' + inputID + '-Site-url" class="key" >Link URL</td><td>' +
         '<input placeholder="https://example.com" style="width: 350px;" type="url" class="key" id="' + inputID + 'SiteURL' + '" value="'+ customLinkUrl +'"/></td>';
     bodyText += '</tr><tr>';
 
-    const checkedValue = PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkNewWindow'];
-    bodyText += '<td class="key" title="' + PWM_CONFIG.showString('Tooltip_Form_ShowInNewWindow') + '">Open link in new window</td><td><input type="checkbox" id="' + inputID + 'newWindow' + '" ';
+    const checkedValue = ClientSettingCache[keyName][iteration]['customLinkNewWindow'];
+    bodyText += '<td class="key" title="' + await PWM_CONFIG.getDisplayString('Tooltip_Form_ShowInNewWindow') + '">Open link in new window</td><td><input type="checkbox" id="' + inputID + 'newWindow' + '" ';
     if(checkedValue) {
         bodyText += 'checked'
     }
@@ -236,18 +252,18 @@ CustomLinkHandler.showOptionsDialog = function(keyName, iteration) {
         });
 
         PWM_MAIN.addEventHandler(inputID + 'SiteURL', 'change', function () {
-            PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkUrl'] = this.value;
+            ClientSettingCache[keyName][iteration]['customLinkUrl'] = this.value;
             CustomLinkHandler.write(keyName)
         });
 
         PWM_MAIN.addEventHandler(inputID + 'newWindow', 'click', function () {
-            PWM_VAR['clientSettingCache'][keyName][iteration]['customLinkNewWindow'] = PWM_MAIN.getObject(inputID + 'newWindow').checked;
+            ClientSettingCache[keyName][iteration]['customLinkNewWindow'] = PWM_JSLibrary.getElement(inputID + 'newWindow').checked;
             CustomLinkHandler.write(keyName)
         });
     };
 
     PWM_MAIN.showDialog({
-        title: PWM_SETTINGS['settings'][keyName]['label'] + ' - ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'],
+        title: settingData['settings'][keyName]['label'] + ' - ' + ClientSettingCache[keyName][iteration]['name'],
         text: bodyText,
         allowMove: true,
         loadFunction: initDialogWidgets,
@@ -259,7 +275,7 @@ CustomLinkHandler.showOptionsDialog = function(keyName, iteration) {
 
 CustomLinkHandler.showLabelDialog = function(keyName, iteration) {
     const finishAction = function(){ CustomLinkHandler.redraw(keyName); };
-    const title = 'Label for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
+    const title = 'Label for ' + ClientSettingCache[keyName][iteration]['name'];
     CustomLinkHandler.multiLocaleStringDialog(keyName, iteration, 'labels', finishAction, title);
 };
 
@@ -268,8 +284,8 @@ CustomLinkHandler.multiLocaleStringDialog = function(keyName, iteration, setting
         const inputID = 'value_' + keyName + '_' + iteration + "_" + "label_";
         let bodyText = '<table class="noborder" id="' + inputID + 'table">';
         bodyText += '<tr>';
-        for (const localeName in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
-            const value = PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName];
+        for (const localeName in ClientSettingCache[keyName][iteration][settingType]) {
+            const value = ClientSettingCache[keyName][iteration][settingType][localeName];
             const localeID = inputID + localeName;
             bodyText += '<td>' + localeName + '</td>';
             bodyText += '<td><input style="width:420px" class="configStringInput" type="text" value="' + value + '" id="' + localeID + '-input"></input></td>';
@@ -287,31 +303,31 @@ CustomLinkHandler.multiLocaleStringDialog = function(keyName, iteration, setting
                 finishAction();
             },
             loadFunction:function(){
-                for (const iter in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
+                for (const iter in ClientSettingCache[keyName][iteration][settingType]) {
                     (function(localeName) {
                         const localeID = inputID + localeName;
                         PWM_MAIN.addEventHandler(localeID + '-input', 'input', function () {
-                            const inputElement = PWM_MAIN.getObject(localeID + '-input');
+                            const inputElement = PWM_JSLibrary.getElement(localeID + '-input');
                             const value = inputElement.value;
-                            PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName] = value;
+                            ClientSettingCache[keyName][iteration][settingType][localeName] = value;
                             CustomLinkHandler.write(keyName);
                         });
                         PWM_MAIN.addEventHandler(localeID + '-removeLocaleButton', 'click', function () {
-                            delete PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName];
+                            delete ClientSettingCache[keyName][iteration][settingType][localeName];
                             CustomLinkHandler.write(keyName);
                             CustomLinkHandler.multiLocaleStringDialog(keyName, iteration, settingType, finishAction, titleText);
                         });
                     }(iter));
                 }
-                UILibrary.addAddLocaleButtonRow(inputID + 'table', inputID, function(localeName){
-                    if (localeName in PWM_VAR['clientSettingCache'][keyName][iteration][settingType]) {
+                PWM_UILibrary.addAddLocaleButtonRow(inputID + 'table', inputID, function(localeName){
+                    if (localeName in ClientSettingCache[keyName][iteration][settingType]) {
                         alert('Locale is already present');
                     } else {
-                        PWM_VAR['clientSettingCache'][keyName][iteration][settingType][localeName] = '';
+                        ClientSettingCache[keyName][iteration][settingType][localeName] = '';
                         CustomLinkHandler.write(keyName);
                         CustomLinkHandler.multiLocaleStringDialog(keyName, iteration, settingType, finishAction, titleText);
                     }
-                }, Object.keys(PWM_VAR['clientSettingCache'][keyName][iteration][settingType]));
+                }, Object.keys(ClientSettingCache[keyName][iteration][settingType]));
             }
         });
     });
@@ -320,7 +336,7 @@ CustomLinkHandler.multiLocaleStringDialog = function(keyName, iteration, setting
 
 CustomLinkHandler.showDescriptionDialog = function(keyName, iteration) {
     const finishAction = function(){ CustomLinkHandler.showOptionsDialog(keyName, iteration); };
-    const title = 'Description for ' + PWM_VAR['clientSettingCache'][keyName][iteration]['name'];
+    const title = 'Description for ' + ClientSettingCache[keyName][iteration]['name'];
     CustomLinkHandler.multiLocaleStringDialog(keyName, iteration, 'description', finishAction, title);
 };
 

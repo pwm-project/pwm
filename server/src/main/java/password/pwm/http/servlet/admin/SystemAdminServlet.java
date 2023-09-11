@@ -281,7 +281,7 @@ public class SystemAdminServlet extends ControlledPwmServlet
         )
         {
             final AuditRecord loopRecord = iterator.next();
-            if ( auditDataType == loopRecord.getType() )
+            if ( auditDataType == loopRecord.type() )
             {
                 records.add( loopRecord );
             }
@@ -446,7 +446,7 @@ public class SystemAdminServlet extends ControlledPwmServlet
         int key = 0;
         if ( !pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.PW_EXPY_NOTIFY_ENABLE ) )
         {
-            final DisplayElement displayElement = new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string, "Status",
+            final DisplayElement displayElement = DisplayElement.create( String.valueOf( key++ ), DisplayElement.Type.string, "Status",
                     "Password Notification Feature is not enabled.  See setting: "
                             + PwmSetting.PW_EXPY_NOTIFY_ENABLE.toMenuLocationDebug( null, pwmRequest.getLocale() ) );
             final PwNotifyStatusBean pwNotifyStatusBean = new PwNotifyStatusBean( Collections.singletonList( displayElement ), false );
@@ -461,43 +461,43 @@ public class SystemAdminServlet extends ControlledPwmServlet
         final PwNotifyStoredJobState pwNotifyStoredJobState = pwNotifyService.getJobState();
         final boolean canRunOnthisServer = pwNotifyService.canRunOnThisServer();
 
-        statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
+        statusData.add( DisplayElement.create( String.valueOf( key++ ), DisplayElement.Type.string,
                 "Currently Processing (on this server)", LocaleHelper.booleanString( pwNotifyService.isRunning(), locale, config ) ) );
 
-        statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
+        statusData.add( DisplayElement.create( String.valueOf( key++ ), DisplayElement.Type.string,
                 "This Server is the Job Processor", LocaleHelper.booleanString( canRunOnthisServer, locale, config ) ) );
 
         if ( canRunOnthisServer )
         {
-            statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
+            statusData.add( DisplayElement.create( String.valueOf( key++ ), DisplayElement.Type.timestamp,
                     "Next Job Scheduled Time", LocaleHelper.instantString( pwNotifyService.getNextExecutionTime(), locale, config ) ) );
         }
 
         if ( pwNotifyStoredJobState != null )
         {
-            statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
-                    "Last Job Start Time", LocaleHelper.instantString( pwNotifyStoredJobState.getLastStart(), locale, config ) ) );
+            statusData.add( DisplayElement.create( String.valueOf( key++ ), DisplayElement.Type.timestamp,
+                    "Last Job Start Time", LocaleHelper.instantString( pwNotifyStoredJobState.lastStart(), locale, config ) ) );
 
-            statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
-                    "Last Job Completion Time", LocaleHelper.instantString( pwNotifyStoredJobState.getLastCompletion(), locale, config ) ) );
+            statusData.add( DisplayElement.create( String.valueOf( key++ ), DisplayElement.Type.timestamp,
+                    "Last Job Completion Time", LocaleHelper.instantString( pwNotifyStoredJobState.lastCompletion(), locale, config ) ) );
 
-            if ( pwNotifyStoredJobState.getLastStart() != null && pwNotifyStoredJobState.getLastCompletion() != null )
+            if ( pwNotifyStoredJobState.lastStart() != null && pwNotifyStoredJobState.lastCompletion() != null )
             {
-                final TimeDuration lastJobDuration = TimeDuration.between( pwNotifyStoredJobState.getLastStart(), pwNotifyStoredJobState.getLastCompletion() );
-                statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.timestamp,
+                final TimeDuration lastJobDuration = TimeDuration.between( pwNotifyStoredJobState.lastStart(), pwNotifyStoredJobState.lastCompletion() );
+                statusData.add( DisplayElement.create( String.valueOf( key++ ), DisplayElement.Type.timestamp,
                         "Last Job Duration", PwmTimeUtil.asLongString( lastJobDuration, locale ) ) );
             }
 
-            if ( StringUtil.notEmpty( pwNotifyStoredJobState.getServerInstance() ) )
+            if ( StringUtil.notEmpty( pwNotifyStoredJobState.serverInstance() ) )
             {
-                statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
-                        "Last Job Server Instance", pwNotifyStoredJobState.getServerInstance() ) );
+                statusData.add( DisplayElement.create( String.valueOf( key++ ), DisplayElement.Type.string,
+                        "Last Job Server Instance", pwNotifyStoredJobState.serverInstance() ) );
             }
 
-            if ( pwNotifyStoredJobState.getLastError() != null )
+            if ( pwNotifyStoredJobState.lastError() != null )
             {
-                statusData.add( new DisplayElement( String.valueOf( key++ ), DisplayElement.Type.string,
-                        "Last Job Error",  pwNotifyStoredJobState.getLastError().toDebugStr() ) );
+                statusData.add( DisplayElement.create( String.valueOf( key++ ), DisplayElement.Type.string,
+                        "Last Job Error",  pwNotifyStoredJobState.lastError().toDebugStr() ) );
             }
         }
 

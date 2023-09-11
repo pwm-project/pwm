@@ -112,7 +112,6 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
 
         if ( action.isPresent() )
         {
-            pwmRequest.validatePwmFormID();
             switch ( action.get() )
             {
                 case search:

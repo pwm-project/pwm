@@ -161,24 +161,24 @@ public class TokenUtil
             );
             if ( tokenPayload != null )
             {
-                if ( !tokenType.matchesName( tokenPayload.getName() ) )
+                if ( !tokenType.matchesName( tokenPayload.name() ) )
                 {
-                    final String errorMsg = "expecting email token type but received : " + tokenPayload.getName();
+                    final String errorMsg = "expecting email token type but received : " + tokenPayload.name();
                     throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
                 }
 
                 if ( tokenEntryType == TokenService.TokenEntryType.authenticated )
                 {
-                    if ( tokenPayload.getUserIdentity() == null )
+                    if ( tokenPayload.userIdentity() == null )
                     {
                         final String errorMsg = "missing userID for received token";
                         throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
                     }
 
-                    if ( !userIdentity.canonicalEquals( pwmRequestContext.getSessionLabel(), tokenPayload.getUserIdentity(), pwmDomain.getPwmApplication() ) )
+                    if ( !userIdentity.canonicalEquals( pwmRequestContext.getSessionLabel(), tokenPayload.userIdentity(), pwmDomain.getPwmApplication() ) )
                     {
                         final String errorMsg = "received token is not for currently authenticated user, received token is for: "
-                                + tokenPayload.getUserIdentity().toDisplayString();
+                                + tokenPayload.userIdentity().toDisplayString();
                         throw PwmUnrecoverableException.newException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
                     }
                 }
@@ -186,7 +186,7 @@ public class TokenUtil
                 if ( tokenDestinationItem != null )
                 {
                     final String currentTokenDest = tokenDestinationItem.getValue();
-                    final TokenDestinationItem payloadTokenDest = tokenPayload.getDestination();
+                    final TokenDestinationItem payloadTokenDest = tokenPayload.destination();
                     if ( payloadTokenDest != null && !StringUtil.nullSafeEquals( currentTokenDest, payloadTokenDest.getValue() ) )
                     {
                         final String errorMsg = "token is for destination '" + currentTokenDest

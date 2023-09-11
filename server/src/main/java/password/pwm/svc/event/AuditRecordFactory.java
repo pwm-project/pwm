@@ -265,7 +265,7 @@ public class AuditRecordFactory
 
     private String makeNarrativeString( final AuditRecord auditRecord )
     {
-        final PwmDisplayBundle pwmDisplayBundle = auditRecord.getEventCode().getNarrative();
+        final PwmDisplayBundle pwmDisplayBundle = auditRecord.eventCode().getNarrative();
 
         String outputString = LocaleHelper.getLocalizedMessage( PwmConstants.DEFAULT_LOCALE, pwmDisplayBundle, pwmApplication.getConfig() );
 

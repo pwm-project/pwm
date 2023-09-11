@@ -63,22 +63,22 @@ public class LdapXmlUserHistoryTest
 
         Assertions.assertEquals( 20, auditEventList.size() );
         Assertions.assertEquals( 9, auditEventList.stream()
-                .filter( ( record ) -> record.getEventCode() == AuditEvent.CHANGE_PASSWORD ).count() );
+                .filter( ( record ) -> record.eventCode() == AuditEvent.CHANGE_PASSWORD ).count() );
 
         {
             final UserAuditRecord record0 = auditEventList.get( 0 );
-            Assertions.assertEquals( "ort", record0.getSourceHost() );
-            Assertions.assertEquals( "172.17.2.1", record0.getSourceAddress() );
-            Assertions.assertEquals( Instant.parse( "2019-07-28T01:14:39.054Z" ), record0.getTimestamp() );
-            Assertions.assertEquals( AuditEvent.CHANGE_PASSWORD, record0.getEventCode() );
+            Assertions.assertEquals( "ort", record0.sourceHost() );
+            Assertions.assertEquals( "172.17.2.1", record0.sourceAddress() );
+            Assertions.assertEquals( Instant.parse( "2019-07-28T01:14:39.054Z" ), record0.timestamp() );
+            Assertions.assertEquals( AuditEvent.CHANGE_PASSWORD, record0.eventCode() );
         }
 
         {
             final UserAuditRecord record7 = auditEventList.get( 7 );
-            Assertions.assertEquals( "0:0:0:0:0:0:0:1", record7.getSourceHost() );
-            Assertions.assertEquals( "0:0:0:0:0:0:0:1", record7.getSourceAddress() );
-            Assertions.assertEquals( Instant.parse( "2020-07-12T02:29:22.347Z" ), record7.getTimestamp() );
-            Assertions.assertEquals( AuditEvent.AUTHENTICATE, record7.getEventCode() );
+            Assertions.assertEquals( "0:0:0:0:0:0:0:1", record7.sourceHost() );
+            Assertions.assertEquals( "0:0:0:0:0:0:0:1", record7.sourceAddress() );
+            Assertions.assertEquals( Instant.parse( "2020-07-12T02:29:22.347Z" ), record7.timestamp() );
+            Assertions.assertEquals( AuditEvent.AUTHENTICATE, record7.eventCode() );
         }
 
 

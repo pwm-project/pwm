@@ -37,7 +37,6 @@ import jetbrains.exodus.management.StatisticsItem;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.util.java.ConditionalTaskExecutor;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.json.JsonFactory;
@@ -67,7 +66,6 @@ import java.util.zip.InflaterOutputStream;
 public class XodusLocalDB implements LocalDBProvider
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( XodusLocalDB.class );
-    private static final TimeDuration STATS_OUTPUT_INTERVAL = TimeDuration.DAY;
 
     private static final String FILE_SUB_PATH = "xodus";
     private static final String README_FILENAME = "README.TXT";
@@ -98,12 +96,6 @@ public class XodusLocalDB implements LocalDBProvider
     private LocalDB.Status status = LocalDB.Status.NEW;
 
     private final Map<LocalDB.DB, Store> cachedStoreObjects = new EnumMap<>( LocalDB.DB.class );
-
-    private final ConditionalTaskExecutor outputLogExecutor = ConditionalTaskExecutor.forPeriodicTask(
-            this::outputStats,
-            STATS_OUTPUT_INTERVAL.asDuration(),
-            TimeDuration.MINUTE.asDuration()
-    );
 
     private BindMachine bindMachine = new BindMachine( BindMachine.DEFAULT_ENABLE_COMPRESSION, BindMachine.DEFAULT_MIN_COMPRESSION_LENGTH );
 
@@ -183,11 +175,14 @@ public class XodusLocalDB implements LocalDBProvider
         }
 
         outputReadme( dbDirectory.resolve( FILE_SUB_PATH ).resolve( README_FILENAME ) );
+
+        outputStats();
     }
 
     @Override
     public void close( ) throws LocalDBException
     {
+        outputStats();
         final Instant startTime = Instant.now();
         if ( environment != null && environment.isOpen() )
         {
@@ -385,7 +380,6 @@ public class XodusLocalDB implements LocalDBProvider
                 store.put( transaction, k, v );
             }
         } );
-        outputLogExecutor.conditionallyExecuteTask();
     }
 
 
@@ -506,8 +500,6 @@ public class XodusLocalDB implements LocalDBProvider
         {
             throw new LocalDBException( new ErrorInformation( PwmError.ERROR_LOCALDB_UNAVAILABLE, "cannot perform operation, localdb is in read-only mode" ) );
         }
-
-        outputLogExecutor.conditionallyExecuteTask();
     }
 
     private void outputStats( )

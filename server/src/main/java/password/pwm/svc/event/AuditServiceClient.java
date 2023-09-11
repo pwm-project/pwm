@@ -36,7 +36,6 @@ public class AuditServiceClient
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( AuditServiceClient.class );
 
-
     public static void submit( final PwmApplication pwmApplication, final SessionLabel sessionLabel, final AuditRecord auditRecord )
     {
         Objects.requireNonNull( pwmApplication );

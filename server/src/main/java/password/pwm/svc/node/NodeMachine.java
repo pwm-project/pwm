@@ -20,10 +20,12 @@
 
 package password.pwm.svc.node;
 
+import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -46,7 +48,15 @@ class NodeMachine
     private final Map<String, StoredNodeData> knownNodes = new ConcurrentHashMap<>();
 
     private final NodeServiceSettings settings;
-    private final NodeServiceStatistics nodeServiceStatistics = new NodeServiceStatistics();
+
+    private final StatisticCounterBundle<Stats> nodeServiceStatistics = new StatisticCounterBundle<>( Stats.class );
+
+    private enum Stats
+    {
+        clusterWrites,
+        clusterReads,
+        nodePurges
+    }
 
     NodeMachine(
             final NodeService nodeService,
@@ -70,28 +80,28 @@ class NodeMachine
         final String configHash = nodeService.getPwmApp().getConfig().getValueHash();
         for ( final StoredNodeData storedNodeData : knownNodes.values() )
         {
-            final boolean configMatch = configHash.equals( storedNodeData.getConfigHash() );
+            final boolean configMatch = configHash.equals( storedNodeData.configHash() );
             final boolean timedOut = isTimedOut( storedNodeData );
 
-            final NodeInfo.NodeState nodeState = isMaster( storedNodeData )
-                    ? NodeInfo.NodeState.master
+            final NodeState nodeState = isMaster( storedNodeData )
+                    ? NodeState.master
                     : timedOut
-                    ? NodeInfo.NodeState.offline
-                    : NodeInfo.NodeState.online;
+                            ? NodeState.offline
+                            : NodeState.online;
 
-            final Instant startupTime = nodeState == NodeInfo.NodeState.offline
+            final Instant startupTime = nodeState == NodeState.offline
                     ? null
-                    : storedNodeData.getStartupTimestamp();
+                    : storedNodeData.startupTimestamp();
 
 
             final NodeInfo nodeInfo = new NodeInfo(
-                    storedNodeData.getInstanceID(),
-                    storedNodeData.getTimestamp(),
+                    storedNodeData.instanceID(),
+                    storedNodeData.timestamp(),
                     startupTime,
                     nodeState,
                     configMatch
             );
-            returnObj.put( nodeInfo.getInstanceID(), nodeInfo );
+            returnObj.put( nodeInfo.instanceID(), nodeInfo );
         }
 
         return List.copyOf( returnObj.values() );
@@ -113,10 +123,10 @@ class NodeMachine
         {
             if ( !isTimedOut( nodeData ) )
             {
-                if ( nodeData.getStartupTimestamp().isBefore( eldestRecord ) )
+                if ( nodeData.startupTimestamp().isBefore( eldestRecord ) )
                 {
-                    eldestRecord = nodeData.getStartupTimestamp();
-                    masterID = nodeData.getInstanceID();
+                    eldestRecord = nodeData.startupTimestamp();
+                    masterID = nodeData.instanceID();
                 }
             }
         }
@@ -133,13 +143,13 @@ class NodeMachine
     private boolean isMaster( final StoredNodeData storedNodeData )
     {
         final String masterID = masterInstanceId();
-        return storedNodeData.getInstanceID().equals( masterID );
+        return storedNodeData.instanceID().equals( masterID );
     }
 
     private boolean isTimedOut( final StoredNodeData storedNodeData )
     {
-        final TimeDuration age = TimeDuration.fromCurrent( storedNodeData.getTimestamp() );
-        return age.isLongerThan( settings.getNodeTimeout() );
+        final TimeDuration age = TimeDuration.fromCurrent( storedNodeData.timestamp() );
+        return age.isLongerThan( settings.nodeTimeout() );
     }
 
     public ErrorInformation getLastError( )
@@ -178,7 +188,7 @@ class NodeMachine
             {
                 final StoredNodeData storedNodeData = StoredNodeData.makeNew( nodeService.getPwmApp() );
                 clusterDataServiceProvider.writeNodeStatus( storedNodeData );
-                nodeServiceStatistics.getClusterWrites().incrementAndGet();
+                nodeServiceStatistics.increment( Stats.clusterWrites );
             }
             catch ( final PwmException e )
             {
@@ -195,7 +205,7 @@ class NodeMachine
             {
                 final Map<String, StoredNodeData> readNodeData = clusterDataServiceProvider.readStoredData();
                 knownNodes.putAll( readNodeData );
-                nodeServiceStatistics.getClusterReads().incrementAndGet();
+                nodeServiceStatistics.increment( Stats.clusterReads );
             }
             catch ( final PwmException e )
             {
@@ -210,8 +220,8 @@ class NodeMachine
         {
             try
             {
-                final int purges = clusterDataServiceProvider.purgeOutdatedNodes( settings.getNodePurgeInterval() );
-                nodeServiceStatistics.getNodePurges().addAndGet( purges );
+                final int purges = clusterDataServiceProvider.purgeOutdatedNodes( settings.nodePurgeInterval() );
+                nodeServiceStatistics.increment( Stats.nodePurges, purges );
             }
             catch ( final PwmException e )
             {
@@ -222,8 +232,8 @@ class NodeMachine
         }
     }
 
-    public NodeServiceStatistics getNodeServiceStatistics( )
+    public Map<String, String> getNodeServiceStatistics( )
     {
-        return nodeServiceStatistics;
+        return nodeServiceStatistics.debugStats( PwmConstants.DEFAULT_LOCALE );
     }
 }

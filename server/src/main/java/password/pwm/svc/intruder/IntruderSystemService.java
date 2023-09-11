@@ -141,11 +141,13 @@ public class IntruderSystemService extends AbstractPwmService implements PwmServ
         };
     }
 
-    public List<PublicIntruderRecord> getRecords( final IntruderRecordType recordType, final int maximum )
+    public List<PublicIntruderRecord> getRecords(
+            final IntruderRecordType recordType,
+            final int maximum )
             throws PwmException
     {
         return CollectionUtil.iteratorToStream( allRecordIterator() )
-                .filter( record -> record.getType() == recordType )
+                .filter( record -> record.type() == recordType )
                 .limit( maximum )
                 .collect( Collectors.toList() );
     }

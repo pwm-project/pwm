@@ -20,26 +20,32 @@
 
 package password.pwm.http.servlet.peoplesearch;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.util.java.CollectionUtil;
-import password.pwm.util.java.StringUtil;
+import password.pwm.util.java.CollectorUtil;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-@Value
-@Builder
-public class SearchRequestBean
+public record SearchRequestBean(
+        SearchMode mode,
+
+        String username,
+        List<SearchValue> searchValues,
+        boolean includeDisplayName
+)
 {
-    @Builder.Default
-    private SearchMode mode = SearchMode.simple;
-
-    private String username;
-    private List<SearchValue> searchValues;
-    private boolean includeDisplayName;
+    public SearchRequestBean(
+            final SearchMode mode,
+            final String username,
+            final List<SearchValue> searchValues,
+            final boolean includeDisplayName
+    )
+    {
+        this.mode = mode == null ? SearchMode.simple : mode;
+        this.username = username == null ? "" : username;
+        this.searchValues = CollectionUtil.stripNulls( searchValues );
+        this.includeDisplayName = includeDisplayName;
+    }
 
     public enum SearchMode
     {
@@ -47,37 +53,19 @@ public class SearchRequestBean
         advanced,
     }
 
-    @Value
-    public static class SearchValue
+    public record SearchValue(
+            String key,
+            String value
+    )
     {
-        private String key;
-        private String value;
     }
 
     public static Map<String, String> searchValueToMap( final List<SearchValue> input )
     {
         return input.stream()
-                .collect( Collectors.toUnmodifiableMap(
-                        SearchValue::getKey,
-                        SearchValue::getValue
+                .collect( CollectorUtil.toUnmodifiableLinkedMap(
+                        SearchValue::key,
+                        SearchValue::value
                 ) );
-    }
-
-    public List<SearchValue> nonEmptySearchValues()
-    {
-        return filterNonEmptySearchValues( getSearchValues() );
-    }
-
-    public static List<SearchValue> filterNonEmptySearchValues( final List<SearchValue> input )
-    {
-        if ( CollectionUtil.isEmpty( input ) )
-        {
-            return Collections.emptyList();
-        }
-
-        return input.stream()
-                .filter( searchValue -> !StringUtil.isEmpty( searchValue.getKey() ) )
-                .filter( searchValue -> !StringUtil.isEmpty( searchValue.getValue() ) )
-                .collect( Collectors.toUnmodifiableList() );
     }
 }

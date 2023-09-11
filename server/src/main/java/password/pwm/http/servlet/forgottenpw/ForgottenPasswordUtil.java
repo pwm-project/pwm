@@ -239,7 +239,7 @@ public class ForgottenPasswordUtil
             if ( optionalHttpAuthRecord.isPresent() )
             {
                 final HttpAuthRecord httpAuthRecord = optionalHttpAuthRecord.get();
-                if ( userGuid.get().equals( httpAuthRecord.getGuid() ) )
+                if ( userGuid.get().equals( httpAuthRecord.guid() ) )
                 {
                     LOGGER.debug( pwmRequest, () -> "auth record cookie validated" );
                     return true;

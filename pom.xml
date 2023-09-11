@@ -89,13 +89,6 @@
     </profiles>
 
     <build>
-        <extensions>
-            <extension>
-                <groupId>org.apache.maven.extensions</groupId>
-                <artifactId>maven-build-cache-extension</artifactId>
-                <version>1.0.1</version>
-            </extension>
-        </extensions>
         <plugins>
             <plugin>
                 <groupId>org.commonjava.maven.plugins</groupId>
@@ -149,7 +142,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -228,7 +221,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>10.12.4</version>
+                        <version>10.12.3</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -238,6 +231,7 @@
                         <configuration>
                             <propertyExpansion>basedir=${project.root.basedir}</propertyExpansion>
                             <configLocation>build/checkstyle.xml</configLocation>
+                            <encoding>UTF-8</encoding>
                             <consoleOutput>true</consoleOutput>
                             <includeTestResources>true</includeTestResources>
                             <failsOnError>true</failsOnError>
@@ -260,6 +254,7 @@
                         <configuration>
                             <propertyExpansion>basedir=${project.root.basedir}</propertyExpansion>
                             <configLocation>${project.root.basedir}/build/checkstyle-header.xml</configLocation>
+                            <encoding>UTF-8</encoding>
                             <consoleOutput>true</consoleOutput>
                             <includeTestResources>true</includeTestResources>
                             <failsOnError>true</failsOnError>
@@ -282,6 +277,7 @@
                         <configuration>
                             <propertyExpansion>basedir=${project.root.basedir}</propertyExpansion>
                             <configLocation>${project.root.basedir}/build/checkstyle-jsp.xml</configLocation>
+                            <encoding>UTF-8</encoding>
                             <consoleOutput>true</consoleOutput>
                             <includeTestResources>true</includeTestResources>
                             <failsOnError>true</failsOnError>
@@ -304,7 +300,7 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>4.7.3.6</version>
+                <version>4.7.3.5</version>
                 <dependencies>
                     <dependency>
                         <groupId>com.github.spotbugs</groupId>
@@ -438,7 +434,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.30</version>
+            <version>1.18.28</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -468,7 +464,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.wiremock</groupId>
+            <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
             <version>3.0.1</version>
             <scope>test</scope>

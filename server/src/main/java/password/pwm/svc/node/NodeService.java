@@ -34,7 +34,6 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
-import password.pwm.util.java.PwmUtil;
 import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
@@ -61,47 +60,37 @@ public class NodeService extends AbstractPwmService implements PwmService
             return STATUS.CLOSED;
         }
 
+        dataStore = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.NODE_SERVICE_STORAGE_MODE, DataStorageMethod.class );
+        if ( dataStore == null )
+        {
+            return STATUS.OPEN;
+        }
+
         try
         {
-            final NodeServiceSettings nodeServiceSettings;
-            final NodeDataServiceProvider clusterDataServiceProvider;
-            dataStore = pwmApplication.getConfig().readSettingAsEnum( PwmSetting.NODE_SERVICE_STORAGE_MODE, DataStorageMethod.class );
-
-            if ( dataStore != null )
-            {
-                switch ( dataStore )
-                {
-                    case DB:
+            final NodeDataServiceProvider nodeDataServiceProvider = switch ( dataStore )
                     {
-                        LOGGER.trace( () -> "starting database-backed node service provider" );
-                        nodeServiceSettings = NodeServiceSettings.fromConfigForDB( pwmApplication.getConfig() );
-                        clusterDataServiceProvider = new DatabaseNodeDataService( pwmApplication );
-                    }
-                    break;
+                        case DB -> new DatabaseNodeDataService( pwmApplication );
+                        case LDAP -> new LDAPNodeDataService( this, pwmApplication.getAdminDomain() );
+                        default -> throw new IllegalStateException( "no available implementation for store type " + dataStore );
+                    };
 
-                    case LDAP:
-                    {
-                        LOGGER.trace( () -> "starting ldap-backed node service provider" );
-                        nodeServiceSettings = NodeServiceSettings.fromConfigForLDAP( pwmApplication.getConfig() );
-                        clusterDataServiceProvider = new LDAPNodeDataService( this, pwmApplication.getAdminDomain() );
-                    }
-                    break;
+                LOGGER.trace( getSessionLabel(), () -> "started service provider "
+                        + nodeDataServiceProvider.getClass().getSimpleName() );
 
-                    default:
-                        LOGGER.debug( () -> "no suitable storage method configured " );
-                        PwmUtil.unhandledSwitchStatement( dataStore );
-                        return STATUS.CLOSED;
+                final NodeServiceSettings nodeServiceSettings = nodeDataServiceProvider.settings( pwmApplication.getConfig() );
 
-                }
+                nodeMachine = new NodeMachine( this, nodeDataServiceProvider, nodeServiceSettings );
 
-                nodeMachine = new NodeMachine( this, clusterDataServiceProvider, nodeServiceSettings );
-                scheduleFixedRateJob( nodeMachine.getHeartbeatProcess(), nodeServiceSettings.getHeartbeatInterval(), nodeServiceSettings.getHeartbeatInterval() );
-            }
+                scheduleFixedRateJob(
+                        nodeMachine.getHeartbeatProcess(),
+                        nodeServiceSettings.heartbeatInterval(),
+                        nodeServiceSettings.heartbeatInterval() );
         }
         catch ( final PwmUnrecoverableException e )
         {
             setStartupError( e.getErrorInformation() );
-            LOGGER.error( () -> "error starting up node service: " + e.getMessage() );
+            LOGGER.error( getSessionLabel(), () -> "error starting up node service: " + e.getMessage() );
             return STATUS.CLOSED;
         }
         catch ( final Exception e )

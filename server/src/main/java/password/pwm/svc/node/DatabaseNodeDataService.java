@@ -20,7 +20,9 @@
 
 package password.pwm.svc.node;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.config.AppConfig;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.svc.PwmService;
@@ -28,8 +30,8 @@ import password.pwm.svc.db.DatabaseAccessor;
 import password.pwm.svc.db.DatabaseException;
 import password.pwm.svc.db.DatabaseTable;
 import password.pwm.util.java.ClosableIterator;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.LinkedHashMap;
@@ -65,7 +67,7 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
     private String localKeyForStoredNode( final StoredNodeData storedNodeData )
             throws PwmUnrecoverableException
     {
-        final String instanceID = storedNodeData.getInstanceID();
+        final String instanceID = storedNodeData.instanceID();
         final String hash = pwmApplication.getSecureService().hash( instanceID );
         final String truncatedHash = hash.length() > 64
                 ? hash.substring( 0, 64 )
@@ -92,7 +94,7 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
                     rawValueInDb.ifPresent( s ->
                     {
                         final StoredNodeData nodeDataInDb = JsonFactory.get().deserialize( s, StoredNodeData.class );
-                        returnList.put( nodeDataInDb.getInstanceID(), nodeDataInDb );
+                        returnList.put( nodeDataInDb.instanceID(), nodeDataInDb );
                     } );
                 }
             }
@@ -132,8 +134,8 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
             final DatabaseAccessor databaseAccessor = getDatabaseAccessor();
             for ( final StoredNodeData storedNodeData : nodeDatas.values() )
             {
-                final TimeDuration recordAge = TimeDuration.fromCurrent( storedNodeData.getTimestamp() );
-                final String instanceID = storedNodeData.getInstanceID();
+                final TimeDuration recordAge = TimeDuration.fromCurrent( storedNodeData.timestamp() );
+                final String instanceID = storedNodeData.instanceID();
 
 
                 if ( recordAge.isLongerThan( maxNodeAge ) )
@@ -153,4 +155,15 @@ class DatabaseNodeDataService implements NodeDataServiceProvider
 
         return nodesPurged;
     }
+
+
+    public NodeServiceSettings settings( final AppConfig appConfig )
+    {
+        return new NodeServiceSettings(
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_DB_HEARTBEAT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_DB_NODE_TIMEOUT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_DB_NODE_PURGE_SECONDS ) ), TimeDuration.Unit.SECONDS )
+        );
+    }
+
 }

@@ -136,11 +136,11 @@ public class PropertyConfigurationImporter
 
         // static values
         modifySetting( modifier, PwmSetting.TEMPLATE_LDAP, null, new StringValue(
-                        inputMap.getOrDefault( PropertyKey.TEMPLATE_LDAP.name( ), PropertyKey.TEMPLATE_LDAP.getDefaultValue() ) ) );
+                inputMap.getOrDefault( PropertyKey.TEMPLATE_LDAP.name( ), PropertyKey.TEMPLATE_LDAP.getDefaultValue() ) ) );
         if ( inputMap.containsKey( PropertyKey.DISPLAY_THEME.name( ) ) )
         {
             modifySetting( modifier, PwmSetting.PASSWORD_POLICY_SOURCE, null, new StringValue(
-                            inputMap.get( PropertyKey.DISPLAY_THEME.name( ) ) ) );
+                    inputMap.get( PropertyKey.DISPLAY_THEME.name( ) ) ) );
         }
 
         modifySetting( modifier, PwmSetting.DISPLAY_HOME_BUTTON, null, BooleanValue.of( false ) );
@@ -274,12 +274,11 @@ public class PropertyConfigurationImporter
             final String value = inputMap.get( propertyKey.name() );
             if ( StringUtil.notEmpty( value ) )
             {
-                permissions.add( UserPermission.builder()
-                        .type( UserPermissionType.ldapQuery )
-                        .ldapProfileID( LDAP_PROFILE )
-                        .ldapQuery( filter )
-                        .ldapBase( value )
-                        .build() );
+                permissions.add( new UserPermission(
+                        UserPermissionType.ldapQuery,
+                        LDAP_PROFILE,
+                        filter,
+                        value ) );
             }
         }
 

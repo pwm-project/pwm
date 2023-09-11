@@ -21,7 +21,6 @@
 package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiConstant;
-import lombok.Value;
 import password.pwm.bean.ProfileID;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.LDAPPermissionInfo;
@@ -81,14 +80,14 @@ public class LdapPermissionCalculator
         final Map<String, Map<LDAPPermissionInfo.Access, List<PermissionRecord>>> returnObj = new TreeMap<>();
         for ( final PermissionRecord permissionRecord : getPermissionRecords() )
         {
-            if ( permissionRecord.getActor() == actor )
+            if ( permissionRecord.actor() == actor )
             {
                 final Map<LDAPPermissionInfo.Access, List<PermissionRecord>> innerMap = returnObj.computeIfAbsent(
-                        permissionRecord.getAttribute(),
+                        permissionRecord.attribute(),
                         ( key ) -> new EnumMap<>( LDAPPermissionInfo.Access.class ) );
 
                 final List<PermissionRecord> innerList = innerMap.computeIfAbsent(
-                        permissionRecord.getAccess(),
+                        permissionRecord.access(),
                         ( key ) -> new ArrayList<>() );
 
                 innerList.add( permissionRecord );
@@ -212,7 +211,7 @@ public class LdapPermissionCalculator
                             {
                                 for ( final UserPermission userPermission : userPermissions )
                                 {
-                                    if ( userPermission.getType() == UserPermissionType.ldapGroup )
+                                    if ( userPermission.type() == UserPermissionType.ldapGroup )
                                     {
                                         permissionRecords.add( new PermissionRecord( groupAttribute, pwmSetting, profile, permissionInfo.getAccess(), permissionInfo.getActor() ) );
                                     }
@@ -390,7 +389,7 @@ public class LdapPermissionCalculator
         // proxy user set password
         if ( domainConfig.readSettingAsBoolean( PwmSetting.FORGOTTEN_PASSWORD_ENABLE ) )
         {
-            final Collection<PwmSettingTemplate> templates = domainConfig.getTemplate().getTemplates();
+            final Collection<PwmSettingTemplate> templates = domainConfig.getTemplate().templates();
             if ( templates.contains( PwmSettingTemplate.NOVL ) || templates.contains( PwmSettingTemplate.NOVL_IDM ) )
             {
                 records.add( new PermissionRecord(
@@ -461,7 +460,7 @@ public class LdapPermissionCalculator
 
         {
             // edir specific attributes
-            if ( !Collections.disjoint( templateSet.getTemplates(), edirInterestedTemplates ) )
+            if ( !Collections.disjoint( templateSet.templates(), edirInterestedTemplates ) )
             {
                 final Map<String, LDAPPermissionInfo.Access> ldapAttributes = new LinkedHashMap<>();
                 ldapAttributes.put( ChaiConstant.ATTR_LDAP_LOCKED_BY_INTRUDER, LDAPPermissionInfo.Access.write );
@@ -506,13 +505,13 @@ public class LdapPermissionCalculator
         return permissionRecords;
     }
 
-    @Value
-    public static class PermissionRecord
+    public record PermissionRecord(
+            String attribute,
+            PwmSetting pwmSetting,
+            ProfileID profile,
+            LDAPPermissionInfo.Access access,
+            LDAPPermissionInfo.Actor actor
+    )
     {
-        private final String attribute;
-        private final PwmSetting pwmSetting;
-        private final ProfileID profile;
-        private final LDAPPermissionInfo.Access access;
-        private final LDAPPermissionInfo.Actor actor;
     }
 }

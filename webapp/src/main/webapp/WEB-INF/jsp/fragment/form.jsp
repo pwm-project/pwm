@@ -126,33 +126,28 @@
                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-upload"></span></pwm:if>
                 <pwm:display key="Button_Upload"/>
             </button>
-            <pwm:script>
-                <script type="application/javascript">
-                    PWM_GLOBAL['startupFunctions'].push(function(){
-                        PWM_MAIN.addEventHandler('button-uploadPhoto-<%=loopConfiguration.getName()%>',"click",function(){
-                            var accept = '<%=StringUtil.collectionToString(formPwmRequest.getAppConfig().permittedPhotoMimeTypes())%>';
-                            PWM_UPDATE.uploadPhoto('<%=loopConfiguration.getName()%>',{accept:accept});
-                        });
-                    });
-                </script>
-            </pwm:script>
+            <script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+                import {PWM_MAIN} from "<pwm:url url="/public/resources/js/main.js" addContext="true"/>";
+                import {PWM_UPDATE} from "<pwm:url url="/public/resources/js/updateprofile.js" addContext="true"/>";
+                PWM_MAIN.addEventHandler('button-uploadPhoto-<%=loopConfiguration.getName()%>',"click",function(){
+                    const accept = '<%=StringUtil.collectionToString(formPwmRequest.getAppConfig().permittedPhotoMimeTypes())%>';
+                    PWM_UPDATE.uploadPhoto('<%=loopConfiguration.getName()%>',{accept:accept});
+                });
+            </script>
             <% if (!StringUtil.isEmpty( currentValue) ) { %>
             <button type="button" id="button-deletePhoto-<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" class="btn" title="<pwm:display key="Button_Delete"/>">
                 <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
                 <pwm:display key="Button_Delete"/>
             </button>
-            <pwm:script>
-                <script type="application/javascript">
-                    PWM_GLOBAL['startupFunctions'].push(function(){
-                        PWM_MAIN.addEventHandler('button-deletePhoto-<%=loopConfiguration.getName()%>',"click",function(){
-                            PWM_MAIN.showConfirmDialog({okAction:function(){
-                                    PWM_MAIN.submitPostAction(window.location.pathname, 'deletePhoto', {field:'<%=loopConfiguration.getName()%>'});
-                                }
-                            })
-                        });
-                    });
-                </script>
-            </pwm:script>
+            <script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+                import {PWM_MAIN} from "<pwm:url url="/public/resources/js/main.js" addContext="true"/>";
+                PWM_MAIN.addEventHandler('button-deletePhoto-<%=loopConfiguration.getName()%>',"click",function(){
+                    PWM_MAIN.showConfirmDialog({okAction:function(){
+                            PWM_MAIN.submitPostAction(window.location.pathname, 'deletePhoto', {field:'<%=loopConfiguration.getName()%>'});
+                        }
+                    })
+                });
+            </script>
             <% } %>
         </div>
         <% } %>
@@ -184,44 +179,29 @@
             <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
             <%if(loopConfiguration.isReadonly()){%> readonly="readonly"<%}%>
            maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
-    <pwm:script>
-        <script type="text/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                PWM_MAIN.addEventHandler('<%=loopConfiguration.getName()%>','keypress',function(){
-                    PWM_MAIN.getObject('<%=loopConfiguration.getName()%>_confirm').value='';
-                });
-            });
-        </script>
-    </pwm:script>
+
+    <script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+        import {PWM_MAIN} from "<pwm:url url="/public/resources/js/main.js" addContext="true"/>";
+        import {PWM_JSLibrary} from "<pwm:url url="/public/resources/js/jslibrary.js" addContext="true"/>";
+        PWM_MAIN.addEventHandler('<%=loopConfiguration.getName()%>','keypress',function(){
+            PWM_JSLibrary.getElement('<%=loopConfiguration.getName()%>_confirm').value='';
+        });
+    </script>
     <% } %>
     <% } %>
-    <% } %>
-    <% if (loopConfiguration.getJavascript() != null && loopConfiguration.getJavascript().length() > 0) { %>
-    <pwm:script>
-        <script type="text/javascript">
-            try {
-                <%=loopConfiguration.getJavascript()%>
-            } catch (e) {
-                console.log('error executing custom javascript for form field \'' + <%=loopConfiguration.getName()%> + '\', error: ' + e)
-            }
-        </script>
-    </pwm:script>
     <% } %>
     <pwm:if test="<%=PwmIfTest.clientFormShowRegexEnabled%>">
         <% if (loopConfiguration.getRegexError(formLocale) != null && loopConfiguration.getRegexError(formLocale).length() > 0) { %>
-        <pwm:script>
-            <script type="text/javascript">
-                PWM_GLOBAL['startupFunctions'].push(function(){
-                    PWM_MAIN.addEventHandler('<%=loopConfiguration.getName()%>', 'input', function (event) {
-                        var input = event.target;
-                        var regexError = '<%=StringUtil.escapeJS(loopConfiguration.getRegexError(formLocale))%>';
-                        var msg = input.value.search(new RegExp(input.getAttribute('pattern'))) >= 0 ? '' : regexError;
-                        input.setCustomValidity(msg);
-                        input.title = msg;
-                    });
-                });
-            </script>
-        </pwm:script>
+        <script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+            import {PWM_MAIN} from "<pwm:url url="/public/resources/js/main.js" addContext="true"/>";
+            PWM_MAIN.addEventHandler('<%=loopConfiguration.getName()%>', 'input', function (event) {
+                const input = event.target;
+                const regexError = '<%=StringUtil.escapeJS(loopConfiguration.getRegexError(formLocale))%>';
+                const msg = input.value.search(new RegExp(input.getAttribute('pattern'))) >= 0 ? '' : regexError;
+                input.setCustomValidity(msg);
+                input.title = msg;
+            });
+        </script>
         <% } %>
     </pwm:if>
 </div>

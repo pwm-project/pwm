@@ -36,8 +36,8 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmDateFormat;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.math.BigInteger;
@@ -46,6 +46,7 @@ import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -88,14 +89,14 @@ class SelfCertGenerator
         // 2 days in the past
         final Date notBefore = new Date( System.currentTimeMillis() - TimeUnit.DAYS.toMillis( 2 ) );
 
-        final long futureSeconds = settings.getFutureSeconds();
-        final Date notAfter = new Date( System.currentTimeMillis() + ( futureSeconds * 1000 ) );
+        final Duration futureSeconds = settings.futureSeconds();
+        final Instant notAfter = Instant.now().plus( futureSeconds );
 
         final X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(
             subjectName.build(),
             serialNumber,
             notBefore,
-            notAfter,
+            Date.from( notAfter ),
             subjectName.build(),
             pair.getPublic()
         );
@@ -144,8 +145,8 @@ class SelfCertGenerator
     private KeyPair generateRSAKeyPair( )
         throws Exception
     {
-        final KeyPairGenerator kpGen = KeyPairGenerator.getInstance( settings.getKeyAlg(), "BC" );
-        kpGen.initialize( settings.getKeySize(), secureRandom );
+        final KeyPairGenerator kpGen = KeyPairGenerator.getInstance( settings.keyAlg(), "BC" );
+        kpGen.initialize( settings.keySize(), secureRandom );
         return kpGen.generateKeyPair();
     }
 

@@ -24,7 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 
-public class ImmutableByteArray
+public final class ImmutableByteArray
 {
     private final byte[] bytes;
 

@@ -68,15 +68,10 @@
     <input type="hidden" name="<%=PwmConstants.PARAM_RESET_TYPE%>" value="<%=UpdateProfileServlet.ResetAction.exitProfileUpdate%>"/>
     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
 </form>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('updateProfileForm','input',function(){PWM_UPDATE.validateForm()});
-        });
-    </script>
-</pwm:script>
-<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
-<pwm:script-ref url="/public/resources/js/updateprofile.js"/>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_UPDATE} from "<pwm:url url="/public/resources/js/updateprofile.js" addContext="true"/>";
+    PWM_UPDATE.initUpdateProfilePage();
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

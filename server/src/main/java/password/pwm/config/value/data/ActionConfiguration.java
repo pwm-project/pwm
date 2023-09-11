@@ -130,7 +130,7 @@ public class ActionConfiguration
         public enum Type
         {
             webservice,
-            ldap,;
+            ldap,
         }
 
         public enum WebMethod

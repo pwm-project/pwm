@@ -51,6 +51,7 @@ import password.pwm.i18n.Message;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmScheduler;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.HttpsServerCertificateManager;
@@ -107,7 +108,7 @@ public class ConfigEditorServletUtils
             final FileUploadItem uploadItem = fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD );
             if ( uploadItem != null )
             {
-                return Optional.of( FileValue.newFileValue( uploadItem.getName(), uploadItem.getType(), uploadItem.getContent() ) );
+                return Optional.of( FileValue.newFileValue( uploadItem.name(), uploadItem.type(), uploadItem.content() ) );
             }
         }
 
@@ -180,9 +181,9 @@ public class ConfigEditorServletUtils
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForLocaleBundle();
         final ReadSettingResponse.ReadSettingResponseBuilder builder = ReadSettingResponse.builder();
         final PwmLocaleBundle pwmLocaleBundle = key.toLocaleBundle();
-        final String keyName = key.getProfileID().toString();
+        final String keyName = key.getLocaleKey();
         final Map<String, String> bundleMap = storedConfig.readLocaleBundleMap( pwmLocaleBundle, keyName, domainID );
-        if ( bundleMap == null || bundleMap.isEmpty() )
+        if ( CollectionUtil.isEmpty( bundleMap ) )
         {
             final Map<String, String> defaultValueMap = new LinkedHashMap<>();
             final String defaultLocaleValue = ResourceBundle.getBundle( pwmLocaleBundle.getTheClass().getName(), PwmConstants.DEFAULT_LOCALE ).getString( keyName );
@@ -261,8 +262,8 @@ public class ConfigEditorServletUtils
             final Optional<ValueMetaData> settingMetaData = storedConfig.readSettingMetadata( key );
             if ( settingMetaData.isPresent() )
             {
-                builder.modifyTime( settingMetaData.map( ValueMetaData::getModifyDate ).orElse( null ) );
-                builder.modifyUser( settingMetaData.map( ValueMetaData::getUserIdentity ).orElse( null ) );
+                builder.modifyTime( settingMetaData.map( ValueMetaData::modifyDate ).orElse( null ) );
+                builder.modifyUser( settingMetaData.map( ValueMetaData::userIdentity ).orElse( null ) );
             }
         }
         builder.key( key.toPwmSetting().getKey() );
@@ -299,7 +300,7 @@ public class ConfigEditorServletUtils
 
             final int maxFileSize = Integer.parseInt( pwmRequest.getDomainConfig().readAppProperty( AppProperty.CONFIG_MAX_FILEVALUE_SIZE ) );
             final Map<String, FileUploadItem> fileUploads = PwmRequestUtil.readFileUploads( pwmRequest, maxFileSize, 1 );
-            final InputStream fileIs = fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD ).getContent().newByteArrayInputStream();
+            final InputStream fileIs = fileUploads.get( PwmConstants.PARAM_FILE_UPLOAD ).content().newByteArrayInputStream();
 
             final StoredConfigurationModifier modifier = StoredConfigurationModifier.newModifier( configManagerBean.getStoredConfiguration() );
 
@@ -391,10 +392,6 @@ public class ConfigEditorServletUtils
         try
         {
             return PwmScheduler.executeWithTimeout( pwmRequest.getPwmApplication(), pwmRequest.getLabel(), configEditorSettings.getMaxWaitSettingsFunction(), callable );
-        }
-        catch ( final PwmUnrecoverableException e )
-        {
-            throw e;
         }
         catch ( final Throwable t )
         {

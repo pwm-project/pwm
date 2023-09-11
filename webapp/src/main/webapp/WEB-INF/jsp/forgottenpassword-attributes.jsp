@@ -69,20 +69,10 @@ this is handled this way so on browsers where hiding fields is not possible, the
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_RESPONSES.startupResponsesPage();
-            PWM_MAIN.addEventHandler('button_cancel', 'click', function(event){
-                PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('button_cancel'),event);
-            });
-            PWM_MAIN.addEventHandler('button-goBack','click',function(){
-                PWM_MAIN.submitPostAction('<%=PwmServletDefinition.ForgottenPassword.servletUrlName()%>','<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>');
-            });
-        });
-    </script>
-</pwm:script>
-<pwm:script-ref url="/public/resources/js/responses.js"/>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_FORGOTTENPW} from "<pwm:url url="/public/resources/js/forgottenpassword.js" addContext="true"/>";
+    PWM_FORGOTTENPW.initForgottenPwAttributesPage();
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

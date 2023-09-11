@@ -67,7 +67,6 @@ import java.util.Optional;
         name = "LoginServlet",
         urlPatterns = {
                 PwmConstants.URL_PREFIX_PRIVATE + "/login",
-                PwmConstants.URL_PREFIX_PRIVATE + "/foom",
                 PwmConstants.URL_PREFIX_PRIVATE + "/Login"
         }
 )

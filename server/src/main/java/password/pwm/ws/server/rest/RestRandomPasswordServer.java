@@ -20,7 +20,6 @@
 
 package password.pwm.ws.server.rest;
 
-import lombok.Data;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
 import password.pwm.config.option.WebServiceUsage;
@@ -62,21 +61,32 @@ public class RestRandomPasswordServer extends RestServlet
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( RestRandomPasswordServer.class );
 
-    @Data
-    public static class JsonOutput
+    public record JsonOutput(
+            String password
+    )
     {
-        private String password;
     }
 
-    @Data
-    public static class JsonInput
+    public record JsonInput(
+            String username,
+            int strength,
+            int minLength,
+            int maxLength,
+            String chars,
+            boolean noUser
+    )
     {
-        private String username;
-        private int strength;
-        private int minLength;
-        private int maxLength;
-        private String chars;
-        private boolean noUser;
+        static JsonInput fromRequestParameters( final RestRequest restRequest )
+                throws PwmUnrecoverableException
+        {
+            return new JsonInput(
+                    restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation ),
+                    restRequest.readParameterAsInt( "strength", 0 ),
+                    restRequest.readParameterAsInt( "minLength", 0 ),
+                    restRequest.readParameterAsInt( "maxLength", 0 ),
+                    restRequest.readParameterAsString( "chars", PwmHttpRequestWrapper.Flag.BypassValidation ),
+                    restRequest.readParameterAsBoolean( "noUser" ) );
+        }
     }
 
     @Override
@@ -85,12 +95,12 @@ public class RestRandomPasswordServer extends RestServlet
     }
 
     @RestMethodHandler( method = HttpMethod.POST, consumes = HttpContentType.form, produces = HttpContentType.json )
-    public RestResultBean doPostRandomPasswordForm( final RestRequest restRequest )
+    public RestResultBean<?> doPostRandomPasswordForm( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
         /* Check for parameter conflicts. */
         if ( restRequest.hasParameter( "username" )
-             && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
+                && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
         {
             LOGGER.error( restRequest.getSessionLabel(),
                     () -> "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified." );
@@ -99,13 +109,7 @@ public class RestRandomPasswordServer extends RestServlet
             return RestResultBean.fromError( restRequest, errorInformation );
         }
 
-        final JsonInput jsonInput = new JsonInput();
-        jsonInput.username = restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation );
-        jsonInput.strength = restRequest.readParameterAsInt( "strength", 0 );
-        jsonInput.maxLength = restRequest.readParameterAsInt( "maxLength", 0 );
-        jsonInput.minLength = restRequest.readParameterAsInt( "minLength", 0 );
-        jsonInput.chars = restRequest.readParameterAsString( "chars", PwmHttpRequestWrapper.Flag.BypassValidation );
-        jsonInput.noUser = restRequest.readParameterAsBoolean( "noUser" );
+        final JsonInput jsonInput = JsonInput.fromRequestParameters( restRequest );
 
         try
         {
@@ -132,7 +136,7 @@ public class RestRandomPasswordServer extends RestServlet
     {
         /* Check for parameter conflicts. */
         if ( restRequest.hasParameter( "username" )
-             && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
+                && ( restRequest.hasParameter( "strength" ) || restRequest.hasParameter( "minLength" ) || restRequest.hasParameter( "chars" ) ) )
         {
             LOGGER.error( restRequest.getSessionLabel(),
                     () -> "REST parameter conflict.  The username parameter cannot be specified if strength, minLength or chars parameters are specified." );
@@ -141,18 +145,12 @@ public class RestRandomPasswordServer extends RestServlet
             return RestResultBean.fromError( restRequest, errorInformation );
         }
 
-        final JsonInput jsonInput = new JsonInput();
-        jsonInput.username = restRequest.readParameterAsString( "username", PwmHttpRequestWrapper.Flag.BypassValidation );
-        jsonInput.strength = restRequest.readParameterAsInt( "strength", 0 );
-        jsonInput.maxLength = restRequest.readParameterAsInt( "maxLength", 0 );
-        jsonInput.minLength = restRequest.readParameterAsInt( "minLength", 0 );
-        jsonInput.chars = restRequest.readParameterAsString( "chars", PwmHttpRequestWrapper.Flag.BypassValidation );
-        jsonInput.noUser = restRequest.readParameterAsBoolean( "noUser" );
+        final JsonInput jsonInput = JsonInput.fromRequestParameters( restRequest );
 
         try
         {
             final JsonOutput jsonOutput = doOperation( restRequest, jsonInput );
-            return RestResultBean.withData( jsonOutput.getPassword(), String.class );
+            return RestResultBean.withData( jsonOutput.password(), String.class );
         }
         catch ( final Exception e )
         {
@@ -197,17 +195,17 @@ public class RestRandomPasswordServer extends RestServlet
     {
         final PwmPasswordPolicy pwmPasswordPolicy;
 
-        if ( jsonInput.isNoUser() || StringUtil.isEmpty( jsonInput.getUsername() ) )
+        if ( jsonInput.noUser() || StringUtil.isEmpty( jsonInput.username() ) )
         {
             pwmPasswordPolicy = PwmPasswordPolicy.defaultPolicy();
         }
         else
         {
-            final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.getUsername() );
+            final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.username() );
             pwmPasswordPolicy = PasswordUtility.readPasswordPolicyForUser(
                     restRequest.getDomain(),
                     restRequest.getSessionLabel(),
-                    targetUserIdentity.getUserIdentity(),
+                    targetUserIdentity.userIdentity(),
                     targetUserIdentity.getChaiUser() );
         }
 
@@ -216,8 +214,7 @@ public class RestRandomPasswordServer extends RestServlet
                 restRequest.getSessionLabel(),
                 randomConfig,
                 restRequest.getDomain() );
-        final JsonOutput outputMap = new JsonOutput();
-        outputMap.password = randomPassword.getStringValue();
+        final JsonOutput outputMap = new JsonOutput( randomPassword.getStringValue() );
 
         StatisticsClient.incrementStat( restRequest.getDomain(), Statistic.REST_RANDOMPASSWORD );
 
@@ -234,21 +231,21 @@ public class RestRandomPasswordServer extends RestServlet
         final RandomGeneratorConfigRequest.RandomGeneratorConfigRequestBuilder randomConfigBuilder
                 = RandomGeneratorConfigRequest.builder();
 
-        if ( jsonInput.getStrength() > 0 && jsonInput.getStrength() <= 100 )
+        if ( jsonInput.strength() > 0 && jsonInput.strength() <= 100 )
         {
-            randomConfigBuilder.minimumStrength( jsonInput.getStrength() );
+            randomConfigBuilder.minimumStrength( jsonInput.strength() );
         }
-        if ( jsonInput.getMinLength() > 0 && jsonInput.getMinLength() <= 100 * 1024 )
+        if ( jsonInput.minLength() > 0 && jsonInput.minLength() <= 100 * 1024 )
         {
-            randomConfigBuilder.minimumLength( jsonInput.getMinLength() );
+            randomConfigBuilder.minimumLength( jsonInput.minLength() );
         }
-        if ( jsonInput.getMaxLength() > 0 && jsonInput.getMaxLength() <= 100 * 1024 )
+        if ( jsonInput.maxLength() > 0 && jsonInput.maxLength() <= 100 * 1024 )
         {
-            randomConfigBuilder.maximumLength( jsonInput.getMaxLength() );
+            randomConfigBuilder.maximumLength( jsonInput.maxLength() );
         }
-        if ( jsonInput.getChars() != null )
+        if ( jsonInput.chars() != null )
         {
-            final String inputChars = jsonInput.getChars();
+            final String inputChars = jsonInput.chars();
             final List<String> charValues = new ArrayList<>( inputChars.length() );
             for ( int i = 0; i < inputChars.length(); i++ )
             {

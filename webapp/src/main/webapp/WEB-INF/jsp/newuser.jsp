@@ -74,21 +74,17 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script>
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('newUserForm','input',function(){PWM_NEWUSER.validateNewUserForm()});
-            PWM_MAIN.addEventHandler('button-goBack', 'click',function() {
-                PWM_MAIN.submitPostAction('<%=PwmServletDefinition.NewUser.servletUrlName()%>', '<%=NewUserServlet.NewUserAction.profileChoice%>');
-            });
-            PWM_MAIN.addEventHandler('button-cancel','click',function() {
-                PWM_MAIN.submitPostAction('<%=PwmServletDefinition.NewUser.servletUrlName()%>', '<%=NewUserServlet.NewUserAction.reset%>');
-            });
-        });
-    </script>
-</pwm:script>
-<pwm:script-ref url="/public/resources/js/newuser.js"/>
-<pwm:script-ref url="/public/resources/js/changepassword.js"/>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_MAIN} from "<pwm:url url="/public/resources/js/main.js" addContext="true"/>";
+    import {PWM_NEWUSER} from "<pwm:url url="/public/resources/js/newuser.js" addContext="true"/>";
+    PWM_MAIN.addEventHandler('newUserForm','input',function(){PWM_NEWUSER.validateNewUserForm()});
+    PWM_MAIN.addEventHandler('button-goBack', 'click',function() {
+        PWM_MAIN.submitPostAction('<%=PwmServletDefinition.NewUser.servletUrlName()%>', '<%=NewUserServlet.NewUserAction.profileChoice%>');
+    });
+    PWM_MAIN.addEventHandler('button-cancel','click',function() {
+        PWM_MAIN.submitPostAction('<%=PwmServletDefinition.NewUser.servletUrlName()%>', '<%=NewUserServlet.NewUserAction.reset%>');
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

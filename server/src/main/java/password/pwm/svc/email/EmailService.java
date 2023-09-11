@@ -123,10 +123,10 @@ public class EmailService extends AbstractPwmService implements PwmService
         LOGGER.debug( getSessionLabel(), () -> "starting with settings: " + JsonFactory.get().serialize( emailServiceSettings ) );
 
         final WorkQueueProcessor.Settings settings = WorkQueueProcessor.Settings.builder()
-                .maxEvents( emailServiceSettings.getQueueMaxItems() )
-                .retryDiscardAge( emailServiceSettings.getQueueDiscardAge() )
-                .retryInterval( emailServiceSettings.getQueueRetryTimeout() )
-                .preThreads( emailServiceSettings.getMaxThreads() )
+                .maxEvents( emailServiceSettings.queueMaxItems() )
+                .retryDiscardAge( emailServiceSettings.queueDiscardAge() )
+                .retryInterval( emailServiceSettings.queueRetryTimeout() )
+                .preThreads( emailServiceSettings.maxThreads() )
                 .build();
         final LocalDBStoredQueue localDBStoredQueue = LocalDBStoredQueue.createLocalDBStoredQueue(
                 this.getPwmApplication(), this.getPwmApplication().getLocalDB(), LocalDB.DB.EMAIL_QUEUE );
@@ -282,7 +282,7 @@ public class EmailService extends AbstractPwmService implements PwmService
                 }
             }
         }
-        stats.put( "maxThreads", String.valueOf( emailServiceSettings.getMaxThreads() ) );
+        stats.put( "maxThreads", String.valueOf( emailServiceSettings.maxThreads() ) );
 
         return Collections.unmodifiableMap( stats );
     }
@@ -477,7 +477,7 @@ public class EmailService extends AbstractPwmService implements PwmService
         }
         catch ( final MessagingException | PwmException e )
         {
-            if ( EmailServerUtil.examineSendFailure( e, emailServiceSettings.getRetryableStatusResponses(), getSessionLabel() ) )
+            if ( EmailServerUtil.examineSendFailure( e, emailServiceSettings.retryableStatusResponses(), getSessionLabel() ) )
             {
                 LOGGER.error( getSessionLabel(), () -> "error sending email (" + e.getMessage() + ") "
                         + emailItemBean.toDebugString() + ", will retry" );

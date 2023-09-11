@@ -20,15 +20,13 @@
 
 package password.pwm.bean;
 
-import lombok.Value;
 import password.pwm.data.ImmutableByteArray;
 
-@Value
-public class PhotoDataBean
+public record PhotoDataBean(
+         String mimeType,
+         ImmutableByteArray contents
+)
 {
-    private String mimeType;
-    private ImmutableByteArray contents;
-
     @Override
     public String toString()
     {

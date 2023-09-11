@@ -87,6 +87,8 @@ public enum PwmServletDefinition
     UpdateProfile( UpdateProfileServlet.class, UpdateProfileBean.class, Flag.RequiresUserPasswordAndBind ),
     SetupOtp( password.pwm.http.servlet.SetupOtpServlet.class, SetupOtpBean.class, Flag.RequiresUserPasswordAndBind ),
     Helpdesk( password.pwm.http.servlet.helpdesk.HelpdeskServlet.class, null ),
+    HelpdeskDetail( password.pwm.http.servlet.helpdesk.HelpdeskDetailServlet.class, null ),
+
     Shortcuts( password.pwm.http.servlet.ShortcutServlet.class, ShortcutsBean.class ),
     PrivateCommand( PrivateCommandServlet.class, null ),
     PrivatePeopleSearch( PrivatePeopleSearchServlet.class, null ),

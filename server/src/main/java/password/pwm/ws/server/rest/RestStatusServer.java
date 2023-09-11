@@ -81,14 +81,14 @@ public class RestStatusServer extends RestServlet
                     restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
                     restRequest.getLocale(),
-                    targetUserIdentity.getUserIdentity(),
+                    targetUserIdentity.userIdentity(),
                     chaiProvider
             );
             final MacroRequest macroRequest = MacroRequest.forUser(
                     restRequest.getPwmApplication(),
                     restRequest.getLocale(),
                     restRequest.getSessionLabel(),
-                    targetUserIdentity.getUserIdentity()
+                    targetUserIdentity.userIdentity()
             );
 
             final PublicUserInfoBean publicUserInfoBean = UserInfoBean.toPublicUserInfoBean(

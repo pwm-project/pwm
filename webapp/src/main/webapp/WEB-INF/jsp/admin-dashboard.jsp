@@ -249,9 +249,9 @@
                     <table class="nomargin">
                         <tr>
                             <pwm:if test="<%=PwmIfTest.multiDomain%>">
-                            <td style="font-weight:bold;">
-                                Domain
-                            </td>
+                                <td style="font-weight:bold;">
+                                    Domain
+                                </td>
                             </pwm:if>
                             <td style="font-weight:bold;">
                                 Service
@@ -384,15 +384,12 @@
                                 <%= threadData.getState() %>
                             </td>
                         </tr>
-                        <pwm:script>
-                            <script type="application/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.addEventHandler('<%=threadData.getId()%>','click',function(){
-                                        PWM_MAIN.showDialog({class:'wide',title:'Thread <%=threadData.getId()%>',text:'<pre>' +'<%=StringUtil.escapeJS(threadData.getTrace())%>' + '</pre>'})
-                                    });
-                                });
-                            </script>
-                        </pwm:script>
+                        <script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+                            import {PWM_MAIN} from "<pwm:url url="/public/resources/js/main.js" addContext="true"/>";
+                            PWM_MAIN.addEventHandler('<%=threadData.getId()%>','click',function(){
+                                PWM_MAIN.showDialog({class:'wide',title:'Thread <%=threadData.getId()%>',text:'<pre>' +'<%=StringUtil.escapeJS(threadData.getTrace())%>' + '</pre>'})
+                            });
+                        </script>
                         <% } %>
                     </table>
                 </div>
@@ -455,7 +452,7 @@
                     <% if ( appDashboardData.getNodeStorageMethod() != null ) { %>
                     <p><div class="footnote">
                     Node communication method: <%= appDashboardData.getNodeStorageMethod() %>
-                    </div></p>
+                </div></p>
                     <% } %>
                 </div>
                 <% } else { %>
@@ -464,34 +461,34 @@
             </div>
 
             <pwm:if test="<%=PwmIfTest.booleanSetting%>" setting="<%=PwmSetting.PW_EXPY_NOTIFY_ENABLE%>">
-            <input name="tabs" type="radio" id="tab-8" class="input"/>
-            <label for="tab-8" class="label">Password Notification</label>
-            <div id="Status" class="tab-content-pane" title="Password Notification">
-                <table id="table-pwNotifyStatus">
-                </table>
-                <div class="footnote">
-                    <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/>
-                </div>
+                <input name="tabs" type="radio" id="tab-8" class="input"/>
+                <label for="tab-8" class="label">Password Notification</label>
+                <div id="Status" class="tab-content-pane" title="Password Notification">
+                    <table id="table-pwNotifyStatus">
+                    </table>
+                    <div class="footnote">
+                        <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/>
+                    </div>
 
-                <br/>
-                <table><tr><td class="title">Local Debug Log</td></tr>
-                    <tr>
-                        <td>
-                            <div style="max-height: 500px; max-width: 580px; overflow: auto; white-space: pre" id="div-pwNotifyDebugLog"></div>
-                        </td>
-                    </tr>
-                </table>
-                <div class="buttonbar" style="width:100%">
-                    <button type="submit" class="btn" id="button-refreshPwNotifyStatus">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh"></span></pwm:if>
-                        Refresh Log
-                    </button>
-                    <button id="button-executePwNotifyJob" type="button" class="btn">
-                        <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-play"></span></pwm:if>
-                        Start Job
-                    </button>
+                    <br/>
+                    <table><tr><td class="title">Local Debug Log</td></tr>
+                        <tr>
+                            <td>
+                                <div style="max-height: 500px; max-width: 580px; overflow: auto; white-space: pre" id="div-pwNotifyDebugLog"></div>
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="buttonbar" style="width:100%">
+                        <button type="submit" class="btn" id="button-refreshPwNotifyStatus">
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-refresh"></span></pwm:if>
+                            Refresh Log
+                        </button>
+                        <button id="button-executePwNotifyJob" type="button" class="btn">
+                            <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-play"></span></pwm:if>
+                            Start Job
+                        </button>
+                    </div>
                 </div>
-            </div>
             </pwm:if>
 
             <div class="tab-end"></div>
@@ -499,44 +496,40 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_ADMIN.showStatChart('PASSWORD_CHANGES',14,'statsChart',{refreshTime:11*1000});
-            PWM_ADMIN.showAppHealth('healthBody', {showRefresh:true,showTimestamp:true});
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_MAIN} from "<pwm:url url="/public/resources/js/main.js" addContext="true"/>";
+    import {PWM_ADMIN} from "<pwm:url url="/public/resources/js/admin.js" addContext="true"/>";
+    PWM_ADMIN.showStatChart('PASSWORD_CHANGES',14,'statsChart',{refreshTime:11*1000});
+    PWM_ADMIN.showAppHealth('healthBody', {showRefresh:true,showTimestamp:true});
 
-            PWM_MAIN.addEventHandler('button-showLocalDBCounts','click',function(){
-                PWM_MAIN.showWaitDialog({loadFunction:function(){
-                        PWM_MAIN.gotoUrl('dashboard?showLocalDBCounts=true');
-                    }})
-            });
-            PWM_MAIN.addEventHandler('button-showThreadDetails','click',function(){
-                PWM_MAIN.showWaitDialog({loadFunction:function(){
-                        PWM_MAIN.gotoUrl('dashboard?showThreadDetails=true');
-                    }})
-            });
-            <% for (final AppDashboardData.ServiceData loopService : appDashboardData.getServices()) { %>
-            <% if (!CollectionUtil.isEmpty(loopService.getDebugData())) { %>
-            PWM_MAIN.addEventHandler('serviceName-<%=loopService.getGuid()%>','click',function(){
-                var tableText = '<table>';
-                <% for (final Map.Entry<String,String> entry : loopService.getDebugData().entrySet()) { %>
-                tableText += '<tr><td><%=StringUtil.escapeJS(entry.getKey())%></td>'
-                    + '<td><%=StringUtil.escapeJS(entry.getValue())%></td></tr>';
-                <% } %>
-                tableText += '</table>';
-                PWM_MAIN.showDialog({title:'Debug Properties',text:tableText});
-            });
-            <% } %>
-            <% } %>
+    PWM_MAIN.addEventHandler('button-showLocalDBCounts','click',function(){
+        PWM_MAIN.showWaitDialog({loadFunction:function(){
+                PWM_MAIN.gotoUrl('dashboard?showLocalDBCounts=true');
+            }})
+    });
+    PWM_MAIN.addEventHandler('button-showThreadDetails','click',function(){
+        PWM_MAIN.showWaitDialog({loadFunction:function(){
+                PWM_MAIN.gotoUrl('dashboard?showThreadDetails=true');
+            }})
+    });
+    <% for (final AppDashboardData.ServiceData loopService : appDashboardData.getServices()) { %>
+    <% if (!CollectionUtil.isEmpty(loopService.getDebugData())) { %>
+    PWM_MAIN.addEventHandler('serviceName-<%=loopService.getGuid()%>','click',function(){
+        let tableText = '<table>';
+        <% for (final Map.Entry<String,String> entry : loopService.getDebugData().entrySet()) { %>
+        tableText += '<tr><td><%=StringUtil.escapeJS(entry.getKey())%></td>'
+            + '<td><%=StringUtil.escapeJS(entry.getValue())%></td></tr>';
+        <% } %>
+        tableText += '</table>';
+        PWM_MAIN.showDialog({title:'Debug Properties',text:tableText});
+    });
+    <% } %>
+    <% } %>
 
-            <pwm:if test="<%=PwmIfTest.booleanSetting%>" setting="<%=PwmSetting.PW_EXPY_NOTIFY_ENABLE%>">
-            PWM_ADMIN.initPwNotifyPage();
-            </pwm:if>
-        });
-    </script>
-</pwm:script>
-
+    <pwm:if test="<%=PwmIfTest.booleanSetting%>" setting="<%=PwmSetting.PW_EXPY_NOTIFY_ENABLE%>">
+    PWM_ADMIN.initPwNotifyPage();
+    </pwm:if>
+</script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
-<pwm:script-ref url="/public/resources/js/admin.js"/>
 </body>
 </html>

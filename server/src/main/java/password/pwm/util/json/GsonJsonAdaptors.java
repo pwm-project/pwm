@@ -268,6 +268,10 @@ class GsonJsonAdaptors
         public ProfileID deserialize( final JsonElement json, final Type typeOfT, final JsonDeserializationContext context ) throws JsonParseException
         {
             final String sValue = json.getAsString();
+            if ( StringUtil.isEmpty( sValue ) )
+            {
+                return null;
+            }
             return ProfileID.create( sValue );
         }
 

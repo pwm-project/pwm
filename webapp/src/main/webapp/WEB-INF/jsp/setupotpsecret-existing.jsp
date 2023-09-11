@@ -67,14 +67,10 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="application/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_OTP.initExistingOtpPage();
-        });
-    </script>
-</pwm:script>
-<pwm:script-ref url="/public/resources/js/otpsecret.js"/>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" >
+    import {PWM_OTP} from "<pwm:url url="/public/resources/js/otpsecret.js" addContext="true"/>";
+    PWM_OTP.initExistingOtpPage();
+</script>
 <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

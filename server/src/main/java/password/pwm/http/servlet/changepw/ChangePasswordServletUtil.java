@@ -95,9 +95,9 @@ public class ChangePasswordServletUtil
         final UserInfo userInfo = pwmRequest.getPwmSession().getUserInfo();
         final PasswordStatus passwordStatus = userInfo.getPasswordStatus();
         return currentSetting == RequireCurrentPasswordMode.NOTEXPIRED
-                && !passwordStatus.isExpired()
-                && !passwordStatus.isPreExpired()
-                && !passwordStatus.isViolatesPolicy()
+                && !passwordStatus.expired()
+                && !passwordStatus.preExpired()
+                && !passwordStatus.violatesPolicy()
                 && !userInfo.isRequiresNewPassword();
 
     }
@@ -249,7 +249,7 @@ public class ChangePasswordServletUtil
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        if ( !pwmSession.getUserInfo().getPasswordStatus().isWarnPeriod() )
+        if ( !pwmSession.getUserInfo().getPasswordStatus().warnPeriod() )
         {
             return false;
         }

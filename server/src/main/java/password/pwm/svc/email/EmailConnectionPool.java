@@ -57,7 +57,7 @@ public class EmailConnectionPool
 
     public static EmailConnectionPool emptyConnectionPool()
     {
-        return new EmailConnectionPool( Collections.emptyList(), EmailServiceSettings.builder().build(), null );
+        return new EmailConnectionPool( Collections.emptyList(), EmailServiceSettings.empty(), SessionLabel.SYSTEM_LABEL );
     }
 
     public EmailConnectionPool(
@@ -145,7 +145,7 @@ public class EmailConnectionPool
 
     private boolean connectionStillValid( final EmailConnection emailConnection )
     {
-        if ( emailConnection.getSentItems() >= settings.getConnectionSendItemLimit() )
+        if ( emailConnection.getSentItems() >= settings.connectionSendItemLimit() )
         {
             LOGGER.trace( sessionLabel, () -> "email connection #" + emailConnection.getId()
                     + " has sent " + emailConnection.getSentItems() + " and will be retired" );
@@ -153,7 +153,7 @@ public class EmailConnectionPool
         }
 
         final TimeDuration connectionAge = TimeDuration.fromCurrent( emailConnection.getStartTime() );
-        if ( connectionAge.isLongerThan( settings.getConnectionSendItemDuration() ) )
+        if ( connectionAge.isLongerThan( settings.connectionSendItemDuration() ) )
         {
             LOGGER.trace( sessionLabel, () -> "email connection #" + emailConnection.getId()
                     + " has lived " + connectionAge.asCompactString() + " and will be retired" );

@@ -1465,7 +1465,7 @@ public class PasswordUtility
             return false;
         }
 
-        if ( passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isWarnPeriod() )
+        if ( passwordStatus.expired() || passwordStatus.preExpired() || passwordStatus.warnPeriod() )
         {
             LOGGER.debug( sessionLabel, () -> "current password is too young, but skipping enforcement of minimum lifetime check because current password is expired" );
             return false;

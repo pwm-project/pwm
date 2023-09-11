@@ -20,20 +20,23 @@
 
 package password.pwm.svc.cache;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Value;
 import password.pwm.bean.UserIdentity;
+import password.pwm.util.java.JavaHelper;
 
 import java.util.Objects;
 
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-@Value
-public class CacheKey
+public record CacheKey(
+        Class<?> srcClass,
+        UserIdentity userIdentity,
+        String valueID
+)
 {
-    final Class<?> srcClass;
-    final UserIdentity userIdentity;
-    final String valueID;
+    public CacheKey( final Class<?> srcClass, final UserIdentity userIdentity, final String valueID )
+    {
+        this.srcClass = Objects.requireNonNull( srcClass, "srcClass can not be null" );
+        this.userIdentity = userIdentity;
+        this.valueID = JavaHelper.requireNonEmpty( valueID );
+    }
 
     public static CacheKey newKey(
             final Class<?> srcClass,
@@ -41,13 +44,6 @@ public class CacheKey
             final String valueID
     )
     {
-        Objects.requireNonNull( srcClass, "srcClass can not be null" );
-        Objects.requireNonNull( valueID, "valueID can not be null" );
-
-        if ( valueID.isEmpty() )
-        {
-            throw new IllegalArgumentException( "valueID can not be empty" );
-        }
         return new CacheKey( srcClass, userIdentity, valueID );
     }
 }

@@ -18,11 +18,13 @@
  * limitations under the License.
  */
 
-var PWM_ADMIN = PWM_ADMIN || {};
-var PWM_MAIN = PWM_MAIN || {};
-var PWM_GLOBAL = PWM_GLOBAL || {};
+const PWM_ADMIN_STATISTICS = {};
 
-var PWM_ADMIN_STATISTICS = PWM_ADMIN_STATISTICS || {};
+import {PWM_JSLibrary} from "./jslibrary.js";
+import {PWM_UILibrary} from "./uilibrary.js";
+import {PWM_MAIN} from "./main.js";
+
+export {PWM_ADMIN_STATISTICS};
 
 PWM_ADMIN_STATISTICS.initStatisticsPage=function() {
     PWM_MAIN.addEventHandler('statsPeriodForm','change',function() {
@@ -31,12 +33,12 @@ PWM_ADMIN_STATISTICS.initStatisticsPage=function() {
 
     const url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','readKeys');
     const loadFunction = function(data) {
-        const selectElement = PWM_MAIN.getObject('statsPeriodSelect');
+        const selectElement = PWM_JSLibrary.getElement('statsPeriodSelect');
 
         if (data['data'] && data['data']) {
             const keys = data['data'];
             let optionsHtml = '';
-            PWM_MAIN.JSLibrary.forEachInObject(keys, function (key, value) {
+            PWM_JSLibrary.forEachInObject(keys, function (key, value) {
                 optionsHtml += '<option value="' + key + '">' + value + '</option>';
             });
             selectElement.innerHTML = optionsHtml;
@@ -47,18 +49,18 @@ PWM_ADMIN_STATISTICS.initStatisticsPage=function() {
     PWM_MAIN.ajaxRequest(url,loadFunction);
 };
 
-PWM_ADMIN_STATISTICS.refreshStatistics=function() {
+PWM_ADMIN_STATISTICS.refreshStatistics=async function() {
     const waitInnerHtml = '<tr><td colspan="2">'
-        + PWM_MAIN.showString('Display_PleaseWait')
+        + await PWM_MAIN.getDisplayString('Display_PleaseWait')
         + '</td></tr>'
 
-    const tableElement = PWM_MAIN.getObject('statisticsTable');
-    const averageTableElement = PWM_MAIN.getObject('averageStatisticsTable');
+    const tableElement = PWM_JSLibrary.getElement('statisticsTable');
+    const averageTableElement = PWM_JSLibrary.getElement('averageStatisticsTable');
 
     tableElement.innerHTML = waitInnerHtml;
     averageTableElement.innerHTML = waitInnerHtml;
 
-    const currentStatKey = PWM_MAIN.JSLibrary.readValueOfSelectElement('statsPeriodSelect');
+    const currentStatKey = PWM_JSLibrary.readValueOfSelectElement('statsPeriodSelect');
 
     let url = PWM_MAIN.addParamToUrl(window.location.pathname, 'processAction','readStatistics');
     if ( currentStatKey ) {
@@ -69,13 +71,13 @@ PWM_ADMIN_STATISTICS.refreshStatistics=function() {
 
         if (data['data'] && data['data']['statistics']) {
             const fields = data['data']['statistics'];
-            tableElement.innerHTML = UILibrary.displayElementsToTableContents(fields);
-            UILibrary.initElementsToTableContents(fields);
+            tableElement.innerHTML = PWM_UILibrary.displayElementsToTableContents(fields);
+            PWM_UILibrary.initElementsToTableContents(fields);
         }
         if (data['data'] && data['data']['averageStatistics']) {
             const fields = data['data']['averageStatistics'];
-            averageTableElement.innerHTML = UILibrary.displayElementsToTableContents(fields);
-            UILibrary.initElementsToTableContents(fields);
+            averageTableElement.innerHTML = PWM_UILibrary.displayElementsToTableContents(fields);
+            PWM_UILibrary.initElementsToTableContents(fields);
         }
     };
     PWM_MAIN.ajaxRequest(url,loadFunction);

@@ -20,21 +20,19 @@
 
 package password.pwm.config.value.data;
 
-import lombok.Value;
 import password.pwm.bean.SessionLabel;
 import password.pwm.util.logging.PwmLogger;
 
 import java.net.URI;
 
-@Value
-public class ShortcutItem
+public record ShortcutItem(
+        String label,
+        URI shortcutURI,
+        String ldapQuery,
+        String description
+)
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ShortcutItem.class );
-
-    private final String label;
-    private final URI shortcutURI;
-    private final String ldapQuery;
-    private final String description;
 
     public static ShortcutItem parsePwmConfigInput( final String input, final SessionLabel sessionLabel )
     {

@@ -211,12 +211,12 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
             final WordlistDataBean.WordlistDataBeanBuilder builder = WordlistDataBean.builder();
             {
                 final List<DisplayElement> presentableValues = new ArrayList<>();
-                presentableValues.add( new DisplayElement(
+                presentableValues.add( DisplayElement.create(
                         wordlistType.name() + "_populationStatus",
                         DisplayElement.Type.string,
                         "Import Status",
                         activity.getLabel() ) );
-                presentableValues.add( new DisplayElement(
+                presentableValues.add( DisplayElement.create(
                         wordlistType.name() + "_listSource",
                         DisplayElement.Type.string, "List Source",
                         wordlistStatus.getSourceType() == null
@@ -224,14 +224,14 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                                 : wordlistStatus.getSourceType().getLabel() ) );
                 if ( wordlistConfiguration.getAutoImportUrl() != null )
                 {
-                    presentableValues.add( new DisplayElement(
+                    presentableValues.add( DisplayElement.create(
                             wordlistType.name() + "_sourceURL",
                             DisplayElement.Type.string,
                             "Configured SourceType URL",
                             wordlistConfiguration.getAutoImportUrl() ) );
                 }
 
-                presentableValues.add( new DisplayElement(
+                presentableValues.add( DisplayElement.create(
                         wordlistType.name() + "_wordCount",
                         DisplayElement.Type.number,
                         "Word Count",
@@ -242,7 +242,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
 
                     if ( WordlistSourceType.BuiltIn != wordlistStatus.getSourceType() )
                     {
-                        presentableValues.add( new DisplayElement(
+                        presentableValues.add( DisplayElement.create(
                                 wordlistType.name() + "_populationTimestamp",
                                 DisplayElement.Type.timestamp,
                                 "Population Timestamp",
@@ -250,7 +250,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                     }
                     if ( wordlistStatus.getRemoteInfo() != null && StringUtil.notEmpty( wordlistStatus.getRemoteInfo().getHash() ) )
                     {
-                        presentableValues.add( new DisplayElement(
+                        presentableValues.add( DisplayElement.create(
                                 wordlistType.name() + "_sha256Hash",
                                 DisplayElement.Type.string,
                                 "SHA256 Checksum",
@@ -259,12 +259,12 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                 }
                 if ( wordlist.getAutoImportError() != null )
                 {
-                    presentableValues.add( new DisplayElement(
+                    presentableValues.add( DisplayElement.create(
                             wordlistType.name() + "_lastImportError",
                             DisplayElement.Type.string,
                             "Error During Import",
                             wordlist.getAutoImportError().getDetailedErrorMsg() ) );
-                    presentableValues.add( new DisplayElement(
+                    presentableValues.add( DisplayElement.create(
                             wordlistType.name() + "_lastImportAttempt",
                             DisplayElement.Type.timestamp,
                             "Last Import Attempt",
@@ -276,7 +276,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
                     final String percentComplete = wordlist.getImportPercentComplete();
                     if ( StringUtil.notEmpty( percentComplete ) )
                     {
-                        presentableValues.add( new DisplayElement(
+                        presentableValues.add( DisplayElement.create(
                                 "percentComplete",
                                 DisplayElement.Type.string,
                                 "Percent Complete",

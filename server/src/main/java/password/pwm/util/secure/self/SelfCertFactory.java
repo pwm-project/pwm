@@ -110,7 +110,7 @@ public class SelfCertFactory
     private static boolean evaluateExistingStoredCert( final StoredCertData storedCertData, final SelfCertSettings settings )
     {
         final String cnName = makeSubjectName( settings );
-        if ( !cnName.equals( storedCertData.getX509Certificate().getSubjectDN().getName() ) )
+        if ( !cnName.equals( storedCertData.getX509Certificate().getSubjectX500Principal().getName() ) )
         {
             LOGGER.info( () -> "replacing stored self cert, subject name does not match configured site url" );
             return false;
@@ -131,14 +131,14 @@ public class SelfCertFactory
 
     private static String makeSubjectName( final SelfCertSettings settings )
     {
-        if ( !StringUtil.isEmpty( settings.getSubjectAlternateName() ) )
+        if ( !StringUtil.isEmpty( settings.subjectAlternateName() ) )
         {
-            return settings.getSubjectAlternateName();
+            return settings.subjectAlternateName();
         }
 
         String cnName = PwmConstants.PWM_APP_NAME.toLowerCase() + ".example.com";
         {
-            final String siteURL = settings.getSiteUrl();
+            final String siteURL = settings.siteUrl();
             if ( StringUtil.notEmpty( siteURL ) )
             {
                 try

@@ -37,7 +37,7 @@
 <% final List<CustomLinkConfiguration> links = (List<CustomLinkConfiguration>)JspUtility.getAttribute(pageContext, PwmRequestAttribute.FormCustomLinks); %>
 <% if (links != null  && !links.isEmpty()) { %>
 <% for (final CustomLinkConfiguration item : links) { %>
-<form method="get" action="<%=item.getCustomLinkUrl()%>" title="<%=item.getDescription(formLocale)%>" <%=item.isCustomLinkNewWindow()?"target=\"_blank\"":""%>>
+<form method="get" action="<%=item.customLinkUrl()%>" title="<%=item.getDescription(formLocale)%>" <%=item.customLinkNewWindow()?"target=\"_blank\"":""%>>
     <input class="button" type="submit" value="<%=item.getLabel(formLocale)%>">
 </form>
 <% } %>

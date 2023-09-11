@@ -33,12 +33,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class LocalDBHealthChecker implements HealthSupplier
+public final class LocalDBHealthChecker implements HealthSupplier
 {
     @Override
     public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplierRequest request )
     {
-        final PwmApplication pwmApplication = request.getPwmApplication();
+        final PwmApplication pwmApplication = request.pwmApplication();
         final Supplier<List<HealthRecord>> supplier = () -> doHealthCheck( pwmApplication );
         return Collections.singletonList( supplier );
     }

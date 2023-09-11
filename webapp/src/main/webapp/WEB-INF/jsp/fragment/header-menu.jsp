@@ -27,16 +27,13 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <pwm:if test="<%=PwmIfTest.showHeaderMenu%>">
-    <pwm:script-ref url="/public/resources/js/configmanager.js"/>
-    <pwm:script-ref url="/public/resources/js/admin.js"/>
-    <pwm:script>
-        <script type="text/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                PWM_CONFIG.initConfigHeader();
-            });
-        </script>
-    </pwm:script>
+    <script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+        import {PWM_CONFIG} from "<pwm:url url="/public/resources/js/configmanager.js" addContext="true"/>";
+        PWM_CONFIG.initConfigHeader();
+    </script>
     <div id="header-warning" class="nodisplay">
         <div id="header-warning-message" class="header-warning-row header-warning-message">
             <pwm:if test="<%=PwmIfTest.trialMode%>">

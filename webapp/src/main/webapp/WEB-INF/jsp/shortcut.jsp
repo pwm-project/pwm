@@ -54,14 +54,15 @@
         <p>No shortcuts</p>
         <% } else { %>
         <% for (final ShortcutItem item : shortcutItems) { %>
-        <a href="<pwm:current-url/>?processAction=<%=ShortcutServlet.ShortcutAction.selectShortcut%>&link=<%=StringUtil.escapeHtml(item.getLabel())%>&pwmFormID=<pwm:FormID/>" id="form-shortcuts-<%=StringUtil.escapeHtml(item.getLabel())%>" <%=newWindow ? " target=\"_blank\"" : ""%>>
+        <a href="<pwm:current-url/>?processAction=<%=ShortcutServlet.ShortcutAction.selectShortcut%>&link=<%=StringUtil.escapeHtml(item.label())%>&pwmFormID=<pwm:FormID/>"
+           id="form-shortcuts-<%=StringUtil.escapeHtml(item.label())%>" <%=newWindow ? " target=\"_blank\"" : ""%>>
             <div class="tile">
                 <div class="tile-content">
                     <div class="tile-image">
                         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-external-link"></span></pwm:if>
                     </div>
-                    <div class="tile-title" title="<%=item.getLabel()%>"><%=item.getLabel()%></div>
-                    <div class="tile-subtitle" title="<%=item.getDescription()%>"><%=item.getDescription()%></div>
+                    <div class="tile-title" title="<%=item.label()%>"><%=item.label()%></div>
+                    <div class="tile-subtitle" title="<%=item.description()%>"><%=item.description()%></div>
                 </div>
             </div>
         </a>

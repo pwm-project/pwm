@@ -107,7 +107,7 @@ public class ConfigurationCleaner
                     + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL + ", value="
                     + ValueTypeConverter.valueToString( value ) );
             final Optional<ValueMetaData> valueMetaData = existingConfig.readMetaData( key );
-            final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
+            final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::userIdentity ).orElse( null );
             try
             {
                 final StoredConfigKey writeKey = StoredConfigKey.forSetting( PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL, profileID.orElse( null ), key.getDomainID() );
@@ -140,7 +140,7 @@ public class ConfigurationCleaner
                                 ? new StringValue( RecoveryMinLifetimeOption.NONE.name() )
                                 : new StringValue( RecoveryMinLifetimeOption.ALLOW.name() );
                         final Optional<ValueMetaData> existingData = oldConfig.readSettingMetadata( key );
-                        final UserIdentity newActor = existingData.map( ValueMetaData::getUserIdentity ).orElse( null );
+                        final UserIdentity newActor = existingData.map( ValueMetaData::userIdentity ).orElse( null );
                         LOGGER.info( SESSION_LABEL, () -> "converting deprecated non-default setting "
                                 + PwmSetting.RECOVERY_ENFORCE_MINIMUM_PASSWORD_LIFETIME.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE ) + "/" + profileID
                                 + " to replacement setting " + PwmSetting.RECOVERY_MINIMUM_PASSWORD_LIFETIME_OPTIONS.toMenuLocationDebug( profileID, PwmConstants.DEFAULT_LOCALE )
@@ -178,7 +178,7 @@ public class ConfigurationCleaner
                     newValues.add( WebServiceUsage.Statistics.name() );
 
                     final Optional<ValueMetaData> valueMetaData = oldConfig.readMetaData( existingPubWebservicesKey );
-                    final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
+                    final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::userIdentity ).orElse( null );
 
                     final StoredConfigKey destKey = StoredConfigKey.forSetting( PwmSetting.WEBSERVICES_PUBLIC_ENABLE, null, domainID );
                     modifier.writeSetting( destKey, new OptionListValue( newValues ), userIdentity );

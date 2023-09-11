@@ -20,9 +20,6 @@
 
 package password.pwm.bean;
 
-import lombok.Builder;
-
-@Builder
 public record EmailItemBean(
         String to,
         String from,

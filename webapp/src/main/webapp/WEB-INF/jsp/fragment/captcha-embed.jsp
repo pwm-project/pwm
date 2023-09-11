@@ -43,12 +43,12 @@
 <pwm:script>
     <script type="text/javascript">
         function onloadCallback() {
-            PWM_MAIN.doQuery('.pwm-btn-submit',function(submitButton) {
+            PWM_MAIN.JSLibrary('.pwm-btn-submit',function(submitButton) {
                 submitButton.disabled = true;
             });
             var recaptchaCallback = function() {
                 console.log('captcha completed, passed');
-                PWM_MAIN.doQuery('.pwm-btn-submit',function(submitButton) {
+                PWM_MAIN.JSLibrary('.pwm-btn-submit',function(submitButton) {
                     submitButton.disabled = false;
                 });
             };
@@ -66,11 +66,11 @@
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function() {
-            PWM_MAIN.doQuery('.pwm-form-captcha',function(formElement) {
+            PWM_MAIN.JSLibrary('.pwm-form-captcha',function(formElement) {
                 PWM_MAIN.addEventHandler(formElement, "submit", function(event){
                     PWM_MAIN.log('entering handleCaptchaFormSubmit');
                     PWM_VAR['captcha-form-element'] = formElement;
-                    PWM_MAIN.cancelEvent(event);
+                    PWM_JSLibrary.cancelEvent(event);
 
                     PWM_MAIN.showWaitDialog({loadFunction: function () {
                             try {

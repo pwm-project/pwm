@@ -23,6 +23,7 @@ package password.pwm.health;
 import password.pwm.PwmApplication;
 import password.pwm.PwmEnvironment;
 import password.pwm.bean.DomainID;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.AppConfig;
 import password.pwm.error.PwmException;
 import password.pwm.svc.db.DatabaseAccessor;
@@ -33,31 +34,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class DatabaseStatusChecker implements HealthSupplier
+public final class DatabaseStatusChecker implements HealthSupplier
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( DatabaseStatusChecker.class );
 
-    @Override
-    public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplierRequest request )
+    public static List<HealthRecord> checkNewDatabaseStatus(
+            final SessionLabel sessionLabel,
+            final PwmEnvironment pwmEnvironment,
+            final AppConfig appConfig )
     {
-        final PwmApplication pwmApplication = request.getPwmApplication();
-        final Supplier<List<HealthRecord>> supplier = () -> doHealthCheck( pwmApplication );
-        return Collections.singletonList( supplier );
-    }
-
-    public List<HealthRecord> doHealthCheck( final PwmApplication pwmApplication )
-    {
-        return checkDatabaseStatus( pwmApplication, pwmApplication.getConfig() );
-    }
-
-    public static List<HealthRecord> checkNewDatabaseStatus( final PwmApplication pwmApplication, final AppConfig config )
-    {
-        return checkDatabaseStatus( pwmApplication, config );
-    }
-
-    private static List<HealthRecord> checkDatabaseStatus( final PwmApplication pwmApplication, final AppConfig config )
-    {
-        if ( !config.hasDbConfigured() )
+        if ( !appConfig.hasDbConfigured() )
         {
             return Collections.singletonList( HealthRecord.forMessage(
                     DomainID.systemId(),
@@ -65,26 +51,70 @@ public class DatabaseStatusChecker implements HealthSupplier
                     "Database not configured" ) );
         }
 
-        PwmApplication runtimeInstance = null;
         try
         {
-            final PwmEnvironment runtimeEnvironment = pwmApplication.getPwmEnvironment().makeRuntimeInstance( config );
-            runtimeInstance = PwmApplication.createPwmApplication( runtimeEnvironment );
-            final DatabaseAccessor accessor = runtimeInstance.getDatabaseService().getAccessor();
+            final PwmEnvironment runtimeEnvironment = pwmEnvironment.makeRuntimeInstance( appConfig );
+            final PwmApplication runtimeInstance = PwmApplication.createPwmApplication( runtimeEnvironment );
+            final List<HealthRecord> records = checkDatabaseStatus( sessionLabel, runtimeInstance );
+            return List.copyOf( records );
+        }
+        catch ( final Exception e )
+        {
+            return List.of( exceptionToRecord( sessionLabel, e ) );
+        }
+    }
+
+    @Override
+    public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplierRequest request )
+    {
+        if ( checkShouldBeSkipped( request.pwmApplication() ) )
+        {
+            return List.of();
+        }
+
+        return List.of( () -> checkDatabaseStatus(
+                request.sessionLabel(),
+                request.pwmApplication() ) );
+    }
+
+    private static boolean checkShouldBeSkipped(
+            final PwmApplication pwmApplication
+    )
+    {
+        return pwmApplication.getPwmEnvironment().isInternalRuntimeInstance()
+                || pwmApplication.getConfig().hasDbConfigured();
+    }
+
+    private static List<HealthRecord> checkDatabaseStatus(
+            final SessionLabel sessionLabel,
+            final PwmApplication pwmApplication
+    )
+    {
+        try
+        {
+            final DatabaseAccessor accessor = pwmApplication.getDatabaseService().getAccessor();
             accessor.get( DatabaseTable.PWM_META, "test" );
-            return runtimeInstance.getDatabaseService().healthCheck();
+            final List<HealthRecord> records = pwmApplication.getDatabaseService().healthCheck();
+            if ( records.isEmpty() )
+            {
+                return List.of( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.Database_OK ) );
+            }
+            return records;
         }
         catch ( final PwmException e )
         {
-            LOGGER.error( () -> "error during healthcheck: " + e.getMessage() );
-            return runtimeInstance.getDatabaseService().healthCheck();
+            return List.of( exceptionToRecord( sessionLabel, e ) );
         }
-        finally
-        {
-            if ( runtimeInstance != null )
-            {
-                runtimeInstance.shutdown();
-            }
-        }
+    }
+
+    private static HealthRecord exceptionToRecord(
+            final SessionLabel sessionLabel,
+            final Exception e )
+    {
+        LOGGER.debug( sessionLabel, () -> "error during db health check: " + e.getMessage() );
+        return  HealthRecord.forMessage(
+                DomainID.systemId(),
+                HealthMessage.Database_Error,
+                "error: " + e.getMessage() );
     }
 }

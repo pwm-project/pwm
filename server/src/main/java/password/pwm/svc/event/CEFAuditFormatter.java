@@ -184,12 +184,12 @@ public class CEFAuditFormatter implements AuditFormatter
         appendCefHeader( pwmApplication, cefOutput, PwmConstants.SERVLET_VERSION );
 
         // Device Event Class ID
-        appendCefHeader( pwmApplication, cefOutput, String.valueOf( auditRecord.getEventCode() ) );
+        appendCefHeader( pwmApplication, cefOutput, String.valueOf( auditRecord.eventCode() ) );
 
         // field name
         appendCefHeader( pwmApplication, cefOutput, LocaleHelper.getLocalizedMessage(
                 PwmConstants.DEFAULT_LOCALE,
-                auditRecord.getEventCode().getMessage(),
+                auditRecord.eventCode().getMessage(),
                 pwmApplication.getConfig()
         ) );
 

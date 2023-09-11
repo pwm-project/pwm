@@ -623,16 +623,16 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
 
             if ( valueMetaData.isPresent() )
             {
-                if ( valueMetaData.get().getUserIdentity() != null )
+                if ( valueMetaData.get().userIdentity() != null )
                 {
                     final XmlElement metaElement = XmlFactory.getFactory().newElement( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_USER );
-                    metaElement.setText( valueMetaData.get().getUserIdentity().toDelimitedKey() );
+                    metaElement.setText( valueMetaData.get().userIdentity().toDelimitedKey() );
                     xmlElement.attachElement( metaElement );
                 }
 
-                if ( valueMetaData.get().getModifyDate() != null )
+                if ( valueMetaData.get().modifyDate() != null )
                 {
-                    xmlElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_TIME, StringUtil.toIsoDate( valueMetaData.get().getModifyDate() ) );
+                    xmlElement.setAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_MODIFY_TIME, StringUtil.toIsoDate( valueMetaData.get().modifyDate() ) );
                 }
             }
         }
@@ -891,9 +891,9 @@ public class StoredConfigXmlSerializer implements StoredConfigSerializer
                                 final Optional<StoredConfigData.ValueAndMetaCarrier> valueAndMetaTuple =  documentReader.readSetting( PwmSetting.APP_PROPERTY_OVERRIDES, null );
                                 valueAndMetaTuple.ifPresent( ( t ) ->
                                 {
-                                    if ( t.getValue() != null )
+                                    if ( t.value() != null )
                                     {
-                                        existingValues.addAll( ValueTypeConverter.valueToStringArray( t.getValue() ) );
+                                        existingValues.addAll( ValueTypeConverter.valueToStringArray( t.value() ) );
                                     }
                                 } );
                             }

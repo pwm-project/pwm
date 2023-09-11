@@ -88,13 +88,6 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.getObject('username').focus();
-        });
-    </script>
-</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

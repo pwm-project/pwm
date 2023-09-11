@@ -395,7 +395,7 @@ class ForgottenPasswordStageProcessor
             {
                 final PasswordStatus passwordStatus = userInfo.getPasswordStatus();
 
-                if ( !passwordStatus.isExpired() && !passwordStatus.isPreExpired() )
+                if ( !passwordStatus.expired() && !passwordStatus.preExpired() )
                 {
                     if ( userInfo.isPasswordLocked() )
                     {

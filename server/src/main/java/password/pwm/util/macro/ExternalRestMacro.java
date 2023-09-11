@@ -66,8 +66,8 @@ class ExternalRestMacro extends AbstractMacro
             final MacroRequest macroRequestInfo
     )
     {
-        final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
-        final UserInfo userInfoBean = macroRequestInfo.getUserInfo();
+        final PwmApplication pwmApplication = macroRequestInfo.pwmApplication();
+        final UserInfo userInfoBean = macroRequestInfo.userInfo();
 
         final String inputString = matchValue.substring( 11, matchValue.length() - 1 );
         final Map<String, Object> sendData = new HashMap<>();
@@ -80,8 +80,8 @@ class ExternalRestMacro extends AbstractMacro
             {
                 final MacroRequest macroRequest = MacroRequest.forUser(
                         pwmApplication,
-                        macroRequestInfo.getUserLocale(),
-                        macroRequestInfo.getSessionLabel(),
+                        macroRequestInfo.userLocale(),
+                        macroRequestInfo.sessionLabel(),
                         userInfoBean.getUserIdentity() );
 
                 final PublicUserInfoBean publicUserInfoBean = UserInfoBean.toPublicUserInfoBean(
@@ -97,7 +97,7 @@ class ExternalRestMacro extends AbstractMacro
 
             final String requestBody = JsonFactory.get().serializeMap( sendData );
             final String responseBody = RestClientHelper.makeOutboundRestWSCall( pwmDomain,
-                    macroRequestInfo.getSessionLabel(),
+                    macroRequestInfo.sessionLabel(),
                     PwmConstants.DEFAULT_LOCALE,
                     url,
                     requestBody );

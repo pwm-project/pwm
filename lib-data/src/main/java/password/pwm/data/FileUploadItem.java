@@ -20,12 +20,10 @@
 
 package password.pwm.data;
 
-import lombok.Value;
-
-@Value
-public class FileUploadItem
+public record FileUploadItem(
+        String name,
+        String type,
+        ImmutableByteArray content
+)
 {
-    private final String name;
-    private final String type;
-    private final ImmutableByteArray content;
 }

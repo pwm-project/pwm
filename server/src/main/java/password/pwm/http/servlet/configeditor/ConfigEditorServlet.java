@@ -78,6 +78,7 @@ import password.pwm.svc.email.EmailService;
 import password.pwm.svc.httpclient.PwmHttpClientResponse;
 import password.pwm.svc.sms.SmsQueueService;
 import password.pwm.util.PasswordData;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.SampleDataGenerator;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
@@ -540,7 +541,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 .forEach( recordID ->
                 {
                     final SearchResultItem item = SearchResultItem.fromKey( recordID, storedConfiguration, locale );
-                    final String returnCategory = item.getNavigation();
+                    final String returnCategory = item.navigation();
 
                     returnData.computeIfAbsent( returnCategory, k -> new TreeMap<>() )
                             .put( recordID.getRecordID(), item );
@@ -586,11 +587,15 @@ public class ConfigEditorServlet extends ControlledPwmServlet
             throws IOException, PwmUnrecoverableException
     {
         final ConfigManagerBean configManagerBean = getBean( pwmRequest );
-        final AppConfig config = AppConfig.forStoredConfig( configManagerBean.getStoredConfiguration() );
-        final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.LDAP_SERVER_URLS );
-        final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus( pwmRequest.getPwmApplication(), config );
-        final PublicHealthData healthData = HealthRecord.asHealthDataBean( config.getDomainConfigs().get( domainID ), pwmRequest.getLocale(), healthRecords );
-        final RestResultBean restResultBean = RestResultBean.withData( healthData, PublicHealthData.class );
+        final AppConfig workingConfig = AppConfig.forStoredConfig( configManagerBean.getStoredConfiguration() );
+        final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainID( PwmSetting.DATABASE_URL );
+        final List<HealthRecord> healthRecords = DatabaseStatusChecker.checkNewDatabaseStatus(
+                pwmRequest.getLabel(),
+                pwmRequest.getPwmApplication().getPwmEnvironment(),
+                workingConfig );
+
+        final PublicHealthData healthData = HealthRecord.asHealthDataBean( workingConfig.getDomainConfigs().get( domainID ), pwmRequest.getLocale(), healthRecords );
+        final RestResultBean<PublicHealthData> restResultBean = RestResultBean.withData( healthData, PublicHealthData.class );
         pwmRequest.outputJsonResult( restResultBean );
         return ProcessStatus.Halt;
     }
@@ -823,6 +828,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
 
         final StoredConfiguration storedConfiguration = configManagerBean.getStoredConfiguration();
         final DomainID domainID = DomainStateReader.forRequest( pwmRequest ).getDomainIDForDomainSetting(  );
+        final PwmScheduler pwmScheduler = pwmRequest.getPwmApplication().getPwmScheduler();
 
         final ProfileID profile;
         {
@@ -836,7 +842,8 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         final LdapBrowser ldapBrowser = new LdapBrowser(
                 pwmRequest.getLabel(),
                 pwmRequest.getPwmDomain().getLdapService().getChaiProviderFactory(),
-                storedConfiguration
+                storedConfiguration,
+                pwmScheduler
         );
 
         LdapBrowser.LdapBrowseResult result;
@@ -938,8 +945,7 @@ public class ConfigEditorServlet extends ControlledPwmServlet
                 pwmRequest.getLabel(),
                 randomConfig,
                 pwmRequest.getPwmDomain() );
-        final RestRandomPasswordServer.JsonOutput outputMap = new RestRandomPasswordServer.JsonOutput();
-        outputMap.setPassword( randomPassword.getStringValue() );
+        final RestRandomPasswordServer.JsonOutput outputMap = new RestRandomPasswordServer.JsonOutput( randomPassword.getStringValue() );
 
         pwmRequest.outputJsonResult( RestResultBean.withData( outputMap, RestRandomPasswordServer.JsonOutput.class ) );
 

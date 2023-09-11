@@ -134,16 +134,16 @@ public class UserMatchViewerFunction implements SettingUIFunction
     {
         for ( final UserPermission userPermission : permissions )
         {
-            if ( userPermission.getType() == UserPermissionType.ldapQuery )
+            if ( userPermission.type() == UserPermissionType.ldapQuery )
             {
-                if ( userPermission.getLdapBase() != null && !userPermission.getLdapBase().isEmpty() )
+                if ( userPermission.ldapBase() != null && !userPermission.ldapBase().isEmpty() )
                 {
-                    testIfLdapDNIsValid( sessionLabel, pwmDomain, userPermission.getLdapBase(), userPermission.getLdapProfileID() );
+                    testIfLdapDNIsValid( sessionLabel, pwmDomain, userPermission.ldapBase(), userPermission.ldapProfileID() );
                 }
             }
-            else if ( userPermission.getType() == UserPermissionType.ldapGroup )
+            else if ( userPermission.type() == UserPermissionType.ldapGroup )
             {
-                testIfLdapDNIsValid( sessionLabel, pwmDomain, userPermission.getLdapBase(), userPermission.getLdapProfileID() );
+                testIfLdapDNIsValid( sessionLabel, pwmDomain, userPermission.ldapBase(), userPermission.ldapProfileID() );
             }
         }
     }

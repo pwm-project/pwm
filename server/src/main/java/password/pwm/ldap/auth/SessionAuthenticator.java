@@ -417,15 +417,15 @@ public class SessionAuthenticator
         IntruderServiceClient.clearUserIdentity( pwmRequest, userIdentity );
         IntruderServiceClient.clearAddressAndSession( pwmDomain, pwmSession );
 
-        if ( pwmSession.getUserInfo().getPasswordStatus().isWarnPeriod() )
+        if ( pwmSession.getUserInfo().getPasswordStatus().warnPeriod() )
         {
             StatisticsClient.incrementStat( pwmRequest, Statistic.AUTHENTICATION_EXPIRED_WARNING );
         }
-        else if ( pwmSession.getUserInfo().getPasswordStatus().isPreExpired() )
+        else if ( pwmSession.getUserInfo().getPasswordStatus().preExpired() )
         {
             StatisticsClient.incrementStat( pwmRequest, Statistic.AUTHENTICATION_PRE_EXPIRED );
         }
-        else if ( pwmSession.getUserInfo().getPasswordStatus().isExpired() )
+        else if ( pwmSession.getUserInfo().getPasswordStatus().expired() )
         {
             StatisticsClient.incrementStat( pwmRequest, Statistic.AUTHENTICATION_EXPIRED );
         }

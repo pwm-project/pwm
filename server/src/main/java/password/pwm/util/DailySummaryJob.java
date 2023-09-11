@@ -20,8 +20,6 @@
 
 package password.pwm.util;
 
-import lombok.Builder;
-import lombok.Value;
 import org.apache.commons.text.WordUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -60,25 +58,22 @@ public class DailySummaryJob implements Runnable
         this.pwmApplication = pwmDomain;
     }
 
-    @Value
-    @Builder
-    static class DailySummaryJobSettings
+    record DailySummaryJobSettings(
+            boolean reportingEnableDailyJob,
+            boolean dailySummaryJobsEnabled,
+            List<String> toAddress,
+            String fromAddress,
+            String siteUrl
+    )
     {
-        private final boolean reportingEnableDailyJob;
-        private final boolean dailySummaryJobsEnabled;
-        private final List<String> toAddress;
-        private final String fromAddress;
-        private final String siteUrl;
-
         static DailySummaryJobSettings fromConfig( final DomainConfig config )
         {
-            return DailySummaryJobSettings.builder()
-                    .dailySummaryJobsEnabled( config.getAppConfig().readSettingAsBoolean( PwmSetting.EVENTS_ALERT_DAILY_SUMMARY ) )
-                    .toAddress( config.getAppConfig().readSettingAsStringArray( PwmSetting.AUDIT_EMAIL_SYSTEM_TO ) )
-                    .fromAddress( config.getAppConfig().readAppProperty( AppProperty.AUDIT_EVENTS_EMAILFROM ) )
-                    .siteUrl( config.getAppConfig().readSettingAsString( PwmSetting.PWM_SITE_URL ) )
-                    .reportingEnableDailyJob( config.getAppConfig().readSettingAsBoolean( PwmSetting.REPORTING_ENABLE_DAILY_JOB ) )
-                    .build();
+            return new DailySummaryJobSettings(
+                    config.getAppConfig().readSettingAsBoolean( PwmSetting.REPORTING_ENABLE_DAILY_JOB ),
+                    config.getAppConfig().readSettingAsBoolean( PwmSetting.EVENTS_ALERT_DAILY_SUMMARY ),
+                    config.getAppConfig().readSettingAsStringArray( PwmSetting.AUDIT_EMAIL_SYSTEM_TO ),
+                    config.getAppConfig().readAppProperty( AppProperty.AUDIT_EVENTS_EMAILFROM ),
+                    config.getAppConfig().readSettingAsString( PwmSetting.PWM_SITE_URL ) );
         }
     }
 
@@ -96,12 +91,12 @@ public class DailySummaryJob implements Runnable
             {
                 LOGGER.error( () -> "error while generating daily alert statistics: " + e.getMessage() );
             }
-    }
+        }
     }
 
     private static void alertDailyStats(
-        final PwmDomain pwmDomain,
-        final DailySummaryJobSettings settings
+            final PwmDomain pwmDomain,
+            final DailySummaryJobSettings settings
     )
             throws PwmUnrecoverableException
     {
@@ -123,9 +118,9 @@ public class DailySummaryJob implements Runnable
 
         final Locale locale = PwmConstants.DEFAULT_LOCALE;
 
-        for ( final String toAddress : settings.getToAddress() )
+        for ( final String toAddress : settings.toAddress() )
         {
-            final String fromAddress = settings.getFromAddress();
+            final String fromAddress = settings.fromAddress();
             final String subject = Display.getLocalizedMessage( locale, Display.Title_Application, pwmDomain.getConfig() ) + " - Daily Summary";
             final StringBuilder textBody = new StringBuilder();
             final StringBuilder htmlBody = new StringBuilder();
@@ -150,7 +145,7 @@ public class DailySummaryJob implements Runnable
             // server info
             final Map<String, String> metadata = new LinkedHashMap<>();
             metadata.put( "Instance ID", pwmDomain.getPwmApplication().getInstanceID() );
-            metadata.put( "Site URL", settings.getSiteUrl() );
+            metadata.put( "Site URL", settings.siteUrl() );
             metadata.put( "Timestamp", StringUtil.toIsoDate( Instant.now() ) );
             metadata.put( "Up Time", PwmTimeUtil.asLongString( TimeDuration.fromCurrent( pwmDomain.getPwmApplication().getStartupTime() ) ) );
 
@@ -285,8 +280,8 @@ public class DailySummaryJob implements Runnable
             return false;
         }
 
-        final List<String> toAddress = settings.getToAddress();
-        final String fromAddress = settings.getFromAddress();
+        final List<String> toAddress = settings.toAddress();
+        final String fromAddress = settings.fromAddress();
 
         if ( CollectionUtil.isEmpty( toAddress ) || StringUtil.isEmpty( toAddress.get( 0 ) ) )
         {
@@ -298,7 +293,7 @@ public class DailySummaryJob implements Runnable
             return false;
         }
 
-        return settings.isDailySummaryJobsEnabled();
+        return settings.dailySummaryJobsEnabled();
     }
 
     private static String stripHtmlTags( final String input )

@@ -20,18 +20,28 @@
 
 package password.pwm.svc.report;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.http.bean.DisplayElement;
+import password.pwm.util.java.CollectionUtil;
 
-import java.util.Collections;
 import java.util.List;
 
-@Value
-@Builder
-public class ReportProcessStatus
+public record ReportProcessStatus(
+        List<DisplayElement> presentable,
+        boolean reportInProgress
+)
 {
-    @Builder.Default
-    private List<DisplayElement> presentable = Collections.singletonList( new DisplayElement( "status", DisplayElement.Type.string, "Status", "Idle" ) );
-    private boolean reportInProgress;
+    private static final ReportProcessStatus IDLE = new ReportProcessStatus(
+            List.of( DisplayElement.create( "status", DisplayElement.Type.string, "Status", "Idle" ) ),
+            false );
+
+    public ReportProcessStatus( final List<DisplayElement> presentable, final boolean reportInProgress )
+    {
+        this.presentable = CollectionUtil.stripNulls( presentable );
+        this.reportInProgress = reportInProgress;
+    }
+
+    public static ReportProcessStatus getIdle()
+    {
+        return IDLE;
+    }
 }

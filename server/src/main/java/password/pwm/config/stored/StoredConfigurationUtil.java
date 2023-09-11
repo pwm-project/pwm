@@ -43,8 +43,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.JavaHelper;
-import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.PwmExceptionLoggingConsumer;
+import password.pwm.util.java.PwmUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.BCrypt;
@@ -138,7 +138,7 @@ public abstract class StoredConfigurationUtil
                 if ( pwmSetting.getSyntax() == PwmSettingSyntax.PASSWORD )
                 {
                     final Optional<ValueMetaData> valueMetaData = storedConfig.readSettingMetadata( storedConfigItemKey );
-                    final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
+                    final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::userIdentity ).orElse( null );
                     final PasswordValue passwordValue = new PasswordValue( new PasswordData( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT ) );
                     modifier.writeSetting( storedConfigItemKey, passwordValue, userIdentity );
                 }
@@ -193,7 +193,7 @@ public abstract class StoredConfigurationUtil
         return CollectionUtil.iteratorToStream( storedConfiguration.keys() )
                 .filter( key -> key.isRecordType( StoredConfigKey.RecordType.SETTING ) )
                 .flatMap( validateSettingFunction )
-                .collect( Collectors.toUnmodifiableList() );
+                .toList();
     }
 
     public static boolean verifyPassword( final StoredConfiguration storedConfiguration, final String password )
@@ -203,7 +203,9 @@ public abstract class StoredConfigurationUtil
             return false;
         }
         final Optional<String> passwordHash = storedConfiguration.readConfigProperty( ConfigurationProperty.PASSWORD_HASH );
-        return passwordHash.isPresent() && BCrypt.testAnswer( password, passwordHash.get(), AppConfig.forStoredConfig( storedConfiguration ) );
+        return passwordHash.isPresent() && BCrypt
+                .createBCrypt( AppConfig.forStoredConfig( storedConfiguration ) )
+                .testAnswer( password, passwordHash.get() );
     }
 
     public static boolean hasPassword( final StoredConfiguration storedConfiguration )
@@ -233,7 +235,9 @@ public abstract class StoredConfigurationUtil
             ) );
         }
 
-        final String passwordHash = BCrypt.hashPassword( password );
+        final String passwordHash = BCrypt
+                .createBCrypt( AppConfig.forStoredConfig( storedConfiguration.newStoredConfiguration() ) )
+                .hashPassword( password );
         storedConfiguration.writeConfigProperty( ConfigurationProperty.PASSWORD_HASH, passwordHash );
     }
 

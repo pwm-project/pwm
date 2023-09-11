@@ -75,6 +75,7 @@ public enum DomainProperty
     LDAP_PASSWORD_CHANGE_HELPDESK_ENABLE            ( "ldap.password.change.helpdesk.enable" ),
     LDAP_GUID_PATTERN                               ( "ldap.guid.pattern" ),
     LDAP_BROWSER_MAX_ENTRIES                        ( "ldap.browser.maxEntries" ),
+    LDAP_BROWSER_MAX_THREADS                        ( "ldap.browser.maxThreads" ),
     LDAP_SEARCH_PAGING_ENABLE                       ( "ldap.search.paging.enable" ),
     LDAP_SEARCH_PAGING_SIZE                         ( "ldap.search.paging.size" ),
     LDAP_SEARCH_PARALLEL_ENABLE                     ( "ldap.search.parallel.enable" ),

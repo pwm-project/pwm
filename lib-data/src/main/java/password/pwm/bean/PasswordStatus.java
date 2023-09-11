@@ -20,20 +20,15 @@
 
 package password.pwm.bean;
 
-import lombok.Builder;
-import lombok.Value;
-
-@Value
-@Builder
-public class PasswordStatus
+public record PasswordStatus(
+        boolean expired,
+        boolean preExpired,
+        boolean violatesPolicy,
+        boolean warnPeriod
+)
 {
-    private final boolean expired;
-    private final boolean preExpired;
-    private final boolean violatesPolicy;
-    private final boolean warnPeriod;
-
     public boolean isEffectivelyExpired( )
     {
-        return this.isExpired() || !this.isPreExpired() || !this.isViolatesPolicy();
+        return this.expired() || !this.preExpired() || !this.violatesPolicy();
     }
 }

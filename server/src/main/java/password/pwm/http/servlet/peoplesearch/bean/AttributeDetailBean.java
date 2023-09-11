@@ -20,19 +20,19 @@
 
 package password.pwm.http.servlet.peoplesearch.bean;
 
-import lombok.Data;
 import password.pwm.config.value.data.FormConfiguration;
 
 import java.util.Collection;
 import java.util.List;
 
-@Data
-public class AttributeDetailBean
+public record AttributeDetailBean(
+         String name,
+         String label,
+         FormConfiguration.Type type,
+         List<String> values,
+         Collection<UserReferenceBean> userReferences,
+         boolean searchable
+)
 {
-    private String name;
-    private String label;
-    private FormConfiguration.Type type;
-    private List<String> values;
-    private Collection<UserReferenceBean> userReferences;
-    private boolean searchable;
 }
+

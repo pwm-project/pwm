@@ -32,13 +32,12 @@ import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.PwmLocaleBundle;
 import password.pwm.util.java.CollectionUtil;
+import password.pwm.util.java.CollectorUtil;
+import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -71,48 +70,41 @@ public class SettingDataMaker
 
             settingMap = interestedSets.stream()
                     .sorted()
-                    .collect( Collectors.toMap(
+                    .collect( CollectorUtil.toUnmodifiableLinkedMap(
                             PwmSetting::getKey,
-                            pwmSetting -> SettingInfo.forSetting( pwmSetting, templateSet, locale ),
-                            ( u, v ) ->
-                            {
-                                throw new IllegalStateException();
-                            },
-                            LinkedHashMap::new ) );
+                            pwmSetting -> SettingInfo.forSetting( pwmSetting, templateSet, locale ) ) );
         }
 
-        final Map<String, CategoryInfo> categoryInfoMap = Collections.unmodifiableMap( Arrays.stream( PwmSettingCategory.values() )
-                .collect( Collectors.toMap(
+        final Map<String, CategoryInfo> categoryInfoMap = EnumUtil.enumStream( PwmSettingCategory.class )
+                .collect( CollectorUtil.toUnmodifiableLinkedMap(
                         PwmSettingCategory::getKey,
-                        pwmSettingCategory -> CategoryInfo.forCategory( pwmSettingCategory, locale ),
-                        ( u, v ) -> v,
-                        LinkedHashMap::new ) ) );
+                        pwmSettingCategory -> CategoryInfo.forCategory( pwmSettingCategory, locale ) ) );
 
-        final Map<String, LocaleInfo> labelMap = Collections.unmodifiableMap( Arrays.stream( PwmLocaleBundle.values() )
-                .collect( Collectors.toMap(
+
+        final Map<String, LocaleInfo> labelMap = EnumUtil.enumStream( PwmLocaleBundle.class )
+                .collect( CollectorUtil.toUnmodifiableLinkedMap(
                         pwmLocaleBundle ->  pwmLocaleBundle.getTheClass().getSimpleName(),
-                        LocaleInfo::forBundle,
-                        ( u, v ) -> v,
-                        LinkedHashMap::new ) ) );
+                        LocaleInfo::forBundle ) );
 
         final List<ProfileID> profileIDList = StoredConfigurationUtil.profilesForSetting( domainID, PwmSetting.LDAP_PROFILE_LIST, storedConfiguration );
-        final VarData varMap = VarData.builder()
-                .ldapProfileIds( CollectionUtil.convertListType( profileIDList, ProfileID::toString ) )
-                .domainIds( StoredConfigurationUtil.domainList( storedConfiguration ).stream()
-                        .map( DomainID::stringValue ).sorted().collect( Collectors.toList() ) )
-                .currentTemplate( templateSet )
-                .build();
+        final VarData varMap = new VarData(
+                CollectionUtil.convertListType( profileIDList, ProfileID::toString ),
+                StoredConfigurationUtil.domainList( storedConfiguration ).stream()
+                        .map( DomainID::stringValue ).sorted().collect( Collectors.toList() ),
+                templateSet );
 
-        final SettingData settingData = SettingData.builder()
-                .settings( settingMap )
-                .categories( categoryInfoMap )
-                .locales( labelMap )
-                .var( varMap )
-                .build();
+        final SettingData settingData = new SettingData(
+                settingMap,
+                categoryInfoMap,
+                labelMap,
+                null,
+                null,
+                varMap );
+
 
         LOGGER.trace( sessionLabel, () -> "generated settingData with "
-                + settingData.getSettings().size() + " settings and "
-                + settingData.getCategories().size() + " categories", TimeDuration.fromCurrent( startGenerateTime ) );
+                + settingData.settings().size() + " settings and "
+                + settingData.categories().size() + " categories", TimeDuration.fromCurrent( startGenerateTime ) );
 
         return settingData;
     }

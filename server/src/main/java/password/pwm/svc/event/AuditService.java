@@ -46,9 +46,9 @@ import password.pwm.svc.stats.Statistic;
 import password.pwm.svc.stats.StatisticsClient;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.PwmUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.StringUtil;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
@@ -153,36 +153,37 @@ public class AuditService extends AbstractPwmService implements PwmService
     private void sendAsEmail( final AuditRecord record )
             throws PwmUnrecoverableException
     {
-        if ( record == null || record.getEventCode() == null )
-        {
-            return;
-        }
-        if ( settings.getAlertFromAddress() == null || settings.getAlertFromAddress().length() < 1 )
+        if ( record == null || record.eventCode() == null )
         {
             return;
         }
 
-        switch ( record.getEventCode().getType() )
+        if ( StringUtil.isEmpty( settings.alertFromAddress() ) )
+        {
+            return;
+        }
+
+        switch ( record.eventCode().getType() )
         {
             case SYSTEM:
-                for ( final String toAddress : settings.getSystemEmailAddresses() )
+                for ( final String toAddress : settings.systemEmailAddresses() )
                 {
-                    sendAsEmail( getPwmApplication(), record, toAddress, settings.getAlertFromAddress() );
+                    sendAsEmail( getPwmApplication(), record, toAddress, settings.alertFromAddress() );
                 }
                 break;
 
             case USER:
             case HELPDESK:
             {
-                for ( final String toAddress : settings.getUserEmailAddresses() )
+                for ( final String toAddress : settings.userEmailAddresses() )
                 {
-                    sendAsEmail( getPwmApplication(), record, toAddress, settings.getAlertFromAddress() );
+                    sendAsEmail( getPwmApplication(), record, toAddress, settings.alertFromAddress() );
                 }
             }
-                break;
+            break;
 
             default:
-                PwmUtil.unhandledSwitchStatement( record.getEventCode().getType() );
+                PwmUtil.unhandledSwitchStatement( record.eventCode().getType() );
 
         }
     }
@@ -199,7 +200,7 @@ public class AuditService extends AbstractPwmService implements PwmService
         final MacroRequest macroRequest = MacroRequest.forNonUserSpecific( pwmApplication, getSessionLabel() );
 
         String subject = macroRequest.expandMacros( pwmApplication.getConfig().readAppProperty( AppProperty.AUDIT_EVENTS_EMAILSUBJECT ) );
-        subject = subject.replace( "%EVENT%", record.getEventCode().getLocalizedString( pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE ) );
+        subject = subject.replace( "%EVENT%", record.eventCode().getLocalizedString( pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE ) );
 
         final String body;
         {
@@ -208,12 +209,12 @@ public class AuditService extends AbstractPwmService implements PwmService
             body = StringUtil.mapToString( mapRecord, "=", "\n" );
         }
 
-        final EmailItemBean emailItem = EmailItemBean.builder()
-                .to( toAddress )
-                .from( fromAddress )
-                .subject( subject )
-                .bodyPlain( body )
-                .build();
+        final EmailItemBean emailItem = new EmailItemBean(
+                toAddress,
+                fromAddress,
+                subject,
+                body,
+                null );
 
         pwmApplication.getEmailQueue().submitEmail( emailItem, null, macroRequest );
         statisticCounterBundle.increment( DebugKey.emailsSent );
@@ -247,15 +248,15 @@ public class AuditService extends AbstractPwmService implements PwmService
             return;
         }
 
-        if ( auditRecord.getEventCode() == null )
+        if ( auditRecord.eventCode() == null )
         {
             LOGGER.error( sessionLabel, () -> "discarding audit event, missing event type; event=" + jsonRecord );
             return;
         }
 
-        if ( !settings.getPermittedEvents().contains( auditRecord.getEventCode() ) )
+        if ( !settings.permittedEvents().contains( auditRecord.eventCode() ) )
         {
-            LOGGER.debug( () -> "discarding event, " + auditRecord.getEventCode() + " are being ignored; event=" + jsonRecord );
+            LOGGER.debug( () -> "discarding event, " + auditRecord.eventCode() + " are being ignored; event=" + jsonRecord );
             return;
         }
 
@@ -281,13 +282,13 @@ public class AuditService extends AbstractPwmService implements PwmService
         // add to user history record
         if ( auditRecord instanceof UserAuditRecord )
         {
-            final DomainID domainID = auditRecord.getDomain();
+            final DomainID domainID = auditRecord.domain();
             if ( domainID != null )
             {
                 final PwmDomain pwmDomain = getPwmApplication().domains().get( domainID );
                 if ( pwmDomain != null )
                 {
-                    final String perpetratorDN = ( ( UserAuditRecord ) auditRecord ).getPerpetratorDN();
+                    final String perpetratorDN = ( ( UserAuditRecord ) auditRecord ).perpetratorDN();
                     if ( StringUtil.notEmpty( perpetratorDN ) )
                     {
                         pwmDomain.getUserHistoryService().write( sessionLabel, ( UserAuditRecord ) auditRecord );
@@ -358,36 +359,36 @@ public class AuditService extends AbstractPwmService implements PwmService
             counter++;
 
             final List<String> lineOutput = new ArrayList<>();
-            lineOutput.add( loopRecord.getEventCode().getType().toString() );
-            lineOutput.add( loopRecord.getEventCode().toString() );
-            lineOutput.add( StringUtil.toIsoDate( loopRecord.getTimestamp() ) );
-            lineOutput.add( loopRecord.getGuid() );
-            lineOutput.add( loopRecord.getMessage() == null ? "" : loopRecord.getMessage() );
+            lineOutput.add( loopRecord.eventCode().getType().toString() );
+            lineOutput.add( loopRecord.eventCode().toString() );
+            lineOutput.add( StringUtil.toIsoDate( loopRecord.timestamp() ) );
+            lineOutput.add( loopRecord.guid() );
+            lineOutput.add( loopRecord.message() == null ? "" : loopRecord.message() );
             if ( loopRecord instanceof SystemAuditRecord )
             {
-                lineOutput.add( loopRecord.getInstance() );
+                lineOutput.add( loopRecord.instance() );
             }
             if ( loopRecord instanceof UserAuditRecord )
             {
-                lineOutput.add( ( ( UserAuditRecord ) loopRecord ).getPerpetratorID() );
-                lineOutput.add( ( ( UserAuditRecord ) loopRecord ).getPerpetratorDN() );
+                lineOutput.add( ( ( UserAuditRecord ) loopRecord ).perpetratorID() );
+                lineOutput.add( ( ( UserAuditRecord ) loopRecord ).perpetratorDN() );
                 lineOutput.add( "" );
                 lineOutput.add( "" );
-                lineOutput.add( ( ( UserAuditRecord ) loopRecord ).getSourceAddress() );
-                lineOutput.add( ( ( UserAuditRecord ) loopRecord ).getSourceHost() );
+                lineOutput.add( ( ( UserAuditRecord ) loopRecord ).sourceAddress() );
+                lineOutput.add( ( ( UserAuditRecord ) loopRecord ).sourceHost() );
             }
             if ( loopRecord instanceof HelpdeskAuditRecord )
             {
-                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getPerpetratorID() );
-                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getPerpetratorDN() );
-                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getTargetID() );
-                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getTargetDN() );
-                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getSourceAddress() );
-                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getSourceHost() );
+                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).perpetratorID() );
+                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).perpetratorDN() );
+                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).targetID() );
+                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).targetDN() );
+                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).sourceAddress() );
+                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).sourceHost() );
             }
-            if ( loopRecord.getDomain() != null )
+            if ( loopRecord.domain() != null )
             {
-                lineOutput.add( loopRecord.getDomain().stringValue() );
+                lineOutput.add( loopRecord.domain().stringValue() );
             }
             csvPrinter.printRecord( lineOutput );
         }

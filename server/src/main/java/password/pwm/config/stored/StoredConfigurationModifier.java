@@ -22,6 +22,7 @@ package password.pwm.config.stored;
 
 import password.pwm.bean.DomainID;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.AppConfig;
 import password.pwm.config.value.LocalizedStringValue;
 import password.pwm.config.value.StoredValue;
 import password.pwm.config.value.StringValue;
@@ -193,19 +194,11 @@ public class StoredConfigurationModifier
         return modifications.get();
     }
 
-
     public void setPassword( final String password )
             throws PwmOperationalException, PwmUnrecoverableException
     {
-        if ( password == null || password.isEmpty() )
-        {
-            throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
-                    {
-                            "can not set blank password",
-                    }
-            ) );
-        }
-        final String trimmedPassword = password.trim();
+        final String trimmedPassword = password == null ? "" : password.trim();
+
         if ( trimmedPassword.length() < 1 )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[]
@@ -215,8 +208,8 @@ public class StoredConfigurationModifier
             ) );
         }
 
-
-        final String passwordHash = BCrypt.hashPassword( password );
+        final AppConfig appConfig = AppConfig.forStoredConfig( this.newStoredConfiguration() );
+        final String passwordHash = BCrypt.createBCrypt( appConfig ).hashPassword( trimmedPassword );
         this.writeConfigProperty( ConfigurationProperty.PASSWORD_HASH, passwordHash );
     }
 

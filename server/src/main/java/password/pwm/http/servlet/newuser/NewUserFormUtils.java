@@ -109,7 +109,7 @@ class NewUserFormUtils
     {
         final DomainSecureService domainSecureService = pwmRequest.getPwmDomain().getSecureService();
 
-        final Map<String, String> payloadMap = tokenPayload.getData();
+        final Map<String, String> payloadMap = tokenPayload.data();
 
         if ( !payloadMap.containsKey( NewUserServlet.TOKEN_PAYLOAD_ATTR ) )
         {

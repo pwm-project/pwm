@@ -21,7 +21,6 @@
 package password.pwm.http.servlet.configeditor;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.Value;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigKey;
 import password.pwm.config.stored.StoredConfiguration;
@@ -29,16 +28,16 @@ import password.pwm.config.stored.StoredConfigurationUtil;
 
 import java.util.Locale;
 
-@Value
-class SearchResultItem
-{
-    private final String category;
-    private final String value;
-    private final String navigation;
+record SearchResultItem(
+        String category,
+        String value,
+        String navigation,
 
-    @SerializedName( "default" )
-    private final boolean defaultValue;
-    private final String profile;
+        @SerializedName( "default" )
+        boolean defaultValue,
+        String profile
+)
+{
 
     static SearchResultItem fromKey(
             final StoredConfigKey key,
@@ -51,7 +50,6 @@ class SearchResultItem
                 storedConfiguration.readStoredValue( key ).orElseThrow().toDebugString( locale ),
                 setting.getCategory().toMenuLocationDebug( key.getProfileID().orElse( null ), locale ),
                 StoredConfigurationUtil.isDefaultValue( storedConfiguration, key ),
-                key.getProfileID().map( v -> v.stringValue() ).orElse( null )
-        );
+                key.getProfileID().map( v -> v.stringValue() ).orElse( null ) );
     }
 }

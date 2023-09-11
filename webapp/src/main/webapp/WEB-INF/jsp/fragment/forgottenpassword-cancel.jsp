@@ -26,6 +26,7 @@
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.servlet.forgottenpw.ForgottenPasswordServlet" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 
@@ -34,13 +35,10 @@
         <pwm:if test="<%=PwmIfTest.showIcons%>"><span class="btn-icon pwm-icon pwm-icon-times"></span></pwm:if>
         <pwm:display key="Button_Cancel"/>
     </button>
-    <pwm:script>
-        <script type="text/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                PWM_MAIN.addEventHandler('button-sendReset', 'click',function() {
-                    PWM_MAIN.submitPostAction('<pwm:current-url/>', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>');
-                });
-            });
-        </script>
-    </pwm:script>
+    <script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+        import {PWM_MAIN} from "<pwm:url url="/public/resources/js/main.js" addContext="true"/>";
+        PWM_MAIN.addEventHandler('button-sendReset', 'click',function() {
+            PWM_MAIN.submitPostAction('<pwm:current-url/>', '<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>');
+        });
+    </script>
 </pwm:if>

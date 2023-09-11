@@ -134,7 +134,15 @@ public class TokenService extends AbstractPwmService implements PwmService
     {
         final String guid = PwmRandom.getInstance().randomUUID().toString();
         final Instant expiration = lifetime.incrementFromInstant( Instant.now() );
-        return new TokenPayload( name.name(), expiration, data, userIdentity, destination, guid );
+
+        return new TokenPayload(
+                name.name(),
+                expiration,
+                Instant.now(),
+                data,
+                userIdentity,
+                destination,
+                guid );
     }
 
     @Override
@@ -246,7 +254,7 @@ public class TokenService extends AbstractPwmService implements PwmService
 
         final AuditRecord auditRecord = AuditRecordFactory.make( sessionLabel, pwmDomain ).createUserAuditRecord(
                 AuditEvent.TOKEN_ISSUED,
-                tokenPayload.getUserIdentity(),
+                tokenPayload.userIdentity(),
                 sessionLabel,
                 JsonFactory.get().serialize( tokenPayload )
         );
@@ -264,7 +272,7 @@ public class TokenService extends AbstractPwmService implements PwmService
     )
             throws PwmUnrecoverableException
     {
-        if ( tokenPayload == null || tokenPayload.getUserIdentity() == null )
+        if ( tokenPayload == null || tokenPayload.userIdentity() == null )
         {
             return;
         }
@@ -286,7 +294,7 @@ public class TokenService extends AbstractPwmService implements PwmService
 
         final AuditRecord auditRecord = AuditRecordFactory.make( sessionLabel, pwmDomain ).createUserAuditRecord(
                 AuditEvent.TOKEN_CLAIMED,
-                tokenPayload.getUserIdentity(),
+                tokenPayload.userIdentity(),
                 sessionLabel,
                 JsonFactory.get().serialize( tokenPayload )
         );
@@ -377,18 +385,18 @@ public class TokenService extends AbstractPwmService implements PwmService
         {
             return false;
         }
-        final Instant issueDate = theToken.getIssueTime();
+        final Instant issueDate = theToken.issueTime();
         if ( issueDate == null )
         {
             LOGGER.error( sessionLabel, () -> "retrieved token has no issueDate, marking as expired: " + theToken.toDebugString() );
             return true;
         }
-        if ( theToken.getExpiration() == null )
+        if ( theToken.expiration() == null )
         {
             LOGGER.error( sessionLabel, () -> "retrieved token has no expiration timestamp, marking as expired: " + theToken.toDebugString() );
             return true;
         }
-        return theToken.getExpiration().isBefore( Instant.now() );
+        return theToken.expiration().isBefore( Instant.now() );
     }
 
     private static String makeRandomCode( final DomainConfig config )
@@ -565,9 +573,9 @@ public class TokenService extends AbstractPwmService implements PwmService
                     tokenType,
                     userEnteredCode
             );
-            if ( tokenPayload.getDestination() != null && StringUtil.notEmpty( tokenPayload.getDestination().getValue() ) )
+            if ( tokenPayload.destination() != null && StringUtil.notEmpty( tokenPayload.destination().getValue() ) )
             {
-                pwmDomain.getIntruderService().clear( IntruderRecordType.TOKEN_DEST, tokenPayload.getDestination().getValue() );
+                pwmDomain.getIntruderService().clear( IntruderRecordType.TOKEN_DEST, tokenPayload.destination().getValue() );
             }
             markTokenAsClaimed( tokenMachine.keyFromKey( userEnteredCode ), sessionLabel, tokenPayload );
             stats.increment( StatsKey.tokenValidationsPassed );
@@ -627,7 +635,7 @@ public class TokenService extends AbstractPwmService implements PwmService
 
         if ( tokenType != null && pwmDomain.getTokenService().supportsName() )
         {
-            if ( !tokenType.matchesName( tokenPayload.getName() ) )
+            if ( !tokenType.matchesName( tokenPayload.name() ) )
             {
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_TOKEN_INCORRECT, "incorrect token/name format" );
                 throw new PwmOperationalException( errorInformation );
@@ -635,20 +643,20 @@ public class TokenService extends AbstractPwmService implements PwmService
         }
 
         // check current session identity
-        if ( tokenPayload.getUserIdentity() != null && sessionUserIdentity != null )
+        if ( tokenPayload.userIdentity() != null && sessionUserIdentity != null )
         {
-            if ( !tokenPayload.getUserIdentity().canonicalEquals( sessionLabel, sessionUserIdentity, pwmDomain.getPwmApplication() ) )
+            if ( !tokenPayload.userIdentity().canonicalEquals( sessionLabel, sessionUserIdentity, pwmDomain.getPwmApplication() ) )
             {
-                final String errorMsg = "user in session '" + sessionUserIdentity + "' entered code for user '" + tokenPayload.getUserIdentity() + "', counting as invalid attempt";
+                final String errorMsg = "user in session '" + sessionUserIdentity + "' entered code for user '" + tokenPayload.userIdentity() + "', counting as invalid attempt";
                 throw new PwmOperationalException( PwmError.ERROR_TOKEN_INCORRECT, errorMsg );
             }
         }
 
         // check if password-last-modified is same as when tried to read it before.
         if ( verifyPwModifyTime
-                && tokenPayload.getUserIdentity() != null
-                && tokenPayload.getData() != null
-                && tokenPayload.getData().containsKey( PwmConstants.TOKEN_KEY_PWD_CHG_DATE )
+                && tokenPayload.userIdentity() != null
+                && tokenPayload.data() != null
+                && tokenPayload.data().containsKey( PwmConstants.TOKEN_KEY_PWD_CHG_DATE )
         )
         {
             try
@@ -656,13 +664,13 @@ public class TokenService extends AbstractPwmService implements PwmService
                 final Instant userLastPasswordChange = PasswordUtility.determinePwdLastModified(
                         pwmDomain,
                         sessionLabel,
-                        tokenPayload.getUserIdentity() );
+                        tokenPayload.userIdentity() );
 
-                final String dateStringInToken = tokenPayload.getData().get( PwmConstants.TOKEN_KEY_PWD_CHG_DATE );
+                final String dateStringInToken = tokenPayload.data().get( PwmConstants.TOKEN_KEY_PWD_CHG_DATE );
 
                 LOGGER.trace( sessionLabel, () -> "tokenPayload=" + tokenPayload.toDebugString()
                         + ", sessionUser=" + ( sessionUserIdentity == null ? "null" : sessionUserIdentity.toDisplayString() )
-                        + ", payloadUserIdentity=" + tokenPayload.getUserIdentity().toDisplayString()
+                        + ", payloadUserIdentity=" + tokenPayload.userIdentity().toDisplayString()
                         + ", userLastPasswordChange=" + StringUtil.toIsoDate( userLastPasswordChange )
                         + ", dateStringInToken=" + dateStringInToken );
 

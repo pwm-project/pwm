@@ -20,9 +20,7 @@
 
 package password.pwm.config.value;
 
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Value;
 import org.jrivard.xmlchai.XmlElement;
 import org.jrivard.xmlchai.XmlFactory;
 import password.pwm.PwmConstants;
@@ -59,11 +57,11 @@ public class FileValue extends AbstractValue implements StoredValue
 
     private final Map<FileInformation, FileContent> values;
 
-    @Value
-    public static class FileInformation
+    public record FileInformation(
+            String filename,
+            String filetype
+    )
     {
-        private final String filename;
-        private final String filetype;
     }
 
     @EqualsAndHashCode
@@ -113,7 +111,7 @@ public class FileValue extends AbstractValue implements StoredValue
             return byteContents.get();
         }
 
-        
+
     }
 
     public static FileValue newFileValue( final String filename, final String fileMimeType, final ImmutableByteArray contents )
@@ -244,8 +242,8 @@ public class FileValue extends AbstractValue implements StoredValue
             final FileValue.FileInformation fileInformation = entry.getKey();
             final FileContent fileContent = entry.getValue();
             final Map<String, Object> details = new LinkedHashMap<>();
-            details.put( "name", fileInformation.getFilename() );
-            details.put( "type", fileInformation.getFiletype() );
+            details.put( "name", fileInformation.filename() );
+            details.put( "type", fileInformation.filetype() );
             details.put( "size", fileContent.size() );
             try
             {
@@ -273,12 +271,11 @@ public class FileValue extends AbstractValue implements StoredValue
             final FileContent fileContent = entry.getValue();
             try
             {
-                returnObj.add( FileInfo.builder()
-                        .name( fileInformation.getFilename() )
-                        .type( fileInformation.getFiletype() )
-                        .size( fileContent.size() )
-                        .sha512sum( fileContent.sha512sum() )
-                        .build() );
+                returnObj.add( new FileInfo(
+                        fileInformation.filename(),
+                        fileInformation.filetype(),
+                        fileContent.size(),
+                        fileContent.sha512sum() ) );
             }
             catch ( final PwmUnrecoverableException e )
             {
@@ -288,13 +285,12 @@ public class FileValue extends AbstractValue implements StoredValue
         return Collections.unmodifiableList( returnObj );
     }
 
-    @Value
-    @Builder
-    public static class FileInfo
+    public record FileInfo(
+            String name,
+            String type,
+            long size,
+            String sha512sum
+    )
     {
-        private String name;
-        private String type;
-        private long size;
-        private String sha512sum;
     }
 }

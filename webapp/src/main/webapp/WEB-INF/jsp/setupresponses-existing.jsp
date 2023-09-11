@@ -27,6 +27,7 @@
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
 <%@ page import="password.pwm.util.java.StringUtil" %>
 <%@ page import="password.pwm.http.PwmRequestAttribute" %>
+<%@ page import="password.pwm.http.servlet.setupresponses.ResponseMode" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
@@ -78,21 +79,10 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('clearExistingForm','submit',function(event){
-                PWM_MAIN.cancelEvent(event);
-                PWM_MAIN.showConfirmDialog({
-                    text: PWM_MAIN.showString("Display_ResponsesClearWarning"),
-                    okAction:function(){
-                        PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('clearExistingForm'));
-                    }
-                });
-            });
-        });
-    </script>
-</pwm:script>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_RESPONSES} from "../../public/resources/js/responses";
+    PWM_RESPONSES.initExistingResponsesPage();
+</script>
 <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

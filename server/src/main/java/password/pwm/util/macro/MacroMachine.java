@@ -126,12 +126,12 @@ public class MacroMachine
         //First the User macros
         if ( scopes.contains( Macro.Scope.User ) )
         {
-            if ( macroRequest.getPwmApplication() != null
-                    && macroRequest.getUserInfo() != null
-                    && macroRequest.getUserInfo().getUserIdentity() != null )
+            if ( macroRequest.pwmApplication() != null
+                    && macroRequest.userInfo() != null
+                    && macroRequest.userInfo().getUserIdentity() != null )
             {
-                final DomainID domainID = macroRequest.getUserInfo().getUserIdentity().getDomainID();
-                final PwmDomain pwmDomain = macroRequest.getPwmApplication().domains().get( domainID );
+                final DomainID domainID = macroRequest.userInfo().getUserIdentity().getDomainID();
+                final PwmDomain pwmDomain = macroRequest.pwmApplication().domains().get( domainID );
                 macroImplementations.putAll( makeExternalImplementations( pwmDomain ) );
             }
         }
@@ -174,7 +174,7 @@ public class MacroMachine
                 if ( replaceWorkData.getWorkingString().equals( replaceWorkData.getOriginalString() ) )
                 {
                     LOGGER.warn(
-                            replaceWorkData.getMacroRequestInfo().getSessionLabel(),
+                            replaceWorkData.getMacroRequestInfo().sessionLabel(),
                             () -> "macro replace was called but input string was not modified.  " + " macro="
                                     + pwmMacro.getClass().getName() + ", pattern=" + pwmMacro.getRegExPattern().toString() );
                     break;
@@ -191,8 +191,8 @@ public class MacroMachine
             final MacroRequest macroRequestInfo
     )
     {
-        final SessionLabel sessionLabel = macroRequestInfo.getSessionLabel();
-        final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
+        final SessionLabel sessionLabel = macroRequestInfo.sessionLabel();
+        final PwmApplication pwmApplication = macroRequestInfo.pwmApplication();
         final Instant startTime = Instant.now();
         final String matchedStr = matcher.group();
         final int startPos = matcher.start();
@@ -208,7 +208,7 @@ public class MacroMachine
             LOGGER.debug( sessionLabel, () -> "macro parse error replacing macro '" + matchedStr + "', error: " + e.getMessage() );
             if ( pwmApplication != null )
             {
-                replaceStr = "[" + e.getErrorInformation().toUserStr( PwmConstants.DEFAULT_LOCALE, macroRequestInfo.getPwmApplication().getConfig() ) + "]";
+                replaceStr = "[" + e.getErrorInformation().toUserStr( PwmConstants.DEFAULT_LOCALE, macroRequestInfo.pwmApplication().getConfig() ) + "]";
             }
             else
             {
@@ -225,7 +225,7 @@ public class MacroMachine
             return input;
         }
 
-        final MacroReplacer macroReplacer = macroRequestInfo.getMacroReplacer();
+        final MacroReplacer macroReplacer = macroRequestInfo.macroReplacer();
         if ( macroReplacer != null )
         {
             try
@@ -259,7 +259,7 @@ public class MacroMachine
         final Set<Macro.Scope> scopes = EnumSet.noneOf( Macro.Scope.class );
         scopes.add( Macro.Scope.Static );
 
-        final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
+        final PwmApplication pwmApplication = macroRequestInfo.pwmApplication();
         final PwmApplicationMode mode = pwmApplication != null ? pwmApplication.getApplicationMode() : PwmApplicationMode.ERROR;
 
         if (
@@ -270,12 +270,12 @@ public class MacroMachine
             scopes.add( Macro.Scope.System );
         }
 
-        if ( macroRequestInfo.getUserInfo() != null )
+        if ( macroRequestInfo.userInfo() != null )
         {
             scopes.add( Macro.Scope.User );
         }
 
-        if ( macroRequestInfo.getTargetUserInfo() != null )
+        if ( macroRequestInfo.targetUserInfo() != null )
         {
             scopes.add( Macro.Scope.TargetUser );
         }

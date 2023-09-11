@@ -20,20 +20,17 @@
 
 package password.pwm.http.servlet.configeditor.data;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.config.PwmSettingTemplateSet;
 
 import java.util.Map;
 
-@Value
-@Builder
-public class SettingData
+public record SettingData(
+        Map<String, SettingInfo> settings,
+        Map<String, CategoryInfo> categories,
+        Map<String, LocaleInfo> locales,
+        Object ldapProfileIds,
+        PwmSettingTemplateSet currentTemplate,
+        VarData var
+)
 {
-    private final Map<String, SettingInfo> settings;
-    private final Map<String, CategoryInfo> categories;
-    private final Map<String, LocaleInfo> locales;
-    private final Object ldapProfileIds;
-    private final PwmSettingTemplateSet currentTemplate;
-    private final VarData var;
 }

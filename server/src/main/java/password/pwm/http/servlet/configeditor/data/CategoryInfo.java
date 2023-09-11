@@ -20,39 +20,34 @@
 
 package password.pwm.http.servlet.configeditor.data;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.config.PwmSettingCategory;
 
 import java.util.Locale;
 
-@Value
-@Builder
-public class CategoryInfo
+public record CategoryInfo(
+        int level,
+        String key,
+        String description,
+        String label,
+        String parent,
+        boolean hidden,
+        boolean profiles,
+        String menuLocation
+)
 {
-    private int level;
-    private String key;
-    private String description;
-    private String label;
-    private String parent;
-    private boolean hidden;
-    private boolean profiles;
-    private String menuLocation;
-
-
     public static CategoryInfo forCategory(
             final PwmSettingCategory category,
-            final Locale locale )
+            final Locale locale
+    )
     {
-        return CategoryInfo.builder()
-                .key( category.getKey() )
-                .level( category.getLevel() )
-                .description( category.getDescription( locale ) )
-                .label( category.getLabel( locale ) )
-                .hidden( category.isHidden() )
-                .parent( category.getParent() != null ? category.getParent().getKey() : null )
-                .profiles( category.hasProfiles() )
-                .menuLocation( category.toMenuLocationDebug( null, locale ) )
-                .build();
+        return new CategoryInfo(
+                category.getLevel(),
+                category.getKey(),
+                category.getDescription( locale ),
+                category.getLabel( locale ),
+                category.getParent() != null ? category.getParent().getKey() : null,
+                category.isHidden(),
+                category.hasProfiles(),
+                category.toMenuLocationDebug( null, locale ) );
     }
 }

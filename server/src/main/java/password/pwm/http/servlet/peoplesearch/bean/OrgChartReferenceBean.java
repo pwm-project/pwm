@@ -20,15 +20,24 @@
 
 package password.pwm.http.servlet.peoplesearch.bean;
 
-import lombok.Data;
+import password.pwm.util.java.CollectionUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Data
-public class OrgChartReferenceBean
+public record OrgChartReferenceBean(
+        String userKey,
+        List<String> displayNames,
+        String photoURL
+)
 {
-    public String userKey;
-    public List<String> displayNames = new ArrayList<>();
-    public String photoURL;
+    public OrgChartReferenceBean(
+            final String userKey,
+            final List<String> displayNames,
+            final String photoURL
+    )
+    {
+        this.userKey = userKey;
+        this.displayNames = CollectionUtil.stripNulls( displayNames );
+        this.photoURL = photoURL;
+    }
 }

@@ -523,7 +523,7 @@ public class NewUserServlet extends ControlledPwmServlet
                 newUserBean.setProfileID( newUserTokenData.getProfileID() );
                 final NewUserForm newUserFormFromToken = newUserTokenData.getFormData();
 
-                final TokenDestinationItem.Type tokenType = tokenPayload.getDestination().getType();
+                final TokenDestinationItem.Type tokenType = tokenPayload.destination().getType();
 
                 if ( tokenType == TokenDestinationItem.Type.email )
                 {
@@ -573,7 +573,7 @@ public class NewUserServlet extends ControlledPwmServlet
 
         if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
         {
-            pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenPayload.getDestination() );
+            pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenPayload.destination() );
             pwmRequest.forwardToJsp( JspUrl.NEW_USER_TOKEN_SUCCESS );
             return ProcessStatus.Halt;
         }

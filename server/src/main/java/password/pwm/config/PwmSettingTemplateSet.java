@@ -20,7 +20,6 @@
 
 package password.pwm.config;
 
-import lombok.Value;
 import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.EnumUtil;
 
@@ -28,11 +27,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Value
-public class PwmSettingTemplateSet
+public record PwmSettingTemplateSet(
+        Set<PwmSettingTemplate> templates
+)
 {
-    private final Set<PwmSettingTemplate> templates;
-
     public PwmSettingTemplateSet( final Set<PwmSettingTemplate> templates )
     {
         final Set<PwmSettingTemplate> workingSet = CollectionUtil.copyToEnumSet( templates, PwmSettingTemplate.class );
@@ -44,14 +42,9 @@ public class PwmSettingTemplateSet
         workingSet.addAll( EnumUtil.enumStream( PwmSettingTemplate.Type.class )
                 .filter( type -> !seenTypes.contains( type ) )
                 .map( PwmSettingTemplate.Type::getDefaultValue )
-                .collect( Collectors.toUnmodifiableSet( ) ) );
+                .collect( Collectors.toSet( ) ) );
 
         this.templates = Set.copyOf( workingSet );
-    }
-
-    public Set<PwmSettingTemplate> getTemplates( )
-    {
-        return templates;
     }
 
     public static PwmSettingTemplateSet getDefault( )
@@ -72,6 +65,6 @@ public class PwmSettingTemplateSet
     {
         return EnumUtil.enumStream( PwmSettingTemplate.class )
                 .map( pwmSettingTemplate -> new PwmSettingTemplateSet( Set.of( pwmSettingTemplate ) ) )
-                .collect( Collectors.toUnmodifiableList() );
+                .toList();
     }
 }

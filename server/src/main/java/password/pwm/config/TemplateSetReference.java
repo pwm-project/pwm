@@ -20,17 +20,16 @@
 
 package password.pwm.config;
 
-import lombok.Value;
 import password.pwm.util.java.CollectionUtil;
 
 import java.util.List;
 import java.util.Set;
 
-@Value
-class TemplateSetReference<T>
+record TemplateSetReference<T>(
+        T reference,
+        Set<PwmSettingTemplate> settingTemplates
+)
 {
-    private final T reference;
-    private final Set<PwmSettingTemplate> settingTemplates;
 
     static <T> T referenceForTempleSet(
             final List<TemplateSetReference<T>> templateSetReferences,
@@ -48,23 +47,23 @@ class TemplateSetReference<T>
 
         if ( templateSetReferences.size() == 1 )
         {
-            return templateSetReferences.get( 0 ).getReference();
+            return templateSetReferences.get( 0 ).reference();
         }
 
         for ( int matchCountExamSize = templateSetReferences.size(); matchCountExamSize > 0; matchCountExamSize-- )
         {
             for ( final TemplateSetReference<T> templateSetReference : templateSetReferences )
             {
-                final Set<PwmSettingTemplate> temporarySet = CollectionUtil.copyToEnumSet( templateSetReference.getSettingTemplates(), PwmSettingTemplate.class );
-                temporarySet.retainAll( effectiveTemplateSet.getTemplates() );
+                final Set<PwmSettingTemplate> temporarySet = CollectionUtil.copyToEnumSet( templateSetReference.settingTemplates(), PwmSettingTemplate.class );
+                temporarySet.retainAll( effectiveTemplateSet.templates() );
                 final int matchCount = temporarySet.size();
                 if ( matchCount == matchCountExamSize )
                 {
-                    return templateSetReference.getReference();
+                    return templateSetReference.reference();
                 }
             }
         }
 
-        return templateSetReferences.get( 0 ).getReference();
+        return templateSetReferences.get( 0 ).reference();
     }
 }

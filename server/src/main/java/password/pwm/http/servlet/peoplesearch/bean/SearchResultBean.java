@@ -20,20 +20,41 @@
 
 package password.pwm.http.servlet.peoplesearch.bean;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.Value;
+import password.pwm.util.java.CollectionUtil;
 
 import java.util.List;
 import java.util.Map;
 
-@Value
-@Builder( toBuilder = true )
-@Data
-public class SearchResultBean
+public record SearchResultBean(
+        List<Map<String, Object>> searchResults,
+        boolean sizeExceeded,
+        String aboutResultMessage,
+        boolean fromCache
+)
 {
-    private List<Map<String, Object>> searchResults;
-    private boolean sizeExceeded;
-    private String aboutResultMessage;
-    private boolean fromCache;
+    private static final SearchResultBean EMPTY = new SearchResultBean( null, false, null, false );
+
+    public SearchResultBean(
+            final List<Map<String, Object>> searchResults,
+            final boolean sizeExceeded,
+            final String aboutResultMessage,
+            final boolean fromCache
+    )
+    {
+        this.searchResults = searchResults == null
+                ? List.of()
+                : List.copyOf( searchResults.stream()
+                        .map( CollectionUtil::stripNulls )
+                        .filter( m -> !m.isEmpty() )
+                        .toList() );
+
+        this.sizeExceeded = sizeExceeded;
+        this.aboutResultMessage = aboutResultMessage;
+        this.fromCache = fromCache;
+    }
+
+    public static SearchResultBean empty()
+    {
+        return EMPTY;
+    }
 }

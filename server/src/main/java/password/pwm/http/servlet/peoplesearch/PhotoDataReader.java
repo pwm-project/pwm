@@ -294,11 +294,11 @@ public class PhotoDataReader
             {
                 final PhotoDataBean photoDataBean = optionalPhotoDataBean.get();
                 final HttpServletResponse resp = pwmRequest.getPwmResponse().getHttpServletResponse();
-                resp.setContentType( photoDataBean.getMimeType() );
+                resp.setContentType( photoDataBean.mimeType() );
 
-                if ( photoDataBean.getContents() != null && !photoDataBean.getContents().isEmpty() )
+                if ( photoDataBean.contents() != null && !photoDataBean.contents().isEmpty() )
                 {
-                    JavaHelper.copy( photoDataBean.getContents().newByteArrayInputStream(), outputStream );
+                    JavaHelper.copy( photoDataBean.contents().newByteArrayInputStream(), outputStream );
                 }
             }
         }

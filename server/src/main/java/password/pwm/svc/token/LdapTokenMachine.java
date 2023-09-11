@@ -141,7 +141,7 @@ class LdapTokenMachine implements TokenMachine
             final String md5sumToken = tokenKey.getStoredHash();
             final String encodedTokenPayload = tokenService.toEncryptedString( tokenPayload );
 
-            final UserIdentity userIdentity = tokenPayload.getUserIdentity();
+            final UserIdentity userIdentity = tokenPayload.userIdentity();
             final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( tokenService.getSessionLabel(), userIdentity );
             chaiUser.writeStringAttribute( tokenAttribute, md5sumToken + KEY_VALUE_DELIMITER + encodedTokenPayload );
         }
@@ -160,7 +160,7 @@ class LdapTokenMachine implements TokenMachine
         final Optional<TokenPayload> payload = retrieveToken( null, tokenKey );
         if ( payload.isPresent() )
         {
-            final UserIdentity userIdentity = payload.get().getUserIdentity();
+            final UserIdentity userIdentity = payload.get().userIdentity();
             try
             {
                 final ChaiUser chaiUser = pwmDomain.getProxiedChaiUser( tokenService.getSessionLabel(), userIdentity );

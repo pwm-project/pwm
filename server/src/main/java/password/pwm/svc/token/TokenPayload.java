@@ -21,55 +21,55 @@
 package password.pwm.svc.token;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.Value;
 import password.pwm.bean.TokenDestinationItem;
 import password.pwm.bean.UserIdentity;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.json.JsonFactory;
 
 import java.time.Instant;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-@Value
-public class TokenPayload
+public record TokenPayload(
+        @SerializedName( "n" )
+        String name,
+
+        @SerializedName( "e" )
+        Instant expiration,
+
+        @SerializedName( "t" )
+        Instant issueTime,
+
+        @SerializedName( "p" )
+        Map<String, String> data,
+
+        @SerializedName( "user" )
+        UserIdentity userIdentity,
+
+        @SerializedName( "d" )
+        TokenDestinationItem destination,
+
+        @SerializedName( "g" )
+        String guid
+)
 {
-    @SerializedName( "t" )
-    private final Instant issueTime;
-
-    @SerializedName( "e" )
-    private final Instant expiration;
-
-    @SerializedName( "n" )
-    private final String name;
-
-    @SerializedName( "p" )
-    private final Map<String, String> data;
-
-    @SerializedName( "user" )
-    private final UserIdentity userIdentity;
-
-    @SerializedName( "d" )
-    private final TokenDestinationItem destination;
-
-    @SerializedName( "g" )
-    private final String guid;
-
-    TokenPayload(
+    public TokenPayload(
             final String name,
             final Instant expiration,
+            final Instant issueTime,
             final Map<String, String> data,
-            final UserIdentity user,
+            final UserIdentity userIdentity,
             final TokenDestinationItem destination,
             final String guid
     )
     {
-        this.issueTime = Instant.now();
-        this.expiration = expiration;
-        this.data = data == null ? Collections.emptyMap() : Collections.unmodifiableMap( data );
         this.name = name;
-        this.userIdentity = user;
+        this.expiration = Objects.requireNonNull( expiration );
+        this.issueTime = Objects.requireNonNull( issueTime );
+        this.data = CollectionUtil.stripNulls( data );
+        this.userIdentity = userIdentity;
         this.destination = destination;
         this.guid = guid;
     }
@@ -80,12 +80,12 @@ public class TokenPayload
         final Map<String, String> debugMap = new HashMap<>();
         debugMap.put( "issueTime", StringUtil.toIsoDate( issueTime ) );
         debugMap.put( "expiration", StringUtil.toIsoDate( expiration ) );
-        debugMap.put( "name", getName() );
-        if ( getUserIdentity() != null )
+        debugMap.put( "name", name() );
+        if ( userIdentity() != null )
         {
-            debugMap.put( "user", getUserIdentity().toDisplayString() );
+            debugMap.put( "user", userIdentity().toDisplayString() );
         }
-        debugMap.put( "guid", getGuid() );
+        debugMap.put( "guid", guid() );
         return JsonFactory.get().serializeMap( debugMap );
     }
 }

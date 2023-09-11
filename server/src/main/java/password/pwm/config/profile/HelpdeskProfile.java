@@ -27,9 +27,8 @@ import password.pwm.config.option.IdentityVerificationMethod;
 import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.config.value.VerificationMethodValue;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 public class HelpdeskProfile extends AbstractProfile implements Profile
@@ -47,15 +46,15 @@ public class HelpdeskProfile extends AbstractProfile implements Profile
         return PROFILE_TYPE;
     }
 
-    public Collection<IdentityVerificationMethod> readOptionalVerificationMethods( )
+    public Set<IdentityVerificationMethod> readOptionalVerificationMethods( )
     {
-        final Set<IdentityVerificationMethod> result = new LinkedHashSet<>();
+        final Set<IdentityVerificationMethod> result = EnumSet.noneOf( IdentityVerificationMethod.class );
         result.addAll( readVerificationMethods( PwmSetting.HELPDESK_VERIFICATION_METHODS, VerificationMethodValue.EnabledState.optional ) );
         result.addAll( readVerificationMethods( PwmSetting.HELPDESK_VERIFICATION_METHODS, VerificationMethodValue.EnabledState.required ) );
         return Collections.unmodifiableSet( result );
     }
 
-    public Collection<IdentityVerificationMethod> readRequiredVerificationMethods( )
+    public Set<IdentityVerificationMethod> readRequiredVerificationMethods( )
     {
         return readVerificationMethods( PwmSetting.HELPDESK_VERIFICATION_METHODS, VerificationMethodValue.EnabledState.required );
     }

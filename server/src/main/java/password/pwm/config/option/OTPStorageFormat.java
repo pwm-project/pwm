@@ -20,55 +20,55 @@
 
 package password.pwm.config.option;
 
+import password.pwm.svc.otp.formatter.Base32Formatter;
+import password.pwm.svc.otp.formatter.OtpFormatter;
+import password.pwm.svc.otp.formatter.PamOtpFormatter;
+import password.pwm.svc.otp.formatter.PwmJsonFormatter;
+import password.pwm.svc.otp.formatter.UrlOtpFormatter;
+import password.pwm.util.java.EnumUtil;
+
+import java.util.Objects;
+
 /**
- * One Time Password Storage Format.
+ * One Time Password Storage Format, ordered by de-formatting order attempting.
  */
 public enum OTPStorageFormat
 {
 
-    PWM( true, true ),
-    BASE32SECRET( false ),
-    OTPURL( false ),
-    PAM( true, false );
+    PWM( new PwmJsonFormatter(), Flag.useRecoveryCodes, Flag.hashRecoveryCodes ),
+    PAM( new PamOtpFormatter(), Flag.useRecoveryCodes ),
+    OTPURL( new UrlOtpFormatter() ),
+    BASE32SECRET( new Base32Formatter() );
 
     private final boolean useRecoveryCodes;
     private final boolean hashRecoveryCodes;
+    private final OtpFormatter formatter;
 
-    OTPStorageFormat( final boolean useRecoveryCodes )
+    private enum Flag
     {
-        this.useRecoveryCodes = useRecoveryCodes;
-
-        // defaults to true, if recovery codes enabled.
-        this.hashRecoveryCodes = useRecoveryCodes;
+        useRecoveryCodes,
+        hashRecoveryCodes,
     }
 
-    OTPStorageFormat(
-            final boolean useRecoveryCodes,
-            final boolean hashRecoveryCodes
-    )
+    OTPStorageFormat( final OtpFormatter formatter, final Flag... flags )
     {
-        this.useRecoveryCodes = useRecoveryCodes;
-        this.hashRecoveryCodes = useRecoveryCodes && hashRecoveryCodes;
+        this.useRecoveryCodes = EnumUtil.enumArrayContainsValue( flags, Flag.useRecoveryCodes );
+        this.hashRecoveryCodes = EnumUtil.enumArrayContainsValue( flags, Flag.hashRecoveryCodes );
+        this.formatter = Objects.requireNonNull( formatter );
     }
 
-    /**
-     * Check support for recovery codes.
-     *
-     * @return true if recovery codes are supported.
-     */
     public boolean supportsRecoveryCodes( )
     {
         return useRecoveryCodes;
     }
 
-    /**
-     * Check support for hashed recovery codes.
-     *
-     * @return true if recovery codes are supported and hashes are to be used.
-     */
     public boolean supportsHashedRecoveryCodes( )
     {
         return useRecoveryCodes && hashRecoveryCodes;
     }
 
+    public OtpFormatter getFormatter()
+    {
+        return formatter;
+    }
 }

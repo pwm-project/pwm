@@ -20,19 +20,17 @@
 
 package password.pwm.http.servlet.resource;
 
-import lombok.Value;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Objects;
 
-@Value
-final class CacheKey
-{
-    private final String fileName;
-    private final boolean acceptsGzip;
-    private final Instant fileModificationTimestamp;
 
+record CacheKey(
+        String fileName,
+        boolean acceptsGzip,
+        Instant fileModificationTimestamp
+)
+{
     static CacheKey createCacheKey( final FileResource file, final boolean acceptsGzip )
             throws IOException
     {

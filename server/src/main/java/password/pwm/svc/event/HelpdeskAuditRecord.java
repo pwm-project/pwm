@@ -24,9 +24,9 @@ import password.pwm.bean.ProfileID;
 
 public interface HelpdeskAuditRecord extends UserAuditRecord
 {
-    String getTargetID( );
+    String targetID( );
 
-    String getTargetDN( );
+    String targetDN( );
 
-    ProfileID getTargetLdapProfile( );
+    ProfileID targetLdapProfile( );
 }

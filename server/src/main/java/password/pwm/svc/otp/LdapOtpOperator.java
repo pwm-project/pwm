@@ -35,7 +35,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Optional;
@@ -45,12 +44,11 @@ import java.util.Optional;
  */
 public class LdapOtpOperator extends AbstractOtpOperator
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapOtpOperator.class );
 
     public LdapOtpOperator( final PwmDomain pwmDomain )
     {
-        setPwmApplication( pwmDomain );
+        setPwmDomain( pwmDomain );
     }
 
     /**
@@ -64,7 +62,7 @@ public class LdapOtpOperator extends AbstractOtpOperator
     )
             throws PwmUnrecoverableException
     {
-        final DomainConfig config = getPwmApplication().getConfig();
+        final DomainConfig config = getPwmDomain().getConfig();
         final LdapProfile ldapProfile = config.getLdapProfiles().get( userIdentity.getLdapProfileID() );
         final String ldapStorageAttribute = ldapProfile.readSettingAsString( PwmSetting.OTP_SECRET_LDAP_ATTRIBUTE );
         if ( ldapStorageAttribute == null || ldapStorageAttribute.length() < 1 )
@@ -77,16 +75,7 @@ public class LdapOtpOperator extends AbstractOtpOperator
         {
             final ChaiUser theUser = pwmDomain.getProxiedChaiUser( sessionLabel, userIdentity );
             final String value = theUser.readStringAttribute( ldapStorageAttribute );
-            if ( StringUtil.notEmpty( value ) && config.readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
-            {
-                final String decryptAttributeValue = decryptAttributeValue( value );
-
-                if ( decryptAttributeValue != null )
-                {
-                    final OTPUserRecord otp = decomposeOtpAttribute( decryptAttributeValue );
-                    return Optional.ofNullable( otp );
-                }
-            }
+            return OtpServiceUtil.parseStoredOtpRecordValue( sessionLabel, pwmDomain, value );
         }
         catch ( final ChaiOperationException | ChaiUnavailableException e )
         {
@@ -94,7 +83,6 @@ public class LdapOtpOperator extends AbstractOtpOperator
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        return Optional.empty();
     }
 
     @Override
@@ -115,19 +103,11 @@ public class LdapOtpOperator extends AbstractOtpOperator
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg );
             throw new PwmUnrecoverableException( errorInformation );
         }
-        String value = composeOtpAttribute( otpConfig );
-        if ( value == null || value.length() == 0 )
-        {
-            final String errorMsg = "Invalid value for OTP secret, unable to store";
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorMsg );
-            throw new PwmUnrecoverableException( errorInformation );
-        }
+
+        final String value = OtpServiceUtil.stringifyOtpRecord( pwmDomain, otpConfig );
+
         try
         {
-            if ( config.readSettingAsBoolean( PwmSetting.OTP_SECRET_ENCRYPT ) )
-            {
-                value = encryptAttributeValue( value );
-            }
             final ChaiUser theUser = pwmRequest == null
                     ? pwmDomain.getProxiedChaiUser( null, userIdentity )
                     : pwmRequest.getClientConnectionHolder().getActor( userIdentity );
@@ -198,13 +178,5 @@ public class LdapOtpOperator extends AbstractOtpOperator
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage() ) );
         }
-    }
-
-    /**
-     * Close the operator. Does nothing in this case.
-     */
-    @Override
-    public void close( )
-    {
     }
 }

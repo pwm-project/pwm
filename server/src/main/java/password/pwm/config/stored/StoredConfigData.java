@@ -46,29 +46,29 @@ class StoredConfigData
     @Singular
     private Map<StoredConfigKey, ValueMetaData> metaDatas;
 
-    @Value
-    static class ValueAndMetaCarrier
+    record ValueAndMetaCarrier(
+             StoredConfigKey key,
+             StoredValue value,
+             ValueMetaData metaData
+    )
     {
-        private final StoredConfigKey key;
-        private final StoredValue value;
-        private final ValueMetaData metaData;
     }
 
     static Map<StoredConfigKey, ValueMetaData> carrierAsMetaDataMap( final Collection<ValueAndMetaCarrier> input )
     {
         return input.stream()
-                .filter( ( t ) -> t.getKey() != null && t.getMetaData() != null )
+                .filter( ( t ) -> t.key() != null && t.metaData() != null )
                 .collect( Collectors.toMap(
-                        StoredConfigData.ValueAndMetaCarrier::getKey,
-                        StoredConfigData.ValueAndMetaCarrier::getMetaData ) );
+                        StoredConfigData.ValueAndMetaCarrier::key,
+                        StoredConfigData.ValueAndMetaCarrier::metaData ) );
     }
 
     static Map<StoredConfigKey, StoredValue> carrierAsStoredValueMap( final Collection<ValueAndMetaCarrier> input )
     {
         return input.stream()
-                .filter( ( t ) -> t.getKey() != null && t.getValue() != null )
+                .filter( ( t ) -> t.key() != null && t.value() != null )
                 .collect( Collectors.toMap(
-                        StoredConfigData.ValueAndMetaCarrier::getKey,
-                        StoredConfigData.ValueAndMetaCarrier::getValue ) );
+                        StoredConfigData.ValueAndMetaCarrier::key,
+                        StoredConfigData.ValueAndMetaCarrier::value ) );
     }
 }

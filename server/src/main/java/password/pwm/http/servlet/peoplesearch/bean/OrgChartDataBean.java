@@ -20,16 +20,27 @@
 
 package password.pwm.http.servlet.peoplesearch.bean;
 
-import lombok.Data;
+import password.pwm.util.java.CollectionUtil;
 
-import java.util.Collections;
 import java.util.List;
 
-@Data
-public class OrgChartDataBean
+public record OrgChartDataBean(
+        OrgChartReferenceBean parent,
+        OrgChartReferenceBean self,
+        OrgChartReferenceBean assistant,
+        List<OrgChartReferenceBean> children
+)
 {
-    private OrgChartReferenceBean parent;
-    private OrgChartReferenceBean self;
-    private OrgChartReferenceBean assistant;
-    private List<OrgChartReferenceBean> children = Collections.emptyList();
+    public OrgChartDataBean(
+            final OrgChartReferenceBean parent,
+            final OrgChartReferenceBean self,
+                             final OrgChartReferenceBean assistant,
+            final List<OrgChartReferenceBean> children
+    )
+    {
+        this.parent = parent;
+        this.self = self;
+        this.assistant = assistant;
+        this.children = CollectionUtil.stripNulls( children );
+    }
 }

@@ -138,7 +138,7 @@ public class RestProfileServer extends RestServlet
                     restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
                     restRequest.getLocale(),
-                    targetUserIdentity.getUserIdentity(),
+                    targetUserIdentity.userIdentity(),
                     targetUserIdentity.getChaiProvider()
             );
 
@@ -181,7 +181,7 @@ public class RestProfileServer extends RestServlet
         final ProfileID updateProfileID = ProfileUtility.discoverProfileIDForUser(
                 restRequest.getDomain(),
                 restRequest.getSessionLabel(),
-                targetUserIdentity.getUserIdentity(),
+                targetUserIdentity.userIdentity(),
                 ProfileDefinition.UpdateAttributes
         ).orElseThrow( () -> new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED ) );
 
@@ -209,7 +209,7 @@ public class RestProfileServer extends RestServlet
             final boolean result = UserPermissionUtility.testUserPermission(
                     restRequest.getDomain(),
                     restRequest.getSessionLabel(),
-                    targetUserIdentity.getUserIdentity(),
+                    targetUserIdentity.userIdentity(),
                     userPermission
             );
 
@@ -242,7 +242,7 @@ public class RestProfileServer extends RestServlet
                 restRequest.getPwmApplication(),
                 restRequest.getSessionLabel(),
                 restRequest.getLocale(),
-                targetUserIdentity.getUserIdentity(),
+                targetUserIdentity.userIdentity(),
                 targetUserIdentity.getChaiProvider()
         );
 
@@ -250,7 +250,7 @@ public class RestProfileServer extends RestServlet
                 restRequest.getPwmApplication(),
                 restRequest.getLocale(),
                 restRequest.getSessionLabel(),
-                targetUserIdentity.getUserIdentity()
+                targetUserIdentity.userIdentity()
         );
 
         UpdateProfileUtil.doProfileUpdate(

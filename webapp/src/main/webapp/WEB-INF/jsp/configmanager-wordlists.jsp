@@ -71,18 +71,10 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="text/javascript">
-
-        PWM_GLOBAL['startupFunctions'].push(function () {
-            PWM_CONFIG.initConfigManagerWordlistPage();
-        });
-
-    </script>
-</pwm:script>
-<pwm:script-ref url="/public/resources/js/configmanager.js"/>
-<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
-<pwm:script-ref url="/public/resources/js/admin.js"/>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_CONFIG} from "<pwm:url url="/public/resources/js/configmanager.js" addContext="true"/>";
+    PWM_CONFIG.initConfigManagerWordlistPage();
+</script>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>
 </html>

@@ -97,7 +97,7 @@
             PWM_MAIN.addEventHandler('healthBody','click',function(){loadHealth()});
 
             PWM_MAIN.addEventHandler('button-browse-context','click',function(){
-                UILibrary.editLdapDN(function(value){
+                PWM_UILibrary.editLdapDN(function(value){
                     PWM_MAIN.getObject('<%=ConfigGuideFormField.PARAM_LDAP_CONTEXT%>').value = value;
                     handleFormActivity();
                 })

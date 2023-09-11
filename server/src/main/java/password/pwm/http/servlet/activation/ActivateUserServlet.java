@@ -349,7 +349,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
 
             if ( activateUserBean.getUserIdentity() == null )
             {
-                ActivateUserUtils.initUserActivationBean( pwmRequest, tokenPayload.getUserIdentity() );
+                ActivateUserUtils.initUserActivationBean( pwmRequest, tokenPayload.userIdentity() );
             }
 
             activateUserBean.setTokenPassed( true );
@@ -357,7 +357,7 @@ public class ActivateUserServlet extends ControlledPwmServlet
 
             if ( pwmRequest.getDomainConfig().readSettingAsBoolean( PwmSetting.DISPLAY_TOKEN_SUCCESS_BUTTON ) )
             {
-                pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenPayload.getDestination() );
+                pwmRequest.setAttribute( PwmRequestAttribute.TokenDestItems, tokenPayload.destination() );
                 pwmRequest.forwardToJsp( JspUrl.ACTIVATE_USER_TOKEN_SUCCESS );
                 return ProcessStatus.Halt;
             }

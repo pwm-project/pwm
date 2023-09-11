@@ -20,7 +20,6 @@
 
 package password.pwm.health;
 
-import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -29,6 +28,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.error.PwmException;
 import password.pwm.svc.AbstractPwmService;
 import password.pwm.svc.PwmService;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StatisticAverageBundle;
 import password.pwm.util.java.StatisticCounterBundle;
 import password.pwm.util.java.TimeDuration;
@@ -46,24 +46,21 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public class HealthService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( HealthService.class );
 
-    private static final List<HealthSupplier> HEALTH_SUPPLIERS = List.of(
-            new LDAPHealthChecker(),
-            new JavaChecker(),
-            new ConfigurationChecker(),
-            new LocalDBHealthChecker(),
-            new CertificateChecker() );
-
+    private static final List<HealthSupplier> HEALTH_SUPPLIERS = JavaHelper.instancesOfSealedInterface( HealthSupplier.class );
 
     private HealthMonitorSettings settings;
 
     private final Map<HealthMonitorFlag, Object> healthProperties = new ConcurrentHashMap<>();
     private final AtomicInteger healthCheckCount = new AtomicInteger( 0 );
+    private final Lock immediateHealthCheckLock = new ReentrantLock();
 
     private final StatisticCounterBundle<CounterStatKey> counterStats = new StatisticCounterBundle<>( CounterStatKey.class );
     private final StatisticAverageBundle<AverageStatKey> averageStats = new StatisticAverageBundle<>( AverageStatKey.class );
@@ -97,7 +94,7 @@ public class HealthService extends AbstractPwmService implements PwmService
         this.healthData = emptyHealthData();
         settings = HealthMonitorSettings.fromConfiguration( pwmApplication.getConfig() );
 
-        if ( !settings.isHealthCheckEnabled() )
+        if ( !settings.healthCheckEnabled() )
         {
             LOGGER.debug( getSessionLabel(), () -> "health monitor will remain inactive due to AppProperty " + AppProperty.HEALTHCHECK_ENABLED.getKey() );
             return STATUS.CLOSED;
@@ -113,7 +110,7 @@ public class HealthService extends AbstractPwmService implements PwmService
             return null;
         }
 
-        return healthData != null ? healthData.getTimeStamp() : Instant.ofEpochMilli( 0 );
+        return healthData != null ? healthData.timeStamp() : Instant.ofEpochMilli( 0 );
     }
 
     public HealthStatus getMostSevereHealthStatus( )
@@ -125,7 +122,6 @@ public class HealthService extends AbstractPwmService implements PwmService
         return HealthUtils.getMostSevereHealthStatus( getHealthRecords( ) );
     }
 
-
     public Set<HealthRecord> getHealthRecords( )
     {
         if ( status() != STATUS.OPEN )
@@ -133,28 +129,39 @@ public class HealthService extends AbstractPwmService implements PwmService
             return Collections.emptySet();
         }
 
-        if ( healthData.recordsAreOutdated() )
+        if ( healthData.recordsAreOutdated( settings ) )
         {
-            final Instant startTime = Instant.now();
-            LOGGER.trace( getSessionLabel(), () -> "begin force immediate check" );
-            final Future<?> future = scheduleJob( new ImmediateJob(), TimeDuration.ZERO );
-            settings.getMaximumForceCheckWait().pause( future::isDone );
-            final TimeDuration checkDuration = TimeDuration.fromCurrent( startTime );
-            averageStats.update( AverageStatKey.checkProcessTime, checkDuration.asDuration() );
-            counterStats.increment( CounterStatKey.checks );
-            LOGGER.trace( getSessionLabel(), () -> "exit force immediate check, done=" + future.isDone(), checkDuration );
+            immediateHealthCheckLock.lock();
+            try
+            {
+                if ( healthData.recordsAreOutdated( settings ) )
+                {
+                    final Instant startTime = Instant.now();
+                    LOGGER.trace( getSessionLabel(), () -> "begin force immediate check" );
+                    final Future<?> future = scheduleJob( new ImmediateJob(), TimeDuration.ZERO );
+                    settings.maximumForceCheckWait().pause( future::isDone );
+                    final TimeDuration checkDuration = TimeDuration.fromCurrent( startTime );
+                    averageStats.update( AverageStatKey.checkProcessTime, checkDuration.asDuration() );
+                    counterStats.increment( CounterStatKey.checks );
+                    LOGGER.trace( getSessionLabel(), () -> "exit force immediate check, done=" + future.isDone(), checkDuration );
+                }
+            }
+            finally
+            {
+                immediateHealthCheckLock.unlock();
+            }
         }
 
-        scheduleJob( new UpdateJob(), settings.getNominalCheckInterval() );
+        scheduleJob( new UpdateJob(), settings.nominalCheckInterval() );
 
         {
             final HealthData localHealthData = this.healthData;
-            if ( localHealthData.recordsAreOutdated() )
+            if ( localHealthData.recordsAreOutdated( settings ) )
             {
                 return Collections.singleton( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.NoData ) );
             }
 
-            return localHealthData.getHealthRecords();
+            return localHealthData.healthRecords();
         }
     }
 
@@ -268,7 +275,7 @@ public class HealthService extends AbstractPwmService implements PwmService
         @Override
         public void run( )
         {
-            if ( healthData.recordsAreStale() )
+            if ( healthData.recordsAreStale( settings ) )
             {
                 new ImmediateJob().run();
             }
@@ -294,20 +301,19 @@ public class HealthService extends AbstractPwmService implements PwmService
         }
     }
 
-    @Value
-    private class HealthData
+    private record HealthData(
+             Set<HealthRecord> healthRecords,
+            Instant timeStamp
+    )
     {
-        private Set<HealthRecord> healthRecords;
-        private Instant timeStamp;
-
-        private boolean recordsAreStale()
+        private boolean recordsAreStale( final HealthMonitorSettings settings )
         {
-            return TimeDuration.fromCurrent( this.getTimeStamp() ).isLongerThan( settings.getNominalCheckInterval() );
+            return TimeDuration.fromCurrent( this.timeStamp() ).isLongerThan( settings.nominalCheckInterval() );
         }
 
-        private boolean recordsAreOutdated()
+        private boolean recordsAreOutdated( final HealthMonitorSettings settings )
         {
-            return TimeDuration.fromCurrent( this.getTimeStamp() ).isLongerThan( settings.getMaximumRecordAge() );
+            return TimeDuration.fromCurrent( this.timeStamp() ).isLongerThan( settings.maximumRecordAge() );
         }
     }
 }

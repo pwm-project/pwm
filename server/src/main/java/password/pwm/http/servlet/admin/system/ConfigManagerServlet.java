@@ -418,13 +418,13 @@ public class ConfigManagerServlet extends AbstractPwmServlet
 
             for ( final LdapPermissionCalculator.PermissionRecord permissionRecord : ldapPermissionCalculator.getPermissionRecords() )
             {
-                final String settingTxt = permissionRecord.getPwmSetting() == null
+                final String settingTxt = permissionRecord.pwmSetting() == null
                         ? LocaleHelper.getLocalizedMessage( Display.Value_NotApplicable, pwmRequest )
-                        : permissionRecord.getPwmSetting().toMenuLocationDebug( permissionRecord.getProfile(), pwmRequest.getLocale() );
+                        : permissionRecord.pwmSetting().toMenuLocationDebug( permissionRecord.profile(), pwmRequest.getLocale() );
                 csvPrinter.printRecord(
-                        permissionRecord.getActor().getLabel( pwmRequest.getLocale(), pwmRequest.getDomainConfig() ),
-                        permissionRecord.getAttribute(),
-                        permissionRecord.getAccess().toString(),
+                        permissionRecord.actor().getLabel( pwmRequest.getLocale(), pwmRequest.getDomainConfig() ),
+                        permissionRecord.attribute(),
+                        permissionRecord.access().toString(),
                         settingTxt
                 );
             }

@@ -22,7 +22,7 @@
        See the README.TXT file in WEB-INF/jsp before making changes.
 --%>
 
-
+<%@ page import="password.pwm.http.tag.value.PwmValue" %>
 <%@ page import="password.pwm.http.servlet.admin.SystemAdminServlet" %>
 <%@ page import="password.pwm.http.servlet.PwmServletDefinition" %>
 <%@ page import="password.pwm.http.tag.conditional.PwmIfTest" %>
@@ -30,19 +30,12 @@
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final SystemAdminServlet.Page currentPage = SystemAdminServlet.Page.forUrl(JspUtility.getPwmRequest(pageContext).getURL()).orElseThrow(); %>
-<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
-<pwm:script-ref url="/public/resources/js/admin.js"/>
 <link href="<pwm:url url='/public/resources/webjars/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
 <link href="<pwm:url url='/public/resources/webjars/dgrid/css/dgrid.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
-<pwm:script>
-    <script type="text/javascript">
-        var PWM_ADMIN = PWM_ADMIN || {};
-
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_ADMIN.initAdminNavMenu();
-        });
-    </script>
-</pwm:script>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_ADMIN} from "<pwm:url url="/public/resources/js/admin.js" addContext="true"/>";
+    PWM_ADMIN.initAdminNavMenu();
+</script>
 <div style="text-align: center; margin-bottom: 10px;">
     <% boolean selected = currentPage == SystemAdminServlet.Page.dashboard; %>
     <form action="<%=SystemAdminServlet.Page.dashboard%>" method="get" id="dashboard" name="dashboard">

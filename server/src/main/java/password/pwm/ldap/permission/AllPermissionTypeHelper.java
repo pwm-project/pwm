@@ -46,9 +46,9 @@ class AllPermissionTypeHelper implements PermissionTypeHelper
     public SearchConfiguration searchConfigurationFromPermission( final UserPermission userPermission )
             throws PwmUnrecoverableException
     {
-        final ProfileID profileID = UserPermissionUtility.isAllProfiles( userPermission.getLdapProfileID() )
+        final ProfileID profileID = UserPermissionUtility.isAllProfiles( userPermission.ldapProfileID() )
                 ? null
-                : userPermission.getLdapProfileID();
+                : userPermission.ldapProfileID();
 
         return SearchConfiguration.builder()
                 .username( "*" )

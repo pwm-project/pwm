@@ -67,7 +67,7 @@ public class PwmEnvironment
         War,
         Onejar,
         Docker,
-        Appliance,;
+        Appliance,
     }
 
 

@@ -20,25 +20,20 @@
 
 package password.pwm.http.servlet.peoplesearch.bean;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.config.value.data.FormConfiguration;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-@Value
-@Builder
-public class SearchAttributeBean
+public record SearchAttributeBean(
+        String attribute,
+        String label,
+        FormConfiguration.Type type,
+        Map<String, String> options
+)
 {
-    private String attribute;
-    private String label;
-    private FormConfiguration.Type type;
-    private Map<String, String> options;
-
     public static List<SearchAttributeBean> searchAttributesFromForm(
             final Locale locale,
             final List<FormConfiguration> formConfigurations
@@ -50,16 +45,15 @@ public class SearchAttributeBean
             final String attribute = formConfiguration.getName();
             final String label = formConfiguration.getLabel( locale );
 
-            final SearchAttributeBean searchAttribute = SearchAttributeBean.builder()
-                    .attribute( attribute )
-                    .type( formConfiguration.getType() )
-                    .label( label )
-                    .options( formConfiguration.getSelectOptions() )
-                    .build();
+            final SearchAttributeBean searchAttribute = new SearchAttributeBean(
+                    attribute,
+                    label,
+                    formConfiguration.getType(),
+                    formConfiguration.getSelectOptions() );
 
             returnList.add( searchAttribute );
         }
 
-        return Collections.unmodifiableList( returnList );
+        return List.copyOf( returnList );
     }
 }

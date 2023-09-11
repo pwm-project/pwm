@@ -54,6 +54,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,6 +67,10 @@ import java.util.zip.ZipFile;
 public class ResourceServletService extends AbstractPwmService implements PwmService
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( ResourceServletService.class );
+
+    private static final List<String> TEST_URLS = List.of(
+            ResourceFileServlet.THEME_CSS_PATH,
+            ResourceFileServlet.THEME_CSS_MOBILE_PATH );
 
     private ResourceServletConfiguration resourceServletConfiguration;
     private Cache<CacheKey, CacheEntry> cache;
@@ -111,16 +116,13 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
 
     public long bytesInCache( )
     {
-        final Map<CacheKey, CacheEntry> cacheCopy = new HashMap<>( cache.asMap() );
-        long cacheByteCount = 0;
-        for ( final CacheEntry cacheEntry : cacheCopy.values() )
-        {
-            if ( cacheEntry != null && cacheEntry.getEntity() != null )
-            {
-                cacheByteCount += cacheEntry.getEntity().size();
-            }
-        }
-        return cacheByteCount;
+        final Set<CacheEntry> cacheCopy = new HashSet<>( cache.asMap().values() );
+
+        return cacheCopy.stream()
+                .filter( Objects::nonNull )
+                .filter( entry -> entry.entity() != null )
+                .mapToLong( entry -> entry.entity().size() )
+                .sum();
     }
 
     public int itemsInCache( )
@@ -174,6 +176,9 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
             LOGGER.error( getSessionLabel(), () -> "error during nonce generation, will remain closed; error: " + e.getMessage() );
             return STATUS.CLOSED;
         }
+
+        // prevents null cache entry for requests that happened before service init
+        cache.invalidateAll();
 
         return STATUS.OPEN;
     }
@@ -244,13 +249,9 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
 
         final ServletContext servletContext = pwmRequest.getHttpServletRequest().getServletContext();
 
-        final String[] testUrls = new String[]
-                {
-                        ResourceFileServlet.THEME_CSS_PATH,
-                        ResourceFileServlet.THEME_CSS_MOBILE_PATH,
-                };
 
-        for ( final String testUrl : testUrls )
+
+        for ( final String testUrl : TEST_URLS )
         {
             final String themePathUrl = ResourceFileServlet.RESOURCE_PATH + testUrl.replace( ResourceFileServlet.TOKEN_THEME, themeName );
             final Optional<FileResource> resolvedFile = ResourceFileRequest.resolveRequestedResource(
@@ -327,7 +328,7 @@ public class ResourceServletService extends AbstractPwmService implements PwmSer
                 if ( Files.exists( resourcePath ) )
                 {
                     FileSystemUtility.readFileInformation( Collections.singletonList( resourcePath ) )
-                            .forEach( consumer::accept );
+                            .forEach( consumer );
                 }
             }
         } );

@@ -47,14 +47,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class CertificateChecker implements HealthSupplier
+public final class CertificateChecker implements HealthSupplier
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( CertificateChecker.class );
 
     @Override
     public List<Supplier<List<HealthRecord>>> jobs( final HealthSupplierRequest request )
     {
-        final PwmApplication pwmApplication = request.getPwmApplication();
+        final PwmApplication pwmApplication = request.pwmApplication();
         return Collections.singletonList( new CertificateCheckJob( pwmApplication.getConfig() ) );
     }
 
@@ -178,14 +178,14 @@ public class CertificateChecker implements HealthSupplier
         }
         catch ( final CertificateException e )
         {
-            final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append( "certificate for subject " );
-            errorMsg.append( certificate.getSubjectDN().getName() );
-            errorMsg.append( " is not valid: " );
-            errorMsg.append( e.getMessage() );
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg.toString(), new String[]
+            final String errorMsg = "certificate {"
+                    + X509Utils.makeDebugText( certificate )
+                    + "} is not valid: "
+                    +  e.getMessage();
+
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg, new String[]
                     {
-                            errorMsg.toString(),
+                            errorMsg,
                     }
             );
             throw new PwmOperationalException( errorInformation );
@@ -214,9 +214,9 @@ public class CertificateChecker implements HealthSupplier
             if ( durationUntilExpire.isShorterThan( warnDuration ) )
             {
                 final StringBuilder errorMsg = new StringBuilder();
-                errorMsg.append( "certificate for subject " );
-                errorMsg.append( certificate.getSubjectDN().getName() );
-                errorMsg.append( " will expire on: " );
+                errorMsg.append( "certificate {" );
+                errorMsg.append( X509Utils.makeDebugText( certificate ) );
+                errorMsg.append( "} will expire on: " );
                 errorMsg.append( StringUtil.toIsoDate( expireDate ) );
                 errorMsg.append( " (" ).append( durationUntilExpire.asCompactString() ).append( " from now)" );
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_CERTIFICATE_ERROR, errorMsg.toString(), new String[]

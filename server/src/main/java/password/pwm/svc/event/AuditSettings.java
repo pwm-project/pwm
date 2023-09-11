@@ -20,11 +20,10 @@
 
 package password.pwm.svc.event;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.TimeDuration;
 
 import java.util.Collections;
@@ -32,28 +31,41 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-@Value
-@Builder
-class AuditSettings
+record AuditSettings(
+        List<String> systemEmailAddresses,
+        List<String> userEmailAddresses,
+        String alertFromAddress,
+        Set<AuditEvent> permittedEvents,
+        TimeDuration maxRecordAge,
+        long maxRecords
+)
 {
-    private List<String> systemEmailAddresses;
-    private List<String> userEmailAddresses;
-    private String alertFromAddress;
-    private Set<AuditEvent> permittedEvents;
-    private TimeDuration maxRecordAge;
-    private long maxRecords;
-
+    AuditSettings(
+            final List<String> systemEmailAddresses,
+            final List<String> userEmailAddresses,
+            final String alertFromAddress,
+            final Set<AuditEvent> permittedEvents,
+            final TimeDuration maxRecordAge,
+            final long maxRecords
+    )
+    {
+        this.systemEmailAddresses = CollectionUtil.stripNulls( systemEmailAddresses );
+        this.userEmailAddresses =  CollectionUtil.stripNulls( userEmailAddresses );
+        this.alertFromAddress = alertFromAddress;
+        this.permittedEvents = CollectionUtil.stripNulls( permittedEvents );
+        this.maxRecordAge = maxRecordAge;
+        this.maxRecords = maxRecords;
+    }
 
     static AuditSettings fromConfig( final AppConfig appConfig )
     {
-        return AuditSettings.builder()
-                .systemEmailAddresses( appConfig.readSettingAsStringArray( PwmSetting.AUDIT_EMAIL_SYSTEM_TO ) )
-                .userEmailAddresses( appConfig.readSettingAsStringArray( PwmSetting.AUDIT_EMAIL_USER_TO ) )
-                .alertFromAddress( appConfig.readAppProperty( AppProperty.AUDIT_EVENTS_EMAILFROM ) )
-                .permittedEvents( figurePermittedEvents( appConfig ) )
-                .maxRecordAge( TimeDuration.of( appConfig.readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_AGE ), TimeDuration.Unit.SECONDS ) )
-                .maxRecords( appConfig.readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_EVENTS ) )
-                .build();
+        return new AuditSettings(
+                appConfig.readSettingAsStringArray( PwmSetting.AUDIT_EMAIL_SYSTEM_TO ),
+                appConfig.readSettingAsStringArray( PwmSetting.AUDIT_EMAIL_USER_TO ),
+                appConfig.readAppProperty( AppProperty.AUDIT_EVENTS_EMAILFROM ),
+                figurePermittedEvents( appConfig ),
+                TimeDuration.of( appConfig.readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_AGE ), TimeDuration.Unit.SECONDS ),
+                appConfig.readSettingAsLong( PwmSetting.EVENTS_AUDIT_MAX_EVENTS ) );
     }
 
     private static Set<AuditEvent> figurePermittedEvents( final AppConfig appConfig )

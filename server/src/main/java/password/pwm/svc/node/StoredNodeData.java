@@ -20,25 +20,20 @@
 
 package password.pwm.svc.node;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Value;
 import password.pwm.PwmApplication;
 import password.pwm.config.stored.StoredConfigurationUtil;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.time.Instant;
 
-@Value
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-class StoredNodeData
+record StoredNodeData(
+        Instant timestamp,
+        Instant startupTimestamp,
+        String instanceID,
+        String guid,
+        String configHash
+)
 {
-    private Instant timestamp;
-    private Instant startupTimestamp;
-    private String instanceID;
-    private String guid;
-    private String configHash;
-
     static StoredNodeData makeNew( final PwmApplication pwmApplication )
             throws PwmUnrecoverableException
     {

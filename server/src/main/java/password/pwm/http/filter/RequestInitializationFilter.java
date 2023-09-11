@@ -408,7 +408,7 @@ public class RequestInitializationFilter implements Filter
                 contentPolicy = config.readSettingAsString( PwmSetting.SECURITY_CSP_HEADER );
             }
 
-            if ( contentPolicy != null && !contentPolicy.isEmpty() )
+            if ( !StringUtil.isEmpty( contentPolicy ) )
             {
                 final String nonce = pwmRequest.getCspNonce();
                 final String replacedPolicy = contentPolicy.replace( "%NONCE%", nonce );

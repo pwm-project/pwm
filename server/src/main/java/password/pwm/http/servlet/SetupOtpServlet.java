@@ -139,22 +139,25 @@ public class SetupOtpServlet extends ControlledPwmServlet
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final DomainConfig config = pwmDomain.getConfig();
 
-        final SetupOtpProfile setupOtpProfile = getSetupOtpProfile( pwmRequest );
-        if ( setupOtpProfile == null || !setupOtpProfile.readSettingAsBoolean( PwmSetting.OTP_ALLOW_SETUP ) )
+        if ( !pwmDomain.getConfig().readSettingAsBoolean( PwmSetting.OTP_ALLOW_SETUP ) )
         {
             final String errorMsg = "setup OTP is not enabled";
-            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
-            LOGGER.error( pwmRequest, errorInformation );
-            pwmRequest.respondWithError( errorInformation );
-            return ProcessStatus.Halt;
+            throw new PwmUnrecoverableException(  PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
+        }
+
+        final SetupOtpProfile setupOtpProfile = getSetupOtpProfile( pwmRequest );
+
+        if ( setupOtpProfile == null )
+        {
+            final String errorMsg = "a setup OTP profile is not assigned to user";
+            throw new PwmUnrecoverableException(  PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg );
         }
 
         // check whether the setup can be stored
         if ( !canSetupOtpSecret( config ) )
         {
-            LOGGER.error( pwmRequest, () -> "OTP Secret cannot be setup" );
-            pwmRequest.respondWithError( PwmError.ERROR_INVALID_CONFIG.toInfo() );
-            return ProcessStatus.Halt;
+            final String errorMsg = "OTP Secret cannot be setup";
+            throw new PwmUnrecoverableException(  PwmError.ERROR_INVALID_CONFIG, errorMsg );
         }
 
         if ( pwmSession.getLoginInfoBean().getType() == AuthenticationType.AUTH_WITHOUT_PASSWORD )
@@ -234,6 +237,8 @@ public class SetupOtpServlet extends ControlledPwmServlet
             }
             else
             {
+                final int tokenLength = pwmRequest.getPwmDomain().getOtpService().getSettings().getOtpTokenLength();
+                pwmRequest.setAttribute( PwmRequestAttribute.SetupOtp_TokenLength, tokenLength );
                 pwmRequest.forwardToJsp( JspUrl.SETUP_OTP_SECRET_TEST );
             }
         }
@@ -421,15 +426,7 @@ public class SetupOtpServlet extends ControlledPwmServlet
         if ( otpBean.getOtpUserRecord() == null )
         {
 
-            final OTPUserRecord existingUserRecord;
-            try
-            {
-                existingUserRecord = service.readOTPUserConfiguration( pwmRequest.getLabel(), theUser );
-            }
-            catch ( final ChaiUnavailableException e )
-            {
-                throw PwmUnrecoverableException.fromChaiException( e );
-            }
+            final OTPUserRecord existingUserRecord = service.readOTPUserConfiguration( pwmRequest.getLabel(), theUser );
 
             if ( existingUserRecord != null )
             {

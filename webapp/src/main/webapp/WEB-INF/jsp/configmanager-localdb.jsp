@@ -185,7 +185,6 @@
     </script>
 </pwm:script>
 <pwm:script-ref url="/public/resources/js/configmanager.js"/>
-<pwm:script-ref url="/public/resources/js/uilibrary.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>

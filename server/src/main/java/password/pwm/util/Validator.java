@@ -64,11 +64,15 @@ public class Validator
             );
             if ( formNonce == null )
             {
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INVALID_FORMID, "form nonce missing" ) );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INVALID_FORMID,
+                        "form nonce missing on request to "
+                                + pwmRequest.getURLwithQueryString() ) );
             }
             if ( !pwmSession.getLoginInfoBean().getGuid().equals( formNonce.getSessionGUID() ) )
             {
-                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INVALID_FORMID, "form nonce incorrect" ) );
+                throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_INVALID_FORMID,
+                        "form nonce incorrect on request to "
+                                + pwmRequest.getURLwithQueryString() ) );
             }
         }
     }

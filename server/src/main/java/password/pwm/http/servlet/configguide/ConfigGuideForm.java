@@ -177,10 +177,12 @@ public class ConfigGuideForm
         {
             // set admin query
             final String userDN = formData.get( ConfigGuideFormField.PARAM_LDAP_ADMIN_USER );
-            final List<UserPermission> userPermissions = Collections.singletonList( UserPermission.builder()
-                    .type( UserPermissionType.ldapUser )
-                    .ldapBase( userDN )
-                    .build() );
+            final List<UserPermission> userPermissions = Collections.singletonList( new UserPermission(
+                     UserPermissionType.ldapUser,
+                    null,
+                    null,
+                    userDN ) );
+
             modifySetting( modifier, PwmSetting.QUERY_MATCH_PWM_ADMIN, null, new UserPermissionValue( userPermissions ) );
         }
 

@@ -45,10 +45,12 @@
       data-session-id="<pwm:value name="<%=PwmValue.sessionID%>"/>"
       data-jsp-name="<pwm:value name="<%=PwmValue.currentJspFilename%>"/>"
       data-url-context="<pwm:context/>"
+      data-domain="<pwm:domain/>"
       data-pwmFormID="<pwm:FormID/>"
       data-clientEtag="<pwm:value name="<%=PwmValue.clientETag%>"/>">
 <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
 <meta http-equiv="X-UA-Compatible" content="IE=10; IE=9; IE=8; IE=7" />
+<meta name="view-transition" content="same-origin">
 <link rel="icon" type="image/png" href="<pwm:url url='/public/resources/favicon.png' addContext="true"/>"/>
 <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/pwm-icons.css' addContext="true"/>"/>
 <link href="<pwm:url url='/public/resources/style.css' addContext="true"/>" rel="stylesheet" type="text/css" media="screen"/>
@@ -61,8 +63,3 @@
 <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.INCLUDE_CONFIG_CSS%>">
     <link href="<pwm:url url='<%=PwmThemeURL.CONFIG_THEME_URL.token()%>' addContext="true"/>" rel="stylesheet" type="text/css" media="screen"/>
 </pwm:if>
-<pwm:script>
-    <script type="text/javascript">
-        var PWM_GLOBAL = PWM_GLOBAL || {}; PWM_GLOBAL['startupFunctions'] = [];
-    </script>
-</pwm:script>

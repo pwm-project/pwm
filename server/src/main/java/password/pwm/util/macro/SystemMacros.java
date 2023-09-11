@@ -31,8 +31,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -82,11 +81,11 @@ public class SystemMacros
                 final MacroRequest request
         )
         {
-            final PwmApplication pwmApplication = request.getPwmApplication();
+            final PwmApplication pwmApplication = request.pwmApplication();
 
             if ( pwmApplication == null )
             {
-                LOGGER.error( request.getSessionLabel(),  () -> "could not replace value for '" + matchValue + "', pwmApplication is null" );
+                LOGGER.error( request.sessionLabel(),  () -> "could not replace value for '" + matchValue + "', pwmApplication is null" );
                 return "";
             }
 
@@ -192,7 +191,7 @@ public class SystemMacros
                 final MacroRequest request
         )
         {
-            return request.getPwmApplication().getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
+            return request.pwmApplication().getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
         }
     }
 
@@ -234,11 +233,11 @@ public class SystemMacros
         {
             try
             {
-                final String siteUrl = request.getPwmApplication().getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
-                final URL url = new URL( siteUrl );
-                return url.getHost();
+                final String siteUrl = request.pwmApplication().getConfig().readSettingAsString( PwmSetting.PWM_SITE_URL );
+                final URI uri = URI.create( siteUrl );
+                return uri.getHost();
             }
-            catch ( final MalformedURLException e )
+            catch ( final Exception e )
             {
                 LOGGER.error( () -> "unable to parse configured/detected site URL: " + e.getMessage() );
             }
@@ -272,7 +271,7 @@ public class SystemMacros
             int length = 1;
             if ( parameters.size() > 0 && !parameters.get( 0 ).isEmpty() )
             {
-                final int maxLengthPermitted = Integer.parseInt( request.getPwmApplication().getConfig().readAppProperty( AppProperty.MACRO_RANDOM_CHAR_MAX_LENGTH ) );
+                final int maxLengthPermitted = Integer.parseInt( request.pwmApplication().getConfig().readAppProperty( AppProperty.MACRO_RANDOM_CHAR_MAX_LENGTH ) );
                 try
                 {
                     length = Integer.parseInt( parameters.get( 0 ) );
@@ -397,7 +396,7 @@ public class SystemMacros
                 throws MacroParseException
         {
             String contextName = "[context]";
-            final PwmApplication pwmApplication = request.getPwmApplication();
+            final PwmApplication pwmApplication = request.pwmApplication();
             if ( pwmApplication != null )
             {
                 final PwmEnvironment pwmEnvironment = pwmApplication.getPwmEnvironment();

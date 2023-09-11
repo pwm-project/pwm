@@ -119,14 +119,14 @@ public class OAuthMachine
         final String code = config.readDomainProperty( DomainProperty.OAUTH_ID_REQUEST_TYPE );
 
         final Map<String, String> urlParams = new LinkedHashMap<>();
-        urlParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_CLIENT_ID ), settings.getClientID() );
+        urlParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_CLIENT_ID ), settings.clientID() );
         urlParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_RESPONSE_TYPE ), code );
         urlParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_STATE ), state );
         urlParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
 
-        if ( StringUtil.notEmpty( settings.getScope() ) )
+        if ( StringUtil.notEmpty( settings.scope() ) )
         {
-            urlParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_SCOPE ), settings.getScope() );
+            urlParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_SCOPE ), settings.scope() );
         }
 
         if ( userIdentity != null )
@@ -135,7 +135,7 @@ public class OAuthMachine
             parametersValue.ifPresent( s -> urlParams.put( "parameters", s ) );
         }
 
-        final String redirectUrl = PwmURL.appendAndEncodeUrlParameters( settings.getLoginURL(), urlParams );
+        final String redirectUrl = PwmURL.appendAndEncodeUrlParameters( settings.loginURL(), urlParams );
 
         pwmRequest.getPwmResponse().sendRedirect( redirectUrl );
         pwmRequest.getPwmSession().getSessionStateBean().setOauthInProgress( true );
@@ -149,17 +149,17 @@ public class OAuthMachine
             throws PwmUnrecoverableException
     {
         final DomainConfig config = pwmRequest.getDomainConfig();
-        final String requestUrl = settings.getCodeResolveUrl();
+        final String requestUrl = settings.codeResolveUrl();
         final String grantType = config.readDomainProperty( DomainProperty.OAUTH_ID_ACCESS_GRANT_TYPE );
         final String redirectUri = figureOauthSelfEndPointUrl( pwmRequest );
-        final String clientID = settings.getClientID();
+        final String clientID = settings.clientID();
 
         final Map<String, String> requestParams = new HashMap<>();
         requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_CODE ), requestCode );
         requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_GRANT_TYPE ), grantType );
         requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
         requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_CLIENT_ID ), clientID );
-        requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_CLIENT_SECRET ), settings.getSecret().getStringValue() );
+        requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_CLIENT_SECRET ), settings.secret().getStringValue() );
 
         final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "oauth code resolver", settings, requestUrl, requestParams, null );
 
@@ -184,11 +184,11 @@ public class OAuthMachine
         final String accessToken = readAttributeFromBodyMap( resolveResponseBodyStr, oauthAccessTokenParam );
         final String refreshToken = readAttributeFromBodyMap( resolveResponseBodyStr, refreshTokenParam );
 
-        return OAuthResolveResults.builder()
-                .accessToken( accessToken )
-                .refreshToken( refreshToken  )
-                .expiresSeconds( expireSeconds )
-                .build();
+        return new OAuthResolveResults(
+                accessToken,
+                expireSeconds,
+                refreshToken );
+
     }
 
     private OAuthResolveResults makeOAuthRefreshRequest(
@@ -198,7 +198,7 @@ public class OAuthMachine
             throws PwmUnrecoverableException
     {
         final DomainConfig config = pwmRequest.getDomainConfig();
-        final String requestUrl = settings.getCodeResolveUrl();
+        final String requestUrl = settings.codeResolveUrl();
         final String grantType = config.readDomainProperty( DomainProperty.OAUTH_ID_REFRESH_GRANT_TYPE );
 
         final Map<String, String> requestParams = new HashMap<>();
@@ -219,10 +219,10 @@ public class OAuthMachine
         final PwmHttpClientResponse restResults;
         {
             final DomainConfig config = pwmRequest.getDomainConfig();
-            final String requestUrl = settings.getAttributesUrl();
+            final String requestUrl = settings.attributesUrl();
             final Map<String, String> requestParams = new HashMap<>();
             requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
-            requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_ATTRIBUTES ), settings.getDnAttributeName() );
+            requestParams.put( config.readDomainProperty( DomainProperty.HTTP_PARAM_OAUTH_ATTRIBUTES ), settings.dnAttributeName() );
             restResults = makeHttpRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, accessToken );
         }
 
@@ -230,11 +230,11 @@ public class OAuthMachine
 
         LOGGER.trace( sessionLabel, () -> "received attribute values from OAuth IdP for attributes: " );
 
-        final String oauthSuppliedUsername = readAttributeFromBodyMap( resultBody, settings.getDnAttributeName() );
+        final String oauthSuppliedUsername = readAttributeFromBodyMap( resultBody, settings.dnAttributeName() );
 
         if ( StringUtil.isEmpty( oauthSuppliedUsername ) )
         {
-            final String msg = "OAuth server did not respond with an username value for configured attribute '" + settings.getDnAttributeName() + "'";
+            final String msg = "OAuth server did not respond with an username value for configured attribute '" + settings.dnAttributeName() + "'";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, msg );
             LOGGER.error( sessionLabel, errorInformation );
             throw new PwmUnrecoverableException( errorInformation );
@@ -256,7 +256,7 @@ public class OAuthMachine
             throws PwmUnrecoverableException
     {
         final String requestBody = PwmURL.encodeParametersToFormBody( requestParams );
-        final List<X509Certificate> certs = settings.getCertificates();
+        final List<X509Certificate> certs = settings.certificates();
 
         final PwmHttpClientRequest pwmHttpClientRequest;
         {
@@ -264,7 +264,7 @@ public class OAuthMachine
             if ( StringUtil.isEmpty(  accessToken ) )
             {
                 headers.put( HttpHeader.Authorization.getHttpName(),
-                        new BasicAuthInfo( settings.getClientID(), settings.getSecret() ).toAuthHeader() );
+                        new BasicAuthInfo( settings.clientID(), settings.secret() ).toAuthHeader() );
             }
             else
             {
@@ -380,12 +380,14 @@ public class OAuthMachine
                     loginInfoBean.getOauthRefToken() );
             if ( resolveResults != null )
             {
-                if ( resolveResults.getExpiresSeconds() > 0 )
+                if ( resolveResults.expiresSeconds() > 0 )
                 {
-                    final Instant accessTokenExpirationDate = Instant.ofEpochMilli( System.currentTimeMillis() + 1000 * resolveResults.getExpiresSeconds() );
-                    LOGGER.trace( sessionLabel, () -> "noted oauth access token expiration at timestamp " + StringUtil.toIsoDate( accessTokenExpirationDate ) );
+                    final Instant accessTokenExpirationDate = Instant.ofEpochMilli( System.currentTimeMillis()
+                            + 1000 * resolveResults.expiresSeconds() );
+                    LOGGER.trace( sessionLabel, () -> "noted oauth access token expiration at timestamp "
+                            + StringUtil.toIsoDate( accessTokenExpirationDate ) );
                     loginInfoBean.setOauthExp( accessTokenExpirationDate );
-                    loginInfoBean.setOauthRefToken( resolveResults.getRefreshToken() );
+                    loginInfoBean.setOauthRefToken( resolveResults.refreshToken() );
                     return false;
                 }
             }
@@ -407,7 +409,7 @@ public class OAuthMachine
     )
             throws PwmUnrecoverableException
     {
-        final OAuthUseCase oAuthUseCase = settings.getUse();
+        final OAuthUseCase oAuthUseCase = settings.use();
 
         final String sessionId = pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey();
 
@@ -444,7 +446,7 @@ public class OAuthMachine
             return Optional.empty();
         }
 
-        final String macroText = settings.getUsernameSendValue();
+        final String macroText = settings.usernameSendValue();
         if ( StringUtil.isEmpty( macroText ) )
         {
             return Optional.empty();
@@ -454,7 +456,7 @@ public class OAuthMachine
         final String username = macroRequest.expandMacros( macroText );
         LOGGER.debug( sessionLabel, () -> "calculated username value for user as: " + username );
 
-        final String grantUrl = settings.getLoginURL();
+        final String grantUrl = settings.loginURL();
         final String signUrl = grantUrl.replace( "/grant", "/sign" );
 
         final Map<String, String> requestPayload;

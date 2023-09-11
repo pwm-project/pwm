@@ -71,8 +71,8 @@
             <%
                 final Set<String> menuLocations = new TreeSet<>();
                 for (final LdapPermissionCalculator.PermissionRecord record : entry.getValue().get(access)) {
-                    if (record.getPwmSetting() != null) {
-                        menuLocations.add(record.getPwmSetting().toMenuLocationDebug(record.getProfile(), JspUtility.locale(request)));
+                    if (record.pwmSetting() != null) {
+                        menuLocations.add(record.pwmSetting().toMenuLocationDebug(record.profile(), JspUtility.locale(request)));
                     } else {
                         menuLocations.add(LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable, JspUtility.getPwmRequest(pageContext)));
                     }

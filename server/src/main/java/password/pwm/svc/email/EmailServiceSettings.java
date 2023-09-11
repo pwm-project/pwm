@@ -20,8 +20,6 @@
 
 package password.pwm.svc.email;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
@@ -32,35 +30,44 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-@Value
-@Builder
-public class EmailServiceSettings
+record EmailServiceSettings(
+         TimeDuration connectionSendItemDuration,
+         TimeDuration queueRetryTimeout,
+         TimeDuration queueDiscardAge,
+         int connectionSendItemLimit,
+         int maxThreads,
+         int queueMaxItems,
+         Set<Integer> retryableStatusResponses
+)
 {
-    private final TimeDuration connectionSendItemDuration;
-    private final TimeDuration queueRetryTimeout;
-    private final TimeDuration queueDiscardAge;
-    private final int connectionSendItemLimit;
-    private final int maxThreads;
-    private final int queueMaxItems;
-    private final Set<Integer> retryableStatusResponses;
+    private static final EmailServiceSettings EMPTY = new EmailServiceSettings(
+            TimeDuration.ZERO,
+            TimeDuration.ZERO,
+            TimeDuration.ZERO,
+            0,
+            0,
+            0,
+            Set.of() );
 
+    static EmailServiceSettings empty()
+    {
+        return EMPTY;
+    }
 
     static EmailServiceSettings fromConfiguration( final AppConfig appConfig )
     {
-        return builder()
-                .maxThreads( Integer.parseInt( appConfig.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_THREADS ) ) )
-                .connectionSendItemDuration( TimeDuration.of(
+        return new EmailServiceSettings(
+                 TimeDuration.of(
                         Integer.parseInt( appConfig.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_SECONDS_PER_CONNECTION ) ),
-                        TimeDuration.Unit.SECONDS ) )
-                .connectionSendItemLimit( Integer.parseInt( appConfig.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_ITEMS_PER_CONNECTION ) ) )
-                .queueRetryTimeout( TimeDuration.of(
+                        TimeDuration.Unit.SECONDS ),
+                 TimeDuration.of(
                         Long.parseLong( appConfig.readAppProperty( AppProperty.QUEUE_EMAIL_RETRY_TIMEOUT_MS ) ),
-                        TimeDuration.Unit.MILLISECONDS )
-                )
-                .queueDiscardAge( TimeDuration.of( appConfig.readSettingAsLong( PwmSetting.EMAIL_MAX_QUEUE_AGE ), TimeDuration.Unit.SECONDS ) )
-                .queueMaxItems( Integer.parseInt( appConfig.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_COUNT ) ) )
-                .retryableStatusResponses( readRetryableStatusCodes( appConfig ) )
-                .build();
+                        TimeDuration.Unit.MILLISECONDS ),
+                 TimeDuration.of( appConfig.readSettingAsLong( PwmSetting.EMAIL_MAX_QUEUE_AGE ), TimeDuration.Unit.SECONDS ),
+                 Integer.parseInt( appConfig.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_ITEMS_PER_CONNECTION ) ),
+                 Integer.parseInt( appConfig.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_THREADS ) ),
+                 Integer.parseInt( appConfig.readAppProperty( AppProperty.QUEUE_EMAIL_MAX_COUNT ) ),
+                 readRetryableStatusCodes( appConfig ) );
     }
 
     private static Set<Integer> readRetryableStatusCodes( final AppConfig appConfig )

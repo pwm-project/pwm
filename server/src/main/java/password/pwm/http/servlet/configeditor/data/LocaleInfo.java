@@ -20,24 +20,20 @@
 
 package password.pwm.http.servlet.configeditor.data;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.i18n.PwmLocaleBundle;
 
-@Value
-@Builder
-public class LocaleInfo
+public record LocaleInfo(
+        String description,
+        String key,
+        boolean adminOnly
+)
 {
-    public String description;
-    public String key;
-    public boolean adminOnly;
-
     public static LocaleInfo forBundle( final PwmLocaleBundle pwmLocaleBundle )
     {
-        return LocaleInfo.builder()
-                    .description( pwmLocaleBundle.getTheClass().getSimpleName() )
-                    .key( pwmLocaleBundle.toString() )
-                    .adminOnly( pwmLocaleBundle.isAdminOnly() )
-                    .build();
+        return new LocaleInfo(
+                pwmLocaleBundle.getTheClass().getSimpleName(),
+                pwmLocaleBundle.toString(),
+                pwmLocaleBundle.isAdminOnly() );
+
     }
 }

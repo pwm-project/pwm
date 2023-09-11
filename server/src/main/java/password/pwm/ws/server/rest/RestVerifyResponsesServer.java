@@ -116,13 +116,13 @@ public class RestVerifyResponsesServer extends RestServlet
         final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, username );
 
         LOGGER.debug( restRequest.getSessionLabel(), () -> "beginning /verifyresponses REST service against "
-                + ( targetUserIdentity.isSelf() ? "self" : targetUserIdentity.getUserIdentity().toDisplayString() ) );
+                + ( targetUserIdentity.self() ? "self" : targetUserIdentity.userIdentity().toDisplayString() ) );
 
         try
         {
             final Optional<ResponseSet> responseSet = restRequest.getDomain().getCrService().readUserResponseSet(
                     restRequest.getSessionLabel(),
-                    targetUserIdentity.getUserIdentity(),
+                    targetUserIdentity.userIdentity(),
                     targetUserIdentity.getChaiUser()
             );
 

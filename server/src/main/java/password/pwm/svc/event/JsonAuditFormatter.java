@@ -52,8 +52,8 @@ public class JsonAuditFormatter implements AuditFormatter
         else
         {
             final AuditRecordData inputRecord = ( ( AuditRecordData ) auditRecord ).toBuilder()
-                    .message( auditRecord.getMessage() == null ? "" : auditRecord.getMessage() )
-                    .narrative( auditRecord.getNarrative() == null ? "" : auditRecord.getNarrative() )
+                    .message( auditRecord.message() == null ? "" : auditRecord.message() )
+                    .narrative( auditRecord.narrative() == null ? "" : auditRecord.narrative() )
                     .build();
 
             final String truncateMessage = appConfig.readAppProperty( AppProperty.AUDIT_SYSLOG_TRUNCATE_MESSAGE );
@@ -64,8 +64,8 @@ public class JsonAuditFormatter implements AuditFormatter
                     + JsonFactory.get().serialize( copiedRecord.build() ).length()
                     + truncateMessage.length();
             final int maxMessageAndNarrativeLength = maxLength - ( shortenedMessageLength + ( truncateMessage.length() * 2 ) );
-            int maxMessageLength = inputRecord.getMessage().length();
-            int maxNarrativeLength = inputRecord.getNarrative().length();
+            int maxMessageLength = inputRecord.message().length();
+            int maxNarrativeLength = inputRecord.narrative().length();
 
             {
                 int top = maxMessageAndNarrativeLength;
@@ -77,13 +77,13 @@ public class JsonAuditFormatter implements AuditFormatter
                 }
             }
 
-            copiedRecord.message( inputRecord.getMessage().length() > maxMessageLength
-                    ? inputRecord.getMessage().substring( 0, maxMessageLength ) + truncateMessage
-                    : inputRecord.getMessage() );
+            copiedRecord.message( inputRecord.message().length() > maxMessageLength
+                    ? inputRecord.message().substring( 0, maxMessageLength ) + truncateMessage
+                    : inputRecord.message() );
 
-            copiedRecord.narrative( inputRecord.getNarrative().length() > maxNarrativeLength
-                    ? inputRecord.getNarrative().substring( 0, maxNarrativeLength ) + truncateMessage
-                    : inputRecord.getNarrative() );
+            copiedRecord.narrative( inputRecord.narrative().length() > maxNarrativeLength
+                    ? inputRecord.narrative().substring( 0, maxNarrativeLength ) + truncateMessage
+                    : inputRecord.narrative() );
 
             message.append( JsonFactory.get().serialize( copiedRecord.build() ) );
         }

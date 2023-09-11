@@ -123,10 +123,10 @@ class ReportCsvRecordWriter implements ReportRecordWriter
         csvRow.add( userReportRecord.getResponseFormatType() == null
                 ? naField
                 : userReportRecord.getResponseFormatType().toString() );
-        csvRow.add( userReportRecord.getPasswordStatus().isExpired() ? trueField : falseField );
-        csvRow.add( userReportRecord.getPasswordStatus().isPreExpired() ? trueField : falseField );
-        csvRow.add( userReportRecord.getPasswordStatus().isViolatesPolicy() ? trueField : falseField );
-        csvRow.add( userReportRecord.getPasswordStatus().isWarnPeriod() ? trueField : falseField );
+        csvRow.add( userReportRecord.getPasswordStatus().expired() ? trueField : falseField );
+        csvRow.add( userReportRecord.getPasswordStatus().preExpired() ? trueField : falseField );
+        csvRow.add( userReportRecord.getPasswordStatus().violatesPolicy() ? trueField : falseField );
+        csvRow.add( userReportRecord.getPasswordStatus().warnPeriod() ? trueField : falseField );
         csvRow.add( userReportRecord.isRequiresPasswordUpdate() ? trueField : falseField );
         csvRow.add( userReportRecord.isRequiresResponseUpdate() ? trueField : falseField );
         csvRow.add( userReportRecord.isRequiresProfileUpdate() ? trueField : falseField );

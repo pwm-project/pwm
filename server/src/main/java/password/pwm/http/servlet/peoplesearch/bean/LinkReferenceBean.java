@@ -20,11 +20,9 @@
 
 package password.pwm.http.servlet.peoplesearch.bean;
 
-import lombok.Data;
-
-@Data
-public class LinkReferenceBean
+public record LinkReferenceBean(
+         String name,
+         String link
+)
 {
-    private String name;
-    private String link;
 }

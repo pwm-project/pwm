@@ -32,6 +32,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.util.i18n.LocaleHelper;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.StringUtil;
 
 import java.math.BigInteger;
@@ -204,14 +205,15 @@ public class FormConfiguration
             } ) );
         }
 
-        if ( labels == null || this.labels.isEmpty() || this.getLabel( PwmConstants.DEFAULT_LOCALE ) == null || this.getLabel( PwmConstants.DEFAULT_LOCALE ).length() < 1 )
+        if ( CollectionUtil.isEmpty( labels )
+                || StringUtil.isEmpty( this.getLabel( PwmConstants.DEFAULT_LOCALE ) ) )
         {
             throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
                     " a default label value is required for " + this.getName(),
             } ) );
         }
 
-        if ( this.getRegex() != null && this.getRegex().length() > 0 )
+        if ( !StringUtil.isEmpty( this.getRegex() ) )
         {
             try
             {
@@ -227,7 +229,7 @@ public class FormConfiguration
 
         if ( this.getType() == Type.select )
         {
-            if ( this.getSelectOptions() == null || this.getSelectOptions().isEmpty() )
+            if ( CollectionUtil.isEmpty( this.getSelectOptions() ) )
             {
                 throw new PwmOperationalException( new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, null, new String[] {
                         " field '" + this.getName() + " ' is type select, but no select options are defined",

@@ -20,8 +20,6 @@
 
 package password.pwm.config.value.data;
 
-import lombok.Builder;
-import lombok.Value;
 import org.jetbrains.annotations.NotNull;
 import password.pwm.bean.ProfileID;
 import password.pwm.ldap.permission.UserPermissionType;
@@ -29,46 +27,53 @@ import password.pwm.util.java.StringUtil;
 
 import java.util.Comparator;
 
-@Value
-@Builder
 /**
  * Represents a user permission configuration value.
  */
-public class UserPermission implements Comparable<UserPermission>
-{
-    @Builder.Default
-    private UserPermissionType type = UserPermissionType.ldapQuery;
+public record UserPermission(
+        UserPermissionType type,
+        ProfileID ldapProfileID,
+        String ldapQuery,
+        String ldapBase
 
-    private ProfileID ldapProfileID;
-    private String ldapQuery;
-    private String ldapBase;
+)
+        implements Comparable<UserPermission>
+{
+    public UserPermission(
+            final UserPermissionType type,
+            final ProfileID ldapProfileID,
+            final String ldapQuery,
+            final String ldapBase
+    )
+    {
+        this.type = type == null ? UserPermissionType.ldapQuery : type;
+        this.ldapProfileID = ldapProfileID;
+        this.ldapQuery = ldapQuery;
+        this.ldapBase = ldapBase;
+    }
 
     private static final Comparator<UserPermission> COMPARATOR = Comparator.comparing(
-            UserPermission::getType,
-            Comparator.nullsLast( Comparator.naturalOrder() ) )
-            .thenComparing(
-                    UserPermission::getLdapProfileID,
-                    ProfileID.comparator() )
-            .thenComparing(
-                    UserPermission::getLdapBase,
+                    UserPermission::type,
                     Comparator.nullsLast( Comparator.naturalOrder() ) )
             .thenComparing(
-                    UserPermission::getLdapQuery,
+                    UserPermission::ldapProfileID,
+                    ProfileID.comparator() )
+            .thenComparing(
+                    UserPermission::ldapBase,
+                    Comparator.nullsLast( Comparator.naturalOrder() ) )
+            .thenComparing(
+                    UserPermission::ldapQuery,
                     Comparator.nullsLast( Comparator.naturalOrder() ) );
 
 
-    public UserPermissionType getType( )
-    {
-        return type == null ? UserPermissionType.ldapQuery : type;
-    }
 
     public String debugString()
     {
-        return getType().getLabel()
+        return type().getLabel()
                 +  ": [Profile: "
-                + ( getLdapProfileID() == null ?  "All" : '\'' + this.getLdapProfileID().stringValue() + '\'' )
-                + ( StringUtil.isEmpty( getLdapBase() ) ?  "" : " " + getType().getBaseLabel() + ": " + this.getLdapBase() )
-                + ( StringUtil.isEmpty( getLdapQuery() ) ?  "" : " Filter: " + this.getLdapQuery() )
+                + ( ldapProfileID() == null ?  "All" : '\'' + this.ldapProfileID().stringValue() + '\'' )
+                + ( StringUtil.isEmpty( ldapBase() ) ?  "" : " " + type().getBaseLabel() + ": " + this.ldapBase() )
+                + ( StringUtil.isEmpty( ldapQuery() ) ?  "" : " Filter: " + this.ldapQuery() )
                 + "]";
     }
 

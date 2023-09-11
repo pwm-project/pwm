@@ -20,7 +20,6 @@
 
 package password.pwm.util;
 
-import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
@@ -39,20 +38,20 @@ import java.util.Optional;
  *
  * @author Jason D. Rivard
  */
-@Value
-public class BasicAuthInfo
+public record BasicAuthInfo(
+        String username,
+        PasswordData password
+)
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( BasicAuthInfo.class );
-
-    private final String username;
-    private final PasswordData password;
 
     /**
      * Extracts the basic auth info from the header.
      *
      * @param pwmDomain a reference to the application
      * @param pwmRequest http servlet request
-     * @return a BasicAuthInfo object containing username/password, or null if the "Authorization" header doesn't exist or is malformed
+     * @return a BasicAuthInfo object containing username/password, or null if the "Authorization" header doesn't
+     *         exist or is malformed
      */
     public static Optional<BasicAuthInfo> parseAuthHeader(
             final PwmDomain pwmDomain,
@@ -129,9 +128,9 @@ public class BasicAuthInfo
             throws PwmUnrecoverableException
     {
         final StringBuilder sb = new StringBuilder();
-        sb.append( this.getUsername() );
+        sb.append( this.username() );
         sb.append( ':' );
-        sb.append( this.getPassword().getStringValue() );
+        sb.append( this.password().getStringValue() );
 
         sb.replace( 0, sb.length(), StringUtil.base64Encode( sb.toString().getBytes( PwmConstants.DEFAULT_CHARSET ) ) );
 

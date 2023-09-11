@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class UserSearchResults
 {
@@ -52,7 +51,7 @@ public class UserSearchResults
     )
     {
         this.headerAttributeMap = headerAttributeMap == null ? Collections.emptyMap() : Map.copyOf( headerAttributeMap );
-        this.results = Map.copyOf( defaultSort( results, headerAttributeMap ) );
+        this.results = defaultSort( results, headerAttributeMap );
         this.sizeExceeded = sizeExceeded;
     }
 
@@ -71,12 +70,12 @@ public class UserSearchResults
         final UserIdentitySearchResultComparator comparator
                 = new UserIdentitySearchResultComparator( results, sortAttribute );
 
-        return Collections.unmodifiableMap( results.keySet().stream()
+        return results.keySet().stream()
                 .sorted( comparator )
-                .collect( CollectorUtil.toLinkedMap(
+                .collect( CollectorUtil.toUnmodifiableLinkedMap(
                         Function.identity(),
                         userIdentity -> CollectionUtil.stripNulls( results.get( userIdentity ) )
-                ) ) );
+                ) );
     }
 
     public Map<String, String> getHeaderAttributeMap( )
@@ -110,14 +109,14 @@ public class UserSearchResults
 
             rowMap.put( JSON_KEY_USER_KEY, identityEncoder.apply( userIdentity ) );
             rowMap.put( JSON_KEY_ID, idCounter.getAndIncrement() );
-            return Map.copyOf( rowMap );
+            return Collections.unmodifiableMap( rowMap );
         };
 
         return this.getResults().keySet().stream()
                 .filter( Objects::nonNull )
                 .filter( userIdentity -> ignoreUser == null || !ignoreUser.equals( userIdentity ) )
                 .map( makeRowMap )
-                .collect( Collectors.toUnmodifiableList() );
+                .toList();
     }
 
     private String attributeValue( final UserIdentity userIdentity, final String attributeName )

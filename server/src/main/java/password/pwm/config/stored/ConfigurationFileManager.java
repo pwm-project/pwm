@@ -288,7 +288,7 @@ public class ConfigurationFileManager
         for ( final StoredConfigKey key : changedKeys )
         {
             final Optional<ValueMetaData> valueMetaData = newConfig.readMetaData( key );
-            final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::getUserIdentity ).orElse( null );
+            final UserIdentity userIdentity = valueMetaData.map( ValueMetaData::userIdentity ).orElse( null );
 
             final Optional<StoredValue> storedValue = newConfig.readStoredValue( key );
             final StringBuilder modifyMessage = new StringBuilder();

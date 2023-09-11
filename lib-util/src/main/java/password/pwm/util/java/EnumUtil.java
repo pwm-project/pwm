@@ -20,6 +20,7 @@
 
 package password.pwm.util.java;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Optional;
@@ -120,5 +121,15 @@ public final class EnumUtil
     public static <E extends Enum<E>> void forEach( final Class<E> enumClass, final Consumer<E> consumer )
     {
         EnumSet.allOf( enumClass ).forEach( consumer );
+    }
+
+    public static <E extends Enum<E>> EnumSet<E> copyToEnumSet( final Collection<E> input, final Class<E> eClass )
+    {
+        if ( CollectionUtil.isEmpty( input ) )
+        {
+            return EnumSet.noneOf( eClass );
+        }
+
+        return EnumSet.copyOf( input );
     }
 }

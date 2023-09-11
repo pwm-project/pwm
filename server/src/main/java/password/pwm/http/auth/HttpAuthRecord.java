@@ -20,13 +20,19 @@
 
 package password.pwm.http.auth;
 
-import lombok.Value;
+import password.pwm.util.java.JavaHelper;
 
 import java.time.Instant;
+import java.util.Objects;
 
-@Value
-public class HttpAuthRecord
+public record HttpAuthRecord(
+        Instant date,
+        String guid
+)
 {
-    private Instant date;
-    private String guid;
+    public HttpAuthRecord( final Instant date, final String guid )
+    {
+        this.date = Objects.requireNonNull( date );
+        this.guid = JavaHelper.requireNonEmpty( guid );
+    }
 }

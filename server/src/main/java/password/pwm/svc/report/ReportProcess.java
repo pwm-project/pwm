@@ -393,13 +393,13 @@ public class ReportProcess implements AutoCloseable
         final List<DisplayElement> list = new ArrayList<>();
         if ( inProgress.get() )
         {
-            list.add( new DisplayElement( "status", DisplayElement.Type.string,
+            list.add( DisplayElement.create( "status", DisplayElement.Type.string,
                     "Status",
                     "In Progress" ) );
-            list.add( new DisplayElement( "recordCount", DisplayElement.Type.number,
+            list.add( DisplayElement.create( "recordCount", DisplayElement.Type.number,
                     "Record Count",
                     String.valueOf( recordCounter.longValue() ) ) );
-            list.add( new DisplayElement( "duration", DisplayElement.Type.string,
+            list.add( DisplayElement.create( "duration", DisplayElement.Type.string,
                     "Duration",
                     PwmTimeUtil.asLongString( TimeDuration.fromCurrent( startTime ), locale ) ) );
             if ( recordCounter.get() > 0 )
@@ -407,14 +407,14 @@ public class ReportProcess implements AutoCloseable
                 final String rate = processRateMeter.rawEps()
                         .multiply( new BigDecimal( "60" ) )
                         .setScale( 2, RoundingMode.UP ).toString();
-                list.add( new DisplayElement( "eventRate", DisplayElement.Type.number,
+                list.add( DisplayElement.create( "eventRate", DisplayElement.Type.number,
                         "Users / Minute",
                         String.valueOf( rate ) ) );
             }
         }
         else
         {
-            list.add( new DisplayElement( "status", DisplayElement.Type.string, "Status", "Idle" ) );
+            list.add( DisplayElement.create( "status", DisplayElement.Type.string, "Status", "Idle" ) );
         }
 
         return new ReportProcessStatus( List.copyOf( list ), inProgress.get() );

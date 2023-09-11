@@ -127,7 +127,7 @@ public class RestResultBean<T>
         return fromError( errorInformation, pwmRequest.getPwmDomain(), pwmRequest.getLocale(), pwmRequest.getDomainConfig(), forceDetail );
     }
 
-    public static <T> RestResultBean<T> fromError(
+    public static RestResultBean<?> fromError(
             final ErrorInformation errorInformation,
             final PwmRequest pwmRequest
     )

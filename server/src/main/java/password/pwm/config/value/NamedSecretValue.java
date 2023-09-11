@@ -174,7 +174,7 @@ public class NamedSecretValue implements StoredValue
             for ( final Map.Entry<String, NamedSecretData> entry : values.entrySet() )
             {
                 final String name = entry.getKey();
-                final PasswordData passwordData = entry.getValue().getPassword();
+                final PasswordData passwordData = entry.getValue().password();
                 final String encodedValue = SecureEngine.encryptToString( passwordData.getStringValue(), xmlOutputProcessData.getPwmSecurityKey(), PwmBlockAlgorithm.CONFIG );
                 final XmlElement newValueElement = XmlFactory.getFactory().newElement( "value" );
                 final XmlElement nameElement = XmlFactory.getFactory().newElement( ELEMENT_NAME );
@@ -185,7 +185,7 @@ public class NamedSecretValue implements StoredValue
                 newValueElement.attachElement( nameElement );
                 newValueElement.attachElement( encodedValueElement );
 
-                for ( final String usages : values.get( name ).getUsage() )
+                for ( final String usages : values.get( name ).usage() )
                 {
                     final XmlElement usageElement = XmlFactory.getFactory().newElement( ELEMENT_USAGE );
                     usageElement.setText( usages );
@@ -216,7 +216,7 @@ public class NamedSecretValue implements StoredValue
         {
             final NamedSecretData existingData = entry.getValue();
             sb.append( "Named password '" ).append( entry.getKey() ).append( "' with usage for " );
-            sb.append( StringUtil.collectionToString( existingData.getUsage(), "," ) );
+            sb.append( StringUtil.collectionToString( existingData.usage(), "," ) );
             sb.append( '\n' );
 
         }
@@ -240,7 +240,7 @@ public class NamedSecretValue implements StoredValue
                 final NamedSecretData existingData = entry.getValue();
                 final NamedSecretData newData = new NamedSecretData(
                         PasswordData.forStringValue( PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT ),
-                        existingData.getUsage()
+                        existingData.usage()
                 );
                 copiedValues.put( name, newData );
             }

@@ -56,7 +56,6 @@ import password.pwm.http.servlet.PwmRequestID;
 import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.svc.secure.SecureService;
 import password.pwm.user.UserInfo;
-import password.pwm.util.Validator;
 import password.pwm.util.java.LazySupplier;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
@@ -80,8 +79,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public class PwmRequest extends PwmHttpRequestWrapper
@@ -92,11 +89,11 @@ public class PwmRequest extends PwmHttpRequestWrapper
     private final PwmResponse pwmResponse;
     private final PwmURL pwmURL;
     private final PwmRequestID pwmRequestID;
+    private final String cspNonce;
 
     private final Set<PwmRequestFlag> flags = EnumSet.noneOf( PwmRequestFlag.class );
     private final Instant requestStartTime = Instant.now();
     private final DomainID domainID;
-    private final Lock cspCreationLock = new ReentrantLock();
 
     private final Supplier<Locale> localeSupplier = LazySupplier.create(
             () -> PwmRequestLocaleResolver.resolveRequestLocale( this ) );
@@ -136,6 +133,7 @@ public class PwmRequest extends PwmHttpRequestWrapper
         this.pwmApplication = pwmApplication;
         this.pwmURL = PwmURL.create( this.getHttpServletRequest() );
         this.domainID = PwmHttpRequestWrapper.readDomainIdFromRequest( httpServletRequest );
+        this.cspNonce = makeCspNonce();
     }
 
 
@@ -240,13 +238,6 @@ public class PwmRequest extends PwmHttpRequestWrapper
         return pwmSession.isAuthenticated()
                 ? pwmSession.getUserInfo().getUserIdentity()
                 : null;
-    }
-
-
-    public void validatePwmFormID()
-            throws PwmUnrecoverableException
-    {
-        Validator.validatePwmFormID( this );
     }
 
     public boolean convertURLtokenCommand(
@@ -434,24 +425,15 @@ public class PwmRequest extends PwmHttpRequestWrapper
     }
 
     public String getCspNonce()
-            throws PwmUnrecoverableException
     {
-        cspCreationLock.lock();
-        try
-        {
-            if ( getAttribute( PwmRequestAttribute.CspNonce ) == null )
-            {
-                final int nonceLength = Integer.parseInt( getDomainConfig().readAppProperty( AppProperty.HTTP_HEADER_CSP_NONCE_BYTES ) );
-                final byte[] cspNonce = getPwmDomain().getSecureService().pwmRandom().newBytes( nonceLength );
-                final String cspString = StringUtil.base64Encode( cspNonce );
-                setAttribute( PwmRequestAttribute.CspNonce, cspString );
-            }
-            return ( String ) getAttribute( PwmRequestAttribute.CspNonce );
-        }
-        finally
-        {
-            cspCreationLock.unlock();
-        }
+        return cspNonce;
+    }
+
+    private String makeCspNonce()
+    {
+        final int nonceLength = Integer.parseInt( getDomainConfig().readAppProperty( AppProperty.HTTP_HEADER_CSP_NONCE_BYTES ) );
+        final byte[] cspNonce = getPwmDomain().getSecureService().pwmRandom().newBytes( nonceLength );
+        return StringUtil.base64Encode( cspNonce );
     }
 
     public <T extends Object> Optional<T> readEncryptedCookie( final String cookieName, final Class<T> returnClass )

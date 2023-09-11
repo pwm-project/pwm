@@ -64,14 +64,14 @@ class DatabaseUserHistory implements UserHistoryStore
     {
         // user info
         final UserIdentity userIdentity;
-        if ( auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEventType.HELPDESK )
+        if ( auditRecord instanceof HelpdeskAuditRecord && auditRecord.type() == AuditEventType.HELPDESK )
         {
             final HelpdeskAuditRecord helpdeskAuditRecord = ( HelpdeskAuditRecord ) auditRecord;
-            userIdentity = UserIdentity.create( helpdeskAuditRecord.getTargetDN(), helpdeskAuditRecord.getTargetLdapProfile(), auditRecord.getDomain() );
+            userIdentity = UserIdentity.create( helpdeskAuditRecord.targetDN(), helpdeskAuditRecord.targetLdapProfile(), auditRecord.domain() );
         }
         else
         {
-            userIdentity = UserIdentity.create( auditRecord.getPerpetratorDN(), auditRecord.getPerpetratorLdapProfile(), auditRecord.getDomain() );
+            userIdentity = UserIdentity.create( auditRecord.perpetratorDN(), auditRecord.perpetratorLdapProfile(), auditRecord.domain() );
         }
 
         final String guid = LdapOperationsHelper.readLdapGuidValue( pwmDomain, sessionLabel, userIdentity )

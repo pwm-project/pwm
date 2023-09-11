@@ -35,9 +35,9 @@ public class SelfCertAppItemGeneratorTest
     @Test
     public void doSelfCertGeneratorTest() throws Exception
     {
-        final KeyStore keyStore = SelfCertFactory.generateNewCert( SelfCertSettings.builder().build(), null, new PasswordData( "password" ), "alias" );
+        final KeyStore keyStore = SelfCertFactory.generateNewCert( SelfCertSettings.example(), null, new PasswordData( "password" ), "alias" );
         final Certificate certificate = keyStore.getCertificate( "alias" );
-        final String subjectDN = ( ( X509Certificate) certificate ).getSubjectDN().getName();
+        final String subjectDN =  ( ( X509Certificate) certificate ).getSubjectX500Principal().getName();
         Assertions.assertEquals( "CN=" + PwmConstants.PWM_APP_NAME.toLowerCase() + ".example.com", subjectDN );
     }
 }

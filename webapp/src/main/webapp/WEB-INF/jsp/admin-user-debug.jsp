@@ -39,6 +39,7 @@
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.svc.PwmService" %>
 <%@ page import="password.pwm.http.servlet.admin.domain.DomainAdminUserDebugServlet" %>
+<%@ page import="password.pwm.user.UserInfo" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -54,6 +55,7 @@
         <%@ include file="fragment/admin-modular-nav.jsp" %>
 
         <% final UserDebugDataBean userDebugDataBean = (UserDebugDataBean)JspUtility.getAttribute(pageContext, PwmRequestAttribute.UserDebugData); %>
+        <% final UserInfo userInfo = (UserInfo)JspUtility.getAttribute(pageContext, PwmRequestAttribute.UserDebugInfo); %>
         <% if (userDebugDataBean == null) { %>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <div id="panel-searchbar" class="searchbar">
@@ -70,27 +72,27 @@
                 <button type="submit" class="btn"><pwm:display key="Button_Reset"/></button>
             </form>
         </div>
-        <% final PublicUserInfoBean userInfo = userDebugDataBean.getPublicUserInfoBean(); %>
-        <% if (userInfo != null) { %>
+        <% final PublicUserInfoBean publicUserInfoBean = userDebugDataBean.publicUserInfoBean(); %>
+        <% if (publicUserInfoBean != null) { %>
         <table>
             <tr>
                 <td colspan="10" class="title">Identity</td>
             </tr>
             <tr>
                 <td class="key">UserDN</td>
-                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserDN())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getUserDN())%></td>
             </tr>
             <tr>
                 <td class="key">Ldap Profile</td>
-                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getLdapProfile())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getLdapProfile())%></td>
             </tr>
             <tr>
                 <td class="key">Username</td>
-                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserID())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getUserID())%></td>
             </tr>
             <tr>
                 <td class="key"><%=PwmConstants.PWM_APP_NAME%> GUID</td>
-                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserGUID())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getUserGUID())%></td>
             </tr>
         </table>
         <br/>
@@ -101,73 +103,73 @@
             <tr>
                 <td class="key">Last Login Time</td>
                 <td>
-                    <%=JspUtility.friendlyWrite(pageContext, userInfo.getLastLoginTime())%>
-                    <% if ( userInfo.getLastLoginTime() != null ) { %>
-                    ( <%=TimeDuration.fromCurrent(userInfo.getLastLoginTime()).asCompactString()%> )
+                    <%=JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getLastLoginTime())%>
+                    <% if ( publicUserInfoBean.getLastLoginTime() != null ) { %>
+                    ( <%=TimeDuration.fromCurrent(publicUserInfoBean.getLastLoginTime()).asCompactString()%> )
                     <% } %>
                 </td>
             </tr>
             <tr>
                 <td class="key">Account Expiration Time</td>
                 <td>
-                    <%=JspUtility.friendlyWrite(pageContext, userInfo.getAccountExpirationTime())%>
-                    <% if ( userInfo.getAccountExpirationTime() != null ) { %>
-                    ( <%=TimeDuration.fromCurrent(userInfo.getAccountExpirationTime()).asCompactString()%> )
+                    <%=JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getAccountExpirationTime())%>
+                    <% if ( publicUserInfoBean.getAccountExpirationTime() != null ) { %>
+                    ( <%=TimeDuration.fromCurrent(publicUserInfoBean.getAccountExpirationTime()).asCompactString()%> )
                     <% } %>
                 </td>
             </tr>
             <tr>
                 <td class="key">Password Expiration</td>
                 <td>
-                    <%=JspUtility.friendlyWrite(pageContext, userInfo.getPasswordExpirationTime())%>
-                    <% if ( userInfo.getPasswordExpirationTime() != null ) { %>
-                    ( <%=TimeDuration.fromCurrent(userInfo.getPasswordExpirationTime()).asCompactString()%> )
+                    <%=JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getPasswordExpirationTime())%>
+                    <% if ( publicUserInfoBean.getPasswordExpirationTime() != null ) { %>
+                    ( <%=TimeDuration.fromCurrent(publicUserInfoBean.getPasswordExpirationTime()).asCompactString()%> )
                     <% } %>
                 </td>
             </tr>
             <tr>
                 <td class="key">Password Last Modified</td>
                 <td>
-                    <%=JspUtility.friendlyWrite(pageContext, userInfo.getPasswordLastModifiedTime())%>
-                    <% if ( userInfo.getPasswordLastModifiedTime() != null ) { %>
-                    ( <%=TimeDuration.fromCurrent(userInfo.getPasswordLastModifiedTime()).asCompactString()%> )
+                    <%=JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getPasswordLastModifiedTime())%>
+                    <% if ( publicUserInfoBean.getPasswordLastModifiedTime() != null ) { %>
+                    ( <%=TimeDuration.fromCurrent(publicUserInfoBean.getPasswordLastModifiedTime()).asCompactString()%> )
                     <% } %>
                 </td>
             </tr>
             <tr>
                 <td class="key">Email Address 1</td>
-                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserEmailAddress())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getUserEmailAddress())%></td>
             </tr>
             <tr>
                 <td class="key">Email Address 2</td>
-                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserEmailAddress2())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getUserEmailAddress2())%></td>
             </tr>
             <tr>
                 <td class="key">Email Address 3</td>
-                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserEmailAddress3())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getUserEmailAddress3())%></td>
             </tr>
             <tr>
                 <td class="key">Phone Number 1</td>
-                <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getUserInfo().getUserSmsNumber())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserSmsNumber())%></td>
             </tr>
             <tr>
                 <td class="key">Phone Number 2</td>
-                <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getUserInfo().getUserSmsNumber2())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserSmsNumber2())%></td>
             </tr>
             <tr>
                 <td class="key">Phone Number 3</td>
-                <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getUserInfo().getUserSmsNumber3())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserSmsNumber3())%></td>
             </tr>
             <tr>
                 <td class="key">Username</td>
-                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getUserID())%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getUserID())%></td>
             </tr>
             <tr>
                 <td class="key">
                     <pwm:display key="Field_PasswordExpired"/>
                 </td>
                 <td id="PasswordExpired">
-                    <%= JspUtility.friendlyWrite(pageContext, userInfo.getPasswordStatus().isExpired()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getPasswordStatus().expired()) %>
                 </td>
             </tr>
             <tr>
@@ -175,7 +177,7 @@
                     <pwm:display key="Field_PasswordPreExpired"/>
                 </td>
                 <td id="PasswordPreExpired">
-                    <%= JspUtility.friendlyWrite(pageContext, userInfo.getPasswordStatus().isPreExpired()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getPasswordStatus().preExpired()) %>
                 </td>
             </tr>
             <tr>
@@ -183,7 +185,7 @@
                     <pwm:display key="Field_PasswordWithinWarningPeriod"/>
                 </td>
                 <td id="PasswordWithinWarningPeriod">
-                    <%= JspUtility.friendlyWrite(pageContext, userInfo.getPasswordStatus().isWarnPeriod()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getPasswordStatus().warnPeriod()) %>
                 </td>
             </tr>
             <tr>
@@ -191,7 +193,7 @@
                     <pwm:display key="Field_PasswordViolatesPolicy"/>
                 </td>
                 <td id="PasswordViolatesPolicy">
-                    <%= JspUtility.friendlyWrite(pageContext, userInfo.getPasswordStatus().isViolatesPolicy()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getPasswordStatus().violatesPolicy()) %>
                 </td>
             </tr>
             <tr>
@@ -199,7 +201,7 @@
                     Password Readable From LDAP
                 </td>
                 <td>
-                    <%= JspUtility.friendlyWrite(pageContext, userDebugDataBean.isPasswordReadable()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, userDebugDataBean.passwordReadable()) %>
                 </td>
             </tr>
             <tr>
@@ -207,7 +209,7 @@
                     Requires New Password
                 </td>
                 <td>
-                    <%= JspUtility.friendlyWrite(pageContext, userInfo.isRequiresNewPassword()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, publicUserInfoBean.isRequiresNewPassword()) %>
                 </td>
             </tr>
             <tr>
@@ -215,7 +217,7 @@
                     Requires Response Setup
                 </td>
                 <td>
-                    <%= JspUtility.friendlyWrite(pageContext, userInfo.isRequiresResponseConfig()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, publicUserInfoBean.isRequiresResponseConfig()) %>
                 </td>
             </tr>
             <tr>
@@ -223,7 +225,7 @@
                     Requires OTP Setup
                 </td>
                 <td>
-                    <%= JspUtility.friendlyWrite(pageContext, userInfo.isRequiresOtpConfig()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, publicUserInfoBean.isRequiresOtpConfig()) %>
                 </td>
             </tr>
             <tr>
@@ -231,7 +233,7 @@
                     Requires Profile Update
                 </td>
                 <td>
-                    <%= JspUtility.friendlyWrite(pageContext, userInfo.isRequiresUpdateProfile()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, publicUserInfoBean.isRequiresUpdateProfile()) %>
                 </td>
             </tr>
             <tr>
@@ -239,12 +241,12 @@
                     Password is Within Minimum Lifetime
                 </td>
                 <td>
-                    <%= JspUtility.friendlyWrite(pageContext, userDebugDataBean.isPasswordWithinMinimumLifetime()) %>
+                    <%= JspUtility.friendlyWrite(pageContext, userDebugDataBean.passwordWithinMinimumLifetime()) %>
                 </td>
             </tr>
             <tr>
                 <td class="key">Stored Language</td>
-                <td><%=JspUtility.friendlyWrite(pageContext, userInfo.getLanguage() )%></td>
+                <td><%=JspUtility.friendlyWrite(pageContext, publicUserInfoBean.getLanguage() )%></td>
             </tr>
         </table>
         <br/>
@@ -254,7 +256,7 @@
             <tr>
                 <td colspan="10" class="title">Password Notification Status</td>
             </tr>
-            <% if ( userDebugDataBean.getPwNotifyUserStatus() == null ) { %>
+            <% if ( userDebugDataBean.pwNotifyUserStatus() == null ) { %>
             <tr>
                 <td class="key">Last Notification Sent</td>
                 <td><pwm:display key="<%=Display.Value_NotApplicable.toString()%>"/></td>
@@ -263,19 +265,19 @@
             <tr>
                 <td class="key">Last Notification Sent</td>
                 <td>
-                    <%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getPwNotifyUserStatus().getLastNotice())%>
+                    <%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.pwNotifyUserStatus().getLastNotice())%>
                 </td>
             </tr>
             <tr>
                 <td class="key">Last Notification Password Expiration Time</td>
                 <td>
-                    <%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getPwNotifyUserStatus().getExpireTime())%>
+                    <%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.pwNotifyUserStatus().getExpireTime())%>
                 </td>
             </tr>
             <tr>
                 <td class="key">Last Notification Interval</td>
                 <td>
-                    <%=userDebugDataBean.getPwNotifyUserStatus().getInterval()%>
+                    <%=userDebugDataBean.pwNotifyUserStatus().getInterval()%>
                 </td>
             </tr>
             <% } %>
@@ -298,10 +300,10 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <% for (final ProfileDefinition profileDefinition : userDebugDataBean.getProfiles().keySet()) { %>
+                        <% for (final ProfileDefinition profileDefinition : userDebugDataBean.profiles().keySet()) { %>
                         <tr>
                             <td><%=profileDefinition%></td>
-                            <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getProfiles().get(profileDefinition).stringValue())%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.profiles().get(profileDefinition).stringValue())%></td>
                         </tr>
                         <% } %>
                         </tbody>
@@ -319,10 +321,10 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <% for (final Permission permission : userDebugDataBean.getPermissions().keySet()) { %>
+                        <% for (final Permission permission : userDebugDataBean.permissions().keySet()) { %>
                         <tr>
                             <td><%=permission%></td>
-                            <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.getPermissions().get(permission))%></td>
+                            <td><%=JspUtility.friendlyWrite(pageContext, userDebugDataBean.permissions().get(permission))%></td>
                         </tr>
                         <% } %>
                         </tbody>
@@ -335,10 +337,10 @@
             <tr>
                 <td colspan="10" class="title">Password Policy</td>
             </tr>
-            <% PwmPasswordPolicy userPolicy = userDebugDataBean.getUserInfo().getPasswordPolicy(); %>
+            <% PwmPasswordPolicy userPolicy = userInfo.getPasswordPolicy(); %>
             <% if (userPolicy != null) { %>
-            <% PwmPasswordPolicy configPolicy = userDebugDataBean.getConfiguredPasswordPolicy(); %>
-            <% PwmPasswordPolicy ldapPolicy = userDebugDataBean.getLdapPasswordPolicy(); %>
+            <% PwmPasswordPolicy configPolicy = userDebugDataBean.configuredPasswordPolicy(); %>
+            <% PwmPasswordPolicy ldapPolicy = userDebugDataBean.ldapPasswordPolicy(); %>
             <tr>
                 <td colspan="10">
                     <table>
@@ -386,7 +388,7 @@
             <tr>
                 <td colspan="10" class="title">Stored Responses</td>
             </tr>
-            <% final ResponseInfoBean responseInfoBean = userDebugDataBean.getUserInfo().getResponseInfoBean(); %>
+            <% final ResponseInfoBean responseInfoBean = userDebugDataBean.responseInfoBean(); %>
             <% if (responseInfoBean == null) { %>
             <tr>
                 <td class="key">Stored Responses</td>
@@ -480,7 +482,7 @@
             <tr>
                 <td colspan="10" class="title">Challenge Profile</td>
             </tr>
-            <% final ChallengeProfile challengeProfile = userDebugDataBean.getUserInfo().getChallengeProfile(); %>
+            <% final ChallengeProfile challengeProfile = userInfo.getChallengeProfile(); %>
             <% if ( challengeProfile == null ) { %>
             <tr>
                 <td class="key">Assigned Profile</td>

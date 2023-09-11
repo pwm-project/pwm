@@ -20,19 +20,25 @@
 
 package password.pwm.ws.server.rest.bean;
 
-import lombok.Builder;
-import lombok.Value;
+import password.pwm.util.java.CollectionUtil;
 
 import java.time.Instant;
 import java.util.List;
 
-@Value
-@Builder
-public class PublicHealthData
+public record PublicHealthData(
+        Instant timestamp,
+        String overall,
+        List<PublicHealthRecord> records
+)
 {
-    @Builder.Default
-    public Instant timestamp = Instant.now();
-
-    public String overall;
-    public List<PublicHealthRecord> records;
+    public PublicHealthData(
+            final Instant timestamp,
+            final String overall,
+            final List<PublicHealthRecord> records
+    )
+    {
+        this.timestamp = timestamp;
+        this.overall = overall;
+        this.records = CollectionUtil.stripNulls( records );
+    }
 }

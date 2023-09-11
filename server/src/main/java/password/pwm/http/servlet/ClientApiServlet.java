@@ -122,9 +122,7 @@ public class ClientApiServlet extends ControlledPwmServlet
         strings( HttpMethod.GET ),
         health( HttpMethod.GET ),
         ping( HttpMethod.GET ),
-        statistics( HttpMethod.GET ),
-        cspReport( HttpMethod.POST ),;
-
+        statistics( HttpMethod.GET ),;
 
         private final HttpMethod method;
 
@@ -461,20 +459,6 @@ public class ClientApiServlet extends ControlledPwmServlet
                 jsonOutput,
                 RestStatisticsServer.OutputVersion1.JsonOutput.class );
         pwmRequest.outputJsonResult( restResultBean );
-        return ProcessStatus.Halt;
-    }
-
-    @ActionHandler( action = "cspReport" )
-    public ProcessStatus restCspReportHandler( final PwmRequest pwmRequest )
-            throws PwmUnrecoverableException, IOException
-    {
-        if ( !Boolean.parseBoolean( pwmRequest.getDomainConfig().readAppProperty( AppProperty.LOGGING_LOG_CSP_REPORT ) ) )
-        {
-            return ProcessStatus.Halt;
-        }
-
-        final String body = pwmRequest.readRequestBodyAsString();
-        LOGGER.trace( pwmRequest, () -> body );
         return ProcessStatus.Halt;
     }
 

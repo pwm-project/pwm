@@ -39,7 +39,11 @@ final class ThreadDumpDebugItemGenerator implements AppItemGenerator
     public void outputItem( final AppDebugItemRequest debugItemInput, final OutputStream outputStream )
             throws IOException
     {
-        final ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads( true, true );
+        final ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads(
+                true,
+                true,
+                Integer.MAX_VALUE );
+
         for ( final ThreadInfo threadInfo : threads )
         {
             DebugGenerator.writeString( outputStream,  JavaHelper.threadInfoToString( threadInfo ) + '\n' );

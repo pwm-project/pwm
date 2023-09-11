@@ -113,7 +113,8 @@ class ResourceServletConfiguration
             final Map.Entry<FileValue.FileInformation, FileValue.FileContent> entry = files.entrySet().iterator().next();
             final FileValue.FileInformation fileInformation = entry.getKey();
             final FileValue.FileContent fileContent = entry.getValue();
-            LOGGER.debug( sessionLabel, () -> "examining configured zip file resource for items name=" + fileInformation.getFilename()
+            LOGGER.debug( sessionLabel, () -> "examining configured zip file resource for items name="
+                    + fileInformation.filename()
                     + ", size=" + fileContent.size() );
 
             try

@@ -20,17 +20,25 @@
 
 package password.pwm.http.servlet.configeditor.data;
 
-import lombok.Builder;
-import lombok.Value;
 import password.pwm.config.PwmSettingTemplateSet;
+import password.pwm.util.java.CollectionUtil;
 
 import java.util.List;
 
-@Value
-@Builder
-public class VarData
+public record VarData(
+        List<String> ldapProfileIds,
+        List<String> domainIds,
+        PwmSettingTemplateSet currentTemplate
+)
 {
-    private final List<String> ldapProfileIds;
-    private final List<String> domainIds;
-    private final PwmSettingTemplateSet currentTemplate;
+    public VarData(
+            final List<String> ldapProfileIds,
+            final List<String> domainIds,
+            final PwmSettingTemplateSet currentTemplate
+    )
+    {
+        this.ldapProfileIds = CollectionUtil.stripNulls( ldapProfileIds );
+        this.domainIds = CollectionUtil.stripNulls( domainIds );
+        this.currentTemplate = currentTemplate;
+    }
 }

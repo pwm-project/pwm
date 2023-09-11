@@ -157,7 +157,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         addExpiresHeadersToResponse( pwmRequest );
         pwmRequest.outputJsonResult( restResultBean );
 
-        LOGGER.trace( pwmRequest, () -> "returning " + searchResultBean.getSearchResults().size() + " results for search request "
+        LOGGER.trace( pwmRequest, () -> "returning " + searchResultBean.searchResults().size() + " results for search request "
                 + JsonFactory.get().serialize( searchRequest ) );
         return ProcessStatus.Halt;
     }

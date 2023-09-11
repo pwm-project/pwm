@@ -20,17 +20,13 @@
 
 package password.pwm.ws.client.rest.form;
 
-import lombok.Builder;
-import lombok.Value;
-
 import java.util.Map;
 
-@Value
-@Builder
-public class FormDataResponseBean
+public record FormDataResponseBean(
+        boolean error,
+        String errorMessage,
+        String errorDetail,
+        Map<String, String> formValues
+)
 {
-    private boolean error;
-    private String errorMessage;
-    private String errorDetail;
-    private Map<String, String> formValues;
 }

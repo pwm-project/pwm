@@ -175,22 +175,22 @@ public class RestChallengesServer extends RestServlet
             final ChaiUser chaiUser = targetUserIdentity.getChaiUser();
             final Locale userLocale = restRequest.getLocale();
             final CrService crService = restRequest.getDomain().getCrService();
-            responseSet = crService.readUserResponseSet( restRequest.getSessionLabel(), targetUserIdentity.getUserIdentity(), chaiUser ).orElseThrow();
+            responseSet = crService.readUserResponseSet( restRequest.getSessionLabel(), targetUserIdentity.userIdentity(), chaiUser ).orElseThrow();
 
             final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
                     restRequest.getDomain(),
                     restRequest.getSessionLabel(),
-                    targetUserIdentity.getUserIdentity(),
+                    targetUserIdentity.userIdentity(),
                     chaiUser );
             final ChallengeProfile challengeProfile = crService.readUserChallengeProfile(
                     restRequest.getSessionLabel(),
-                    targetUserIdentity.getUserIdentity(),
+                    targetUserIdentity.userIdentity(),
                     chaiUser,
                     passwordPolicy,
                     userLocale
             );
 
-            outputUsername = targetUserIdentity.getUserIdentity().toDelimitedKey();
+            outputUsername = targetUserIdentity.userIdentity().toDelimitedKey();
 
             // build output
             final JsonChallengesData jsonData = new JsonChallengesData();
@@ -258,7 +258,7 @@ public class RestChallengesServer extends RestServlet
             final UserIdentity userIdentity;
             final CrService crService = restRequest.getDomain().getCrService();
 
-            userIdentity = targetUserIdentity.getUserIdentity();
+            userIdentity = targetUserIdentity.userIdentity();
             chaiUser = targetUserIdentity.getChaiUser();
 
             final ChallengeProfile challengeProfile = crService.readUserChallengeProfile(
@@ -310,7 +310,7 @@ public class RestChallengesServer extends RestServlet
             final CrService crService = restRequest.getDomain().getCrService();
             crService.clearResponses(
                     restRequest.getSessionLabel(),
-                    targetUserIdentity.getUserIdentity(),
+                    targetUserIdentity.userIdentity(),
                     chaiUser );
 
             // update statistics

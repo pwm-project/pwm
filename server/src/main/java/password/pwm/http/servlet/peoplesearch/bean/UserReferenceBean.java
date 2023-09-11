@@ -20,11 +20,21 @@
 
 package password.pwm.http.servlet.peoplesearch.bean;
 
-import lombok.Data;
+import java.util.Comparator;
 
-@Data
-public class UserReferenceBean
+public record UserReferenceBean(
+        String userKey,
+        String displayName
+)
+        implements Comparable<UserReferenceBean>
 {
-    private String userKey;
-    private String displayName;
+    private static final Comparator<UserReferenceBean> STRING_COMPARATOR = Comparator.comparing(
+            UserReferenceBean::displayName,
+            Comparator.nullsLast( Comparator.naturalOrder() ) );
+
+    @Override
+    public int compareTo( final UserReferenceBean o )
+    {
+        return STRING_COMPARATOR.compare( this, o );
+    }
 }

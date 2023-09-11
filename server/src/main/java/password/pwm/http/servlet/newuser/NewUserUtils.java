@@ -213,7 +213,7 @@ class NewUserUtils
             final PasswordData temporaryPassword;
             {
                 final RandomGeneratorConfig randomGeneratorConfig = RandomGeneratorConfig.make( pwmRequest.getPwmDomain(),
-                         newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() ) );
+                        newUserProfile.getNewUserPasswordPolicy( pwmRequest.getPwmRequestContext() ) );
 
                 temporaryPassword = PasswordUtility.generateRandom( pwmRequest.getLabel(), randomGeneratorConfig, pwmDomain );
             }
@@ -435,31 +435,22 @@ class NewUserUtils
             final PwmRequest pwmRequest,
             final String rdnValue
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         final UserSearchService userSearchService = pwmRequest.getPwmDomain().getUserSearchEngine();
         final SearchConfiguration searchConfiguration = SearchConfiguration.builder()
                 .username( rdnValue )
                 .build();
 
-        try
-        {
-            final Map<UserIdentity, Map<String, String>> results = userSearchService.performMultiUserSearch(
-                    searchConfiguration, 2, Collections.emptyList(), pwmRequest.getLabel() );
-            return results != null && !results.isEmpty();
-        }
-        catch ( final PwmOperationalException e )
-        {
-            final String msg = "ldap error while searching for duplicate entry names: " + e.getMessage();
-            NewUserUtils.LOGGER.error( pwmRequest, () -> msg );
-            throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_NEW_USER_FAILURE, msg ) );
-        }
+        final Map<UserIdentity, Map<String, String>> results = userSearchService.performMultiUserSearch(
+                searchConfiguration, 2, Collections.emptyList(), pwmRequest.getLabel() );
+        return results != null && !results.isEmpty();
     }
 
     private static void sendNewUserEmailConfirmation(
             final PwmRequest pwmRequest
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final UserInfo userInfo = pwmSession.getUserInfo();
@@ -591,28 +582,31 @@ class NewUserUtils
         final NewUserBean newUserBean = NewUserServlet.getNewUserBean( pwmRequest );
         final NewUserProfile newUserProfile = NewUserServlet.getNewUserProfile( pwmRequest );
 
-        final FormDataRequestBean.FormInfo formInfo = FormDataRequestBean.FormInfo.builder()
-                .mode( mode )
-                .moduleProfileID( newUserBean.getProfileID() )
-                .sessionID( pwmRequest.getPwmSession().getLoginInfoBean().getGuid() )
-                .module( FormDataRequestBean.FormType.NewUser )
-                .build();
+        final FormDataRequestBean.FormInfo formInfo = new FormDataRequestBean.FormInfo(
+                FormDataRequestBean.FormType.NewUser,
+                newUserBean.getProfileID(),
+                mode,
+                pwmRequest.getPwmSession().getLoginInfoBean().getGuid() );
 
-        final FormDataRequestBean formDataRequestBean = FormDataRequestBean.builder()
-                .formInfo( formInfo )
-                .formConfigurations( newUserProfile.readSettingAsForm( PwmSetting.NEWUSER_FORM ) )
-                .formValues( newUserForm.getFormData() )
-                .build();
+        final FormDataRequestBean formDataRequestBean = new FormDataRequestBean(
+                newUserForm.getFormData(),
+                newUserProfile.readSettingAsForm( PwmSetting.NEWUSER_FORM ),
+                formInfo,
+                null,
+                null );
 
-        final FormDataResponseBean formDataResponseBean = restFormDataClient.invoke( formDataRequestBean, pwmRequest.getLocale() );
-        if ( formDataResponseBean.isError() )
+        final FormDataResponseBean formDataResponseBean = restFormDataClient.invoke(
+                formDataRequestBean,
+                pwmRequest.getLocale() );
+
+        if ( formDataResponseBean.error() )
         {
             final ErrorInformation error = new ErrorInformation(
                     PwmError.ERROR_REMOTE_ERROR_VALUE,
-                    formDataResponseBean.getErrorDetail(),
+                    formDataResponseBean.errorDetail(),
                     new String[]
                             {
-                                    formDataResponseBean.getErrorMessage(),
+                                    formDataResponseBean.errorMessage(),
                             }
             );
             throw new PwmDataValidationException( error );
@@ -775,7 +769,7 @@ class NewUserUtils
                     TokenUtil.initializeAndSendToken(
                             pwmRequest.getPwmRequestContext(),
                             TokenUtil.TokenInitAndSendRequest.builder()
-                                    .userInfo(  macroRequest.getUserInfo() )
+                                    .userInfo(  macroRequest.userInfo() )
                                     .tokenDestinationItem( tokenDestinationItem )
                                     .emailToSend( PwmSetting.EMAIL_NEWUSER_VERIFICATION )
                                     .tokenType( TokenType.NEWUSER )

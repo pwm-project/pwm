@@ -110,11 +110,11 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
         final Set<String> seenNames = new HashSet<>( values.size() );
         for ( final CustomLinkConfiguration loopConfig : values )
         {
-            if ( seenNames.contains( loopConfig.getName().toLowerCase() ) )
+            if ( seenNames.contains( loopConfig.name().toLowerCase() ) )
             {
-                return Collections.singletonList( "each form name must be unique: " + loopConfig.getName() );
+                return Collections.singletonList( "each form name must be unique: " + loopConfig.name() );
             }
-            seenNames.add( loopConfig.getName().toLowerCase() );
+            seenNames.add( loopConfig.name().toLowerCase() );
         }
 
         return Collections.emptyList();
@@ -128,12 +128,12 @@ public class CustomLinkValue extends AbstractValue implements StoredValue
             final StringBuilder sb = new StringBuilder();
             for ( final CustomLinkConfiguration formRow : values )
             {
-                sb.append( "Link Name:" ).append( formRow.getName() ).append( '\n' );
-                sb.append( " Type:" ).append( formRow.getType() );
+                sb.append( "Link Name:" ).append( formRow.name() ).append( '\n' );
+                sb.append( " Type:" ).append( formRow.type() );
                 sb.append( '\n' );
-                sb.append( " Description:" ).append( JsonFactory.get().serializeMap( formRow.getLabels() ) ).append( '\n' );
-                sb.append( " New Window:" ).append( formRow.isCustomLinkNewWindow() ).append( '\n' );
-                sb.append( " Url:" ).append( formRow.getCustomLinkUrl() ).append( '\n' );
+                sb.append( " Description:" ).append( JsonFactory.get().serializeMap( formRow.labels() ) ).append( '\n' );
+                sb.append( " New Window:" ).append( formRow.customLinkNewWindow() ).append( '\n' );
+                sb.append( " Url:" ).append( formRow.customLinkUrl() ).append( '\n' );
             }
             return sb.toString();
         }

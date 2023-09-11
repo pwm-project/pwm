@@ -120,8 +120,8 @@ public class LdapSchemaExtendCommand extends AbstractCliCommand
         out( "beginning extension check" );
         final SchemaOperationResult operationResult = SchemaManager.extendSchema( chaiProvider );
 
-        out( operationResult.getOperationLog() );
-        final boolean checkOk = operationResult.isSuccess();
+        out( operationResult.operationLog() );
+        final boolean checkOk = operationResult.success();
 
         if ( checkOk )
         {

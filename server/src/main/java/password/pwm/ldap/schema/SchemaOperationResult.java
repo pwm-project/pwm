@@ -20,24 +20,9 @@
 
 package password.pwm.ldap.schema;
 
-public class SchemaOperationResult
+public record SchemaOperationResult(
+        boolean success,
+        String operationLog
+)
 {
-    private boolean success;
-    private String operationLog;
-
-    public SchemaOperationResult( final boolean success, final String operationLog )
-    {
-        this.success = success;
-        this.operationLog = operationLog;
-    }
-
-    public boolean isSuccess( )
-    {
-        return success;
-    }
-
-    public String getOperationLog( )
-    {
-        return operationLog;
-    }
 }

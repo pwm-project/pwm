@@ -78,7 +78,7 @@ public class RestAuthenticationProcessor
                 LOGGER.trace( sessionLabel, () -> "authenticating with named secret '" + name + "'" );
                 final Set<WebServiceUsage> usages = CollectionUtil.copyToEnumSet( CollectionUtil.readEnumSetFromStringCollection(
                         WebServiceUsage.class,
-                        pwmDomain.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET ).get( name ).getUsage()
+                        pwmDomain.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET ).get( name ).usage()
                 ), WebServiceUsage.class );
                 return new RestAuthentication(
                         RestAuthenticationType.NAMED_SECRET,
@@ -149,12 +149,12 @@ public class RestAuthenticationProcessor
         final Optional<BasicAuthInfo> basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmDomain, httpServletRequest );
         if ( basicAuthInfo.isPresent() )
         {
-            final String basicAuthUsername = basicAuthInfo.get().getUsername();
+            final String basicAuthUsername = basicAuthInfo.get().username();
             final Map<String, NamedSecretData> secrets = pwmDomain.getConfig().readSettingAsNamedPasswords( PwmSetting.WEBSERVICES_EXTERNAL_SECRET );
             final NamedSecretData namedSecretData = secrets.get( basicAuthUsername );
             if ( namedSecretData != null )
             {
-                if ( namedSecretData.getPassword().equals( basicAuthInfo.get().getPassword() ) )
+                if ( namedSecretData.password().equals( basicAuthInfo.get().password() ) )
                 {
                     return Optional.of( basicAuthUsername );
                 }
@@ -203,7 +203,7 @@ public class RestAuthenticationProcessor
         final UserSearchService userSearchService = pwmDomain.getUserSearchEngine();
         try
         {
-            return Optional.of( userSearchService.resolveUsername( basicAuthInfo.get().getUsername(), null, null, sessionLabel ) );
+            return Optional.of( userSearchService.resolveUsername( basicAuthInfo.get().username(), null, null, sessionLabel ) );
         }
         catch ( final PwmOperationalException e )
         {
@@ -217,7 +217,7 @@ public class RestAuthenticationProcessor
         final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader( pwmDomain, httpServletRequest )
                 .orElseThrow();
 
-        final AuthenticationResult authenticationResult = SimpleLdapAuthenticator.authenticateUser( pwmDomain, sessionLabel, userIdentity, basicAuthInfo.getPassword() );
+        final AuthenticationResult authenticationResult = SimpleLdapAuthenticator.authenticateUser( pwmDomain, sessionLabel, userIdentity, basicAuthInfo.password() );
         return authenticationResult.getUserProvider();
 
     }

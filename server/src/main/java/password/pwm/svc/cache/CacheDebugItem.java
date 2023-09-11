@@ -20,9 +20,6 @@
 
 package password.pwm.svc.cache;
 
-import lombok.Builder;
-
-@Builder
 record CacheDebugItem(
         String srcClass,
         String userIdentity,

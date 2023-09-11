@@ -20,36 +20,33 @@
 
 package password.pwm.health;
 
-import lombok.EqualsAndHashCode;
-import org.jetbrains.annotations.NotNull;
 import password.pwm.bean.DomainID;
 import password.pwm.config.DomainConfig;
 import password.pwm.config.SettingReader;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.ws.server.rest.bean.PublicHealthData;
 import password.pwm.ws.server.rest.bean.PublicHealthRecord;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-@EqualsAndHashCode
-public class HealthRecord implements Comparable<HealthRecord>
+public record HealthRecord(
+        HealthStatus status,
+        HealthTopic topic,
+        DomainID domainID,
+        HealthMessage message,
+        List<String> fields
+
+)
+        implements Comparable<HealthRecord>
 {
-    private final HealthStatus status;
-
-    // new fields
-    private final HealthTopic topic;
-    private final DomainID domainID;
-    private final HealthMessage message;
-    private final List<String> fields;
-
     private static final Comparator<HealthRecord> COMPARATOR = Comparator.comparing(
-            HealthRecord::getDomainID,
-            Comparator.nullsLast( Comparator.naturalOrder() ) )
+                    HealthRecord::getDomainID,
+                    Comparator.nullsLast( Comparator.naturalOrder() ) )
             .thenComparing(
                     HealthRecord::getStatus,
                     Comparator.nullsLast( Comparator.naturalOrder() ) )
@@ -61,36 +58,36 @@ public class HealthRecord implements Comparable<HealthRecord>
                     Comparator.nullsLast( Comparator.naturalOrder() ) );
 
 
-    private HealthRecord(
-            final DomainID domainID,
+    public HealthRecord(
             final HealthStatus status,
-            final HealthTopic topicEnum,
+            final HealthTopic topic,
+            final DomainID domainID,
             final HealthMessage message,
-            final String... fields
+            final List<String> fields
     )
     {
         this.domainID = Objects.requireNonNull( domainID );
         this.status = Objects.requireNonNull( status,  "status cannot be null" );
-        this.topic = Objects.requireNonNull( topicEnum,  "topic cannot be null" );
+        this.topic = Objects.requireNonNull( topic,  "topic cannot be null" );
         this.message = Objects.requireNonNull( message,  "message cannot be null" );
-        this.fields = fields == null ? Collections.emptyList() : List.copyOf( Arrays.asList( fields ) );
+        this.fields = CollectionUtil.stripNulls( fields );
     }
-
-
 
     public static HealthRecord forMessage( final DomainID domainID, final HealthMessage message )
     {
-        return new HealthRecord( domainID, message.getStatus(), message.getTopic(), message );
+        return new HealthRecord( message.getStatus(), message.getTopic(), domainID,  message, List.of() );
     }
 
     public static HealthRecord forMessage( final DomainID domainID, final HealthMessage message, final String... fields )
     {
-        return new HealthRecord( domainID, message.getStatus(), message.getTopic(), message, fields );
+        final List<String> fieldList = CollectionUtil.arrayToList( fields );
+        return new HealthRecord( message.getStatus(), message.getTopic(), domainID, message, fieldList );
     }
 
     public static HealthRecord forMessage( final DomainID domainID, final HealthMessage message, final HealthTopic healthTopic, final String... fields )
     {
-        return new HealthRecord( domainID, message.getStatus(), healthTopic, message, fields );
+        final List<String> fieldList = CollectionUtil.arrayToList( fields );
+        return new HealthRecord( message.getStatus(), healthTopic, domainID,  message, fieldList );
     }
 
     public HealthStatus getStatus( )
@@ -116,7 +113,7 @@ public class HealthRecord implements Comparable<HealthRecord>
     {
         if ( message != null )
         {
-            return this.message.getDescription( locale, config, fields.toArray( new String[0] ) );
+            return this.message.getDescription( locale, config, CollectionUtil.listToArray( fields, String.class ) );
         }
         return "";
     }
@@ -128,7 +125,7 @@ public class HealthRecord implements Comparable<HealthRecord>
     }
 
     @Override
-    public int compareTo( @NotNull final HealthRecord otherHealthRecord )
+    public int compareTo( final HealthRecord otherHealthRecord )
     {
         return COMPARATOR.compare( this, otherHealthRecord );
     }
@@ -146,10 +143,10 @@ public class HealthRecord implements Comparable<HealthRecord>
     {
         final List<PublicHealthRecord> healthRecordBeans = PublicHealthRecord.fromHealthRecords(
                 profileRecords, locale, domainConfig );
-        return PublicHealthData.builder()
-                .timestamp( Instant.now() )
-                .overall( HealthUtils.getMostSevereHealthStatus( profileRecords ).toString() )
-                .records( healthRecordBeans )
-                .build();
+        return new PublicHealthData(
+                Instant.now(),
+                HealthUtils.getMostSevereHealthStatus( profileRecords ).toString(),
+                healthRecordBeans );
+
     }
 }

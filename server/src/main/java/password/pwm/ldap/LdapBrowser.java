@@ -31,7 +31,6 @@ import com.novell.ldapchai.provider.SearchScope;
 import com.novell.ldapchai.util.ChaiUtility;
 import com.novell.ldapchai.util.SearchHelper;
 import lombok.Builder;
-import lombok.Value;
 import password.pwm.DomainProperty;
 import password.pwm.bean.DomainID;
 import password.pwm.bean.ProfileID;
@@ -43,7 +42,9 @@ import password.pwm.config.stored.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.PwmScheduler;
 import password.pwm.util.java.CollectorUtil;
+import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -51,26 +52,31 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-public class LdapBrowser
+public class LdapBrowser implements AutoCloseable
 {
     public static final String PARAM_DN = "dn";
     public static final String PARAM_PROFILE = "profile";
 
-    private static final String ATTR_SUBORDINATE_COUNT = "subordinateCount";
+    private static final int MAX_THREADS = 10;
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( LdapBrowser.class );
     private final StoredConfiguration storedConfiguration;
 
     private final SessionLabel sessionLabel;
     private final ChaiProviderFactory chaiProviderFactory;
-    private final Map<ProfileID, ChaiProvider> providerCache = new HashMap<>();
+
+    private final ThreadLocal<Map<ProfileID, ChaiProvider>> providerCache = new ThreadLocal<>();
+    private final Set<ChaiProvider> issuedProviders = new HashSet<>();
+
+    private final PwmScheduler pwmScheduler;
 
     private enum DnType
     {
@@ -81,12 +87,14 @@ public class LdapBrowser
     public LdapBrowser(
             final SessionLabel sessionLabel,
             final ChaiProviderFactory chaiProviderFactory,
-            final StoredConfiguration storedConfiguration
+            final StoredConfiguration storedConfiguration,
+            final PwmScheduler pwmScheduler
     )
     {
         this.sessionLabel = sessionLabel;
         this.chaiProviderFactory = chaiProviderFactory;
         this.storedConfiguration = storedConfiguration;
+        this.pwmScheduler = pwmScheduler;
     }
 
     public LdapBrowseResult doBrowse(
@@ -112,11 +120,10 @@ public class LdapBrowser
 
     public void close( )
     {
-        for ( final ChaiProvider chaiProvider : providerCache.values() )
+        for ( final ChaiProvider chaiProvider : issuedProviders )
         {
             chaiProvider.close();
         }
-        providerCache.clear();
     }
 
     private LdapBrowseResult doBrowseImpl(
@@ -194,14 +201,23 @@ public class LdapBrowser
     private ChaiProvider getChaiProvider( final DomainID domainID, final ProfileID profile )
             throws PwmUnrecoverableException
     {
-        if ( !providerCache.containsKey( profile ) )
+        if ( providerCache.get() == null )
+        {
+            providerCache.set( new HashMap<>() );
+        }
+
+        final Map<ProfileID, ChaiProvider> threadLocalCache = providerCache.get();
+
+        if ( !threadLocalCache.containsKey( profile ) )
         {
             final DomainConfig domainConfig = AppConfig.forStoredConfig( storedConfiguration ).getDomainConfigs().get( domainID );
             final LdapProfile ldapProfile = domainConfig.getLdapProfiles().get( profile );
             final ChaiProvider chaiProvider = LdapOperationsHelper.openProxyChaiProvider( chaiProviderFactory, sessionLabel, ldapProfile, domainConfig, null );
-            providerCache.put( profile, chaiProvider );
+            threadLocalCache.put( profile, chaiProvider );
+            issuedProviders.add( chaiProvider );
         }
-        return providerCache.get( profile );
+
+        return threadLocalCache.get( profile );
     }
 
     private static int getMaxSizeLimit(
@@ -233,12 +249,24 @@ public class LdapBrowser
 
         final Set<String> results = doLdapSearch( domainID, dn, chaiProvider );
 
-        final HashMap<String, DnType> returnMap = new LinkedHashMap<>( results.size() );
+        final List<Callable<String>> callables = new ArrayList<>( results.size() );
+        final Map<String, DnType> returnMap = new ConcurrentHashMap<>( results.size() );
+
         for ( final String resultDN : results )
         {
-            final DnType dnType = dnHasSubordinates( resultDN, chaiProvider );
-            returnMap.put( resultDN, dnType );
+            callables.add( () ->
+            {
+                final ChaiProvider threadProvider = getChaiProvider( domainID, profile );
+                LOGGER.trace( sessionLabel, () -> "dnCheck on thread " + Thread.currentThread().getName() );
+                final DnType dnType = dnHasSubordinates( resultDN, threadProvider );
+                returnMap.put( resultDN, dnType );
+                return "";
+            } );
         }
+
+        final DomainConfig domainConfig = AppConfig.forStoredConfig( storedConfiguration ).getDomainConfigs().get( domainID );
+        final int maxThreads = JavaHelper.silentParseInt( domainConfig.readDomainProperty( DomainProperty.LDAP_BROWSER_MAX_THREADS ), 10 );
+        pwmScheduler.executeImmediateThreadPerJobAndAwaitCompletion( maxThreads, callables, sessionLabel, String.class );
 
         return Collections.unmodifiableMap( returnMap );
     }
@@ -295,24 +323,26 @@ public class LdapBrowser
         return dn.substring( 0, end );
     }
 
-    @Value
-    @Builder
-    public static class LdapBrowseResult
+    public record LdapBrowseResult(
+            String dn,
+            ProfileID profileID,
+            String parentDN,
+            List<ProfileID> profileList,
+            boolean maxResults,
+            List<DNInformation> navigableDNlist,
+            List<DNInformation> selectableDNlist
+    )
     {
-        private String dn;
-        private ProfileID profileID;
-        private String parentDN;
-        private List<ProfileID> profileList;
-        private boolean maxResults;
-
-        private List<DNInformation> navigableDNlist;
-        private List<DNInformation> selectableDNlist;
+        @Builder
+        public LdapBrowseResult
+        {
+        }
     }
 
-    @Value
-    public static class DNInformation
+    public record DNInformation(
+            String entryName,
+            String dn
+    )
     {
-        private final String entryName;
-        private final String dn;
     }
 }

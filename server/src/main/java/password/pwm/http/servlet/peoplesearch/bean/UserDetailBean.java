@@ -20,17 +20,15 @@
 
 package password.pwm.http.servlet.peoplesearch.bean;
 
-import lombok.Data;
-
 import java.util.List;
 import java.util.Map;
 
-@Data
-public class UserDetailBean
+public record UserDetailBean(
+         List<String> displayNames,
+         String userKey,
+         Map<String, AttributeDetailBean> detail,
+         String photoURL,
+         List<LinkReferenceBean> links
+)
 {
-    private List<String> displayNames;
-    private String userKey;
-    private Map<String, AttributeDetailBean> detail;
-    private String photoURL;
-    private List<LinkReferenceBean> links;
 }

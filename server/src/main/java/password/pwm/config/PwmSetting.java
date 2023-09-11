@@ -1408,25 +1408,25 @@ public enum PwmSetting
         return this.getDefaultValue()
                 .stream()
                 .collect( Collectors.toUnmodifiableMap(
-                        templateSetReference -> StringUtil.join( templateSetReference.getSettingTemplates(), "," ),
-                        templateSetReference -> ( templateSetReference.getReference() ).toDebugString( locale ),
+                        templateSetReference -> StringUtil.join( templateSetReference.settingTemplates(), "," ),
+                        templateSetReference -> ( templateSetReference.reference() ).toDebugString( locale ),
                         ( key1, key2 ) -> key1
                 ) );
     }
 
     public Map<PwmSettingProperty, String> getProperties( )
     {
-        return getPwmSettingMetaData().getProperties();
+        return getPwmSettingMetaData().properties();
     }
 
     public Set<PwmSettingFlag> getFlags( )
     {
-        return getPwmSettingMetaData().getFlags();
+        return getPwmSettingMetaData().flags();
     }
 
     public Map<String, String> getOptions()
     {
-        return getPwmSettingMetaData().getOptions();
+        return getPwmSettingMetaData().options();
     }
 
     public String getLabel( final Locale locale )
@@ -1451,27 +1451,27 @@ public enum PwmSetting
 
     public String getExample( final PwmSettingTemplateSet template )
     {
-        return TemplateSetReference.referenceForTempleSet( getPwmSettingMetaData().getExamples(), template );
+        return TemplateSetReference.referenceForTempleSet( getPwmSettingMetaData().examples(), template );
     }
 
     public boolean isRequired( )
     {
-        return getPwmSettingMetaData().isRequired();
+        return getPwmSettingMetaData().required();
     }
 
     public boolean isHidden( )
     {
-        return getPwmSettingMetaData().isHidden();
+        return getPwmSettingMetaData().hidden();
     }
 
     public int getLevel( )
     {
-        return getPwmSettingMetaData().getLevel();
+        return getPwmSettingMetaData().level();
     }
 
     public Pattern getRegExPattern( )
     {
-        return getPwmSettingMetaData().getPattern();
+        return getPwmSettingMetaData().pattern();
     }
 
     public static Optional<PwmSetting> forKey( final String key )
@@ -1496,7 +1496,7 @@ public enum PwmSetting
 
     public Collection<LDAPPermissionInfo> getLDAPPermissionInfo()
     {
-        return getPwmSettingMetaData().getLdapPermissionInfo();
+        return getPwmSettingMetaData().ldapPermissionInfo();
     }
 
     public static List<PwmSetting> sortedValues()

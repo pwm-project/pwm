@@ -62,11 +62,11 @@ final class LDAPPermissionItemGenerator implements DomainItemGenerator
         for ( final LdapPermissionCalculator.PermissionRecord record : ldapPermissionCalculator.getPermissionRecords() )
         {
             final List<String> dataRow = new ArrayList<>();
-            dataRow.add( record.getAttribute() );
-            dataRow.add( record.getActor() == null ? "" : record.getActor().toString() );
-            dataRow.add( record.getAccess() == null ? "" : record.getAccess().toString() );
-            dataRow.add( record.getPwmSetting() == null ? "" : record.getPwmSetting().getKey() );
-            dataRow.add( record.getProfile() == null ? "" : record.getProfile().stringValue() );
+            dataRow.add( record.attribute() );
+            dataRow.add( record.actor() == null ? "" : record.actor().toString() );
+            dataRow.add( record.access() == null ? "" : record.access().toString() );
+            dataRow.add( record.pwmSetting() == null ? "" : record.pwmSetting().getKey() );
+            dataRow.add( record.profile() == null ? "" : record.profile().stringValue() );
             csvPrinter.printRecord( dataRow );
         }
         csvPrinter.flush();

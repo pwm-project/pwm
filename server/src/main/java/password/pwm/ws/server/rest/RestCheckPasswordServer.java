@@ -23,7 +23,6 @@ package password.pwm.ws.server.rest;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.WebServiceUsage;
@@ -69,40 +68,36 @@ public class RestCheckPasswordServer extends RestServlet
     private static final String FIELD_PASSWORD_2 = "password2";
     private static final String FIELD_USERNAME = "username";
 
-    @Getter
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class JsonInput
+    public record JsonInput(
+            String password1,
+            String password2,
+            String username,
+            String verificationState
+    )
     {
-        public String password1;
-        public String password2;
-        public String username;
     }
 
-    @Getter
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class JsonOutput
+    public record JsonOutput(
+            int version,
+            int strength,
+            PasswordUtility.PasswordCheckInfo.MatchStatus match,
+            String message,
+            boolean passed,
+            int errorCode
+    )
     {
-        public int version;
-        public int strength;
-        public PasswordUtility.PasswordCheckInfo.MatchStatus match;
-        public String message;
-        public boolean passed;
-        public int errorCode;
 
         public static JsonOutput fromPasswordCheckInfo(
                 final PasswordUtility.PasswordCheckInfo checkInfo
         )
         {
-            final JsonOutput outputMap = new JsonOutput();
-            outputMap.version = 2;
-            outputMap.strength = checkInfo.getStrength();
-            outputMap.match = checkInfo.getMatch();
-            outputMap.message = checkInfo.getMessage();
-            outputMap.passed = checkInfo.isPassed();
-            outputMap.errorCode = checkInfo.getErrorCode();
-            return outputMap;
+            return new JsonOutput(
+                    2,
+                    checkInfo.getStrength(),
+                    checkInfo.getMatch(),
+                    checkInfo.getMessage(),
+                    checkInfo.isPassed(),
+                    checkInfo.getErrorCode() );
         }
     }
 
@@ -113,19 +108,20 @@ public class RestCheckPasswordServer extends RestServlet
     }
 
     @RestMethodHandler( method = HttpMethod.POST, consumes = HttpContentType.form, produces = HttpContentType.json )
-    public RestResultBean doPasswordRuleCheckFormPost( final RestRequest restRequest )
+    public RestResultBean<?> doPasswordRuleCheckFormPost( final RestRequest restRequest )
             throws PwmUnrecoverableException
     {
         final JsonInput jsonInput = new JsonInput(
                 restRequest.readParameterAsString( FIELD_PASSWORD_1, PwmHttpRequestWrapper.Flag.BypassValidation ),
                 restRequest.readParameterAsString( FIELD_PASSWORD_2, PwmHttpRequestWrapper.Flag.BypassValidation ),
-                restRequest.readParameterAsString( FIELD_USERNAME, PwmHttpRequestWrapper.Flag.BypassValidation )
+                restRequest.readParameterAsString( FIELD_USERNAME, PwmHttpRequestWrapper.Flag.BypassValidation ),
+                null
         );
         return doOperation( restRequest, jsonInput );
     }
 
     @RestMethodHandler( method = HttpMethod.POST, consumes = HttpContentType.json, produces = HttpContentType.json )
-    public RestResultBean doPasswordRuleCheckJsonPost( final RestRequest restRequest )
+    public RestResultBean<?> doPasswordRuleCheckJsonPost( final RestRequest restRequest )
             throws PwmUnrecoverableException, IOException
     {
 
@@ -135,21 +131,22 @@ public class RestCheckPasswordServer extends RestServlet
 
             jsonInput = new JsonInput(
                     RestUtility.readValueFromJsonAndParam(
-                            jsonBody == null ? null : jsonBody.getPassword1(),
+                            jsonBody == null ? null : jsonBody.password1(),
                             restRequest.readParameterAsString( FIELD_PASSWORD_1 ),
                             FIELD_PASSWORD_1
                     ).orElse( null ),
                     RestUtility.readValueFromJsonAndParam(
-                            jsonBody == null ? null : jsonBody.getPassword2(),
+                            jsonBody == null ? null : jsonBody.password2(),
                             restRequest.readParameterAsString( FIELD_PASSWORD_2 ),
                             FIELD_PASSWORD_2
                     ).orElse( null ),
                     RestUtility.readValueFromJsonAndParam(
-                            jsonBody == null ? null : jsonBody.getUsername(),
+                            jsonBody == null ? null : jsonBody.username(),
                             restRequest.readParameterAsString( FIELD_USERNAME ),
                             FIELD_USERNAME,
                             RestUtility.ReadValueFlag.optional
-                    ).orElse( null )
+                    ).orElse( null ),
+                    null
             );
         }
 
@@ -161,33 +158,33 @@ public class RestCheckPasswordServer extends RestServlet
     {
         final Instant startTime = Instant.now();
 
-        if ( StringUtil.isEmpty( jsonInput.getPassword1() ) )
+        if ( StringUtil.isEmpty( jsonInput.password1() ) )
         {
             final String errorMessage = "missing field '" + FIELD_PASSWORD_1 + "'";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_FIELD_REQUIRED, errorMessage, new String[]
                     {
                             FIELD_PASSWORD_1,
                     }
-                    );
+            );
             return RestResultBean.fromError( restRequest, errorInformation );
         }
 
         try
         {
 
-            final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.getUsername() );
+            final TargetUserIdentity targetUserIdentity = RestUtility.resolveRequestedUsername( restRequest, jsonInput.username() );
             final UserInfo userInfo = UserInfoFactory.newUserInfo(
                     restRequest.getPwmApplication(),
                     restRequest.getSessionLabel(),
                     restRequest.getLocale(),
-                    targetUserIdentity.getUserIdentity(),
+                    targetUserIdentity.userIdentity(),
                     targetUserIdentity.getChaiProvider()
             );
 
             final PasswordCheckRequest checkRequest = new PasswordCheckRequest(
-                    targetUserIdentity.getUserIdentity(),
-                    StringUtil.isEmpty( jsonInput.getPassword1() ) ? null : new PasswordData( jsonInput.getPassword1() ),
-                    StringUtil.isEmpty( jsonInput.getPassword2() ) ? null : new PasswordData( jsonInput.getPassword2() ),
+                    targetUserIdentity.userIdentity(),
+                    StringUtil.isEmpty( jsonInput.password1() ) ? null : new PasswordData( jsonInput.password1() ),
+                    StringUtil.isEmpty( jsonInput.password2() ) ? null : new PasswordData( jsonInput.password2() ),
                     userInfo
             );
 

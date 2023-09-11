@@ -20,19 +20,20 @@
 
 package password.pwm.http.bean;
 
-import lombok.Value;
+import password.pwm.util.java.CollectionUtil;
 
 import java.util.List;
+import java.util.Objects;
 
-@Value
-public class DisplayElement
+
+public record DisplayElement(
+        String key,
+        Type type,
+        String label,
+        String value,
+        List<String> values
+)
 {
-    private final String key;
-    private final Type type;
-    private final String label;
-    private final String value;
-    private final List<String> values;
-
     public enum Type
     {
         string,
@@ -41,21 +42,39 @@ public class DisplayElement
         multiString,
     }
 
-    public DisplayElement( final String key, final Type type, final String label, final String value )
+    public DisplayElement(
+            final String key,
+            final Type type,
+            final String label,
+            final String value,
+            final List<String> values
+    )
     {
-        this.key = key;
-        this.type = type;
-        this.label = label;
+        this.key = Objects.requireNonNull( key );
+        this.type = Objects.requireNonNull( type );
+        this.label = Objects.requireNonNull( label );
         this.value = value;
-        this.values = null;
+        this.values = CollectionUtil.stripNulls( values );
     }
 
-    public DisplayElement( final String key, final Type type, final String label, final List<String> values )
+    public static DisplayElement create(
+            final String key,
+            final Type type,
+            final String label,
+
+            final String value
+    )
     {
-        this.key = key;
-        this.type = type;
-        this.label = label;
-        this.value = null;
-        this.values = values;
+        return new DisplayElement( key, type, label, value, null );
+    }
+
+    public static DisplayElement createMultiValue(
+            final String key,
+            final Type type,
+            final String label,
+            final List<String> values
+    )
+    {
+        return new DisplayElement( key, type, label, null, values );
     }
 }

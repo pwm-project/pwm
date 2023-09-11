@@ -21,7 +21,7 @@
 package password.pwm.resttest;
 
 import com.google.gson.Gson;
-import org.apache.commons.io.IOUtils;
+import password.pwm.util.java.JavaHelper;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 
 @WebServlet(
         name = "RestTestSmsGatewayServlet",
@@ -47,7 +48,7 @@ public class RestTestSmsGatewayServlet extends HttpServlet
     {
             final SmsResponse instance = new SmsResponse();
             final InputStream inputStream = req.getInputStream();
-            final String body = IOUtils.toString( inputStream );
+            final String body = JavaHelper.copyToString( inputStream, StandardCharsets.UTF_8, 10_000 ).orElseThrow();
 
             final String[] messageContent = body.split( "=" );
             final String message = messageContent[messageContent.length - 1];

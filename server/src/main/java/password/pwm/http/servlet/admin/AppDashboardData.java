@@ -39,6 +39,7 @@ import password.pwm.ldap.LdapDomainService;
 import password.pwm.svc.PwmService;
 import password.pwm.svc.node.NodeInfo;
 import password.pwm.svc.node.NodeService;
+import password.pwm.svc.node.NodeState;
 import password.pwm.svc.sessiontrack.SessionTrackService;
 import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.CollectionUtil;
@@ -136,7 +137,7 @@ public class AppDashboardData
         private String instanceID;
         private String uptime;
         private String lastSeen;
-        private NodeInfo.NodeState state;
+        private NodeState state;
         private boolean configMatch;
     }
 
@@ -224,52 +225,52 @@ public class AppDashboardData
         final String notApplicableValue = Display.getLocalizedMessage( locale, Display.Value_NotApplicable, pwmDomain.getConfig() );
         final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );
 
-        return List.of( new DisplayElement(
+        return List.of( DisplayElement.create(
                 "appVersion",
                 DisplayElement.Type.string,
                 l.forKey( "Field_AppVersion", PwmConstants.PWM_APP_NAME ),
                 PwmConstants.SERVLET_VERSION
-        ), new DisplayElement(
+        ), DisplayElement.create(
                 "appBuildTime",
                 DisplayElement.Type.timestamp,
                 l.forKey( "Field_AppBuildTime" ),
                 PwmConstants.BUILD_TIME
-        ), new DisplayElement(
+        ), DisplayElement.create(
                 "currentTime",
                 DisplayElement.Type.timestamp,
                 l.forKey( "Field_CurrentTime" ),
                 StringUtil.toIsoDate( Instant.now() )
-        ), new DisplayElement(
+        ), DisplayElement.create(
                 "startupTime",
                 DisplayElement.Type.timestamp,
                 l.forKey( "Field_StartTime" ),
                 StringUtil.toIsoDate( pwmDomain.getPwmApplication().getStartupTime() )
-        ), new DisplayElement(
+        ), DisplayElement.create(
                 "runningDuration",
                 DisplayElement.Type.string,
                 l.forKey( "Field_UpTime" ),
                 PwmTimeUtil.asLongString( TimeDuration.fromCurrent( pwmDomain.getPwmApplication().getStartupTime() ), locale )
-        ), new DisplayElement(
+        ), DisplayElement.create(
                 "installTime",
                 DisplayElement.Type.timestamp,
                 l.forKey( "Field_InstallTime" ),
                 StringUtil.toIsoDate( pwmDomain.getPwmApplication().getInstallTime() )
-        ), new DisplayElement(
+        ), DisplayElement.create(
                 "siteURL",
                 DisplayElement.Type.string,
                 l.forKey( "Field_SiteURL" ),
                 pwmDomain.getConfig().getAppConfig().readSettingAsString( PwmSetting.PWM_SITE_URL )
-        ), new DisplayElement(
+        ), DisplayElement.create(
                 "instanceID",
                 DisplayElement.Type.string,
                 l.forKey( "Field_InstanceID" ),
                 pwmDomain.getPwmApplication().getInstanceID()
-        ), new DisplayElement(
+        ), DisplayElement.create(
                 "configRestartCounter",
                 DisplayElement.Type.number,
                 "Configuration Restart Counter",
                 contextManager == null ? notApplicableValue : numberFormat.format( contextManager.getRestartCount() )
-        ), new DisplayElement(
+        ), DisplayElement.create(
                 "chaiApiVersion",
                 DisplayElement.Type.string,
                 l.forKey( "Field_ChaiAPIVersion" ),
@@ -324,14 +325,14 @@ public class AppDashboardData
         final String notApplicable = Display.getLocalizedMessage( locale, Display.Value_NotApplicable, pwmDomain.getConfig() );
         final PwmNumberFormat numberFormat = PwmNumberFormat.forLocale( locale );
 
-        localDbInfo.add( new DisplayElement(
+        localDbInfo.add( DisplayElement.create(
                 "worlistSize",
                 DisplayElement.Type.number,
                 "Word List Dictionary Size",
                 numberFormat.format( pwmDomain.getPwmApplication().getWordlistService().size() )
         ) );
 
-        localDbInfo.add( new DisplayElement(
+        localDbInfo.add( DisplayElement.create(
                 "sharedHistorySize",
                 DisplayElement.Type.number,
                 "Shared Password History Size",
@@ -342,32 +343,32 @@ public class AppDashboardData
             final String display = oldestEntryAge == null
                     ? notApplicable
                     : TimeDuration.fromCurrent( oldestEntryAge ).asCompactString();
-            localDbInfo.add( new DisplayElement(
+            localDbInfo.add( DisplayElement.create(
                     "oldestSharedHistory",
                     DisplayElement.Type.string,
                     "Oldest Shared Password Entry",
                     display
             ) );
         }
-        localDbInfo.add( new DisplayElement(
+        localDbInfo.add( DisplayElement.create(
                 "emailQueueSize",
                 DisplayElement.Type.number,
                 "Email Queue Size",
                 numberFormat.format( pwmDomain.getPwmApplication().getEmailQueue().queueSize() )
         ) );
-        localDbInfo.add( new DisplayElement(
+        localDbInfo.add( DisplayElement.create(
                 "smsQueueSize",
                 DisplayElement.Type.number,
                 "SMS Queue Size",
                 numberFormat.format( pwmDomain.getPwmApplication().getSmsQueue().queueSize() )
         ) );
-        localDbInfo.add( new DisplayElement(
+        localDbInfo.add( DisplayElement.create(
                 "sharedHistorySize",
                 DisplayElement.Type.number,
                 "Syslog Queue Size",
                 String.valueOf( pwmDomain.getAuditService().syslogQueueSize() )
         ) );
-        localDbInfo.add( new DisplayElement(
+        localDbInfo.add( DisplayElement.create(
                 "localAuditRecords",
                 DisplayElement.Type.number,
                 "Audit Records",
@@ -378,14 +379,14 @@ public class AppDashboardData
             final String display = eldestAuditRecord.isPresent()
                     ? PwmTimeUtil.asLongString( TimeDuration.fromCurrent( eldestAuditRecord.get() ) )
                     : notApplicable;
-            localDbInfo.add( new DisplayElement(
+            localDbInfo.add( DisplayElement.create(
                     "oldestLocalAuditRecords",
                     DisplayElement.Type.string,
                     "Oldest Audit Record",
                     display
             ) );
         }
-        localDbInfo.add( new DisplayElement(
+        localDbInfo.add( DisplayElement.create(
                 "logEvents",
                 DisplayElement.Type.number,
                 "Log Events",
@@ -397,7 +398,7 @@ public class AppDashboardData
                     && localDBLogger.getTailDate().isPresent()
                     ? PwmTimeUtil.asLongString( TimeDuration.fromCurrent( localDBLogger.getTailDate().get() ) )
                     : notApplicable;
-            localDbInfo.add( new DisplayElement(
+            localDbInfo.add( DisplayElement.create(
                     "oldestLogEvents",
                     DisplayElement.Type.string,
                     "Oldest Log Event",
@@ -411,7 +412,7 @@ public class AppDashboardData
                             ? notApplicable
                             : StringUtil.formatDiskSize( FileSystemUtility.getFileDirectorySize(
                                     pwmDomain.getPwmApplication().getLocalDB().getFileLocation() ) );
-            localDbInfo.add( new DisplayElement(
+            localDbInfo.add( DisplayElement.create(
                     "localDbSizeOnDisk",
                     DisplayElement.Type.string,
                     "LocalDB Size On Disk",
@@ -426,7 +427,7 @@ public class AppDashboardData
                             : StringUtil.formatDiskSize( FileSystemUtility.diskSpaceRemaining(
                                     pwmDomain.getPwmApplication().getLocalDB().getFileLocation() ) );
 
-            localDbInfo.add( new DisplayElement(
+            localDbInfo.add( DisplayElement.create(
                     "localDbFreeSpace",
                     DisplayElement.Type.string,
                     "LocalDB Free Space",
@@ -472,7 +473,7 @@ public class AppDashboardData
         {
             for ( final PwmAboutProperty property : INTERESTED_ABOUT_PROPERTIES )
             {
-                javaInfo.add( new DisplayElement(
+                javaInfo.add( DisplayElement.create(
                         property.name(),
                         DisplayElement.Type.string,
                         property.getLabel(),
@@ -487,7 +488,7 @@ public class AppDashboardData
             final String display = numberFormat.format( pwmDomain.getResourceServletService().itemsInCache() )
                     + " items (" + numberFormat.format( pwmDomain.getResourceServletService().bytesInCache() ) + " bytes)";
 
-            javaInfo.add( new DisplayElement(
+            javaInfo.add( DisplayElement.create(
                     "resourceFileServletCacheSize",
                     DisplayElement.Type.string,
                     "ResourceFileServlet Cache",
@@ -495,7 +496,7 @@ public class AppDashboardData
             ) );
         }
 
-        javaInfo.add( new DisplayElement(
+        javaInfo.add( DisplayElement.create(
                 "resourceFileServletCacheHitRatio",
                 DisplayElement.Type.string,
                 "ResourceFileServlet Cache Hit Ratio",
@@ -505,14 +506,14 @@ public class AppDashboardData
         {
             final Map<SessionTrackService.DebugKey, String> debugInfoMap = pwmDomain.getSessionTrackService().getDebugData();
 
-            javaInfo.add( new DisplayElement(
+            javaInfo.add( DisplayElement.create(
                     "sessionTotalSize",
                     DisplayElement.Type.string,
                     "Estimated Session Total Size",
                     debugInfoMap.get( SessionTrackService.DebugKey.HttpSessionTotalSize )
             ) );
 
-            javaInfo.add( new DisplayElement(
+            javaInfo.add( DisplayElement.create(
                     "sessionAverageSize",
                     DisplayElement.Type.string,
                     "Estimated Session Average Size",
@@ -558,16 +559,16 @@ public class AppDashboardData
             for ( final NodeInfo nodeInfo : nodeService.nodes() )
             {
 
-                final String uptime = nodeInfo.getStartupTime() == null
+                final String uptime = nodeInfo.startupTime() == null
                         ? notApplicable
-                        : PwmTimeUtil.asLongString( TimeDuration.fromCurrent( nodeInfo.getStartupTime() ), locale );
+                        : PwmTimeUtil.asLongString( TimeDuration.fromCurrent( nodeInfo.startupTime() ), locale );
 
                 nodeData.add( new NodeData(
-                        nodeInfo.getInstanceID(),
+                        nodeInfo.instanceID(),
                         uptime,
-                        StringUtil.toIsoDate( nodeInfo.getLastSeen() ),
-                        nodeInfo.getNodeState(),
-                        nodeInfo.isConfigMatch()
+                        StringUtil.toIsoDate( nodeInfo.lastSeen() ),
+                        nodeInfo.nodeState(),
+                        nodeInfo.configMatch()
                 ) );
             }
         }

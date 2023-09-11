@@ -143,7 +143,8 @@
                     //drawNextSprite();
                     //return;
                 }
-                var timeOutTime = 1000 - (PWM_GLOBAL['epsActivityCount'] != null ? Math.floor(PWM_GLOBAL['epsActivityCount']) : 0);
+                //var timeOutTime = 1000 - (PWM_GLOBAL['epsActivityCount'] != null ? Math.floor(PWM_GLOBAL['epsActivityCount']) : 0);
+                let timeOutTime = 1000;
                 timeOutTime = timeOutTime < 100 ? 100 : timeOutTime;
                 setTimeout(function(){
                     drawNextSprite();

@@ -237,15 +237,15 @@ public class ReportSummaryCalculator
             {
                 if ( userReportRecord.getPasswordStatus() != null )
                 {
-                    if ( userReportRecord.getPasswordStatus().isExpired() )
+                    if ( userReportRecord.getPasswordStatus().expired() )
                     {
                         reportSummaryData.getCounterStats().increment( SummaryCounterStat.pwExpired );
                     }
-                    if ( userReportRecord.getPasswordStatus().isPreExpired() )
+                    if ( userReportRecord.getPasswordStatus().preExpired() )
                     {
                         reportSummaryData.getCounterStats().increment( SummaryCounterStat.pwPreExpired );
                     }
-                    if ( userReportRecord.getPasswordStatus().isWarnPeriod() )
+                    if ( userReportRecord.getPasswordStatus().warnPeriod() )
                     {
                         reportSummaryData.getCounterStats().increment( SummaryCounterStat.pwWarnPeriod );
                     }

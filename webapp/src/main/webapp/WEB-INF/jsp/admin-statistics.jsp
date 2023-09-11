@@ -49,8 +49,6 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
-    <pwm:script-ref url="/public/resources/js/uilibrary.js"/>
-    <pwm:script-ref url="/public/resources/js/admin-statistics.js"/>
     <% final String PageName = JspUtility.localizedString(pageContext,"Title_Statistics",Admin.class);%>
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="<%=PageName%>"/>
@@ -108,13 +106,10 @@
 </div>
 <div class="push"></div>
 </div>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function() {
-            PWM_ADMIN_STATISTICS.initStatisticsPage();
-        });
-    </script>
-</pwm:script>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+    import {PWM_ADMIN_STATISTICS} from "<pwm:url url="/public/resources/js/admin-statistics.js" addContext="true"/>";
+    PWM_ADMIN_STATISTICS.initStatisticsPage();
+</script>
 <% JspUtility.setFlag(pageContext, PwmRequestFlag.HIDE_LOCALE); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

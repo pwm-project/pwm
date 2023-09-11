@@ -99,7 +99,8 @@ public enum JspUrl
     ADMIN_SYSTEM_CERTIFICATES( "admin-system-certificates.jsp" ),
     CONFIG_MANAGER_LOCALDB( "configmanager-localdb.jsp" ),
     CONFIG_MANAGER_LOGIN( "configmanager-login.jsp" ),
-    HELPDESK_SEARCH( "helpdesk.jsp" ),
+    HELPDESK_SEARCH( "helpdesk-search.jsp" ),
+    HELPDESK_DETAIL( "helpdesk-detail.jsp" ),
     FULL_PAGE_HEALTH( "fullpagehealth.jsp" ),;
 
     private final String path;

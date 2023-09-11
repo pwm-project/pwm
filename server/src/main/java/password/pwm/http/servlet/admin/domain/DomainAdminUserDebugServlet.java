@@ -132,6 +132,7 @@ public class DomainAdminUserDebugServlet extends ControlledPwmServlet
                         pwmRequest.getLabel(),
                         userIdentity
                 );
+                pwmRequest.setAttribute( PwmRequestAttribute.UserDebugInfo, pwmRequest.getPwmSession().getUserInfo() );
                 pwmRequest.setAttribute( PwmRequestAttribute.UserDebugData, userDebugData );
             }
             catch ( final PwmUnrecoverableException | PwmOperationalException e )

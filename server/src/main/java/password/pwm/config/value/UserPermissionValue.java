@@ -48,7 +48,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
 
     public UserPermissionValue( final List<UserPermission> values )
     {
-       this.values = sanitizeList( values );
+        this.values = sanitizeList( values );
     }
 
     private List<UserPermission> sanitizeList( final List<UserPermission> permissions )
@@ -81,7 +81,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
             public UserPermissionValue fromXmlElement( final PwmSetting pwmSetting, final XmlElement settingElement, final PwmSecurityKey key )
             {
                 final boolean newType = "2".equals( settingElement.getAttribute( StoredConfigXmlConstants.XML_ATTRIBUTE_SYNTAX_VERSION )
-                                .orElse( "" ) );
+                        .orElse( "" ) );
 
                 final List<XmlElement> valueElements = settingElement.getChildren( "value" );
                 final List<UserPermission> values = new ArrayList<>();
@@ -97,10 +97,11 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
                         }
                         else
                         {
-                            values.add( UserPermission.builder()
-                                    .type( UserPermissionType.ldapQuery )
-                                    .ldapQuery( value.get() )
-                                    .build() );
+                            values.add( new UserPermission(
+                                    UserPermissionType.ldapQuery,
+                                    null,
+                                    value.get(),
+                                    null ) );
                         }
                     }
                 }
@@ -138,7 +139,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue
         {
             try
             {
-                 UserPermissionUtility.validatePermissionSyntax( userPermission );
+                UserPermissionUtility.validatePermissionSyntax( userPermission );
             }
             catch ( final PwmUnrecoverableException e )
             {

@@ -22,6 +22,8 @@ package password.pwm.util.java;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -235,7 +237,6 @@ public final class CollectionUtil
     }
 
     public static <T, R> List<R> convertListType( final List<T> input, final Function<T, R> convertFunction )
-
     {
         return stripNulls( input ).stream().map( convertFunction ).toList();
     }
@@ -265,4 +266,48 @@ public final class CollectionUtil
         return Collections.unmodifiableSet( copyToEnumSet( inputSet, classOfT ) );
     }
 
+    public static <V> List<V> addLists( final List<V>... input )
+    {
+        if ( input == null )
+        {
+            return List.of();
+        }
+
+        final List<V> resultList = new ArrayList<>();
+        for ( final List<V> loopList : input )
+        {
+            resultList.addAll( stripNulls( loopList ) );
+        }
+
+        return List.copyOf( resultList );
+    }
+
+    public static <V> List<V> addListItems( final List<V> list, final V... items )
+    {
+        if ( items == null )
+        {
+            return stripNulls( list );
+        }
+
+        return addLists( list, Arrays.asList( items ) );
+    }
+
+    public static <T> List<T> arrayToList( final T[] array )
+    {
+        return array == null || array.length == 0
+                ? List.of()
+                : CollectionUtil.stripNulls( Arrays.asList( array ) );
+    }
+
+    public static <T> T[] listToArray( final List<T> list, final Class<T> classOfT  )
+    {
+        final T[] emptyArray = (T[]) Array.newInstance( classOfT, 0 );
+
+        if ( list == null || list.isEmpty() )
+        {
+            return emptyArray;
+        }
+
+        return list.toArray( emptyArray );
+    }
 }

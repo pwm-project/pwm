@@ -137,17 +137,16 @@ class MemoryCacheStore implements CacheStore
             final Instant storeDate = cacheValueWrapper.getExpirationDate();
             final String age = Duration.between( storeDate, Instant.now() ).toString();
             final int chars = cacheValueWrapper.getPayload().length();
-            final String keyClass = cacheKey.getSrcClass() == null ? "null" : cacheKey.getSrcClass().getName();
-            final String keyUserID = cacheKey.getUserIdentity() == null ? "null" : cacheKey.getUserIdentity().toDisplayString();
-            final String keyValue = cacheKey.getValueID() == null ? "null" : cacheKey.getValueID();
+            final String keyClass = cacheKey.srcClass() == null ? "null" : cacheKey.srcClass().getName();
+            final String keyUserID = cacheKey.userIdentity() == null ? "null" : cacheKey.userIdentity().toDisplayString();
+            final String keyValue = cacheKey.valueID() == null ? "null" : cacheKey.valueID();
 
-            final CacheDebugItem cacheDebugItem = CacheDebugItem.builder()
-                    .srcClass( keyClass )
-                    .userIdentity( keyUserID )
-                    .valueID( keyValue )
-                    .age( age )
-                    .chars( chars )
-                    .build();
+            final CacheDebugItem cacheDebugItem = new CacheDebugItem(
+                     keyClass,
+                     keyUserID,
+                     keyValue,
+                     age,
+                     chars );
 
             items.add( cacheDebugItem );
         }
@@ -170,7 +169,7 @@ class MemoryCacheStore implements CacheStore
         final Map<String, Integer> output = new TreeMap<>(  );
         for ( final CacheKey cacheKey : memoryStore.asMap().keySet() )
         {
-            final String className = cacheKey.getSrcClass() == null ? "n/a" : cacheKey.getSrcClass().getSimpleName();
+            final String className = cacheKey.srcClass() == null ? "n/a" : cacheKey.srcClass().getSimpleName();
             final String key = prefix + className;
             final Integer currentValue = output.getOrDefault( key, 0 );
             final Integer newValue = currentValue + 1;
@@ -186,10 +185,10 @@ class MemoryCacheStore implements CacheStore
         for ( final Map.Entry<CacheKey, CacheValueWrapper> entry : memoryStore.asMap().entrySet() )
         {
             final CacheKey cacheKey = entry.getKey();
-            final UserIdentity userIdentity = cacheKey.getUserIdentity();
-            byteCount += userIdentity == null ? 0 : cacheKey.getUserIdentity().toDelimitedKey().length();
-            final String valueID = cacheKey.getValueID();
-            byteCount += valueID == null ? 0 : cacheKey.getValueID().length();
+            final UserIdentity userIdentity = cacheKey.userIdentity();
+            byteCount += userIdentity == null ? 0 : cacheKey.userIdentity().toDelimitedKey().length();
+            final String valueID = cacheKey.valueID();
+            byteCount += valueID == null ? 0 : cacheKey.valueID().length();
             final CacheValueWrapper cacheValueWrapper = entry.getValue();
             byteCount += cacheValueWrapper.payload.length();
         }

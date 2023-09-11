@@ -138,8 +138,8 @@ public class AccountInformationBean
         for ( final UserAuditRecord userAuditRecord : auditRecords )
         {
             returnData.add( new ActivityRecord(
-                    userAuditRecord.getTimestamp(),
-                    userAuditRecord.getEventCode().getLocalizedString( pwmDomain.getConfig(), locale )
+                    userAuditRecord.timestamp(),
+                    userAuditRecord.eventCode().getLocalizedString( pwmDomain.getConfig(), locale )
             ) );
         }
 
@@ -173,7 +173,7 @@ public class AccountInformationBean
                         ? StringUtil.collectionToString( values, ", " )
                         : values.isEmpty() ? "" : values.iterator().next();
 
-                returnData.add( new DisplayElement(
+                returnData.add( DisplayElement.create(
                         formConfig.getName(),
                         DisplayElement.Type.string,
                         formConfig.getLabel( locale ),

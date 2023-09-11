@@ -104,8 +104,6 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script-ref url="/public/resources/js/responses.js"/>
-<pwm:script-ref url="/public/resources/js/otpsecret.js"/>
 <%@ include file="/WEB-INF/jsp/fragment/cancel-form.jsp" %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

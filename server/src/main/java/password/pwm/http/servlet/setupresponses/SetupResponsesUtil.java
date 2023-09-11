@@ -225,33 +225,21 @@ public class SetupResponsesUtil
                 e.getFieldName(),
         };
 
-        switch ( e.getErrorCode() )
-        {
-            case CR_TOO_FEW_CHALLENGES:
-                return new ErrorInformation( PwmError.ERROR_MISSING_REQUIRED_RESPONSE, null, fieldNames );
-
-            case CR_TOO_FEW_RANDOM_RESPONSES:
-                return new ErrorInformation( PwmError.ERROR_MISSING_RANDOM_RESPONSE, null, fieldNames );
-
-            case CR_MISSING_REQUIRED_CHALLENGE_TEXT:
-                return new ErrorInformation( PwmError.ERROR_MISSING_CHALLENGE_TEXT, null, fieldNames );
-
-            case CR_RESPONSE_TOO_LONG:
-                return new ErrorInformation( PwmError.ERROR_RESPONSE_TOO_LONG, null, fieldNames );
-
-            case CR_RESPONSE_TOO_SHORT:
-            case CR_MISSING_REQUIRED_RESPONSE_TEXT:
-                return new ErrorInformation( PwmError.ERROR_RESPONSE_TOO_SHORT, null, fieldNames );
-
-            case CR_DUPLICATE_RESPONSES:
-                return new ErrorInformation( PwmError.ERROR_RESPONSE_DUPLICATE, null, fieldNames );
-
-            case CR_TOO_MANY_QUESTION_CHARS:
-                return new ErrorInformation( PwmError.ERROR_CHALLENGE_IN_RESPONSE, null, fieldNames );
-
-            default:
-                return new ErrorInformation( PwmError.ERROR_INTERNAL );
-        }
+        return switch ( e.getErrorCode() )
+                {
+                    case CR_TOO_FEW_CHALLENGES -> new ErrorInformation( PwmError.ERROR_MISSING_REQUIRED_RESPONSE,
+                            null, fieldNames );
+                    case CR_TOO_FEW_RANDOM_RESPONSES -> new ErrorInformation( PwmError.ERROR_MISSING_RANDOM_RESPONSE,
+                            null, fieldNames );
+                    case CR_MISSING_REQUIRED_CHALLENGE_TEXT -> new ErrorInformation( PwmError.ERROR_MISSING_CHALLENGE_TEXT, null, fieldNames );
+                    case CR_RESPONSE_TOO_LONG -> new ErrorInformation( PwmError.ERROR_RESPONSE_TOO_LONG, null,
+                            fieldNames );
+                    case CR_RESPONSE_TOO_SHORT, CR_MISSING_REQUIRED_RESPONSE_TEXT -> new ErrorInformation( PwmError.ERROR_RESPONSE_TOO_SHORT, null, fieldNames );
+                    case CR_DUPLICATE_RESPONSES -> new ErrorInformation( PwmError.ERROR_RESPONSE_DUPLICATE, null,
+                            fieldNames );
+                    case CR_TOO_MANY_QUESTION_CHARS -> new ErrorInformation( PwmError.ERROR_CHALLENGE_IN_RESPONSE, null, fieldNames );
+                    default -> new ErrorInformation( PwmError.ERROR_INTERNAL );
+                };
     }
 
     static SetupResponsesBean.SetupData populateSetupData(

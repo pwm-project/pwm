@@ -51,10 +51,10 @@ class LdapQueryHelper implements PermissionTypeHelper
     )
             throws PwmUnrecoverableException
     {
-        if ( userPermission.getLdapBase() != null && !userPermission.getLdapBase().trim().isEmpty() )
+        if ( userPermission.ldapBase() != null && !userPermission.ldapBase().trim().isEmpty() )
         {
             final String canonicalBaseDN = pwmDomain.getConfig().getLdapProfiles().get( userIdentity.getLdapProfileID() )
-                    .readCanonicalDN( sessionLabel, pwmDomain, userPermission.getLdapBase() );
+                    .readCanonicalDN( sessionLabel, pwmDomain, userPermission.ldapBase() );
 
             if ( !UserPermissionUtility.testBaseDnMatch( sessionLabel, pwmDomain, canonicalBaseDN, userIdentity ) )
             {
@@ -67,7 +67,7 @@ class LdapQueryHelper implements PermissionTypeHelper
             return false;
         }
 
-        final String filterString = userPermission.getLdapQuery();
+        final String filterString = userPermission.ldapQuery();
         LOGGER.trace( sessionLabel, () -> "begin check for ldapQuery match for " + userIdentity + " using queryMatch: " + filterString );
 
         if ( StringUtil.isEmpty( filterString ) )
@@ -124,7 +124,7 @@ class LdapQueryHelper implements PermissionTypeHelper
             throws PwmUnrecoverableException
     {
         return SearchConfiguration.builder()
-                .filter( userPermission.getLdapQuery() )
+                .filter( userPermission.ldapQuery() )
                 .ldapProfile( UserPermissionUtility.profileIdForPermission( userPermission ).orElse( null ) )
                 .build();
     }
@@ -132,13 +132,13 @@ class LdapQueryHelper implements PermissionTypeHelper
     @Override
     public void validatePermission( final UserPermission userPermission ) throws PwmUnrecoverableException
     {
-        if ( StringUtil.isEmpty( userPermission.getLdapQuery() ) )
+        if ( StringUtil.isEmpty( userPermission.ldapQuery() ) )
         {
             throw PwmUnrecoverableException.newException(
                     PwmError.CONFIG_FORMAT_ERROR,
                     "userPermission of type " + UserPermissionType.ldapQuery + " must have a ldapQuery value" );
         }
 
-        Validator.validateLdapSearchFilter( userPermission.getLdapQuery() );
+        Validator.validateLdapSearchFilter( userPermission.ldapQuery() );
     }
 }

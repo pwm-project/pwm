@@ -23,18 +23,20 @@ package password.pwm.svc.node;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import lombok.Value;
+import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
 import password.pwm.bean.ProfileID;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.AppConfig;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.java.LazySupplier;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
+import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.LinkedHashMap;
@@ -86,7 +88,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
                 {
                     final String rawValue = value.substring( VALUE_PREFIX.length() );
                     final StoredNodeData storedNodeData = JsonFactory.get().deserialize( rawValue, StoredNodeData.class );
-                    returnData.put( storedNodeData.getInstanceID(),  storedNodeData );
+                    returnData.put( storedNodeData.instanceID(),  storedNodeData );
                 }
             }
         }
@@ -103,7 +105,7 @@ class LDAPNodeDataService implements NodeDataServiceProvider
     public void writeNodeStatus( final StoredNodeData storedNodeData ) throws PwmUnrecoverableException
     {
         final Map<String, StoredNodeData> currentServerData = readStoredData();
-        final StoredNodeData removeNode = currentServerData.get( storedNodeData.getInstanceID() );
+        final StoredNodeData removeNode = currentServerData.get( storedNodeData.instanceID() );
 
         final LDAPHelper ldapHelper = ldapHelperSupplier.call();
 
@@ -140,8 +142,8 @@ class LDAPNodeDataService implements NodeDataServiceProvider
 
         for ( final StoredNodeData storedNodeData : nodeDatas.values() )
         {
-            final TimeDuration recordAge = TimeDuration.fromCurrent( storedNodeData.getTimestamp() );
-            final String instanceID = storedNodeData.getInstanceID();
+            final TimeDuration recordAge = TimeDuration.fromCurrent( storedNodeData.timestamp() );
+            final String instanceID = storedNodeData.instanceID();
 
             if ( recordAge.isLongerThan( maxNodeAge ) )
             {
@@ -206,4 +208,14 @@ class LDAPNodeDataService implements NodeDataServiceProvider
             return "user '" + this.userIdentity.toDisplayString() + "' attribute '" + attr  + "'";
         }
     }
+
+    public NodeServiceSettings settings( final AppConfig appConfig )
+    {
+        return new NodeServiceSettings(
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_DB_HEARTBEAT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_DB_NODE_TIMEOUT_SECONDS ) ), TimeDuration.Unit.SECONDS ),
+                TimeDuration.of( Integer.parseInt( appConfig.readAppProperty( AppProperty.CLUSTER_DB_NODE_PURGE_SECONDS ) ), TimeDuration.Unit.SECONDS )
+        );
+    }
+
 }

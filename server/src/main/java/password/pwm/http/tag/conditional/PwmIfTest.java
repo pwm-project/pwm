@@ -182,8 +182,8 @@ public enum PwmIfTest
                 final PwmIfOptions options
         )
         {
-            final PwmSetting setting = options != null && options.getPwmSetting() != null
-                    ? options.getPwmSetting()
+            final PwmSetting setting = options != null && options.pwmSetting() != null
+                    ? options.pwmSetting()
                     : this.pwmSetting;
 
             if ( setting == null )
@@ -244,7 +244,7 @@ public enum PwmIfTest
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final Permission permission = constructorPermission != null ? constructorPermission : options.getPermission();
+            final Permission permission = constructorPermission != null ? constructorPermission : options.permission();
 
             if ( permission == null )
             {
@@ -443,11 +443,11 @@ public enum PwmIfTest
         @Override
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options ) throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            if ( options.getRequestFlag() == null )
+            if ( options.requestFlag() == null )
             {
                 return false;
             }
-            return pwmRequest.isFlag( options.getRequestFlag() );
+            return pwmRequest.isFlag( options.requestFlag() );
         }
     }
 
@@ -507,7 +507,7 @@ public enum PwmIfTest
 
             final UserInfo userInfoBean = pwmRequest.getPwmSession().getUserInfo();
             final PasswordStatus passwordStatus = userInfoBean.getPasswordStatus();
-            return passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy();
+            return passwordStatus.expired() || passwordStatus.preExpired() || passwordStatus.violatesPolicy();
         }
     }
 
@@ -597,7 +597,7 @@ public enum PwmIfTest
         public boolean test( final PwmRequest pwmRequest, final PwmIfOptions options )
                 throws PwmUnrecoverableException
         {
-            final TextFileResource textFileResource = options.getTextFileResource();
+            final TextFileResource textFileResource = options.textFileResource();
             return TextFileResource.readTextFileResource( pwmRequest, textFileResource ).isPresent();
         }
     }

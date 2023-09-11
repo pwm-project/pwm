@@ -26,23 +26,23 @@ import java.time.Instant;
 
 public interface AuditRecord
 {
-    AuditEventType getType( );
+    AuditEventType type( );
 
-    AuditEvent getEventCode( );
+    AuditEvent eventCode( );
 
-    Instant getTimestamp( );
+    Instant timestamp( );
 
-    String getMessage( );
+    String message( );
 
-    String getGuid( );
+    String guid( );
 
-    String getNarrative( );
+    String narrative( );
 
-    String getXdasTaxonomy( );
+    String xdasTaxonomy( );
 
-    String getXdasOutcome( );
+    String xdasOutcome( );
 
-    String getInstance( );
+    String instance( );
 
-    DomainID getDomain();
+    DomainID domain();
 }

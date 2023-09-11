@@ -21,7 +21,6 @@
 package password.pwm.http.servlet.admin.domain;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import lombok.Value;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.PwmDomain;
@@ -39,6 +38,7 @@ import password.pwm.svc.stats.StatisticsBundle;
 import password.pwm.svc.stats.StatisticsBundleKey;
 import password.pwm.svc.stats.StatisticsService;
 import password.pwm.svc.stats.StatisticsUtils;
+import password.pwm.util.java.CollectionUtil;
 import password.pwm.util.java.CollectorUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -182,11 +182,19 @@ public class DomainAdminStatisticsServlet extends ControlledPwmServlet
         return ProcessStatus.Halt;
     }
 
-    @Value
-    private static class StatisticsData
+    private record StatisticsData(
+            List<DisplayElement> statistics,
+            List<DisplayElement> averageStatistics
+    )
     {
-        private final List<DisplayElement> statistics;
-        private final List<DisplayElement> averageStatistics;
+        private StatisticsData(
+                final List<DisplayElement> statistics,
+                final List<DisplayElement> averageStatistics
+        )
+        {
+            this.statistics = CollectionUtil.stripNulls( statistics );
+            this.averageStatistics = CollectionUtil.stripNulls( averageStatistics );
+        }
     }
 
 

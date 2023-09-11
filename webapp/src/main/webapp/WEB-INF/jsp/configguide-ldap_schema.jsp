@@ -49,8 +49,8 @@
     try {
         final PwmDomain pwmDomain = JspUtility.getPwmRequest(pageContext).getPwmDomain();
         final SchemaOperationResult schemaManager = ConfigGuideUtils.extendSchema( pwmDomain, configGuideBean, false);
-        existingSchemaGood = schemaManager.isSuccess();
-        schemaActivityLog = schemaManager.getOperationLog();
+        existingSchemaGood = schemaManager.success();
+        schemaActivityLog = schemaManager.operationLog();
     } catch (Exception e) {
         schemaActivityLog = "unable to check schema: " + e.getMessage();
     }

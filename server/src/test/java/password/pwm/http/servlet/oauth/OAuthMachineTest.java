@@ -22,6 +22,7 @@ package password.pwm.http.servlet.oauth;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import password.pwm.bean.SessionLabel;
 
 public class OAuthMachineTest
 {
@@ -34,8 +35,7 @@ public class OAuthMachineTest
                 + "\t\"expires_in\":3599,\n"
                 + "\t\"scope\":\"profile\"\n"
                 + "}";
-        final OAuthSettings oAuthSettings = OAuthSettings.builder().build();
-        final OAuthMachine oAuthMachine = new OAuthMachine( null, oAuthSettings );
+        final OAuthMachine oAuthMachine = new OAuthMachine( SessionLabel.TEST_SESSION_LABEL, OAuthSettings.empty() );
         Assertions.assertEquals( "3599", oAuthMachine.readAttributeFromBodyMap( input, "expires_in" ) );
     }
 
@@ -43,8 +43,7 @@ public class OAuthMachineTest
     public void parserTest2()
     {
         final String input = "{\"sub\":\"0c8463c904e6444fa5c2b4597f816bc2\",\"claims\":[],\"email\":\"testadmin@example.com\"}";
-        final OAuthSettings oAuthSettings = OAuthSettings.builder().build();
-        final OAuthMachine oAuthMachine = new OAuthMachine( null, oAuthSettings );
+        final OAuthMachine oAuthMachine = new OAuthMachine( SessionLabel.TEST_SESSION_LABEL, OAuthSettings.empty() );
         Assertions.assertEquals( "testadmin@example.com", oAuthMachine.readAttributeFromBodyMap( input, "email" ) );
         Assertions.assertNull( oAuthMachine.readAttributeFromBodyMap( input, "claims" ) );
     }
@@ -53,8 +52,7 @@ public class OAuthMachineTest
     public void parserTest3()
     {
         final String input = "{\"sub\":\"0c8463c904e6444fa5c2b4597f816bc2\",\"claims\":[\"value1\",\"value2\"],\"email\":\"testadmin@example.com\"}";
-        final OAuthSettings oAuthSettings = OAuthSettings.builder().build();
-        final OAuthMachine oAuthMachine = new OAuthMachine( null, oAuthSettings );
+        final OAuthMachine oAuthMachine = new OAuthMachine( SessionLabel.TEST_SESSION_LABEL, OAuthSettings.empty() );
         Assertions.assertEquals( "value1", oAuthMachine.readAttributeFromBodyMap( input, "claims" ) );
     }
 }

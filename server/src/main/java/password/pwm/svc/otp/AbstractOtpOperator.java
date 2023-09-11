@@ -20,163 +20,23 @@
 
 package password.pwm.svc.otp;
 
-import com.google.gson.JsonSyntaxException;
-import password.pwm.AppProperty;
 import password.pwm.PwmDomain;
-import password.pwm.config.DomainConfig;
-import password.pwm.config.PwmSetting;
-import password.pwm.config.option.OTPStorageFormat;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.java.EnumUtil;
-import password.pwm.util.json.JsonFactory;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.secure.PwmBlockAlgorithm;
-import password.pwm.util.secure.PwmSecurityKey;
-import password.pwm.util.secure.SecureEngine;
 
 /**
  * @author mpieters
  */
 public abstract class AbstractOtpOperator implements OtpOperator
 {
-
     private static final PwmLogger LOGGER = PwmLogger.forClass( AbstractOtpOperator.class );
     protected PwmDomain pwmDomain;
 
-    /**
-     * Compose a single line of OTP information.
-     *
-     * @param otpUserRecord input user record
-     * @return A string formatted record
-     * @throws PwmUnrecoverableException if the operation fails
-     */
-    public String composeOtpAttribute( final OTPUserRecord otpUserRecord )
-            throws PwmUnrecoverableException
-    {
-        String value = "";
-        if ( otpUserRecord != null )
-        {
-            final DomainConfig config = pwmDomain.getConfig();
-            final OTPStorageFormat format = config.readSettingAsEnum( PwmSetting.OTP_SECRET_STORAGEFORMAT, OTPStorageFormat.class );
-            switch ( format )
-            {
-                case PWM:
-                    value = JsonFactory.get().serialize( otpUserRecord );
-                    break;
-                case OTPURL:
-                    value = OTPUrlUtil.composeOtpUrl( otpUserRecord );
-                    break;
-                case BASE32SECRET:
-                    value = otpUserRecord.getSecret();
-                    break;
-                case PAM:
-                    value = OTPPamUtil.composePamData( otpUserRecord );
-                    break;
-                default:
-                    final String errorStr = String.format( "Unsupported storage format: %s", format );
-                    final ErrorInformation error = new ErrorInformation( PwmError.ERROR_INVALID_CONFIG, errorStr );
-                    throw new PwmUnrecoverableException( error );
-            }
-        }
-        return value;
-    }
-
-    /**
-     * Encrypt the given string using the PWM encryption key.
-     *
-     * @param unencrypted raw value to be encrypted
-     *
-     * @return the encrypted value
-     * @throws PwmUnrecoverableException if the operation can't be completed
-     */
-    public String encryptAttributeValue( final String unencrypted )
-            throws PwmUnrecoverableException
-    {
-        final PwmBlockAlgorithm pwmBlockAlgorithm = figureBlockAlg();
-        final PwmSecurityKey pwmSecurityKey = pwmDomain.getConfig().getSecurityKey();
-        return SecureEngine.encryptToString( unencrypted, pwmSecurityKey, pwmBlockAlgorithm );
-    }
-
-    public PwmBlockAlgorithm figureBlockAlg( )
-    {
-        final String otpEncryptionAlgString = pwmDomain.getConfig().readAppProperty( AppProperty.OTP_ENCRYPTION_ALG );
-        return EnumUtil.readEnumFromString( PwmBlockAlgorithm.class, otpEncryptionAlgString )
-                .orElse( PwmBlockAlgorithm.AES );
-    }
-
-    /**
-     * Decrypt the given string using the PWM encryption key.
-     *
-     * @param encrypted value to be encrypted
-     *
-     * @return the decrypted value
-     * @throws PwmUnrecoverableException if the operation can't be completed
-     */
-    public String decryptAttributeValue( final String encrypted )
-            throws PwmUnrecoverableException
-    {
-        final PwmBlockAlgorithm pwmBlockAlgorithm = figureBlockAlg();
-        final PwmSecurityKey pwmSecurityKey = pwmDomain.getConfig().getSecurityKey();
-        return SecureEngine.decryptStringValue( encrypted, pwmSecurityKey, pwmBlockAlgorithm );
-    }
-
-    public OTPUserRecord decomposeOtpAttribute( final String value )
-    {
-        if ( value == null )
-        {
-            return null;
-        }
-        OTPUserRecord otpconfig = null;
-        /* Try format by format */
-        LOGGER.trace( () -> String.format( "detecting format from value: %s", value ) );
-        /* - PWM JSON */
-        try
-        {
-            otpconfig = JsonFactory.get().deserialize( value, OTPUserRecord.class );
-            LOGGER.debug( () -> "detected JSON format - returning" );
-            return otpconfig;
-        }
-        catch ( final JsonSyntaxException ex )
-        {
-            LOGGER.debug( () -> "no JSON format detected - returning" );
-            /* So, it's not JSON, try something else */
-            /* -- nothing to try, yet; for future use */
-            /* no more options */
-        }
-        /* - otpauth:// URL */
-        otpconfig = OTPUrlUtil.decomposeOtpUrl( value );
-        if ( otpconfig != null )
-        {
-            LOGGER.debug( () -> "detected otpauth URL format - returning" );
-            return otpconfig;
-        }
-        /* - PAM */
-        otpconfig = OTPPamUtil.decomposePamData( value );
-        if ( otpconfig != null )
-        {
-            LOGGER.debug( () -> "detected PAM text format - returning" );
-            return otpconfig;
-        }
-        /* - BASE32 secret */
-        if ( value.trim().matches( "^[A-Z2-7\\=]{16}$" ) )
-        {
-            LOGGER.debug( () -> "detected plain Base32 secret - returning" );
-            otpconfig = new OTPUserRecord();
-            otpconfig.setSecret( value.trim() );
-            return otpconfig;
-        }
-
-        return otpconfig;
-    }
-
-    public PwmDomain getPwmApplication( )
+    public PwmDomain getPwmDomain( )
     {
         return pwmDomain;
     }
 
-    public void setPwmApplication( final PwmDomain pwmDomain )
+    public void setPwmDomain( final PwmDomain pwmDomain )
     {
         this.pwmDomain = pwmDomain;
     }

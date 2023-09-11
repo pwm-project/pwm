@@ -27,13 +27,13 @@ import password.pwm.bean.ProfileID;
  */
 public interface UserAuditRecord extends SystemAuditRecord
 {
-    String getPerpetratorID();
+    String perpetratorID();
 
-    String getPerpetratorDN();
+    String perpetratorDN();
 
-    String getSourceAddress();
+    String sourceAddress();
 
-    String getSourceHost();
+    String sourceHost();
 
-    ProfileID getPerpetratorLdapProfile();
+    ProfileID perpetratorLdapProfile();
 }

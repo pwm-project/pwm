@@ -63,15 +63,8 @@
     </div>
     <div id="capslockwarning" class="nodisplay"><pwm:display key="Display_CapsLockIsOn"/></div>
 </pwm:if>
-<pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.NO_IDLE_TIMEOUT%>">
-    <pwm:script>
-        <script type="text/javascript">
-            PWM_GLOBAL['idle_suspendTimeout'] = true;
-        </script>
-    </pwm:script>
-</pwm:if>
 <pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.INCLUDE_DOJO%>">
-    <link href="<pwm:url url='/public/resources/webjars/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
+    <link nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" href="<pwm:url url='/public/resources/webjars/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
     <pwm:script>
         <script type="text/javascript">
             var dojoConfig = { has: { "csp-restrictions":true }, async:true}
@@ -80,12 +73,20 @@
     <script nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" dojo-sync-loader="false" type="text/javascript" src="<pwm:url addContext="true" url='/public/resources/webjars/dojo/dojo.js'/>"></script><noscript></noscript>
 </pwm:if>
 <pwm:if test="<%=PwmIfTest.hasCustomJavascript%>">
-    <pwm:script>
-        <script type="text/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function() {
-                <pwm:value name="<%=PwmValue.customJavascript%>"/>
-            });
-        </script>
-    </pwm:script>
+    <script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+        import {PWM_MAIN} from "<pwm:url url="/public/resources/js/main.js" addContext="true"/>";
+        const PWM_GLOBAL = PWM_MAIN.getPwmGlobal();
+
+        {
+            <pwm:value name="<%=PwmValue.customJavascript%>"/>
+        }
+    </script>
 </pwm:if>
-<pwm:script-ref url="/public/resources/js/main.js"/>
+<script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>" src="<pwm:url url="/public/resources/js/main.js" addContext="true"/>">
+<pwm:if test="<%=PwmIfTest.requestFlag%>" requestFlag="<%=PwmRequestFlag.NO_IDLE_TIMEOUT%>">
+    <script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+        import {PWM_MAIN} from "<pwm:url url="/public/resources/js/main.js" addContext="true"/>";
+        PWM_MAIN.cancelCountDownTimer();
+    </script>
+</pwm:if>
+</script>

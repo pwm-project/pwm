@@ -243,7 +243,7 @@ public class UserSearchService extends AbstractPwmService implements PwmService
             final List<FormConfiguration> formItem,
             final SessionLabel sessionLabel
     )
-            throws PwmUnrecoverableException, PwmOperationalException
+            throws PwmUnrecoverableException
     {
         final Map<String, String> attributeHeaderMap = UserSearchResults.fromFormConfiguration( formItem, locale );
         final Map<UserIdentity, Map<String, String>> searchResults = performMultiUserSearch(
@@ -272,7 +272,7 @@ public class UserSearchService extends AbstractPwmService implements PwmService
             final Collection<String> returnAttributes,
             final SessionLabel sessionLabel
     )
-            throws PwmUnrecoverableException, PwmOperationalException
+            throws PwmUnrecoverableException
     {
         final Collection<LdapProfile> ldapProfiles;
         if ( searchConfiguration.getLdapProfile() != null )
@@ -366,7 +366,7 @@ public class UserSearchService extends AbstractPwmService implements PwmService
             final int searchID,
             final AtomicLoopIntIncrementer jobIncrementer
     )
-            throws PwmUnrecoverableException, PwmOperationalException
+            throws PwmUnrecoverableException
     {
         // check the search configuration data params
         searchConfiguration.validate();
@@ -478,7 +478,7 @@ public class UserSearchService extends AbstractPwmService implements PwmService
 
 
     private void validateSpecifiedContext( final SessionLabel sessionLabel, final LdapProfile profile, final String context )
-            throws PwmOperationalException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         Objects.requireNonNull( profile, "ldapProfile can not be null for ldap search context validation" );
         Objects.requireNonNull( context, "context can not be null for ldap search context validation" );

@@ -104,8 +104,8 @@
                     <label for="tab-2.<%=recordType%>" class="label"><%=titleName%></label>
                     <div class="tab-content-pane" title="<%=titleName%>">
 
-                            <div id="<%=recordType%>_Grid" class="analysisGrid">
-                            </div>
+                        <div id="<%=recordType%>_Grid" class="analysisGrid">
+                        </div>
                     </div>
                     <% checked = false; %>
                     <% } %>
@@ -192,28 +192,10 @@
         </div>
         <div class="push"></div>
     </div>
-    <pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('audit_tab_label','click',function(){
-            });
-
-            PWM_ADMIN.initAuditGrid();
-            PWM_ADMIN.initActiveSessionGrid();
-            PWM_ADMIN.initIntrudersGrid();
-
-            PWM_MAIN.addEventHandler('button-refreshAuditUser','click',function(){
-                PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditUserResults').value,'USER');
-            });
-            PWM_MAIN.addEventHandler('button-refreshHelpdeskUser','click',function(){
-                PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditHelpdeskResults').value,'HELPDESK');
-            });
-            PWM_MAIN.addEventHandler('button-refreshSystemAudit','click',function(){
-                PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditSystemResults').value,'SYSTEM');
-            });
-        });
+    <script type="module" nonce="<pwm:value name="<%=PwmValue.cspNonce%>"/>">
+        import {PWM_ADMIN} from "<pwm:url url="/public/resources/js/admin.js" addContext="true"/>";
+        PWM_ADMIN.initActivityPage();
     </script>
-    </pwm:script>
     <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

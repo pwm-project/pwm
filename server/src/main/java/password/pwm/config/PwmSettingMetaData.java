@@ -20,8 +20,6 @@
 
 package password.pwm.config;
 
-import lombok.Builder;
-import lombok.Value;
 import org.jrivard.xmlchai.XmlElement;
 import password.pwm.util.java.EnumUtil;
 import password.pwm.util.java.JavaHelper;
@@ -40,29 +38,27 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-@Value
-@Builder
 /**
- * Utility class for reading PwmSetting.xml values and making them available to PWM.  Since PwmSetting
+ * <p>Utility class for reading PwmSetting.xml values and making them available to PWM.  Since PwmSetting
  * enums are fairly complex, there can be issues with static initialization circular dependencies during
- * initialization of the classes in this package.
+ * initialization of the classes in this package.</p>
  *
- * This class tries to be self-sufficient during initialization, and then provide values for {@link PwmSetting}
- * method invocations.
+ * <p>This class tries to be self-sufficient during initialization, and then provide values for {@link PwmSetting}
+ * method invocations.</p>
  */
-class PwmSettingMetaData
+record PwmSettingMetaData(
+        List<TemplateSetReference<String>> examples,
+        Map<String, String> options,
+        Set<PwmSettingFlag> flags,
+        Map<PwmSettingProperty, String> properties,
+        Collection<LDAPPermissionInfo> ldapPermissionInfo,
+        boolean required,
+        boolean hidden,
+        int level,
+        Pattern pattern
+)
 {
     private static final Map<PwmSetting, PwmSettingMetaData> META_DATA_MAP = initMap();
-
-    private final List<TemplateSetReference<String>> examples;
-    private final Map<String, String> options;
-    private final Set<PwmSettingFlag> flags;
-    private final Map<PwmSettingProperty, String> properties;
-    private final Collection<LDAPPermissionInfo> ldapPermissionInfo;
-    private final boolean required;
-    private final boolean hidden;
-    private final int level;
-    private final Pattern pattern;
 
     private static Map<PwmSetting, PwmSettingMetaData> initMap()
     {
@@ -73,17 +69,16 @@ class PwmSettingMetaData
             final PwmSetting pwmSetting = PwmSetting.forKey( settingElement.getAttribute( PwmSettingXml.XML_ATTRIBUTE_KEY )
                     .orElseThrow() ).orElseThrow();
 
-            final PwmSettingMetaData pwmSettingMetaData = PwmSettingMetaData.builder()
-                    .examples( InitReader.readExamples( settingElement ) )
-                    .properties( InitReader.readProperties( pwmSetting, settingElement ) )
-                    .options( InitReader.readOptions( pwmSetting, settingElement ) )
-                    .flags( InitReader.readFlags( settingElement ) )
-                    .ldapPermissionInfo( InitReader.readLdapPermissionInfo( settingElement ) )
-                    .required( InitReader.readRequired( settingElement ) )
-                    .hidden( InitReader.readHidden( pwmSetting, settingElement ) )
-                    .level( InitReader.readLevel( settingElement ) )
-                    .pattern( InitReader.readPattern( pwmSetting, settingElement ) )
-                    .build();
+            final PwmSettingMetaData pwmSettingMetaData = new PwmSettingMetaData(
+                    InitReader.readExamples( settingElement ),
+                    InitReader.readOptions( pwmSetting, settingElement ),
+                    InitReader.readFlags( settingElement ),
+                    InitReader.readProperties( pwmSetting, settingElement ),
+                    InitReader.readLdapPermissionInfo( settingElement ),
+                    InitReader.readRequired( settingElement ),
+                    InitReader.readHidden( pwmSetting, settingElement ),
+                    InitReader.readLevel( settingElement ),
+                    InitReader.readPattern( pwmSetting, settingElement ) );
 
             map.put( pwmSetting, pwmSettingMetaData );
         }

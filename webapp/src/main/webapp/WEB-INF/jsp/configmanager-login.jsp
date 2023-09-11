@@ -47,7 +47,6 @@
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <%@ include file="fragment/header.jsp" %>
 <body>
-<pwm:script-ref url="/public/resources/js/configmanager.js"/>
 <div id="wrapper" class="login-wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="<%=LocaleHelper.getLocalizedMessage(Config.Title_ConfigManager, JspUtility.getPwmRequest(pageContext))%>"/>
@@ -90,9 +89,9 @@
             </tr>
             <% for (final ConfigManagerLoginServlet.ConfigLoginEvent event : configLoginHistory.successEvents()) { %>
             <tr>
-                <td><%=event.getUserIdentity()%></td>
-                <td><span  class="timestamp"><%=StringUtil.toIsoDate(event.getDate())%></span></td>
-                <td><%=event.getNetworkAddress()%></td>
+                <td><%=event.userIdentity()%></td>
+                <td><span  class="timestamp"><%=StringUtil.toIsoDate(event.date())%></span></td>
+                <td><%=event.networkAddress()%></td>
             </tr>
             <% } %>
         </table>
@@ -108,9 +107,9 @@
             </tr>
             <% for (final ConfigManagerLoginServlet.ConfigLoginEvent event : configLoginHistory.failedEvents()) { %>
             <tr>
-                <td><%=event.getUserIdentity()%></td>
-                <td><span  class="timestamp"><%=StringUtil.toIsoDate(event.getDate())%></span></td>
-                <td><%=event.getNetworkAddress()%></td>
+                <td><%=event.userIdentity()%></td>
+                <td><span class="timestamp"><%=StringUtil.toIsoDate(event.date())%></span></td>
+                <td><%=event.networkAddress()%></td>
             </tr>
             <% } %>
         </table>

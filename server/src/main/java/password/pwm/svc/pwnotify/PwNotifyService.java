@@ -179,21 +179,21 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
         if ( pwNotifyStoredJobState != null )
         {
             // never run, or last job not successful.
-            if ( pwNotifyStoredJobState.getLastCompletion() == null || pwNotifyStoredJobState.getLastError() != null )
+            if ( pwNotifyStoredJobState.lastCompletion() == null || pwNotifyStoredJobState.lastError() != null )
             {
                 return Instant.now().plus( 1, ChronoUnit.MINUTES );
             }
 
             // more than 24hr ago.
-            final long maxSeconds = settings.getMaximumSkipWindow().as( TimeDuration.Unit.SECONDS );
-            if ( Duration.between( Instant.now(), pwNotifyStoredJobState.getLastCompletion() ).abs().getSeconds() > maxSeconds )
+            final long maxSeconds = settings.maximumSkipWindow().as( TimeDuration.Unit.SECONDS );
+            if ( Duration.between( Instant.now(), pwNotifyStoredJobState.lastCompletion() ).abs().getSeconds() > maxSeconds )
             {
                 return Instant.now();
             }
         }
 
         final Instant nextZuluZeroTime = PwmScheduler.nextZuluZeroTime();
-        final Instant adjustedNextZuluZeroTime = nextZuluZeroTime.plus( settings.getZuluOffset().as( TimeDuration.Unit.SECONDS ), ChronoUnit.SECONDS );
+        final Instant adjustedNextZuluZeroTime = nextZuluZeroTime.plus( settings.zuluOffset().as( TimeDuration.Unit.SECONDS ), ChronoUnit.SECONDS );
         final Instant previousAdjustedZuluZeroTime = adjustedNextZuluZeroTime.minus( 1, ChronoUnit.DAYS );
 
         if ( previousAdjustedZuluZeroTime.isAfter( Instant.now() ) )
@@ -224,7 +224,7 @@ public class PwNotifyService extends AbstractPwmService implements PwmService
             final PwNotifyStoredJobState pwNotifyStoredJobState = storageService.readStoredJobState();
             if ( pwNotifyStoredJobState != null )
             {
-                final ErrorInformation errorInformation = pwNotifyStoredJobState.getLastError();
+                final ErrorInformation errorInformation = pwNotifyStoredJobState.lastError();
                 if ( errorInformation != null )
                 {
                     returnRecords.add( HealthRecord.forMessage( DomainID.systemId(), HealthMessage.PwNotify_Failure, errorInformation.toDebugStr() ) );
