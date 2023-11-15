@@ -20,6 +20,7 @@
 
 package password.pwm.config.value.data;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import password.pwm.util.i18n.LocaleHelper;
@@ -47,6 +48,8 @@ public class CustomLinkConfiguration implements Serializable
     private final Type type = Type.customLink;
     private final Map<String, String> labels = Collections.singletonMap( "", "" );
     private final Map<String, String> description = Collections.singletonMap( "", "" );
+
+    @SuppressFBWarnings( "SS_SHOULD_BE_STATIC" )
     private final String customLinkUrl = "";
     private final boolean customLinkNewWindow;
     private final Map<String, String> selectOptions = Collections.emptyMap();

@@ -64,4 +64,21 @@
         <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_THROWABLE" />
     </Match>
 
+    <Match>
+        <!-- introduced with spotbugs 4.8 and require code refactoring -->
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+    <Match>
+        <!-- introduced with spotbugs 4.8 and require code refactoring -->
+        <Bug pattern="PI_DO_NOT_REUSE_PUBLIC_IDENTIFIERS_FIELD_NAMES"/>
+    </Match>
+    <Match>
+        <!-- introduced with spotbugs 4.8 and require code refactoring -->
+        <Bug pattern="PI_DO_NOT_REUSE_PUBLIC_IDENTIFIERS_CLASS_NAMES"/>
+    </Match>
+    <Match>
+        <!-- introduced with spotbugs 4.8 and require code refactoring -->
+        <Bug pattern="PI_DO_NOT_REUSE_PUBLIC_IDENTIFIERS_LOCAL_VARIABLE_NAMES"/>
+    </Match>
+
 </FindBugsFilter>

@@ -1019,7 +1019,7 @@ class PeopleSearchDataReader
             // export display card
             if ( orgChartExportState.getIncludeData().contains( OrgChartExportState.IncludeData.displayCard ) )
             {
-                outputRowValues.addAll( orgChartDataBean.getSelf().displayNames );
+                outputRowValues.addAll( orgChartDataBean.getSelf().getDisplayNames() );
             }
 
 

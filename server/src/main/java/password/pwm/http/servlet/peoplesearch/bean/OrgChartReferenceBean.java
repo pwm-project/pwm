@@ -29,7 +29,7 @@ import java.util.List;
 @Data
 public class OrgChartReferenceBean implements Serializable
 {
-    public String userKey;
-    public List<String> displayNames = new ArrayList<>();
-    public String photoURL;
+    private String userKey;
+    private List<String> displayNames = new ArrayList<>();
+    private String photoURL;
 }

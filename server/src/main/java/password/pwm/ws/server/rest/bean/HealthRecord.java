@@ -20,6 +20,7 @@
 
 package password.pwm.ws.server.rest.bean;
 
+import lombok.Value;
 import password.pwm.config.Configuration;
 import password.pwm.health.HealthStatus;
 
@@ -28,19 +29,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+@Value
 public class HealthRecord implements Serializable
 {
-    public HealthStatus status;
-    public String topic;
-    public String detail;
+    private HealthStatus status;
+    private String topic;
+    private String detail;
 
     public static HealthRecord fromHealthRecord( final password.pwm.health.HealthRecord healthRecord, final Locale locale, final Configuration config )
     {
-        final HealthRecord bean = new HealthRecord();
-        bean.status = healthRecord.getStatus();
-        bean.topic = healthRecord.getTopic( locale, config );
-        bean.detail = healthRecord.getDetail( locale, config );
-        return bean;
+        return new HealthRecord(
+                healthRecord.getStatus(),
+                healthRecord.getTopic( locale, config ),
+                healthRecord.getDetail( locale, config ) );
+
     }
 
     public static List<HealthRecord> fromHealthRecords( final List<password.pwm.health.HealthRecord> healthRecords, final Locale locale, final Configuration config )

@@ -339,7 +339,7 @@ class DatabaseAccessorImpl implements DatabaseAccessor
         private PreparedStatement statement;
         private Map.Entry<String, String> nextValue;
         private boolean finished;
-        private int counter = ITERATOR_COUNTER.getAndIncrement();
+        private final int counter = ITERATOR_COUNTER.getAndIncrement();
 
         DBIterator( final DatabaseTable table )
                 throws DatabaseException

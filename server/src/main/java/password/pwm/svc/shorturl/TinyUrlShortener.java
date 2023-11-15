@@ -35,7 +35,7 @@ public class TinyUrlShortener extends BasicUrlShortener
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( TinyUrlShortener.class );
 
-    private final String apiUrl = "http://tinyurl.com/api-create.php?url=";
+    private static final String URL_TINYURL = "http://tinyurl.com/api-create.php?url=";
 
     private Properties configuration = null;
 
@@ -54,7 +54,7 @@ public class TinyUrlShortener extends BasicUrlShortener
     {
         LOGGER.debug( () -> "Trying to shorten url: " + input );
         final String encodedUrl = StringUtil.urlEncode( input );
-        final String callUrl = apiUrl + encodedUrl;
+        final String callUrl = URL_TINYURL + encodedUrl;
         final PwmHttpClient pwmHttpClient = context.getHttpClientService().getPwmHttpClient(  );
 
         final PwmHttpClientRequest request = PwmHttpClientRequest.builder()

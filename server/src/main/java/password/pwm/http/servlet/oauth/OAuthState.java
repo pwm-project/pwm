@@ -21,6 +21,7 @@
 package password.pwm.http.servlet.oauth;
 
 import com.google.gson.annotations.SerializedName;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Builder;
 import lombok.Value;
 import password.pwm.util.java.AtomicLoopIntIncrementer;
@@ -60,6 +61,7 @@ class OAuthState implements Serializable
     private String forgottenProfileId;
 
     @SerializedName( "v" )
+    @SuppressFBWarnings( "SS_SHOULD_BE_STATIC" )
     private int version = 1;
 
     static OAuthState newSSOAuthenticationState( final String sessionID, final String nextUrl )
