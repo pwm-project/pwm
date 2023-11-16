@@ -637,4 +637,28 @@ class DatabaseAccessorImpl implements DatabaseAccessor
 
         return false;
     }
+
+    public void clearTable(
+            final DatabaseTable table
+    )
+            throws DatabaseException
+    {
+        preCheck();
+
+        final DatabaseUtil.DebugInfo debugInfo = DatabaseUtil.DebugInfo.create( "clearTable", table, null, null );
+        final String sqlText = "DELETE FROM " + table.name();
+
+        execute( debugInfo, ( ) ->
+        {
+            try ( PreparedStatement statement = connection.prepareStatement( sqlText ) )
+            {
+                statement.execute();
+            }
+            catch ( final SQLException e )
+            {
+                processSqlException( debugInfo, e );
+            }
+            return null;
+        } );
+    }
 }
