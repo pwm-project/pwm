@@ -45,7 +45,10 @@
                         <configuration>
                             <skip>${skipDocker}</skip>
                             <from>
-                                <image>eclipse-temurin:11-jre@sha256:5da9443e6642f4171c234fc601cf4a50f3decd5f2a2e377f1b6ac733daf2fcd6</image>
+                                <!--
+                                https://hub.docker.com/layers/library/eclipse-temurin/11-jre/images/sha256-efe41c483824a976f171445d8b294006c3724b438a15c92ec58c3183c4f34cc5
+                                -->
+                                <image>eclipse-temurin:11-jre@sha256:efe41c483824a976f171445d8b294006c3724b438a15c92ec58c3183c4f34cc5</image>
                             </from>
                             <to>
                                 <image>${dockerImageTag}</image>
