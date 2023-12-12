@@ -31,13 +31,11 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 
 class NodeMachine
 {
@@ -49,7 +47,7 @@ class NodeMachine
 
     private ErrorInformation lastError;
 
-    private final Map<String, StoredNodeData> knownNodes = new ConcurrentHashMap<>();
+    private final AtomicReference<Map<String, StoredNodeData>> knownNodes = new AtomicReference<>( Map.of() );
 
     private final NodeServiceSettings settings;
     private final NodeServiceStatistics nodeServiceStatistics = new NodeServiceStatistics();
@@ -79,7 +77,7 @@ class NodeMachine
     {
         final Map<String, NodeInfo> returnObj = new TreeMap<>();
         final String configHash = pwmApplication.getConfig().configurationHash( pwmApplication.getSecureService() );
-        for ( final StoredNodeData storedNodeData : knownNodes.values() )
+        for ( final StoredNodeData storedNodeData : knownNodes.get().values() )
         {
             final boolean configMatch = configHash.equals( storedNodeData.getConfigHash() );
             final boolean timedOut = isTimedOut( storedNodeData );
@@ -105,14 +103,14 @@ class NodeMachine
             returnObj.put( nodeInfo.getInstanceID(), nodeInfo );
         }
 
-        return Collections.unmodifiableList( new ArrayList<>( returnObj.values() ) );
+        return List.copyOf( returnObj.values() );
     }
 
 
     private String masterInstanceId( )
     {
-        final List<StoredNodeData> copiedDatas = new ArrayList<>( knownNodes.values() );
-        if ( copiedDatas.isEmpty() )
+        final List<StoredNodeData> copiedDatas = List.copyOf( knownNodes.get().values() );
+        if ( JavaHelper.isEmpty( copiedDatas ) )
         {
             return null;
         }
@@ -200,7 +198,7 @@ class NodeMachine
             try
             {
                 final Map<String, StoredNodeData> readNodeData = clusterDataServiceProvider.readStoredData();
-                knownNodes.putAll( readNodeData );
+                knownNodes.set( Map.copyOf( readNodeData ) );
                 nodeServiceStatistics.getClusterReads().incrementAndGet();
             }
             catch ( final PwmException e )
