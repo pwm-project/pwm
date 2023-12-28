@@ -56,6 +56,7 @@ public class FormDataRequestBean
 
     public enum Mode
     {
+        edit,
         read,
         verify,
         write,
