@@ -451,7 +451,7 @@ public class NewUserServlet extends ControlledPwmServlet
                 validationFlags.toArray( new FormUtility.ValidationFlag[0] )
         );
 
-        NewUserUtils.remoteVerifyFormData( pwmRequest, newUserForm );
+        NewUserUtils.remoteVerifyFormData( pwmRequest, newUserForm, null );
 
         final UserInfo uiBean = UserInfoBean.builder()
                 .cachedPasswordRuleAttributes( FormUtility.asStringMap( formValueData ) )
