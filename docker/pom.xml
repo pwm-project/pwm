@@ -34,7 +34,7 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>3.4.0</version>
+                <version>3.4.3</version>
                 <executions>
                     <execution>
                         <id>make-docker-image</id>
@@ -46,9 +46,12 @@
                             <skip>${skipDocker}</skip>
                             <from>
                                 <!--
-                                https://hub.docker.com/layers/library/eclipse-temurin/11-jre/images/sha256-efe41c483824a976f171445d8b294006c3724b438a15c92ec58c3183c4f34cc5
+                                https://hub.docker.com/layers/library/eclipse-temurin/11/images/sha256-10f2d98f22d80c9f594814a296a235f19f009557bcdc96b12719ebc1c0aa9d34
                                 -->
-                                <image>eclipse-temurin:11-jre@sha256:efe41c483824a976f171445d8b294006c3724b438a15c92ec58c3183c4f34cc5</image>
+                                <!--
+                                jdk 11.0.22+7
+                                -->
+                                <image>eclipse-temurin:11-jre@sha256:10f2d98f22d80c9f594814a296a235f19f009557bcdc96b12719ebc1c0aa9d34</image>
                             </from>
                             <to>
                                 <image>${dockerImageTag}</image>

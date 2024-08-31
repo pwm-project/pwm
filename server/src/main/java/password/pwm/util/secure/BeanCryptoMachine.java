@@ -83,7 +83,7 @@ public class BeanCryptoMachine<T extends Serializable>
         final TimeDuration stateAge = TimeDuration.fromCurrent( wrapper.getTimestamp() );
         if ( stateAge.isLongerThan( maxIdleTimeout ) )
         {
-            LOGGER.trace( pwmRequestContext.getSessionLabel(), () -> "state in request is " + stateAge.asCompactString() + " old" );
+            LOGGER.trace( pwmRequestContext.getSessionLabel(), () -> "state in request is " + stateAge.asCompactString() + " old (max=" + maxIdleTimeout.asCompactString() + ")" );
             return Optional.empty();
         }
 

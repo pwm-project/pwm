@@ -458,6 +458,11 @@ public class ForgottenPasswordStateMachine
         {
             final IdentityVerificationMethod method = forgottenPasswordStateMachine.getForgottenPasswordBean().getProgress().getInProgressVerificationMethod();
 
+            if ( method == null )
+            {
+                throw new IllegalStateException( "no verification methods in progress" );
+            }
+
             final StageHandler handler = VERIFICATION_HANDLERS.get( method );
 
             if ( handler != null )

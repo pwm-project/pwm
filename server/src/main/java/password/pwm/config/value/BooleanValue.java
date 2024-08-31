@@ -20,6 +20,7 @@
 
 package password.pwm.config.value;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.stored.StoredConfigXmlSerializer;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+@SuppressFBWarnings( "SING_SINGLETON_IMPLEMENTS_SERIALIZABLE" )
 public class BooleanValue implements StoredValue
 {
     private static final BooleanValue POSITIVE = new BooleanValue( true );

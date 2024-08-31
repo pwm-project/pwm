@@ -20,12 +20,15 @@
 
 package password.pwm.util.secure;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.security.SecureRandom;
 import java.util.UUID;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
+@SuppressFBWarnings( "SING_SINGLETON_IMPLEMENTS_SERIALIZABLE" )
 public class PwmRandom extends SecureRandom
 {
 
@@ -35,7 +38,7 @@ public class PwmRandom extends SecureRandom
 
     private static final String ALPHANUMERIC_STRING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    public PwmRandom( final SecureRandom internalRand )
+    private PwmRandom( final SecureRandom internalRand )
     {
         this.internalRand = internalRand;
     }

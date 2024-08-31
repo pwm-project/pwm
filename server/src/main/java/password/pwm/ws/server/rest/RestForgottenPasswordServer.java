@@ -113,7 +113,9 @@ public class RestForgottenPasswordServer extends RestServlet
         final boolean newState;
         try
         {
-            final Optional<ForgottenPasswordBean> readBean = beanBeanCryptoMachine.decryprt( jsonInput.getState() );
+            final Optional<ForgottenPasswordBean> readBean = jsonInput == null
+                    ? Optional.empty()
+                    : beanBeanCryptoMachine.decryprt( jsonInput.getState() );
             final ForgottenPasswordBean inputBean = readBean.orElseGet( ForgottenPasswordBean::new );
             stateMachine = new ForgottenPasswordStateMachine(
                     restRequest.commonValues(),
