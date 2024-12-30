@@ -36,7 +36,7 @@
                 <!-- This plugin will set properties values using dependency information -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.8.0</version>
+                <version>3.8.1</version>
                 <executions>
                     <execution>
                         <goals>
@@ -136,12 +136,12 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
-            <version>1.11.0</version>
+            <version>1.12.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.16.0</version>
+            <version>3.17.0</version>
         </dependency>
         <dependency>
             <groupId>com.sun.mail</groupId>
@@ -156,7 +156,7 @@
         <dependency>
             <groupId>ch.qos.reload4j</groupId>
             <artifactId>reload4j</artifactId>
-            <version>1.2.25</version>
+            <version>1.2.26</version>
         </dependency>
         <dependency>
             <groupId>org.jdom</groupId>

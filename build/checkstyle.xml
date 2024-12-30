@@ -300,7 +300,6 @@
         <module name="NoClone"/>
 
         <!-- javadoc -->
-        <module name="JavadocParagraph"/>
         <module name="AtclauseOrder"/>
         <module name="JavadocStyle"/>
         <module name="JavadocTagContinuationIndentation"/>
