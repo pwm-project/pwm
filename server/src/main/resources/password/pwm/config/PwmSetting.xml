@@ -31,6 +31,7 @@
         </default>
         <options>
             <option value="AD">Microsoft Active Directory</option>
+            <option value="LLDAP">LLDAP</option>
             <option value="ORACLE_DS">Oracle Directory Server</option>
             <option value="NOVL">NetIQ eDirectory</option>
             <option value="NOVL_IDM">NetIQ IDM / OAuth Integration</option>
@@ -564,6 +565,9 @@
         <default>
             <value><![CDATA[(&(objectClass=person)(cn=%USERNAME%))]]></value>
         </default>
+        <default template="LLDAP">
+            <value><![CDATA[(&(objectClass=person)(uid=%USERNAME%))]]></value>
+        </default>
         <default template="AD">
             <value><![CDATA[(&(objectClass=person)(|(sAMAccountName=%USERNAME%)(cn=%USERNAME%)(mail=%USERNAME%)))]]></value>
         </default>
@@ -576,6 +580,8 @@
         <default>
             <value><![CDATA[pwmUser]]></value>
         </default>
+        <default template="LLDAP">
+        </default>
         <default template="DB">
             <value><![CDATA[]]></value>
         </default>
@@ -587,6 +593,9 @@
             <value/>
         </default>
         <default template="ORACLE_DS">
+            <value/>
+        </default>
+        <default template="LLDAP">
             <value/>
         </default>
         <default template="LDAP">
@@ -639,12 +648,18 @@
         <default template="OPEN_LDAP">
             <value><![CDATA[entryuuid]]></value>
         </default>
+        <default template="LLDAP">
+            <value>entryuuid</value>
+        </default>
     </setting>
     <setting hidden="false" key="ldap.namingAttribute" level="1" required="true">
         <ldapPermission actor="proxy" access="read"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
+        </default>
+        <default template="LLDAP">
+            <value>uid</value>
         </default>
         <default template="ORACLE_DS">
             <value><![CDATA[uid]]></value>
@@ -701,6 +716,9 @@
         <regex>(^$|^[a-zA-Z][a-zA-Z0-9-]*$)</regex>
         <default>
             <value>cn</value>
+        </default>
+        <default template="LLDAP">
+            <value>uid</value>
         </default>
         <default template="AD">
             <value><![CDATA[sAMAccountName]]></value>
@@ -2044,6 +2062,7 @@
     <setting hidden="false" key="events.ldap.attribute" level="2">
         <ldapPermission actor="proxy" access="write"/>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default template="LLDAP"/>
         <default>
             <value><![CDATA[pwmEventLog]]></value>
         </default>
