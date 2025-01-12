@@ -51,7 +51,10 @@
                                 <!--
                                 jdk 11.0.22+7
                                 -->
+                                <!--
                                 <image>eclipse-temurin:11-jre@sha256:10f2d98f22d80c9f594814a296a235f19f009557bcdc96b12719ebc1c0aa9d34</image>
+                                -->
+                                <image>eclipse-temurin:21-jre@sha256:sha256:8e201486c2c51c07f0c1e33bf3841a03b2d624cd3dd8a734a1ece02ac48b795a</image>
                             </from>
                             <to>
                                 <image>${dockerImageTag}</image>
