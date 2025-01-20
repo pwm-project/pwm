@@ -1,4 +1,12 @@
 # Changelog
+## [2.0.7] - Release Jan 18, 2025
+- update embedded tomcat to v9.0.98 for onejar/docker artifacts
+- update docker image to eclipse-based Java v21.0.5
+- update builder to work from Java v11 to v21
+- update java and js dependencies
+- add basic support for LLDAP ldap directory type
+- fix issue #701 - random password generator improvements
+- fix issue #697 - html email contains illegal characters
 
 ## [2.0.6] - Release May 5, 2023
 - update embedded tomcat to v9.0.74 for onejar/docker artifacts
@@ -9,7 +17,7 @@
 - fix thread/memory leak during configuration restart
 - fix database connection breaking during configuration restart
 - add multi-cpu support for response-set hash generation
- 
+
 ## [2.0.5] - Release Feb 10, 2023
 - update java and javascript dependencies
 - update tomcat to 9.0.71 for onejar/docker images
