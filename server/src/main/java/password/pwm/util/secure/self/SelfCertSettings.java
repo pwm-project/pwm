@@ -35,7 +35,7 @@ public class SelfCertSettings
     private String subjectAlternateName;
 
     @Builder.Default
-    private int keySize = 1024;
+    private int keySize = 2048;
 
     @Builder.Default
     private String keyAlg = "RSA";
