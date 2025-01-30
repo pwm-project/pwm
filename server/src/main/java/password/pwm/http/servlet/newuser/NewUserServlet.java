@@ -304,6 +304,16 @@ public class NewUserServlet extends ControlledPwmServlet
             }
         }
 
+        // last chance to edit form data before user creation (and DN generation too)
+        try
+        {
+        	NewUserUtils.remoteEditFormData( pwmRequest, newUserBean.getNewUserForm(), null);
+        }
+        catch ( PwmDataValidationException e )
+        {
+            throw new PwmUnrecoverableException( e.getErrorInformation() );
+        }
+        
         // success so create the new user.
         final String newUserDN = NewUserUtils.determineUserDN( pwmRequest, newUserBean.getNewUserForm() );
 
