@@ -33,6 +33,7 @@ import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -43,6 +44,7 @@ import java.util.Arrays;
  */
 public class PasswordData implements Serializable
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PasswordData.class );
@@ -75,9 +77,9 @@ public class PasswordData implements Serializable
         catch ( final Exception e )
         {
             LOGGER.fatal( () -> "can't initialize PasswordData handler: " + e.getMessage(), e );
-            if ( e instanceof PwmException )
+            if ( e instanceof PwmException exception )
             {
-                newInitializationError = ( ( PwmException ) e ).getErrorInformation();
+                newInitializationError = exception.getErrorInformation();
             }
             else
             {

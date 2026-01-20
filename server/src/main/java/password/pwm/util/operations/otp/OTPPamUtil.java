@@ -94,7 +94,7 @@ public class OTPPamUtil
                     else
                     {
                         final String finalLine = line;
-                        LOGGER.trace( () -> String.format( "Unrecognized line: \"%s\"", finalLine ) );
+                        LOGGER.trace( () -> "Unrecognized line: \"%s\"".formatted( finalLine ) );
                     }
                 }
                 if ( recoveryCodes.isEmpty() )
@@ -105,7 +105,7 @@ public class OTPPamUtil
                 }
                 else
                 {
-                    LOGGER.debug( () -> String.format( "%d recovery codes read.", recoveryCodes.size() ) );
+                    LOGGER.debug( () -> "%d recovery codes read.".formatted( recoveryCodes.size() ) );
                     final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
                     recoveryInfo.setHashCount( 0 );
                     recoveryInfo.setSalt( null );
@@ -138,7 +138,7 @@ public class OTPPamUtil
         pamData.append( secret ).append( "\n" );
         if ( OTPUserRecord.Type.HOTP.equals( type ) )
         {
-            pamData.append( String.format( "\" HOTP_COUNTER %d%n", otp.getAttemptCount() ) );
+            pamData.append( "\" HOTP_COUNTER %d%n".formatted( otp.getAttemptCount() ) );
         }
         else
         {

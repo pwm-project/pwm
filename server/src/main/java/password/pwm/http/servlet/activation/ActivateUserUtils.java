@@ -344,7 +344,7 @@ class ActivateUserUtils
 
         final Optional<String> profileID = ProfileUtility.discoverProfileIDForUser( pwmRequest.getPwmRequestContext(), userIdentity, ProfileDefinition.ActivateUser );
 
-        if ( !profileID.isPresent() || !pwmApplication.getConfig().getUserActivationProfiles().containsKey( profileID.get() ) )
+        if ( profileID.isEmpty() || !pwmApplication.getConfig().getUserActivationProfiles().containsKey( profileID.get() ) )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_ACTIVATE_NO_PERMISSION, "no matching user activation profile for user" );
         }

@@ -30,6 +30,7 @@ import password.pwm.util.i18n.LocaleHelper;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.StringUtil;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
@@ -63,6 +64,7 @@ public class StoredConfigItemKey implements Serializable, Comparable<StoredConfi
     private final String recordID;
     private final String profileID;
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private static final Comparator<StoredConfigItemKey> COMPARATOR = makeComparator();

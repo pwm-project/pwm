@@ -287,61 +287,61 @@ public class DailySummaryJob implements Runnable
 
     private static String htmlHeader()
     {
-        return "<html><head>"
-                + "<style type='text/css'"
-                + "\n"
-                + "html, body { font-family:Arial, Helvetica, sans-serif; color:#333333; font-size:12px; height:100%; margin:0 }\n"
-                + "\n"
-                + "a { color:#2D2D2D; text-decoration:underline; font-weight:bold }\n"
-                + "p { max-width: 600px; color:#2D2D2D; position:relative; margin-left: auto; margin-right: auto}\n"
-                + "hr { float: none; width:100px; position:relative; margin-left:5px; margin-top: 30px; margin-bottom: 30px; }\n"
-                + "\n"
-                + "h1 { font-size:16px; }\n"
-                + "h2 { font-size:14px; }\n"
-                + "h3 { font-size:12px; }\n"
-                + "\n"
-                + "select { font-family:Trebuchet MS, sans-serif; width: 500px }\n"
-                + "\n"
-                + "table { border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%; margin-left: auto; margin-right: auto }\n"
-                + "table td { border: 1px solid #D4D4D4; padding-left: 5px;}\n"
-                + "table td.title { text-align:center; font-weight: bold; font-size: 150%; padding-right: 10px; background-color:#DDDDDD }\n"
-                + "table td.key { text-align:right; font-weight:bold; padding-right: 10px; width: 200px;}\n"
-                + "\n"
-                + ".inputfield { width:400px; margin: 5px; height:18px }\n"
-                + "\n"
-                + "/* main body wrapper, all elements (except footer) should be within wrapper */\n"
-                + "#wrapper { width:100%; min-height: 100%; height: auto !important; height: 100%; margin: 0; }\n"
-                + "\n"
-                + "\n"
-                + "/* main content section, all content should be inside a centerbody div */\n"
-                + "#centerbody { width:600px; min-width:600px; padding:0; position:relative;"
-                + "; margin-left:auto; margin-right:auto; margin-top: 10px; clear:both; padding-bottom:40px;}\n"
-                + "\n"
-                + "/* all forms use a buttonbar div containing the action buttons */\n"
-                + "#buttonbar { margin-top: 30px; width:600px; margin-bottom: 15px; text-align: center}\n"
-                + "#buttonbar .btn { font-family:Trebuchet MS, sans-serif; margin-left: 5px; margin-right: 5px; padding: 0 .25em; width: auto; overflow: visible}\n"
-                + "\n"
-                + "/* used for password complexity meter */\n"
-                + "div.progress-container { border: 1px solid #ccc; width: 90px; margin: 2px 5px 2px 0; padding: 1px; float: left; background: white; }\n"
-                + "div.progress-container > div { background-color: #ffffff; height: 10px; }\n"
-                + "\n"
-                + "/* header stuff */\n"
-                + "#header         { width:100%; height: 70px; margin: 0; background-image:url('header-gradient.gif') }\n"
-                + "#header-page    { width:600px; padding-top:9px; margin-left: auto; margin-right: auto; font-family:Trebuchet MS, sans-serif; font-size:22px; color:#FFFFFF; }\n"
-                + "#header-title   { width:600px; margin: auto; font-family:Trebuchet MS, sans-serif; font-size:14px; color:#FFFFFF; }\n"
-                + "#header-warning { width:100%; background-color:#FFDC8B; text-align:center; padding-top:4px; padding-bottom:4px }\n"
-                + "\n"
-                + ".clear { clear:both; }\n"
-                + "\n"
-                + ".msg-info    { display:block; padding:6px; background-color:#DDDDDD; width: 560px; border-radius:3px; -moz-border-radius:3px}\n"
-                + ".msg-error   { display:block; padding:6px; background-color:#FFCD59; width: 560px; border-radius:3px; -moz-border-radius:3px}\n"
-                + ".msg-success { display:block; padding:6px; background-color:#EFEFEF; width: 560px; border-radius:3px; -moz-border-radius:3px}\n"
-                + "\n"
-                + "#footer { position:relative; ;text-align: center; bottom:0; width:100%; color: #BBBBBB; font-size: 11px; height: 30px; margin: 0; margin-top: -30px}\n"
-                + "#footer .idle_status { color: #333333; }\n"
-                + "\n"
-                + "#capslockwarning { font-family: Trebuchet MS, sans-serif; color: #ffffff; font-weight:bold; "
-                + "font-variant:small-caps; margin-bottom: 5px; background-color:#d20734; border-radius:3px}\n"
-                + "</style></head><body>";
+        return """
+                <html><head>\
+                <style type='text/css'
+                html, body { font-family:Arial, Helvetica, sans-serif; color:#333333; font-size:12px; height:100%; margin:0 }
+                
+                a { color:#2D2D2D; text-decoration:underline; font-weight:bold }
+                p { max-width: 600px; color:#2D2D2D; position:relative; margin-left: auto; margin-right: auto}
+                hr { float: none; width:100px; position:relative; margin-left:5px; margin-top: 30px; margin-bottom: 30px; }
+                
+                h1 { font-size:16px; }
+                h2 { font-size:14px; }
+                h3 { font-size:12px; }
+                
+                select { font-family:Trebuchet MS, sans-serif; width: 500px }
+                
+                table { border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%; margin-left: auto; margin-right: auto }
+                table td { border: 1px solid #D4D4D4; padding-left: 5px;}
+                table td.title { text-align:center; font-weight: bold; font-size: 150%; padding-right: 10px; background-color:#DDDDDD }
+                table td.key { text-align:right; font-weight:bold; padding-right: 10px; width: 200px;}
+                
+                .inputfield { width:400px; margin: 5px; height:18px }
+                
+                /* main body wrapper, all elements (except footer) should be within wrapper */
+                #wrapper { width:100%; min-height: 100%; height: auto !important; height: 100%; margin: 0; }
+                
+                
+                /* main content section, all content should be inside a centerbody div */
+                #centerbody { width:600px; min-width:600px; padding:0; position:relative;\
+                ; margin-left:auto; margin-right:auto; margin-top: 10px; clear:both; padding-bottom:40px;}
+                
+                /* all forms use a buttonbar div containing the action buttons */
+                #buttonbar { margin-top: 30px; width:600px; margin-bottom: 15px; text-align: center}
+                #buttonbar .btn { font-family:Trebuchet MS, sans-serif; margin-left: 5px; margin-right: 5px; padding: 0 .25em; width: auto; overflow: visible}
+                
+                /* used for password complexity meter */
+                div.progress-container { border: 1px solid #ccc; width: 90px; margin: 2px 5px 2px 0; padding: 1px; float: left; background: white; }
+                div.progress-container > div { background-color: #ffffff; height: 10px; }
+                
+                /* header stuff */
+                #header         { width:100%; height: 70px; margin: 0; background-image:url('header-gradient.gif') }
+                #header-page    { width:600px; padding-top:9px; margin-left: auto; margin-right: auto; font-family:Trebuchet MS, sans-serif; font-size:22px; color:#FFFFFF; }
+                #header-title   { width:600px; margin: auto; font-family:Trebuchet MS, sans-serif; font-size:14px; color:#FFFFFF; }
+                #header-warning { width:100%; background-color:#FFDC8B; text-align:center; padding-top:4px; padding-bottom:4px }
+                
+                .clear { clear:both; }
+                
+                .msg-info    { display:block; padding:6px; background-color:#DDDDDD; width: 560px; border-radius:3px; -moz-border-radius:3px}
+                .msg-error   { display:block; padding:6px; background-color:#FFCD59; width: 560px; border-radius:3px; -moz-border-radius:3px}
+                .msg-success { display:block; padding:6px; background-color:#EFEFEF; width: 560px; border-radius:3px; -moz-border-radius:3px}
+                
+                #footer { position:relative; ;text-align: center; bottom:0; width:100%; color: #BBBBBB; font-size: 11px; height: 30px; margin: 0; margin-top: -30px}
+                #footer .idle_status { color: #333333; }
+                
+                #capslockwarning { font-family: Trebuchet MS, sans-serif; color: #ffffff; font-weight:bold; \
+                font-variant:small-caps; margin-bottom: 5px; background-color:#d20734; border-radius:3px}
+                </style></head><body>""";
     }
 }

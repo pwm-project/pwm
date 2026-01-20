@@ -26,6 +26,7 @@ import lombok.Value;
 import password.pwm.config.value.data.FormConfiguration;
 import password.pwm.util.java.TimeDuration;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import java.util.Map;
 @Builder( toBuilder = true )
 public class SearchConfiguration implements Serializable
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private String filter;

@@ -185,7 +185,7 @@ public class RestProfileServer extends RestServlet
             ProfileDefinition.UpdateAttributes
         );
 
-        if ( !updateProfileID.isPresent() )
+        if ( updateProfileID.isEmpty() )
         {
             throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
         }

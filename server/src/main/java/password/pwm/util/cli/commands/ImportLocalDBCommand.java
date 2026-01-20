@@ -36,10 +36,11 @@ public class ImportLocalDBCommand extends AbstractCliCommand
     {
         final LocalDB localDB = cliEnvironment.getLocalDB();
 
-        final String msg = "Proceeding with this operation will clear ALL data from the LocalDB." + "\n"
-                + "Please consider backing up the LocalDB before proceeding. " + "\n"
-                + "\n"
-                + "The application must be stopped for this operation to succeed.";
+        final String msg = """
+                Proceeding with this operation will clear ALL data from the LocalDB.
+                Please consider backing up the LocalDB before proceeding.\s
+                
+                The application must be stopped for this operation to succeed.""";
         if ( !promptForContinue( msg ) )
         {
             out( "exiting..." );

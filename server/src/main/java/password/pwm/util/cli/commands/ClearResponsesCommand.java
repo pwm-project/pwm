@@ -30,10 +30,12 @@ public class ClearResponsesCommand extends AbstractCliCommand
     void doCommand( )
             throws Exception
     {
-        final String msg = "Proceeding with this operation will clear all stored responses from the LocalDB." + "\n"
-                + "Please consider exporting the responses before proceeding. " + "\n"
-                + "\n"
-                + "The application must be stopped for this operation to succeed." + "\n";
+        final String msg = """
+                Proceeding with this operation will clear all stored responses from the LocalDB.
+                Please consider exporting the responses before proceeding.\s
+                
+                The application must be stopped for this operation to succeed.
+                """;
         if ( !promptForContinue( msg ) )
         {
             return;

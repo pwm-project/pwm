@@ -37,6 +37,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ import java.util.TreeMap;
 
 class HelpdeskVerificationStateBean implements Serializable
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( HelpdeskVerificationStateBean.class );

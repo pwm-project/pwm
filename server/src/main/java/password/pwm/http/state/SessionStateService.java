@@ -202,7 +202,7 @@ public class SessionStateService implements PwmService
     {
         try
         {
-            final E newBean = theClass.newInstance();
+            final E newBean = theClass.getDeclaredConstructor().newInstance();
             newBean.setGuid( sessionGuid );
             newBean.setTimestamp( Instant.now() );
             return newBean;

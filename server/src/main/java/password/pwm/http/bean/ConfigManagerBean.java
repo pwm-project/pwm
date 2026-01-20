@@ -25,6 +25,7 @@ import lombok.EqualsAndHashCode;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.config.stored.StoredConfiguration;
 
+import java.io.Serial;
 import java.util.Collections;
 import java.util.Set;
 
@@ -32,6 +33,7 @@ import java.util.Set;
 @EqualsAndHashCode( callSuper = false )
 public class ConfigManagerBean extends PwmSessionBean
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private transient StoredConfiguration storedConfiguration;

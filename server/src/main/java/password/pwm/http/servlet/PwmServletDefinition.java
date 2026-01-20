@@ -168,9 +168,9 @@ public enum PwmServletDefinition
     {
         for ( final Annotation annotation : pwmServletClass.getDeclaredAnnotations() )
         {
-            if ( annotation instanceof WebServlet )
+            if ( annotation instanceof WebServlet servlet )
             {
-                return ( WebServlet ) annotation;
+                return servlet;
             }
         }
 

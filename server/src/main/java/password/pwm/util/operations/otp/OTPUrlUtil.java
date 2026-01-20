@@ -46,7 +46,7 @@ public class OTPUrlUtil
         final String ident = otp.getIdentifier();
         final String secret = otp.getSecret();
         final String otptype = otp.getType().toString();
-        final String otpInfo = String.format( "otpauth://%s/%s?secret=%s", otptype.toLowerCase(), ident, secret );
+        final String otpInfo = "otpauth://%s/%s?secret=%s".formatted( otptype.toLowerCase(), ident, secret );
         return otpInfo;
     }
 

@@ -203,7 +203,7 @@ public class SessionManager
         final boolean devDebugMode = pwmApplication.getConfig().isDevDebugMode();
         if ( devDebugMode )
         {
-            LOGGER.trace( pwmSession.getLabel(), () -> String.format( "entering checkPermission(%s, %s, %s)", permission, pwmSession, pwmApplication ) );
+            LOGGER.trace( pwmSession.getLabel(), () -> "entering checkPermission(%s, %s, %s)".formatted( permission, pwmSession, pwmApplication ) );
         }
 
         if ( !pwmSession.isAuthenticated() )
@@ -221,7 +221,7 @@ public class SessionManager
             if ( devDebugMode )
             {
                 LOGGER.debug( pwmSession.getLabel(),
-                        () -> String.format( "checking permission %s for user %s", permission.toString(), pwmSession.getUserInfo().getUserIdentity().toDelimitedKey() ) );
+                        () -> "checking permission %s for user %s".formatted( permission.toString(), pwmSession.getUserInfo().getUserIdentity().toDelimitedKey() ) );
             }
 
             final PwmSetting setting = permission.getPwmSetting();
@@ -233,7 +233,7 @@ public class SessionManager
             {
                 final Permission.PermissionStatus finalStatus = status;
                 LOGGER.debug( pwmSession.getLabel(),
-                        () -> String.format( "permission %s for user %s is %s",
+                        () -> "permission %s for user %s is %s".formatted(
                                 permission.toString(),
                                 pwmSession.isAuthenticated()
                                         ? pwmSession.getUserInfo().getUserIdentity().toDelimitedKey()

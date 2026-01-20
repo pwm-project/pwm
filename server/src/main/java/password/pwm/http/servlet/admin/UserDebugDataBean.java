@@ -29,6 +29,7 @@ import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.ldap.UserInfo;
 import password.pwm.svc.pwnotify.PwNotifyUserStatus;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -36,6 +37,7 @@ import java.util.Map;
 @Builder
 public class UserDebugDataBean implements Serializable
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private transient UserInfo userInfo;

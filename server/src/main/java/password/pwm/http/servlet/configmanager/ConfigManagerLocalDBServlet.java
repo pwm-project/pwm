@@ -205,8 +205,8 @@ public class ConfigManagerLocalDBServlet extends AbstractPwmServlet
         }
         catch ( final Exception e )
         {
-            final ErrorInformation errorInformation = e instanceof PwmException
-                    ? ( ( PwmException ) e ).getErrorInformation()
+            final ErrorInformation errorInformation = e instanceof PwmException pe
+                    ? pe.getErrorInformation()
                     : new ErrorInformation( PwmError.ERROR_INTERNAL, e.getMessage() );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );
             LOGGER.error( pwmRequest, () -> "error during LocalDB import: " + errorInformation.toDebugStr() );

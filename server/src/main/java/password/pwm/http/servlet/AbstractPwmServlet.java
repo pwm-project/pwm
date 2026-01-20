@@ -179,14 +179,14 @@ public abstract class AbstractPwmServlet extends HttpServlet implements PwmServl
             final PwmRequest pwmRequest
     )
     {
-        if ( e instanceof PwmUnrecoverableException )
+        if ( e instanceof PwmUnrecoverableException exception )
         {
-            return ( PwmUnrecoverableException ) e;
+            return exception;
         }
 
-        if ( e instanceof PwmException )
+        if ( e instanceof PwmException exception )
         {
-            return new PwmUnrecoverableException( ( ( PwmException ) e ).getErrorInformation() );
+            return new PwmUnrecoverableException( exception.getErrorInformation() );
         }
 
         if ( e instanceof ChaiUnavailableException )

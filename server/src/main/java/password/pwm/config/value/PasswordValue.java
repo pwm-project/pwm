@@ -36,6 +36,7 @@ import password.pwm.util.java.XmlElement;
 import password.pwm.util.java.XmlFactory;
 import password.pwm.util.secure.PwmSecurityKey;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
@@ -44,6 +45,7 @@ import java.util.Optional;
 
 public class PasswordValue implements StoredValue
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private final transient LazySupplier<String> valueHashSupplier = new LazySupplier<>( () -> AbstractValue.valueHashComputer( PasswordValue.this ) );

@@ -141,9 +141,8 @@ public class DerbyLocalDB extends AbstractJDBCLocalDB
         catch ( final Throwable e )
         {
             final String errorMsg;
-            if ( e instanceof SQLException )
+            if ( e instanceof SQLException sqlException )
             {
-                final SQLException sqlException = ( SQLException ) e;
                 final SQLException nextException = sqlException.getNextException();
                 if ( nextException != null )
                 {

@@ -270,9 +270,9 @@ public class MainClass
                             }
                             catch ( final Exception e )
                             {
-                                if ( e instanceof CliException )
+                                if ( e instanceof CliException exception )
                                 {
-                                    throw ( CliException ) e;
+                                    throw exception;
                                 }
                                 throw new CliException( "cannot access file for option '" + option.getName() + "', " + e.getMessage() );
 
@@ -291,9 +291,9 @@ public class MainClass
                             }
                             catch ( final Exception e )
                             {
-                                if ( e instanceof CliException )
+                                if ( e instanceof CliException exception )
                                 {
-                                    throw ( CliException ) e;
+                                    throw exception;
                                 }
                                 throw new CliException( "cannot access file for option '" + option.getName() + "', " + e.getMessage() );
                             }

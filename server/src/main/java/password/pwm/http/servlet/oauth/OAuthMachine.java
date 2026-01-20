@@ -505,21 +505,21 @@ public class OAuthMachine
                 final Object objValue = bodyMap.get( attribute );
                 if ( objValue != null )
                 {
-                    if ( objValue instanceof Double && JavaHelper.doubleContainsLongValue( (Double) objValue ) )
+                    if ( objValue instanceof Double double1 && JavaHelper.doubleContainsLongValue( double1 ) )
                     {
-                        final long longValue = ( ( Double ) objValue ).longValue();
+                        final long longValue = double1.longValue();
                         return Long.toString( longValue );
                     }
 
                     final Object singleObjValue;
-                    if ( objValue instanceof Collection )
+                    if ( objValue instanceof Collection collection )
                     {
-                        if ( ( ( Collection ) objValue ).isEmpty() )
+                        if ( collection.isEmpty() )
                         {
                             return null;
                         }
 
-                        singleObjValue = ( ( Collection ) objValue ).iterator().next();
+                        singleObjValue = collection.iterator().next();
                     }
                     else
                     {

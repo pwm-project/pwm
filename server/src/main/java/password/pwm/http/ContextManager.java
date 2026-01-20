@@ -55,6 +55,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serial;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -75,6 +76,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ContextManager implements Serializable
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( ContextManager.class );
@@ -337,7 +339,7 @@ public class ContextManager implements Serializable
 
         {
             final Optional<String> importLdapCerts = configReader.getStoredConfiguration().readConfigProperty( ConfigurationProperty.IMPORT_LDAP_CERTIFICATES );
-            if ( !importLdapCerts.isPresent() || !Boolean.parseBoolean( importLdapCerts.get() ) )
+            if ( importLdapCerts.isEmpty() || !Boolean.parseBoolean( importLdapCerts.get() ) )
             {
                 return;
             }
@@ -356,9 +358,9 @@ public class ContextManager implements Serializable
             errorMsg = "JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + throwable.getMessage();
             startupErrorInformation = new ErrorInformation( PwmError.ERROR_STARTUP_ERROR, errorMsg );
         }
-        else if ( throwable instanceof PwmException )
+        else if ( throwable instanceof PwmException exception )
         {
-            startupErrorInformation = ( ( PwmException ) throwable ).getErrorInformation().wrapWithNewErrorCode( PwmError.ERROR_STARTUP_ERROR );
+            startupErrorInformation = exception.getErrorInformation().wrapWithNewErrorCode( PwmError.ERROR_STARTUP_ERROR );
         }
         else
         {

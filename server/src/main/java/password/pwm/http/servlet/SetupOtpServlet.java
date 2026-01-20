@@ -207,9 +207,9 @@ public class SetupOtpServlet extends ControlledPwmServlet
             catch ( final Exception e )
             {
                 final ErrorInformation errorInformation;
-                if ( e instanceof PwmException )
+                if ( e instanceof PwmException exception )
                 {
-                    errorInformation = ( ( PwmException ) e ).getErrorInformation();
+                    errorInformation = exception.getErrorInformation();
                 }
                 else
                 {

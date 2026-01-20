@@ -41,7 +41,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -284,7 +284,7 @@ public class TomcatOnejarRunner
             {
                 String contents = reader.lines().collect( Collectors.joining( "\n" ) );
                 contents = contents.replace( "[[[ROOT_CONTEXT]]]", rootcontext );
-                Files.write( Paths.get( destPath ), contents.getBytes( StandardCharsets.UTF_8 ) );
+                Files.write( Path.of( destPath ), contents.getBytes( StandardCharsets.UTF_8 ) );
             }
         }
     }

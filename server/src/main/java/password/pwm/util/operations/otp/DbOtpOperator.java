@@ -58,7 +58,7 @@ public class DbOtpOperator extends AbstractOtpOperator
     public OTPUserRecord readOtpUserConfiguration( final UserIdentity theUser, final String userGUID )
             throws PwmUnrecoverableException
     {
-        LOGGER.trace( () -> String.format( "Enter: readOtpUserConfiguration(%s, %s)", theUser, userGUID ) );
+        LOGGER.trace( () -> "Enter: readOtpUserConfiguration(%s, %s)".formatted( theUser, userGUID ) );
         if ( userGUID == null || userGUID.length() < 1 )
         {
             throw new PwmUnrecoverableException( new ErrorInformation( PwmError.ERROR_MISSING_GUID, "cannot save otp to db, user does not have a GUID" ) );

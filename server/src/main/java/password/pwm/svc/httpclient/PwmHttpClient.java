@@ -59,9 +59,9 @@ public interface PwmHttpClient extends AutoCloseable
         {
             for ( final TrustManager trustManager : trustManagers )
             {
-                if ( trustManager instanceof CertificateReadingTrustManager )
+                if ( trustManager instanceof CertificateReadingTrustManager manager )
                 {
-                    returnList.addAll( ( ( CertificateReadingTrustManager ) trustManager ).getCertificates() );
+                    returnList.addAll( manager.getCertificates() );
                 }
             }
         }

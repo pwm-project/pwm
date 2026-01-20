@@ -167,14 +167,14 @@ public class PasswordUtility
 
         if ( toNumber == null || toNumber.length() < 1 )
         {
-            final String errorMsg = String.format( "unable to send new password email for '%s'; no SMS number available in ldap", userInfo.getUserIdentity() );
+            final String errorMsg = "unable to send new password email for '%s'; no SMS number available in ldap".formatted( userInfo.getUserIdentity() );
             return new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
         }
 
         message = message.replace( "%TOKEN%", newPassword.getStringValue() );
 
         pwmApplication.sendSmsUsingQueue( toNumber, message, null, macroRequest );
-        LOGGER.debug( () -> String.format( "password SMS added to send queue for %s", toNumber ) );
+        LOGGER.debug( () -> "password SMS added to send queue for %s".formatted( toNumber ) );
         return null;
     }
 

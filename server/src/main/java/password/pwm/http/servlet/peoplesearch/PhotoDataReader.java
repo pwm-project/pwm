@@ -93,7 +93,7 @@ public class PhotoDataReader
             throws PwmUnrecoverableException
     {
         final Optional<String> photoUrlOverride = getPhotoUrlOverride( userIdentity );
-        if ( !photoUrlOverride.isPresent() )
+        if ( photoUrlOverride.isEmpty() )
         {
             return PhotoReaderMethod.Ldap;
         }
@@ -225,7 +225,7 @@ public class PhotoDataReader
             throws PwmUnrecoverableException, PwmOperationalException
     {
         final Optional<String> overrideURL = getPhotoUrlOverride( userIdentity );
-        if ( !overrideURL.isPresent() )
+        if ( overrideURL.isEmpty() )
         {
             return Optional.empty();
         }

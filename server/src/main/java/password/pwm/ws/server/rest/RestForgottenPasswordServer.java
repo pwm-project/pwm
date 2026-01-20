@@ -121,7 +121,7 @@ public class RestForgottenPasswordServer extends RestServlet
                     restRequest.commonValues(),
                     inputBean );
 
-            newState = !readBean.isPresent();
+            newState = readBean.isEmpty();
 
             stateMachine.nextStage();
         }

@@ -223,9 +223,9 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         catch ( final Exception e )
         {
             final RestResultBean restResultBean;
-            if ( e instanceof PwmException )
+            if ( e instanceof PwmException exception )
             {
-                restResultBean = RestResultBean.fromError( ( ( PwmException ) e ).getErrorInformation(), pwmRequest, true );
+                restResultBean = RestResultBean.fromError( exception.getErrorInformation(), pwmRequest, true );
             }
             else
             {

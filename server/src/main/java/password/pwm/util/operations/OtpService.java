@@ -350,7 +350,7 @@ public class OtpService implements PwmService
                 }
                 else
                 {
-                    LOGGER.warn( sessionLabel, () -> String.format( "storage location %s not implemented", location.toString() ) );
+                    LOGGER.warn( sessionLabel, () -> "storage location %s not implemented".formatted( location.toString() ) );
                 }
             }
         }
@@ -404,7 +404,7 @@ public class OtpService implements PwmService
                 }
                 else
                 {
-                    LOGGER.warn( pwmRequest, () -> String.format( "storage location %s not implemented", otpSecretStorageLocation.toString() ) );
+                    LOGGER.warn( pwmRequest, () -> "storage location %s not implemented".formatted( otpSecretStorageLocation.toString() ) );
                 }
             }
         }
@@ -464,7 +464,7 @@ public class OtpService implements PwmService
                 }
                 else
                 {
-                    LOGGER.warn( pwmRequest, () -> String.format( "storage location %s not implemented", otpSecretStorageLocation.toString() ) );
+                    LOGGER.warn( pwmRequest, () -> "storage location %s not implemented".formatted( otpSecretStorageLocation.toString() ) );
                 }
             }
         }

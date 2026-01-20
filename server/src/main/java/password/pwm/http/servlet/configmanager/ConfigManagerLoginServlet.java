@@ -442,7 +442,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         }
 
         final Optional<String> configPasswordHash = pwmRequest.getConfig().getStoredConfiguration().readConfigProperty( ConfigurationProperty.PASSWORD_HASH );
-        if ( !configPasswordHash.isPresent() )
+        if ( configPasswordHash.isEmpty() )
         {
             LOGGER.debug( pwmRequest, () -> "config password is not present, persistent login not possible." );
             return false;

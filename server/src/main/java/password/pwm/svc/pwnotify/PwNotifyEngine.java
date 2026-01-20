@@ -304,7 +304,7 @@ public class PwNotifyEngine
     {
         final Optional<PwNotifyUserStatus> optionalStoredState = storageService.readStoredUserState( userIdentity, SESSION_LABEL );
 
-        if ( !optionalStoredState.isPresent() )
+        if ( optionalStoredState.isEmpty() )
         {
             return false;
         }

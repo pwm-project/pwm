@@ -603,7 +603,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
     {
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean( pwmRequest );
         final String userEnteredCode = pwmRequest.readParameterAsString( PwmConstants.PARAM_TOKEN );
-        LOGGER.debug( pwmRequest, () -> String.format( "entered OTP: %s", userEnteredCode ) );
+        LOGGER.debug( pwmRequest, () -> "entered OTP: %s".formatted( userEnteredCode ) );
 
         final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequest.getPwmRequestContext(), forgottenPasswordBean );
         final OTPUserRecord otpUserRecord = userInfo.getOtpUserRecord();

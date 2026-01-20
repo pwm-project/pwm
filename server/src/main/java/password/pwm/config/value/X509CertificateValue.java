@@ -37,6 +37,7 @@ import password.pwm.util.secure.SecureEngine;
 import password.pwm.util.secure.X509Utils;
 
 import java.io.ByteArrayInputStream;
+import java.io.Serial;
 import java.io.Serializable;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
@@ -51,6 +52,7 @@ import java.util.stream.Collectors;
 
 public class X509CertificateValue extends AbstractValue implements StoredValue
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( X509CertificateValue.class );

@@ -669,7 +669,7 @@ public class PwmApplication
             try
             {
                 final Optional<String> storedDateStr = readAppAttribute( AppAttribute.INSTALL_DATE, String.class );
-                if ( !storedDateStr.isPresent() )
+                if ( storedDateStr.isEmpty() )
                 {
                     writeAppAttribute( AppAttribute.INSTALL_DATE, String.valueOf( startupTime.toEpochMilli() ) );
                 }

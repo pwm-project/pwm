@@ -35,6 +35,7 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.password.PasswordRuleReaderHelper;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,6 +56,7 @@ import java.util.regex.Pattern;
  */
 public class PwmPasswordPolicy implements Profile, Serializable
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmPasswordPolicy.class );

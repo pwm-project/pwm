@@ -138,7 +138,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService
     {
         final Optional<String> testWord = WordlistUtil.normalizeWordLength( word, wordlistConfiguration );
 
-        if ( !testWord.isPresent() )
+        if ( testWord.isEmpty() )
         {
             return false;
         }

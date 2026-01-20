@@ -150,7 +150,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         // mark the inprogress flag to false, if we get this far and fail user needs to start over.
         pwmSession.getSessionStateBean().setOauthInProgress( false );
 
-        if ( !oAuthRequestState.isPresent() )
+        if ( oAuthRequestState.isEmpty() )
         {
             final String errorMsg = "state parameter is missing from oauth request";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );

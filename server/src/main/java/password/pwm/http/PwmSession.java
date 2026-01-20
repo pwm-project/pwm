@@ -45,6 +45,7 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmRandom;
 import password.pwm.util.secure.PwmSecurityKey;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Date;
@@ -60,6 +61,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class PwmSession implements Serializable
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private static final PwmLogger LOGGER = PwmLogger.forClass( PwmSession.class );

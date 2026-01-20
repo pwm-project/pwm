@@ -560,9 +560,9 @@ public class FormUtility
         catch ( final Exception e )
         {
             PwmError error = null;
-            if ( e instanceof ChaiException )
+            if ( e instanceof ChaiException exception )
             {
-                error = PwmError.forChaiError( ( ( ChaiException ) e ).getErrorCode() );
+                error = PwmError.forChaiError( exception.getErrorCode() );
             }
             if ( error == null || error == PwmError.ERROR_INTERNAL )
             {
