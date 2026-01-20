@@ -21,9 +21,9 @@
 package password.pwm.http;
 
 import lombok.Value;
-import org.apache.commons.fileupload.FileItemIterator;
-import org.apache.commons.fileupload.FileItemStream;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload2.core.FileItemInput;
+import org.apache.commons.fileupload2.core.FileItemInputIterator;
+import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -53,9 +53,9 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.ws.server.RestResultBean;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -231,20 +231,20 @@ public class PwmRequest extends PwmHttpRequestWrapper
     {
         try
         {
-            if ( ServletFileUpload.isMultipartContent( this.getHttpServletRequest() ) )
+            if ( JakartaServletFileUpload.isMultipartContent( this.getHttpServletRequest() ) )
             {
 
                 // Create a new file upload handler
-                final ServletFileUpload upload = new ServletFileUpload();
+                final JakartaServletFileUpload upload = new JakartaServletFileUpload();
 
                 // Parse the request
-                for ( final FileItemIterator iter = upload.getItemIterator( this.getHttpServletRequest() ); iter.hasNext(); )
+                for ( final FileItemInputIterator iter = upload.getItemIterator( this.getHttpServletRequest() ); iter.hasNext(); )
                 {
-                    final FileItemStream item = iter.next();
+                    final FileItemInput item = iter.next();
 
                     if ( filePartName.equals( item.getFieldName() ) )
                     {
-                        return item.openStream();
+                        return item.getInputStream();
                     }
                 }
             }
@@ -265,14 +265,14 @@ public class PwmRequest extends PwmHttpRequestWrapper
         final Map<String, FileUploadItem> returnObj = new LinkedHashMap<>();
         try
         {
-            if ( ServletFileUpload.isMultipartContent( this.getHttpServletRequest() ) )
+            if ( JakartaServletFileUpload.isMultipartContent( this.getHttpServletRequest() ) )
             {
-                final ServletFileUpload upload = new ServletFileUpload();
-                final FileItemIterator iter = upload.getItemIterator( this.getHttpServletRequest() );
+                final JakartaServletFileUpload upload = new JakartaServletFileUpload();
+                final FileItemInputIterator iter = upload.getItemIterator( this.getHttpServletRequest() );
                 while ( iter.hasNext() && returnObj.size() < maxItems )
                 {
-                    final FileItemStream item = iter.next();
-                    final InputStream inputStream = item.openStream();
+                    final FileItemInput item = iter.next();
+                    final InputStream inputStream = item.getInputStream();
                     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     final long length = IOUtils.copyLarge( inputStream, baos, 0, maxFileSize + 1 );
                     if ( length > maxFileSize )

@@ -40,7 +40,7 @@ import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;

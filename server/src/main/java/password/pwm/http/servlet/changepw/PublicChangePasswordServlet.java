@@ -22,7 +22,7 @@ package password.pwm.http.servlet.changepw;
 
 import password.pwm.PwmConstants;
 
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.WebServlet;
 
 @WebServlet(
         name = "PublicChangePasswordServlet",

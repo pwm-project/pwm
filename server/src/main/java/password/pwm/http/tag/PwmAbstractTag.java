@@ -20,7 +20,7 @@
 
 package password.pwm.http.tag;
 
-import javax.servlet.jsp.tagext.TagSupport;
+import jakarta.servlet.jsp.tagext.TagSupport;
 
 /**
  * @author Jason D. Rivard

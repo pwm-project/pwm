@@ -74,7 +74,7 @@ import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.util.password.RandomPasswordGenerator;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;

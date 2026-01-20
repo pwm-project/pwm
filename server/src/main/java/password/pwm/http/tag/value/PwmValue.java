@@ -37,8 +37,8 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
-import javax.servlet.jsp.JspPage;
-import javax.servlet.jsp.PageContext;
+import jakarta.servlet.jsp.JspPage;
+import jakarta.servlet.jsp.PageContext;
 import java.util.Locale;
 import java.util.Set;
 

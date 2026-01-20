@@ -49,8 +49,8 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.operations.ActionExecutor;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;

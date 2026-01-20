@@ -39,7 +39,7 @@ import password.pwm.ws.server.RestWebServer;
 import password.pwm.ws.server.rest.bean.HealthData;
 import password.pwm.ws.server.rest.bean.HealthRecord;
 
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

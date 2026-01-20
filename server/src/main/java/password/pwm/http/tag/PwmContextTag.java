@@ -20,16 +20,16 @@
 
 package password.pwm.http.tag;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.jsp.JspTagException;
-import javax.servlet.jsp.tagext.TagSupport;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.jsp.JspTagException;
+import jakarta.servlet.jsp.tagext.TagSupport;
 
 public class PwmContextTag extends TagSupport
 {
 
     @Override
     public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+            throws jakarta.servlet.jsp.JspTagException
     {
         try
         {

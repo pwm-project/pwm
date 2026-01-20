@@ -25,9 +25,9 @@ import password.pwm.http.PwmRequestAttribute;
 import password.pwm.i18n.Message;
 import password.pwm.util.macro.MacroRequest;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspTagException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.jsp.JspTagException;
 
 /**
  * @author Jason D. Rivard
@@ -37,7 +37,7 @@ public class SuccessMessageTag extends PwmAbstractTag
 
     @Override
     public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+            throws jakarta.servlet.jsp.JspTagException
     {
         try
         {

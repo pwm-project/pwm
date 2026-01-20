@@ -24,7 +24,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 
-import javax.servlet.jsp.PageContext;
+import jakarta.servlet.jsp.PageContext;
 
 public interface ValueOutput
 {

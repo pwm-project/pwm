@@ -58,8 +58,8 @@ import password.pwm.util.operations.OtpService;
 import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.ws.server.RestResultBean;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;

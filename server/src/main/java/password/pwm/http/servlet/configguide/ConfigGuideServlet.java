@@ -70,8 +70,8 @@ import password.pwm.util.secure.X509Utils;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.bean.HealthData;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;

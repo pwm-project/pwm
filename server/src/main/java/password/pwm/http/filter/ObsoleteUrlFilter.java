@@ -34,7 +34,7 @@ import password.pwm.svc.stats.StatisticsManager;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;

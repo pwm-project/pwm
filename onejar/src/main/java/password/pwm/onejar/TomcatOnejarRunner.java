@@ -25,8 +25,10 @@ import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.util.ServerInfo;
 import org.apache.coyote.http2.Http2Protocol;
+import org.apache.tomcat.util.net.SSLHostConfig;
+import org.apache.tomcat.util.net.SSLHostConfigCertificate;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -163,11 +165,17 @@ public class TomcatOnejarRunner
         connector.setScheme( "https" );
         connector.addUpgradeProtocol( new Http2Protocol() );
         connector.setProperty( "SSLEnabled", "true" );
-       // connector.setAttribute( "truststoreType", "PKCS12" );
-        connector.setProperty( "keystoreFile", onejarConfig.getKeystoreFile().getAbsolutePath() );
-        connector.setProperty( "keystorePass", onejarConfig.getKeystorePass() );
-        connector.setProperty( "keyAlias", OnejarMain.KEYSTORE_ALIAS );
-        connector.setProperty( "clientAuth", "false" );
+
+        final SSLHostConfig sslHostConfig = new SSLHostConfig();
+        sslHostConfig.setHostName( "_default_" );
+
+        final SSLHostConfigCertificate certificate = new SSLHostConfigCertificate( sslHostConfig, SSLHostConfigCertificate.Type.UNDEFINED );
+        certificate.setCertificateKeystoreFile( onejarConfig.getKeystoreFile().getAbsolutePath() );
+        certificate.setCertificateKeystorePassword( onejarConfig.getKeystorePass() );
+        certificate.setCertificateKeyAlias( OnejarMain.KEYSTORE_ALIAS );
+
+        sslHostConfig.addCertificate( certificate );
+        connector.addSslHostConfig( sslHostConfig );
 
         out( "connector maxThreads=" + connector.getProperty( "maxThreads" ) );
         out( "connector maxConnections=" + connector.getProperty( "maxConnections" ) );

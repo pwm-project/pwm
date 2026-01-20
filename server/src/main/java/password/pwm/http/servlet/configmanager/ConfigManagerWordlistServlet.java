@@ -22,7 +22,7 @@ package password.pwm.http.servlet.configmanager;
 
 import lombok.Builder;
 import lombok.Value;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
@@ -46,9 +46,9 @@ import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -151,7 +151,7 @@ public class ConfigManagerWordlistServlet extends AbstractPwmServlet
             return;
         }
 
-        if ( !ServletFileUpload.isMultipartContent( req ) )
+        if ( !JakartaServletFileUpload.isMultipartContent( req ) )
         {
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "no file found in upload" );
             pwmRequest.outputJsonResult( RestResultBean.fromError( errorInformation, pwmRequest ) );

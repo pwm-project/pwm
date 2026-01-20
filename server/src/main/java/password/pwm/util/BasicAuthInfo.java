@@ -30,7 +30,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.Serializable;
 

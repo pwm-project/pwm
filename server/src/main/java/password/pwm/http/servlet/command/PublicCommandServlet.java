@@ -22,7 +22,7 @@ package password.pwm.http.servlet.command;
 
 import password.pwm.PwmConstants;
 
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.WebServlet;
 
 @WebServlet(
         name = "PublicCommandServlet",

@@ -22,7 +22,7 @@ package password.pwm.resttest;
 
 import org.apache.commons.io.IOUtils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;

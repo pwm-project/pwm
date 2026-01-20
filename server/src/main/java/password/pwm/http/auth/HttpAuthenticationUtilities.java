@@ -32,7 +32,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.EnumSet;

@@ -26,7 +26,7 @@ import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;

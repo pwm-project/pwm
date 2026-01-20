@@ -68,8 +68,8 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
 import password.pwm.ws.server.rest.RestFormSigningServer;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
