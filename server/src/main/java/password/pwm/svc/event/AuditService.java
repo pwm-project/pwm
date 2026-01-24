@@ -393,14 +393,14 @@ public class AuditService implements PwmService
         sendAsEmail( auditRecord );
 
         // add to user history record
-        if ( auditRecord instanceof UserAuditRecord )
+        if ( auditRecord instanceof UserAuditRecord record )
         {
             if ( settings.getUserStoredEvents().contains( auditRecord.getEventCode() ) )
             {
-                final String perpetratorDN = ( ( UserAuditRecord ) auditRecord ).getPerpetratorDN();
+                final String perpetratorDN = record.getPerpetratorDN();
                 if ( !StringUtil.isEmpty( perpetratorDN ) )
                 {
-                    userHistoryStore.updateUserHistory( sessionLabel, ( UserAuditRecord ) auditRecord );
+                    userHistoryStore.updateUserHistory( sessionLabel, record );
                 }
                 else
                 {
@@ -467,27 +467,27 @@ public class AuditService implements PwmService
             lineOutput.add( JavaHelper.toIsoDate( loopRecord.getTimestamp() ) );
             lineOutput.add( loopRecord.getGuid() );
             lineOutput.add( loopRecord.getMessage() == null ? "" : loopRecord.getMessage() );
-            if ( loopRecord instanceof SystemAuditRecord )
+            if ( loopRecord instanceof SystemAuditRecord record )
             {
-                lineOutput.add( ( ( SystemAuditRecord ) loopRecord ).getInstance() );
+                lineOutput.add( record.getInstance() );
             }
-            if ( loopRecord instanceof UserAuditRecord )
+            if ( loopRecord instanceof UserAuditRecord record )
             {
-                lineOutput.add( ( ( UserAuditRecord ) loopRecord ).getPerpetratorID() );
-                lineOutput.add( ( ( UserAuditRecord ) loopRecord ).getPerpetratorDN() );
+                lineOutput.add( record.getPerpetratorID() );
+                lineOutput.add( record.getPerpetratorDN() );
                 lineOutput.add( "" );
                 lineOutput.add( "" );
-                lineOutput.add( ( ( UserAuditRecord ) loopRecord ).getSourceAddress() );
-                lineOutput.add( ( ( UserAuditRecord ) loopRecord ).getSourceHost() );
+                lineOutput.add( record.getSourceAddress() );
+                lineOutput.add( record.getSourceHost() );
             }
-            if ( loopRecord instanceof HelpdeskAuditRecord )
+            if ( loopRecord instanceof HelpdeskAuditRecord record )
             {
-                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getPerpetratorID() );
-                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getPerpetratorDN() );
-                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getTargetID() );
-                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getTargetDN() );
-                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getSourceAddress() );
-                lineOutput.add( ( ( HelpdeskAuditRecord ) loopRecord ).getSourceHost() );
+                lineOutput.add( record.getPerpetratorID() );
+                lineOutput.add( record.getPerpetratorDN() );
+                lineOutput.add( record.getTargetID() );
+                lineOutput.add( record.getTargetDN() );
+                lineOutput.add( record.getSourceAddress() );
+                lineOutput.add( record.getSourceHost() );
             }
             csvPrinter.printRecord( lineOutput );
         }

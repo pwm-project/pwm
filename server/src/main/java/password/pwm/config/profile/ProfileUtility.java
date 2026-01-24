@@ -60,7 +60,7 @@ public class ProfileUtility
             throws PwmUnrecoverableException
     {
         final Optional<String> profileID = discoverProfileIDForUser( pwmRequestContext, userIdentity, profileDefinition );
-        if ( !profileID.isPresent() )
+        if ( profileID.isEmpty() )
         {
             throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "profile of type " + profileDefinition + " is required but not assigned" );
         }

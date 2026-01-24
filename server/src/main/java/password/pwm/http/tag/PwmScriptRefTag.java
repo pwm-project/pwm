@@ -25,7 +25,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.tag.url.PwmUrlTag;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.jsp.tagext.TagSupport;
+import jakarta.servlet.jsp.tagext.TagSupport;
 
 public class PwmScriptRefTag extends TagSupport
 {
@@ -46,7 +46,7 @@ public class PwmScriptRefTag extends TagSupport
 
     @Override
     public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+            throws jakarta.servlet.jsp.JspTagException
     {
         try
         {

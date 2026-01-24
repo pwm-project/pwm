@@ -39,6 +39,7 @@ import password.pwm.util.java.JsonUtil;
 import password.pwm.util.java.StringUtil;
 import password.pwm.util.java.TimeDuration;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Objects;
@@ -47,6 +48,7 @@ import java.util.StringTokenizer;
 @SuppressFBWarnings( "SE_TRANSIENT_FIELD_NOT_RESTORED" )
 public class UserIdentity implements Serializable, Comparable<UserIdentity>
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private static final String CRYPO_HEADER = "ui_C-";

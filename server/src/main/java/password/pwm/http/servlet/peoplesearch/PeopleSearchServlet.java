@@ -51,7 +51,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -323,7 +323,7 @@ public abstract class PeopleSearchServlet extends ControlledPwmServlet
         if ( pwmRequest.getURL().isPublicUrl() )
         {
             final Optional<PeopleSearchProfile> profile = pwmRequest.getConfig().getPublicPeopleSearchProfile();
-            if ( !profile.isPresent() )
+            if ( profile.isEmpty() )
             {
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_NO_PROFILE_ASSIGNED, "public peoplesearch profile not assigned" );
             }

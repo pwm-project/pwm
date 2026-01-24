@@ -50,10 +50,10 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
@@ -199,9 +199,9 @@ public abstract class RestServlet extends HttpServlet
             catch ( final InvocationTargetException e )
             {
                 final Throwable rootException = e.getTargetException();
-                if ( rootException instanceof PwmUnrecoverableException )
+                if ( rootException instanceof PwmUnrecoverableException exception )
                 {
-                    throw ( PwmUnrecoverableException ) rootException;
+                    throw exception;
                 }
                 LOGGER.error( restRequest.getSessionLabel(), () -> "internal error executing rest request: " + e.getMessage(), e );
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_INTERNAL, e.getMessage() );
@@ -290,11 +290,11 @@ public abstract class RestServlet extends HttpServlet
         {
             errorMsg = "HTTP method unavailable";
         }
-        else if ( !reqAccept.isPresent() && !anyMatch.isAcceptMatch() )
+        else if ( reqAccept.isEmpty() && !anyMatch.isAcceptMatch() )
         {
             errorMsg = HttpHeader.Accept.getHttpName() + " header is required";
         }
-        else if ( !reqContent.isPresent() && !anyMatch.isContentMatch() )
+        else if ( reqContent.isEmpty() && !anyMatch.isContentMatch() )
         {
             errorMsg = HttpHeader.ContentType.getHttpName() + " header is required";
         }
@@ -356,7 +356,7 @@ public abstract class RestServlet extends HttpServlet
 
         if ( restRequest.getMethod().isHasBody() )
         {
-            if ( !restRequest.readContentType().isPresent() )
+            if ( restRequest.readContentType().isEmpty() )
             {
                 final String message = restRequest.getMethod() + " method requires " + HttpHeader.ContentType.getHttpName() + " header";
                 throw PwmUnrecoverableException.newException( PwmError.ERROR_UNAUTHORIZED, message );

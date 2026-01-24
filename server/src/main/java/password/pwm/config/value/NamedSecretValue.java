@@ -40,6 +40,7 @@ import password.pwm.util.secure.PwmBlockAlgorithm;
 import password.pwm.util.secure.PwmSecurityKey;
 import password.pwm.util.secure.SecureEngine;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,6 +52,7 @@ import java.util.Optional;
 
 public class NamedSecretValue implements StoredValue
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private final transient LazySupplier<String> valueHashSupplier = new LazySupplier<>( () -> AbstractValue.valueHashComputer( NamedSecretValue.this ) );

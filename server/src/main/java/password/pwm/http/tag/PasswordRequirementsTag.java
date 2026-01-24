@@ -39,10 +39,10 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.password.PasswordRuleReaderHelper;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspTagException;
-import javax.servlet.jsp.tagext.TagSupport;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.jsp.JspTagException;
+import jakarta.servlet.jsp.tagext.TagSupport;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -564,7 +564,7 @@ public class PasswordRequirementsTag extends TagSupport
 
     @Override
     public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+            throws jakarta.servlet.jsp.JspTagException
     {
         try
         {

@@ -34,6 +34,7 @@ import password.pwm.config.option.RecoveryAction;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.config.value.data.FormConfiguration;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -49,6 +50,7 @@ import java.util.Set;
 @EqualsAndHashCode( callSuper = false )
 public class ForgottenPasswordBean extends PwmSessionBean
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @SerializedName( "pr" )
@@ -87,6 +89,7 @@ public class ForgottenPasswordBean extends PwmSessionBean
     @Data
     public static class Progress implements Serializable
     {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         @SerializedName( "s" )

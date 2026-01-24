@@ -28,12 +28,14 @@ public class OAuthMachineTest
     @Test
     public void parserTest1()
     {
-        final String input = "{\n"
-                + "\t\"access_token\":\"Q6hgBgSZMMvVnOP2tOTufILVfao82kcHtVqE9pspzC55oqKdMjuaz9Jpj3KpTlv\",\n"
-                + "\t\"token_type\":\"bearer\",\n"
-                + "\t\"expires_in\":3599,\n"
-                + "\t\"scope\":\"profile\"\n"
-                + "}";
+        final String input = """
+                {
+                    "access_token":"Q6hgBgSZMMvVnOP2tOTufILVfao82kcHtVqE9pspzC55oqKdMjuaz9Jpj3KpTlv",
+                    "token_type":"bearer",
+                    "expires_in":3599,
+                    "scope":"profile"
+                }\
+                """;
         final OAuthSettings oAuthSettings = OAuthSettings.builder().build();
         final OAuthMachine oAuthMachine = new OAuthMachine( null, oAuthSettings );
         Assert.assertEquals( "3599", oAuthMachine.readAttributeFromBodyMap( input, "expires_in" ) );

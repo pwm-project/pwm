@@ -32,10 +32,10 @@ import password.pwm.http.servlet.resource.ResourceFileServlet;
 import password.pwm.http.tag.PwmAbstractTag;
 import password.pwm.util.java.StringUtil;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspTagException;
-import javax.servlet.jsp.PageContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.jsp.JspTagException;
+import jakarta.servlet.jsp.PageContext;
 
 public class PwmUrlTag extends PwmAbstractTag
 {
@@ -57,7 +57,7 @@ public class PwmUrlTag extends PwmAbstractTag
 
     @Override
     public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+            throws jakarta.servlet.jsp.JspTagException
     {
         final String url = convertUrl( this.url );
 

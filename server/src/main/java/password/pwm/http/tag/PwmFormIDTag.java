@@ -29,8 +29,8 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.state.SessionStateService;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.jsp.tagext.TagSupport;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.jsp.tagext.TagSupport;
 import java.io.IOException;
 import java.time.Instant;
 
@@ -64,7 +64,7 @@ public class PwmFormIDTag extends TagSupport
 
     @Override
     public int doEndTag( )
-            throws javax.servlet.jsp.JspTagException
+            throws jakarta.servlet.jsp.JspTagException
     {
         if ( PwmApplicationMode.determineMode( ( HttpServletRequest ) pageContext.getRequest() ) == PwmApplicationMode.ERROR )
         {

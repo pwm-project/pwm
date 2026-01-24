@@ -39,7 +39,7 @@ import password.pwm.http.servlet.PwmServletDefinition;
 import password.pwm.svc.sessiontrack.UserAgentUtils;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 
 public class ConfigAccessFilter extends AbstractPwmFilter

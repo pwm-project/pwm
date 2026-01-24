@@ -32,7 +32,7 @@ import password.pwm.http.PwmResponse;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -127,9 +127,9 @@ public abstract class ControlledPwmServlet extends AbstractPwmServlet implements
             final Throwable cause = e.getCause();
             if ( cause != null )
             {
-                if ( cause instanceof PwmUnrecoverableException )
+                if ( cause instanceof PwmUnrecoverableException exception )
                 {
-                    throw ( PwmUnrecoverableException ) cause;
+                    throw exception;
                 }
                 final String msg = "unexpected error during action handler for '"
                         + this.getClass().getName()

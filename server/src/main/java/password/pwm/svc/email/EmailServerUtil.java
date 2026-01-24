@@ -295,9 +295,9 @@ public class EmailServerUtil
                 }
             }
 
-            if ( e instanceof PwmUnrecoverableException )
+            if ( e instanceof PwmUnrecoverableException exception )
             {
-                return ( ( PwmUnrecoverableException ) e ).getError() == PwmError.ERROR_SERVICE_UNREACHABLE;
+                return exception.getError() == PwmError.ERROR_SERVICE_UNREACHABLE;
             }
         }
         return false;

@@ -346,9 +346,9 @@ public class ReportService implements PwmService
             catch ( final Exception e )
             {
                 boolean errorProcessed = false;
-                if ( e instanceof PwmException )
+                if ( e instanceof PwmException exception )
                 {
-                    if ( ( ( PwmException ) e ).getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
+                    if ( exception.getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE )
                     {
                         if ( executorService != null )
                         {
@@ -558,8 +558,8 @@ public class ReportService implements PwmService
                         catch ( final Exception e )
                         {
                             String errorMsg = "error while updating report cache for " + userIdentity.toString() + ", cause: ";
-                            errorMsg += e instanceof PwmException
-                                    ? ( ( PwmException ) e ).getErrorInformation().toDebugStr()
+                            errorMsg += e instanceof PwmException pe
+                                    ? pe.getErrorInformation().toDebugStr()
                                     : e.getMessage();
                             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_REPORTING_ERROR, errorMsg );
                             if ( e instanceof PwmException )

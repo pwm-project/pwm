@@ -48,7 +48,7 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestWebServer;
 
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.WebServlet;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;

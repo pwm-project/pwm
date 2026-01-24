@@ -514,9 +514,9 @@ public class EmailService implements PwmService
         catch ( final MessagingException | PwmException e )
         {
             final ErrorInformation errorInformation;
-            if ( e instanceof PwmException )
+            if ( e instanceof PwmException exception )
             {
-                errorInformation = ( ( PwmException ) e ).getErrorInformation();
+                errorInformation = exception.getErrorInformation();
             }
             else
             {

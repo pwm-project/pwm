@@ -244,9 +244,9 @@ public class ActionExecutor
         }
         catch ( final PwmException e )
         {
-            if ( e instanceof PwmOperationalException )
+            if ( e instanceof PwmOperationalException exception )
             {
-                throw ( PwmOperationalException ) e;
+                throw exception;
             }
 
             final String errorMsg = "unexpected error during API execution: " + e.getMessage();

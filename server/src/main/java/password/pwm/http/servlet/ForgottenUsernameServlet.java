@@ -50,8 +50,8 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -323,7 +323,7 @@ public class ForgottenUsernameServlet extends AbstractPwmServlet
         final String toNumber = userInfo.getUserSmsNumber();
         if ( toNumber == null || toNumber.length() < 1 )
         {
-            final String errorMsg = String.format( "unable to send new password email for '%s'; no SMS number available in ldap", userInfo.getUserIdentity() );
+            final String errorMsg = "unable to send new password email for '%s'; no SMS number available in ldap".formatted( userInfo.getUserIdentity() );
             return new ErrorInformation( PwmError.ERROR_INTERNAL, errorMsg );
         }
 

@@ -330,7 +330,7 @@ public class UserInfoReader implements UserInfo
     public boolean isRequiresNewPassword( ) throws PwmUnrecoverableException
     {
         final Optional<ChangePasswordProfile> changePasswordProfile = readChangePasswordProfile();
-        if ( !changePasswordProfile.isPresent() )
+        if ( changePasswordProfile.isEmpty() )
         {
             LOGGER.debug( sessionLabel, () -> "checkPassword: " + userIdentity.toString() + " change password module is not enabled or assigned" );
             return false;

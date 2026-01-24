@@ -85,7 +85,7 @@ public class PwmHttpClientTest
         final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(  );
 
         // Execute the HTTP request
-        final String url = String.format( "http://localhost:%d/simpleHello", wireMockRule.port() );
+        final String url = "http://localhost:%d/simpleHello".formatted( wireMockRule.port() );
         final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
         final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest, null );
 
@@ -120,7 +120,7 @@ public class PwmHttpClientTest
         final PwmHttpClient httpClient = pwmApplication.getHttpClientService().getPwmHttpClient(  );
 
         // Execute the HTTP request
-        final String url = String.format( "https://localhost:%d/simpleHello", wireMockRule.httpsPort() );
+        final String url = "https://localhost:%d/simpleHello".formatted( wireMockRule.httpsPort() );
         final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
 
 
@@ -150,7 +150,7 @@ public class PwmHttpClientTest
         );
 
         // Execute the HTTP request
-        final String url = String.format( "https://localhost:%d/simpleHello", wireMockRule.httpsPort() );
+        final String url = "https://localhost:%d/simpleHello".formatted( wireMockRule.httpsPort() );
         final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
         final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest, null );
 
@@ -184,7 +184,7 @@ public class PwmHttpClientTest
         );
 
         // Execute the HTTP request
-        final String url = String.format( "https://localhost:%d/simpleHello", wireMockRule.httpsPort() );
+        final String url = "https://localhost:%d/simpleHello".formatted( wireMockRule.httpsPort() );
         final PwmHttpClientRequest pwmHttpClientRequest = PwmHttpClientRequest.builder().method( HttpMethod.GET ).url( url ).build();
         final PwmHttpClientResponse response = httpClient.makeRequest( pwmHttpClientRequest, null );
 
@@ -210,7 +210,7 @@ public class PwmHttpClientTest
 
         // Stub out some mock object behavior
         Mockito.when( configuration.readSettingAsString( PwmSetting.HTTP_PROXY_URL ) )
-                .thenReturn( String.format( "http://localhost:%d/simpleHello", wireMockRule.port() ) );
+                .thenReturn( "http://localhost:%d/simpleHello".formatted( wireMockRule.port() ) );
 
         // Obtain the HTTP client
         final PwmApplication pwmApplication = TestHelper.makeTestPwmApplication( temporaryFolder.newFolder(), configuration );
@@ -239,14 +239,14 @@ public class PwmHttpClientTest
 
         try
         {
-            final KeyStore keyStore = KeyStore.getInstance( KeyStore.getDefaultType() );
+            final KeyStore keyStore = KeyStore.getInstance( "jks" );
             keyStore.load( keystoreInputStream, "password".toCharArray() );
             final X509Certificate cert = ( X509Certificate ) keyStore.getCertificate( "wiremock" );
             return Collections.singletonList( cert );
         }
         catch ( final Exception e )
         {
-            Assert.fail( "Unable to load wiremock self-signed certificate: " + e.getMessage() );
+            Assert.fail( "Unable to load wiremock self-signed certificate: " + e.getMessage( ) );
         }
 
         return Collections.emptyList();

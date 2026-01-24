@@ -91,8 +91,8 @@ import password.pwm.util.operations.otp.OTPUserRecord;
 import password.pwm.util.password.PasswordUtility;
 import password.pwm.ws.server.RestResultBean;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -603,7 +603,7 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
     {
         final ForgottenPasswordBean forgottenPasswordBean = forgottenPasswordBean( pwmRequest );
         final String userEnteredCode = pwmRequest.readParameterAsString( PwmConstants.PARAM_TOKEN );
-        LOGGER.debug( pwmRequest, () -> String.format( "entered OTP: %s", userEnteredCode ) );
+        LOGGER.debug( pwmRequest, () -> "entered OTP: %s".formatted( userEnteredCode ) );
 
         final UserInfo userInfo = ForgottenPasswordUtil.readUserInfo( pwmRequest.getPwmRequestContext(), forgottenPasswordBean );
         final OTPUserRecord otpUserRecord = userInfo.getOtpUserRecord();

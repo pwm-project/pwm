@@ -28,6 +28,7 @@ import password.pwm.VerificationMethodSystem;
 import password.pwm.config.option.SessionBeanMode;
 import password.pwm.http.servlet.newuser.NewUserForm;
 
+import java.io.Serial;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -41,6 +42,7 @@ import java.util.Set;
 @EqualsAndHashCode( callSuper = false )
 public class NewUserBean extends PwmSessionBean
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @SerializedName( "p" )

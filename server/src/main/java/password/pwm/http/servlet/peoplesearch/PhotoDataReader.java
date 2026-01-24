@@ -51,7 +51,7 @@ import password.pwm.util.java.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
 import java.time.Instant;
 import java.util.List;
@@ -93,7 +93,7 @@ public class PhotoDataReader
             throws PwmUnrecoverableException
     {
         final Optional<String> photoUrlOverride = getPhotoUrlOverride( userIdentity );
-        if ( !photoUrlOverride.isPresent() )
+        if ( photoUrlOverride.isEmpty() )
         {
             return PhotoReaderMethod.Ldap;
         }
@@ -225,7 +225,7 @@ public class PhotoDataReader
             throws PwmUnrecoverableException, PwmOperationalException
     {
         final Optional<String> overrideURL = getPhotoUrlOverride( userIdentity );
-        if ( !overrideURL.isPresent() )
+        if ( overrideURL.isEmpty() )
         {
             return Optional.empty();
         }

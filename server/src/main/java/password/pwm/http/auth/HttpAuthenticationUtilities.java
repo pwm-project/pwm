@@ -32,7 +32,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.EnumSet;
@@ -61,7 +61,7 @@ public abstract class HttpAuthenticationUtilities
                 {
                     final String className = authenticationMethod.getClassName();
                     final Class clazz = Class.forName( className );
-                    final Object newInstance = clazz.newInstance();
+                    final Object newInstance = clazz.getDeclaredConstructor().newInstance();
                     filterAuthenticationProvider = ( PwmHttpFilterAuthenticationProvider ) newInstance;
                 }
                 catch ( final Exception e )
@@ -97,10 +97,10 @@ public abstract class HttpAuthenticationUtilities
                     catch ( final Exception e )
                     {
                         final ErrorInformation errorInformation;
-                        if ( e instanceof PwmException )
+                        if ( e instanceof PwmException exception )
                         {
                             final String errorMsg = "error during " + authenticationMethod + " authentication attempt: " + e.getMessage();
-                            errorInformation = new ErrorInformation( ( ( PwmException ) e ).getError(), errorMsg );
+                            errorInformation = new ErrorInformation( exception.getError(), errorMsg );
                             LOGGER.error( pwmRequest, errorInformation );
                         }
                         else

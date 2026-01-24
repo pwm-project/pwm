@@ -512,9 +512,9 @@ public class X509Utils
         }
         catch ( final Exception e )
         {
-            if ( e instanceof PwmException )
+            if ( e instanceof PwmException exception )
             {
-                throw new PwmUnrecoverableException( ( ( PwmException ) e ).getErrorInformation() );
+                throw new PwmUnrecoverableException( exception.getErrorInformation() );
             }
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_INTERNAL, "error importing certificates: " + e.getMessage() );
             throw new PwmUnrecoverableException( errorInformation );

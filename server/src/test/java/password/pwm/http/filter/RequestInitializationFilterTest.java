@@ -31,7 +31,7 @@ import password.pwm.config.value.BooleanValue;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.HttpHeader;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class RequestInitializationFilterTest
 {

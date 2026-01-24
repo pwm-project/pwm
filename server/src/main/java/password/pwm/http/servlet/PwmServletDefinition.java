@@ -57,7 +57,7 @@ import password.pwm.http.servlet.peoplesearch.PrivatePeopleSearchServlet;
 import password.pwm.http.servlet.peoplesearch.PublicPeopleSearchServlet;
 import password.pwm.http.servlet.updateprofile.UpdateProfileServlet;
 
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.WebServlet;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
@@ -168,9 +168,9 @@ public enum PwmServletDefinition
     {
         for ( final Annotation annotation : pwmServletClass.getDeclaredAnnotations() )
         {
-            if ( annotation instanceof WebServlet )
+            if ( annotation instanceof WebServlet servlet )
             {
-                return ( WebServlet ) annotation;
+                return servlet;
             }
         }
 

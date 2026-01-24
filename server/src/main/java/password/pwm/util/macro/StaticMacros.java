@@ -88,7 +88,7 @@ public abstract class StaticMacros
                 throw new MacroParseException( "PwmSettingReference macro requires a setting key value" );
             }
             final Optional<PwmSetting> setting = PwmSetting.forKey( settingKeyStr );
-            if ( !setting.isPresent() )
+            if ( setting.isEmpty() )
             {
                 throw new MacroParseException( "PwmSettingReference macro has unknown key value '" + settingKeyStr + "'" );
             }

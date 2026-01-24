@@ -21,8 +21,8 @@
 
 package password.pwm.resttest;
 
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
 
 @WebServlet(
         name = "ExternalMacroTest",

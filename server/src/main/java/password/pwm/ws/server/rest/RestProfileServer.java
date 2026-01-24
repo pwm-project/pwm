@@ -54,7 +54,7 @@ import password.pwm.ws.server.RestServlet;
 import password.pwm.ws.server.RestUtility;
 import password.pwm.ws.server.RestWebServer;
 
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -185,7 +185,7 @@ public class RestProfileServer extends RestServlet
             ProfileDefinition.UpdateAttributes
         );
 
-        if ( !updateProfileID.isPresent() )
+        if ( updateProfileID.isEmpty() )
         {
             throw new PwmUnrecoverableException( PwmError.ERROR_NO_PROFILE_ASSIGNED );
         }

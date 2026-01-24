@@ -74,6 +74,7 @@
     <!-- to be removed/scoped -->
     <allow pkg="org.apache.http"/>
     <allow pkg="org.apache.commons"/>
+    <allow pkg="org.apache.tomcat"/>
     <allow pkg="org.jasig.cas"/>
     <allow pkg="net.iharder"/>
     <allow pkg="org.jetbrains.annotations"/>
@@ -83,7 +84,7 @@
     <allow pkg="javax.annotation"/>
     <allow pkg="java.awt"/>
     <allow pkg="javax.security"/>
-    <allow pkg="javax.servlet"/>
+    <allow pkg="jakarta.servlet"/>
     <allow pkg="javax.net"/>
     <allow pkg="javax.crypto"/>
     <allow pkg="jakarta.mail"/>
@@ -105,13 +106,13 @@
 
     <!--servlet -->
     <subpackage name="http.servlet">
-        <allow pkg="javax.servlet"/>
+        <allow pkg="jakarta.servlet"/>
     </subpackage>
 
     <!-- web services -->
     <subpackage name="ws.server">
-        <allow pkg="javax.ws"/>
-        <allow pkg="javax.servlet"/>
+        <allow pkg="jakarta.ws"/>
+        <allow pkg="jakarta.servlet"/>
         <allow pkg="org.glassfish.jersey"/>
     </subpackage>
 
@@ -144,10 +145,6 @@
 
     <subpackage name="http.client">
         <allow pkg="org.apache.http"/>
-    </subpackage>
-
-    <subpackage name="http.filter">
-        <allow pkg="com.github.ziplet.filter.compression"/>
     </subpackage>
 
     <subpackage name="svc.sessiontrack">

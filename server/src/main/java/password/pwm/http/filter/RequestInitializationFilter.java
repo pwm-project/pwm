@@ -53,15 +53,15 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroRequest;
 import password.pwm.util.secure.PwmRandom;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetAddress;
@@ -227,7 +227,7 @@ public class RequestInitializationFilter implements Filter
         catch ( final Throwable e )
         {
             final String logMsg = "can't init request: " + e.getMessage();
-            if ( e instanceof PwmException && ( ( PwmException ) e ).getError() != PwmError.ERROR_INTERNAL )
+            if ( e instanceof PwmException exception && exception.getError() != PwmError.ERROR_INTERNAL )
             {
                 LOGGER.error( () -> logMsg );
             }
@@ -269,7 +269,7 @@ public class RequestInitializationFilter implements Filter
     }
 
     private void checkAndInitSessionState( final HttpServletRequest request )
-            throws PwmUnrecoverableException
+            throws PwmUnrecoverableException, ServletException
     {
         final ContextManager contextManager = ContextManager.getContextManager( request.getSession() );
         final PwmApplication pwmApplication = contextManager.getPwmApplication();
@@ -283,7 +283,7 @@ public class RequestInitializationFilter implements Filter
                 if ( sessionPwmAppNonce == null || !sessionPwmAppNonce.equals( pwmApplication.getRuntimeNonce() ) )
                 {
                     LOGGER.debug( () -> "invalidating http session created with non-current servlet context" );
-                    httpSession.invalidate();
+                    request.logout();
                 }
             }
         }

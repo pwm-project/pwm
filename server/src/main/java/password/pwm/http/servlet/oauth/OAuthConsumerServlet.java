@@ -45,8 +45,8 @@ import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -150,7 +150,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         // mark the inprogress flag to false, if we get this far and fail user needs to start over.
         pwmSession.getSessionStateBean().setOauthInProgress( false );
 
-        if ( !oAuthRequestState.isPresent() )
+        if ( oAuthRequestState.isEmpty() )
         {
             final String errorMsg = "state parameter is missing from oauth request";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );

@@ -82,7 +82,7 @@ public class UserMacros
             final UserInfo userInfo;
             {
                 final Optional<UserInfo> optionalUserInfo = loadUserInfo( macroRequest );
-                if ( !optionalUserInfo.isPresent() )
+                if ( optionalUserInfo.isEmpty() )
                 {
                     return "";
                 }
@@ -296,7 +296,7 @@ public class UserMacros
         {
             final Optional<UserInfo> userInfo = loadUserInfo( macroRequest );
 
-            if ( !userInfo.isPresent() )
+            if ( userInfo.isEmpty() )
             {
                 return "";
             }
@@ -463,7 +463,7 @@ public class UserMacros
         {
             final Optional<UserInfo> userInfo = loadUserInfo( macroRequest );
 
-            if ( !userInfo.isPresent() )
+            if ( userInfo.isEmpty() )
             {
                 return "";
             }

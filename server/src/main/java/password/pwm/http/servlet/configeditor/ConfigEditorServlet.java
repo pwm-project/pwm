@@ -86,8 +86,8 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestRandomPasswordServer;
 import password.pwm.ws.server.rest.bean.HealthData;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
@@ -223,9 +223,9 @@ public class ConfigEditorServlet extends ControlledPwmServlet
         catch ( final Exception e )
         {
             final RestResultBean restResultBean;
-            if ( e instanceof PwmException )
+            if ( e instanceof PwmException exception )
             {
-                restResultBean = RestResultBean.fromError( ( ( PwmException ) e ).getErrorInformation(), pwmRequest, true );
+                restResultBean = RestResultBean.fromError( exception.getErrorInformation(), pwmRequest, true );
             }
             else
             {

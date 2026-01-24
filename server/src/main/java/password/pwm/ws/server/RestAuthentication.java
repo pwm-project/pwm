@@ -26,12 +26,14 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.WebServiceUsage;
 
 import java.io.IOException;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Set;
 
 @Value
 public class RestAuthentication implements Serializable
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private RestAuthenticationType type;

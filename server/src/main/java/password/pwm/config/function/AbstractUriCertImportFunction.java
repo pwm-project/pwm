@@ -70,9 +70,9 @@ abstract class AbstractUriCertImportFunction implements SettingUIFunction
         }
         catch ( final Exception e )
         {
-            if ( e instanceof PwmException )
+            if ( e instanceof PwmException exception )
             {
-                throw new PwmOperationalException( ( ( PwmException ) e ).getErrorInformation() );
+                throw new PwmOperationalException( exception.getErrorInformation() );
             }
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.CONFIG_FORMAT_ERROR, "error importing certificates: " + e.getMessage() );
             throw new PwmOperationalException( errorInformation );

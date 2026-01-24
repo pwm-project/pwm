@@ -56,8 +56,8 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.secure.PwmHashAlgorithm;
 import password.pwm.util.secure.SecureEngine;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
@@ -442,7 +442,7 @@ public class ConfigManagerLoginServlet extends AbstractPwmServlet
         }
 
         final Optional<String> configPasswordHash = pwmRequest.getConfig().getStoredConfiguration().readConfigProperty( ConfigurationProperty.PASSWORD_HASH );
-        if ( !configPasswordHash.isPresent() )
+        if ( configPasswordHash.isEmpty() )
         {
             LOGGER.debug( pwmRequest, () -> "config password is not present, persistent login not possible." );
             return false;

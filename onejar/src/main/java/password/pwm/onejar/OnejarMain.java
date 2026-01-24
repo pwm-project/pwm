@@ -22,7 +22,7 @@ package password.pwm.onejar;
 
 import org.apache.catalina.LifecycleException;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

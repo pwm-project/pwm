@@ -99,9 +99,8 @@ class LdapXmlUserHistory implements UserHistoryStore
     {
         // user info
         final UserIdentity userIdentity;
-        if ( auditRecord instanceof HelpdeskAuditRecord && auditRecord.getType() == AuditEvent.Type.HELPDESK )
+        if ( auditRecord instanceof HelpdeskAuditRecord helpdeskAuditRecord && auditRecord.getType() == AuditEvent.Type.HELPDESK )
         {
-            final HelpdeskAuditRecord helpdeskAuditRecord = ( HelpdeskAuditRecord ) auditRecord;
             userIdentity = UserIdentity.createUserIdentity( helpdeskAuditRecord.getTargetDN(), helpdeskAuditRecord.getTargetLdapProfile() );
         }
         else
