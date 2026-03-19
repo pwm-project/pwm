@@ -63,6 +63,7 @@ public class LocalSessionStateBean implements Serializable
     private Instant sessionLastAccessedTime;
 
     private boolean passwordModified;
+    private boolean profileModified;
     private boolean privateUrlAccessed;
     private boolean captchaBypassedViaParameter;
 

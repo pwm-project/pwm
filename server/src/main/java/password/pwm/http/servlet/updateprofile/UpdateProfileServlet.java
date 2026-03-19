@@ -426,6 +426,9 @@ public class UpdateProfileServlet extends ControlledPwmServlet
             // mark the event log
             pwmApplication.getAuditManager().submit( AuditEvent.UPDATE_PROFILE, pwmSession.getUserInfo(), pwmSession );
 
+            // update the session state bean's profile modified flag
+            pwmSession.getSessionStateBean().setProfileModified( true );
+
             // clear the bean
             pwmApplication.getSessionStateService().clearBean( pwmRequest, UpdateProfileBean.class );
 

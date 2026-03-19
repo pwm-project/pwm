@@ -153,6 +153,14 @@ public abstract class CommandServlet extends ControlledPwmServlet
                 pwmRequest.sendRedirect( PwmServletDefinition.Logout );
                 return ProcessStatus.Halt;
             }
+
+            final boolean forceLogoutOnUpdate = pwmSession.getSessionManager().getUpdateAttributeProfile().readSettingAsBoolean( PwmSetting.UPDATE_PROFILE_LOGOUT_AFTER_UPDATE );
+            if ( forceLogoutOnUpdate && pwmSession.getSessionStateBean().isProfileModified() )
+            {
+                LOGGER.trace( pwmRequest, () -> "logging out user; profile has been modified" );
+                pwmRequest.sendRedirect( PwmServletDefinition.Logout );
+                return ProcessStatus.Halt;
+            }
         }
 
         redirectToForwardURL( pwmRequest );
