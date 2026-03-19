@@ -951,6 +951,8 @@ public enum PwmSetting
             "updateAttributes.email.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_PROFILE ),
     UPDATE_PROFILE_SMS_VERIFICATION(
             "updateAttributes.sms.verification", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_PROFILE ),
+    UPDATE_PROFILE_LOGOUT_AFTER_UPDATE(
+            "updateAttributes.logoutAfterUpdate", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UPDATE_PROFILE ),
     UPDATE_PROFILE_TOKEN_LIFETIME_EMAIL(
             "updateAttributes.token.lifetime", PwmSettingSyntax.DURATION, PwmSettingCategory.UPDATE_PROFILE ),
     UPDATE_PROFILE_TOKEN_LIFETIME_SMS(
