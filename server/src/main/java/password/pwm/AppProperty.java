@@ -167,6 +167,7 @@ public enum AppProperty
     HTTP_PARAM_OAUTH_SCOPE                          ( "http.parameter.oauth.scope" ),
     HTTP_PARAM_OAUTH_STATE                          ( "http.parameter.oauth.state" ),
     HTTP_PARAM_OAUTH_GRANT_TYPE                     ( "http.parameter.oauth.grantType" ),
+    HTTP_PARAM_OAUTH_LOGIN_HINT                     ( "http.parameter.oauth.loginHint" ),
     HTTP_DOWNLOAD_BUFFER_SIZE                       ( "http.download.buffer.size" ),
     HTTP_SESSION_RECYCLE_AT_AUTH                    ( "http.session.recycleAtAuth" ),
     HTTP_SERVLET_ENABLE_POST_REDIRECT_GET           ( "http.servlet.enablePostRedirectGet" ),
