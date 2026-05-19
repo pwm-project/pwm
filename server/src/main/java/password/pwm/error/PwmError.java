@@ -331,6 +331,8 @@ public enum PwmError
             5106, "Error_FieldBadConfirm", null ),
     ERROR_FIELD_REGEX_NOMATCH(
             5107, "Error_FieldRegexNoMatch", null ),
+    ERROR_LDAP_PERMISSION_DENIED(
+            5108, "Error_LdapPermissionDenied", Collections.singleton( ChaiError.NO_ACCESS ) ),
 
     CONFIG_UPLOAD_SUCCESS(
             5200, "Error_ConfigUploadSuccess", null ),

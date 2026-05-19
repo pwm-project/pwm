@@ -1218,7 +1218,11 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
         }
         catch ( final ChaiOperationException e )
         {
-            final String errorMsg = "unable to unlock user " + theUser.getEntryDN() + " error: " + e.getMessage();
+            // If this is a permission error, the subsequent proxy-driven password change
+            // will likely fail for the same reason - flag that in the log so admins do not
+            // have to debug the two symptoms independently (issue #728).
+            final String errorMsg = "unable to unlock user " + theUser.getEntryDN() + " error: " + e.getMessage()
+                    + " (if this is a permission error, the subsequent password change may also fail for the same reason)";
             final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_UNLOCK_FAILURE, errorMsg );
             LOGGER.error( pwmRequest, () -> errorInformation.toDebugStr() );
         }
