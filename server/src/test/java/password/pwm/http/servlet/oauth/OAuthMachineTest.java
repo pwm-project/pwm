@@ -22,6 +22,10 @@ package password.pwm.http.servlet.oauth;
 
 import org.junit.Assert;
 import org.junit.Test;
+import password.pwm.AppProperty;
+import password.pwm.config.Configuration;
+import password.pwm.config.stored.StoredConfigurationFactory;
+import password.pwm.error.PwmUnrecoverableException;
 
 public class OAuthMachineTest
 {
@@ -56,5 +60,30 @@ public class OAuthMachineTest
         final OAuthSettings oAuthSettings = OAuthSettings.builder().build();
         final OAuthMachine oAuthMachine = new OAuthMachine( null, oAuthSettings );
         Assert.assertEquals( "value1", oAuthMachine.readAttributeFromBodyMap( input, "claims" ) );
+    }
+
+    /**
+     * Issue #723: verifies the new {@code loginHintValue} field round-trips through the
+     * Lombok-generated builder/getter on {@link OAuthSettings}.
+     */
+    @Test
+    public void loginHintValueRoundtripsThroughBuilder()
+    {
+        final OAuthSettings oAuthSettings = OAuthSettings.builder()
+                .loginHintValue( "@LDAP:mail@" )
+                .build();
+        Assert.assertEquals( "@LDAP:mail@", oAuthSettings.getLoginHintValue() );
+    }
+
+    /**
+     * Issue #723: verifies the AppProperty default for the OIDC {@code login_hint}
+     * query-parameter name is wired to the spec-defined value.
+     */
+    @Test
+    public void loginHintAppPropertyDefaultsToLoginHint()
+            throws PwmUnrecoverableException
+    {
+        final Configuration conf = new Configuration( StoredConfigurationFactory.newConfig() );
+        Assert.assertEquals( "login_hint", conf.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_LOGIN_HINT ) );
     }
 }
