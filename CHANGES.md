@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+- fix issue #716 - "UnsupportedOperationException: Read Only" on Jetty 12;
+     `CookieManagementFilter` now applies the `SameSite` attribute via a
+     response wrapper at the moment each cookie is written, instead of
+     rewriting `Set-Cookie` headers after `FilterChain#doFilter` returns
+     (which the Servlet spec forbids once the response is committed).
+
 ## [2.0.8] - Release Feb 21, 2025
 - fix issue #711 ERROR_INVALID_FORMID and other errors with 
      recaptcha enabled in chrome and some other browsers
