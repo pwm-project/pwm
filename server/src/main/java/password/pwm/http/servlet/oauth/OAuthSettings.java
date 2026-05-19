@@ -45,6 +45,7 @@ public class OAuthSettings implements Serializable
     private OAuthUseCase use;
     private List<X509Certificate> certificates;
     private String usernameSendValue;
+    private String loginHintValue;
 
     public boolean oAuthIsConfigured()
     {
@@ -83,6 +84,7 @@ public class OAuthSettings implements Serializable
                 .certificates( config.readSettingAsCertificate( PwmSetting.RECOVERY_OAUTH_ID_CERTIFICATE ) )
                 .use( OAuthUseCase.ForgottenPassword )
                 .usernameSendValue( config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_USERNAME_SEND_VALUE ) )
+                .loginHintValue( config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_LOGIN_HINT_VALUE ) )
                 .build();
     }
 }

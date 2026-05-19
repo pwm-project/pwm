@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+- fix issue #723 - add new `Setting_Label_recovery.oauth.idserver.loginHintValue`
+     ("OAuth/OIDC login_hint Value") macro setting on the Forgotten Password
+     OAuth profile. When non-empty, its expanded value is sent as the
+     standard OIDC `login_hint` query parameter on the authorize redirect,
+     so the IdP can pre-fill the username field and avoid prompting the
+     user a second time. The parameter name is configurable via the
+     `http.parameter.oauth.loginHint` app property (default: `login_hint`).
+
 ## [2.0.8] - Release Feb 21, 2025
 - fix issue #711 ERROR_INVALID_FORMID and other errors with 
      recaptcha enabled in chrome and some other browsers
