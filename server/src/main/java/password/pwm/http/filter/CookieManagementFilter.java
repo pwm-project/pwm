@@ -24,7 +24,6 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
-import password.pwm.http.HttpHeader;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmSessionWrapper;
 import password.pwm.util.java.StringUtil;
@@ -40,8 +39,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.Collection;
 
+/**
+ * Outer-most filter responsible for stamping a {@code SameSite} attribute on every
+ * {@code Set-Cookie} header emitted by the application or container.
+ *
+ * <p>Historically this filter rewrote {@code Set-Cookie} headers <em>after</em> calling
+ * {@link FilterChain#doFilter}.  That worked on older Jetty / Tomcat releases that
+ * allowed post-commit header mutation, but Jetty 12 strictly enforces the Servlet
+ * specification and makes the response read-only once committed, throwing
+ * {@code UnsupportedOperationException: Read Only} (issue #716).</p>
+ *
+ * <p>The filter now wraps the response in a {@link SameSiteCookieResponseWrapper} before
+ * descending the chain, so the SameSite attribute is added at the moment each cookie is
+ * written.  This works on every spec-compliant container.</p>
+ */
 public class CookieManagementFilter implements Filter
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( CookieManagementFilter.class );
@@ -74,14 +86,25 @@ public class CookieManagementFilter implements Filter
     public void doFilter( final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain )
             throws IOException, ServletException
     {
-        filterChain.doFilter( servletRequest, servletResponse );
-        addSameSiteCookieAttribute( ( HttpServletResponse ) servletResponse, value );
-        markSessionForRecycle( ( HttpServletRequest ) servletRequest );
+        final HttpServletResponse httpServletResponse = ( HttpServletResponse ) servletResponse;
+        final HttpServletRequest httpServletRequest = ( HttpServletRequest ) servletRequest;
+
+        markSessionForRecycle( httpServletRequest );
+
+        if ( StringUtil.isEmpty( value ) )
+        {
+            filterChain.doFilter( servletRequest, servletResponse );
+            return;
+        }
+
+        final SameSiteCookieResponseWrapper wrappedResponse = new SameSiteCookieResponseWrapper( httpServletResponse, value );
+        filterChain.doFilter( servletRequest, wrappedResponse );
     }
 
     /**
      * Ensures that every session that modifies its samesite cookies also triggers a session ID
-     * recycle, once per session.
+     * recycle, once per session.  This only mutates session-scoped state and is safe to call
+     * either before or after the filter chain executes.
      *
      * @param httpServletRequest The request to be marked
      */
@@ -112,40 +135,6 @@ public class CookieManagementFilter implements Filter
                     pwmSession.getSessionStateBean().setSameSiteCookieRecycleRequested( true );
                     pwmSession.getSessionStateBean().setSessionIdRecycleNeeded( true );
                 }
-            }
-        }
-    }
-
-    public static void addSameSiteCookieAttribute( final HttpServletResponse response, final String value )
-    {
-        if ( StringUtil.isEmpty( value ) )
-        {
-            return;
-        }
-
-        final Collection<String> headers = response.getHeaders( HttpHeader.SetCookie.getHttpName() );
-        boolean firstHeader = true;
-
-        for ( final String header : headers )
-        {
-            final String newHeader;
-            if ( !header.contains( "SameSite" ) )
-            {
-                newHeader = header + "; SameSite=" + value;
-            }
-            else
-            {
-                newHeader = header;
-            }
-
-            if ( firstHeader )
-            {
-                response.setHeader( HttpHeader.SetCookie.getHttpName(), newHeader );
-                firstHeader = false;
-            }
-            else
-            {
-                response.addHeader( HttpHeader.SetCookie.getHttpName(), newHeader );
             }
         }
     }
