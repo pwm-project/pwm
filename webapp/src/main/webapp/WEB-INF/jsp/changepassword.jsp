@@ -38,7 +38,8 @@
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ChangePassword"/>
     </jsp:include>
-    <div id="centerbody" ng-app="changepassword.module" ng-controller="ChangePasswordController as $ctrl">
+    <%-- AngularJS ng-app/ng-controller removed in favor of the <pwm-changepassword> custom element below (issue #729). --%>
+    <div id="centerbody">
         <h1 id="page-content-title"><pwm:display key="Title_ChangePassword" displayIfMissing="true"/></h1>
         <pwm:if test="<%=PwmIfTest.passwordExpired%>">
         <h1><pwm:display key="Display_PasswordExpired"/></h1><br/>
@@ -70,7 +71,9 @@
                             <div class="pwm-icon pwm-icon-question-circle icon_button" id="password-guide-icon" style="cursor: pointer; visibility: hidden"></div>
                             <pwm:if test="<%=PwmIfTest.showRandomPasswordGenerator%>">
                                 &nbsp;&nbsp;
-                                <div class="pwm-icon pwm-icon-retweet icon_button" id="autogenerate-icon" ng-click="$ctrl.doRandomGeneration()" style="cursor: pointer; visibility: hidden" ></div>
+                                <%-- Angular 19 custom element; renders the retweet icon and owns the random-password dialog (issue #729).
+                                     Keeps id="autogenerate-icon" inside its light DOM so the legacy PWM_MAIN.showTooltip lookup still works. --%>
+                                <pwm-changepassword></pwm-changepassword>
                             </pwm:if>
                         </div>
                         <input type="<pwm:value name="<%=PwmValue.passwordFieldType%>"/>" name="password1" id="password1" class="changepasswordfield passwordfield" <pwm:autofocus/>/>
@@ -139,8 +142,8 @@
 </pwm:script>
 
 <pwm:script-ref url="/public/resources/js/changepassword.js"/>
-<pwm:script-ref url="/public/resources/webjars/pwm-client/vendor.js" />
-<pwm:script-ref url="/public/resources/webjars/pwm-client/changepassword.ng.js" />
+<%-- Modern client (issue #729) - replaces pwm-client/{vendor.js,changepassword.ng.js}. --%>
+<pwm:script-ref url="/public/resources/webjars/pwm-client-modern/changepassword.js" />
 
 <%@ include file="fragment/footer.jsp" %>
 </body>

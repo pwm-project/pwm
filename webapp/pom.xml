@@ -300,6 +300,13 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <!-- Modern (Angular 19 + @angular/elements) client bundles.  Coexists with pwm-client
+                 during the AngularJS -> Angular migration; see issue #729. -->
+            <groupId>${project.groupId}</groupId>
+            <artifactId>pwm-client-modern</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.webjars.npm</groupId>
             <artifactId>dojo</artifactId>
             <version>1.17.3</version>

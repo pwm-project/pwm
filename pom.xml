@@ -52,6 +52,7 @@
     <modules>
         <module>server</module>
         <module>client</module>
+        <module>client-modern</module>
         <module>webapp</module>
         <module>onejar</module>
         <module>data-service</module>
