@@ -1,0 +1,14 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./out-tsc/app",
+        "types": []
+    },
+    "files": [
+        "projects/changepassword/src/main.ts"
+    ],
+    "include": [
+        "projects/changepassword/src/**/*.d.ts",
+        "projects/changepassword/src/**/*.ts"
+    ]
+}

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Password Management Servlets (PWM)
+  ~ http://www.pwm-project.org
+  ~
+  ~ Copyright (c) 2006-2009 Novell, Inc.
+  ~ Copyright (c) 2009-2026 The PWM Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <parent>
+        <groupId>org.pwm-project</groupId>
+        <artifactId>pwm-parent</artifactId>
+        <version>2.0.8</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <url>https://github.com/pwm-project/pwm</url>
+    <artifactId>pwm-client-modern</artifactId>
+    <packaging>jar</packaging>
+
+    <!--
+      ~ Modern (Angular 19 + @angular/elements) replacement for the EOL AngularJS 1.8.3
+      ~ pwm-client module.  Each PWM client module migrates here as an Angular custom
+      ~ element bundle; the legacy client/ module continues to ship the AngularJS code
+      ~ for modules that have not yet been migrated.  See README.md for migration status.
+      -->
+
+    <properties>
+        <!-- Node 20.x LTS (current as of Angular 19 release; covers Angular 17-19). -->
+        <node.version>v20.18.0</node.version>
+        <npm.version>10.8.2</npm.version>
+    </properties>
+
+    <name>PWM Password Self Service: Modern Angular Client JAR</name>
+
+    <profiles>
+        <profile>
+            <id>skip-frontend</id>
+            <properties>
+                <skip.npm>true</skip.npm>
+            </properties>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-client-files</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/META-INF/resources/webjars/${project.artifactId}/${project.version}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>angular/dist</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.4.0</version>
+                <executions>
+                    <execution>
+                        <id>remove-client-files</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory>angular/dist</directory>
+                                </fileset>
+                                <fileset>
+                                    <directory>angular/node_modules</directory>
+                                </fileset>
+                                <fileset>
+                                    <directory>angular/.node</directory>
+                                </fileset>
+                                <fileset>
+                                    <directory>angular/.angular</directory>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.15.1</version>
+                <configuration>
+                    <nodeVersion>${node.version}</nodeVersion>
+                    <npmVersion>${npm.version}</npmVersion>
+                    <workingDirectory>angular/</workingDirectory>
+                    <installDirectory>angular/.node</installDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install-node-and-npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>npm-install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-run-build</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultEntries>false</addDefaultEntries>
+                            <addDefaultImplementationEntries>false</addDefaultImplementationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Implementation-Title>${project.name}</Implementation-Title>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+                            <Implementation-URL>${project.organization.url}</Implementation-URL>
+                            <Implementation-Build-Java-Version>${maven.compiler.target}</Implementation-Build-Java-Version>
+                            <SCM-Git-Branch>${git.branch}</SCM-Git-Branch>
+                            <SCM-Git-Commit-ID>${git.commit.id}</SCM-Git-Commit-ID>
+                            <SCM-Git-Commit-ID-Abbrev>${git.commit.id.abbrev}</SCM-Git-Commit-ID-Abbrev>
+                            <SCM-Git-Commit-ID-Description>${git.commit.id.describe}</SCM-Git-Commit-ID-Description>
+                            <SCM-Git-Commit-Timestamp>${git.commit.time}</SCM-Git-Commit-Timestamp>
+                            <SCM-Git-Commit-Dirty>${git.dirty}</SCM-Git-Commit-Dirty>
+                            <SCM-Git-Remote-Origin-URL>${git.remote.origin.url}</SCM-Git-Remote-Origin-URL>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
