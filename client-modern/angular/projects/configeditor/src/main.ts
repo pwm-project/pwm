@@ -18,8 +18,9 @@
  * limitations under the License.
  */
 
-// Entry point for the change-password client-modern bundle.  The custom
-// element registers itself on import (side-effect at the bottom of the
-// module), so nothing else needs to happen here.
-// pwm-globals.d.ts is picked up automatically via the tsconfig include glob.
-import './change-password.element';
+// Entry point for the configeditor client-modern bundle (issue #729).
+// The Quill-backed <pwm-html-editor> custom element is the only thing this
+// bundle contributes; the rest of the config editor UI is server-rendered JSP
+// plus the legacy dojo / configeditor.js scripts.  The element registers
+// itself on import.
+import './html-editor.element';

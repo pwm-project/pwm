@@ -1,0 +1,44 @@
+/*!
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2026 The PWM Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *
+ * Sized to roughly match the legacy webapp/.../public/resources/html-editor.css
+ * dimensions (issue #729), so the email-template editor dialog continues to fit
+ * the existing PWM_MAIN dialog chrome without layout reflow.
+ */
+
+// Quill's own theme.  Imported here so the Angular CLI's style pipeline bundles
+// it as part of the configeditor styles output, which the postbuild step then
+// inlines into the dist/configeditor.js bundle.  This keeps the JSP integration
+// to one <script> tag - no extra <link> needed for editor styles.
+@import 'quill/dist/quill.snow.css';
+
+pwm-html-editor {
+    display: block;
+    /* Match the legacy .html-editor height so the dialog body does not resize. */
+    height: 350px;
+
+    .pwm-html-editor-host {
+        height: 300px;
+        margin-top: 10px;
+        background: #fff;
+    }
+
+    /* Mirror the legacy textangular max-width to fit the .wide dialog. */
+    .ql-toolbar,
+    .pwm-html-editor-host {
+        max-width: 790px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .ql-editor {
+        min-height: 260px;
+    }
+}

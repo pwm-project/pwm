@@ -1,7 +1,7 @@
 # pwm-client-modern
 
-Modern (Angular 19 + `@angular/elements`) replacement for PWM's EOL AngularJS 1.8.3
-client. Tracks issue [#729](https://github.com/pwm-project/pwm/issues/729) — see
+Modern replacement for PWM's EOL AngularJS 1.8.3 client. Tracks issue
+[#729](https://github.com/pwm-project/pwm/issues/729) — see
 `../issue-729-angularjs-eol-analysis.md` for the full assessment that motivated
 this module.
 
@@ -9,14 +9,23 @@ This module **coexists** with the legacy `client/` module during the migration.
 JSP pages can be migrated one at a time; until every page is migrated, both
 bundles ship in the WAR.
 
+## Tech choices per module
+
+| Module           | Strategy                                                  |
+| ---------------- | --------------------------------------------------------- |
+| `changepassword` | Pure decorator (≈80 LOC). Vanilla Custom Element, no framework. |
+| `configeditor`   | Pure decorator (≈90 LOC). Vanilla Custom Element wrapping Quill 2 for the WYSIWYG. |
+| `helpdesk`       | Embedded app (≈2.3k LOC + ng-ias). Planned: Lit + Shoelace. |
+| `peoplesearch`   | Embedded app (≈2.3k LOC + ng-ias + org chart). Planned: Lit + Shoelace. |
+
 ## Migration status
 
-| Module           | Legacy (`client/`)         | Modern (`client-modern/`)         |
-| ---------------- | -------------------------- | --------------------------------- |
-| `changepassword` | AngularJS 1.8.3 controller | ✅ Angular 19 custom element     |
-| `configeditor`   | AngularJS 1.8.3 + textangular | ⏳ pending — needs WYSIWYG swap |
-| `helpdesk`       | AngularJS 1.8.3 + ng-ias   | ⏳ pending — needs `ng-ias` replacement |
-| `peoplesearch`   | AngularJS 1.8.3 + ng-ias   | ⏳ pending — needs `ng-ias` replacement |
+| Module           | Legacy bundle       | Modern bundle                           | Done? |
+| ---------------- | ------------------- | --------------------------------------- | ----- |
+| `changepassword` | AngularJS 1.8.3     | Vanilla CE, **3.7 KB** (870 B gzipped)  | ✅    |
+| `configeditor`   | AngularJS 1.8.3 + textangular | Vanilla CE + Quill 2, **232 KB** (55 KB gzipped) | ✅    |
+| `helpdesk`       | AngularJS 1.8.3 + ng-ias | _planned: Lit + Shoelace_         | ⏳    |
+| `peoplesearch`   | AngularJS 1.8.3 + ng-ias | _planned: Lit + Shoelace_         | ⏳    |
 
 ## Project layout
 

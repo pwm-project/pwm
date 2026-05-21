@@ -19,7 +19,7 @@
                         },
                         "index": false,
                         "browser": "projects/changepassword/src/main.ts",
-                        "polyfills": ["zone.js"],
+                        "polyfills": [],
                         "tsConfig": "tsconfig.app.json",
                         "assets": [],
                         "styles": [],
@@ -30,8 +30,8 @@
                             "budgets": [
                                 {
                                     "type": "initial",
-                                    "maximumWarning": "1mb",
-                                    "maximumError": "2mb"
+                                    "maximumWarning": "50kb",
+                                    "maximumError": "100kb"
                                 }
                             ],
                             "outputHashing": "none",
@@ -45,16 +45,53 @@
                         }
                     },
                     "defaultConfiguration": "production"
-                },
-                "test": {
-                    "builder": "@angular-devkit/build-angular:karma",
+                }
+            }
+        },
+        "configeditor": {
+            "projectType": "application",
+            "schematics": {},
+            "root": "projects/configeditor",
+            "sourceRoot": "projects/configeditor/src",
+            "prefix": "pwm",
+            "architect": {
+                "build": {
+                    "builder": "@angular-devkit/build-angular:application",
                     "options": {
-                        "polyfills": ["zone.js", "zone.js/testing"],
-                        "tsConfig": "tsconfig.spec.json",
+                        "outputPath": {
+                            "base": "dist/configeditor",
+                            "browser": ""
+                        },
+                        "index": false,
+                        "browser": "projects/configeditor/src/main.ts",
+                        "polyfills": [],
+                        "tsConfig": "tsconfig.app.json",
                         "assets": [],
-                        "styles": [],
+                        "styles": [
+                            "projects/configeditor/src/html-editor.element.scss"
+                        ],
                         "scripts": []
-                    }
+                    },
+                    "configurations": {
+                        "production": {
+                            "budgets": [
+                                {
+                                    "type": "initial",
+                                    "maximumWarning": "260kb",
+                                    "maximumError": "400kb"
+                                }
+                            ],
+                            "outputHashing": "none",
+                            "optimization": true,
+                            "sourceMap": false
+                        },
+                        "development": {
+                            "optimization": false,
+                            "sourceMap": true,
+                            "namedChunks": true
+                        }
+                    },
+                    "defaultConfiguration": "production"
                 }
             }
         }

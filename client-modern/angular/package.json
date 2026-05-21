@@ -1,7 +1,7 @@
 {
     "name": "pwm-client-modern",
     "version": "0.0.1",
-    "description": "Modern Angular (v19) replacement for PWM's EOL AngularJS 1.8.3 client. Each module ships as an @angular/elements custom element bundle for drop-in JSP embedding.",
+    "description": "Modern replacement for PWM's EOL AngularJS 1.8.3 client. Each module ships as a vanilla TypeScript Custom Element bundle for drop-in JSP embedding. Lit or Angular can be added per-module later if their template/state model is needed; the small JSP-decorating modules (changepassword, configeditor) do not need a framework.",
     "private": true,
     "license": "Apache-2.0",
     "engines": {
@@ -9,37 +9,22 @@
         "npm": ">=10.0"
     },
     "scripts": {
-        "build": "ng build && node scripts/postbuild.mjs",
-        "build:changepassword": "ng build changepassword",
-        "watch": "ng build --watch --configuration development",
-        "test": "ng test",
-        "lint": "ng lint"
+        "build": "ng build changepassword && ng build configeditor && node scripts/postbuild.mjs",
+        "build:changepassword": "ng build changepassword && node scripts/postbuild.mjs",
+        "build:configeditor": "ng build configeditor && node scripts/postbuild.mjs",
+        "watch": "ng build --watch --configuration development"
     },
     "dependencies": {
-        "@angular/animations": "^19.0.0",
-        "@angular/common": "^19.0.0",
-        "@angular/compiler": "^19.0.0",
-        "@angular/core": "^19.0.0",
-        "@angular/elements": "^19.0.0",
-        "@angular/forms": "^19.0.0",
-        "@angular/platform-browser": "^19.0.0",
-        "@angular/platform-browser-dynamic": "^19.0.0",
-        "rxjs": "~7.8.0",
-        "tslib": "^2.6.0",
-        "zone.js": "~0.15.0"
+        "quill": "^2.0.3"
     },
     "devDependencies": {
         "@angular-devkit/build-angular": "^19.0.0",
         "@angular/cli": "^19.0.0",
         "@angular/compiler-cli": "^19.0.0",
-        "@types/jasmine": "~5.1.0",
+        "@angular/core": "^19.0.0",
         "@types/node": "^20.10.0",
-        "jasmine-core": "~5.4.0",
-        "karma": "~6.4.0",
-        "karma-chrome-launcher": "~3.2.0",
-        "karma-coverage": "~2.2.0",
-        "karma-jasmine": "~5.1.0",
-        "karma-jasmine-html-reporter": "~2.1.0",
+        "rxjs": "~7.8.0",
+        "tslib": "^2.6.0",
         "typescript": "~5.6.0"
     }
 }
