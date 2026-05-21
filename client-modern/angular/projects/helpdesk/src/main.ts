@@ -20,7 +20,11 @@
 
 // Entry point for the helpdesk client-modern bundle (issue #729).  The
 // <pwm-helpdesk> custom element registers itself on import (decorator side-
-// effect at the bottom of helpdesk.element.ts).  Session 1 covers only the
-// cards-view search slice; subsequent sessions add the table view, the detail
-// page, and the verification dialogs.
+// effect at the bottom of helpdesk.element.ts).
 import './helpdesk.element';
+
+// Build-time version marker so we can verify in DevTools which bundle the
+// browser actually ran (cached vs fresh).  Bump this whenever a session
+// changes behavior callers might still expect from an earlier version.
+// eslint-disable-next-line no-console
+console.log('[pwm-helpdesk] bundle session 3 (detail page + hash routing)');
