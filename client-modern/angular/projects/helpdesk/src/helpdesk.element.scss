@@ -1,0 +1,120 @@
+/*!
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2026 The PWM Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *
+ * Issue #729 - helpdesk session 1 (cards-view vertical slice).  Sized to match
+ * the existing PWM helpdesk JSP container so layout does not jump when the
+ * `?modernUi=1` flag is toggled.
+ */
+
+pwm-helpdesk {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+
+    .pwm-helpdesk-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 16px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    .pwm-helpdesk-header h2 {
+        margin: 0;
+        font-size: 1.4em;
+        flex: 0 0 auto;
+    }
+
+    .pwm-helpdesk-search {
+        flex: 1 1 auto;
+        max-width: 400px;
+        font-size: 1em;
+        padding: 6px 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .pwm-helpdesk-search:focus {
+        outline: 2px solid #4a90d9;
+        outline-offset: -1px;
+    }
+
+    .pwm-helpdesk-status {
+        padding: 12px 16px;
+        color: #666;
+        font-style: italic;
+        min-height: 1.2em;
+    }
+
+    .pwm-helpdesk-status[data-error="true"] {
+        color: #c33;
+        font-style: normal;
+    }
+
+    .pwm-helpdesk-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px;
+        padding: 8px 16px;
+    }
+
+    .pwm-helpdesk-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: #fff;
+        cursor: pointer;
+        transition: box-shadow 0.15s, border-color 0.15s;
+    }
+
+    .pwm-helpdesk-card:hover {
+        border-color: #4a90d9;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .pwm-helpdesk-card:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: 1px;
+    }
+
+    .pwm-helpdesk-card-avatar {
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #e5e5e5 center/cover no-repeat;
+    }
+
+    .pwm-helpdesk-card-body {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .pwm-helpdesk-card-name {
+        font-weight: 600;
+        margin: 0 0 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .pwm-helpdesk-card-line {
+        font-size: 0.9em;
+        color: #555;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}

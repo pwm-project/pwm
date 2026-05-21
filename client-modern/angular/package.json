@@ -9,12 +9,14 @@
         "npm": ">=10.0"
     },
     "scripts": {
-        "build": "ng build changepassword && ng build configeditor && node scripts/postbuild.mjs",
+        "build": "ng build changepassword && ng build configeditor && ng build helpdesk && node scripts/postbuild.mjs",
         "build:changepassword": "ng build changepassword && node scripts/postbuild.mjs",
         "build:configeditor": "ng build configeditor && node scripts/postbuild.mjs",
+        "build:helpdesk": "ng build helpdesk && node scripts/postbuild.mjs",
         "watch": "ng build --watch --configuration development"
     },
     "dependencies": {
+        "lit": "^3.2.0",
         "quill": "^2.0.3"
     },
     "devDependencies": {
