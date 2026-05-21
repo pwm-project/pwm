@@ -95,18 +95,25 @@ async function bundleModule(moduleName) {
 
 /**
  * Emit a self-executing snippet that injects the bundled CSS into document.head
- * as a single <style> element on first run.  The IIFE is idempotent (won't
- * re-inject if the script is loaded twice) and uses JSON.stringify so any
- * characters in the CSS that would be problematic in a JS string literal are
- * safely escaped.
+ * as a single `<style>` element on first run.  Idempotent via a plain JS
+ * registry on `window` (no querySelector / CSS attribute escaping needed - an
+ * earlier version used a colon-delimited marker as a CSS attribute selector
+ * and threw SyntaxError because `:` is not legal inside an unquoted attribute
+ * value).
  */
 function stylesInjector(moduleName, css) {
-    const marker = `pwm-client-modern:${moduleName}:styles`;
+    // Module names are validated as Angular CLI project names (alphanumeric +
+    // hyphens), so `moduleName` is safe to embed unquoted in an identifier
+    // path; JSON.stringify on the JS-string boundaries adds the necessary
+    // quoting and CSS-content escaping anyway.
+    const safeName = JSON.stringify(moduleName);
     return [
         '(function(){',
-        `  if (document.head.querySelector('style[data-pwm-bundle=${JSON.stringify(marker).slice(1, -1)}]')) return;`,
+        '  var reg = (window.__pwmClientModernStyles = window.__pwmClientModernStyles || {});',
+        `  if (reg[${safeName}]) return;`,
+        `  reg[${safeName}] = true;`,
         '  var s = document.createElement("style");',
-        `  s.setAttribute("data-pwm-bundle", ${JSON.stringify(marker)});`,
+        `  s.setAttribute("data-pwm-bundle", ${safeName});`,
         `  s.textContent = ${JSON.stringify(css)};`,
         '  document.head.appendChild(s);',
         '})();',
