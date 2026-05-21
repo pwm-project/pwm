@@ -22,6 +22,15 @@ import { getServerUrl, pwmFetch } from './pwm-fetch';
 import type { Person, SearchResult, SearchResultRaw } from '../models';
 
 /**
+ * Advanced-search query row.  Mirrors {@code IAdvancedSearchQuery} from the
+ * legacy {@code base-config.service.ts}.
+ */
+export interface AdvancedSearchQuery {
+    key: string;
+    value: string;
+}
+
+/**
  * Subset of {@code client/angular/src/services/helpdesk.service.ts} ported to
  * vanilla TS for the session 1 cards-view slice (issue #729).  Methods will be
  * added in subsequent sessions as additional helpdesk surfaces migrate; this
@@ -40,6 +49,21 @@ export async function search(query: string, signal?: AbortSignal): Promise<Searc
     const raw = await pwmFetch<SearchResultRaw>(
         url,
         { mode: 'simple', username: query },
+        { signal },
+    );
+    return toSearchResult(raw);
+}
+
+/**
+ * Multi-attribute (advanced) search.  Each query row contributes a single
+ * attribute=value pair the backend ANDs together.  Mirrors
+ * {@code HelpDeskService.advancedSearch} from the legacy bundle.
+ */
+export async function advancedSearch(queries: AdvancedSearchQuery[], signal?: AbortSignal): Promise<SearchResult> {
+    const url = getServerUrl('search');
+    const raw = await pwmFetch<SearchResultRaw>(
+        url,
+        { mode: 'advanced', searchValues: queries },
         { signal },
     );
     return toSearchResult(raw);

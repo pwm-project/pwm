@@ -24,7 +24,7 @@ bundles ship in the WAR.
 | ---------------- | ------------------- | --------------------------------------- | ----- |
 | `changepassword` | AngularJS 1.8.3     | Vanilla CE, **3.7 KB** (870 B gzipped)  | ✅    |
 | `configeditor`   | AngularJS 1.8.3 + textangular | Vanilla CE + Quill 2, **232 KB** (55 KB gzipped) | ✅    |
-| `helpdesk`       | AngularJS 1.8.3 + ng-ias | Lit, **26 KB** (8.6 KB gzipped) — session 1: cards-view search only, opt-in via `?modernUi=1` | 🚧 |
+| `helpdesk`       | AngularJS 1.8.3 + ng-ias | Lit, **36 KB** (10.5 KB gzipped) — sessions 1-2: cards + table views, view toggle, advanced search; opt-in via `?modernUi=1` | 🚧 |
 | `peoplesearch`   | AngularJS 1.8.3 + ng-ias | _planned: Lit_                    | ⏳    |
 
 ### Helpdesk migration sub-status
@@ -36,10 +36,10 @@ the default route until parity is reached.
 | Session | Slice |
 |---|---|
 | 1 ✅ | Search-cards view (simple query, debounce, sessionStorage round-trip), feature flag `?modernUi=1` |
-| 2 | Table view + view toggle + advanced search |
+| 2 ✅ | Table view + cards/table toggle + advanced search (multi-attribute query rows) + clientData config service |
 | 3 | Detail page (attributes, tabs, action buttons) |
 | 4 | Verification dialog flows |
-| 5 | Polish + parity test + flip default + retire `client/` |
+| 5 | Polish (card-attribute polish, parity test, flip default, retire `client/`) |
 
 ## Project layout
 
