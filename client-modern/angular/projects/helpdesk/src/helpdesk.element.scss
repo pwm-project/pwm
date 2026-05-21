@@ -244,4 +244,148 @@ pwm-helpdesk {
         text-overflow: ellipsis;
         max-width: 320px;
     }
+
+    // ---- detail view ----
+
+    .pwm-helpdesk-detail-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        margin-bottom: 0;
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    .pwm-helpdesk-detail-header h2 {
+        margin: 0;
+        font-size: 1.4em;
+        flex: 0 0 auto;
+    }
+
+    .pwm-helpdesk-secondary-header {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        background: #fafafa;
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    .pwm-helpdesk-detail-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: #fff;
+        min-width: 280px;
+        max-width: 480px;
+    }
+
+    .pwm-helpdesk-detail-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px 16px;
+        border-bottom: 1px solid #e5e5e5;
+        background: #fcfcfc;
+    }
+
+    .pwm-helpdesk-action-button {
+        background: #fff;
+        border: 1px solid #cfd8e3;
+        border-radius: 4px;
+        padding: 6px 14px;
+        font-size: 0.95em;
+        cursor: pointer;
+        color: #1d3c5e;
+        transition: background 0.1s, border-color 0.1s;
+    }
+
+    .pwm-helpdesk-action-button:hover:not(:disabled) {
+        background: #eef3fa;
+        border-color: #8fb1d8;
+    }
+
+    .pwm-helpdesk-action-button:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: 1px;
+    }
+
+    .pwm-helpdesk-action-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .pwm-helpdesk-tabset {
+        display: flex;
+        gap: 0;
+        padding: 0 16px;
+        border-bottom: 1px solid #e5e5e5;
+        margin-top: 8px;
+    }
+
+    .pwm-helpdesk-tab {
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid transparent;
+        padding: 8px 16px;
+        font-size: 0.95em;
+        cursor: pointer;
+        color: #555;
+        transition: color 0.1s, border-color 0.1s;
+    }
+
+    .pwm-helpdesk-tab:hover {
+        color: #1d3c5e;
+    }
+
+    .pwm-helpdesk-tab:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: -2px;
+    }
+
+    .pwm-helpdesk-tab[data-active="true"] {
+        color: #1d3c5e;
+        border-bottom-color: #4a90d9;
+        font-weight: 600;
+    }
+
+    .pwm-helpdesk-tab-panes {
+        padding: 12px 16px 24px;
+    }
+
+    .pwm-helpdesk-details-table {
+        border-collapse: collapse;
+        width: 100%;
+        max-width: 920px;
+    }
+
+    .pwm-helpdesk-details-table td {
+        padding: 8px 12px;
+        border-top: 1px solid #eee;
+        vertical-align: top;
+    }
+
+    .pwm-helpdesk-details-table tr:first-child td {
+        border-top: none;
+    }
+
+    .pwm-helpdesk-detail-label {
+        font-weight: 600;
+        color: #444;
+        width: 220px;
+        white-space: nowrap;
+    }
+
+    .pwm-helpdesk-details-table ul {
+        margin: 0;
+        padding-left: 1.2em;
+    }
+
+    .pwm-helpdesk-empty {
+        padding: 16px;
+        color: #888;
+        font-style: italic;
+    }
 }

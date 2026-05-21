@@ -110,6 +110,24 @@ export async function photosEnabled(signal?: AbortSignal): Promise<boolean> {
     return value !== false;
 }
 
+/** Admin-configured "Custom Actions" available on the detail page action strip. */
+export interface CustomActionButton {
+    /** Identifier used by the executeAction endpoint as {@code name=} parameter. */
+    name: string;
+    /** Tooltip shown on hover. */
+    description?: string;
+}
+
+/**
+ * Custom action buttons configured on the helpdesk profile.  PWM returns these
+ * as a map keyed by an arbitrary label, with each value carrying the
+ * {@code name} the {@code executeAction} endpoint expects.
+ */
+export async function customActionButtons(signal?: AbortSignal): Promise<Record<string, CustomActionButton>> {
+    const value = await getValue<Record<string, CustomActionButton>>('actions', signal);
+    return value ?? {};
+}
+
 /**
  * Compute the default value for an advanced-search attribute based on its
  * type.  For {@code type === 'select'} the default is the first option's key;
