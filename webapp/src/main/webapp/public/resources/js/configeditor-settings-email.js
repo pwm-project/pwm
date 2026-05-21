@@ -185,6 +185,13 @@ EmailTableHandler.htmlBodyEditor = function(keyName, localeName) {
     var idValue = keyName + "_" + localeName + "_htmlEditor";
     var existingHtml = PWM_VAR['clientSettingCache'][keyName][localeName]['bodyHtml'];
 
+    // PWM_MAIN.showDialog calls closeWaitDialog (which removes the dialog DOM) BEFORE
+    // invoking okAction.  By that point document.getElementById(idValue) returns null,
+    // even though the element still exists as a JS object.  Capture the element in
+    // this closure during loadFunction so okAction can still read its (post-disconnect-
+    // snapshotted) `value` property.
+    var capturedEditor = null;
+
     PWM_MAIN.showDialog({
         title: "HTML Editor",
         text: '<pwm-html-editor id="' + idValue + '" class="html-editor"></pwm-html-editor>',
@@ -192,15 +199,14 @@ EmailTableHandler.htmlBodyEditor = function(keyName, localeName) {
         showCancel: true,
         dialogClass: 'wide',
         loadFunction: function() {
-            var editor = document.getElementById(idValue);
-            if (editor) {
-                editor.value = existingHtml || '';
+            capturedEditor = document.getElementById(idValue);
+            if (capturedEditor) {
+                capturedEditor.value = existingHtml || '';
             }
         },
         okAction: function() {
-            var editor = document.getElementById(idValue);
             PWM_VAR['clientSettingCache'][keyName][localeName]['bodyHtml'] =
-                editor ? editor.value : existingHtml;
+                capturedEditor ? capturedEditor.value : existingHtml;
             EmailTableHandler.writeSetting(keyName, true);
         }
     });
