@@ -102,6 +102,14 @@ class HtmlEditorElement extends HTMLElement {
     }
 
     disconnectedCallback(): void {
+        // PWM_MAIN.showDialog removes the dialog DOM BEFORE calling okAction (see
+        // webapp/.../js/main.js:780), so callers that read `editor.value` from
+        // okAction observe this element after disconnect.  Snapshot the current
+        // HTML into pendingValue so the `value` getter still returns the user's
+        // edits after the editor itself has been torn down.
+        if (this.quill) {
+            this.pendingValue = this.quill.root.innerHTML;
+        }
         // Quill 2 does not expose a destroy() method; drop our reference and let GC
         // reclaim the editor + toolbar DOM (which sit inside this host element and are
         // about to be removed from the document).
