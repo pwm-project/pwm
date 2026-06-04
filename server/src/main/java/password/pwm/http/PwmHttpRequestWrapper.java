@@ -66,6 +66,14 @@ public class PwmHttpRequestWrapper
                     HttpHeader.Authorization.getHttpName() ) )
             );
 
+    // parameter names (substring-matched) whose values must never be serialized into a URL/query string,
+    // to avoid leaking sensitive submitted values into redirects, web-server logs, browser history, or
+    // referer headers.  'password' also matches 'password1', 'password2', 'currentPassword', etc.
+    private static final Set<String> HTTP_PARAM_SENSITIVE_URL_STRIP_VALUES =
+            Collections.unmodifiableSet( new HashSet<>( Collections.singletonList(
+                    PwmConstants.PARAM_PASSWORD ) )
+            );
+
     public enum Flag
     {
         BypassValidation
@@ -371,6 +379,47 @@ public class PwmHttpRequestWrapper
             returnObj.put( paramName, paramValue );
         }
         return Collections.unmodifiableMap( returnObj );
+    }
+
+    /**
+     * Like {@link #readParametersAsMap()}, but omits parameters whose names indicate a sensitive value
+     * (e.g. a password).  Use this when building a URL that may be redirected to or otherwise exposed,
+     * so that sensitive submitted values are not serialized into a query string (and from there into
+     * web-server logs, browser history, or referer headers).
+     */
+    public Map<String, String> readParametersAsMapForRedirectUrl( )
+            throws PwmUnrecoverableException
+    {
+        final Map<String, String> returnObj = new HashMap<>();
+        for ( final String paramName : parameterNames() )
+        {
+            if ( !isSensitiveUrlParameter( paramName ) )
+            {
+                returnObj.put( paramName, readParameterAsString( paramName ) );
+            }
+        }
+        return Collections.unmodifiableMap( returnObj );
+    }
+
+    /**
+     * Returns true if the given request parameter name indicates a sensitive value that should never be
+     * serialized into a URL/query string (currently password-type parameters).
+     */
+    public static boolean isSensitiveUrlParameter( final String paramName )
+    {
+        if ( paramName == null )
+        {
+            return false;
+        }
+        final String lowerName = paramName.toLowerCase();
+        for ( final String stripValue : HTTP_PARAM_SENSITIVE_URL_STRIP_VALUES )
+        {
+            if ( lowerName.contains( stripValue.toLowerCase() ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Map<String, List<String>> readMultiParametersAsMap( )
