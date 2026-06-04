@@ -577,7 +577,9 @@ public class PwmRequest extends PwmHttpRequestWrapper
 
     public String getURLwithQueryString( ) throws PwmUnrecoverableException
     {
-        return PwmURL.appendAndEncodeUrlParameters( getURLwithoutQueryString(), readParametersAsMap() );
+        // use the redirect-safe parameter map so sensitive submitted values (e.g. passwords) are not
+        // serialized into the query string of a URL that may be redirected to, logged, or stored in history.
+        return PwmURL.appendAndEncodeUrlParameters( getURLwithoutQueryString(), readParametersAsMapForRedirectUrl() );
     }
 
     public boolean endUserFunctionalityAvailable( )

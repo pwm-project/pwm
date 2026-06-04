@@ -393,7 +393,8 @@ public class SessionFilter extends AbstractPwmFilter
             // check to make sure param is in query string
             if ( req.getQueryString() != null && req.getQueryString().contains( StringUtil.urlDecode( paramName ) ) )
             {
-                if ( !verificationParamName.equals( paramName ) )
+                // never re-serialize sensitive (e.g. password) parameters into the redirect URL
+                if ( !verificationParamName.equals( paramName ) && !PwmHttpRequestWrapper.isSensitiveUrlParameter( paramName ) )
                 {
                     for ( final String value : req.getParameterValues( paramName ) )
                     {
