@@ -97,6 +97,14 @@ class HttpTrustManagerHelper
 
             case configuredCertificates:
             {
+                // pwm-project/pwm#733: when no certificates are explicitly configured for an outbound
+                // callout (oauth/oidc, rest, sms, etc.), fall back to the JVM default trust store rather
+                // than a trust manager with an empty (trust-nothing) certificate list.  This matches the
+                // existing behavior of ldap, smtp/email, and syslog.
+                if ( JavaHelper.isEmpty( pwmHttpClientConfiguration.getCertificates() ) )
+                {
+                    return X509Utils.getDefaultJavaTrustManager( appConfig );
+                }
                 return new TrustManager[]
                         {
                                 PwmTrustManager.createPwmTrustManager( appConfig, pwmHttpClientConfiguration.getCertificates() ),
@@ -121,7 +129,8 @@ class HttpTrustManagerHelper
         final PwmHttpClientConfiguration.TrustManagerType type = getTrustManagerType();
         final StringBuilder value = new StringBuilder( "trust manager [" + type );
 
-        if ( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates == type )
+        if ( PwmHttpClientConfiguration.TrustManagerType.configuredCertificates == type
+                && !JavaHelper.isEmpty( pwmHttpClientConfiguration.getCertificates() ) )
         {
             value.append( "=" );
             for ( final Iterator<X509Certificate> iterator = pwmHttpClientConfiguration.getCertificates().iterator(); iterator.hasNext(); )
