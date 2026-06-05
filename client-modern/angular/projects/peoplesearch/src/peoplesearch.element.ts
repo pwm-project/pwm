@@ -24,6 +24,7 @@ import { repeat } from 'lit/directives/repeat.js';
 import {
     search,
     advancedSearch,
+    getPerson,
     type AdvancedSearchQuery,
 } from './services/people-service';
 import {
@@ -89,6 +90,14 @@ export class PeopleSearchElement extends LitElement {
     @state() private status = '';
     @state() private error = '';
     @state() private searchResult: SearchResult | null = null;
+    /**
+     * Cards view only: the search response carries flat attributes but no
+     * {@code displayNames}, so - like the legacy cards component - we enrich each
+     * hit via a {@code detail} fetch to get the configured card labels.  The
+     * table view renders the raw flat results directly, so it stays on
+     * {@code searchResult}.
+     */
+    @state() private cardsPeople: Person[] = [];
 
     // ---- config ----
     @state() private advancedConfig: AdvancedSearchConfig | null = null;
@@ -99,6 +108,7 @@ export class PeopleSearchElement extends LitElement {
     // ---- internal ----
     private debounceTimer: ReturnType<typeof setTimeout> | null = null;
     private currentSearch: AbortController | null = null;
+    private cardsEnrich: AbortController | null = null;
     private debounceMs = ajaxTypingWait();
     private attributeMetadata: Record<string, AttributeMetadata> = {};
     private hashListener: (() => void) | null = null;
@@ -127,6 +137,7 @@ export class PeopleSearchElement extends LitElement {
         super.disconnectedCallback();
         this.cancelDebounce();
         this.abortInFlight();
+        this.abortCardsEnrich();
         if (this.hashListener) {
             window.removeEventListener('hashchange', this.hashListener);
             this.hashListener = null;
@@ -319,7 +330,7 @@ export class PeopleSearchElement extends LitElement {
     }
 
     private renderCards(): TemplateResult | typeof nothing {
-        const people = this.sortedPeople();
+        const people = this.sortedCardsPeople();
         if (people.length === 0) {
             return nothing;
         }
@@ -374,6 +385,53 @@ export class PeopleSearchElement extends LitElement {
         return [...people].sort((a, b) => (a.displayNames?.[0] ?? '').localeCompare(b.displayNames?.[0] ?? ''));
     }
 
+    private sortedCardsPeople(): Person[] {
+        return [...this.cardsPeople].sort((a, b) => (a.displayNames?.[0] ?? '').localeCompare(b.displayNames?.[0] ?? ''));
+    }
+
+    /**
+     * Populate {@code cardsPeople} from the current search results by fetching
+     * each hit's detail (the only response that carries {@code displayNames}).
+     * Mirrors the legacy {@code PeopleSearchCardsComponent.onSearchResult}: each
+     * detail request is abortable and results stream in as they resolve.
+     */
+    private enrichCards(): void {
+        this.abortCardsEnrich();
+        this.cardsPeople = [];
+        const people = this.searchResult?.people ?? [];
+        if (people.length === 0) {
+            return;
+        }
+        const controller = new AbortController();
+        this.cardsEnrich = controller;
+        const signal = controller.signal;
+        for (const hit of people) {
+            if (!hit.userKey) {
+                continue;
+            }
+            getPerson(hit.userKey, signal)
+                .then((person) => {
+                    if (signal.aborted || !person) {
+                        return;
+                    }
+                    this.cardsPeople = [...this.cardsPeople, person];
+                })
+                .catch((err) => {
+                    if ((err as { name?: string }).name === 'AbortError') {
+                        return;
+                    }
+                    this.error = (err as Error).message;
+                });
+        }
+    }
+
+    private abortCardsEnrich(): void {
+        if (this.cardsEnrich) {
+            this.cardsEnrich.abort();
+            this.cardsEnrich = null;
+        }
+    }
+
     // ============================================================================
     // EVENTS
     // ============================================================================
@@ -405,6 +463,15 @@ export class PeopleSearchElement extends LitElement {
         }
         this.view = next;
         setItem(StorageKeys.SEARCH_VIEW, localViewToLegacyKey(next));
+        if (next === VIEW_CARDS) {
+            // Enrich on demand if we switched into cards after a search ran in
+            // the table view (or have stale data from a prior result set).
+            if ((this.searchResult?.people.length ?? 0) > 0 && this.cardsPeople.length === 0) {
+                this.enrichCards();
+            }
+        } else {
+            this.abortCardsEnrich();
+        }
     }
 
     private enableAdvancedSearch = (): void => {
@@ -489,6 +556,8 @@ export class PeopleSearchElement extends LitElement {
         this.status = '';
         this.error = '';
         this.abortInFlight();
+        this.abortCardsEnrich();
+        this.cardsPeople = [];
     }
 
     private validateAdvancedQueries(): string | null {
@@ -508,6 +577,8 @@ export class PeopleSearchElement extends LitElement {
 
     private async kickOffSearch(): Promise<void> {
         this.abortInFlight();
+        // Stop stale detail fetches from a superseded result set pushing cards.
+        this.abortCardsEnrich();
         let request: Promise<SearchResult>;
         if (this.advancedMode) {
             const problem = this.validateAdvancedQueries();
@@ -550,6 +621,14 @@ export class PeopleSearchElement extends LitElement {
                 this.status = 'No results.';
             } else {
                 this.status = '';
+            }
+            // Cards need per-hit detail enrichment for displayNames; only pay
+            // for it when the cards view is actually showing.
+            if (this.view === VIEW_CARDS) {
+                this.enrichCards();
+            } else {
+                this.abortCardsEnrich();
+                this.cardsPeople = [];
             }
         } catch (err) {
             if ((err as { name?: string }).name === 'AbortError') {
