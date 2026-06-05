@@ -27,4 +27,4 @@ import './helpdesk.element';
 // browser actually ran (cached vs fresh).  Bump this whenever a session
 // changes behavior callers might still expect from an earlier version.
 // eslint-disable-next-line no-console
-console.log('[pwm-helpdesk] bundle session 4 (native verification flow)');
+console.log('[pwm-helpdesk] bundle session 5 (native change-password flow)');

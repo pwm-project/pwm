@@ -297,3 +297,69 @@ export async function validateVerificationData(
     setItem(StorageKeys.VERIFICATION_STATE, result.verificationState);
     return result;
 }
+
+// ----------------------------------------------------------------------------
+// Change password (session 5)
+// ----------------------------------------------------------------------------
+
+/** Live password-validation result from the {@code checkPassword} endpoint. */
+export interface ValidatePasswordResult {
+    version: number;
+    strength: number;
+    match: string;
+    message: string;
+    passed: boolean;
+    errorCode?: number;
+}
+
+/** Server-generated random password from the {@code randomPassword} endpoint. */
+export interface RandomPasswordResponse {
+    password: string;
+}
+
+/**
+ * Validate a typed password pair against the target user's policy without
+ * setting it.  Mirrors {@code PasswordService.validatePassword} - the backend
+ * returns a {@code version: 2} envelope with strength / match / acceptability.
+ */
+export async function validatePassword(
+    password1: string,
+    password2: string,
+    userKey: string,
+    signal?: AbortSignal,
+): Promise<ValidatePasswordResult> {
+    const url = getServerUrl('checkPassword');
+    return pwmFetch<ValidatePasswordResult>(
+        url,
+        { password1, password2, username: userKey },
+        { signal },
+    );
+}
+
+/** Fetch a single server-generated random password candidate. */
+export async function getRandomPassword(userKey: string, signal?: AbortSignal): Promise<RandomPasswordResponse> {
+    const url = getServerUrl('randomPassword');
+    return pwmFetch<RandomPasswordResponse>(url, { username: userKey, strength: 0 }, { signal });
+}
+
+/**
+ * Set the target user's password.  When {@code random} is true the backend
+ * generates the value and the operator never sees it; otherwise {@code password}
+ * is the operator-chosen value.  Mirrors {@code HelpDeskService.setPassword}
+ * (note the {@code username} field name, matching the legacy wire contract).
+ */
+export async function setPassword(
+    userKey: string,
+    random: boolean,
+    password?: string,
+    signal?: AbortSignal,
+): Promise<SuccessResponse> {
+    const url = getServerUrl('setPassword');
+    const body: Record<string, unknown> = { username: userKey };
+    if (random) {
+        body['random'] = true;
+    } else {
+        body['password'] = password;
+    }
+    return pwmFetch<SuccessResponse>(url, body, { signal });
+}

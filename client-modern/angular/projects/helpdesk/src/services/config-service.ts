@@ -184,3 +184,37 @@ export async function getVerificationAttributes(signal?: AbortSignal): Promise<A
     const value = await getValue<Array<{ name: string; label: string }>>('verificationForm', signal);
     return Array.isArray(value) ? value : [];
 }
+
+// ----------------------------------------------------------------------------
+// Change-password config (session 5)
+// ----------------------------------------------------------------------------
+
+/** Password UI mode the helpdesk profile is configured for. */
+export const PASSWORD_UI_MODES = {
+    NONE: 'none',
+    AUTOGEN: 'autogen',
+    RANDOM: 'random',
+    TYPE: 'type',
+    BOTH: 'both',
+} as const;
+
+export type PasswordUiMode = (typeof PASSWORD_UI_MODES)[keyof typeof PASSWORD_UI_MODES];
+
+/** How the operator sets a new password (type it, pick a random, etc.). */
+export async function getPasswordUiMode(signal?: AbortSignal): Promise<PasswordUiMode> {
+    const value = await getValue<string>('pwUiMode', signal);
+    return (value as PasswordUiMode) ?? PASSWORD_UI_MODES.NONE;
+}
+
+/** Whether typed passwords are masked by default in the change-password dialog. */
+export async function maskPasswordsEnabled(signal?: AbortSignal): Promise<boolean> {
+    return Boolean(await getValue<boolean>('maskPasswords', signal));
+}
+
+/**
+ * Clear-responses behavior after a password change: {@code 'ask'} surfaces a
+ * "Clear Responses" button on the success screen; anything else suppresses it.
+ */
+export async function getClearResponsesSetting(signal?: AbortSignal): Promise<string> {
+    return (await getValue<string>('clearResponses', signal)) ?? '';
+}

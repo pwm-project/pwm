@@ -390,11 +390,12 @@ pwm-helpdesk {
     }
 }
 
-// ---- verification dialog (session 4) ----
-// Rendered by <pwm-helpdesk-verification-dialog>, a sibling custom element, so
-// these selectors live outside the pwm-helpdesk block.
+// ---- modal dialogs (session 4 verification, session 5 change-password) ----
+// Rendered by sibling custom elements, so these selectors live outside the
+// pwm-helpdesk block.  Both dialogs share the same chrome / control styles.
 
-pwm-helpdesk-verification-dialog {
+pwm-helpdesk-verification-dialog,
+pwm-helpdesk-change-password-dialog {
     .pwm-helpdesk-dialog-backdrop {
         position: fixed;
         inset: 0;
@@ -552,5 +553,92 @@ pwm-helpdesk-verification-dialog {
     .pwm-helpdesk-action-button:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+    }
+}
+
+// ---- change-password dialog specifics (session 5) ----
+
+pwm-helpdesk-change-password-dialog {
+    .pwm-helpdesk-dialog-field input[type="text"],
+    .pwm-helpdesk-dialog-field input[type="password"] {
+        width: 100%;
+    }
+
+    // Inline "Show / Hide" mask toggle - a text link, not a button-looking control.
+    .pwm-helpdesk-link-button {
+        background: transparent;
+        border: none;
+        color: #4a90d9;
+        cursor: pointer;
+        padding: 0 4px;
+        font-size: 0.9em;
+        text-decoration: underline;
+    }
+
+    .pwm-helpdesk-link-button:hover {
+        color: #1d3c5e;
+    }
+
+    // Five-segment strength meter.
+    .pwm-helpdesk-strength {
+        display: inline-flex;
+        gap: 3px;
+        margin-top: 6px;
+    }
+
+    .pwm-helpdesk-strength-seg {
+        width: 28px;
+        height: 6px;
+        border-radius: 2px;
+        background: #e0e0e0;
+    }
+
+    .pwm-helpdesk-strength-seg[data-on="true"] {
+        background: #c0392b;
+    }
+
+    .pwm-helpdesk-strength-seg[data-on="true"][data-level="3"] {
+        background: #e6a700;
+    }
+
+    .pwm-helpdesk-strength-seg[data-on="true"][data-level="4"],
+    .pwm-helpdesk-strength-seg[data-on="true"][data-level="5"] {
+        background: #37c26a;
+    }
+
+    // Autogen suggestion grid - two columns of monospaced candidates.
+    .pwm-helpdesk-suggestions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .pwm-helpdesk-suggestion {
+        font-family: monospace;
+        font-size: 0.95em;
+        padding: 8px 10px;
+        border: 1px solid #cfd8e3;
+        border-radius: 4px;
+        background: #fff;
+        cursor: pointer;
+        text-align: center;
+        color: #1d3c5e;
+        transition: background 0.1s, border-color 0.1s;
+    }
+
+    .pwm-helpdesk-suggestion:hover:not(:disabled) {
+        background: #eef3fa;
+        border-color: #8fb1d8;
+    }
+
+    .pwm-helpdesk-suggestion:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: 1px;
+    }
+
+    .pwm-helpdesk-suggestion:disabled {
+        color: #aaa;
+        cursor: default;
     }
 }

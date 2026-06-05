@@ -52,6 +52,8 @@ import { ajaxTypingWait } from './services/pwm-fetch';
 import { getItem, setItem, StorageKeys } from './services/local-storage';
 import './verification-dialog.element';
 import type { VerificationResult } from './verification-dialog.element';
+import './change-password-dialog.element';
+import type { ChangePasswordResult } from './change-password-dialog.element';
 import type { Person, SearchResult } from './models';
 
 /** Top-level mode: search page vs detail page (driven by URL hash). */
@@ -78,11 +80,13 @@ function localViewToLegacyKey(view: SearchView): string {
 }
 
 /**
- * Sessions 1-4 of the helpdesk migration (issue #729): the entire search page
+ * Sessions 1-5 of the helpdesk migration (issue #729): the entire search page
  * (cards + table views, advanced search), the detail page (attribute tabs,
- * simple action buttons), and the identity-verification flow (search-page gate
- * + detail-page Verify button).  Change Password still hands off to the legacy
- * bundle until a later session.  Opt-in via {@code ?modernUi=1}.
+ * simple action buttons), the identity-verification flow (search-page gate +
+ * detail-page Verify button), and the change-password flow (type / autogen /
+ * random + success / clear-responses).  The full helpdesk module is now native;
+ * no remaining handoffs to the legacy AngularJS bundle.  Opt-in via
+ * {@code ?modernUi=1}.
  *
  * <p>Light-DOM render root so PWM's theme stylesheets cascade in.  Lit handles
  * change detection and templating; nothing else.  URL hash drives the top-
@@ -124,6 +128,9 @@ export class HelpdeskElement extends LitElement {
 
     // ---- verification dialog ----
     @state() private verifyDialog: { userKey: string; requiredOnly: boolean; isDetailsView: boolean } | null = null;
+
+    // ---- change-password dialog (holds the target userKey while open) ----
+    @state() private changePwDialog: string | null = null;
 
     // ---- internal ----
     private debounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -238,6 +245,12 @@ export class HelpdeskElement extends LitElement {
                           .isDetailsView=${this.verifyDialog.isDetailsView}
                           @dialog-result=${this.onVerifyResult}
                       ></pwm-helpdesk-verification-dialog>`
+                : nothing}
+            ${this.changePwDialog
+                ? html`<pwm-helpdesk-change-password-dialog
+                          .userKey=${this.changePwDialog}
+                          @dialog-close=${this.onChangePasswordClose}
+                      ></pwm-helpdesk-change-password-dialog>`
                 : nothing}
         `;
     }
@@ -579,7 +592,7 @@ export class HelpdeskElement extends LitElement {
             return html``;
         }
         return html`
-            ${this.renderActionButton('changePassword', 'Change Password', () => this.changePasswordHandoff(), person)}
+            ${this.renderActionButton('changePassword', 'Change Password', () => this.changePassword(), person)}
             ${this.renderActionButton('unlock', 'Unlock', () => this.confirmAction(
                 `Unlock ${this.displayLabel()}?`,
                 () => unlockIntruder(this.detailUserKey!),
@@ -915,18 +928,23 @@ export class HelpdeskElement extends LitElement {
     };
 
     /**
-     * Hand off to the legacy AngularJS detail page for the change-password
-     * sub-flow.  A later session ports this natively (modal with type / autogen /
-     * random options).
+     * Open the native change-password dialog (type / autogen / random per the
+     * configured {@code pwUiMode}).  Ported from the legacy
+     * {@code helpdesk-detail.component.ts} change-password chain in session 5.
      */
-    private changePasswordHandoff = (): void => {
-        if (!this.detailUserKey) {
-            return;
+    private changePassword = (): void => {
+        if (this.detailUserKey) {
+            this.changePwDialog = this.detailUserKey;
         }
-        const url = new URL(window.location.href);
-        url.searchParams.delete('modernUi');
-        url.hash = `#/details/${encodeURIComponent(this.detailUserKey)}`;
-        window.location.assign(url.toString());
+    };
+
+    private onChangePasswordClose = (event: CustomEvent<ChangePasswordResult>): void => {
+        this.changePwDialog = null;
+        if (event.detail.changed && this.detailUserKey) {
+            // The set succeeded (and possibly cleared responses) - reload so the
+            // status tab / button state reflect the change.
+            this.loadDetail(this.detailUserKey);
+        }
     };
 
     /**
