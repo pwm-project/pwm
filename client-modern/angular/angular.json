@@ -141,6 +141,53 @@
                     "defaultConfiguration": "production"
                 }
             }
+        },
+        "peoplesearch": {
+            "projectType": "application",
+            "schematics": {},
+            "root": "projects/peoplesearch",
+            "sourceRoot": "projects/peoplesearch/src",
+            "prefix": "pwm",
+            "architect": {
+                "build": {
+                    "builder": "@angular-devkit/build-angular:application",
+                    "options": {
+                        "outputPath": {
+                            "base": "dist/peoplesearch",
+                            "browser": ""
+                        },
+                        "index": false,
+                        "browser": "projects/peoplesearch/src/main.ts",
+                        "polyfills": [],
+                        "tsConfig": "tsconfig.app.json",
+                        "assets": [],
+                        "styles": [
+                            "projects/peoplesearch/src/peoplesearch.element.scss"
+                        ],
+                        "scripts": []
+                    },
+                    "configurations": {
+                        "production": {
+                            "budgets": [
+                                {
+                                    "type": "initial",
+                                    "maximumWarning": "100kb",
+                                    "maximumError": "200kb"
+                                }
+                            ],
+                            "outputHashing": "none",
+                            "optimization": true,
+                            "sourceMap": false
+                        },
+                        "development": {
+                            "optimization": false,
+                            "sourceMap": true,
+                            "namedChunks": true
+                        }
+                    },
+                    "defaultConfiguration": "production"
+                }
+            }
         }
     }
 }
