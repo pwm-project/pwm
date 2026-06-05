@@ -19,6 +19,7 @@
  */
 
 import { getServerUrl, pwmFetch } from './pwm-fetch';
+import { getItem, setItem, StorageKeys } from './local-storage';
 import type { SearchResult, SearchResultRaw } from '../models';
 
 /**
@@ -135,7 +136,17 @@ export interface SuccessResponse {
 
 /** Full detail payload for a single user. */
 export async function getPerson(userKey: string, signal?: AbortSignal): Promise<PersonDetail> {
-    const url = getServerUrl('detail', { userKey });
+    // The detail endpoint accepts the saved verificationState so a profile that
+    // requires verification returns the gated attributes / buttons rather than
+    // rejecting the request.  Mirrors the legacy {@code getPerson} which appended
+    // {@code &verificationState=}.  Omitted entirely when no verification has
+    // happened this session (unverified-but-not-required profiles).
+    const extra: Record<string, string> = { userKey };
+    const verificationState = getItem(StorageKeys.VERIFICATION_STATE);
+    if (verificationState) {
+        extra['verificationState'] = verificationState;
+    }
+    const url = getServerUrl('detail', extra);
     return pwmFetch<PersonDetail>(url, null, { signal });
 }
 
@@ -177,4 +188,112 @@ export async function deleteUser(userKey: string, signal?: AbortSignal): Promise
 export async function customAction(actionName: string, userKey: string, signal?: AbortSignal): Promise<SuccessResponse> {
     const url = getServerUrl('executeAction', { name: actionName });
     return pwmFetch<SuccessResponse>(url, { userKey }, { signal });
+}
+
+// ----------------------------------------------------------------------------
+// Verification (session 4)
+// ----------------------------------------------------------------------------
+
+/**
+ * Verification method identifier as the backend names it.  Each maps to a
+ * distinct {@code processAction} when validating (see {@link VERIFY_ACTIONS}).
+ */
+export type VerificationMethod = 'ATTRIBUTES' | 'TOKEN' | 'OTP';
+
+/** One SMS / email destination a verification token can be sent to. */
+export interface TokenDestination {
+    id: string;
+    display: string;
+    type: string;
+}
+
+/**
+ * Options the {@code checkVerification} endpoint returns describing how this
+ * operator may verify the target user: which methods are required vs optional,
+ * the attribute form to render for the ATTRIBUTES method, and the token
+ * destinations for the TOKEN method.
+ */
+export interface VerificationOptions {
+    verificationMethods: {
+        optional: string[];
+        required: string[];
+    };
+    verificationForm?: Array<{ name: string; label: string }>;
+    tokenDestinations?: TokenDestination[];
+}
+
+/** Result of {@code checkVerification} / {@code validate*}. */
+export interface VerificationStatus {
+    passed: boolean;
+    verificationOptions: VerificationOptions;
+    /** Opaque server token persisted to {@code VERIFICATION_STATE}. */
+    verificationState?: string;
+}
+
+/** {@code processAction} per verification method - mirrors the legacy map. */
+const VERIFY_ACTIONS: Record<VerificationMethod, string> = {
+    ATTRIBUTES: 'validateAttributes',
+    TOKEN: 'verifyVerificationToken',
+    OTP: 'validateOtpCode',
+};
+
+/**
+ * Ask the backend whether verification has already been satisfied for this user
+ * (carrying any saved {@code verificationState}) and, if not, what the available
+ * methods / form / destinations are.  Mirrors {@code HelpDeskService.checkVerification}.
+ */
+export async function checkVerification(userKey: string, signal?: AbortSignal): Promise<VerificationStatus> {
+    const url = getServerUrl('checkVerification');
+    const body: Record<string, unknown> = { userKey };
+    const verificationState = getItem(StorageKeys.VERIFICATION_STATE);
+    if (verificationState) {
+        body['verificationState'] = verificationState;
+    }
+    return pwmFetch<VerificationStatus>(url, body, { signal });
+}
+
+/** Token-send response - carries the opaque {@code tokenData} echoed back on verify. */
+export interface VerificationTokenResponse {
+    tokenData?: string;
+    destination?: string;
+}
+
+/**
+ * Send a verification token (SMS / email) to the chosen destination.  The
+ * returned {@code tokenData} must be passed back to {@link validateVerificationData}
+ * so the backend can correlate the code the user reads off their device.
+ */
+export async function sendVerificationToken(
+    userKey: string,
+    destinationId: string,
+    signal?: AbortSignal,
+): Promise<VerificationTokenResponse> {
+    const url = getServerUrl('sendVerificationToken');
+    return pwmFetch<VerificationTokenResponse>(url, { userKey, id: destinationId }, { signal });
+}
+
+/**
+ * Submit verification input for the chosen method.  On success the backend
+ * returns a fresh {@code verificationState} which we persist so subsequent
+ * detail / action calls present as verified.  Mirrors
+ * {@code HelpDeskService.validateVerificationData}, including the side effect of
+ * writing {@code VERIFICATION_STATE} to (session) storage.
+ */
+export async function validateVerificationData(
+    userKey: string,
+    formData: Record<string, string>,
+    method: VerificationMethod,
+    signal?: AbortSignal,
+): Promise<VerificationStatus> {
+    const url = getServerUrl(VERIFY_ACTIONS[method]);
+    const body: Record<string, unknown> = { ...formData, userKey };
+    const verificationState = getItem(StorageKeys.VERIFICATION_STATE);
+    if (verificationState) {
+        body['verificationState'] = verificationState;
+    }
+    const result = await pwmFetch<VerificationStatus>(url, body, { signal });
+    // setItem treats empty/null as a remove, so a failed attempt (no state) is a
+    // no-op rather than clobbering a previously-good state.
+    setItem(StorageKeys.VERIFICATION_STATE, result.verificationState);
+    return result;
 }

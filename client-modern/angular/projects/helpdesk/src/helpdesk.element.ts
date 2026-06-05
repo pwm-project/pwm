@@ -42,6 +42,7 @@ import {
     defaultValueForAttribute,
     photosEnabled as photosEnabledConfig,
     searchColumns,
+    verificationsEnabled as verificationsEnabledConfig,
     type AdvancedSearchConfig,
     type AttributeMetadata,
     type CustomActionButton,
@@ -49,6 +50,8 @@ import {
 } from './services/config-service';
 import { ajaxTypingWait } from './services/pwm-fetch';
 import { getItem, setItem, StorageKeys } from './services/local-storage';
+import './verification-dialog.element';
+import type { VerificationResult } from './verification-dialog.element';
 import type { Person, SearchResult } from './models';
 
 /** Top-level mode: search page vs detail page (driven by URL hash). */
@@ -75,10 +78,11 @@ function localViewToLegacyKey(view: SearchView): string {
 }
 
 /**
- * Sessions 1-3 of the helpdesk migration (issue #729): the entire search page
- * (cards + table views, advanced search) plus the detail page (attribute tabs,
- * simple action buttons).  Change Password and Verify still hand off to the
- * legacy bundle until session 4.  Opt-in via {@code ?modernUi=1}.
+ * Sessions 1-4 of the helpdesk migration (issue #729): the entire search page
+ * (cards + table views, advanced search), the detail page (attribute tabs,
+ * simple action buttons), and the identity-verification flow (search-page gate
+ * + detail-page Verify button).  Change Password still hands off to the legacy
+ * bundle until a later session.  Opt-in via {@code ?modernUi=1}.
  *
  * <p>Light-DOM render root so PWM's theme stylesheets cascade in.  Lit handles
  * change detection and templating; nothing else.  URL hash drives the top-
@@ -116,6 +120,10 @@ export class HelpdeskElement extends LitElement {
     @state() private columns: SearchColumns = {};
     @state() private customButtons: Record<string, CustomActionButton> = {};
     @state() private photosEnabled: boolean = true;
+    @state() private verificationsRequired: boolean = false;
+
+    // ---- verification dialog ----
+    @state() private verifyDialog: { userKey: string; requiredOnly: boolean; isDetailsView: boolean } | null = null;
 
     // ---- internal ----
     private debounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -189,16 +197,18 @@ export class HelpdeskElement extends LitElement {
 
     private async loadConfig(): Promise<void> {
         try {
-            const [advConfig, cols, buttons, photosOn] = await Promise.all([
+            const [advConfig, cols, buttons, photosOn, verifyRequired] = await Promise.all([
                 advancedSearchConfig(),
                 searchColumns(),
                 customActionButtons(),
                 photosEnabledConfig(),
+                verificationsEnabledConfig(),
             ]);
             this.advancedConfig = advConfig;
             this.columns = cols;
             this.customButtons = buttons;
             this.photosEnabled = photosOn;
+            this.verificationsRequired = verifyRequired;
             this.attributeMetadata = {};
             for (const meta of advConfig.attributes) {
                 this.attributeMetadata[meta.attribute] = meta;
@@ -219,7 +229,17 @@ export class HelpdeskElement extends LitElement {
     // ============================================================================
 
     override render(): TemplateResult {
-        return this.mode === 'detail' ? this.renderDetailMode() : this.renderSearchMode();
+        return html`
+            ${this.mode === 'detail' ? this.renderDetailMode() : this.renderSearchMode()}
+            ${this.verifyDialog
+                ? html`<pwm-helpdesk-verification-dialog
+                          .userKey=${this.verifyDialog.userKey}
+                          .requiredOnly=${this.verifyDialog.requiredOnly}
+                          .isDetailsView=${this.verifyDialog.isDetailsView}
+                          @dialog-result=${this.onVerifyResult}
+                      ></pwm-helpdesk-verification-dialog>`
+                : nothing}
+        `;
     }
 
     // ----- search mode -----
@@ -572,7 +592,7 @@ export class HelpdeskElement extends LitElement {
                 `Clear OTP secret for ${this.displayLabel()}?  The user will need to re-enroll.`,
                 () => clearOtpSecret(this.detailUserKey!),
             ), person)}
-            ${this.renderActionButton('verification', 'Verify', () => this.verifyHandoff(), person)}
+            ${this.renderActionButton('verification', 'Verify', () => this.verifyUser(), person)}
             ${this.renderActionButton('deleteUser', 'Delete', () => this.confirmAction(
                 `Permanently delete ${this.displayLabel()}?  This cannot be undone.`,
                 () => deleteUser(this.detailUserKey!),
@@ -842,10 +862,38 @@ export class HelpdeskElement extends LitElement {
     };
 
     private onSelectPerson(person: Person): void {
-        if (person.userKey) {
+        if (!person.userKey) {
+            return;
+        }
+        if (this.verificationsRequired) {
+            // Profile requires verification before viewing a user: route through
+            // the gate dialog, which auto-proceeds if already verified this
+            // session.  Matches the legacy selectPerson -> VerificationsDialog flow.
+            this.openVerifyDialog(person.userKey, true, false);
+        } else {
             window.location.hash = `#/details/${encodeURIComponent(person.userKey)}`;
         }
     }
+
+    private openVerifyDialog(userKey: string, requiredOnly: boolean, isDetailsView: boolean): void {
+        this.verifyDialog = { userKey, requiredOnly, isDetailsView };
+    }
+
+    private onVerifyResult = (event: CustomEvent<VerificationResult>): void => {
+        const dialog = this.verifyDialog;
+        this.verifyDialog = null;
+        if (!dialog) {
+            return;
+        }
+        const result = event.detail;
+        if (result.proceedToDetails) {
+            window.location.hash = `#/details/${encodeURIComponent(dialog.userKey)}`;
+        } else if (dialog.isDetailsView && result.passed && this.detailUserKey) {
+            // Verification may have unlocked gated attributes / buttons - reload
+            // the detail blob (which now carries the fresh verificationState).
+            this.loadDetail(this.detailUserKey);
+        }
+    };
 
     private onCardKeydown(event: KeyboardEvent, person: Person): void {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -868,7 +916,7 @@ export class HelpdeskElement extends LitElement {
 
     /**
      * Hand off to the legacy AngularJS detail page for the change-password
-     * sub-flow.  Session 4 ports this natively (modal with type / autogen /
+     * sub-flow.  A later session ports this natively (modal with type / autogen /
      * random options).
      */
     private changePasswordHandoff = (): void => {
@@ -882,13 +930,14 @@ export class HelpdeskElement extends LitElement {
     };
 
     /**
-     * Hand off to the legacy verification dialog flow.  Session 4 ports this
-     * natively (multi-step ATTRIBUTES / TOKEN / OTP dialog).
+     * Open the native verification dialog from the detail page (optional
+     * methods, stays on the detail page on success).  Ported from the legacy
+     * {@code verifyUser} ng-ias dialog in session 4.
      */
-    private verifyHandoff = (): void => {
-        // Same redirect target as changePassword; the legacy detail page will
-        // surface the Verify button which opens its own dialog.
-        this.changePasswordHandoff();
+    private verifyUser = (): void => {
+        if (this.detailUserKey) {
+            this.openVerifyDialog(this.detailUserKey, false, true);
+        }
     };
 
     private displayLabel(): string {

@@ -389,3 +389,168 @@ pwm-helpdesk {
         font-style: italic;
     }
 }
+
+// ---- verification dialog (session 4) ----
+// Rendered by <pwm-helpdesk-verification-dialog>, a sibling custom element, so
+// these selectors live outside the pwm-helpdesk block.
+
+pwm-helpdesk-verification-dialog {
+    .pwm-helpdesk-dialog-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 16px;
+    }
+
+    .pwm-helpdesk-dialog {
+        position: relative;
+        background: #fff;
+        border-radius: 6px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+        width: 100%;
+        max-width: 480px;
+        max-height: calc(100vh - 32px);
+        overflow-y: auto;
+        box-sizing: border-box;
+    }
+
+    .pwm-helpdesk-dialog-title {
+        font-size: 1.2em;
+        font-weight: 600;
+        padding: 16px 20px 0;
+        color: #1d3c5e;
+    }
+
+    .pwm-helpdesk-dialog-content {
+        padding: 12px 20px;
+    }
+
+    .pwm-helpdesk-dialog-content p {
+        margin: 0 0 12px;
+    }
+
+    .pwm-helpdesk-dialog-methods {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .pwm-helpdesk-dialog-field {
+        margin-bottom: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .pwm-helpdesk-dialog-field label {
+        font-weight: 600;
+        font-size: 0.9em;
+        color: #444;
+    }
+
+    .pwm-helpdesk-dialog-field input,
+    .pwm-helpdesk-dialog-field select {
+        font-size: 1em;
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .pwm-helpdesk-dialog-field input:focus,
+    .pwm-helpdesk-dialog-field select:focus {
+        outline: 2px solid #4a90d9;
+        outline-offset: -1px;
+    }
+
+    .pwm-helpdesk-dialog-token-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pwm-helpdesk-dialog-verify-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+    }
+
+    .pwm-helpdesk-dialog-hint {
+        color: #666;
+        font-style: italic;
+        font-size: 0.9em;
+    }
+
+    .pwm-helpdesk-dialog-ok {
+        color: #37c26a;
+        font-weight: 700;
+    }
+
+    .pwm-helpdesk-dialog-fail {
+        color: #e50000;
+        font-weight: 700;
+    }
+
+    .pwm-helpdesk-dialog-error {
+        color: #c33;
+    }
+
+    .pwm-helpdesk-dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 12px 20px 20px;
+    }
+
+    .pwm-helpdesk-dialog-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: transparent;
+        border: none;
+        font-size: 1.4em;
+        line-height: 1;
+        cursor: pointer;
+        color: #888;
+        padding: 4px 8px;
+    }
+
+    .pwm-helpdesk-dialog-close:hover {
+        color: #333;
+    }
+
+    // The dialog reuses .pwm-helpdesk-action-button, which is scoped under the
+    // pwm-helpdesk block above; restate the essentials here so the buttons are
+    // styled inside this sibling element too.
+    .pwm-helpdesk-action-button {
+        background: #fff;
+        border: 1px solid #cfd8e3;
+        border-radius: 4px;
+        padding: 6px 14px;
+        font-size: 0.95em;
+        cursor: pointer;
+        color: #1d3c5e;
+        transition: background 0.1s, border-color 0.1s;
+    }
+
+    .pwm-helpdesk-action-button:hover:not(:disabled) {
+        background: #eef3fa;
+        border-color: #8fb1d8;
+    }
+
+    .pwm-helpdesk-action-button:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: 1px;
+    }
+
+    .pwm-helpdesk-action-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}

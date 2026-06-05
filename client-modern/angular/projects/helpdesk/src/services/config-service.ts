@@ -141,3 +141,46 @@ export function defaultValueForAttribute(meta: AttributeMetadata): string {
     }
     return '';
 }
+
+// ----------------------------------------------------------------------------
+// Verification config (session 4)
+// ----------------------------------------------------------------------------
+
+/** Backend verification-method identifiers. */
+export const VERIFICATION_METHOD_NAMES = {
+    ATTRIBUTES: 'ATTRIBUTES',
+    TOKEN: 'TOKEN',
+    OTP: 'OTP',
+} as const;
+
+/**
+ * Display labels for the method-select buttons.  The legacy bundle ran these
+ * through ng-translate; the modern helpdesk uses literal English to match the
+ * rest of sessions 1-3 (no i18n runtime wired yet).
+ */
+export const VERIFICATION_METHOD_LABELS: Record<string, string> = {
+    ATTRIBUTES: 'Attributes',
+    TOKEN: 'Token Verification',
+    OTP: 'One Time Password',
+};
+
+/**
+ * Whether the active helpdesk profile *requires* verification before the
+ * operator may view a user.  Mirrors the legacy
+ * {@code verificationsEnabled()} - true iff the {@code verificationMethods}
+ * config lists any required method.
+ */
+export async function verificationsEnabled(signal?: AbortSignal): Promise<boolean> {
+    const value = await getValue<{ required?: string[]; optional?: string[] }>('verificationMethods', signal);
+    return Boolean(value?.required?.length);
+}
+
+/**
+ * The attribute form rendered for the ATTRIBUTES verification method (label +
+ * field name per row).  Mirrors {@code getVerificationAttributes()} reading the
+ * {@code verificationForm} config key.
+ */
+export async function getVerificationAttributes(signal?: AbortSignal): Promise<Array<{ name: string; label: string }>> {
+    const value = await getValue<Array<{ name: string; label: string }>>('verificationForm', signal);
+    return Array.isArray(value) ? value : [];
+}
