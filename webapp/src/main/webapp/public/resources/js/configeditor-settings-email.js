@@ -177,31 +177,37 @@ EmailTableHandler.editor = function(settingKey, localeName, drawTextArea, type, 
 
 
 EmailTableHandler.htmlBodyEditor = function(keyName, localeName) {
-    // Grab the scope from the angular controller we created on the div element with ID: centerbody-config
-    var $scope = angular.element(document.getElementById("centerbody-config")).scope();
+    // Issue #729: this dialog formerly hosted a textangular (AngularJS 1.x) editor
+    // that depended on the EOL AngularJS framework.  It now hosts a Quill-backed
+    // <pwm-html-editor> custom element provided by pwm-client-modern.  The toolbar
+    // configuration moved into the custom element itself; the integration here is
+    // just the value round-trip.
     var idValue = keyName + "_" + localeName + "_htmlEditor";
-    var toolbarButtons =
-        "[" +
-        "['h1','h2','h3','h4','h5','h6','p','pre','quote']," +
-        "['bold','italics','underline','strikeThrough','ul','ol','undo','redo','clear']," +
-        "['justifyLeft','justifyCenter','justifyRight','justifyFull','indent','outdent']," +
-        "['html','insertImage','insertLink','insertVideo']" +
-        "]";
+    var existingHtml = PWM_VAR['clientSettingCache'][keyName][localeName]['bodyHtml'];
+
+    // PWM_MAIN.showDialog calls closeWaitDialog (which removes the dialog DOM) BEFORE
+    // invoking okAction.  By that point document.getElementById(idValue) returns null,
+    // even though the element still exists as a JS object.  Capture the element in
+    // this closure during loadFunction so okAction can still read its (post-disconnect-
+    // snapshotted) `value` property.
+    var capturedEditor = null;
 
     PWM_MAIN.showDialog({
         title: "HTML Editor",
-        text: '<div id="' + idValue + '" text-angular ng-model="htmlText" ta-toolbar="' + toolbarButtons + '" class="html-editor"></div>',
-        showClose:true,
-        showCancel:true,
+        text: '<pwm-html-editor id="' + idValue + '" class="html-editor"></pwm-html-editor>',
+        showClose: true,
+        showCancel: true,
         dialogClass: 'wide',
-        loadFunction: function(){
-            // Put the existing value into the scope, and tell the controller to process the element with ID: idValue
-            $scope.htmlText =  PWM_VAR['clientSettingCache'][keyName][localeName]['bodyHtml'];
-            $scope.$broadcast("content-added", idValue);
+        loadFunction: function() {
+            capturedEditor = document.getElementById(idValue);
+            if (capturedEditor) {
+                capturedEditor.value = existingHtml || '';
+            }
         },
-        okAction:function(){
-            PWM_VAR['clientSettingCache'][keyName][localeName]['bodyHtml'] = $scope.htmlText;
-            EmailTableHandler.writeSetting(keyName,true);
+        okAction: function() {
+            PWM_VAR['clientSettingCache'][keyName][localeName]['bodyHtml'] =
+                capturedEditor ? capturedEditor.value : existingHtml;
+            EmailTableHandler.writeSetting(keyName, true);
         }
     });
 };

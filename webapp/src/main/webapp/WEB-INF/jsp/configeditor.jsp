@@ -58,7 +58,11 @@
             </div>
         </div>
     </div>
-    <div id="centerbody-config" class="centerbody-config" ng-app="configeditor.module" ng-controller="ConfigEditorController as $ctrl">
+    <%-- AngularJS ng-app/ng-controller removed in favor of the <pwm-html-editor>
+         custom element (issue #729).  The configeditor's only AngularJS use was
+         the textangular WYSIWYG dialog opened from configeditor-settings-email.js;
+         that dialog now hosts a Quill-backed custom element instead. --%>
+    <div id="centerbody-config" class="centerbody-config">
 
         <div id="settingSearchPanel">
             <div style="float:left; width: 49%">
@@ -205,12 +209,11 @@
 <pwm:script-ref url="/public/resources/js/configeditor.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 
-<%--Provide the angular code we made specifically for this page:--%>
-<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/textangular/textAngular.css' addContext="true"/>"/>
-<link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/html-editor.css' addContext="true"/>"/>
-<pwm:script-ref url="/public/resources/webjars/pwm-client/vendor.js" />
-<pwm:script-ref url="/public/resources/webjars/pwm-client/configeditor.ng.js" />
-<%--/ Provide the angular code we made specifically for this page:--%>
+<%-- Modern (Quill-backed) email-template HTML editor (issue #729); replaces the
+     legacy AngularJS textAngular WYSIWYG dialog.  Editor styles (Quill snow theme
+     + sizing) are inlined by the bundle's runtime style injector, so no extra
+     <link> is needed. --%>
+<pwm:script-ref url="/public/resources/webjars/pwm-client-modern/configeditor.js" />
 
 <%@ include file="fragment/footer.jsp" %>
 </body>

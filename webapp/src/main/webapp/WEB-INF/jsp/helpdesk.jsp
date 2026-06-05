@@ -29,10 +29,13 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<%--
+  Issue #729: helpdesk is served by the modern (Lit) pwm-client-modern bundle.
+  The legacy AngularJS client was removed once the migration reached parity.
+--%>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <head>
     <%@ include file="/WEB-INF/jsp/fragment/header-common.jsp" %>
-    <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias/ias-icons.css' addContext="true"/>"/>
 </head>
 <body>
 <div id="wrapper" class="helpdesk-wrapper">
@@ -40,7 +43,7 @@
         <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
     </jsp:include>
     <div id="centerbody" class="wide tall">
-        <ui-view id="helpdesk-view" class="ias-styles-root"><div class="WaitDialogBlank"></div></ui-view>
+        <pwm-helpdesk></pwm-helpdesk>
 
         <noscript>
             <span><pwm:display key="Display_JavascriptRequired"/></span>
@@ -52,8 +55,7 @@
 
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 
-<pwm:script-ref url="/public/resources/webjars/pwm-client/vendor.js" />
-<pwm:script-ref url="/public/resources/webjars/pwm-client/helpdesk.ng.js" />
+<pwm:script-ref url="/public/resources/webjars/pwm-client-modern/helpdesk.js" />
 
 </body>
 </html>

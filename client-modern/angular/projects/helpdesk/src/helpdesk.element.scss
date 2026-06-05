@@ -1,0 +1,644 @@
+/*!
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2026 The PWM Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *
+ * Issue #729 - helpdesk migration (sessions 1+2).  Sized to match the existing
+ * PWM helpdesk JSP container so layout does not jump when the `?modernUi=1`
+ * flag is toggled.
+ */
+
+pwm-helpdesk {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+
+    // ---- header (search bar / advanced query rows + view toggle) ----
+
+    .pwm-helpdesk-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #e5e5e5;
+        flex-wrap: wrap;
+    }
+
+    .pwm-helpdesk-header h2 {
+        margin: 0;
+        font-size: 1.4em;
+        flex: 0 0 auto;
+    }
+
+    .pwm-helpdesk-spacer {
+        flex: 1 1 auto;
+    }
+
+    .pwm-helpdesk-search {
+        flex: 1 1 280px;
+        max-width: 400px;
+        font-size: 1em;
+        padding: 6px 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .pwm-helpdesk-search:focus {
+        outline: 2px solid #4a90d9;
+        outline-offset: -1px;
+    }
+
+    .pwm-helpdesk-icon-button {
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        padding: 4px 8px;
+        cursor: pointer;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #444;
+    }
+
+    .pwm-helpdesk-icon-button:hover {
+        background: #eef3fa;
+        border-color: #cfd8e3;
+    }
+
+    .pwm-helpdesk-icon-button:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: 1px;
+    }
+
+    .pwm-helpdesk-icon-button[data-active="true"] {
+        background: #d6e4f3;
+        border-color: #8fb1d8;
+        color: #1d3c5e;
+    }
+
+    .pwm-helpdesk-view-toggle {
+        display: inline-flex;
+        gap: 2px;
+        flex: 0 0 auto;
+    }
+
+    // ---- advanced search rows ----
+
+    .pwm-helpdesk-advanced {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1 1 100%;
+    }
+
+    .pwm-helpdesk-attr-row {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .pwm-helpdesk-attr-key,
+    .pwm-helpdesk-attr-value {
+        font-size: 1em;
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background: #fff;
+    }
+
+    .pwm-helpdesk-attr-key {
+        flex: 0 0 180px;
+    }
+
+    .pwm-helpdesk-attr-value {
+        flex: 1 1 240px;
+        max-width: 320px;
+    }
+
+    .pwm-helpdesk-attr-key:focus,
+    .pwm-helpdesk-attr-value:focus {
+        outline: 2px solid #4a90d9;
+        outline-offset: -1px;
+    }
+
+    // ---- status line ----
+
+    .pwm-helpdesk-status {
+        padding: 8px 16px 12px;
+        color: #666;
+        font-style: italic;
+        min-height: 1.2em;
+    }
+
+    .pwm-helpdesk-status[data-error="true"] {
+        color: #c33;
+        font-style: normal;
+    }
+
+    // ---- cards view ----
+
+    .pwm-helpdesk-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px;
+        padding: 8px 16px;
+    }
+
+    .pwm-helpdesk-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: #fff;
+        cursor: pointer;
+        transition: box-shadow 0.15s, border-color 0.15s;
+    }
+
+    .pwm-helpdesk-card:hover {
+        border-color: #4a90d9;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .pwm-helpdesk-card:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: 1px;
+    }
+
+    .pwm-helpdesk-card-avatar {
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #e5e5e5 center/cover no-repeat;
+    }
+
+    .pwm-helpdesk-card-body {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .pwm-helpdesk-card-name {
+        font-weight: 600;
+        margin: 0 0 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .pwm-helpdesk-card-line {
+        font-size: 0.9em;
+        color: #555;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    // ---- table view ----
+
+    .pwm-helpdesk-table {
+        width: calc(100% - 32px);
+        margin: 0 16px 16px;
+        border-collapse: collapse;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .pwm-helpdesk-table thead th {
+        background: #f4f6f8;
+        text-align: left;
+        font-weight: 600;
+        padding: 8px 12px;
+        border-bottom: 1px solid #ddd;
+        white-space: nowrap;
+    }
+
+    .pwm-helpdesk-table tbody tr {
+        cursor: pointer;
+        transition: background 0.1s;
+    }
+
+    .pwm-helpdesk-table tbody tr:hover {
+        background: #f0f6fd;
+    }
+
+    .pwm-helpdesk-table tbody tr:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: -2px;
+    }
+
+    .pwm-helpdesk-table tbody td {
+        padding: 8px 12px;
+        border-top: 1px solid #eee;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 320px;
+    }
+
+    // ---- detail view ----
+
+    .pwm-helpdesk-detail-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        margin-bottom: 0;
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    .pwm-helpdesk-detail-header h2 {
+        margin: 0;
+        font-size: 1.4em;
+        flex: 0 0 auto;
+    }
+
+    .pwm-helpdesk-secondary-header {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        background: #fafafa;
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    .pwm-helpdesk-detail-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: #fff;
+        min-width: 280px;
+        max-width: 480px;
+    }
+
+    .pwm-helpdesk-detail-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px 16px;
+        border-bottom: 1px solid #e5e5e5;
+        background: #fcfcfc;
+    }
+
+    .pwm-helpdesk-action-button {
+        background: #fff;
+        border: 1px solid #cfd8e3;
+        border-radius: 4px;
+        padding: 6px 14px;
+        font-size: 0.95em;
+        cursor: pointer;
+        color: #1d3c5e;
+        transition: background 0.1s, border-color 0.1s;
+    }
+
+    .pwm-helpdesk-action-button:hover:not(:disabled) {
+        background: #eef3fa;
+        border-color: #8fb1d8;
+    }
+
+    .pwm-helpdesk-action-button:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: 1px;
+    }
+
+    .pwm-helpdesk-action-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .pwm-helpdesk-tabset {
+        display: flex;
+        gap: 0;
+        padding: 0 16px;
+        border-bottom: 1px solid #e5e5e5;
+        margin-top: 8px;
+    }
+
+    .pwm-helpdesk-tab {
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid transparent;
+        padding: 8px 16px;
+        font-size: 0.95em;
+        cursor: pointer;
+        color: #555;
+        transition: color 0.1s, border-color 0.1s;
+    }
+
+    .pwm-helpdesk-tab:hover {
+        color: #1d3c5e;
+    }
+
+    .pwm-helpdesk-tab:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: -2px;
+    }
+
+    .pwm-helpdesk-tab[data-active="true"] {
+        color: #1d3c5e;
+        border-bottom-color: #4a90d9;
+        font-weight: 600;
+    }
+
+    .pwm-helpdesk-tab-panes {
+        padding: 12px 16px 24px;
+    }
+
+    .pwm-helpdesk-details-table {
+        border-collapse: collapse;
+        width: 100%;
+        max-width: 920px;
+    }
+
+    .pwm-helpdesk-details-table td {
+        padding: 8px 12px;
+        border-top: 1px solid #eee;
+        vertical-align: top;
+    }
+
+    .pwm-helpdesk-details-table tr:first-child td {
+        border-top: none;
+    }
+
+    .pwm-helpdesk-detail-label {
+        font-weight: 600;
+        color: #444;
+        width: 220px;
+        white-space: nowrap;
+    }
+
+    .pwm-helpdesk-details-table ul {
+        margin: 0;
+        padding-left: 1.2em;
+    }
+
+    .pwm-helpdesk-empty {
+        padding: 16px;
+        color: #888;
+        font-style: italic;
+    }
+}
+
+// ---- modal dialogs (session 4 verification, session 5 change-password) ----
+// Rendered by sibling custom elements, so these selectors live outside the
+// pwm-helpdesk block.  Both dialogs share the same chrome / control styles.
+
+pwm-helpdesk-verification-dialog,
+pwm-helpdesk-change-password-dialog {
+    .pwm-helpdesk-dialog-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 16px;
+    }
+
+    .pwm-helpdesk-dialog {
+        position: relative;
+        background: #fff;
+        border-radius: 6px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+        width: 100%;
+        max-width: 480px;
+        max-height: calc(100vh - 32px);
+        overflow-y: auto;
+        box-sizing: border-box;
+    }
+
+    .pwm-helpdesk-dialog-title {
+        font-size: 1.2em;
+        font-weight: 600;
+        padding: 16px 20px 0;
+        color: #1d3c5e;
+    }
+
+    .pwm-helpdesk-dialog-content {
+        padding: 12px 20px;
+    }
+
+    .pwm-helpdesk-dialog-content p {
+        margin: 0 0 12px;
+    }
+
+    .pwm-helpdesk-dialog-methods {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .pwm-helpdesk-dialog-field {
+        margin-bottom: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .pwm-helpdesk-dialog-field label {
+        font-weight: 600;
+        font-size: 0.9em;
+        color: #444;
+    }
+
+    .pwm-helpdesk-dialog-field input,
+    .pwm-helpdesk-dialog-field select {
+        font-size: 1em;
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .pwm-helpdesk-dialog-field input:focus,
+    .pwm-helpdesk-dialog-field select:focus {
+        outline: 2px solid #4a90d9;
+        outline-offset: -1px;
+    }
+
+    .pwm-helpdesk-dialog-token-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pwm-helpdesk-dialog-verify-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+    }
+
+    .pwm-helpdesk-dialog-hint {
+        color: #666;
+        font-style: italic;
+        font-size: 0.9em;
+    }
+
+    .pwm-helpdesk-dialog-ok {
+        color: #37c26a;
+        font-weight: 700;
+    }
+
+    .pwm-helpdesk-dialog-fail {
+        color: #e50000;
+        font-weight: 700;
+    }
+
+    .pwm-helpdesk-dialog-error {
+        color: #c33;
+    }
+
+    .pwm-helpdesk-dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 12px 20px 20px;
+    }
+
+    .pwm-helpdesk-dialog-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: transparent;
+        border: none;
+        font-size: 1.4em;
+        line-height: 1;
+        cursor: pointer;
+        color: #888;
+        padding: 4px 8px;
+    }
+
+    .pwm-helpdesk-dialog-close:hover {
+        color: #333;
+    }
+
+    // The dialog reuses .pwm-helpdesk-action-button, which is scoped under the
+    // pwm-helpdesk block above; restate the essentials here so the buttons are
+    // styled inside this sibling element too.
+    .pwm-helpdesk-action-button {
+        background: #fff;
+        border: 1px solid #cfd8e3;
+        border-radius: 4px;
+        padding: 6px 14px;
+        font-size: 0.95em;
+        cursor: pointer;
+        color: #1d3c5e;
+        transition: background 0.1s, border-color 0.1s;
+    }
+
+    .pwm-helpdesk-action-button:hover:not(:disabled) {
+        background: #eef3fa;
+        border-color: #8fb1d8;
+    }
+
+    .pwm-helpdesk-action-button:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: 1px;
+    }
+
+    .pwm-helpdesk-action-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+// ---- change-password dialog specifics (session 5) ----
+
+pwm-helpdesk-change-password-dialog {
+    .pwm-helpdesk-dialog-field input[type="text"],
+    .pwm-helpdesk-dialog-field input[type="password"] {
+        width: 100%;
+    }
+
+    // Inline "Show / Hide" mask toggle - a text link, not a button-looking control.
+    .pwm-helpdesk-link-button {
+        background: transparent;
+        border: none;
+        color: #4a90d9;
+        cursor: pointer;
+        padding: 0 4px;
+        font-size: 0.9em;
+        text-decoration: underline;
+    }
+
+    .pwm-helpdesk-link-button:hover {
+        color: #1d3c5e;
+    }
+
+    // Five-segment strength meter.
+    .pwm-helpdesk-strength {
+        display: inline-flex;
+        gap: 3px;
+        margin-top: 6px;
+    }
+
+    .pwm-helpdesk-strength-seg {
+        width: 28px;
+        height: 6px;
+        border-radius: 2px;
+        background: #e0e0e0;
+    }
+
+    .pwm-helpdesk-strength-seg[data-on="true"] {
+        background: #c0392b;
+    }
+
+    .pwm-helpdesk-strength-seg[data-on="true"][data-level="3"] {
+        background: #e6a700;
+    }
+
+    .pwm-helpdesk-strength-seg[data-on="true"][data-level="4"],
+    .pwm-helpdesk-strength-seg[data-on="true"][data-level="5"] {
+        background: #37c26a;
+    }
+
+    // Autogen suggestion grid - two columns of monospaced candidates.
+    .pwm-helpdesk-suggestions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .pwm-helpdesk-suggestion {
+        font-family: monospace;
+        font-size: 0.95em;
+        padding: 8px 10px;
+        border: 1px solid #cfd8e3;
+        border-radius: 4px;
+        background: #fff;
+        cursor: pointer;
+        text-align: center;
+        color: #1d3c5e;
+        transition: background 0.1s, border-color 0.1s;
+    }
+
+    .pwm-helpdesk-suggestion:hover:not(:disabled) {
+        background: #eef3fa;
+        border-color: #8fb1d8;
+    }
+
+    .pwm-helpdesk-suggestion:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: 1px;
+    }
+
+    .pwm-helpdesk-suggestion:disabled {
+        color: #aaa;
+        cursor: default;
+    }
+}

@@ -1,0 +1,193 @@
+{
+    "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+    "version": 1,
+    "newProjectRoot": "projects",
+    "projects": {
+        "changepassword": {
+            "projectType": "application",
+            "schematics": {},
+            "root": "projects/changepassword",
+            "sourceRoot": "projects/changepassword/src",
+            "prefix": "pwm",
+            "architect": {
+                "build": {
+                    "builder": "@angular-devkit/build-angular:application",
+                    "options": {
+                        "outputPath": {
+                            "base": "dist/changepassword",
+                            "browser": ""
+                        },
+                        "index": false,
+                        "browser": "projects/changepassword/src/main.ts",
+                        "polyfills": [],
+                        "tsConfig": "tsconfig.app.json",
+                        "assets": [],
+                        "styles": [],
+                        "scripts": []
+                    },
+                    "configurations": {
+                        "production": {
+                            "budgets": [
+                                {
+                                    "type": "initial",
+                                    "maximumWarning": "50kb",
+                                    "maximumError": "100kb"
+                                }
+                            ],
+                            "outputHashing": "none",
+                            "optimization": true,
+                            "sourceMap": false
+                        },
+                        "development": {
+                            "optimization": false,
+                            "sourceMap": true,
+                            "namedChunks": true
+                        }
+                    },
+                    "defaultConfiguration": "production"
+                }
+            }
+        },
+        "helpdesk": {
+            "projectType": "application",
+            "schematics": {},
+            "root": "projects/helpdesk",
+            "sourceRoot": "projects/helpdesk/src",
+            "prefix": "pwm",
+            "architect": {
+                "build": {
+                    "builder": "@angular-devkit/build-angular:application",
+                    "options": {
+                        "outputPath": {
+                            "base": "dist/helpdesk",
+                            "browser": ""
+                        },
+                        "index": false,
+                        "browser": "projects/helpdesk/src/main.ts",
+                        "polyfills": [],
+                        "tsConfig": "tsconfig.app.json",
+                        "assets": [],
+                        "styles": [
+                            "projects/helpdesk/src/helpdesk.element.scss"
+                        ],
+                        "scripts": []
+                    },
+                    "configurations": {
+                        "production": {
+                            "budgets": [
+                                {
+                                    "type": "initial",
+                                    "maximumWarning": "100kb",
+                                    "maximumError": "200kb"
+                                }
+                            ],
+                            "outputHashing": "none",
+                            "optimization": true,
+                            "sourceMap": false
+                        },
+                        "development": {
+                            "optimization": false,
+                            "sourceMap": true,
+                            "namedChunks": true
+                        }
+                    },
+                    "defaultConfiguration": "production"
+                }
+            }
+        },
+        "configeditor": {
+            "projectType": "application",
+            "schematics": {},
+            "root": "projects/configeditor",
+            "sourceRoot": "projects/configeditor/src",
+            "prefix": "pwm",
+            "architect": {
+                "build": {
+                    "builder": "@angular-devkit/build-angular:application",
+                    "options": {
+                        "outputPath": {
+                            "base": "dist/configeditor",
+                            "browser": ""
+                        },
+                        "index": false,
+                        "browser": "projects/configeditor/src/main.ts",
+                        "polyfills": [],
+                        "tsConfig": "tsconfig.app.json",
+                        "assets": [],
+                        "styles": [
+                            "projects/configeditor/src/html-editor.element.scss"
+                        ],
+                        "scripts": []
+                    },
+                    "configurations": {
+                        "production": {
+                            "budgets": [
+                                {
+                                    "type": "initial",
+                                    "maximumWarning": "260kb",
+                                    "maximumError": "400kb"
+                                }
+                            ],
+                            "outputHashing": "none",
+                            "optimization": true,
+                            "sourceMap": false
+                        },
+                        "development": {
+                            "optimization": false,
+                            "sourceMap": true,
+                            "namedChunks": true
+                        }
+                    },
+                    "defaultConfiguration": "production"
+                }
+            }
+        },
+        "peoplesearch": {
+            "projectType": "application",
+            "schematics": {},
+            "root": "projects/peoplesearch",
+            "sourceRoot": "projects/peoplesearch/src",
+            "prefix": "pwm",
+            "architect": {
+                "build": {
+                    "builder": "@angular-devkit/build-angular:application",
+                    "options": {
+                        "outputPath": {
+                            "base": "dist/peoplesearch",
+                            "browser": ""
+                        },
+                        "index": false,
+                        "browser": "projects/peoplesearch/src/main.ts",
+                        "polyfills": [],
+                        "tsConfig": "tsconfig.app.json",
+                        "assets": [],
+                        "styles": [
+                            "projects/peoplesearch/src/peoplesearch.element.scss"
+                        ],
+                        "scripts": []
+                    },
+                    "configurations": {
+                        "production": {
+                            "budgets": [
+                                {
+                                    "type": "initial",
+                                    "maximumWarning": "100kb",
+                                    "maximumError": "200kb"
+                                }
+                            ],
+                            "outputHashing": "none",
+                            "optimization": true,
+                            "sourceMap": false
+                        },
+                        "development": {
+                            "optimization": false,
+                            "sourceMap": true,
+                            "namedChunks": true
+                        }
+                    },
+                    "defaultConfiguration": "production"
+                }
+            }
+        }
+    }
+}

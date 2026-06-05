@@ -51,7 +51,7 @@
 
     <modules>
         <module>server</module>
-        <module>client</module>
+        <module>client-modern</module>
         <module>webapp</module>
         <module>onejar</module>
         <module>data-service</module>
@@ -441,8 +441,10 @@
                 <version>12.1.0</version>
                 <configuration>
                     <skip>${owasp.skip}</skip>
-                    <yarnAuditAnalyzerEnabled>false</yarnAuditAnalyzerEnabled>
-                    <nodeAnalyzerEnabled>false</nodeAnalyzerEnabled>
+                    <!-- Node/yarn analyzers re-enabled after the legacy AngularJS
+                         (pwm-client) webjar was removed; issue #729. -->
+                    <yarnAuditAnalyzerEnabled>true</yarnAuditAnalyzerEnabled>
+                    <nodeAnalyzerEnabled>true</nodeAnalyzerEnabled>
                 </configuration>
             </plugin>
         </plugins>

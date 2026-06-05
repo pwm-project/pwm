@@ -1,0 +1,19 @@
+# Angular CLI / build outputs
+dist/
+out-tsc/
+.angular/
+
+# Dependency directories
+node_modules/
+
+# Frontend-maven-plugin's bundled Node
+.node/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db

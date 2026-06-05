@@ -26,10 +26,14 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<%--
+  Issue #729: peoplesearch is served by the modern (Lit) pwm-client-modern
+  bundle.  The legacy AngularJS client was removed once the migration reached
+  parity.
+--%>
 <html lang="<pwm:value name="<%=PwmValue.localeCode%>"/>" dir="<pwm:value name="<%=PwmValue.localeDir%>"/>">
 <head>
     <%@ include file="/WEB-INF/jsp/fragment/header-common.jsp" %>
-    <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/webjars/pwm-client/vendor/ux-ias/ias-icons.css' addContext="true"/>"/>
 </head>
 <body class="nihilo printable">
 <div id="wrapper" class="peoplesearch-wrapper">
@@ -39,15 +43,14 @@
     <div id="centerbody" class="wide tall" style="height:100%">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
-        <ui-view id="people-search-view" class="ias-styles-root"><div class="WaitDialogBlank"></div></ui-view>
+        <pwm-peoplesearch></pwm-peoplesearch>
     </div>
     <div class="push"></div>
 </div>
 
 <%@ include file="fragment/footer.jsp" %>
 
-<pwm:script-ref url="/public/resources/webjars/pwm-client/vendor.js" />
-<pwm:script-ref url="/public/resources/webjars/pwm-client/peoplesearch.ng.js" />
+<pwm:script-ref url="/public/resources/webjars/pwm-client-modern/peoplesearch.js" />
 
 </body>
 </html>

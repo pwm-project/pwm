@@ -1,0 +1,560 @@
+/*!
+ * Password Management Servlets (PWM)
+ * http://www.pwm-project.org
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2026 The PWM Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *
+ * Issue #729 - peoplesearch migration (session 6).  Sized to match the existing
+ * PWM peoplesearch JSP container so layout does not jump when ?modernUi=1 is
+ * toggled.  Mirrors the helpdesk module's visual language (pwm-ps-* classes).
+ */
+
+pwm-peoplesearch,
+pwm-peoplesearch-orgchart {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+
+    .pwm-ps-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #e5e5e5;
+        flex-wrap: wrap;
+    }
+
+    .pwm-ps-header h2 {
+        margin: 0;
+        font-size: 1.4em;
+        flex: 0 0 auto;
+    }
+
+    .pwm-ps-spacer {
+        flex: 1 1 auto;
+    }
+
+    .pwm-ps-search-wrap {
+        position: relative;
+        flex: 1 1 280px;
+        max-width: 400px;
+    }
+
+    .pwm-ps-search {
+        width: 100%;
+        font-size: 1em;
+        padding: 6px 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .pwm-ps-search:focus {
+        outline: 2px solid #4a90d9;
+        outline-offset: -1px;
+    }
+
+    .pwm-ps-autocomplete {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        margin: 2px 0 0;
+        padding: 0;
+        list-style: none;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        max-height: 320px;
+        overflow-y: auto;
+    }
+
+    .pwm-ps-autocomplete li {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+    .pwm-ps-autocomplete li:hover,
+    .pwm-ps-autocomplete li:focus-visible {
+        background: #eef3fa;
+        outline: none;
+    }
+
+    .pwm-ps-icon-button {
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        padding: 4px 8px;
+        cursor: pointer;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #444;
+    }
+
+    .pwm-ps-icon-button:hover {
+        background: #eef3fa;
+        border-color: #cfd8e3;
+    }
+
+    .pwm-ps-icon-button:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: 1px;
+    }
+
+    .pwm-ps-icon-button[data-active="true"] {
+        background: #d6e4f3;
+        border-color: #8fb1d8;
+        color: #1d3c5e;
+    }
+
+    .pwm-ps-view-toggle {
+        display: inline-flex;
+        gap: 2px;
+        flex: 0 0 auto;
+    }
+
+    .pwm-ps-advanced {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1 1 100%;
+    }
+
+    .pwm-ps-attr-row {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .pwm-ps-attr-key,
+    .pwm-ps-attr-value {
+        font-size: 1em;
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background: #fff;
+    }
+
+    .pwm-ps-attr-key {
+        flex: 0 0 180px;
+    }
+
+    .pwm-ps-attr-value {
+        flex: 1 1 240px;
+        max-width: 320px;
+    }
+
+    .pwm-ps-status {
+        padding: 8px 16px 12px;
+        color: #666;
+        font-style: italic;
+        min-height: 1.2em;
+    }
+
+    .pwm-ps-status[data-error="true"] {
+        color: #c33;
+        font-style: normal;
+    }
+
+    // ---- cards ----
+
+    .pwm-ps-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px;
+        padding: 8px 16px;
+    }
+
+    // ---- shared person card ----
+
+    .pwm-ps-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: #fff;
+        cursor: pointer;
+        transition: box-shadow 0.15s, border-color 0.15s;
+    }
+
+    .pwm-ps-card:hover {
+        border-color: #4a90d9;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .pwm-ps-card:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: 1px;
+    }
+
+    .pwm-ps-card[data-size="small"] {
+        padding: 8px;
+    }
+
+    .pwm-ps-card-avatar {
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #e5e5e5 center/cover no-repeat;
+    }
+
+    .pwm-ps-card[data-size="large"] .pwm-ps-card-avatar {
+        flex-basis: 64px;
+        width: 64px;
+        height: 64px;
+    }
+
+    .pwm-ps-card[data-size="small"] .pwm-ps-card-avatar {
+        flex-basis: 36px;
+        width: 36px;
+        height: 36px;
+    }
+
+    .pwm-ps-card-body {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .pwm-ps-card-name {
+        font-weight: 600;
+        margin: 0 0 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .pwm-ps-card-line {
+        font-size: 0.9em;
+        color: #555;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .pwm-ps-card-reports {
+        margin-top: 4px;
+        font-size: 0.8em;
+        color: #1d3c5e;
+        font-weight: 600;
+    }
+
+    // ---- table ----
+
+    .pwm-ps-table {
+        width: calc(100% - 32px);
+        margin: 0 16px 16px;
+        border-collapse: collapse;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .pwm-ps-table thead th {
+        background: #f4f6f8;
+        text-align: left;
+        font-weight: 600;
+        padding: 8px 12px;
+        border-bottom: 1px solid #ddd;
+        white-space: nowrap;
+    }
+
+    .pwm-ps-table tbody tr {
+        cursor: pointer;
+        transition: background 0.1s;
+    }
+
+    .pwm-ps-table tbody tr:hover {
+        background: #f0f6fd;
+    }
+
+    .pwm-ps-table tbody tr:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: -2px;
+    }
+
+    .pwm-ps-table tbody td {
+        padding: 8px 12px;
+        border-top: 1px solid #eee;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 320px;
+    }
+
+    // ---- org chart ----
+
+    .pwm-ps-orgchart {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 16px;
+    }
+
+    .pwm-ps-managers {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        max-width: 100%;
+    }
+
+    .pwm-ps-managers .pwm-ps-card {
+        flex: 0 0 220px;
+    }
+
+    .pwm-ps-orgchart-connector {
+        width: 2px;
+        height: 20px;
+        background: #cfd8e3;
+    }
+
+    .pwm-ps-self-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .pwm-ps-self-row > .pwm-ps-card {
+        flex: 0 0 320px;
+        border-color: #4a90d9;
+    }
+
+    .pwm-ps-assistant .pwm-ps-card {
+        flex: 0 0 200px;
+        border-style: dashed;
+    }
+
+    .pwm-ps-reports {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        max-width: 100%;
+    }
+
+    .pwm-ps-reports .pwm-ps-card {
+        flex: 0 0 240px;
+    }
+}
+
+// ---- person-details modal (+ export / email sub-dialogs) ----
+
+pwm-peoplesearch-details {
+    .pwm-ps-dialog-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 16px;
+    }
+
+    .pwm-ps-dialog {
+        position: relative;
+        background: #fff;
+        border-radius: 6px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+        width: 100%;
+        max-width: 560px;
+        max-height: calc(100vh - 32px);
+        overflow-y: auto;
+        box-sizing: border-box;
+    }
+
+    .pwm-ps-dialog-header {
+        display: flex;
+        gap: 16px;
+        padding: 20px 20px 0;
+    }
+
+    .pwm-ps-avatar {
+        flex: 0 0 72px;
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: #e5e5e5 center/cover no-repeat;
+    }
+
+    .pwm-ps-header-main {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .pwm-ps-header-top {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .pwm-ps-header-top h2 {
+        margin: 0;
+        font-size: 1.3em;
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .pwm-ps-fill {
+        flex: 1 1 auto;
+    }
+
+    .pwm-ps-header-line {
+        color: #555;
+        font-size: 0.95em;
+    }
+
+    .pwm-ps-dialog-action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .pwm-ps-dialog-body {
+        padding: 16px 20px 20px;
+    }
+
+    .pwm-ps-dialog-body p {
+        margin: 0 0 12px;
+    }
+
+    .pwm-ps-links {
+        list-style: none;
+        margin: 0 0 12px;
+        padding: 0;
+    }
+
+    .pwm-ps-details-table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .pwm-ps-details-table td {
+        padding: 8px 12px;
+        border-top: 1px solid #eee;
+        vertical-align: top;
+    }
+
+    .pwm-ps-details-table tr:first-child td {
+        border-top: none;
+    }
+
+    .pwm-ps-detail-label {
+        font-weight: 600;
+        color: #444;
+        width: 200px;
+        white-space: nowrap;
+    }
+
+    .pwm-ps-detail-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .pwm-ps-detail-list li {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .pwm-ps-search-link {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0 2px;
+        font-size: 0.85em;
+    }
+
+    .pwm-ps-dialog-field {
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .pwm-ps-dialog-field label {
+        font-weight: 600;
+        font-size: 0.9em;
+        color: #444;
+    }
+
+    .pwm-ps-dialog-field select,
+    .pwm-ps-dialog-field textarea {
+        font-size: 1em;
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        width: 100%;
+    }
+
+    .pwm-ps-dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 12px 20px 20px;
+    }
+
+    .pwm-ps-error {
+        color: #c33;
+    }
+}
+
+// Buttons shared by the modal chrome (declared for both host icon button reuse
+// and the dialog's text buttons).
+pwm-peoplesearch,
+pwm-peoplesearch-orgchart,
+pwm-peoplesearch-details {
+    .pwm-ps-button {
+        background: #fff;
+        border: 1px solid #cfd8e3;
+        border-radius: 4px;
+        padding: 6px 14px;
+        font-size: 0.95em;
+        cursor: pointer;
+        color: #1d3c5e;
+        transition: background 0.1s, border-color 0.1s;
+    }
+
+    .pwm-ps-button:hover:not(:disabled) {
+        background: #eef3fa;
+        border-color: #8fb1d8;
+    }
+
+    .pwm-ps-button:focus-visible {
+        outline: 2px solid #4a90d9;
+        outline-offset: 1px;
+    }
+
+    .pwm-ps-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .pwm-ps-icon-button {
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        padding: 4px 8px;
+        cursor: pointer;
+        font-size: 1.1em;
+        line-height: 1;
+        color: #444;
+    }
+}

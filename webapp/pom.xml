@@ -293,10 +293,11 @@
 
 
         <!-- client webjar dependencies -->
-        <!-- changes in client dependencies require updating AppProperty.properties:http.resources.webjarMappings -->
         <dependency>
+            <!-- Modern (Lit) client bundles; replaced the legacy AngularJS pwm-client
+                 webjar once the migration reached parity (issue #729). -->
             <groupId>${project.groupId}</groupId>
-            <artifactId>pwm-client</artifactId>
+            <artifactId>pwm-client-modern</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

@@ -1,0 +1,33 @@
+{
+    "name": "pwm-client-modern",
+    "version": "0.0.1",
+    "description": "Modern replacement for PWM's EOL AngularJS 1.8.3 client. Each module ships as a vanilla TypeScript Custom Element bundle for drop-in JSP embedding. Lit or Angular can be added per-module later if their template/state model is needed; the small JSP-decorating modules (changepassword, configeditor) do not need a framework.",
+    "private": true,
+    "license": "Apache-2.0",
+    "engines": {
+        "node": ">=20.11",
+        "npm": ">=10.0"
+    },
+    "scripts": {
+        "build": "ng build changepassword && ng build configeditor && ng build helpdesk && ng build peoplesearch && node scripts/postbuild.mjs",
+        "build:changepassword": "ng build changepassword && node scripts/postbuild.mjs",
+        "build:configeditor": "ng build configeditor && node scripts/postbuild.mjs",
+        "build:helpdesk": "ng build helpdesk && node scripts/postbuild.mjs",
+        "build:peoplesearch": "ng build peoplesearch && node scripts/postbuild.mjs",
+        "watch": "ng build --watch --configuration development"
+    },
+    "dependencies": {
+        "lit": "^3.2.0",
+        "quill": "^2.0.3"
+    },
+    "devDependencies": {
+        "@angular-devkit/build-angular": "^19.0.0",
+        "@angular/cli": "^19.0.0",
+        "@angular/compiler-cli": "^19.0.0",
+        "@angular/core": "^19.0.0",
+        "@types/node": "^20.10.0",
+        "rxjs": "~7.8.0",
+        "tslib": "^2.6.0",
+        "typescript": "~5.6.0"
+    }
+}
