@@ -209,10 +209,10 @@
 <pwm:script-ref url="/public/resources/js/configeditor.js"/>
 <pwm:script-ref url="/public/resources/js/admin.js"/>
 
-<%-- Modern (Quill-backed) email-template HTML editor (issue #729) -
-     replaces pwm-client/{vendor.js, configeditor.ng.js} + textangular.css.
-     Editor styles (Quill snow theme + sizing) are inlined by the bundle's
-     runtime style injector, so no extra <link> is needed. --%>
+<%-- Modern (Quill-backed) email-template HTML editor (issue #729); replaces the
+     legacy AngularJS textAngular WYSIWYG dialog.  Editor styles (Quill snow theme
+     + sizing) are inlined by the bundle's runtime style injector, so no extra
+     <link> is needed. --%>
 <pwm:script-ref url="/public/resources/webjars/pwm-client-modern/configeditor.js" />
 
 <%@ include file="fragment/footer.jsp" %>

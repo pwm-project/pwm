@@ -293,15 +293,9 @@
 
 
         <!-- client webjar dependencies -->
-        <!-- changes in client dependencies require updating AppProperty.properties:http.resources.webjarMappings -->
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>pwm-client</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <!-- Modern (Angular 19 + @angular/elements) client bundles.  Coexists with pwm-client
-                 during the AngularJS -> Angular migration; see issue #729. -->
+            <!-- Modern (Lit) client bundles; replaced the legacy AngularJS pwm-client
+                 webjar once the migration reached parity (issue #729). -->
             <groupId>${project.groupId}</groupId>
             <artifactId>pwm-client-modern</artifactId>
             <version>${project.version}</version>

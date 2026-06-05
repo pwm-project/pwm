@@ -142,7 +142,7 @@
 </pwm:script>
 
 <pwm:script-ref url="/public/resources/js/changepassword.js"/>
-<%-- Modern client (issue #729) - replaces pwm-client/{vendor.js,changepassword.ng.js}. --%>
+<%-- Modern (Lit) client bundle (issue #729). --%>
 <pwm:script-ref url="/public/resources/webjars/pwm-client-modern/changepassword.js" />
 
 <%@ include file="fragment/footer.jsp" %>
