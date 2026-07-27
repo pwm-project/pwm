@@ -54,6 +54,7 @@ import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -64,6 +65,8 @@ import java.util.Optional;
 public class OAuthMachine
 {
     private static final PwmLogger LOGGER = PwmLogger.forClass( OAuthMachine.class );
+
+    private static final long DEFAULT_MAX_CLOCK_SKEW_SECONDS = 60;
 
     private final SessionLabel sessionLabel;
     private final OAuthSettings settings;
@@ -122,9 +125,10 @@ public class OAuthMachine
         urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_STATE ), state );
         urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
 
-        if ( !StringUtil.isEmpty( settings.getScope() ) )
+        final String scope = figureScope( config );
+        if ( !StringUtil.isEmpty( scope ) )
         {
-            urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_SCOPE ), settings.getScope() );
+            urlParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_SCOPE ), scope );
         }
 
         if ( userIdentity != null )
@@ -168,16 +172,21 @@ public class OAuthMachine
         final String requestUrl = settings.getCodeResolveUrl();
         final String grantType = config.readAppProperty( AppProperty.OAUTH_ID_ACCESS_GRANT_TYPE );
         final String redirectUri = figureOauthSelfEndPointUrl( pwmRequest );
-        final String clientID = settings.getClientID();
+        final OAuthClientAuthMethod clientAuthMethod = settings.getEffectiveClientAuthMethod();
 
         final Map<String, String> requestParams = new HashMap<>();
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CODE ), requestCode );
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_GRANT_TYPE ), grantType );
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI ), redirectUri );
-        requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_ID ), clientID );
-        requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_SECRET ), settings.getSecret().getStringValue() );
 
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "oauth code resolver", settings, requestUrl, requestParams, null );
+        if ( clientAuthMethod.sendCredentialsInBody() )
+        {
+            requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_ID ), settings.getClientID() );
+            requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_SECRET ), settings.getSecret().getStringValue() );
+        }
+
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "oauth code resolver", settings, requestUrl,
+                requestParams, null, clientAuthMethod.sendCredentialsInHeader() );
 
         final OAuthResolveResults results = resolveResultsFromResponseBody( pwmRequest, restResults.getBody() );
 
@@ -195,15 +204,18 @@ public class OAuthMachine
         final String oauthExpiresParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_EXPIRES );
         final String oauthAccessTokenParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN );
         final String refreshTokenParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN );
+        final String idTokenParam = config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ID_TOKEN );
 
         final long expireSeconds = JavaHelper.silentParseLong( readAttributeFromBodyMap( resolveResponseBodyStr, oauthExpiresParam ), 0 );
         final String accessToken = readAttributeFromBodyMap( resolveResponseBodyStr, oauthAccessTokenParam );
         final String refreshToken = readAttributeFromBodyMap( resolveResponseBodyStr, refreshTokenParam );
+        final String idToken = readAttributeFromBodyMap( resolveResponseBodyStr, idTokenParam );
 
         return OAuthResolveResults.builder()
                 .accessToken( accessToken )
                 .refreshToken( refreshToken  )
                 .expiresSeconds( expireSeconds )
+                .idToken( idToken )
                 .build();
     }
 
@@ -217,13 +229,70 @@ public class OAuthMachine
         final String requestUrl = settings.getCodeResolveUrl();
         final String grantType = config.readAppProperty( AppProperty.OAUTH_ID_REFRESH_GRANT_TYPE );
 
+        final OAuthClientAuthMethod clientAuthMethod = settings.getEffectiveClientAuthMethod();
+
         final Map<String, String> requestParams = new HashMap<>();
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_REFRESH_TOKEN ), refreshCode );
         requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_GRANT_TYPE ), grantType );
 
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth refresh resolver", settings, requestUrl, requestParams, null );
+        if ( clientAuthMethod.requiresCredentialsInBody() )
+        {
+            requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_ID ), settings.getClientID() );
+            requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_CLIENT_SECRET ), settings.getSecret().getStringValue() );
+        }
+
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth refresh resolver", settings, requestUrl,
+                requestParams, null, clientAuthMethod.sendCredentialsInHeader() );
 
         return resolveResultsFromResponseBody( pwmRequest, restResults.getBody() );
+    }
+
+    /**
+     * Resolves the user name PWM will authenticate locally.  When a user name claim is
+     * configured the value is read from the OIDC <code>id_token</code> already returned by the token
+     * endpoint; otherwise the remote profile/userinfo web service is called as before.
+     */
+    String resolveUsername(
+            final PwmRequest pwmRequest,
+            final OAuthResolveResults resolveResults
+    )
+            throws PwmUnrecoverableException
+    {
+        if ( !settings.usernameClaimIsConfigured() )
+        {
+            return makeOAuthGetUserInfoRequest( pwmRequest, resolveResults.getAccessToken() );
+        }
+
+        return readUsernameFromIdToken( pwmRequest, resolveResults.getIdToken() );
+    }
+
+    private String readUsernameFromIdToken(
+            final PwmRequest pwmRequest,
+            final String idToken
+    )
+            throws PwmUnrecoverableException
+    {
+        final String claimNames = settings.getUsernameClaim();
+
+        final long maxClockSkewSeconds = JavaHelper.silentParseLong(
+                pwmRequest.getConfig().readAppProperty( AppProperty.OAUTH_ID_TOKEN_MAX_CLOCK_SKEW ),
+                DEFAULT_MAX_CLOCK_SKEW_SECONDS );
+
+        final String payloadJson = OAuthIdTokenReader.readValidatedPayload( idToken, settings.getClientID(), maxClockSkewSeconds );
+
+        final String oauthSuppliedUsername = readAttributeFromBodyMap( payloadJson, claimNames );
+
+        if ( StringUtil.isEmpty( oauthSuppliedUsername ) )
+        {
+            final String msg = "id_token returned by oauth server does not contain a value for the configured user name claim '" + claimNames + "'";
+            final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, msg );
+            LOGGER.error( sessionLabel, errorInformation );
+            throw new PwmUnrecoverableException( errorInformation );
+        }
+
+        LOGGER.debug( sessionLabel, () -> "received user login id value from oauth id_token claim: " + oauthSuppliedUsername );
+
+        return oauthSuppliedUsername;
     }
 
     String makeOAuthGetUserInfoRequest(
@@ -239,7 +308,7 @@ public class OAuthMachine
             final Map<String, String> requestParams = new HashMap<>();
             requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN ), accessToken );
             requestParams.put( config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_ATTRIBUTES ), settings.getDnAttributeName() );
-            restResults = makeHttpRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, accessToken );
+            restResults = makeHttpRequest( pwmRequest, "OAuth userinfo", settings, requestUrl, requestParams, accessToken, false );
         }
 
         final String resultBody = restResults.getBody();
@@ -267,7 +336,8 @@ public class OAuthMachine
             final OAuthSettings settings,
             final String requestUrl,
             final Map<String, String> requestParams,
-            final String accessToken
+            final String accessToken,
+            final boolean clientAuthInHeader
     )
             throws PwmUnrecoverableException
     {
@@ -277,15 +347,15 @@ public class OAuthMachine
         final PwmHttpClientRequest pwmHttpClientRequest;
         {
             final Map<String, String> headers = new HashMap<>( );
-            if ( StringUtil.isEmpty(  accessToken ) )
-            {
-                headers.put( HttpHeader.Authorization.getHttpName(),
-                        new BasicAuthInfo( settings.getClientID(), settings.getSecret() ).toAuthHeader() );
-            }
-            else
+            if ( !StringUtil.isEmpty(  accessToken ) )
             {
                 headers.put( HttpHeader.Authorization.getHttpName(),
                         "Bearer " + accessToken );
+            }
+            else if ( clientAuthInHeader )
+            {
+                headers.put( HttpHeader.Authorization.getHttpName(),
+                        new BasicAuthInfo( settings.getClientID(), settings.getSecret() ).toAuthHeader() );
             }
             headers.put( HttpHeader.ContentType.getHttpName(), HttpContentType.form.getHeaderValueWithEncoding() );
 
@@ -487,7 +557,8 @@ public class OAuthMachine
         }
 
         LOGGER.debug( sessionLabel, () -> "preparing to send username to OAuth /sign endpoint for future injection to /grant redirect" );
-        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth pre-inject username signing service", settings, signUrl, requestPayload, null );
+        final PwmHttpClientResponse restResults = makeHttpRequest( pwmRequest, "OAuth pre-inject username signing service",
+                settings, signUrl, requestPayload, null, true );
 
         final String resultBody = restResults.getBody();
         final Map<String, String> resultBodyMap = JsonUtil.deserializeStringMap( resultBody );
@@ -523,6 +594,44 @@ public class OAuthMachine
         final String expanded = macroRequest.expandMacros( macroText );
         LOGGER.debug( sessionLabel, () -> "calculated login_hint value for user as: " + expanded );
         return expanded;
+    }
+
+    /**
+     * Returns the scope to send on the authorize redirect.  An authorization server only issues an
+     * <code>id_token</code> when the <code>openid</code> scope is requested, so when the user name is
+     * read from an id_token claim that scope is added if the administrator has not already included it.
+     */
+    private String figureScope( final Configuration config )
+    {
+        final String configuredScope = settings.getScope();
+
+        if ( !settings.usernameClaimIsConfigured() )
+        {
+            return configuredScope;
+        }
+
+        final String requiredScope = config.readAppProperty( AppProperty.OAUTH_ID_TOKEN_REQUIRED_SCOPE );
+        if ( StringUtil.isEmpty( requiredScope ) )
+        {
+            return configuredScope;
+        }
+
+        if ( StringUtil.isEmpty( configuredScope ) )
+        {
+            return requiredScope;
+        }
+
+        final List<String> scopes = new ArrayList<>( Arrays.asList( configuredScope.trim().split( "\\s+" ) ) );
+        if ( scopes.contains( requiredScope ) )
+        {
+            return configuredScope;
+        }
+
+        scopes.add( 0, requiredScope );
+        final String effectiveScope = String.join( " ", scopes );
+        LOGGER.debug( sessionLabel, () -> "added '" + requiredScope
+                + "' to the configured oauth scope because a user name claim is configured, effective scope: " + effectiveScope );
+        return effectiveScope;
     }
 
     public String readAttributeFromBodyMap(

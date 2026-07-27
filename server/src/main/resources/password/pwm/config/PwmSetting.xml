@@ -2520,6 +2520,24 @@
         <example>@LDAP:mail@</example>
         <default/>
     </setting>
+    <setting hidden="false" key="recovery.oauth.idserver.scope" level="2">
+        <example>openid</example>
+        <default/>
+    </setting>
+    <setting hidden="false" key="recovery.oauth.idserver.usernameClaim" level="2">
+        <example>sub</example>
+        <default/>
+    </setting>
+    <setting hidden="false" key="recovery.oauth.idserver.clientAuthMethod" level="2">
+        <default>
+            <value>both</value>
+        </default>
+        <options>
+            <option value="both">Authorization Header and Request Body</option>
+            <option value="basic">Authorization Header Only (client_secret_basic)</option>
+            <option value="post">Request Body Only (client_secret_post)</option>
+        </options>
+    </setting>
     <setting hidden="false" key="recovery.enable" level="1">
         <default>
             <value>true</value>
@@ -4107,6 +4125,20 @@
     </setting>
     <setting hidden="false" key="oauth.idserver.dnAttributeName" level="2">
         <default/>
+    </setting>
+    <setting hidden="false" key="oauth.idserver.usernameClaim" level="2">
+        <example>sub</example>
+        <default/>
+    </setting>
+    <setting hidden="false" key="oauth.idserver.clientAuthMethod" level="2">
+        <default>
+            <value>both</value>
+        </default>
+        <options>
+            <option value="both">Authorization Header and Request Body</option>
+            <option value="basic">Authorization Header Only (client_secret_basic)</option>
+            <option value="post">Request Body Only (client_secret_post)</option>
+        </options>
     </setting>
     <setting hidden="false" key="https.server.cert" level="1">
         <default/>

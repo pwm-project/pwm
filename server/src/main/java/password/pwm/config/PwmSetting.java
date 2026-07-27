@@ -824,6 +824,12 @@ public enum PwmSetting
             "recovery.oauth.idserver.usernameSendValue", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH ),
     RECOVERY_OAUTH_ID_LOGIN_HINT_VALUE(
             "recovery.oauth.idserver.loginHintValue", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH ),
+    RECOVERY_OAUTH_ID_SCOPE(
+            "recovery.oauth.idserver.scope", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH ),
+    RECOVERY_OAUTH_ID_USERNAME_CLAIM(
+            "recovery.oauth.idserver.usernameClaim", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_OAUTH ),
+    RECOVERY_OAUTH_ID_CLIENT_AUTH_METHOD(
+            "recovery.oauth.idserver.clientAuthMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_OAUTH ),
 
 
     // forgotten username
@@ -1190,6 +1196,10 @@ public enum PwmSetting
             "oauth.idserver.secret", PwmSettingSyntax.PASSWORD, PwmSettingCategory.OAUTH ),
     OAUTH_ID_DN_ATTRIBUTE_NAME(
             "oauth.idserver.dnAttributeName", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH ),
+    OAUTH_ID_USERNAME_CLAIM(
+            "oauth.idserver.usernameClaim", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH ),
+    OAUTH_ID_CLIENT_AUTH_METHOD(
+            "oauth.idserver.clientAuthMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.OAUTH ),
 
     // CAS SSO
     CAS_CLEAR_PASS_URL(

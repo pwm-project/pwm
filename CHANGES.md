@@ -8,6 +8,45 @@
      so the IdP can pre-fill the username field and avoid prompting the
      user a second time. The parameter name is configurable via the
      `http.parameter.oauth.loginHint` app property (default: `login_hint`).
+- add OIDC `id_token` user name resolution, for interoperability with
+     PingFederate and other authorization servers that return identity in the
+     `id_token` rather than from a NetIQ-style profile/userinfo web service.
+     New settings `oauth.idserver.usernameClaim` and
+     `recovery.oauth.idserver.usernameClaim` ("OAuth/OIDC User Name Claim")
+     name the token claim to read (a comma-separated list is allowed, first
+     match wins).  When set, the profile/userinfo service is not called and
+     the profile service url / login attribute settings are no longer
+     required.  Default is empty, so existing deployments are unaffected.
+     The token's `aud`, `azp`, `exp` and `nbf` claims are validated; encrypted
+     (JWE) tokens are rejected with a clear error.  Clock skew tolerance is
+     configurable via the `oauth.idToken.maxClockSkewSeconds` app property
+     (default: 60) and the token response field name via
+     `http.parameter.oauth.idToken` (default: `id_token`).
+- handle user cancellation at the remote OAuth login page during the Forgotten
+     Password flow.  Previously any error response from the oauth server produced
+     an error page; a user who clicked "cancel" at the IdP had no way back.  The
+     consumer servlet now redirects to the Forgotten Password servlet with
+     `cancelOAuth=true`, which drops the in-progress OAUTH verification method and
+     returns the user to method selection (or restarts the sequence if no method
+     had been satisfied yet).  Recognized cancellation responses are configurable
+     via the `oauth.cancelErrorValues` app property, default
+     `access_denied,usrcan`, covering both the RFC 6749 section 4.1.2.1 error used
+     by PingFederate and the NetIQ OSP proprietary sub error.  The sub error
+     parameter name is configurable via `http.parameter.oauth.subError`.
+- add `oauth.idserver.clientAuthMethod` and
+     `recovery.oauth.idserver.clientAuthMethod` ("OAuth Client Authentication
+     Method") settings on both OAuth profiles, controlling how client credentials
+     are presented to the token endpoint: authorization header only
+     (`client_secret_basic`), request body only (`client_secret_post`), or both.
+     PWM has always sent both, which RFC 6749 section 2.3.1 forbids and which
+     PingFederate rejects with `invalid_request`.  Default remains both, so
+     existing NetIQ OSP deployments are unaffected.
+- add `recovery.oauth.idserver.scope` ("OAuth Scope") setting on the Forgotten
+     Password OAuth profile, mirroring the existing SSO-authentication scope
+     setting.  The Forgotten Password flow previously had no way to send a
+     scope at all, which prevented an authorization server from issuing an
+     `id_token` for that flow.  When a user name claim is configured, the
+     `openid` scope is added automatically if not already present.
 
 ## [2.0.8] - Release Feb 21, 2025
 - fix issue #711 ERROR_INVALID_FORMID and other errors with 

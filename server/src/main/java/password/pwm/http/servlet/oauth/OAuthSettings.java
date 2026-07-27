@@ -46,15 +46,42 @@ public class OAuthSettings implements Serializable
     private List<X509Certificate> certificates;
     private String usernameSendValue;
     private String loginHintValue;
+    private String usernameClaim;
+    private OAuthClientAuthMethod clientAuthMethod;
+
+    /**
+     * How client credentials are presented to the token endpoint.  Never null; an unset or
+     * unrecognized configured value falls back to PWM's legacy behavior of sending both.
+     */
+    public OAuthClientAuthMethod getEffectiveClientAuthMethod()
+    {
+        return clientAuthMethod == null ? OAuthClientAuthMethod.both : clientAuthMethod;
+    }
 
     public boolean oAuthIsConfigured()
     {
         return ( loginURL != null && !loginURL.isEmpty() )
                 && ( codeResolveUrl != null && !codeResolveUrl.isEmpty() )
-                && ( attributesUrl != null && !attributesUrl.isEmpty() )
                 && ( clientID != null && !clientID.isEmpty() )
                 && ( secret != null )
-                && ( dnAttributeName != null && !dnAttributeName.isEmpty() );
+                && usernameResolutionIsConfigured();
+    }
+
+    /**
+     * The user name is resolved either from a claim in the OIDC <code>id_token</code>, or from the
+     * profile/userinfo web service.  Only one of the two needs to be configured; the claim takes
+     * precedence when both are set.
+     */
+    public boolean usernameClaimIsConfigured()
+    {
+        return usernameClaim != null && !usernameClaim.isEmpty();
+    }
+
+    private boolean usernameResolutionIsConfigured()
+    {
+        return usernameClaimIsConfigured()
+                || ( ( attributesUrl != null && !attributesUrl.isEmpty() )
+                && ( dnAttributeName != null && !dnAttributeName.isEmpty() ) );
     }
 
     public static OAuthSettings forSSOAuthentication( final Configuration config )
@@ -68,6 +95,8 @@ public class OAuthSettings implements Serializable
                 .dnAttributeName( config.readSettingAsString( PwmSetting.OAUTH_ID_DN_ATTRIBUTE_NAME ) )
                 .certificates( config.readSettingAsCertificate( PwmSetting.OAUTH_ID_CERTIFICATE ) )
                 .scope( config.readSettingAsString( PwmSetting.OAUTH_ID_SCOPE ) )
+                .usernameClaim( config.readSettingAsString( PwmSetting.OAUTH_ID_USERNAME_CLAIM ) )
+                .clientAuthMethod( config.readSettingAsEnum( PwmSetting.OAUTH_ID_CLIENT_AUTH_METHOD, OAuthClientAuthMethod.class ) )
                 .use( OAuthUseCase.Authentication )
                 .build();
     }
@@ -85,6 +114,9 @@ public class OAuthSettings implements Serializable
                 .use( OAuthUseCase.ForgottenPassword )
                 .usernameSendValue( config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_USERNAME_SEND_VALUE ) )
                 .loginHintValue( config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_LOGIN_HINT_VALUE ) )
+                .scope( config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_SCOPE ) )
+                .usernameClaim( config.readSettingAsString( PwmSetting.RECOVERY_OAUTH_ID_USERNAME_CLAIM ) )
+                .clientAuthMethod( config.readSettingAsEnum( PwmSetting.RECOVERY_OAUTH_ID_CLIENT_AUTH_METHOD, OAuthClientAuthMethod.class ) )
                 .build();
     }
 }

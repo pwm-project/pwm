@@ -168,6 +168,8 @@ public enum AppProperty
     HTTP_PARAM_OAUTH_STATE                          ( "http.parameter.oauth.state" ),
     HTTP_PARAM_OAUTH_GRANT_TYPE                     ( "http.parameter.oauth.grantType" ),
     HTTP_PARAM_OAUTH_LOGIN_HINT                     ( "http.parameter.oauth.loginHint" ),
+    HTTP_PARAM_OAUTH_ID_TOKEN                       ( "http.parameter.oauth.idToken" ),
+    HTTP_PARAM_OAUTH_SUB_ERROR                      ( "http.parameter.oauth.subError" ),
     HTTP_DOWNLOAD_BUFFER_SIZE                       ( "http.download.buffer.size" ),
     HTTP_SESSION_RECYCLE_AT_AUTH                    ( "http.session.recycleAtAuth" ),
     HTTP_SERVLET_ENABLE_POST_REDIRECT_GET           ( "http.servlet.enablePostRedirectGet" ),
@@ -261,6 +263,9 @@ public enum AppProperty
     OAUTH_ID_REFRESH_GRANT_TYPE                     ( "oauth.id.refreshGrantType" ),
     OAUTH_ENABLE_TOKEN_REFRESH                      ( "oauth.enableTokenRefresh" ),
     OAUTH_RETURN_URL_OVERRIDE                       ( "oauth.returnUrlOverride" ),
+    OAUTH_CANCEL_ERROR_VALUES                       ( "oauth.cancelErrorValues" ),
+    OAUTH_ID_TOKEN_MAX_CLOCK_SKEW                   ( "oauth.idToken.maxClockSkewSeconds" ),
+    OAUTH_ID_TOKEN_REQUIRED_SCOPE                   ( "oauth.idToken.requiredScope" ),
 
     /* Allows one older TOTP token - compensate for clock out of sync */
     TOTP_PAST_INTERVALS                             ( "otp.totp.pastIntervals" ),

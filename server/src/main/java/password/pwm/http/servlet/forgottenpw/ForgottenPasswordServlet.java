@@ -660,6 +660,23 @@ public class ForgottenPasswordServlet extends ControlledPwmServlet
             return ProcessStatus.Halt;
         }
 
+        if ( pwmRequest.readParameterAsBoolean( PwmConstants.PARAM_RECOVERY_OAUTH_CANCEL ) )
+        {
+            LOGGER.debug( pwmRequest, () -> "oauth return detected, cancelling in-progress oauth verification method" );
+
+            if ( forgottenPasswordBean.getProgress().getSatisfiedMethods().isEmpty() )
+            {
+                pwmRequest.getPwmApplication().getSessionStateService().clearBean( pwmRequest, ForgottenPasswordBean.class );
+            }
+            else
+            {
+                forgottenPasswordBean.getProgress().setInProgressVerificationMethod( null );
+            }
+
+            pwmRequest.sendRedirect( PwmServletDefinition.ForgottenPassword );
+            return ProcessStatus.Halt;
+        }
+
         if ( forgottenPasswordBean.getUserIdentity() == null )
         {
             LOGGER.debug( pwmRequest, () -> "oauth return detected, however current session does not have a user identity stored; will restart forgotten password sequence" );
