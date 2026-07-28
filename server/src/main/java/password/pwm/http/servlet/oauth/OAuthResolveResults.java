@@ -32,4 +32,5 @@ class OAuthResolveResults implements Serializable
     private String accessToken;
     private long expiresSeconds;
     private String refreshToken;
+    private String idToken;
 }

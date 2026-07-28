@@ -43,6 +43,7 @@ import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.ldap.search.UserSearchEngine;
 import password.pwm.util.java.JavaHelper;
 import password.pwm.util.java.JsonUtil;
+import password.pwm.util.java.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
@@ -117,6 +118,21 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
             final String oauthRequestError = pwmRequest.readParameterAsString( "error" );
             if ( oauthRequestError != null && !oauthRequestError.isEmpty() )
             {
+                final String oauthRequestSubError = pwmRequest.readParameterAsString(
+                        config.readAppProperty( AppProperty.HTTP_PARAM_OAUTH_SUB_ERROR ) );
+
+                if ( isUserCancelledError( oauthRequestError, oauthRequestSubError,
+                        config.readAppProperty( AppProperty.OAUTH_CANCEL_ERROR_VALUES ) ) )
+                {
+                    LOGGER.trace( pwmRequest, () -> "received user cancellation response from oauth server" );
+
+                    if ( oAuthUseCaseCase == OAuthUseCase.ForgottenPassword )
+                    {
+                        redirectToForgottenPasswordServletWithCancel( pwmRequest );
+                        return;
+                    }
+                }
+
                 final String errorMsg = "incoming request from remote oauth server is indicating an error";
                 final ErrorInformation errorInformation = new ErrorInformation( PwmError.ERROR_OAUTH_ERROR, errorMsg );
                 LOGGER.error( pwmRequest, () -> errorMsg + ": " + oauthRequestError );
@@ -236,7 +252,7 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         }
         */
 
-        final String oauthSuppliedUsername = oAuthMachine.makeOAuthGetUserInfoRequest( pwmRequest, resolveResults.getAccessToken() );
+        final String oauthSuppliedUsername = oAuthMachine.resolveUsername( pwmRequest, resolveResults );
 
         if ( oAuthUseCaseCase == OAuthUseCase.ForgottenPassword )
         {
@@ -331,6 +347,30 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         throw new PwmUnrecoverableException( errorInformation );
     }
 
+    /**
+     * Whether the error response from the oauth server means the user declined or cancelled at the
+     * remote login page, rather than an actual failure.  The values checked are configurable because
+     * servers differ: RFC 6749 section 4.1.2.1 defines <code>error=access_denied</code>, while NetIQ
+     * OSP additionally sends <code>sub_error=usrcan</code>.
+     */
+    static boolean isUserCancelledError(
+            final String oauthRequestError,
+            final String oauthRequestSubError,
+            final String configuredCancelValues
+    )
+    {
+        for ( final String cancelValue : StringUtil.splitAndTrim( configuredCancelValues, "," ) )
+        {
+            if ( cancelValue.equalsIgnoreCase( oauthRequestError )
+                    || cancelValue.equalsIgnoreCase( oauthRequestSubError ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void redirectToForgottenPasswordServlet( final PwmRequest pwmRequest, final String oauthSuppliedUsername ) throws IOException, PwmUnrecoverableException
     {
         final OAuthForgottenPasswordResults results = new OAuthForgottenPasswordResults( true, oauthSuppliedUsername );
@@ -343,6 +383,18 @@ public class OAuthConsumerServlet extends AbstractPwmServlet
         final String nextUrl = pwmRequest.getContextPath() + PwmServletDefinition.ForgottenPassword.servletUrl();
         final String redirectUrl = PwmURL.appendAndEncodeUrlParameters( nextUrl, httpParams );
         LOGGER.debug( pwmRequest, () -> "forgotten password oauth sequence complete, redirecting to forgotten password with result data: " + JsonUtil.serialize( results ) );
+        pwmRequest.sendRedirect( redirectUrl );
+    }
+
+    private void redirectToForgottenPasswordServletWithCancel( final PwmRequest pwmRequest ) throws IOException, PwmUnrecoverableException
+    {
+        final Map<String, String> httpParams = new HashMap<>();
+        httpParams.put( PwmConstants.PARAM_RECOVERY_OAUTH_CANCEL, "true" );
+        httpParams.put( PwmConstants.PARAM_ACTION_REQUEST, ForgottenPasswordServlet.ForgottenPasswordAction.oauthReturn.toString() );
+
+        final String nextUrl = pwmRequest.getContextPath() + PwmServletDefinition.ForgottenPassword.servletUrl();
+        final String redirectUrl = PwmURL.appendAndEncodeUrlParameters( nextUrl, httpParams );
+        LOGGER.debug( pwmRequest, () -> "forgotten password oauth sequence cancelled by user, redirecting to forgotten password with cancel command" );
         pwmRequest.sendRedirect( redirectUrl );
     }
 }
